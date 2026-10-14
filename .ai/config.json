@@ -1,0 +1,8 @@
+{
+  "bundle": "bundles/1.0.0",
+  "bundle_version": "1.0.0",
+  "max_correction_rounds": 2,
+  "max_workers": 3,
+  "profile": "movie-app",
+  "schema_version": 1
+}

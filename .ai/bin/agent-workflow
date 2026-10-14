@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+import json
+import pathlib
+import sys
+path = pathlib.Path(__file__).resolve()
+state_root = path.parent.parent
+config = json.loads((state_root / "config.json").read_text())
+bundle = (state_root / config["bundle"]).resolve()
+if not bundle.is_relative_to(state_root.resolve()):
+    raise SystemExit("Bundle selection escapes installation root")
+sys.path.insert(0, str(bundle))
+from agent_workflow.cli import main
+sys.exit(main())

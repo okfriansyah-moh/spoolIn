@@ -1,0 +1,5 @@
+---
+description: Portable implementation workflow
+alwaysApply: true
+---
+Read root AGENTS.md and the pinned .ai/config.json before implementation.

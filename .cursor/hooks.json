@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "postToolUse": [
+      {
+        "command": "python3 -c 'import pathlib,runpy,sys; p=pathlib.Path.cwd(); s=next((x/'\"'\"'.ai/bin/agent-workflow'\"'\"' for x in (p,*p.parents) if (x/'\"'\"'.ai/config.json'\"'\"').is_file()),None); sys.argv=[str(s),'\"'\"'host-hook'\"'\"','\"'\"'--host'\"'\"','\"'\"'cursor'\"'\"','\"'\"'--scope'\"'\"','\"'\"'repo'\"'\"']; runpy.run_path(str(s),run_name='\"'\"'__main__'\"'\"') if s else None'",
+        "matcher": "Write|Delete",
+        "timeout": 60
+      }
+    ]
+  },
+  "version": 1
+}
