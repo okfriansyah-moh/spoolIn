@@ -367,11 +367,15 @@
     },
     ".ai/bundles/1.0.0/docs/VERIFICATION.md": {
       "kind": "file",
-      "sha256": "f447e1ec46ec7c3785fafab18486f106f261c79688d6e47714351820e6c62be5"
+      "sha256": "a689a868e3c6b5f0f173687206db8c7a38300532b9082364583042cba3cc9671"
     },
     ".ai/bundles/1.0.0/docs/verification-fixtures.json": {
       "kind": "file",
       "sha256": "1d0c4636e49bb1ff7769aab7625b325eb3a7cdec7226fff1b80c720b14e5b086"
+    },
+    ".ai/bundles/1.0.0/docs/verification-relocation.json": {
+      "kind": "file",
+      "sha256": "8f1c1ec07c362900d9908963a65a1b130c28ba0d5f0cf49000d5dea88b7c3be9"
     },
     ".ai/bundles/1.0.0/docs/verification-security.json": {
       "kind": "file",
