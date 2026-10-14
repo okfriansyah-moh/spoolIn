@@ -1,0 +1,156 @@
+{
+  "checked_at_utc": "2026-10-10T12:31:50.849573+00:00",
+  "scope": "Repository-level popularity; not individual skill adoption or measured design quality. Public GitHub API read-only snapshot.",
+  "repositories": [
+    {
+      "full_name": "affaan-m/ECC",
+      "html_url": "https://github.com/affaan-m/ECC",
+      "stargazers_count": 276242,
+      "forks_count": 41212,
+      "pushed_at": "2026-10-10T01:41:12Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/affaan-m/ECC"
+    },
+    {
+      "full_name": "anthropics/skills",
+      "html_url": "https://github.com/anthropics/skills",
+      "stargazers_count": 180259,
+      "forks_count": 21331,
+      "pushed_at": "2026-10-09T18:45:52Z",
+      "archived": false,
+      "license_api": null,
+      "metadata_source": "https://api.github.com/repos/anthropics/skills"
+    },
+    {
+      "full_name": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "html_url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "stargazers_count": 134371,
+      "forks_count": 14275,
+      "pushed_at": "2026-10-09T05:06:45Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/nextlevelbuilder/ui-ux-pro-max-skill"
+    },
+    {
+      "full_name": "shadcn-ui/ui",
+      "html_url": "https://github.com/shadcn-ui/ui",
+      "stargazers_count": 125247,
+      "forks_count": 12708,
+      "pushed_at": "2026-10-10T10:11:53Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/shadcn-ui/ui"
+    },
+    {
+      "full_name": "Leonxlnx/taste-skill",
+      "html_url": "https://github.com/Leonxlnx/taste-skill",
+      "stargazers_count": 94281,
+      "forks_count": 6416,
+      "pushed_at": "2026-10-09T21:58:20Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/Leonxlnx/taste-skill"
+    },
+    {
+      "full_name": "pbakaus/impeccable",
+      "html_url": "https://github.com/pbakaus/impeccable",
+      "stargazers_count": 79237,
+      "forks_count": 4713,
+      "pushed_at": "2026-10-09T18:44:27Z",
+      "archived": false,
+      "license_api": "Apache-2.0",
+      "metadata_source": "https://api.github.com/repos/pbakaus/impeccable"
+    },
+    {
+      "full_name": "vercel-labs/agent-skills",
+      "html_url": "https://github.com/vercel-labs/agent-skills",
+      "stargazers_count": 32157,
+      "forks_count": 2819,
+      "pushed_at": "2026-08-28T13:36:31Z",
+      "archived": false,
+      "license_api": null,
+      "metadata_source": "https://api.github.com/repos/vercel-labs/agent-skills"
+    },
+    {
+      "full_name": "anthropics/knowledge-work-plugins",
+      "html_url": "https://github.com/anthropics/knowledge-work-plugins",
+      "stargazers_count": 28584,
+      "forks_count": 3267,
+      "pushed_at": "2026-10-10T07:38:13Z",
+      "archived": false,
+      "license_api": "Apache-2.0",
+      "metadata_source": "https://api.github.com/repos/anthropics/knowledge-work-plugins"
+    },
+    {
+      "full_name": "alirezarezvani/claude-skills",
+      "html_url": "https://github.com/alirezarezvani/claude-skills",
+      "stargazers_count": 27949,
+      "forks_count": 3923,
+      "pushed_at": "2026-08-30T09:46:16Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/alirezarezvani/claude-skills"
+    },
+    {
+      "full_name": "ibelick/ui-skills",
+      "html_url": "https://github.com/ibelick/ui-skills",
+      "stargazers_count": 9576,
+      "forks_count": 443,
+      "pushed_at": "2026-10-10T08:44:59Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/ibelick/ui-skills"
+    },
+    {
+      "full_name": "huntabyte/shadcn-svelte",
+      "html_url": "https://github.com/huntabyte/shadcn-svelte",
+      "stargazers_count": 9181,
+      "forks_count": 575,
+      "pushed_at": "2026-10-05T23:34:02Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/huntabyte/shadcn-svelte"
+    },
+    {
+      "full_name": "google-labs-code/stitch-skills",
+      "html_url": "https://github.com/google-labs-code/stitch-skills",
+      "stargazers_count": 8464,
+      "forks_count": 1108,
+      "pushed_at": "2026-08-17T20:20:23Z",
+      "archived": false,
+      "license_api": "Apache-2.0",
+      "metadata_source": "https://api.github.com/repos/google-labs-code/stitch-skills"
+    },
+    {
+      "full_name": "dominikmartn/hue",
+      "html_url": "https://github.com/dominikmartn/hue",
+      "stargazers_count": 838,
+      "forks_count": 66,
+      "pushed_at": "2026-06-11T04:55:27Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/dominikmartn/hue"
+    },
+    {
+      "full_name": "natdexterra/work-with-design-systems",
+      "html_url": "https://github.com/natdexterra/work-with-design-systems",
+      "stargazers_count": 52,
+      "forks_count": 4,
+      "pushed_at": "2026-10-02T09:29:32Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/natdexterra/work-with-design-systems"
+    },
+    {
+      "full_name": "signerlabs/design-system-builder-skills",
+      "html_url": "https://github.com/signerlabs/design-system-builder-skills",
+      "stargazers_count": 7,
+      "forks_count": 1,
+      "pushed_at": "2026-03-20T14:40:49Z",
+      "archived": false,
+      "license_api": "MIT",
+      "metadata_source": "https://api.github.com/repos/signerlabs/design-system-builder-skills"
+    }
+  ]
+}

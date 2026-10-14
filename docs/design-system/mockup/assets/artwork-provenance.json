@@ -1,0 +1,34 @@
+{
+  "status": "Current artwork for the selected single design system",
+  "created": "2026-10-10",
+  "generator": "OpenAI image_gen via installed imagegen skill",
+  "purpose": "Fictional movie/TV catalog UI fixtures; not production seed",
+  "assets": [
+    {
+      "path": "hero.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original fictional film key art for a movie catalog design prototype. Create a widescreen 3:2 cinematic photograph: a solitary woman in a long dark coat seen from behind on an empty railway platform beside the sea at blue hour; a warm amber-lit vintage train on the right, distant coastal mountains and mist, a small signal light, wet reflective platform. Premium independent cinema cinematography, evocative quiet atmosphere, restrained teal shadows and warm practical light, believable photographic detail and soft film grain. Compose with quiet dark sky and sea on the left for an HTML title overlay; person and train mostly on right, person visible in center-right crop used as a poster. No text, no logos, no watermarks, no recognizable actors. Fictional film The Last Light, an intimate drama about returning home.",
+      "provenance": "Original AI-generated image. No external movie art, actor likeness, or provider license claim.",
+      "approval": "Included as illustrative artwork in the selected design; not production seed data."
+    },
+    {
+      "path": "fjord.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: portrait 2:3 original fictional documentary film poster photograph, without typography. A lone tiny red fishing boat crossing a deep emerald fjord, towering rocky green mountains, narrow beam of gold sunlight and heavy silver clouds. Calm, tactile analog-film cinematography, viewed from high above the water; beautiful restrained tonal composition, realistic atmosphere, no text or lettering or logo or watermark. Fictional documentary A Map of Quiet Places. Leave dark water in bottom third for HTML title.",
+      "provenance": "Original AI-generated image. No external movie art, actor likeness, or provider license claim.",
+      "approval": "Included as illustrative artwork in the selected design; not production seed data."
+    },
+    {
+      "path": "city.png",
+      "prompt": "Portrait 2:3 photorealistic original fictional arthouse film poster photograph without lettering. Night in a rainy Asian coastal city in 1998, one lone figure crossing a narrow lane, crimson illuminated windows, deep indigo shadows, glistening pavement, distant white headlight, analog 35mm texture, striking simple composition with deep negative space, authentic cinematic mood. No logos, text, recognizable people or existing film references. Intended as fictional film The Last Light (1998), distinct from the coastal train film.",
+      "provenance": "Original AI-generated image. No external movie art, actor likeness, or provider license claim.",
+      "approval": "Included as illustrative artwork in the selected design; not production seed data."
+    },
+    {
+      "path": "letters.png",
+      "prompt": "Portrait 2:3 photorealistic original fictional television drama poster photograph, no text. A small white lighthouse and keeper's house on a windswept ochre-grass cliff above a steel blue ocean; pale gold dusk sky, tiny warm window, distant birds, contemplative coastal atmosphere, elegant premium cinematography, soft analog film texture, clean strong silhouette. No logos, text, watermarks, recognizable copyrighted characters. Fictional TV series Letters from Tomorrow.",
+      "provenance": "Original AI-generated image. No external movie art, actor likeness, or provider license claim.",
+      "approval": "Included as illustrative artwork in the selected design; not production seed data."
+    }
+  ],
+  "icons": "One original paired-frame SVG icon, reused across both themes.",
+  "fonts": "Local system-font stacks only; no remote fonts downloaded. Appearance may vary by OS."
+}

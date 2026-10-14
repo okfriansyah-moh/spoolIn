@@ -1,0 +1,2623 @@
+{
+  "schema_version": 2,
+  "source": {
+    "path": "../02-PRD.md",
+    "version": "2.4",
+    "sha256": "03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d"
+  },
+  "targets": [
+    {
+      "id": "dark",
+      "platform": "web",
+      "product_type": "application",
+      "notes": "Theme of one responsive Svelte/TypeScript application; not a second product."
+    },
+    {
+      "id": "light",
+      "platform": "web",
+      "product_type": "application",
+      "notes": "Theme of one responsive Svelte/TypeScript application; not a second product."
+    }
+  ],
+  "screens": [
+    {
+      "id": "discovery",
+      "title": "Discovery",
+      "format": "html",
+      "file": "mockup/discovery.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer",
+        "Visitor"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-002",
+        "FR-003",
+        "FR-007",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-001",
+        "AC-002",
+        "AC-003",
+        "AC-006",
+        "AC-007",
+        "AC-008",
+        "AC-009",
+        "AC-010",
+        "AC-011",
+        "AC-012",
+        "AC-013",
+        "AC-014",
+        "AC-015",
+        "AC-083",
+        "AC-084",
+        "AC-139",
+        "AC-159"
+      ],
+      "states": [
+        "catalog",
+        "catalog-loading",
+        "catalog-empty",
+        "catalog-failure",
+        "catalog-outdated",
+        "catalog-invalid",
+        "catalog-no-match"
+      ],
+      "state_locations": {
+        "catalog": "#catalog",
+        "catalog-loading": "#catalog-loading",
+        "catalog-empty": "#catalog-empty",
+        "catalog-failure": "#catalog-failure",
+        "catalog-outdated": "#catalog-outdated",
+        "catalog-invalid": "#catalog-invalid",
+        "catalog-no-match": "#catalog-no-match"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "details",
+      "title": "Details",
+      "format": "html",
+      "file": "mockup/details.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer",
+        "Visitor"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-007",
+        "FR-012"
+      ],
+      "acceptance": [
+        "AC-001",
+        "AC-003",
+        "AC-004",
+        "AC-005",
+        "AC-010",
+        "AC-029",
+        "AC-030",
+        "AC-031",
+        "AC-032",
+        "AC-107",
+        "AC-113",
+        "AC-123",
+        "AC-134"
+      ],
+      "states": [
+        "movie",
+        "tv",
+        "unavailable",
+        "identities"
+      ],
+      "state_locations": {
+        "movie": "#movie",
+        "tv": "#tv",
+        "unavailable": "#unavailable",
+        "identities": "#identities"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "account",
+      "title": "Account",
+      "format": "html",
+      "file": "mockup/account.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer",
+        "Visitor"
+      ],
+      "requirements": [
+        "FR-011",
+        "FR-012",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-047",
+        "AC-048",
+        "AC-049",
+        "AC-050",
+        "AC-051",
+        "AC-052",
+        "AC-083",
+        "AC-084",
+        "AC-111",
+        "AC-112",
+        "AC-125",
+        "AC-139",
+        "AC-141",
+        "AC-142",
+        "AC-145",
+        "AC-146",
+        "AC-155"
+      ],
+      "states": [
+        "login",
+        "register",
+        "registered",
+        "registration-failure",
+        "viewer",
+        "maintainer"
+      ],
+      "state_locations": {
+        "login": "#login",
+        "register": "#register",
+        "registered": "#registered",
+        "registration-failure": "#registration-failure",
+        "viewer": "#viewer",
+        "maintainer": "#maintainer"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "session",
+      "title": "Session",
+      "format": "html",
+      "file": "mockup/session.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer",
+        "Visitor"
+      ],
+      "requirements": [
+        "FR-011",
+        "FR-012"
+      ],
+      "acceptance": [
+        "AC-047",
+        "AC-048",
+        "AC-050",
+        "AC-051",
+        "AC-052",
+        "AC-104",
+        "AC-105",
+        "AC-113",
+        "AC-123",
+        "AC-125",
+        "AC-128",
+        "AC-134"
+      ],
+      "states": [
+        "session-check",
+        "auth-unavailable",
+        "expired",
+        "denied",
+        "recheck",
+        "other-account",
+        "signout",
+        "signed-out",
+        "signout-failed",
+        "signout-uncertain"
+      ],
+      "state_locations": {
+        "session-check": "#session-check",
+        "auth-unavailable": "#auth-unavailable",
+        "expired": "#expired",
+        "denied": "#denied",
+        "recheck": "#recheck",
+        "other-account": "#other-account",
+        "signout": "#signout",
+        "signed-out": "#signed-out",
+        "signout-failed": "#signout-failed",
+        "signout-uncertain": "#signout-uncertain"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "management",
+      "title": "Management",
+      "format": "html",
+      "file": "mockup/management.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer"
+      ],
+      "requirements": [
+        "FR-004",
+        "FR-010",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-016",
+        "AC-017",
+        "AC-018",
+        "AC-020",
+        "AC-021",
+        "AC-046",
+        "AC-053",
+        "AC-054",
+        "AC-068",
+        "AC-073",
+        "AC-075",
+        "AC-083",
+        "AC-084",
+        "AC-085",
+        "AC-104",
+        "AC-105",
+        "AC-110",
+        "AC-143",
+        "AC-144",
+        "AC-148"
+      ],
+      "states": [
+        "movies",
+        "editor",
+        "create",
+        "saved",
+        "save-failed",
+        "save-uncertain",
+        "save-resolved",
+        "target-changed",
+        "media-outage",
+        "draft-cancel"
+      ],
+      "state_locations": {
+        "movies": "#movies",
+        "editor": "#editor",
+        "create": "#create",
+        "saved": "#saved",
+        "save-failed": "#save-failed",
+        "save-uncertain": "#save-uncertain",
+        "save-resolved": "#save-resolved",
+        "target-changed": "#target-changed",
+        "media-outage": "#media-outage",
+        "draft-cancel": "#draft-cancel"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "people",
+      "title": "People",
+      "format": "html",
+      "file": "mockup/people.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer",
+        "Visitor"
+      ],
+      "requirements": [
+        "FR-001",
+        "FR-002",
+        "FR-005",
+        "FR-006",
+        "FR-007",
+        "FR-012",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-004",
+        "AC-006",
+        "AC-022",
+        "AC-023",
+        "AC-025",
+        "AC-027",
+        "AC-031",
+        "AC-083",
+        "AC-084",
+        "AC-104",
+        "AC-107",
+        "AC-113",
+        "AC-123",
+        "AC-134",
+        "AC-135",
+        "AC-136",
+        "AC-140",
+        "AC-142",
+        "AC-143",
+        "AC-148"
+      ],
+      "states": [
+        "people",
+        "people-loading",
+        "people-empty",
+        "people-failure",
+        "person-unavailable",
+        "person",
+        "person-edit",
+        "person-conflict",
+        "person-archived"
+      ],
+      "state_locations": {
+        "people": "#people",
+        "people-loading": "#people-loading",
+        "people-empty": "#people-empty",
+        "people-failure": "#people-failure",
+        "person-unavailable": "#person-unavailable",
+        "person": "#person",
+        "person-edit": "#person-edit",
+        "person-conflict": "#person-conflict",
+        "person-archived": "#person-archived"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "credits",
+      "title": "Credits",
+      "format": "html",
+      "file": "mockup/credits.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer"
+      ],
+      "requirements": [
+        "FR-005",
+        "FR-006",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-026",
+        "AC-027",
+        "AC-028",
+        "AC-083",
+        "AC-084",
+        "AC-105",
+        "AC-132",
+        "AC-135",
+        "AC-136",
+        "AC-143",
+        "AC-144"
+      ],
+      "states": [
+        "credits",
+        "credit-duplicate",
+        "credit-retained"
+      ],
+      "state_locations": {
+        "credits": "#credits",
+        "credit-duplicate": "#credit-duplicate",
+        "credit-retained": "#credit-retained"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "artwork",
+      "title": "Artwork",
+      "format": "html",
+      "file": "mockup/artwork.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer"
+      ],
+      "requirements": [
+        "FR-009",
+        "FR-010",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-038",
+        "AC-039",
+        "AC-040",
+        "AC-041",
+        "AC-042",
+        "AC-043",
+        "AC-044",
+        "AC-045",
+        "AC-046",
+        "AC-075",
+        "AC-083",
+        "AC-084",
+        "AC-139",
+        "AC-149",
+        "AC-150",
+        "AC-151",
+        "AC-152",
+        "AC-153",
+        "AC-155",
+        "AC-157"
+      ],
+      "states": [
+        "artwork",
+        "artwork-transfer",
+        "artwork-processing",
+        "artwork-attached",
+        "artwork-cancelled",
+        "artwork-invalid",
+        "artwork-failed",
+        "artwork-target",
+        "artwork-uncertain",
+        "artwork-policy"
+      ],
+      "state_locations": {
+        "artwork": "#artwork",
+        "artwork-transfer": "#artwork-transfer",
+        "artwork-processing": "#artwork-processing",
+        "artwork-attached": "#artwork-attached",
+        "artwork-cancelled": "#artwork-cancelled",
+        "artwork-invalid": "#artwork-invalid",
+        "artwork-failed": "#artwork-failed",
+        "artwork-target": "#artwork-target",
+        "artwork-uncertain": "#artwork-uncertain",
+        "artwork-policy": "#artwork-policy"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "archives",
+      "title": "Archives",
+      "format": "html",
+      "file": "mockup/archives.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer"
+      ],
+      "requirements": [
+        "FR-004",
+        "FR-005",
+        "FR-006",
+        "FR-012",
+        "FR-013"
+      ],
+      "acceptance": [
+        "AC-019",
+        "AC-024",
+        "AC-108",
+        "AC-109",
+        "AC-110",
+        "AC-113",
+        "AC-129",
+        "AC-130",
+        "AC-131",
+        "AC-132",
+        "AC-133",
+        "AC-134",
+        "AC-135",
+        "AC-136",
+        "AC-137"
+      ],
+      "states": [
+        "movie-archive",
+        "movie-impact",
+        "movie-restore",
+        "movie-delete",
+        "person-archive",
+        "person-impact",
+        "person-restore",
+        "person-delete",
+        "impact-changed",
+        "deleted",
+        "archive-loading",
+        "archive-empty",
+        "archive-failed",
+        "archive-uncertain",
+        "archive-denied",
+        "impact-current"
+      ],
+      "state_locations": {
+        "movie-archive": "#movie-archive",
+        "movie-impact": "#movie-impact",
+        "movie-restore": "#movie-restore",
+        "movie-delete": "#movie-delete",
+        "person-archive": "#person-archive",
+        "person-impact": "#person-impact",
+        "person-restore": "#person-restore",
+        "person-delete": "#person-delete",
+        "impact-changed": "#impact-changed",
+        "deleted": "#deleted",
+        "archive-loading": "#archive-loading",
+        "archive-empty": "#archive-empty",
+        "archive-failed": "#archive-failed",
+        "archive-uncertain": "#archive-uncertain",
+        "archive-denied": "#archive-denied",
+        "impact-current": "#impact-current"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "audit",
+      "title": "Audit",
+      "format": "html",
+      "file": "mockup/audit.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer"
+      ],
+      "requirements": [
+        "FR-012",
+        "FR-013"
+      ],
+      "acceptance": [
+        "AC-053",
+        "AC-054",
+        "AC-055",
+        "AC-056",
+        "AC-114",
+        "AC-115",
+        "AC-127",
+        "AC-131",
+        "AC-132",
+        "AC-133",
+        "AC-137"
+      ],
+      "states": [
+        "audit",
+        "audit-detail",
+        "audit-loading",
+        "audit-empty",
+        "audit-failed",
+        "audit-denied"
+      ],
+      "state_locations": {
+        "audit": "#audit",
+        "audit-detail": "#audit-detail",
+        "audit-loading": "#audit-loading",
+        "audit-empty": "#audit-empty",
+        "audit-failed": "#audit-failed",
+        "audit-denied": "#audit-denied"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "ai",
+      "title": "Ai",
+      "format": "html",
+      "file": "mockup/ai.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer"
+      ],
+      "requirements": [
+        "FR-012",
+        "FR-016",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-116",
+        "AC-117",
+        "AC-118",
+        "AC-119",
+        "AC-120",
+        "AC-121",
+        "AC-122",
+        "AC-123",
+        "AC-126",
+        "AC-148",
+        "AC-156"
+      ],
+      "states": [
+        "chatgpt",
+        "claude",
+        "ai-approved",
+        "ai-created",
+        "ai-corrected",
+        "ai-rejected",
+        "ai-denied",
+        "ai-unknown",
+        "ai-uncertain",
+        "ai-hostile",
+        "ai-approved-v2",
+        "ai-created-v2"
+      ],
+      "state_locations": {
+        "chatgpt": "#chatgpt",
+        "claude": "#claude",
+        "ai-approved": "#ai-approved",
+        "ai-created": "#ai-created",
+        "ai-corrected": "#ai-corrected",
+        "ai-rejected": "#ai-rejected",
+        "ai-denied": "#ai-denied",
+        "ai-unknown": "#ai-unknown",
+        "ai-uncertain": "#ai-uncertain",
+        "ai-hostile": "#ai-hostile",
+        "ai-approved-v2": "#ai-approved-v2",
+        "ai-created-v2": "#ai-created-v2"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    },
+    {
+      "id": "policies",
+      "title": "Policies",
+      "format": "html",
+      "file": "mockup/policies.html",
+      "targets": [
+        "dark",
+        "light"
+      ],
+      "roles": [
+        "Maintainer",
+        "Viewer",
+        "Visitor"
+      ],
+      "requirements": [
+        "FR-004",
+        "FR-007",
+        "FR-017"
+      ],
+      "acceptance": [
+        "AC-017",
+        "AC-030",
+        "AC-128",
+        "AC-139",
+        "AC-140",
+        "AC-141",
+        "AC-142",
+        "AC-143",
+        "AC-144",
+        "AC-147",
+        "AC-153",
+        "AC-154",
+        "AC-155",
+        "AC-157"
+      ],
+      "states": [
+        "text-boundaries",
+        "optional-clearing",
+        "policy-changed",
+        "policy-unavailable"
+      ],
+      "state_locations": {
+        "text-boundaries": "#text-boundaries",
+        "optional-clearing": "#optional-clearing",
+        "policy-changed": "#policy-changed",
+        "policy-unavailable": "#policy-unavailable"
+      },
+      "viewports": [
+        1440,
+        390,
+        320
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "FR-001",
+      "disposition": "visual",
+      "screens": [
+        "discovery",
+        "details",
+        "people"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-002",
+      "disposition": "visual",
+      "screens": [
+        "discovery",
+        "people"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-003",
+      "disposition": "visual",
+      "screens": [
+        "discovery"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-004",
+      "disposition": "visual",
+      "screens": [
+        "management",
+        "archives",
+        "policies"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-005",
+      "disposition": "visual",
+      "screens": [
+        "people",
+        "credits",
+        "archives"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-006",
+      "disposition": "visual",
+      "screens": [
+        "people",
+        "credits",
+        "archives"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-007",
+      "disposition": "visual",
+      "screens": [
+        "discovery",
+        "details",
+        "people",
+        "policies"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-008",
+      "disposition": "technical",
+      "screens": [],
+      "notes": "Initial seed count, snapshot, provenance validation and non-destructive reruns are data/engineering work; illustrative fixtures do not claim the 100/100 seed."
+    },
+    {
+      "id": "FR-009",
+      "disposition": "visual",
+      "screens": [
+        "artwork"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-010",
+      "disposition": "visual",
+      "screens": [
+        "management",
+        "artwork"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-011",
+      "disposition": "visual",
+      "screens": [
+        "account",
+        "session"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-012",
+      "disposition": "visual",
+      "screens": [
+        "details",
+        "account",
+        "session",
+        "people",
+        "archives",
+        "audit",
+        "ai"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-013",
+      "disposition": "visual",
+      "screens": [
+        "archives",
+        "audit"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-014",
+      "disposition": "technical",
+      "screens": [],
+      "notes": "Durable follow-up, attempts and operations recovery are restricted operational tooling, not another application role or management screen (PRD 6.1)."
+    },
+    {
+      "id": "FR-015",
+      "disposition": "technical",
+      "screens": [],
+      "notes": "Notification delivery and storm prevention are operations responsibilities outside the catalog UI; no alert-management product screen is added."
+    },
+    {
+      "id": "FR-016",
+      "disposition": "visual",
+      "screens": [
+        "ai"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    },
+    {
+      "id": "FR-017",
+      "disposition": "visual",
+      "screens": [
+        "discovery",
+        "account",
+        "management",
+        "people",
+        "credits",
+        "artwork",
+        "ai",
+        "policies"
+      ],
+      "notes": "Visible contract is illustrated; production enforcement and data persistence remain technical-design work."
+    }
+  ],
+  "quality_requirements": [
+    {
+      "id": "NFR-001",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-001 | Required assessment stack and real frontend/backend protocols | A01 through A05, D03 Required | AC-064 through AC-066; [section 10](#10-compact-engineering-handoff) |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-002",
+      "disposition": "cross-cutting",
+      "screens": [
+        "management",
+        "artwork"
+      ],
+      "source_excerpt": "| NFR-002 | Preferred App/Catalog/Media ownership with unrelated catalog work usable during artwork outage | D02/D10 Working design | AC-067, AC-068; [section 10](#10-compact-engineering-handoff) |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-003",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-003 | Saved data/artwork persist through restarts; committed persistence safeguards remain | D18/D19 Committed | AC-069 through AC-071 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-004",
+      "disposition": "cross-cutting",
+      "screens": [
+        "management",
+        "artwork",
+        "archives"
+      ],
+      "source_excerpt": "| NFR-004 | Safe recovery is bounded and respects cancellation; uncertain outcomes cannot multiply effects | D21 Committed; D22 defaults Recommended | AC-072 through AC-075 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-005",
+      "disposition": "cross-cutting",
+      "screens": [
+        "policies"
+      ],
+      "source_excerpt": "| NFR-005 | Setup rejects unusable configuration and protects secrets | D13/D21; configuration and secret protection Committed | AC-076 through AC-078, AC-153 through AC-155, AC-157 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-006",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-006 | Operations owners can assess readiness, diagnose user failures, and act on alerts | D23 Committed | AC-079 through AC-082 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-007",
+      "disposition": "cross-cutting",
+      "screens": [
+        "discovery",
+        "details",
+        "account",
+        "session",
+        "management",
+        "people",
+        "credits",
+        "artwork",
+        "archives",
+        "audit",
+        "ai",
+        "policies"
+      ],
+      "source_excerpt": "| NFR-007 | Responsive, keyboard-usable journeys with accurate feedback and retained recoverable work | A13/A14 Required; keyboard use Committed | AC-083 through AC-085, AC-139, AC-147, AC-159 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-008",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-008 | Meaningful unit/edge and integration evidence proves release behavior | A12 Required; D19 Committed | AC-086 through AC-088 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-009",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-009 | Cohesive vertical slices and understandable, maintainable submitted code | D04/D17 Committed | AC-089, AC-090 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-010",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-010 | Reproducible local setup preserves normal data and isolates verification | D13/D24 Committed | AC-091 through AC-094 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-011",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-011 | Accessible repository, truthful README/AI disclosure, and code ownership | A15 through A17 Required; D01 Committed | AC-095 through AC-097 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-012",
+      "disposition": "technical",
+      "screens": [],
+      "source_excerpt": "| NFR-012 | Risk-informed security consideration with accurate evidence and limitations | D06 Committed | AC-098, AC-099 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
+    },
+    {
+      "id": "NFR-013",
+      "disposition": "cross-cutting",
+      "screens": [
+        "policies",
+        "management",
+        "account"
+      ],
+      "source_excerpt": "| NFR-013 | Interfaces implement the product's validation, optional data, access, and failure behavior | A04/A05/A14 Required support; detailed contracts Open | AC-100 through AC-103, AC-142/AC-143, AC-148 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-014",
+      "disposition": "cross-cutting",
+      "screens": [
+        "management",
+        "people",
+        "archives",
+        "ai"
+      ],
+      "source_excerpt": "| NFR-014 | Preserve stale drafts and prevent unintended duplicate effects without merging distinct works/people | Approved product policy Committed; D09 mechanism Recommended; D21 safe replay Committed | AC-104 through AC-107 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-015",
+      "disposition": "cross-cutting",
+      "screens": [
+        "account",
+        "session",
+        "audit",
+        "ai"
+      ],
+      "source_excerpt": "| NFR-015 | Protect account PII with the selected encryption/rotation constraint; passwords use one-way hashing | Committed product policy ([section 13.1](#131-resolved-product-decisions)) | AC-123 through AC-125, AC-127, AC-128; [section 10](#10-compact-engineering-handoff) |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    },
+    {
+      "id": "NFR-016",
+      "disposition": "cross-cutting",
+      "screens": [
+        "policies",
+        "account",
+        "artwork",
+        "ai"
+      ],
+      "source_excerpt": "| NFR-016 | Treat entered text and artwork as untrusted content; enforce the effective policy without unsafe execution, bypass, or silent data loss | Committed input policy ([section 5.5](#55-input-validation-and-artwork-policy)); mechanisms assigned to techdoc | AC-142/AC-143, AC-147/AC-148, AC-151 through AC-158 |",
+      "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. Inspect the linked flows and acceptance-specific references."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/details.html#movie"
+      ],
+      "source_excerpt": "| AC-001 | List and details | Active movies/TV series exist | A reader opens the catalog and a title | The correct title/type, available artwork, metadata, and visible credits appear. No episode-tracking controls appear. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-002",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog-loading",
+        "mockup/discovery.html#catalog-empty",
+        "mockup/discovery.html#catalog-failure"
+      ],
+      "source_excerpt": "| AC-002 | Loading, empty, failure | A catalog request is pending, empty, or failed | The reader waits for it | Show loading, a successful empty state, or a failure with retry respectively; an outage never appears as an empty catalog. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-003",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/details.html#movie"
+      ],
+      "source_excerpt": "| AC-003 | Missing artwork | Artwork is absent or fails to load | A title is displayed | A placeholder preserves readable title information and navigation; missing artwork does not make the title disappear. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-004",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/people.html#person-unavailable",
+        "mockup/people.html#person"
+      ],
+      "source_excerpt": "| AC-004 | Shared and absent credits | An active person has cast/creator credits, another person or title is archived, or credits are unknown | The reader opens public credits | Show applicable credits only where both title and person are active, without cloning the person; unknown credits remain explicit. No archived person/title information or retained credit relationship appears publicly. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-005",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#unavailable"
+      ],
+      "source_excerpt": "| AC-005 | Unavailable title | A movie was archived or deleted after listing | A visitor/Viewer opens its old detail link | Report that it is unavailable and provide catalog navigation; do not expose archived information or substitute a same-named title. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-006",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/people.html#people"
+      ],
+      "source_excerpt": "| AC-006 | Matching | Visible titles have display/original titles and active cast/creator people have names | The reader searches titles or people with a differently cased substring | Return matching visible titles for title search and matching active cast/creator people for name search. Archived people are not returned, and their retained credits do not provide a public title-search match; independent matching title text still may. Account data never appear. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-007",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/discovery.html#catalog-no-match"
+      ],
+      "source_excerpt": "| AC-007 | No match / clear | Text has no matches with current filters | The reader searches, then clears text | Show no matches first; clearing removes only the text restriction and preserves other filters. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-008",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/discovery.html#catalog-invalid"
+      ],
+      "source_excerpt": "| AC-008 | Navigation and order | Results include ties, partial dates, and unknown dates | The reader browses results repeatedly | Titles default to newest release context first, unknown dates last; equal input/data have consistent ordering without navigation duplication. Show correction for input outside supported limits. Search length follows [section 5.5](#55-input-validation-and-artwork-policy); navigation and other query limits are techdoc work. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-009",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog-loading",
+        "mockup/discovery.html#catalog-failure",
+        "mockup/discovery.html#catalog-outdated"
+      ],
+      "source_excerpt": "| AC-009 | Rapid edits / failure | The reader changes a pending search | Results arrive out of order or the latest request fails | Only current criteria control the displayed result; retain those criteria and show their loading/failure state with retry. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-010",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog-failure",
+        "mockup/discovery.html#catalog-outdated",
+        "mockup/details.html#unavailable"
+      ],
+      "source_excerpt": "| AC-010 | Permission / interruption | A restricted read is attempted or navigation interrupts a search | The request ends | No restricted data are shown; old results cannot replace the reader's current view. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-011",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog"
+      ],
+      "source_excerpt": "| AC-011 | Combined filters | Titles vary in genre, type, year/month, and text | The reader combines filters | Results match at least one selected genre and every other active filter category; resetting one category preserves the others. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-012",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog"
+      ],
+      "source_excerpt": "| AC-012 | Partial dates | Titles are known as 2024, October 2024, and 9 October 2024 | The reader selects 2024, then October | All match the year; only the latter two match October. No missing month/day is fabricated. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-013",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog"
+      ],
+      "source_excerpt": "| AC-013 | Unknown year | A title's release year is unknown | A year filter is applied or removed | Exclude it while a year is selected; allow it without a date filter. Never filter on the date the record was added. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-014",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog"
+      ],
+      "source_excerpt": "| AC-014 | Month validation | No year is selected, or the month is invalid | The reader attempts a month filter or clears year | Month requires a year; invalid months receive correction; clearing year clears month so no hidden date restriction remains. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-015",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/discovery.html#catalog-no-match"
+      ],
+      "source_excerpt": "| AC-015 | Empty combination | Valid combined filters exclude all titles | Search completes | Show no matches and retain editable filters; do not silently broaden them. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-016",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#movies",
+        "mockup/management.html#create",
+        "mockup/management.html#saved"
+      ],
+      "source_excerpt": "| AC-016 | Create | A Maintainer supplies title, synopsis, genre(s), and release year | A valid creation completes | One active movie appears with its saved information and an attributable audit entry; missing optional values remain unknown. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-017",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#movies",
+        "mockup/management.html#editor",
+        "mockup/management.html#saved",
+        "mockup/policies.html#optional-clearing"
+      ],
+      "source_excerpt": "| AC-017 | Update | An active movie is open for editing | Valid edits are saved | Show the confirmed updated information under the same movie identity, preserving unaffected details and relationships. Clearing an optional value differs from leaving it unchanged. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-018",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#editor",
+        "mockup/management.html#create",
+        "mockup/management.html#save-failed"
+      ],
+      "source_excerpt": "| AC-018 | Validation / denied write | Required data are blank/missing, changed input violates the effective bounds/content policy, or permission is absent | A save is attempted | No partial catalog edit occurs; show corrective/permission feedback and retain permitted input. Never retain or echo passwords as form-recovery data. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-019",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#movie-delete",
+        "mockup/archives.html#deleted"
+      ],
+      "source_excerpt": "| AC-019 | Permanent deletion | A movie is archived and a Maintainer sees its deletion consequences | They separately confirm permanent deletion | Remove it from the archive and catalog permanently, remove its credits, preserve shared people and other titles' artwork, and retain an attributable deletion record. No restore action remains. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-020",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#editor",
+        "mockup/management.html#target-changed"
+      ],
+      "source_excerpt": "| AC-020 | Changed/removed target | Another action changed, archived, or deleted an edited movie | A stale edit is submitted | Do not overwrite or resurrect it; explain its current state and retain the permitted draft for review. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-021",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#save-uncertain",
+        "mockup/management.html#save-resolved",
+        "mockup/management.html#media-outage"
+      ],
+      "source_excerpt": "| AC-021 | Lost response / artwork outage | A movie save loses confirmation or artwork handling is unavailable | The Maintainer checks the outcome or edits only metadata | Resolve uncertain saves before suggesting resubmission; metadata-only work remains usable independently of artwork availability. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-022",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#people",
+        "mockup/people.html#people-loading",
+        "mockup/people.html#people-empty",
+        "mockup/people.html#people-failure",
+        "mockup/people.html#person"
+      ],
+      "source_excerpt": "| AC-022 | List/search people | Active people exist or the public list is empty; archived people may also exist | A reader lists/searches people, or a Maintainer opens the people archive | Public results show active catalog people and permitted roles; the Maintainer-only archive identifies archived people and retained credits. Show distinct loading/empty/no-match/failure states; same names do not collapse identities. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-023",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#person-edit",
+        "mockup/people.html#person-archived"
+      ],
+      "source_excerpt": "| AC-023 | Create/update | A Maintainer supplies a person name within the effective limits in section 5.5 and valid available details for a new or active person | Save succeeds | Preserve one shared person identity and show corrections through its visible credits. Reject missing/invalid required information with retained input and no partial save; archived people require restoration before editing. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-024",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-delete",
+        "mockup/archives.html#deleted"
+      ],
+      "source_excerpt": "| AC-024 | Permanent person deletion | A person is archived and a Maintainer reviews the current affected active movies, archived movies, and TV titles | They separately confirm permanent deletion | Remove the person and all remaining retained credits while preserving titles; retain an attributable deletion record and provide no restore. Cancellation removes nothing. Restoring a title cannot recreate the person or credits. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-025",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#person-conflict"
+      ],
+      "source_excerpt": "| AC-025 | Missing/denied/competing action | The person disappeared, changed, was archived, or the actor lacks permission | A write is attempted | Explain the unavailable/denied/conflict result, preserve permitted draft work, and avoid duplicate or unintended edits. Archiving does not authorize a stale active-person save or recreation. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-026",
+      "disposition": "visual",
+      "locations": [
+        "mockup/credits.html#credits"
+      ],
+      "source_excerpt": "| AC-026 | Multiple roles | An active shared person and active movie exist | A Maintainer assigns credits | Actor/Director/Writer/Producer are available; custom roles fit Cast or Creator; one person may have multiple roles and multiple acting character names without cloning the person. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-027",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#person-archived",
+        "mockup/credits.html#credits",
+        "mockup/credits.html#credit-duplicate"
+      ],
+      "source_excerpt": "| AC-027 | Invalid/duplicate credit | A name/category/reference is missing, the selected person is archived, or an identical credit exists | The Maintainer saves a new credit | Request correction for invalid input; reject assignment to an archived person until restored, and do not create duplicate identical display entries. Custom labels use consistent category/identity treatment. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-028",
+      "disposition": "visual",
+      "locations": [
+        "mockup/credits.html#credits",
+        "mockup/credits.html#credit-retained"
+      ],
+      "source_excerpt": "| AC-028 | Remove credit / changing references | An active movie credit exists; its person may be archived or its references may change | A Maintainer removes or updates the credit | A valid permitted change is attributable without deleting the shared person. Removing a retained credit for an archived person is allowed on an active movie and is not reversed by person restoration. Changed/missing references require review and leave no dangling visible credit. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-029",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/details.html#tv"
+      ],
+      "source_excerpt": "| AC-029 | Seed metadata | A seeded title is opened | The reader inspects its details | Show usable title/type, synopsis, genres, release/first-air context, known optional metadata, and source attribution; preserve synopsis language. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-030",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/details.html#tv",
+        "mockup/policies.html#optional-clearing"
+      ],
+      "source_excerpt": "| AC-030 | Unknown optional data | Runtime, country, credits, end date, external ID, or artwork is unknown | The record is displayed or edited | Unknown is explicit; it does not become zero runtime, invented credits, a fabricated date, or guessed artwork. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-031",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/details.html#tv",
+        "mockup/details.html#identities",
+        "mockup/people.html#people",
+        "mockup/people.html#person"
+      ],
+      "source_excerpt": "| AC-031 | Identity/provenance | Remakes or people share names, or sources use similar identifiers | Records are inspected or seeded again | Distinct works/people retain identities; source-scoped IDs and source record/link, snapshot/retrieval date, and reuse notes remain available. Text alone never merges them. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-032",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#tv"
+      ],
+      "source_excerpt": "| AC-032 | TV/date labels | A series has first-air context, status, and optional end context/runtime | Its details are viewed | Label series status and first-air/end information honestly; label TV duration as episode runtime and retain year/year-month/full-date precision. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-033",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-033 | Fresh initial seed | The application has an empty initialized catalog | The documented initial seed completes | Exactly 100 distinct movies and 100 distinct TV series with required seed metadata exist; shared people/genres/credits are not duplicated. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-034",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-034 | Variety | The initial dataset and manifest exist | Counts and release context are inspected | Each type spans multiple years, older/newer titles, and multiple known months; documented ranges/counts reconcile with the dataset. Equal quotas and every-month coverage are unnecessary. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-035",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-035 | Preserve user decisions | Seeded movies or people were edited, archived, or permanently deleted, credits were removed, and user records were added | Ordinary seeding runs again | Preserve those decisions and user-created records; do not recreate deleted movies/people, reactivate archived records, reinstate removed credits, or duplicate titles/people/genres/credits. The original 100/100 target is not a later catalog cap or reset instruction. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-036",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-036 | Interrupted/concurrent seed | Seed execution is interrupted, repeated, or overlaps | It resumes or completes | Report a truthful partial/failure/completed outcome without duplicate records or lost user decisions; a changed snapshot is not silently treated as the same input. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-037",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-037 | Repeatable/invalid input | Two fresh setups use the same snapshot, or required seed data are invalid | Seeding runs | Valid setups produce equivalent identities/metadata/counts; invalid records cannot be silently omitted while reporting a successful 100/100 dataset. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-038",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork",
+        "mockup/artwork.html#artwork-transfer",
+        "mockup/artwork.html#artwork-processing",
+        "mockup/artwork.html#artwork-attached"
+      ],
+      "source_excerpt": "| AC-038 | Progress | A Maintainer selects a supported file | Transfer and processing run | Show measured transfer progress, separate processing, then saved only after the movie displays the confirmed attachment. Transfer at 100% is not a saved result. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-039",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork",
+        "mockup/artwork.html#artwork-invalid"
+      ],
+      "source_excerpt": "| AC-039 | Invalid file | Content is empty, malformed, animated, disguised, unsupported, unsafe, or outside displayed limits | Upload is attempted | Explain the applicable format/size/content/processing-limit issue and attach nothing; preserve previous artwork. Enforce section 5.5 against actual content, not filename or declared type alone. The techdoc defines validation mechanisms and processing limits. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-040",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-target"
+      ],
+      "source_excerpt": "| AC-040 | Permission/target changes | Permission expires or the movie is archived/deleted during upload | Attachment is attempted | Do not attach to an unauthorized/unavailable target; explain the outcome and preserve the previous valid artwork. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-041",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-transfer",
+        "mockup/artwork.html#artwork-cancelled",
+        "mockup/artwork.html#artwork-failed"
+      ],
+      "source_excerpt": "| AC-041 | Interrupted upload | Transfer is cancelled/interrupted or storage fails | The operation ends | Show cancellation/failure without claiming success, preserve the previous artwork, and allow a fresh attempt once the outcome is known. Resume-from-byte support is not required. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-042",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-attached",
+        "mockup/artwork.html#artwork-uncertain"
+      ],
+      "source_excerpt": "| AC-042 | Repeated upload | A completed/pending upload is repeated | Requests are processed | Do not create unintended duplicate attachments; show the known result or pending outcome instead of treating each repeat as a new success. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-043",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-failed"
+      ],
+      "source_excerpt": "| AC-043 | Upload succeeded, attachment failed | File transfer/processing completed but the movie was not updated | The Maintainer sees the result | Clearly report that artwork was not attached; keep prior artwork, and offer a safe retry after confirming the failed outcome. No unattached image becomes public. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-044",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-attached",
+        "mockup/artwork.html#artwork-failed"
+      ],
+      "source_excerpt": "| AC-044 | Replacement | A movie already has valid artwork | Replacement succeeds or fails | Success displays the new confirmed image; failure preserves the previous image. Later cleanup cannot remove another title's valid artwork. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-045",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-uncertain"
+      ],
+      "source_excerpt": "| AC-045 | Uncertain attachment | Confirmation is lost after submission | The Maintainer checks status | Show uncertainty while resolving the result; display success or a recoverable failure only when known. Do not ask for a blind repeat or delete possibly attached artwork. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-046",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#media-outage",
+        "mockup/artwork.html#artwork-attached"
+      ],
+      "source_excerpt": "| AC-046 | Interrupted cleanup | Cleanup/recovery overlaps another valid use or a restart | Work resumes | Existing attachments stay usable; recovery does not remove referenced artwork or report missing output as completed. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-047",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#login",
+        "mockup/account.html#viewer",
+        "mockup/account.html#maintainer",
+        "mockup/session.html#auth-unavailable"
+      ],
+      "source_excerpt": "| AC-047 | Sign in | A prepared or registered account exists | Correct or incorrect credentials are submitted | Correct credentials permit sign-in with the assigned role; invalid credentials do not grant access and receive non-sensitive feedback. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-048",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#maintainer",
+        "mockup/session.html#session-check",
+        "mockup/session.html#expired",
+        "mockup/session.html#recheck",
+        "mockup/session.html#other-account",
+        "mockup/session.html#signout",
+        "mockup/session.html#signed-out",
+        "mockup/session.html#signout-failed",
+        "mockup/session.html#signout-uncertain"
+      ],
+      "source_excerpt": "| AC-048 | Expiry/sign-out | A user signs out or their sign-in expires during work | They attempt another restricted action | Require sign-in again; public browsing remains available. Do not claim already committed work rolled back or expose protected drafts to a later different user. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-049",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#login",
+        "mockup/account.html#viewer",
+        "mockup/account.html#maintainer"
+      ],
+      "source_excerpt": "| AC-049 | Demo access | An assessment reviewer follows documented account setup | They sign in with prepared Viewer/Maintainer access | Each account demonstrates its assigned capabilities; no unrestricted development bypass substitutes for role enforcement. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-050",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#viewer",
+        "mockup/account.html#maintainer",
+        "mockup/session.html#session-check",
+        "mockup/session.html#denied"
+      ],
+      "source_excerpt": "| AC-050 | Role matrix | Visitors, Viewers, and Maintainers try each capability | An action is requested | Results match [section 3.1](#31-permission-matrix), including direct attempts to access hidden actions; all Maintainers have the same management permissions. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-051",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#viewer",
+        "mockup/session.html#denied"
+      ],
+      "source_excerpt": "| AC-051 | Bypass attempt | A caller supplies fabricated identity/role claims | They attempt a restricted action | No privilege or data access is granted from those claims; a connected assistant cannot exceed its user's permissions. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-052",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#viewer",
+        "mockup/session.html#denied"
+      ],
+      "source_excerpt": "| AC-052 | Mixed permitted/restricted actions | A request combines readable data and restricted effects | It is handled | Restricted information/effects stay denied; any completed permitted action and failed action are distinguishable, without claiming all actions succeeded. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-053",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#saved",
+        "mockup/audit.html#audit",
+        "mockup/audit.html#audit-detail"
+      ],
+      "source_excerpt": "| AC-053 | Confirmed change | A permitted catalog change succeeds | History is inspected | A matching attributable successful-change record exists; a success claim cannot stand without its associated evidence. Technical atomicity remains a handoff commitment. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-054",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#save-failed",
+        "mockup/audit.html#audit",
+        "mockup/audit.html#audit-detail"
+      ],
+      "source_excerpt": "| AC-054 | Failed change | An attempted change fails before completion | State/history are inspected | No partial catalog change or misleading successful-change event appears; failure evidence is distinguishable from success. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-055",
+      "disposition": "visual",
+      "locations": [
+        "mockup/audit.html#audit"
+      ],
+      "source_excerpt": "| AC-055 | Security/media outcomes | Authentication is denied or artwork lifecycle actions occur | Authorized inspection occurs | Appropriate sanitized outcomes remain attributable and available, even when the business action failed. Security events need not appear in the Maintainer catalog-history screen. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-056",
+      "disposition": "visual",
+      "locations": [
+        "mockup/audit.html#audit",
+        "mockup/audit.html#audit-detail",
+        "mockup/audit.html#audit-loading",
+        "mockup/audit.html#audit-empty",
+        "mockup/audit.html#audit-failed",
+        "mockup/audit.html#audit-denied"
+      ],
+      "source_excerpt": "| AC-056 | Audit privacy/access | Audit contains permitted change details | Someone views it | Only permitted readers see it; credentials, tokens, raw files, and account emails never appear. History is read-only. Retention/protection mechanics belong to the techdoc. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-057",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-057 | Required follow-up | A confirmed change requires later work | The application stops before follow-up completes | The obligation remains visible and recoverable; an uncommitted change does not leave a false successful follow-up obligation. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-058",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-058 | Repeated/interrupted work | Follow-up is delivered twice or interrupted after completing its effect | Recovery runs | Completed effects are not unintentionally duplicated; completion status is reconciled with what actually happened. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-059",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-059 | Recovery budget | Work already has failed attempts and a scheduled retry | The application restarts | Its prior attempts and failure state remain; restarting does not grant unlimited retries. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-060",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-060 | Exhausted work | Recovery attempts are exhausted | An authorized operations owner inspects it | See operation, owner, attempts, sanitized cause, and safe recovery guidance; controlled recovery preserves the original evidence and checks current conditions. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-061",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-061 | Exhaustion notification | An eligible operation exhausts recovery and one channel is configured | Notification delivery succeeds | The operations owner receives actionable failure/operation context and recovery guidance, with delivery evidence. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-062",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-062 | Notification failure | The configured channel is unavailable or rejects delivery | Delivery fails | Failure stays inspectable without reversing business success or recursively creating more notifications. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-063",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-063 | Repeated exhaustion | The same exhausted operation is observed repeatedly | Alerts are considered | Duplicate signals do not create an uncontrolled alert storm; delivery status remains visible. |",
+      "notes": "Restricted operational follow-up/recovery/notification outcome. PRD 6.1 excludes new application roles/screens for this tooling; verify through the future operational design."
+    },
+    {
+      "id": "AC-064",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-064 | Build and inspect the mandated frontend/backend technologies and selected compatible toolchain | NFR-001; technical design owner unassigned |",
+      "notes": "Engineering/delivery obligation: Build and inspect the mandated frontend/backend technologies and selected compatible toolchain. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-065",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-065 | Exercise meaningful real gRPC features across at least two running Spring Boot applications | NFR-001; technical design |",
+      "notes": "Engineering/delivery obligation: Exercise meaningful real gRPC features across at least two running Spring Boot applications. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-066",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-066 | Verify frontend GraphQL and documented upload/retrieval/auth exceptions against A05; reconcile the MCP boundary | NFR-001/NFR-013; technical design |",
+      "notes": "Engineering/delivery obligation: Verify frontend GraphQL and documented upload/retrieval/auth exceptions against A05; reconcile the MCP boundary. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-067",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-067 | Validate the preferred App/Catalog/Media responsibilities and absence of cross-service database access | NFR-002; technical design |",
+      "notes": "Engineering/delivery obligation: Validate the preferred App/Catalog/Media responsibilities and absence of cross-service database access. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-068",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#media-outage"
+      ],
+      "source_excerpt": "| AC-068 | Artwork outage | Artwork handling is unavailable but catalog work is available | A Maintainer edits movie metadata | Unrelated metadata work can succeed; image-dependent work explains its failure without claiming attachment success. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-069",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-069 | Verify JPA/Hibernate mappings, transactions, rollback, audit, and required-work consistency | NFR-003; technical design |",
+      "notes": "Engineering/delivery obligation: Verify JPA/Hibernate mappings, transactions, rollback, audit, and required-work consistency. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-070",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-070 | Verify applicable native SQL parameterization, joins/order/pagination, mapping, plans, and write safeguards against the chosen engine | NFR-003; technical design |",
+      "notes": "Engineering/delivery obligation: Verify applicable native SQL parameterization, joins/order/pagination, mapping, plans, and write safeguards against the chosen engine. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-071",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-071 | Restart persistence | Saved records, archives, artwork, audit, and pending/failed work exist | The stack stops/starts or restarts | Those outcomes remain available; recovery continues within its retained budget and no normal command silently resets data. |",
+      "notes": "Restart persistence of records, archives, artwork, audit and pending work requires the real stack; static fixtures reset by design."
+    },
+    {
+      "id": "AC-072",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-072 | Prove bounded safe exponential/jitter retry with one owner and deadline/library-attempt accounting | NFR-004; technical design |",
+      "notes": "Engineering/delivery obligation: Prove bounded safe exponential/jitter retry with one owner and deadline/library-attempt accounting. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-073",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#save-uncertain"
+      ],
+      "source_excerpt": "| AC-073 | Permanent/uncertain failure | Input is invalid, access denied, an edit stale, or a prior outcome uncertain | Recovery is considered | Ask for correction/review for permanent failures; resolve uncertain effects before repeating a change. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-074",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-074 | Validate retry overrides/units/ranges; zero disables retries; D22 numerical defaults remain Recommended | NFR-004/NFR-005; technical design |",
+      "notes": "Engineering/delivery obligation: Validate retry overrides/units/ranges; zero disables retries; D22 numerical defaults remain Recommended. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-075",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#draft-cancel",
+        "mockup/artwork.html#artwork-cancelled"
+      ],
+      "source_excerpt": "| AC-075 | Cancel or exhaust | The user cancels or the allowed recovery period/attempt budget ends | Recovery stops | Show cancellation or retained failure accurately; do not launch unlimited new attempts. Notify exhaustion where applicable. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-076",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-076 | Verify required configuration and redacted startup/not-ready failure without unsafe fallback | NFR-005; technical design |",
+      "notes": "Engineering/delivery obligation: Verify required configuration and redacted startup/not-ready failure without unsafe fallback. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-077",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-077 | Verify documented precedence and explicit missing/empty/false/zero semantics | NFR-005; technical design |",
+      "notes": "Engineering/delivery obligation: Verify documented precedence and explicit missing/empty/false/zero semantics. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-078",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-078 | Secrets | Setup uses account/provider/key material | Documentation and diagnostics are inspected | Real secrets are absent from repository examples, user messages, logs, audit, and notifications. |",
+      "notes": "Engineering/delivery obligation: Secrets. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-079",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-079 | Distinguish process health, readiness, and actual operation success | NFR-006; technical design |",
+      "notes": "Engineering/delivery obligation: Distinguish process health, readiness, and actual operation success. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-080",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-080 | Preserve sanitized correlation across frontend requests, internal calls, and durable work | NFR-006; technical design |",
+      "notes": "Engineering/delivery obligation: Preserve sanitized correlation across frontend requests, internal calls, and durable work. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-081",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-081 | Verify outcome/latency/retry/pending-age/dependency metrics and dashboards, including application errors under HTTP 200 | NFR-006; technical design |",
+      "notes": "Engineering/delivery obligation: Verify outcome/latency/retry/pending-age/dependency metrics and dashboards, including application errors under HTTP 200. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-082",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-082 | Exercise actionable alerts, routing, deduplication, and channel failure under selected thresholds | NFR-006/FR-015; technical design |",
+      "notes": "Engineering/delivery obligation: Exercise actionable alerts, routing, deduplication, and channel failure under selected thresholds. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-083",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/account.html#login",
+        "mockup/account.html#register",
+        "mockup/management.html#editor",
+        "mockup/people.html#person-edit",
+        "mockup/credits.html#credits",
+        "mockup/artwork.html#artwork"
+      ],
+      "source_excerpt": "| AC-083 | Responsive use | Desktop and mobile layouts are exercised | The user completes an included application journey | Content and primary actions remain readable/reachable without clipped controls; supported viewports are specified during design. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-084",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/account.html#login",
+        "mockup/account.html#register",
+        "mockup/management.html#editor",
+        "mockup/people.html#person-edit",
+        "mockup/credits.html#credits",
+        "mockup/artwork.html#artwork"
+      ],
+      "source_excerpt": "| AC-084 | Keyboard/validation | The user uses a keyboard and submits invalid data | Navigation and feedback are exercised | Controls have clear labels and visible focus; feedback identifies correction, preserves permitted input, and does not rely only on color. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-085",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#draft-cancel"
+      ],
+      "source_excerpt": "| AC-085 | Pending/partial outcome | Save, search, upload, registration, or approval is pending or partly complete | Feedback changes | Show the correct stage, discourage repeated submit, and offer safe correction/retry/review; never equate approval or transfer completion with publication. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-086",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-086 | Trace unit and edge cases to included requirements without inventing a coverage percentage | NFR-008; technical design |",
+      "notes": "Engineering/delivery obligation: Trace unit and edge cases to included requirements without inventing a coverage percentage. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-087",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-087 | Exercise GraphQL contracts, real gRPC, selected database, security/audit, native SQL where used, seed, artwork, recovery, and notification integration | NFR-008; technical design |",
+      "notes": "Engineering/delivery obligation: Exercise GraphQL contracts, real gRPC, selected database, security/audit, native SQL where used, seed, artwork, recovery, and notification integration. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-088",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-088 | Report failures/blocked/unexecuted checks honestly; test commands fail correctly and isolate normal data | NFR-008; technical design |",
+      "notes": "Engineering/delivery obligation: Report failures/blocked/unexecuted checks honestly; test commands fail correctly and isolate normal data. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-089",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-089 | Review cohesive tested vertical slices, shared rules, constructor dependencies, and justified abstractions | NFR-009; technical design |",
+      "notes": "Engineering/delivery obligation: Review cohesive tested vertical slices, shared rules, constructor dependencies, and justified abstractions. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-090",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-090 | Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs | NFR-009; developer/assessment reviewer |",
+      "notes": "Engineering/delivery obligation: Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-091",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-091 | Fresh setup | A clean checkout and documented prerequisites are available | The assessment reviewer follows setup and seed instructions | The runnable stack and correct initial catalog become available, with clear access details or actionable startup failure. |",
+      "notes": "Engineering/delivery obligation: Fresh setup. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-092",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-092 | Normal operations | Edits, artwork, and archived movies/people exist | Documented stop/start/restart/status/log actions run | Preserve data and both archive states, verify readiness where appropriate, and expose diagnostic state without secrets. No implicit destructive reset occurs. |",
+      "notes": "Engineering/delivery obligation: Normal operations. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-093",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-093 | Verification commands | Normal application data exist | Unit/integration checks run, including a failing case | Tests use isolated data, report failures honestly, and leave normal records/artwork intact. |",
+      "notes": "Engineering/delivery obligation: Verification commands. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-094",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-094 | Repeatability | A second environment follows the same documented setup/snapshot | Setup completes | Equivalent supported behavior and initial records result; platform and external-client/provider prerequisites are explicit. Offline operation is not promised. |",
+      "notes": "Engineering/delivery obligation: Repeatability. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-095",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-095 | Repository submission | The reviewed revision is ready | Submission access is checked | The assessment reviewer can access the intended Git revision and required material by the recorded deadline; evidence identifies what was submitted. |",
+      "notes": "Engineering/delivery obligation: Repository submission. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-096",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-096 | README/AI disclosure | Implementation and actual verification results exist | README is compared with them | Setup/run/seed/test/recovery instructions and AI use are accurate; limitations and unexecuted checks are explicit. MCP client use is documented without claiming unverified compatibility. |",
+      "notes": "Engineering/delivery obligation: README/AI disclosure. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-097",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-097 | Walkthrough | Submitted code and evidence are available | The developer explains a feature and rehearses a small change | They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. No assessment result is guaranteed. |",
+      "notes": "Engineering/delivery obligation: Walkthrough. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-098",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-098 | Record relevant risks, selected controls, owners, evidence, and limitations | NFR-012; technical design |",
+      "notes": "Engineering/delivery obligation: Record relevant risks, selected controls, owners, evidence, and limitations. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-099",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-099 | Distinguish intended controls from tested/deployed proof; do not imply ISO/regulatory certification, TLS enforcement, or successful restore without evidence | NFR-012; technical design |",
+      "notes": "Engineering/delivery obligation: Distinguish intended controls from tested/deployed proof; do not imply ISO/regulatory certification, TLS enforcement, or successful restore without evidence. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-100",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-100 | Define/verify GraphQL validation against section 5.5, authorization, omission versus clearing, and allowed partial results without partial invalid saves | NFR-013/FR-017/NFR-016; technical design |",
+      "notes": "Engineering/delivery obligation: Define/verify GraphQL validation against section 5.5, authorization, omission versus clearing, and allowed partial results without partial invalid saves. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-101",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-101 | Define/verify internal failure/status mapping, correlation, deadlines, cancellation, and safe recovery | NFR-013; technical design |",
+      "notes": "Engineering/delivery obligation: Define/verify internal failure/status mapping, correlation, deadlines, cancellation, and safe recovery. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-102",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-102 | Verify identity, units, presence, precision, Unicode-code-point counting, and boundary compatibility against section 5.5 | NFR-013/NFR-016; technical design |",
+      "notes": "Engineering/delivery obligation: Verify identity, units, presence, precision, Unicode-code-point counting, and boundary compatibility against section 5.5. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-103",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-103 | Verify effective input/file policies from section 5.5; establish remaining request/query/page and decoded-image resource bounds with understandable outcomes | NFR-013/NFR-016; technical design |",
+      "notes": "Engineering/delivery obligation: Verify effective input/file policies from section 5.5; establish remaining request/query/page and decoded-image resource bounds with understandable outcomes. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-104",
+      "disposition": "visual",
+      "locations": [
+        "mockup/session.html#recheck",
+        "mockup/management.html#editor",
+        "mockup/management.html#target-changed",
+        "mockup/people.html#person-conflict"
+      ],
+      "source_excerpt": "| AC-104 | Stale save | Two Maintainers edit the same movie/person | One saves before the other | Reject the later stale save, retain its draft, and require review before resubmission; no force-overwrite option is offered. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-105",
+      "disposition": "visual",
+      "locations": [
+        "mockup/session.html#recheck",
+        "mockup/management.html#save-uncertain",
+        "mockup/management.html#save-resolved",
+        "mockup/credits.html#credit-duplicate"
+      ],
+      "source_excerpt": "| AC-105 | Repeated submission | The same intended change is submitted twice or after lost confirmation | The outcome is resolved | Show one completed effect or its pending outcome without unintended duplicates; button disabling alone is not the promised behavior. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-106",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-106 | Define/verify operation identity scope, incompatible reuse, in-progress/expiry/retention behavior, and safe replay | NFR-014; technical design |",
+      "notes": "Engineering/delivery obligation: Define/verify operation identity scope, incompatible reuse, in-progress/expiry/retention behavior, and safe replay. Verify in technical design and implementation, not a static UI claim."
+    },
+    {
+      "id": "AC-107",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/details.html#identities",
+        "mockup/people.html#people"
+      ],
+      "source_excerpt": "| AC-107 | Similar real-world records | Independent works/people share names | Records are created or compared | Preserve distinct identities and do not merge by text alone; explain genuine identity conflicts without silently changing another record. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-108",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#movie-archive",
+        "mockup/archives.html#movie-impact"
+      ],
+      "source_excerpt": "| AC-108 | Archive | An active movie has artwork and credits | A Maintainer archives it | It disappears from public/Viewer discovery and direct access, appears in the private archive, and retains its information, artwork, and credits. Record the action. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-109",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#movie-archive",
+        "mockup/archives.html#movie-restore"
+      ],
+      "source_excerpt": "| AC-109 | Restore movie | An archived movie retains information; some credited people may be archived or permanently deleted | A Maintainer restores the movie | Return it to active discovery with remaining artwork. Show only credits whose people are active; retain archived-person credits privately without restoring the person, and do not recreate deleted people or removed credits. Record restoration. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-110",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#movies",
+        "mockup/archives.html#movie-archive",
+        "mockup/archives.html#movie-impact",
+        "mockup/archives.html#movie-delete"
+      ],
+      "source_excerpt": "| AC-110 | Deletion controls / cancel | A movie is active or archived | A Maintainer considers permanent deletion or cancels confirmation | Active movies offer archive, not direct permanent deletion. Archived movies offer restore and separately confirmed permanent deletion. Cancel changes nothing. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-111",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#login",
+        "mockup/account.html#register",
+        "mockup/account.html#registered"
+      ],
+      "source_excerpt": "| AC-111 | Immediate registration | A visitor supplies valid name, email, and password for a new account | Registration succeeds | Create a Viewer eligible to sign in immediately, without email verification; do not allow registration as Maintainer. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-112",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#register",
+        "mockup/account.html#registered",
+        "mockup/account.html#registration-failure"
+      ],
+      "source_excerpt": "| AC-112 | Invalid/repeated registration | A required field is missing, a registration value violates the effective policy in section 5.5, email is invalid/already used, or submission is repeated | Registration is attempted | Show safe corrective feedback, create no duplicate account, and do not expose whether another account contains private details. Never echo/store the password in recovery drafts or logs. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-113",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/details.html#unavailable",
+        "mockup/session.html#denied",
+        "mockup/people.html#person-unavailable",
+        "mockup/archives.html#movie-archive",
+        "mockup/archives.html#archive-denied"
+      ],
+      "source_excerpt": "| AC-113 | Private archive boundary | An archived movie or person exists | A Visitor/Viewer browses, searches, follows its link, or inspects credits | Do not expose the archived record or its private credit relationships. A Maintainer can inspect it in the appropriate movie or people archive; person archiving does not hide the title itself. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-114",
+      "disposition": "visual",
+      "locations": [
+        "mockup/audit.html#audit",
+        "mockup/audit.html#audit-detail"
+      ],
+      "source_excerpt": "| AC-114 | Audit screen | A Maintainer has catalog history to inspect | They open history and an entry | Show actor, action, affected record, time, outcome, and relevant changes, explicitly covering movie/person archive, restoration, permanent deletion, credits, artwork, and AI approval/creation. Approval is distinguishable from publication. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-115",
+      "disposition": "visual",
+      "locations": [
+        "mockup/audit.html#audit-loading",
+        "mockup/audit.html#audit-empty",
+        "mockup/audit.html#audit-failed",
+        "mockup/audit.html#audit-denied"
+      ],
+      "source_excerpt": "| AC-115 | Audit feedback/denial | History is empty, loading, unavailable, or requested without permission | The screen/request resolves | Show the appropriate loading/empty/failure/denied state; permit safe retry for failure, and provide no editing or arbitrary restore control. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-116",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#chatgpt",
+        "mockup/ai.html#claude"
+      ],
+      "source_excerpt": "| AC-116 | Proposal review | A connected Maintainer requests a movie proposal | The assistant presents it | Show all proposed publishable values, required core metadata, source references, and explicit unknowns in chat before creation; no proposed record is public yet. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-117",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#chatgpt",
+        "mockup/ai.html#claude",
+        "mockup/ai.html#ai-approved",
+        "mockup/ai.html#ai-created",
+        "mockup/ai.html#ai-approved-v2",
+        "mockup/ai.html#ai-created-v2"
+      ],
+      "source_excerpt": "| AC-117 | Exact-content approval | A complete valid proposal is visible to its Maintainer | That human explicitly approves the exact proposal | Create one movie only if permission and validation still hold; show confirmed result and attributable approval/creation history. Self-approval by the proposing Maintainer is allowed. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-118",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#chatgpt",
+        "mockup/ai.html#claude",
+        "mockup/ai.html#ai-corrected",
+        "mockup/ai.html#ai-rejected",
+        "mockup/ai.html#ai-approved-v2"
+      ],
+      "source_excerpt": "| AC-118 | Edit/reject | A proposal is awaiting approval or changes after approval | The Maintainer edits or rejects it | Editing requires a new review and explicit approval of revised content. Rejection publishes nothing; silence or a general earlier request is not approval. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-119",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#ai-denied"
+      ],
+      "source_excerpt": "| AC-119 | Forged/unauthorized approval | A Viewer, disconnected/revoked identity, or assistant claiming human approval attempts creation | The action is evaluated | Deny creation unless actual authorized human approval for the exact content is established. The assistant cannot promote itself or bypass access through MCP. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-120",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#chatgpt",
+        "mockup/ai.html#claude",
+        "mockup/ai.html#ai-corrected",
+        "mockup/ai.html#ai-unknown"
+      ],
+      "source_excerpt": "| AC-120 | Invalid/unsupported information | Core data are missing or outside effective input limits, sources disagree, or claims cannot be substantiated | A proposal is reviewed or submitted | Mark uncertainty and request correction/clarification; do not invent required metadata to force acceptance. Missing or invalid required data prevent publication even after a generic approval; corrected publishable content requires fresh approval under AC-156. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-121",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#ai-created",
+        "mockup/ai.html#ai-uncertain",
+        "mockup/ai.html#ai-created-v2"
+      ],
+      "source_excerpt": "| AC-121 | Duplicate/uncertain creation | Approved creation loses its response or is repeated | The Maintainer checks/retries | Resolve the original outcome and report one created movie or a recoverable failure; no blind duplication, silent content change, or unconfirmed success. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-122",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#chatgpt",
+        "mockup/ai.html#claude"
+      ],
+      "source_excerpt": "| AC-122 | Both chat clients | Authorized ChatGPT and Claude connections are configured | The proposal/review/correct/approve/reject journey is exercised in each | Both demonstrate the same product permissions and exact-content approval rule; unsupported client enforcement is a release blocker, not permission to accept model-generated approval claims. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-123",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#movie",
+        "mockup/session.html#other-account",
+        "mockup/people.html#people",
+        "mockup/people.html#person",
+        "mockup/ai.html#ai-hostile"
+      ],
+      "source_excerpt": "| AC-123 | Private data boundaries | Accounts contain names/emails and password credentials | Public pages, catalog search, other users' access, diagnostics, or MCP proposals are inspected | Private account information is not exposed outside its authorized purpose; email and private name data receive the selected encrypted-at-rest protection. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-124",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-124 | Key rotation continuity | Existing accounts contain protected data and rotation occurs | Existing and new users use permitted account operations | Authorized use continues with correct data; rotation does not expose plaintext, lose account information, or make old accounts inaccessible. |",
+      "notes": "Encryption/key-rotation continuity requires real protected data and key management; normal login is shown, but a visual cannot verify rotation."
+    },
+    {
+      "id": "AC-125",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#login",
+        "mockup/session.html#other-account"
+      ],
+      "source_excerpt": "| AC-125 | Password protection | A user has registered or signed in | Credential storage and outputs are checked by authorized assessment reviewers | Passwords are protected by one-way password hashing, cannot be retrieved as an account feature, and never appear in readable storage, audit, logs, or AI payloads. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-126",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#chatgpt",
+        "mockup/ai.html#claude",
+        "mockup/ai.html#ai-denied",
+        "mockup/ai.html#ai-hostile"
+      ],
+      "source_excerpt": "| AC-126 | Hostile source/instruction | Retrieved metadata or model output contains instructions to bypass approval, reveal PII, or perform excluded actions | The proposal flow handles it | Treat it as untrusted content, refuse the unauthorized action, expose no private information, and leave the catalog unchanged until a valid permitted proposal receives human approval. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-127",
+      "disposition": "visual",
+      "locations": [
+        "mockup/audit.html#audit",
+        "mockup/audit.html#audit-detail"
+      ],
+      "source_excerpt": "| AC-127 | Actor attribution without account exposure | An audit event identifies its responsible actor | A Maintainer views it | Show the actor identity needed for accountability without exposing email, credentials, unrelated account details, or a public profile link. Public/catalog/MCP outputs do not reveal private account information. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-128",
+      "disposition": "visual",
+      "locations": [
+        "mockup/session.html#auth-unavailable",
+        "mockup/policies.html#policy-unavailable"
+      ],
+      "source_excerpt": "| AC-128 | Protection failure | Encryption/decryption or required key access fails | A protected operation is attempted | Fail with non-sensitive feedback and operational evidence; never fall back to plaintext, invent missing account values, or overwrite valid protected data with an empty value. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-129",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-delete",
+        "mockup/archives.html#impact-changed",
+        "mockup/archives.html#impact-current"
+      ],
+      "source_excerpt": "| AC-129 | Deletion impact changes | A Maintainer reviewed an archived person's affected titles and another change alters that impact | They confirm the earlier permanent-deletion preview | Require review and confirmation of the current affected titles before deleting; do not silently remove retained credits beyond the reviewed impact. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-130",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#impact-changed",
+        "mockup/archives.html#archive-failed",
+        "mockup/archives.html#archive-uncertain"
+      ],
+      "source_excerpt": "| AC-130 | Competing or uncertain lifecycle action | Archive, restore, or permanent deletion competes with another change, fails, or loses confirmation | The Maintainer checks the result or repeats the action | Show the current known state without unintended repeated effects; preserve the prior state on a confirmed failed change, require review of competing changes, and resolve uncertainty before claiming success or offering a repeat. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-131",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-impact",
+        "mockup/audit.html#audit"
+      ],
+      "source_excerpt": "| AC-131 | Archive person | An active person has credits on active/archived movies or seeded TV titles, or has no credits | A Maintainer reviews affected titles, or sees that none are affected, and archives the person | Hide the person and their credits publicly, retain information and relationships privately, and leave titles in their existing states. Show the person and retained credits in the Maintainer-only people archive and record the archive action. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-132",
+      "disposition": "visual",
+      "locations": [
+        "mockup/credits.html#credit-retained",
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-restore",
+        "mockup/audit.html#audit"
+      ],
+      "source_excerpt": "| AC-132 | Restore person | An archived person retains credits; some titles or credits may since have been deleted or removed | A Maintainer restores the person | Restore the same person identity and reveal remaining credits only on active titles. Leave archived titles archived; recreate no deleted title or removed credit. Make person editing/new-credit assignment available again and record restoration. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-133",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-impact",
+        "mockup/archives.html#person-delete",
+        "mockup/archives.html#archive-denied",
+        "mockup/audit.html#audit"
+      ],
+      "source_excerpt": "| AC-133 | Archive-first controls / cancel | A person is active or archived | A Maintainer considers permanent deletion or cancels its separate confirmation | Active people offer archive, never direct permanent deletion, including through direct requests. Archived people offer restore or separately confirmed permanent deletion with affected titles and irreversibility shown. Cancel preserves the person and credits; unauthorized lifecycle requests are denied. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-134",
+      "disposition": "visual",
+      "locations": [
+        "mockup/details.html#unavailable",
+        "mockup/session.html#denied",
+        "mockup/people.html#people",
+        "mockup/people.html#person-unavailable",
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#archive-loading",
+        "mockup/archives.html#archive-empty",
+        "mockup/archives.html#archive-failed",
+        "mockup/archives.html#archive-denied"
+      ],
+      "source_excerpt": "| AC-134 | Public visibility and archive feedback | A person is archived while their titles may remain active | A Visitor/Viewer lists, searches, follows an old person link, or reads title credits; or a Maintainer opens the people archive | Public views reveal no archived person or retained credit information and do not match titles solely through that hidden credit. Explain unavailable direct access without exposing private details. The restricted archive shows distinct loading, empty, available, denied, and failure-with-retry states. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-135",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#person",
+        "mockup/credits.html#credit-retained",
+        "mockup/archives.html#movie-restore",
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-restore"
+      ],
+      "source_excerpt": "| AC-135 | Independent title/person lifecycle | Alex has a credit on active Movie A and Movie B; either Movie B or Alex may be archived | A Maintainer archives/restores the movie or person in either order | Archiving Movie B leaves Alex visible on Movie A. Archiving Alex hides Alex's credits on both; restoring Alex alone reveals Movie A's remaining credit while Movie B stays archived. Restoring Movie B alone leaves archived Alex hidden. Both must be active for the retained credit to be public. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-136",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#person-archived",
+        "mockup/credits.html#credit-retained",
+        "mockup/archives.html#person-archive",
+        "mockup/archives.html#person-restore"
+      ],
+      "source_excerpt": "| AC-136 | Archived-person edit and credit boundary | A person is archived with a retained credit on an active movie | A Maintainer edits the person, assigns a new credit, or removes that retained movie credit | Require restoration before person editing or new assignment. Allow removal of the existing active-movie credit without deleting the person; person restoration does not recreate that credit. Offer no direct TV credit-editing capability. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-137",
+      "disposition": "visual",
+      "locations": [
+        "mockup/archives.html#impact-changed",
+        "mockup/archives.html#deleted",
+        "mockup/archives.html#archive-failed",
+        "mockup/archives.html#archive-uncertain",
+        "mockup/audit.html#audit",
+        "mockup/archives.html#impact-current"
+      ],
+      "source_excerpt": "| AC-137 | Competing, interrupted, or uncertain person lifecycle | Archive, restore, or permanent deletion competes with a change, loses confirmation, or is interrupted | The Maintainer reviews or repeats the action, including after a restart | Preserve prior state on a confirmed failed change; retain committed state and audit evidence across restart. Require review of conflicts/current deletion impact, reconcile uncertain outcomes, and avoid repeated effects or unconfirmed success. Restoration never recreates a permanently deleted person. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-138",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-138 | Seed rerun after person changes | Seeded people were edited, archived, or permanently deleted and their credits changed or were removed | Ordinary seeding repeats or resumes after interruption | Preserve edits, archive state, permanent deletion, and removed credits; do not reactivate/recreate people or reinstate relationships. Later person/movie restoration still obeys those decisions, with no duplicate people or credits. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-139",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#register",
+        "mockup/artwork.html#artwork",
+        "mockup/policies.html#text-boundaries",
+        "mockup/discovery.html#catalog-invalid"
+      ],
+      "source_excerpt": "| AC-139 | Visible effective policy | A permitted form, search field, or artwork selection is available | The user enters information or selects artwork | Show applicable current bounds and enabled formats before submission. Validation feedback names the affected input and correction, is accessible without color alone, and retains permitted non-secret content. Show processing and saved outcomes separately from validation. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-140",
+      "disposition": "visual",
+      "locations": [
+        "mockup/people.html#person-edit",
+        "mockup/policies.html#text-boundaries"
+      ],
+      "source_excerpt": "| AC-140 | Person-name boundaries | Person-name defaults are configured and the actor is a Maintainer editing an active person or creating one | They submit otherwise valid person data with a name of 1, 100, 0, or 101 Unicode code points after trimming | Accept lengths 1 and 100, including a single-character professional name; reject empty and 101 with a field-specific error and no partial change. Preserve the rejected draft for correction, and never merge same-named people. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-141",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#register",
+        "mockup/account.html#registration-failure",
+        "mockup/policies.html#text-boundaries"
+      ],
+      "source_excerpt": "| AC-141 | Registration-name boundaries | Registration-name defaults are configured and remaining registration data are valid | A visitor submits a name of 2, 100, 1, or 101 code points after trimming | Accept lengths 2 and 100 and create the Viewer on confirmed success. Reject lengths 1 and 101 without creating an account. Explain the configured length restriction without claiming the person's name is unreal or unauthentic. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-142",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#register",
+        "mockup/people.html#person-edit",
+        "mockup/policies.html#text-boundaries"
+      ],
+      "source_excerpt": "| AC-142 | Unicode, mononyms, and counting | A permitted name/text value contains Unicode, internal spaces, accents, a hyphen, or an apostrophe | It is submitted through a form or direct request at a configured boundary | Apply the same Unicode-code-point count and bounds; preserve legitimate characters and internal spacing without demanding two name parts. Count precomposed é as one code point and its e-plus-combining-accent representation as two; byte length must not determine acceptance. A mononym meeting its field's bound is accepted. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-143",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#editor",
+        "mockup/management.html#create",
+        "mockup/people.html#person-edit",
+        "mockup/credits.html#credits",
+        "mockup/policies.html#optional-clearing"
+      ],
+      "source_excerpt": "| AC-143 | Whitespace, absence, and clearing | A required ordinary-text field is blank/whitespace-only, or optional original-title/character data are unknown or previously saved | A create/edit supplies blank required text, explicitly clears optional text, or omits an optional edit value | Reject blank required text with no partial save. Permit unknown/cleared optional values; omission preserves the stored value. Validate each supplied nonempty optional value, retain meaningful synopsis line breaks, and create no invented metadata. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-144",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#editor",
+        "mockup/management.html#create",
+        "mockup/credits.html#credits",
+        "mockup/policies.html#text-boundaries"
+      ],
+      "source_excerpt": "| AC-144 | Other text boundaries | Recommended bounds are configured: title 1 to 255, synopsis 1 to 5,000, role 1 to 100, and each character name 1 to 200 | A permitted save supplies each field at its bounds or immediately outside them, with other requirements valid | Accept the boundary lengths, including a one-character title; reject an empty required value or one above the applicable maximum. Retain the complete permitted draft, commit no partial edit, and silently truncate nothing. Apply character-name limits separately to each supplied name without imposing an invented count limit. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-145",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#register",
+        "mockup/account.html#registration-failure"
+      ],
+      "source_excerpt": "| AC-145 | Email and source URL | Recommended email/URL maxima are configured | Registration uses a valid email of 254 characters or one of 255; accepted source input uses a valid HTTP/HTTPS URL of 2,048 characters or one of 2,049; or either format is invalid | Length alone permits the exact maximum and rejects the excess; independently reject invalid syntax and preserve required/optional semantics. Existing-account checks still apply. Accepting a URL authorizes no arbitrary fetch or new source-entry feature. Detailed syntax cases transfer to OD-003/OD-019. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-146",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#login",
+        "mockup/account.html#register",
+        "mockup/account.html#registration-failure"
+      ],
+      "source_excerpt": "| AC-146 | New-password bounds and preservation | Recommended password bounds of 15 to 128 are configured | A visitor supplies passwords of 14, 15, 128, or 129 code points, including supported Unicode and whitespace | Reject 14 and 129 for length; 15 and 128 pass the length check subject to the adopted credential policy under OD-001. Evaluate the exact entered password without trimming, transformation, or truncation. No password appears in recovery drafts, audit, or diagnostics. Successful sign-in later accepts that same credential under its account policy. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-147",
+      "disposition": "visual",
+      "locations": [
+        "mockup/policies.html#text-boundaries"
+      ],
+      "source_excerpt": "| AC-147 | Plain-text safety | Entered catalog text, names, search text, or changed values contain markup, apostrophes, or instruction-like content within applicable limits | They appear in forms, catalog/detail pages, search results, previews, or audit history | Treat the content as text and execute no embedded code or instructions. Legitimate punctuation remains intact; content cannot alter another record, grant access, or reveal protected information. Private registration data retain their access boundaries. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-148",
+      "disposition": "visual",
+      "locations": [
+        "mockup/management.html#create",
+        "mockup/people.html#person-edit",
+        "mockup/ai.html#ai-unknown"
+      ],
+      "source_excerpt": "| AC-148 | Direct-request validation | A permitted caller bypasses form checks, or an authorized MCP caller submits an approved movie with invalid changed/new input | The request reaches the application | Enforce the effective bounds and content policy, reject invalid input with corrective feedback, and commit no partial catalog/account change or misleading successful audit event. Denied callers remain denied regardless of input validity. Do not repeat permanently invalid requests automatically. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-149",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork",
+        "mockup/artwork.html#artwork-invalid"
+      ],
+      "source_excerpt": "| AC-149 | Artwork byte boundaries | Recommended file bounds of 1 to 5,242,880 bytes are configured | A Maintainer submits an empty file, a one-byte invalid file, a valid supported image exactly at the maximum, or a file one byte above it | Reject empty/undecodable content and the oversized file with the specific reason; the exact maximum passes the size check subject to all content/processing checks. Attach no rejected image and preserve previous artwork. MiB is displayed with its exact byte interpretation. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-150",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork",
+        "mockup/artwork.html#artwork-invalid"
+      ],
+      "source_excerpt": "| AC-150 | Static supported formats | JPEG, PNG, and WebP are enabled and an active movie may lack artwork | A Maintainer uploads valid static examples or attempts GIF, SVG, animated PNG/WebP, or another unsupported format | Supported static files proceed through upload/processing to confirmed attachment if other checks pass. Reject unsupported or animated content with correction feedback and no attachment; do not silently convert animation into an accepted static upload. Missing artwork remains a placeholder on failure. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-151",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork",
+        "mockup/artwork.html#artwork-invalid"
+      ],
+      "source_excerpt": "| AC-151 | Disguised, malformed, or unsafe image | A file has a permitted extension or declared type but invalid actual content, or a small compressed image exceeds the adopted processing bounds | Artwork is validated or processed | Reject it without attachment or unbounded processing; preserve prior artwork and report a safe content/processing-limit failure. Filename, declared type, or signature alone cannot bypass validation. Numerical processing bounds are established under OD-007/OD-019 before implementation. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-152",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-failed"
+      ],
+      "source_excerpt": "| AC-152 | Replacement failure and correction | A movie has valid artwork and a replacement is rejected or fails processing/attachment | The Maintainer inspects the result and selects a corrected image after the failed outcome is known | Existing artwork and unrelated movie information remain available; show the failure and effective rules, then allow a safe fresh attempt. Confirm a replacement only after attachment. Uncertain outcomes still require reconciliation under AC-045 before repeat submission. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-153",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-policy",
+        "mockup/policies.html#policy-changed"
+      ],
+      "source_excerpt": "| AC-153 | Valid policy override | A documented deployment configuration changes an applicable text/file minimum or maximum, or enables a nonempty subset of the static formats | The configuration becomes effective using the techdoc's documented application procedure | Forms and authoritative validation use the same effective policy. Show changed guidance and enforce inclusive new boundaries through direct requests and MCP as well. Required fields stay required; empty search still clears the text restriction even if the nonempty-query minimum increases. A disabled format is rejected for new uploads. No Maintainer configuration screen is implied. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-154",
+      "disposition": "visual",
+      "locations": [
+        "mockup/policies.html#policy-unavailable"
+      ],
+      "source_excerpt": "| AC-154 | Invalid policy configuration | A text bound is negative/nonintegral/nonfinite, a required minimum permits emptiness, file size is nonpositive, minimum exceeds maximum, a setting is explicitly invalid/empty, or the format set is empty/unsupported | The policy is loaded or applied | Affected functionality does not become ready under the invalid policy. Restricted diagnostics identify the setting and correction without secrets; no silent unlimited limit, supported-format expansion, or unsafe fallback occurs. An unset value follows only its documented default. Application/reload behavior remains OD-020. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-155",
+      "disposition": "visual",
+      "locations": [
+        "mockup/account.html#login",
+        "mockup/artwork.html#artwork-policy",
+        "mockup/policies.html#policy-changed"
+      ],
+      "source_excerpt": "| AC-155 | Existing data after tightening | Existing text/artwork were accepted under older limits, or an account's password was valid before new-password bounds changed | Limits tighten, the existing record is read, an unchanged stored field is retained during another edit, or the user signs in | Do not truncate/delete stored text or artwork or invalidate the existing credential solely for the new limits. Keep authorized reads available and permit unchanged fields to remain while validating newly changed input. Invalid new replacement/upload still fails; ordinary reruns do not overwrite preserved data to force conformity. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-156",
+      "disposition": "visual",
+      "locations": [
+        "mockup/ai.html#ai-corrected",
+        "mockup/ai.html#ai-unknown",
+        "mockup/ai.html#ai-approved-v2",
+        "mockup/ai.html#ai-created-v2"
+      ],
+      "source_excerpt": "| AC-156 | MCP correction changes reviewed content | A Maintainer reviewed a proposal and a publishable value violates a limit or requires normalization/correction | The proposal is submitted or corrected | Invalid values publish nothing. Show the revised exact publishable proposal and obtain fresh explicit human approval before creating it. Neither prior approval nor an assistant claim authorizes changed content; retries/uncertain outcomes still obey AC-121. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-157",
+      "disposition": "visual",
+      "locations": [
+        "mockup/artwork.html#artwork-policy",
+        "mockup/policies.html#policy-changed"
+      ],
+      "source_excerpt": "| AC-157 | Policy changes during a draft/upload | Input or artwork met earlier limits, and the policy changes before submission/attachment | The operation is evaluated against the effective policy | If changed/new input no longer qualifies, explain the current rule, preserve permitted draft content and prior artwork, and offer correction or a safe retry. Do not silently shorten input, partially save, bypass stale-edit review or AI approval, or label an uncertain committed outcome as a confirmed failure. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    },
+    {
+      "id": "AC-158",
+      "disposition": "technical",
+      "locations": [],
+      "source_excerpt": "| AC-158 | Seed compatibility with limits | A fresh snapshot is evaluated against the adopted policy, or a rerun encounters retained data accepted under earlier limits | Initial seeding or an ordinary rerun is verified | Select source-permitted records meeting required seed data and adopted bounds without silently shortening names/metadata or fabricating values. Report incompatible required input rather than claiming a completed 100/100 dataset. Ordinary reruns preserve edits, archives, deletions, and removed credits under AC-035/AC-138 and do not rewrite retained data merely to satisfy tighter limits. |",
+      "notes": "Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records."
+    },
+    {
+      "id": "AC-159",
+      "disposition": "visual",
+      "locations": [
+        "mockup/discovery.html#catalog",
+        "mockup/discovery.html#catalog-invalid"
+      ],
+      "source_excerpt": "| AC-159 | Search-length boundary and correction | Recommended search bounds of 0 to 200 are configured and other filters are selected | A reader clears text, submits a 200-code-point query, or enters 201 code points | Clearing text preserves other filters; 200 passes the length check. For 201, retain the full text and filters, show correction, and do not issue a truncated query or present old results as matching the invalid current query. No-match, loading, and failure remain distinct. |",
+      "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
+    }
+  ]
+}
