@@ -1,6 +1,22 @@
 # Reusable task implementation prompt
 
-Copy the prompt below into your coding-agent chat from the repository root. Edit the inputs to select work. Saving or reading this document does not start implementation; sending its execution prompt authorizes the selected run.
+Use the `running-prompt` skill from the repository root and supply only the inputs you want to override. It reads this document and fills omitted fields from the defaults below. You can also copy the full prompt. Saving, editing or explaining this document does not start application work; invoking its implementation workflow authorizes the selected run.
+
+```text
+Use running prompt for T001.
+```
+
+With overrides:
+
+```text
+Use running prompt.
+Target: T005
+Mode: implement
+Dependencies: include-prerequisites
+Delivery: local
+```
+
+For a retained run: `Use running prompt for T005, mode resume, additional context: resume the existing claim and branch.` A new chat can invoke `$running-prompt` after its host discovers the skill; reload the session if it is not yet listed. The repository entry lives at `.agents/skills/running-prompt/SKILL.md`; Claude, Cursor and Copilot project discovery paths link to it. It is a project shortcut outside the managed bundle, and the pinned workflow still governs execution.
 
 | Input | Default | Supported choices |
 | --- | --- | --- |
