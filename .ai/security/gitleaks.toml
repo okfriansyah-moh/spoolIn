@@ -4,12 +4,12 @@ title = "Project secret scan with reviewed hash and prose exceptions"
 path = ".ai/bundles/1.1.0/profiles/security/gitleaks.toml"
 
 [[allowlists]]
-description = "Receipt input-file SHA-256 values verified during foundation review"
+description = "Receipt input-file SHA-256 values verified during foundation and contract review"
 targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "line"
 paths = ['''(^|/)\.ai/evidence/(run-[0-9a-f]{32}/receipt\.json|t001-round1-receipt-output\.json)$''']
-regexes = ['''^\s*"(?:\.ai|\.agents|\.claude|\.cursor|\.github|docs)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
+regexes = ['''^\s*"(?:\.ai|\.agents|\.claude|\.cursor|\.github|docs|build-tools)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
 
 [[allowlists]]
 description = "Exact existing brainstorming phrase contains no credential value"
@@ -18,3 +18,11 @@ condition = "AND"
 regexTarget = "match"
 paths = ['''(^|/)docs/01-brainstorming-result\.md$''', '''(^|/)\.ai/evidence/t001-round1-gitleaks-analysis\.json$''']
 regexes = ['''^credential storage, logout/expiry $''']
+
+[[allowlists]]
+description = "Contract generation manifest input and generated-output SHA-256 values"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)build/contract-generation\.json$''']
+regexes = ['''^\s*"(?:build-tools/(?:generate-[^"/\r\n]+\.mjs|contracts(?:\.gradle\.kts|/[^"\r\n]+))|contracts/(?:graphql|grpc|json)/[^"\r\n]+|docs/design-system/tokens\.json|gradle/(?:libs\.versions\.toml|verification-metadata\.xml|wrapper/gradle-wrapper\.properties)|package-lock\.json|frontend/src/lib/generated/[^"\r\n]+|mcp/src/generated/[^"\r\n]+|services/core/build/generated/(?:resources/contracts/graphql|sources/graphql/com/spoolin/core/boundary/graphql/generated)/[^"\r\n]+)": "[0-9a-f]{64}",?\s*$''']
