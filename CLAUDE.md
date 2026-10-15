@@ -1,7 +1,7 @@
 <!-- agent-workflow:begin -->
 ## Portable implementation workflow
 
-Use the pinned bundle selected by `.ai/config.json`. Run `.ai/bin/agent-workflow doctor --repo .` before substantial execution. The repository bundle and explicit project settings govern this workflow. Read the relevant skill from `.ai/bundles/1.0.0/skills/`; load only the skills needed for the task.
+Use the pinned bundle selected by `.ai/config.json`. Run `.ai/bin/agent-workflow doctor --repo .` before substantial execution. The repository bundle and explicit project settings govern this workflow. Read the relevant skill from `.ai/bundles/1.1.0/skills/`; load only the skills needed for the task.
 
 Forge coordinates approved tasks using native subagents, with at most three workers and fewer when host capacity requires it. Do not spawn another Forge. Reuse workers for related work; keep reviewers independent from implementers. Each writing lane receives an isolated worktree from the recorded integration revision and claims its paths and resources first. Use the shared Git registry and one integration owner. Resolve merges according to required behavior and verify the combined result; do not use Git's union driver for code.
 

@@ -1,0 +1,5 @@
+
+# BEGIN agent-workflow Context7
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp/oauth"
+# END agent-workflow Context7
