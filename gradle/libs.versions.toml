@@ -1,0 +1,26 @@
+[versions]
+kotlin = "2.3.21"
+spring-boot = "4.1.1"
+spring-grpc = "1.1.1"
+protobuf = "4.35.1"
+grpc = "1.83.1"
+ktlint = "1.7.1"
+detekt = "1.23.8"
+kover = "0.9.3"
+
+[libraries]
+boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-grpc-bom = { module = "org.springframework.grpc:spring-grpc-dependencies", version.ref = "spring-grpc" }
+protobuf = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "13.1.0" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+protobuf = { id = "com.google.protobuf", version = "0.9.5" }

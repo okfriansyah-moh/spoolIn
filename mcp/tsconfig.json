@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": false,
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": "../build-tools/verification-tests/mcp",
+    "types": ["node"]
+  },
+  "include": ["../build-tools/verification-tests/mcp/**/*.ts"]
+}

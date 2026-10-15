@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "source": "docs/04-spoolin-techdoc.md \u00a72.1",
+  "observed_at_utc": "2026-10-15T04:26:18.464302+00:00",
+  "platforms": ["linux/amd64", "linux/arm64"],
+  "images": {
+    "postgres:18.6-bookworm": {
+      "linux/amd64": "sha256:9551dd5bf356409a21b31248f49b33bba9bb1877365f3a7e933aecd9af3cf52d",
+      "linux/arm64": "sha256:67ba68a22dc7d5af3627b7e0f33d10bbefad07562ff9703b3a6c2de247649129"
+    },
+    "node:24.21.0-bookworm-slim": {
+      "linux/amd64": "sha256:51b1100cc2a83d370c6a60952e3f2989c8a43159d0e38586e090f3b3326efefd",
+      "linux/arm64": "sha256:ba6b7d0ee561d9d49deb99e2b93c98632cc287b6cca1a6b18d66127054efa4dc"
+    },
+    "prom/prometheus:v3.15.0": {
+      "linux/amd64": "sha256:86b17a25c2db1d16a61b16b3c8f336679eb19e26333d03e808da387206e40faa",
+      "linux/arm64": "sha256:6b41f7a45cfbd1d259a78701ee5e14fc2ad9383c9aa5d0427345a18539bc3c91"
+    },
+    "prom/alertmanager:v0.34.1": {
+      "linux/amd64": "sha256:84967b9b7ba45e38a9278d3e594305f43d4993c310df3905b51138b816c365f3",
+      "linux/arm64": "sha256:47a1dc7e74f1e755e29f74d392262f8d1da41f2ada5653911199bf07219e41d9"
+    },
+    "grafana/grafana:13.2.3": {
+      "linux/amd64": "sha256:d84563330dc9d2fd2bc096d0fb96021b5319c75bf6ed555566709998e823dec4",
+      "linux/arm64": "sha256:c474a2845f8cd51bf09c3f24e036225912fdb21cd0c87ac89527c395585bfa22"
+    },
+    "eclipse-temurin:21.0.12.1_1-jdk-jammy": {
+      "linux/amd64": "sha256:bc46d736fd7dfe699fa4cd96b14faa2a12a6ced042938dab8b2d7a249e3d2cb6",
+      "linux/arm64": "sha256:3cecce1b41af0b39a980b7c8d955354fc9538435bd30127c3fe3ddc7f01029e3"
+    },
+    "eclipse-temurin:21.0.12.1_1-jre-jammy": {
+      "linux/amd64": "sha256:8c2dddf1bb2a8455160f4e23080059de5003eddc5cb839130b177c6be0c2cfe0",
+      "linux/arm64": "sha256:49733d1c7baec83aa11f6fd263d099b680e34e9def7097c7ffec28ef0e5508f0"
+    }
+  },
+  "limitations": [
+    "These are published base/observability image manifests; custom service images are not built or scanned by T001.",
+    "libvips source metadata is separate from the future Media image verification."
+  ]
+}
