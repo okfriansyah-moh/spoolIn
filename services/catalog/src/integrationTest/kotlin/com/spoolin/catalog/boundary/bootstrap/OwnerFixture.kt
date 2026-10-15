@@ -34,6 +34,7 @@ class OwnerFixture : AutoCloseable {
             .toAbsolutePath()
             .parent.parent
     val passwords = mutableMapOf<String, Path>()
+    val passwordPatternIds = mutableMapOf<String, Int>()
     val observed = mutableListOf<Map<String, Any>>()
     private val mapper = ObjectMapper()
     lateinit var postgres: PrivatePostgres
@@ -201,18 +202,24 @@ class OwnerFixture : AutoCloseable {
         require(Files.getPosixFilePermissions(parent.resolve("private")) == PosixFilePermissions.fromString("rwx------"))
     }
 
+    private val passwordPatterns = listOf("\\t", "\\n", "\\\\", "'", "\\t\\n\\\\'\$`; ")
+
     private fun createPasswords() {
         val names =
             listOf("postgres") +
                 listOf("core", "catalog", "media").flatMap { owner ->
                     listOf("runtime", "migrator", "maintenance", "backup").map { "$owner-$it" }
                 }
-        names.forEach { name ->
+        names.forEachIndexed { index, name ->
             val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
             val path = root.resolve("$name-password")
-            Files.writeString(path, Base64.getUrlEncoder().withoutPadding().encodeToString(bytes))
+            Files.writeString(
+                path,
+                Base64.getUrlEncoder().withoutPadding().encodeToString(bytes) + passwordPatterns[index % passwordPatterns.size],
+            )
             Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rw-------"))
             passwords[name] = path
+            passwordPatternIds[name] = index % passwordPatterns.size
         }
     }
 

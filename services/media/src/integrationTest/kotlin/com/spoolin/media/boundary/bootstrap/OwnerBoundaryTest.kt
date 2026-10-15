@@ -70,6 +70,38 @@ class OwnerBoundaryTest {
     }
 
     @Test
+    fun mountedPasswordsAuthenticateWithoutEscapeChanges() {
+        listOf("core", "catalog", "media").forEach { databaseOwner ->
+            listOf("runtime", "migrator", "maintenance", "backup").forEach { role ->
+                assertPasswordAuthenticates(databaseOwner, role)
+                fixture.record(
+                    "special-character-authentication",
+                    mapOf(
+                        "databaseOwner" to databaseOwner,
+                        "role" to role,
+                        "authenticated" to true,
+                        "patternId" to fixture.passwordPatternIds.getValue("$databaseOwner-$role"),
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun assertPasswordAuthenticates(
+        databaseOwner: String,
+        role: String,
+    ) {
+        fixture.connection(databaseOwner, role).use { connection ->
+            connection.createStatement().use { statement ->
+                statement.executeQuery("SELECT current_user").use { result ->
+                    assertTrue(result.next())
+                    assertEquals("spoolin_${databaseOwner}_$role", result.getString(1))
+                }
+            }
+        }
+    }
+
+    @Test
     fun ownershipAndIndependentReads() {
         migrate()
         val id = UUID.randomUUID()
