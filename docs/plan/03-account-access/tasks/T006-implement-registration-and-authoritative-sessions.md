@@ -7,7 +7,7 @@ depends_on:
 - T009
 - T010
 readiness: Ready
-status: Not started
+status: Blocked
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
@@ -335,6 +335,8 @@ Visual review is not applicable: this owned result has no new graphical presenta
 | independent-review | Not run | — | — | — | — |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+
+Execution update — 15 October 2026: Selected-only dependency check: unselected T009 (effective policy) and T010 (owner receipts/atomic evidence) are Not started. T005 is selected but not yet complete. No registration/session implementation or acceptance run was dispatched. Resume after T005, T009 and T010 are Done.
 
 ## Completion and handoff
 

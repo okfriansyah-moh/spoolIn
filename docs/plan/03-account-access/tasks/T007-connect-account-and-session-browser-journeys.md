@@ -7,7 +7,7 @@ depends_on:
 - T006
 - T008
 readiness: Ready
-status: Not started
+status: Blocked
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -389,6 +389,8 @@ Check keyboard/focus/labels/errors/announcements,200%zoom,reduced motion,touch a
 | independent-review | Not run | — | — | — | — |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+
+Execution update — 15 October 2026: Selected-only dependency check: T006 is blocked and unselected T008 (scoped identity/admission) is Not started. T004 is selected and in progress. No browser account/session journey implementation or acceptance run was dispatched. Resume after T004, T006 and T008 are Done.
 
 ## Completion and handoff
 

@@ -7,7 +7,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: Not started
+status: In progress
 risk: medium
 test_strategy: alongside
 visual_review: required
@@ -420,6 +420,8 @@ Check keyboard/focus/labels/errors/announcements,200%zoom,reduced motion,touch a
 | independent-review | Not run | — | — | — | — |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+
+Execution update — 15 October 2026: Application-shell implementation is active in claimed isolated worktree `/private/tmp/spoolin-shell-t004`, branch `codex/application-shell`. Required checks and independent review are pending.
 
 ## Completion and handoff
 
