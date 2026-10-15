@@ -7,7 +7,7 @@ depends_on:
 - T003
 - T004
 readiness: Ready
-status: Not started
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -423,6 +423,8 @@ These captures inspect this task’s controlled policy/draft/review component wi
 | independent-review | Not run | — | — | — | — |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+
+Execution started — 16 October 2026: Accepted T004/G02 is Done and the refreshed task index reports T009 execution eligible. Isolated branch `codex/effective-policy` in `/private/tmp/spoolin-policy-t009`, claim `lane-696b347b93c64d8e`, owner `account-policy-implementer`, starts from `306e6edaf610d9424ba1d22e170d14f09f1e7fff`. [Active brief](/private/tmp/spoolin-policy-t009/.ai/state/t009-brief.json) records exact scope, test-first strategy, selected cases, required commands, dedicated browser gate and separate visual/reader/zoom proof. Checks remain Not run until captured; this dispatch is not acceptance.
 
 ## Completion and handoff
 

@@ -7,7 +7,7 @@ depends_on:
 - T006
 - T008
 readiness: Ready
-status: Blocked
+status: Not started
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -393,6 +393,8 @@ Create evidence files only after an actual authorized run. A Passed row needs a 
 Execution update — 15 October 2026: Selected-only dependency check: T006 is blocked and unselected T008 (scoped identity/admission) is Not started. T004 is selected and in progress. No browser account/session journey implementation or acceptance run was dispatched. Resume after T004, T006 and T008 are Done.
 
 Resume — 15 October 2026: Required T008 is now included in the completion run. T007 still awaits accepted T004/T006/T008, with T009/T010 included upstream. The original sequential group outcome remains the target; prerequisites execute in dependency order. No browser account-journey acceptance is asserted yet.
+
+Execution scope update — 16 October 2026: T004/G02 is accepted. T006 and T008 are included in the authorized sequential completion and remain normal unfinished execution prerequisites. T007 will follow their accepted outputs; the earlier selected-only exclusion is historical and is no longer an external blocker.
 
 ## Completion and handoff
 
