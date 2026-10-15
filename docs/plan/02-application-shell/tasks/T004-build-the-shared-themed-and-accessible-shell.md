@@ -422,6 +422,8 @@ Check keyboard/focus/labels/errors/announcements,200%zoom,reduced motion,touch a
 
 Execution update — 15 October 2026: Implementation is retained on branch `codex/application-shell-correction` in `/private/tmp/spoolin-shell-t004-correction` and is not integrated or published. Input fingerprint: `429010ed80cda5f9e0ea549c9131f5f5d81e3471100cd9d8dc8437b2726f8c46`. Earlier same-input browser proof passed 32/32; the final required receipt failed Chromium startup because its invocation supplied an incomplete executable path. The secret scan passed after independently verified duplicate source-hash outputs were archived with a manifest. No scanner policy was weakened.
 
+The parent stopped the temporary Firefox container after verification; worker fixture/preview servers and browser contexts are closed. [Fixture cleanup](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-parent-fixture-cleanup.json) and [validated resume commands](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-resume.json) are retained.
+
 G02 stopped after two failed correction rounds. Retain all branches, receipts and original failed/limited captures. Next action: inspect the retained final receipt and establish a revised work-group decision under the workflow correction limit; validate the full Chromium executable path before rerunning the unchanged required contract. Run actual 200% native browser zoom and screen-reader checks in an available assistive environment. These gaps prevent Done and draft delivery of shell changes. T005 may proceed separately from accepted T002/T003 without this unaccepted shell implementation.
 
 ## Completion and handoff
