@@ -93,9 +93,42 @@
         "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/",
         "services/core/src/test/kotlin/com/spoolin/core/features/account/persistence/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "account-protection-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_account_protection.py",
+            "--task",
+            "T005",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t005-unit-results.json",
+          "required_paths": [
+            "services/core/src/test/kotlin/com/spoolin/core/features/crypto/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "account-protection-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_account_protection.py",
+            "--task",
+            "T005",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t005-integration-results.json",
+          "required_paths": [
+            "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/*IntegrationTest.kt"
+          ]
+        }
+      ]
     },
     "T006": {
       "source": "docs/plan/03-account-access/tasks/T006-implement-registration-and-authoritative-sessions.md",

@@ -862,6 +862,25 @@
       ],
       "required": true,
       "timeout_seconds": 1800
+    },
+    {
+      "id": "core-account-boundaries",
+      "component": "core",
+      "stage": "integration",
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:cryptoIntegrationTest",
+        "--rerun-tasks"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/core/build/test-results/cryptoIntegrationTest/TEST-*.xml"
+      }
     }
   ],
   "coverage": [
