@@ -4,11 +4,14 @@ title = "Project secret scan with reviewed hash and prose exceptions"
 path = ".ai/bundles/1.1.0/profiles/security/gitleaks.toml"
 
 [[allowlists]]
-description = "Receipt and contract-review artifact SHA-256 values verified independently"
+description = "Receipt, service-fingerprint and contract-review SHA-256 values verified independently"
 targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "line"
-paths = ['''(^|/)\.ai/evidence/(run-[0-9a-f]{32}/receipt\.json|t001-round1-receipt-output\.json|t002-self-review\.json)$''']
+paths = [
+  '''(^|/)\.ai/evidence/(run-[0-9a-f]{32}/receipt\.json|t001-round1-receipt-output\.json|t002-self-review\.json)$''',
+  '''(^|/)\.ai/evidence/(t003-receipt-command\.log|t003-original-frozen/t003-receipt-command\.log|t003-corrected-receipt-command\.log|t003-corrected-fingerprint\.json)$'''
+]
 regexes = ['''^\s*"(?:\.ai|\.agents|\.claude|\.cursor|\.github|docs|build-tools)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
 
 [[allowlists]]
