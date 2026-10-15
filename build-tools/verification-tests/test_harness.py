@@ -3,15 +3,18 @@ import json
 import os
 from pathlib import Path
 import stat
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
 
 from fixture import SetupError, TestInstallation, preserve_failure, validate_namespace
 from lock_dependencies import relocate_local_catalog
+from run_owner_integration import junit_counts
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("task_selector", Path(__file__).with_name("task_selector.py"))
@@ -61,6 +64,16 @@ class IsolationTests(unittest.TestCase):
         finally:
             fixture.reset()
 
+    def test_actor_and_catalog_interfaces_require_their_real_owner_fixtures(self):
+        fixture = TestInstallation.create()
+        try:
+            for name, method in (("F-ACTORS", fixture.actors), ("F-CATALOG", fixture.catalog)):
+                with self.subTest(fixture=name), self.assertRaisesRegex(SetupError, name):
+                    method()
+            self.assertTrue(fixture.root.joinpath("fixture.json").exists())
+        finally:
+            fixture.reset()
+
     def test_cleanup_refuses_other_namespace(self):
         fixture = TestInstallation.create()
         try:
@@ -81,6 +94,20 @@ class IsolationTests(unittest.TestCase):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_report_paths_are_specific_to_selected_task(self):
+        self.assertEqual(selector.report_path("unit", ["T001"]).name, "t001-tests.json")
+        self.assertEqual(selector.report_path("unit", ["T002"]).name, "t002-tests.json")
+        self.assertEqual(selector.report_path("integration", ["T003"]).name, "t003-tests.json")
+        self.assertEqual(selector.report_path("unit", ["../../outside"]).name, "unit-selection-tests.json")
+
+    def test_missing_required_sources_refuse_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            entry = {"argv": [sys.executable, "-c", "raise RuntimeError('must not execute')"],
+                     "report": "report.json", "required_paths": ["owner/**/*.kt"], "timeout": 5}
+            with patch.object(selector.subprocess, "run") as command:
+                self.assertEqual(selector.execute(entry, Path(directory))[0], 2)
+                command.assert_not_called()
+
     def test_unknown_empty_and_pending_selections_are_setup_errors(self):
         mapping = {"tasks": {"T001": {"unit": [], "pending_reason": "unavailable"}}}
         for name in ("T999", "T001"):
@@ -131,11 +158,75 @@ class SelectionTests(unittest.TestCase):
                 self.assertEqual(selector.execute(entry, root)[0], 2)
 
     def test_public_wrappers_reject_invalid_and_unavailable_selection(self):
-        cases = [("unit", "T999"), ("unit", "T002"), ("integration", "T001")]
+        cases = [("unit", "T999"), ("unit", "T002"), ("integration", "T001"), ("integration", "T003")]
         for level, task in cases:
             result = subprocess.run(["bash", f"ops/bin/test-{level}.sh", "--task", task], cwd=ROOT, capture_output=True)
             self.assertEqual(result.returncode, 2, result.stderr.decode())
             self.assertIn(b"Setup unavailable", result.stderr)
+
+    def test_make_passes_task_argument_without_shell_evaluation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            sentinel = Path(directory) / "must-not-exist"
+            result = subprocess.run(["make", "test-unit", f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertFalse(sentinel.exists())
+
+
+class JunitAdapterTests(unittest.TestCase):
+    def test_counts_come_from_cases_and_preserve_skipped_and_failed_results(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "TEST-fixture.xml"
+            start = time.time_ns()
+            report.write_text('<testsuite tests="3"><testcase name="pass"/><testcase name="skip"><skipped/></testcase><testcase name="fail"><failure/></testcase></testsuite>')
+            self.assertEqual(junit_counts([report], start), {"selected": 3, "executed": 2, "failed": 1})
+
+    def test_empty_claimed_counts_do_not_establish_test_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "TEST-fixture.xml"
+            report.write_text('<testsuite tests="99"/>')
+            with self.assertRaisesRegex(SetupError, "empty"):
+                junit_counts([report], 0)
+
+    def test_stale_and_missing_reports_cannot_pass(self):
+        with self.assertRaisesRegex(SetupError, "Fresh"):
+            junit_counts([], 0)
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "TEST-fixture.xml"
+            report.write_text('<testsuite><testcase name="pass"/></testsuite>')
+            os.utime(report, ns=(1, 1))
+            with self.assertRaisesRegex(SetupError, "Fresh"):
+                junit_counts([report], time.time_ns())
+
+
+class ProductionGenerationTests(unittest.TestCase):
+    def prepare(self, directory):
+        root = Path(directory)
+        script = root / "build-tools/verification-tests/production_contracts.mjs"
+        script.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / "build-tools/verification-tests/production_contracts.mjs", script)
+        return root, script
+
+    def test_absent_production_inputs_are_optional_until_explicitly_required(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, script = self.prepare(directory)
+            optional = subprocess.run(["node", str(script)], capture_output=True)
+            required = subprocess.run(["node", str(script), "--required"], capture_output=True)
+            self.assertEqual(optional.returncode, 0)
+            self.assertEqual(required.returncode, 2)
+            self.assertIn(b"Setup unavailable", required.stderr)
+
+    def test_production_schema_requires_generator_and_preserves_its_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, script = self.prepare(directory)
+            schema = root / "contracts/graphql/schema.graphql"
+            schema.parent.mkdir(parents=True)
+            schema.write_text("type Query { value: String }")
+            self.assertEqual(subprocess.run(["node", str(script)], capture_output=True).returncode, 2)
+            generator = root / "build-tools/generate-contracts.mjs"
+            generator.write_text("process.exitCode = 1;")
+            self.assertEqual(subprocess.run(["node", str(script)], capture_output=True).returncode, 1)
+            generator.write_text("process.exitCode = 0;")
+            self.assertEqual(subprocess.run(["node", str(script)], capture_output=True).returncode, 0)
 
 
 class LockMaintenanceTests(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 import argparse
 import json
-import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -10,7 +10,9 @@ from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[2]
 MAP = ROOT / "build-tools/verification-map.json"
-REPORT = ROOT / ".ai/evidence/t001-tests.json"
+def report_path(level, tasks):
+    name = tasks[0].lower() if tasks and len(tasks) == 1 and re.fullmatch(r"T[0-9]{3}", tasks[0]) else f"{level}-selection"
+    return ROOT / f".ai/evidence/{name}-tests.json"
 
 
 def selected_entries(mapping, level, tasks):
@@ -32,6 +34,10 @@ def selected_entries(mapping, level, tasks):
 def execute(entry, cwd=ROOT):
     report = cwd / entry["report"]
     report.unlink(missing_ok=True)
+    for pattern in entry.get("required_paths", []):
+        if not any(path.is_file() for path in cwd.glob(pattern)):
+            print(f"Setup unavailable: required source {pattern}", file=sys.stderr)
+            return 2, {"selected": 1, "executed": 0, "failed": 0}
     try:
         result = subprocess.run(entry["argv"], cwd=cwd, timeout=entry["timeout"], check=False)
     except (FileNotFoundError, subprocess.TimeoutExpired) as error:
@@ -54,16 +60,16 @@ def execute(entry, cwd=ROOT):
     return 0 if result.returncode == 0 else 2 if result.returncode == 2 else 1, counts
 
 
-def save_report(counts, entries, exit_code):
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
-    REPORT.write_text(json.dumps({
+def save_report(counts, entries, exit_code, report, level):
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(json.dumps({
         **counts, "exit_code": exit_code, "entries": entries,
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
-        "proof_boundary": "isolated harness, compiler and static build fixture",
+        "level": level, "proof_boundary": "selected task suites at their declared boundaries",
     }, indent=2) + "\n")
 
 
-def run(entries):
+def run(entries, report, level):
     counts = {"selected": 0, "executed": 0, "failed": 0}
     results = []
     exit_code = 0
@@ -75,7 +81,7 @@ def run(entries):
         if code:
             exit_code = code
             break
-    save_report(counts, results, exit_code)
+    save_report(counts, results, exit_code, report, level)
     return exit_code
 
 
@@ -84,14 +90,15 @@ def main():
     parser.add_argument("level", choices=["unit", "integration"])
     parser.add_argument("--task", action="append")
     arguments = parser.parse_args()
-    REPORT.unlink(missing_ok=True)
+    report = report_path(arguments.level, arguments.task)
+    report.unlink(missing_ok=True)
     try:
         mapping = json.loads(MAP.read_text())
         entries = selected_entries(mapping, arguments.level, arguments.task)
     except (ValueError, OSError) as error:
         print(f"Setup unavailable: {error}", file=sys.stderr)
         return 2
-    return run(entries)
+    return run(entries, report, arguments.level)
 
 
 if __name__ == "__main__":

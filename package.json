@@ -21,7 +21,8 @@
     "test:e2e": "node build-tools/verification-tests/pending.mjs browser-acceptance",
     "generate:fixture": "node build-tools/verification-tests/graphql/codegen.mjs",
     "generate:graphql": "node build-tools/generate-graphql.mjs",
-    "generate:grpc": "./gradlew :contracts:grpc:generateProto"
+    "generate:grpc": "./gradlew :contracts:grpc:generateProto",
+    "generate": "node build-tools/verification-tests/production_contracts.mjs --required"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -21,7 +21,7 @@ def relocate_local_catalog(root=ROOT):
 
 
 def main():
-    process = subprocess.run(["./gradlew", "resolveLocks", "--write-locks", "--no-daemon", "--console", "plain"], cwd=ROOT)
+    process = subprocess.run(["./gradlew", "resolveLocks", "--write-locks", "--write-verification-metadata", "sha256", "--no-daemon", "--console", "plain"], cwd=ROOT)
     if process.returncode:
         return process.returncode
     relocate_local_catalog()

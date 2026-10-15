@@ -76,6 +76,12 @@ class TestInstallation:
     def start_services(self):
         raise SetupError("Real PostgreSQL/Core/Catalog/Media fixture is pending its owning tasks")
 
+    def actors(self):
+        raise SetupError("F-ACTORS provisioning is pending the real identity fixture")
+
+    def catalog(self):
+        raise SetupError("F-CATALOG provisioning is pending the real catalog fixture")
+
     def reset(self):
         for reservation in self.reservations:
             reservation.close()

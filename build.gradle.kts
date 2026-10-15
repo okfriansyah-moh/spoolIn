@@ -51,7 +51,23 @@ allprojects {
         dependencies {
             "ktlint"("ch.qos.logback:logback-classic:1.5.38")
             "implementation"(platform(rootProject.libs.boot.bom))
+            "implementation"(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:${rootProject.libs.versions.kotlin.get()}"))
+            "implementation"(enforcedPlatform("tools.jackson:jackson-bom:${rootProject.libs.versions.jackson.get()}"))
+            constraints {
+                listOf("tomcat-embed-core", "tomcat-embed-el", "tomcat-embed-websocket").forEach { artifact ->
+                    add("implementation", "org.apache.tomcat.embed:$artifact:${rootProject.libs.versions.tomcat.get()}") {
+                        version {
+                            strictly(
+                                rootProject.libs.versions.tomcat
+                                    .get(),
+                            )
+                        }
+                        because("Approved security patch to the Boot 4.1.1 dependency set")
+                    }
+                }
+            }
             "implementation"("org.jetbrains.kotlin:kotlin-stdlib")
+            "implementation"("org.jetbrains.kotlin:kotlin-reflect")
             "testImplementation"(platform(rootProject.libs.boot.bom))
             "testImplementation"("org.junit.jupiter:junit-jupiter")
             "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
@@ -85,12 +101,23 @@ configure(subprojects.filter { it.path.startsWith(":services:") }) {
         "implementation"("org.springframework.boot:spring-boot-starter-grpc-server")
         "implementation"("org.springframework.boot:spring-boot-starter-grpc-client")
         "implementation"("org.flywaydb:flyway-database-postgresql")
+        "testImplementation"("com.tngtech.archunit:archunit-junit5:${rootProject.libs.versions.archunit.get()}")
+        "testImplementation"("org.testcontainers:testcontainers-postgresql")
+        "testImplementation"("org.testcontainers:testcontainers-junit-jupiter")
         "runtimeOnly"("org.postgresql:postgresql")
     }
     tasks.named<Jar>("jar") { enabled = true }
     val integrationTest = extensions.getByType<SourceSetContainer>().create("integrationTest")
+    integrationTest.compileClasspath += sourceSets["main"].output
+    integrationTest.runtimeClasspath += sourceSets["main"].output
     configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations["testImplementation"])
     configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations["testRuntimeOnly"])
+    tasks.register<Test>("architectureTest") {
+        testClassesDirs = integrationTest.output.classesDirs
+        classpath = integrationTest.runtimeClasspath + sourceSets["main"].output
+        useJUnitPlatform()
+        filter { includeTestsMatching("*ArchitectureTest") }
+    }
     tasks.register<Test>("integrationTest") {
         testClassesDirs = integrationTest.output.classesDirs
         classpath = integrationTest.runtimeClasspath + sourceSets["main"].output
@@ -111,6 +138,8 @@ sourceSets {
 kotlin.sourceSets.main { kotlin.srcDir("build-tools/verification-tests/jvm/kotlin") }
 
 dependencies {
+    testImplementation("com.tngtech.archunit:archunit-junit5:${libs.versions.archunit.get()}")
+    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation(libs.protobuf)
     implementation(libs.grpc.protobuf)
     implementation(libs.grpc.stub)
@@ -123,9 +152,19 @@ protobuf {
     generateProtoTasks { all().configureEach { plugins { id("grpc") } } }
 }
 
+val generatorLinuxTools by configurations.creating
+dependencies {
+    listOf("linux-aarch_64", "linux-x86_64").forEach { classifier ->
+        generatorLinuxTools("com.google.protobuf:protoc:${libs.versions.protobuf.get()}:$classifier@exe")
+        generatorLinuxTools("io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}:$classifier@exe")
+    }
+}
+
 val generatorClasspath by configurations.creating
 dependencies {
     generatorClasspath(platform(libs.boot.bom))
+    generatorClasspath(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:${libs.versions.kotlin.get()}"))
+    generatorClasspath(enforcedPlatform("tools.jackson:jackson-bom:${libs.versions.jackson.get()}"))
     generatorClasspath("com.graphql-java:graphql-java")
 }
 
@@ -180,4 +219,9 @@ tasks.wrapper {
 
 tasks.named<Detekt>("detekt") {
     setSource(files("build-tools/verification-tests/jvm/kotlin"))
+}
+
+val contractBuild = file("build-tools/contracts.gradle.kts")
+if (contractBuild.isFile) {
+    apply(from = contractBuild)
 }

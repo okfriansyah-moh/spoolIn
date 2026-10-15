@@ -1,12 +1,15 @@
 [versions]
-kotlin = "2.3.21"
+kotlin = "2.4.20"
 spring-boot = "4.1.1"
 spring-grpc = "1.1.1"
+jackson = "3.1.7"
+tomcat = "11.0.26"
 protobuf = "4.35.1"
 grpc = "1.83.1"
 ktlint = "1.7.1"
 detekt = "1.23.8"
-kover = "0.9.3"
+kover = "0.9.11"
+archunit = "1.5.1"
 
 [libraries]
 boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }

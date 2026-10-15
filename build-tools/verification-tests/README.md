@@ -19,7 +19,9 @@ acceptance. Browser/client/provider selectors remain unavailable until their own
 
 `fixture.py` supplies UUIDv4 namespaces, reserved loopback ports, private synthetic tokens,
 test-only database/role names, fixed observation time and an ownership-checked reset interface.
-It refuses ordinary installation names before creating resources. Tokens are ephemeral,
+It refuses ordinary installation names before creating resources. Named `actors()` (F-ACTORS)
+and `catalog()` (F-CATALOG) interfaces raise setup errors until their real owner fixtures exist;
+they never manufacture initialized accounts or catalog rows. Tokens are ephemeral,
 generated independently and omitted from reports. `start_services()` raises a setup error until
 the actual service fixture exists. Cleanup touches only the matching run marker; its failure
 cannot replace an earlier test failure. Runtime notification, actor and catalog initialization
@@ -48,3 +50,32 @@ an advisory without an available patched release. T002 may use `generatorClasspa
 `build-tools/generate-graphql.mjs` entry point and `generateContracts` for ordered GraphQL/protobuf
 generation. The ts-proto/grpc-js/Buf runtime graph supports streaming and compiles a separate
 bidirectional streaming fixture. Runtime service schemas remain T002’s responsibility.
+
+The approved security patch uses Kotlin2.4.20 compiler/JVM/Spring/JPA plugins and application
+stdlib/reflect, Tomcat embed11.0.26 and Jackson3.1.7 BOM. The remaining selected Boot4.1.1
+managed versions stay unchanged. The build checks every service runtime family against the
+approved pins and exercises Jackson/Kotlin immutable-value serialization with the real libraries.
+Tool engines retain their own publisher-selected support libraries.
+
+T002 supplies `build-tools/contracts.gradle.kts`, applied by the root when present, and
+`build-tools/generate-contracts.mjs`, called before frontend/MCP check/build when production
+contract sources exist. That entry point owns ordered generation; missing required generation
+returns2. `npm run generate` requires the production entry point. T002’s selected unit runner is
+`python3 tests/contracts/run.py`; it writes fresh workflow-test counts to
+`.ai/evidence/t002-contract-tests.json`. The selector writes `.ai/evidence/t002-tests.json`.
+
+T003’s integration selector invokes all three actual owner `integrationTest` tasks through
+`run_owner_integration.py`. Every declared bootstrap source glob, Docker and a fresh nonempty
+JUnit report per owner are required. The runner passes `SPOOLIN_TEST_NAMESPACE` and a protected
+`SPOOLIN_TEST_CONFIG` file; owner suites must use that disposable fixture and independently
+verify their real PostgreSQL/gRPC boundaries. Testcontainers reuse is disabled. Skipped cases
+remain unexecuted and block the result. Test counts come from actual JUnit testcase elements;
+missing, stale or empty reports cannot pass. Final report: `.ai/evidence/t003-tests.json`.
+The `architectureTest` service task uses compiled integration-test sources and selects
+`*ArchitectureTest`; T003 configures its owned bootstrap classes and unit/coverage selections.
+ArchUnit1.5.1 is pinned and exercised with the selected JUnit engine in the build fixture.
+
+Explicit lock maintenance also records Gradle SHA-256 artifact verification metadata, including
+Linux arm64/amd64 protobuf/gRPC generator binaries. Normal builds enforce that metadata without
+rewriting it. Historical evidence from the original dependency baseline is archived separately
+under `.ai/evidence/archive/t001-original-baseline/`; it cannot prove the patched implementation.

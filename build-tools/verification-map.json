@@ -39,7 +39,15 @@
         "contracts/json/",
         "tests/contracts/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "wire-contracts",
+          "argv": ["python3", "tests/contracts/run.py"],
+          "required_paths": ["tests/contracts/run.py"],
+          "report": ".ai/evidence/t002-contract-tests.json",
+          "timeout": 1200
+        }
+      ],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
     },
@@ -51,7 +59,24 @@
         "services/media/src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/"
       ],
       "unit": [],
-      "integration": [],
+      "integration": [
+        {
+          "id": "owner-bootstrap-boundaries",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_owner_integration.py",
+            "--task",
+            "T003"
+          ],
+          "required_paths": [
+            "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/bootstrap/**/*.kt",
+            "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/boundary/bootstrap/**/*.kt",
+            "services/media/src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/**/*.kt"
+          ],
+          "report": ".ai/evidence/t003-owner-tests.json",
+          "timeout": 1800
+        }
+      ],
       "pending_reason": "Suite implementation is pending its owning task"
     },
     "T004": {

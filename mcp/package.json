@@ -8,7 +8,9 @@
     "check": "tsc --project tsconfig.json --noEmit",
     "lint": "npm run lint --prefix ..",
     "check:dependencies": "depcruise --config ../build-tools/verification-tests/dependency-cruiser.cjs ../build-tools/verification-tests/mcp",
-    "test:coverage": "node ../build-tools/verification-tests/pending.mjs mcp-unit"
+    "test:coverage": "node ../build-tools/verification-tests/pending.mjs mcp-unit",
+    "precheck": "node ../build-tools/verification-tests/production_contracts.mjs",
+    "prebuild": "node ../build-tools/verification-tests/production_contracts.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "2.3.1",
