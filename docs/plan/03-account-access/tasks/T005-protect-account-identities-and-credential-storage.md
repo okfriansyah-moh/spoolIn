@@ -6,7 +6,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: In progress
+status: Done
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
@@ -312,16 +312,20 @@ Visual review is not applicable: this owned result has no new graphical presenta
 
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
-| local-tests | Not run | — | — | — | — |
-| boundary-tests | Not run | — | — | — | — |
-| self-review | Not run | — | — | — | — |
-| independent-review | Not run | — | — | — | — |
+| local-tests | Passed: 17 selected and executed, 0 failed | [Combined commands](/private/tmp/spoolin-account-integrated/.ai/evidence/integration-431bd3c90f064db3b61c264459be4825/integration.json), [Unit results](/private/tmp/spoolin-account-integrated/.ai/evidence/t005-unit-results.json) | `8a01164ffd81262ce1a4ce4ba83a793346268f3a` | Node 24.21.0, JDK 21.0.12.1+1; isolated owner rules | account-protection-implementer; shell-account-integrator |
+| boundary-tests | Passed: 25 selected and executed, 0 failed | [Database results](/private/tmp/spoolin-account-integrated/.ai/evidence/t005-integration-results.json), [Actual case artifacts](/private/tmp/spoolin-account-integrated/.ai/evidence/g03-integrated-account-protection/case-proof-index.json) | `8a01164ffd81262ce1a4ce4ba83a793346268f3a` | PostgreSQL 18.6; real processes, files, encryption and Argon2id | account-protection-implementer; shell-account-integrator |
+| quality-gates | Passed: 37 passed, 13 inapplicable, 0 failed or blocked | [Delivery result](/private/tmp/spoolin-account-integrated/.ai/evidence/g03-integrated-account-protection/final-gate-result.json) | `8a01164ffd81262ce1a4ce4ba83a793346268f3a` | Pinned toolchain; Core changed coverage 492/496 (99.194%), no missing files | shell-account-integrator |
+| self-review | Passed; corrections and source dispositions recorded | [Self-review](/private/tmp/spoolin-account-t005-verified/.ai/evidence/g03-account-protection/self-review.json), [Decisions](/private/tmp/spoolin-account-t005-verified/.ai/evidence/g03-account-protection/implementation-decisions.json) | `f056537377e3119a631568683c9897dd276dbdb6` | Source, actual red/green assertions and sanitized state | account-protection-implementer |
+| independent-review | Accepted; C01/E01 resolved, no unresolved required findings | [Worker review](/private/tmp/spoolin-account-t005-verified/.ai/evidence/t005-independent-review.json), [Integrated review](/private/tmp/spoolin-account-integrated/.ai/evidence/t005-integrated-independent-review.json) | `8a01164ffd81262ce1a4ce4ba83a793346268f3a` | Frozen source, exact command reports, current artifact hashes and fresh database observations | /root/reviewer |
+| local-acceptance | Passed: all 7 assigned cases at their declared boundaries | [Acceptance packet](/private/tmp/spoolin-account-integrated/.ai/evidence/g03-integrated-account-protection/local-acceptance.json), [Verification result](/private/tmp/spoolin-account-integrated/.ai/evidence/g03-integrated-account-protection/local-acceptance-result.json) | `8a01164ffd81262ce1a4ce4ba83a793346268f3a` | ATDD-181/277/296/297 and T005-A1/A2/A3; database/unit boundaries | /root/reviewer |
 
-Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+Execution outcome — 15 October 2026: T005 is complete in isolated branch `codex/account-access`, with implementation fingerprint `8364afc81823d86bfe4186da797570b263b9a7a7b01eff85c1fd619dfeb03f17`. Accepted T002/T003 supply its foundation. The blocked T004 implementation is excluded. This is local T005 acceptance; G03 feature acceptance, registration, sessions, rotation and restore remain outside this result. T006/T007 retain their unselected prerequisite blockers.
 
-Execution update — 15 October 2026: T005 implementation is active in isolated worktree `/private/tmp/spoolin-account-t005`, branch `codex/account-protection`, claim `lane-153c714853114ee6`, base `7cd8807bab0d1d4042e7005e3826da5ad68e39c2`. This uses accepted T002/T003 and status-only coordination commits; the blocked T004 implementation is excluded. Required local/database checks and independent review are pending. T006/T007 remain blocked by their unselected prerequisites.
+Independent review corrected a real nested connection acquisition that exhausted bounded pools, and required actual private backup checkpoints before all five nonce actions. Final proof includes fresh database reads, an abruptly halted child process and fresh process retry, initial dump/key-copy preparation, ordering and cleanup. Temporary fixtures were removed. Selected workflow reports retain their actual counts and hashes; the gate replaced the original selected integration XML files before snapshots could be copied. Case acceptance uses fresh full-gate XML and matching database observations at the same input fingerprint; no missing original XML was reconstructed.
 
-Integration support update — 15 October 2026: Seven exact Core source SHA-256 map entries were independently recomputed and classified as metadata. The secret-scanner declaration adds an exception only for those full hash-map lines in managed workflow receipt paths. Five isolated scanner-policy checks preserve detection for source credentials, credential-shaped receipt lines, unlisted source entries and hashes outside managed receipt paths. Product source scanning remains active.
+Source disposition: PostgreSQL 18.6 DELETE RESTRICT reports SQLSTATE 23001; missing-parent INSERT/UPDATE reports 23503. The technical design's explicit RESTRICT behavior governs this local implementation; the broader acceptance text's generic foreign-key code is recorded in the decisions artifact. Source requirement documents were preserved.
+
+Integration support: Seven exact Core source SHA-256 map entries were independently recomputed as metadata. The secret-scanner exception covers only those full hash-map lines in managed workflow receipt paths. Five isolated policy checks preserve detection for source credentials, credential-shaped receipt lines, unlisted entries and hashes outside managed receipt paths.
 
 ## Completion and handoff
 
