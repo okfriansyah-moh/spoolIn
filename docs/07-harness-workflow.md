@@ -195,7 +195,7 @@ The release records successful anonymous public tool discovery and Svelte/TypeSc
 
 ### 6.3 Strix and security tooling
 
-Strix `strix-agent` 1.7.0 is recorded as installed in an isolated Python 3.13 environment with hashed dependencies, but inactive. It requires Docker and a configured LLM provider for an assessment. The historical preflight reached Docker; provider environment values were absent, authentication was unverified, and stored credentials were not inspected. No SpoolIn assessment was authorized or executed in that rollout.
+Strix `strix-agent` 1.7.0 is recorded as installed in an isolated Python 3.13 environment with hashed dependencies, but inactive. It requires Docker and a configured LLM provider for an assessment. The historical preflight reached Docker; provider environment values were absent, authentication was unverified, and stored credentials were not inspected. No SpoolIn security assessment was authorized or executed in that rollout.
 
 Activate `strix-security` only for an explicitly requested assessment with an authorized target and scope. Preflight does not authorize a scan. Report ingestion checks the target, completed run metadata, findings format, and hashes; it does not execute proof scripts or mark security acceptance. There is no automatic Strix scan hook, cloud upload, or scheduled assessment. [Strix procedures](../.ai/bundles/1.1.0/docs/TOOLS.md#strix-stays-inactive-until-requested) remain separate from ordinary gates.
 

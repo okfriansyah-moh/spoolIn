@@ -1,6 +1,6 @@
 # PRD coverage reconciliation
 
-PRD v2.4 · SHA-256 `03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d`. 17 FRs, 16 NFRs and 159 ACs are accounted for. Visual mapping describes an inspectable contract, not passing production acceptance.
+PRD v2.4 · SHA-256 `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895`. 17 FRs, 16 NFRs and 159 ACs are accounted for. Visual mapping describes an inspectable contract, not passing production acceptance.
 
 ## Functional requirements
 
@@ -143,7 +143,7 @@ PRD v2.4 · SHA-256 `03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdca
 | AC-092 | technical | Engineering/delivery obligation: Normal operations. Verify in technical design and implementation, not a static UI claim. |
 | AC-093 | technical | Engineering/delivery obligation: Verification commands. Verify in technical design and implementation, not a static UI claim. |
 | AC-094 | technical | Engineering/delivery obligation: Repeatability. Verify in technical design and implementation, not a static UI claim. |
-| AC-095 | technical | Engineering/delivery obligation: Repository submission. Verify in technical design and implementation, not a static UI claim. |
+| AC-095 | technical | Engineering/delivery obligation: Repository release access. Verify in technical design and implementation, not a static UI claim. |
 | AC-096 | technical | Engineering/delivery obligation: README/AI disclosure. Verify in technical design and implementation, not a static UI claim. |
 | AC-097 | technical | Engineering/delivery obligation: Walkthrough. Verify in technical design and implementation, not a static UI claim. |
 | AC-098 | technical | Engineering/delivery obligation: Record relevant risks, selected controls, owners, evidence, and limitations. Verify in technical design and implementation, not a static UI claim. |

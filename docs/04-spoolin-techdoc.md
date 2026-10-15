@@ -6400,7 +6400,7 @@ Verification combines feature-level tests, real PostgreSQL and gRPC integration,
 | V-MCP | Separately in real ClaudeDesktop and ChatGPT private tunnel: context→proposal→exact UI review→approve/reject/revise→receipt; model-forged/direct approval, stale/crossactor/client/hash/expiry/replay, source prompt injection and interrupted reply all fail safely |
 | V-CRYPTO | Query DB/backup raw values, duplicate normalized email races, dual-alias rotation/backfill interruption, AEAD tamper/AAD/key loss, nonce allocation rollback/exhaustion, restore old counters with new WRITE keys, credential invalidation; assert no plaintext/duplicates/nonce reuse |
 | V-POLICY | Boundary and boundary±1 for every configured field/file, composed/decomposed Unicode/mononyms/unpaired surrogates, omit/null/blank/clear, direct GraphQL/gRPC/MCP, tightened policy and mid-draft change; assert no truncation, no partial commit, exact preserved legacy value |
-| V-HANDOFF | Review source→design→ATDD→ticket links later, ownership/style/generation, README/AI disclosure and submitted accessible revision/deadline; retain requirement links and executed release-verification results |
+| V-HANDOFF | Review source→design→ATDD→ticket links later, ownership/style/generation, README/AI disclosure and publicly accessible reviewed revision; retain requirement links and executed release-verification results |
 
 Additional DB acceptance: attempt every CHECK/UNIQUE/FK violation directly in an isolated PostgreSQL 18.6 database; exercise every ON DELETE/NO ACTION branch; timestamp microsecond round-trip, bigint string wire precision, empty versus NULL arrays and JSON bounds; rollback after audit insert and after work insert; query-plan tests for exact indexes; Flyway from empty and previous-version databases, checksum drift, concurrent lock, transactional/nontransactional failure and resumable backfill; explicit runtime-role denial for other databases and DDL/audit modification. Use the actual PostgreSQL engine for these behaviors; schema syntax checks alone do not satisfy integration acceptance.
 
@@ -6597,7 +6597,7 @@ The stable PRD/design requirements and historical identifiers remain authoritati
 
 ## Appendix B. Requirement traceability
 
-Release submission cutoff: 18 October 2026, end of day Asia/Singapore (NFR-011).
+Release access requires a publicly accessible reviewed Git revision and required material (NFR-011).
 
 The register retains all 17 functional requirements, 16 nonfunctional requirements, 159 acceptance criteria and 97 UI states. Mappings identify design coverage and required verification; executed runtime results are maintained by the implementation verification workflow.
 
@@ -6622,7 +6622,7 @@ The register retains all 17 functional requirements, 16 nonfunctional requiremen
 | FR-015 | Notify an operations owner through one configured channel and expose delivery failure without alert storms | [reliability](#77-durable-work-retries-and-notifications); V-NOTIFY | Revised by TD-U-005: database recording default; external delivery conditional |
 | FR-016 | Create movies from MCP proposals only after exact-content human approval in ChatGPT/Claude | [contracts](#5-api-and-integration-contracts); [mcp](#9-mcp-integration-and-exact-content-approval); V-MCP; V-MCP + V-POLICY; V-POLICY | Both clients required; private tunnel prerequisites and fail-closed UI capability gate |
 | FR-017 | Submit permitted inputs within visible, configurable bounds; correct invalid values without partial saves or lost drafts | [artwork](#76-artwork-transfer-and-reference-safe-attachment); [contracts](#5-api-and-integration-contracts); [frontend](#3-frontend-engineering); [mcp](#9-mcp-integration-and-exact-content-approval); [runtime](#11-configuration-startup-and-command-contracts); [seed](#10-seed-data-initialization-and-migrations); V-ART; V-CONFIG + V-POLICY; V-MCP + V-POLICY; V-POLICY; V-POLICY + V-ART; V-POLICY + V-UI; V-SEED + V-POLICY | Design specified; future runtime evidence required |
-| NFR-001 | Required assessment stack and real frontend/backend protocols | [architecture](#2-architecture-deployment-and-communication); V-STACK | Design specified; future runtime evidence required |
+| NFR-001 | Required project stack and real frontend/backend protocols | [architecture](#2-architecture-deployment-and-communication); V-STACK | Design specified; future runtime evidence required |
 | NFR-002 | Preferred App/Catalog/Media ownership with unrelated catalog work usable during artwork outage | [architecture](#2-architecture-deployment-and-communication); V-STACK | Design specified; future runtime evidence required |
 | NFR-003 | Saved data/artwork persist through restarts; committed persistence safeguards remain | [transactions](#7-transactions-lifecycle-and-durable-work); V-STACK + V-WRITE | Design specified; future runtime evidence required |
 | NFR-004 | Safe recovery is bounded and respects cancellation; uncertain outcomes cannot multiply effects | [reliability](#77-durable-work-retries-and-notifications); V-WORK | Design specified; future runtime evidence required |
@@ -6630,7 +6630,7 @@ The register retains all 17 functional requirements, 16 nonfunctional requiremen
 | NFR-006 | Operations owners can assess readiness, diagnose user failures, and act on alerts | [operations](#12-operations-observability-and-recovery); V-OPS + V-NOTIFY | Design specified; future runtime evidence required |
 | NFR-007 | Responsive, keyboard-usable journeys with accurate feedback and retained recoverable work | [contracts](#5-api-and-integration-contracts); [frontend](#3-frontend-engineering); V-POLICY; V-POLICY + V-UI; V-UI | Design specified; future runtime evidence required |
 | NFR-008 | Meaningful unit/edge and integration evidence proves release behavior | [verification](#appendix-b-requirement-traceability); V-HANDOFF + V-STACK | Design specified; future runtime evidence required |
-| NFR-009 | Cohesive vertical slices and understandable, maintainable submitted code | [verification](#appendix-b-requirement-traceability); V-HANDOFF + V-STACK | Design specified; future runtime evidence required |
+| NFR-009 | Cohesive vertical slices and understandable, maintainable project code | [verification](#appendix-b-requirement-traceability); V-HANDOFF + V-STACK | Design specified; future runtime evidence required |
 | NFR-010 | Reproducible local setup preserves normal data and isolates verification | [runtime](#11-configuration-startup-and-command-contracts); V-OPS + V-SEED | Design specified; future runtime evidence required |
 | NFR-011 | Accessible repository, truthful README/AI disclosure, and code ownership | [readiness](#14-technical-dependencies-and-release-criteria); V-HANDOFF | Design specified; future runtime evidence required |
 | NFR-012 | Risk-informed security consideration with accurate evidence and limitations | [security](#82-threat-model-and-assurance-records); V-HANDOFF + V-AUTH | Design specified; future runtime evidence required |
@@ -7303,23 +7303,23 @@ Each criterion links its observable outcome to the design operation, storage bou
 
 #### AC-095
 
-- **Design / operation:** [readiness](#14-technical-dependencies-and-release-criteria): submission/README/disclosure/walkthrough
+- **Design / operation:** [readiness](#14-technical-dependencies-and-release-criteria): release access/README/disclosure/walkthrough
 - **Database structures or boundary:** not a database behavior
-- **Verification obligation:** The assessment reviewer can access the intended Git revision and required material by the recorded deadline; evidence identifies what was submitted.
+- **Verification obligation:** The release reviewer can publicly access the intended Git revision and required material; evidence identifies the reviewed revision.
 - **Verification family:** V-HANDOFF
 
 #### AC-096
 
-- **Design / operation:** [readiness](#14-technical-dependencies-and-release-criteria): submission/README/disclosure/walkthrough
+- **Design / operation:** [readiness](#14-technical-dependencies-and-release-criteria): release access/README/disclosure/walkthrough
 - **Database structures or boundary:** not a database behavior
 - **Verification obligation:** Setup/run/seed/test/recovery instructions and AI use are accurate; limitations and unexecuted checks are explicit. MCP client use is documented without claiming unverified compatibility.
 - **Verification family:** V-HANDOFF
 
 #### AC-097
 
-- **Design / operation:** [readiness](#14-technical-dependencies-and-release-criteria): submission/README/disclosure/walkthrough
+- **Design / operation:** [readiness](#14-technical-dependencies-and-release-criteria): release access/README/disclosure/walkthrough
 - **Database structures or boundary:** not a database behavior
-- **Verification obligation:** They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. No assessment result is guaranteed.
+- **Verification obligation:** They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. Release readiness requires verification evidence.
 - **Verification family:** V-HANDOFF
 
 #### AC-098
@@ -7868,14 +7868,14 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 
 | Source | SHA-256 |
 |---|---|
-| [docs/02-PRD.md](02-PRD.md) | `03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d` |
-| [docs/01-brainstorming-result.md](01-brainstorming-result.md) | `591abb89e7760aa8889efa61d81e565684b8a7399eb21e589c56bf94abd2988e` |
+| [docs/02-PRD.md](02-PRD.md) | `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895` |
+| [docs/01-brainstorming-result.md](01-brainstorming-result.md) | `2450ae03d7772787ffb5271d9eab3dac6d54aff67ac8d1e6ceb68d87b491f161` |
 | [docs/design-system/brand-history.md](design-system/brand-history.md) | `dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba` |
 | [docs/design-system/components.md](design-system/components.md) | `380bcda52875a540c837c0a4e3dc1da768e683dad34c88ce68a7d56428763a8e` |
 | [docs/design-system/contrast.json](design-system/contrast.json) | `906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f` |
-| [docs/design-system/coverage.json](design-system/coverage.json) | `f5e725d6e85b79bc8dceb353ca7d45dd0574ef4df86f31e68b2f6d3157eea599` |
-| [docs/design-system/coverage.md](design-system/coverage.md) | `d328ebd526c42dedadc139af95ed2b15f7fae20dfcc9cb08c62dd6e4164282ee` |
-| [docs/03-design-system.md](03-design-system.md) | `87a1cb546fb5a5601878385f6a6d29cb740aeb296fa957515d805272a49954f6` |
+| [docs/design-system/coverage.json](design-system/coverage.json) | `7029e44e15817319e764cf26f01e9446b42d462e7779f65236ff34f4a099b52c` |
+| [docs/design-system/coverage.md](design-system/coverage.md) | `7c53617473f52c4bac3034c1d70bf6a4cd610d926beb9dc2527ad1f375564df4` |
+| [docs/03-design-system.md](03-design-system.md) | `585b222d387bc113d8ee63ddda0f08729b970037252ad02eb076b39098411113` |
 | [docs/design-system/index.md](design-system/index.md) | `02b14ff599491bfbc100fc943e7b441df12b61604f4b84b2ec91ebbc47c6a79b` |
 | [docs/design-system/mockup/account.html](design-system/mockup/account.html) | `ece3fe085ffc951a9dfb02b761f964e11118d229f6637bccfae6263015bf400a` |
 | [docs/design-system/mockup/ai.html](design-system/mockup/ai.html) | `b2c78e2099f8330cf8c5e5e2803dc3773e5b2ae85911700d6ae58d8543077156` |
@@ -7907,7 +7907,7 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/tokens.json](design-system/tokens.json) | `459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029` |
 | [docs/design-system/verification.md](design-system/verification.md) | `9be2958bc9d70a0ba48928f416ab14e2aa0795a988e1cdb0bc6568b6d722c645` |
 
-Design subtree composite SHA-256: `3ff70acbc5353a24a095953d09a745547c653037dc31fa3e4eabb566cc7a6a94` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
+Design subtree composite SHA-256: `c4f51429cade298f725b636ccf25ee3a3f8a8993a8cffa4372079713cf51ea0e` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
 
 ### Appendix C.2 Primary technical references
 

@@ -3,7 +3,7 @@
   "source": {
     "path": "../02-PRD.md",
     "version": "2.4",
-    "sha256": "03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d"
+    "sha256": "d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895"
   },
   "targets": [
     {
@@ -929,7 +929,7 @@
       "id": "NFR-001",
       "disposition": "technical",
       "screens": [],
-      "source_excerpt": "| NFR-001 | Required assessment stack and real frontend/backend protocols | A01 through A05, D03 Required | AC-064 through AC-066; [section 10](#10-compact-engineering-handoff) |",
+      "source_excerpt": "| NFR-001 | Required project stack and real frontend/backend protocols | A01 through A05, D03 Required | AC-064 through AC-066; [section 10](#10-compact-engineering-handoff) |",
       "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
     },
     {
@@ -1007,7 +1007,7 @@
       "id": "NFR-009",
       "disposition": "technical",
       "screens": [],
-      "source_excerpt": "| NFR-009 | Cohesive vertical slices and understandable, maintainable submitted code | D04/D17 Committed | AC-089, AC-090 |",
+      "source_excerpt": "| NFR-009 | Cohesive vertical slices and understandable, maintainable project code | D04/D17 Committed | AC-089, AC-090 |",
       "notes": "Visual contract only; backend, operational, delivery and integration evidence remains required by the PRD. No additional product screen is appropriate for this engineering/delivery obligation."
     },
     {
@@ -1572,7 +1572,7 @@
         "mockup/account.html#viewer",
         "mockup/account.html#maintainer"
       ],
-      "source_excerpt": "| AC-049 | Demo access | An assessment reviewer follows documented account setup | They sign in with prepared Viewer/Maintainer access | Each account demonstrates its assigned capabilities; no unrestricted development bypass substitutes for role enforcement. |",
+      "source_excerpt": "| AC-049 | Demo access | A release reviewer follows documented account setup | They sign in with prepared Viewer/Maintainer access | Each account demonstrates its assigned capabilities; no unrestricted development bypass substitutes for role enforcement. |",
       "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
     },
     {
@@ -1912,14 +1912,14 @@
       "id": "AC-090",
       "disposition": "technical",
       "locations": [],
-      "source_excerpt": "| AC-090 | Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs | NFR-009; developer/assessment reviewer |",
+      "source_excerpt": "| AC-090 | Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs | NFR-009; developer/release reviewer |",
       "notes": "Engineering/delivery obligation: Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs. Verify in technical design and implementation, not a static UI claim."
     },
     {
       "id": "AC-091",
       "disposition": "technical",
       "locations": [],
-      "source_excerpt": "| AC-091 | Fresh setup | A clean checkout and documented prerequisites are available | The assessment reviewer follows setup and seed instructions | The runnable stack and correct initial catalog become available, with clear access details or actionable startup failure. |",
+      "source_excerpt": "| AC-091 | Fresh setup | A clean checkout and documented prerequisites are available | The release reviewer follows setup and seed instructions | The runnable stack and correct initial catalog become available, with clear access details or actionable startup failure. |",
       "notes": "Engineering/delivery obligation: Fresh setup. Verify in technical design and implementation, not a static UI claim."
     },
     {
@@ -1947,8 +1947,8 @@
       "id": "AC-095",
       "disposition": "technical",
       "locations": [],
-      "source_excerpt": "| AC-095 | Repository submission | The reviewed revision is ready | Submission access is checked | The assessment reviewer can access the intended Git revision and required material by the recorded deadline; evidence identifies what was submitted. |",
-      "notes": "Engineering/delivery obligation: Repository submission. Verify in technical design and implementation, not a static UI claim."
+      "source_excerpt": "| AC-095 | Repository release access | The reviewed revision is ready | Public release access is checked | The release reviewer can publicly access the intended Git revision and required material; evidence identifies the reviewed revision. |",
+      "notes": "Engineering/delivery obligation: Repository release access. Verify in technical design and implementation, not a static UI claim."
     },
     {
       "id": "AC-096",
@@ -1961,7 +1961,7 @@
       "id": "AC-097",
       "disposition": "technical",
       "locations": [],
-      "source_excerpt": "| AC-097 | Walkthrough | Submitted code and evidence are available | The developer explains a feature and rehearses a small change | They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. No assessment result is guaranteed. |",
+      "source_excerpt": "| AC-097 | Walkthrough | Reviewed code and evidence are available | The developer explains a feature and rehearses a small change | They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. Release readiness requires verification evidence. |",
       "notes": "Engineering/delivery obligation: Walkthrough. Verify in technical design and implementation, not a static UI claim."
     },
     {
@@ -2244,7 +2244,7 @@
         "mockup/account.html#login",
         "mockup/session.html#other-account"
       ],
-      "source_excerpt": "| AC-125 | Password protection | A user has registered or signed in | Credential storage and outputs are checked by authorized assessment reviewers | Passwords are protected by one-way password hashing, cannot be retrieved as an account feature, and never appear in readable storage, audit, logs, or AI payloads. |",
+      "source_excerpt": "| AC-125 | Password protection | A user has registered or signed in | Credential storage and outputs are checked by authorized release reviewers | Passwords are protected by one-way password hashing, cannot be retrieved as an account feature, and never appear in readable storage, audit, logs, or AI payloads. |",
       "notes": "Visible behavior illustrated. This is not proof of production authorization, persistence, provider/client enforcement or distributed outcomes."
     },
     {

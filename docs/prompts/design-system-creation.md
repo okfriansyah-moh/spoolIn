@@ -19,7 +19,7 @@ Read the entire PRD, paying particular attention to:
 - Section 3: Visitor, Viewer and Maintainer access and application journeys.
 - Sections 5.1–5.4: included behavior, archive/editing rules, account/audit/AI boundaries, and exclusions.
 - Section 5.5: committed versus recommended input/artwork policies.
-- Section 6: FR/NFR IDs, assessment constraints and decision statuses.
+- Section 6: FR/NFR IDs, project constraints and decision statuses.
 - Section 7: observable acceptance criteria, including mobile/keyboard, stale/uncertain outcomes and privacy.
 - Section 8: product flows and shared feedback states.
 - Section 9: information semantics, provenance and privacy.
@@ -64,7 +64,7 @@ Mock interactions use explicit fixture data. Label simulated saves, authenticati
 The orchestrator itself is platform, framework and language agnostic. For this project, record source-backed decisions independently:
 
 - Product: SpoolIn catalog/management application, with responsive web screens from the current PRD. Narrow browser layouts are responsive web views, not a native mobile application.
-- Frontend framework/language: Svelte/TypeScript, required by PRD assessment constraint A01 and NFR-001/AC-064. Activate matching recommendations and component handoff because of this requirement.
+- Frontend framework/language: Svelte/TypeScript, required by PRD project constraint A01 and NFR-001/AC-064. Activate matching recommendations and component handoff because of this requirement.
 - Backend: Kotlin/Spring Boot from A02. It does not select Android/Compose, frontend Kotlin, or any native toolkit.
 - Component library: open unless the current PRD or adopted project decisions select one. The shadcn-svelte skill may supply an optional Svelte component mapping; installing that skill does not establish library adoption.
 - Game engine: not applicable to the current product scope. Native mobile platforms and game interfaces are outside this project's approved release.
@@ -158,7 +158,7 @@ python3 /Users/mekari/.codex/skills/design-system/scripts/check_artifacts.py doc
 
 Then verify actual renders and representative interactions with available browser tools. Check every distinct page template and consequential state at desktop/mobile widths, navigation between mockups, text/asset overflow, keyboard focus, labels/form errors, dialogs, color-independent feedback, contrast pairs and reduced motion. Use the installed Impeccable and accessibility routes to find and correct issues within this scope.
 
-Inspect in a batched pass, fix observed defects, and confirm the fixes. Additional passes need an unresolved defect or new change. Save useful actual rendered screenshots when available. In `verification.md`, distinguish structural checks, browser observations, keyboard/contrast evidence and pending limitations. A passing structural checker alone is not proof of accessibility, responsive quality, backend integration or assessment acceptance.
+Inspect in a batched pass, fix observed defects, and confirm the fixes. Additional passes need an unresolved defect or new change. Save useful actual rendered screenshots when available. In `verification.md`, distinguish structural checks, browser observations, keyboard/contrast evidence and pending limitations. A passing structural checker alone is not proof of accessibility, responsive quality, backend integration or release acceptance.
 
 If a browser/renderer is unavailable, finish the files and structural checks, clearly mark visual/keyboard verification pending and explain the concrete limitation. Do not fabricate screenshots or claim unperformed checks.
 
