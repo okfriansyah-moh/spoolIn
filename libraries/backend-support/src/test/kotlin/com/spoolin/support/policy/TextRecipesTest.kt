@@ -13,12 +13,11 @@ class TextRecipesTest {
             "composed unchanged" to { assertEquals("é", TextRules.ordinary("é", TextBound(1, 1))) },
             "decomposed counts two" to { assertEquals("e\u0301", TextRules.ordinary("e\u0301", TextBound(2, 2))) },
             "101 emoji reject" to {
-                assertThrows(InputViolation::class.java) { TextRules.ordinary("😀".repeat(101), TextBound(1, 100)) }
-                Unit
+                assertNamedPersonRejection("😀".repeat(101))
             },
+            "exact empty person input reports named field" to { assertNamedPersonRejection("") },
             "blank reject" to {
-                assertThrows(InputViolation::class.java) { TextRules.ordinary(" \u00a0 ", TextBound(1, 100)) }
-                Unit
+                assertNamedPersonRejection(" \u00a0 ")
             },
             "unpaired high reject" to
                 {
@@ -47,6 +46,15 @@ class TextRecipesTest {
                     )
                 },
         ).map { (name, assertion) -> dynamicTest("ATDD-276 $name", assertion) }
+
+    private fun assertNamedPersonRejection(value: String) {
+        val error =
+            assertThrows(InputViolation::class.java) {
+                TextRules.ordinary(value, TextBound(1, 100), "person.name")
+            }
+        assertEquals("person.name", error.path)
+        assertEquals("Use 1 to 100 Unicode code points.", error.correction)
+    }
 
     @TestFactory
     fun presenceRecipes(): List<org.junit.jupiter.api.DynamicTest> {

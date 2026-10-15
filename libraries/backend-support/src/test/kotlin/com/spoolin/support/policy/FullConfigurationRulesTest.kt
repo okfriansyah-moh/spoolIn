@@ -509,11 +509,11 @@ class ConfigurationSecurityRulesTest : FullConfigurationFixture() {
                 }
             },
             dynamicTest("F-CONFIG row057 cap delay") {
-                assertEquals(5000, ConfigurationSources().integer("RETRY_MAX_DELAY_MS", 5000, 1, 2147483647).value)
+                assertEquals(5000, ConfigurationSources().integer("RETRY_MAX_DELAY_MS", 5000, 1, 3600000).value)
                 assertThrows(ConfigurationViolation::class.java) {
                     ConfigurationSources(
                         mapOf("RETRY_MAX_DELAY_MS" to "NaN"),
-                    ).integer("RETRY_MAX_DELAY_MS", 5000, 1, 2147483647)
+                    ).integer("RETRY_MAX_DELAY_MS", 5000, 1, 3600000)
                 }
             },
             dynamicTest("F-CONFIG row058 work deadline") {

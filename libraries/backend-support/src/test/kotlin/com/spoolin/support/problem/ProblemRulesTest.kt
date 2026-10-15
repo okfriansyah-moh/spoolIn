@@ -30,6 +30,9 @@ class ProblemRulesTest {
                 assertEquals(true, mcp["isError"])
                 assertEquals(problem.graphql(), mcp["problem"])
                 assertEquals(kind.correction, mcp["safeText"])
+                assertProjectedCodeAndPath(problem.graphql(), code)
+                assertProjectedCodeAndPath(problem.protobuf(), code)
+                assertProjectedCodeAndPath(mcp.getValue("problem") as Map<*, *>, code)
                 assertEquals(code, problem.code)
                 assertEquals(status, kind.rpcStatus)
                 assertEquals(setOf("code", "message", "fields", "retryAfterMs"), problem.graphql().keys)
@@ -44,6 +47,16 @@ class ProblemRulesTest {
                 assertEquals("movie.title", problem.fields.single().path)
             }
         }
+
+    private fun assertProjectedCodeAndPath(
+        projected: Map<*, *>,
+        expectedCode: String,
+    ) {
+        assertEquals(expectedCode, projected["code"])
+        val field = (projected["fields"] as List<*>).single() as Map<*, *>
+        assertEquals(expectedCode, field["code"])
+        assertEquals("movie.title", field["path"])
+    }
 
     @Test
     fun `ATDD-291 error projections reject sensitive free text`() {

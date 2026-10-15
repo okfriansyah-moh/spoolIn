@@ -132,7 +132,12 @@ for (const [index, state] of Object.keys(headings).entries()) {
     await action(page);
     await noOverflow(page);
     await frame(page, info, state, 'result');
-    await page.goto('/policy?state=text-boundaries');
+    const destination =
+      state === 'text-boundaries' ? 'optional-clearing' : 'text-boundaries';
+    await page.goto(`/policy?state=${destination}`);
+    await expect(
+      page.getByRole('heading', { name: headings[destination], exact: true }),
+    ).toBeVisible();
     await page.goBack();
     await expect(
       page.getByRole('heading', { name: headings[state], exact: true }),

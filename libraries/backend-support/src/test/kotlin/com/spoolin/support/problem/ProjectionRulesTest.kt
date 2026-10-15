@@ -3,6 +3,7 @@ package com.spoolin.support.problem
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ProjectionRulesTest {
@@ -45,9 +46,26 @@ class ProjectionRulesTest {
             "countries" to emptyList<String>(),
         ) + privateValues
 
+    private val expectedMovie =
+        mapOf(
+            "title" to "The Last Light",
+            "originalTitle" to null,
+            "synopsis" to "A story",
+            "genreIds" to listOf(id),
+            "release" to mapOf("year" to null, "month" to null, "day" to null),
+            "runtimeMinutes" to null,
+            "originalLanguage" to null,
+            "synopsisLanguage" to "und",
+            "countries" to emptyList<String>(),
+        )
+
     @Test
     fun `ATDD-292 public Title filters nested internals with complete field set`() {
         val result = RecipientProjection.publicTitle(title)
+        assertTrue(
+            result == ProjectionExpectations.title,
+            "Complete public Title typed value must match the fixed fixture.",
+        )
         assertEquals(
             setOf(
                 "id",
@@ -94,6 +112,10 @@ class ProjectionRulesTest {
                 true,
             )
         assertEquals(setOf("authenticated", "role", "accountId", "displayName", "expiresAt", "csrfToken"), result.keys)
+        assertTrue(
+            result == ProjectionExpectations.session,
+            "Complete own Session typed value must match the fixed fixture.",
+        )
         assertEquals("V", result["displayName"])
         assertFalse(result.toString().contains("synthetic-private"))
         assertThrows(IllegalArgumentException::class.java) { RecipientProjection.ownSession(emptyMap(), false) }
@@ -112,6 +134,7 @@ class ProjectionRulesTest {
                 "changes" to mapOf("title" to mapOf("before" to "Old", "after" to "New"), "email" to privateValues),
             ) + privateValues
         val result = RecipientProjection.maintainerAudit(input, true)
+        assertTrue(result == ProjectionExpectations.audit, "Complete Audit typed value must match the fixed fixture.")
         assertEquals(
             setOf("id", "actorRef", "action", "subjectId", "changes", "operationId", "at", "outcome", "subjectKind"),
             result.keys,
@@ -137,6 +160,10 @@ class ProjectionRulesTest {
                 "reviewResourceUri" to "spoolin://proposal/$id/5",
             ) + privateValues
         val result = RecipientProjection.modelProposal(input)
+        assertTrue(
+            result == ProjectionExpectations.model,
+            "Complete model output typed value must match the fixed fixture.",
+        )
         assertEquals(
             setOf(
                 "proposalId",
@@ -150,18 +177,6 @@ class ProjectionRulesTest {
             ),
             result.keys,
         )
-        val expectedMovie =
-            mapOf(
-                "title" to "The Last Light",
-                "originalTitle" to null,
-                "synopsis" to "A story",
-                "genreIds" to listOf(id),
-                "release" to mapOf("year" to null, "month" to null, "day" to null),
-                "runtimeMinutes" to null,
-                "originalLanguage" to null,
-                "synopsisLanguage" to "und",
-                "countries" to emptyList<String>(),
-            )
         assertEquals(expectedMovie, result["normalizedMovie"])
         assertFalse(result.toString().contains("synthetic-private"))
         assertEquals("REVIEW", result["status"])
