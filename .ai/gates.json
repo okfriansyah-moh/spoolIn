@@ -13,6 +13,72 @@
   ],
   "checks": [
     {
+      "id": "contracts-python-syntax",
+      "component": "contracts",
+      "stage": "fast",
+      "when": [
+        "tests/contracts/*.py"
+      ],
+      "argv": [
+        "python3",
+        "-m",
+        "compileall",
+        "-q",
+        "tests/contracts"
+      ],
+      "required": true,
+      "timeout_seconds": 300
+    },
+    {
+      "id": "contracts-script-lint",
+      "component": "contracts",
+      "stage": "fast",
+      "when": [
+        "build-tools/generate-*.mjs",
+        "build-tools/contracts/**",
+        "build-tools/contracts.gradle.kts",
+        "contracts/**",
+        "tests/contracts/**"
+      ],
+      "argv": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--config",
+        "build-tools/verification-tests/eslint.config.mjs",
+        "build-tools/generate-contracts.mjs",
+        "build-tools/generate-graphql.mjs",
+        "build-tools/generate-json-types.mjs",
+        "build-tools/generate-tokens.mjs",
+        "build-tools/contracts",
+        "--max-warnings",
+        "0"
+      ],
+      "required": true,
+      "timeout_seconds": 300
+    },
+    {
+      "id": "contracts-acceptance",
+      "component": "contracts",
+      "stage": "integration",
+      "when": [
+        "build-tools/generate-*.mjs",
+        "build-tools/contracts/**",
+        "build-tools/contracts.gradle.kts",
+        "contracts/**",
+        "tests/contracts/**"
+      ],
+      "argv": [
+        "python3",
+        "tests/contracts/run.py"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": ".ai/evidence/t002-contract-tests.xml"
+      }
+    },
+    {
       "id": "core-ktlint",
       "component": "core",
       "stage": "fast",
@@ -796,72 +862,6 @@
       ],
       "required": true,
       "timeout_seconds": 1800
-    },
-    {
-      "id": "contracts-python-syntax",
-      "component": "contracts",
-      "stage": "fast",
-      "when": [
-        "tests/contracts/*.py"
-      ],
-      "argv": [
-        "python3",
-        "-m",
-        "compileall",
-        "-q",
-        "tests/contracts"
-      ],
-      "required": true,
-      "timeout_seconds": 300
-    },
-    {
-      "id": "contracts-script-lint",
-      "component": "contracts",
-      "stage": "fast",
-      "when": [
-        "build-tools/generate-*.mjs",
-        "build-tools/contracts/**",
-        "build-tools/contracts.gradle.kts",
-        "contracts/**",
-        "tests/contracts/**"
-      ],
-      "argv": [
-        "node",
-        "node_modules/eslint/bin/eslint.js",
-        "--config",
-        "build-tools/verification-tests/eslint.config.mjs",
-        "build-tools/generate-contracts.mjs",
-        "build-tools/generate-graphql.mjs",
-        "build-tools/generate-json-types.mjs",
-        "build-tools/generate-tokens.mjs",
-        "build-tools/contracts",
-        "--max-warnings",
-        "0"
-      ],
-      "required": true,
-      "timeout_seconds": 300
-    },
-    {
-      "id": "contracts-acceptance",
-      "component": "contracts",
-      "stage": "integration",
-      "when": [
-        "build-tools/generate-*.mjs",
-        "build-tools/contracts/**",
-        "build-tools/contracts.gradle.kts",
-        "contracts/**",
-        "tests/contracts/**"
-      ],
-      "argv": [
-        "python3",
-        "tests/contracts/run.py"
-      ],
-      "required": true,
-      "timeout_seconds": 1800,
-      "test_report": {
-        "format": "junit",
-        "glob": ".ai/evidence/t002-contract-tests.xml"
-      }
     }
   ],
   "coverage": [
