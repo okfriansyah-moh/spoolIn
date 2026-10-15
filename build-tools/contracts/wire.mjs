@@ -49,7 +49,7 @@ export function dateTime(value) {
     !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z$/.test(value)
   ) {
     throw new TypeError(
-      'DateTime requires UTC with at most6 fractional digits',
+      'DateTime requires UTC with at most 6 fractional digits',
     );
   }
   const instant = new Date(value);
