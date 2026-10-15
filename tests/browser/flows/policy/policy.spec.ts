@@ -141,3 +141,22 @@ for (const [index, state] of Object.keys(headings).entries()) {
     await reference(page, info, state);
   });
 }
+
+test('C03 raised person and title minima change one-code-point guidance', async ({
+  page,
+}, info) => {
+  await page.goto('/policy?state=text-boundaries&minimum=raised');
+  const table = page.getByRole('table');
+  await expect(table).toContainText('person 2–100');
+  await expect(table).toContainText('Use 2 to 100 Unicode code points.');
+  await expect(table).toContainText('Use 2 to 255 Unicode code points.');
+  await expect(table).not.toContainText('Valid professional name');
+  await expect(table).not.toContainText(
+    'Accepted under the current title rule',
+  );
+  await expect(table).toContainText('é / é');
+  await expect(table).toContainText('O’Connor · 李 · Jean-Luc');
+  await noOverflow(page);
+  await frame(page, info, 'text-boundaries', 'raised-minima');
+  await recordEnvironment(page, info, 'raised-minima');
+});

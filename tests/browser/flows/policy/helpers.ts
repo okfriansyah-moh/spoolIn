@@ -1,9 +1,12 @@
 import { expect, type Page, type TestInfo } from '@playwright/test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
-const evidence = resolve('../../.ai/evidence/t009-policy/visual');
+const evidence = resolve(
+  '../../.ai/evidence/t009-policy/visual',
+  `run-${randomUUID().replaceAll('-', '')}`,
+);
 export const draft =
   'After fifteen years away, a railway archivist returns to her coastal hometown to record its last overnight train.';
 export const headings: Record<string, string> = {

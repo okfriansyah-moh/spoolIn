@@ -223,14 +223,17 @@ object OwnerConfiguration {
         val url = source.required("${prefix}_DB_URL").value
         val uri = runCatching { URI(url.removePrefix("jdbc:")) }.getOrNull()
         val addressValid = url.startsWith("jdbc:postgresql://") && uri?.path == "/spoolin_$owner"
-        val tls =
+        val parameters =
             uri
                 ?.rawQuery
-                ?.split('&')
                 .orEmpty()
-                .filter { it.substringBefore('=') == "sslmode" }
-        val secure = uri?.userInfo == null && tls == listOf("sslmode=verify-full")
-        if (!addressValid || !secure) {
+                .split('&')
+                .map { it.split('=', limit = 2) }
+        val tls = parameters.filter { it.first() == "sslmode" }
+        val supported = setOf("sslmode", "sslrootcert", "connectTimeout")
+        val safeOptions = parameters.all { it.size == 2 && it.first() in supported }
+        val secure = uri?.userInfo == null && tls == listOf(listOf("sslmode", "verify-full"))
+        if (!addressValid || !secure || !safeOptions) {
             throw ConfigurationViolation("${prefix}_DB_URL", "Use the owned PostgreSQL database with verify-full TLS.")
         }
         if (source.required("${prefix}_DB_USER").value !in

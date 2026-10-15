@@ -632,7 +632,9 @@
         "tests/contracts/**",
         "libraries/backend-support/src/**/*.kt",
         "tests/browser/flows/policy/**/*.ts",
-        "tests/browser/playwright.policy.config.ts"
+        "tests/browser/playwright.policy.config.ts",
+        ".ai/gates.json",
+        ".ai/bundles/1.1.1/profiles/security/semgrep.yml"
       ],
       "argv": [
         "semgrep",
@@ -676,7 +678,11 @@
         "tests/contracts/**",
         "libraries/backend-support/src/**/*.kt",
         "tests/browser/flows/policy/**/*.ts",
-        "tests/browser/playwright.policy.config.ts"
+        "tests/browser/playwright.policy.config.ts",
+        ".ai/gates.json",
+        ".ai/security/gitleaks.toml",
+        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.1.1/docs/verification-tools.json"
       ],
       "argv": [
         "gitleaks",
@@ -736,7 +742,11 @@
       "component": "foundation",
       "stage": "fast",
       "when": [
-        "build-tools/verification-tests/*.py"
+        "build-tools/verification-tests/*.py",
+        ".ai/gates.json",
+        ".ai/security/gitleaks.toml",
+        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.1.1/docs/verification-tools.json"
       ],
       "argv": [
         "python3",

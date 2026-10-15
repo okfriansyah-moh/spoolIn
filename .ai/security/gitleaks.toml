@@ -37,3 +37,11 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''']
 regexes = ['''^\s*"(?:services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/CredentialIntegrationTest\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/KeyRegistry\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/MountedKeys\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHash\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHasher\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordInput\.kt|services/core/src/test/kotlin/com/spoolin/core/features/crypto/PasswordRulesTest\.kt)": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Independently verified shared policy source snapshot SHA-256 lines in workflow receipts"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''']
+regexes = ['''^\s*"(?:libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ConfigurationKeyRulesTest\.kt)": "[0-9a-f]{64}",?\s*$''']

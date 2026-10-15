@@ -6,7 +6,7 @@
   import Button from '../components/Button.svelte';
   import Notice from '../components/Notice.svelte';
   import type { Policy } from './types';
-  import { boundFor, count } from './rules';
+  import { boundFor, checkText, count } from './rules';
   import {
     registrationFeedback,
     optionalFeedback,
@@ -43,6 +43,8 @@
   let changed = $state(false);
   const person = $derived(boundFor(policy, 'personName'));
   const registration = $derived(boundFor(policy, 'registrationName'));
+  const personSample = $derived(checkText('V', person));
+  const titleSample = $derived(checkText('A', boundFor(policy, 'title')));
   const tightened = $derived({
     ...boundFor(policy, 'synopsis'),
     maxCodePoints: revisedMaximum,
@@ -79,7 +81,7 @@
           <tr
             ><td>V</td><td
               >1 code point · person {person.minCodePoints}–{person.maxCodePoints}</td
-            ><td>Valid professional name</td></tr
+            ><td>{personSample.error || 'Valid professional name'}</td></tr
           >
           <tr
             ><td>V</td><td
@@ -98,7 +100,8 @@
           >
           <tr
             ><td>A</td><td>1-character title</td><td
-              >Accepted under the current title rule</td
+              >{titleSample.error ||
+                'Accepted under the current title rule'}</td
             ></tr
           >
           <tr

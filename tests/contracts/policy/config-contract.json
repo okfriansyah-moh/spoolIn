@@ -105,14 +105,8 @@
       "name": "CORE_DB_URL",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CORE_DB_URL"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CORE_DB_URL"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -126,14 +120,8 @@
       "name": "CORE_DB_USER",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CORE_DB_USER"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CORE_DB_USER"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -147,14 +135,8 @@
       "name": "CORE_DB_PASSWORD_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CORE_DB_PASSWORD_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CORE_DB_PASSWORD_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -168,14 +150,8 @@
       "name": "CATALOG_DB_URL",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CATALOG_DB_URL"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CATALOG_DB_URL"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -189,14 +165,8 @@
       "name": "CATALOG_DB_USER",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CATALOG_DB_USER"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CATALOG_DB_USER"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -210,14 +180,8 @@
       "name": "CATALOG_DB_PASSWORD_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CATALOG_DB_PASSWORD_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CATALOG_DB_PASSWORD_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -231,14 +195,8 @@
       "name": "MEDIA_DB_URL",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "MEDIA_DB_URL"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["MEDIA_DB_URL"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -252,14 +210,8 @@
       "name": "MEDIA_DB_USER",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "MEDIA_DB_USER"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["MEDIA_DB_USER"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -273,14 +225,8 @@
       "name": "MEDIA_DB_PASSWORD_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "MEDIA_DB_PASSWORD_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["MEDIA_DB_PASSWORD_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -295,9 +241,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "connections",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "pool.maximum",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -311,9 +255,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "connections",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "pool.minimumIdle",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -327,9 +269,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "ms",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "connectTimeout",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -343,9 +283,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "ms",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "statementTimeout",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -359,9 +297,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "ms",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "lockTimeout",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -375,9 +311,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "ms",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "idleTransactionTimeout",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -391,9 +325,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "ms",
       "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "migrationStatementTimeout",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -407,14 +339,8 @@
       "name": "BROWSER_ORIGIN",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Exact scheme/host/port; no wildcard/foreign origin/plaintext downgrade.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "BROWSER_ORIGIN"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["BROWSER_ORIGIN"],
       "execution": "Not run; source map frozen before expanded case execution",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -427,14 +353,8 @@
       "name": "SERVICE_CERT_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Required certificate/key/CA reference; mode/key/TLS facts checked locally as controlled facts, actual files later runtime proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "SERVICE_CERT_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["SERVICE_CERT_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -448,14 +368,8 @@
       "name": "SERVICE_KEY_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Required certificate/key/CA reference; mode/key/TLS facts checked locally as controlled facts, actual files later runtime proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "SERVICE_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["SERVICE_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -469,14 +383,8 @@
       "name": "SERVICE_CA_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Required certificate/key/CA reference; mode/key/TLS facts checked locally as controlled facts, actual files later runtime proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "SERVICE_CA_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["SERVICE_CA_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -489,15 +397,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "core/catalog/media/mcp only for application identities; no arbitrary service role.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "SERVICE_IDENTITY"
-      ],
+      "selected_names": ["SERVICE_IDENTITY"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -511,9 +413,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "TCPport",
       "rule": "Selected listener facts; binding/real TLS tested by boundary owner, not these units.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "CoreHTTPSport",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -527,9 +427,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "TCPport",
       "rule": "Selected listener facts; binding/real TLS tested by boundary owner, not these units.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "MCPtransportPort",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -543,9 +441,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "TCPport",
       "rule": "Selected listener facts; binding/real TLS tested by boundary owner, not these units.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "MCPprivateExporterPort",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -558,14 +454,8 @@
       "name": "PII_KEY_FILE",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "PII_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["PII_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -579,14 +469,8 @@
       "name": "DRAFT_KEY_FILE",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "DRAFT_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["DRAFT_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -600,14 +484,8 @@
       "name": "EMAIL_LOOKUP_KEY_FILE",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "EMAIL_LOOKUP_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["EMAIL_LOOKUP_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -621,14 +499,8 @@
       "name": "OPERATION_HMAC_KEY_FILE",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "OPERATION_HMAC_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["OPERATION_HMAC_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -642,14 +514,8 @@
       "name": "CURSOR_KEY_FILE",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CURSOR_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CURSOR_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -663,14 +529,8 @@
       "name": "CSRF_KEY_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "CSRF_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["CSRF_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -683,11 +543,7 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required version identifiers, independent purpose material. Bounded key-ID syntax per relevant owner contract.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_names": [
         "PII_KEY_ID",
@@ -708,9 +564,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "In-memory length31/32/33 \u2192 reject/pass/reject; only actual file loader proves disk facts.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "AES key size",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -723,9 +577,7 @@
       "baseline": "0600",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Controlled owner-only fact valid; symlink/public-readable facts invalid. No filesystem started by assigned unit cases.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "protected file mode",
       "units": "typed descriptor or identifier",
@@ -740,9 +592,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Compatibility ceiling, not a text-field max setting; max policy values must fit complete encoded payload.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "account/draft plaintext envelope",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -755,14 +605,8 @@
       "name": "ACTOR_SIGNING_PRIVATE_KEY_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Role-specific: Core private PKCS8 Ed25519; receivers bounded SPKI public map only; no default.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "ACTOR_SIGNING_PRIVATE_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["ACTOR_SIGNING_PRIVATE_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -776,14 +620,8 @@
       "name": "ACTOR_SIGNING_KEY_ID",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Role-specific: Core private PKCS8 Ed25519; receivers bounded SPKI public map only; no default.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "ACTOR_SIGNING_KEY_ID"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["ACTOR_SIGNING_KEY_ID"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -797,14 +635,8 @@
       "name": "ACTOR_VERIFY_KEYS_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Role-specific: Core private PKCS8 Ed25519; receivers bounded SPKI public map only; no default.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "ACTOR_VERIFY_KEYS_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["ACTOR_VERIFY_KEYS_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -818,9 +650,7 @@
       "baseline": 4,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Wire/security compatibility rule; not a new operator tunable.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "verify map entries maximum",
       "units": "typed descriptor or identifier",
@@ -834,9 +664,7 @@
       "baseline": 60,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Wire/security compatibility rule; not a new operator tunable.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "previous verifier minimum retention seconds",
       "units": "typed descriptor or identifier",
@@ -850,9 +678,7 @@
       "baseline": 30,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Wire/security compatibility rule; not a new operator tunable.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "assertion lifetime maximum seconds",
       "units": "typed descriptor or identifier",
@@ -866,9 +692,7 @@
       "baseline": 4096,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Wire/security compatibility rule; not a new operator tunable.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "assertion metadata maximum bytes",
       "units": "typed descriptor or identifier",
@@ -882,9 +706,7 @@
       "baseline": 2,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Wire/security compatibility rule; not a new operator tunable.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "skew maximum seconds",
       "units": "typed descriptor or identifier",
@@ -897,15 +719,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "VIEWER_IDENTITY_FILE"
-      ],
+      "selected_names": ["VIEWER_IDENTITY_FILE"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -917,15 +733,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "VIEWER_PASSWORD_FILE"
-      ],
+      "selected_names": ["VIEWER_PASSWORD_FILE"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -937,15 +747,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "MAINTAINER_IDENTITY_FILE"
-      ],
+      "selected_names": ["MAINTAINER_IDENTITY_FILE"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -957,15 +761,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "MAINTAINER_PASSWORD_FILE"
-      ],
+      "selected_names": ["MAINTAINER_PASSWORD_FILE"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -977,15 +775,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "manifest.manifestVersion"
-      ],
+      "selected_names": ["manifest.manifestVersion"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -997,15 +789,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "manifest.snapshotSHA256"
-      ],
+      "selected_names": ["manifest.snapshotSHA256"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1019,14 +805,8 @@
       "name": "NOTIFICATION_MODE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Exactly database/smtp/slack/google_chat; empty/unknown rejects. Selected mode only.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "NOTIFICATION_MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["NOTIFICATION_MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1038,16 +818,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "SMTP_HOST",
-        "SMTP_PORT"
-      ],
+      "selected_names": ["SMTP_HOST", "SMTP_PORT"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1059,15 +832,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "SMTP_TLS_VERIFY"
-      ],
+      "selected_names": ["SMTP_TLS_VERIFY"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1079,16 +846,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "SMTP_FROM",
-        "SMTP_TO"
-      ],
+      "selected_names": ["SMTP_FROM", "SMTP_TO"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1100,16 +860,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "SMTP_USERNAME",
-        "SMTP_PASSWORD_FILE"
-      ],
+      "selected_names": ["SMTP_USERNAME", "SMTP_PASSWORD_FILE"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1121,11 +874,7 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_names": [
         "SLACK_WEBHOOK_FILE",
@@ -1143,11 +892,7 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_names": [
         "GOOGLE_CHAT_WEBHOOK_FILE",
@@ -1170,14 +915,8 @@
       "name_authority": "Exact source or accepted implementation key",
       "units": "retries",
       "rule": "0 valid \u2192 one initial attempt, no retries; total attempts=retries+1.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RETRY_MAX_RETRIES"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RETRY_MAX_RETRIES"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1192,14 +931,8 @@
       "name": "RETRY_BASE_DELAY_MS",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "ms",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RETRY_BASE_DELAY_MS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RETRY_BASE_DELAY_MS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1215,14 +948,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "ms",
       "rule": "Reject cap<base; source gives no independent numeric upper beyond selected safe budget.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RETRY_MAX_DELAY_MS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RETRY_MAX_DELAY_MS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1237,14 +964,8 @@
       "name": "RETRY_DEADLINE_MS",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "ms",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RETRY_DEADLINE_MS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RETRY_DEADLINE_MS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1259,14 +980,8 @@
       "name": "RETRY_MULTIPLIER",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "factor",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RETRY_MULTIPLIER"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RETRY_MULTIPLIER"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1278,9 +993,7 @@
       "baseline": "uniform[0,min(cap,base*2^(attempt-1))]",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Full jitter; saved retry values belong to durable work, not policy public output.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "jitter algorithm",
       "units": "typed descriptor or identifier",
@@ -1303,11 +1016,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "REGISTRATION_NAME_MIN_CODE_POINTS",
         "REGISTRATION_NAME_MAX_CODE_POINTS"
@@ -1332,11 +1041,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "PERSON_NAME_MIN_CODE_POINTS",
         "PERSON_NAME_MAX_CODE_POINTS"
@@ -1361,15 +1066,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "TITLE_MIN_CODE_POINTS",
-        "TITLE_MAX_CODE_POINTS"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
+      "selected_names": ["TITLE_MIN_CODE_POINTS", "TITLE_MAX_CODE_POINTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1390,11 +1088,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "ORIGINAL_TITLE_MIN_CODE_POINTS",
         "ORIGINAL_TITLE_MAX_CODE_POINTS"
@@ -1419,11 +1113,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "SYNOPSIS_MIN_CODE_POINTS",
         "SYNOPSIS_MAX_CODE_POINTS"
@@ -1448,11 +1138,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "CREDIT_ROLE_MIN_CODE_POINTS",
         "CREDIT_ROLE_MAX_CODE_POINTS"
@@ -1477,11 +1163,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "CHARACTER_NAME_MIN_CODE_POINTS",
         "CHARACTER_NAME_MAX_CODE_POINTS"
@@ -1506,11 +1188,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "BIOGRAPHY_MIN_CODE_POINTS",
         "BIOGRAPHY_MAX_CODE_POINTS"
@@ -1532,14 +1210,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Separate syntax/IDNA validator; no directory exposure. Do not guess unspecified minimum as a new policy.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "EMAIL_MAX_CODE_POINTS"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
+      "selected_names": ["EMAIL_MAX_CODE_POINTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1559,11 +1231,7 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Current input only; existing verification eligibility remains independent. No trimming/NFC/truncation.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
       "selected_names": [
         "PASSWORD_MIN_CODE_POINTS",
         "PASSWORD_MAX_CODE_POINTS"
@@ -1580,9 +1248,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "UTF8bytes",
       "rule": "Compatibility ceiling; 512/513 fixtures independent of code-point length.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "new-password byte ceiling",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1604,14 +1270,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "Unicodecodepoints",
       "rule": "Empty clears only text search, preserves other filters; no wildcard/SQL execution.",
-      "recipe_families": [
-        "NUMERIC-TEXT",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "SEARCH_MAX_CODE_POINTS"
-      ],
+      "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
+      "selected_names": ["SEARCH_MAX_CODE_POINTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1624,15 +1284,11 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "codepoints",
       "rule": "Request-envelope bound with ordinary trim; source URL HTTP/HTTPS, never server fetch. Required when source evidence is provided.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "sourceUrl",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded",
-      "selected_names": [
-        "SOURCE_URL_MAX_CODE_POINTS"
-      ],
+      "selected_names": ["SOURCE_URL_MAX_CODE_POINTS"],
       "guidance_note": "Effective text guidance may be lowered, but its fixed request-envelope ceiling cannot increase."
     },
     {
@@ -1644,15 +1300,11 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "codepoints",
       "rule": "Request-envelope bound with ordinary trim; source URL HTTP/HTTPS, never server fetch. Required when source evidence is provided.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "reuseBasis",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded",
-      "selected_names": [
-        "REUSE_BASIS_MAX_CODE_POINTS"
-      ],
+      "selected_names": ["REUSE_BASIS_MAX_CODE_POINTS"],
       "guidance_note": "Effective text guidance may be lowered, but its fixed request-envelope ceiling cannot increase."
     },
     {
@@ -1667,14 +1319,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "bytes",
       "rule": "Validate separately from HTTP Base64 envelope.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "ARTWORK_MAX_INPUT_BYTES"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["ARTWORK_MAX_INPUT_BYTES"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -1683,22 +1329,12 @@
       "semantic": "enabled formats",
       "kind": "enum-set",
       "source": "TECH11.1",
-      "baseline": [
-        "JPEG",
-        "PNG",
-        "WEBP"
-      ],
+      "baseline": ["JPEG", "PNG", "WEBP"],
       "name": "ARTWORK_FORMATS",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Nonempty subset; empty/GIF/SVG/unknown rejects. No decode/process invoked by units.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "ARTWORK_FORMATS"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["ARTWORK_FORMATS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -1713,11 +1349,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "pixels",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "maxDimensionPx",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1733,11 +1365,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "pixels",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "maxPixels",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1753,11 +1381,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "maxDecodedBytes",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1773,11 +1397,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "processorRss",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1793,11 +1413,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "seconds",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "processorCpu",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1813,11 +1429,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "seconds",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "processorWall",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1833,11 +1445,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "processorTempDisk",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1853,11 +1461,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "maxOutputBytes",
       "selection": "Selected engineering default descriptor, no independently invented deployment override",
@@ -1871,9 +1475,7 @@
       "baseline": 20,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Storage/contract envelope, not new arbitrary configuration.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "genre count maximum",
       "units": "typed descriptor or identifier",
@@ -1887,9 +1489,7 @@
       "baseline": 35,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Storage/contract envelope, not new arbitrary configuration.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "BCP47 maximum characters",
       "units": "typed descriptor or identifier",
@@ -1903,9 +1503,7 @@
       "baseline": 1,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Storage/contract envelope, not new arbitrary configuration.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "runtime minimum minutes",
       "units": "typed descriptor or identifier",
@@ -1919,9 +1517,7 @@
       "baseline": 100000,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Storage/contract envelope, not new arbitrary configuration.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "runtime maximum minutes",
       "units": "typed descriptor or identifier",
@@ -1935,9 +1531,7 @@
       "baseline": 1,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Storage/contract envelope, not new arbitrary configuration.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "year minimum",
       "units": "typed descriptor or identifier",
@@ -1951,9 +1545,7 @@
       "baseline": 9999,
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Storage/contract envelope, not new arbitrary configuration.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "year maximum",
       "units": "typed descriptor or identifier",
@@ -1967,9 +1559,7 @@
       "baseline": "uppercase ISO3166-1 alpha2",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Validate selected code vocabulary; no guessed countries.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "country tags",
       "units": "typed descriptor or identifier",
@@ -1987,14 +1577,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "bytes",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_METADATA_BYTES"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_METADATA_BYTES"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2010,14 +1594,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "bytes",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_UPLOAD_ENVELOPE_BYTES"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_UPLOAD_ENVELOPE_BYTES"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2033,14 +1611,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "bytes",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_GRAPHQL_QUERY_BYTES"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_GRAPHQL_QUERY_BYTES"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2056,14 +1628,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "count",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_MAX_DEPTH"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_MAX_DEPTH"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2079,14 +1645,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "count",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_MAX_FIELDS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_MAX_FIELDS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2102,14 +1662,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "count",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_MAX_ALIASES"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_MAX_ALIASES"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2125,14 +1679,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "count",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_MAX_COST"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_MAX_COST"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2148,14 +1696,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "count",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_DEFAULT_PAGE"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_DEFAULT_PAGE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2171,14 +1713,8 @@
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "units": "count",
       "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "REQUEST_MAX_PAGE"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["REQUEST_MAX_PAGE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2191,9 +1727,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "gRPC metadata message",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2207,9 +1741,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "gRPC list reply",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2223,9 +1755,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "upload chunk",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2239,9 +1769,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "bytes",
       "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "upload message",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2257,14 +1785,8 @@
       "name": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "requests",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2279,14 +1801,8 @@
       "name": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "seconds",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2301,14 +1817,8 @@
       "name": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "requests",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2323,14 +1833,8 @@
       "name": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "seconds",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2345,14 +1849,8 @@
       "name": "RATE_LIMIT_REGISTER_MAX_REQUESTS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "requests",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_REGISTER_MAX_REQUESTS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_REGISTER_MAX_REQUESTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2367,14 +1865,8 @@
       "name": "RATE_LIMIT_REGISTER_WINDOW_SECONDS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "seconds",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_REGISTER_WINDOW_SECONDS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_REGISTER_WINDOW_SECONDS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2389,14 +1881,8 @@
       "name": "RATE_LIMIT_MUTATION_MAX_REQUESTS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "requests",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_MUTATION_MAX_REQUESTS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_MUTATION_MAX_REQUESTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2411,14 +1897,8 @@
       "name": "RATE_LIMIT_MUTATION_WINDOW_SECONDS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "seconds",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_MUTATION_WINDOW_SECONDS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_MUTATION_WINDOW_SECONDS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2433,14 +1913,8 @@
       "name": "RATE_LIMIT_READ_MAX_REQUESTS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "requests",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_READ_MAX_REQUESTS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_READ_MAX_REQUESTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2455,14 +1929,8 @@
       "name": "RATE_LIMIT_READ_WINDOW_SECONDS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "seconds",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_READ_WINDOW_SECONDS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["RATE_LIMIT_READ_WINDOW_SECONDS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2474,14 +1942,8 @@
       "name": "RATE_LIMIT_KEY_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "32-byte owner-only controlled fact; separate Core secret, never loaded by MCP.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "RATE_LIMIT_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["RATE_LIMIT_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -2499,14 +1961,8 @@
       "name_authority": "Exact source or accepted implementation key",
       "units": "bindings",
       "rule": "No live eviction decision; actual counter enforcement belongs to T008/adapter owners.",
-      "recipe_families": [
-        "NUMERIC",
-        "PRESENCE",
-        "REDACTION"
-      ],
-      "selected_names": [
-        "MCP_RATE_LIMIT_MAX_BINDINGS"
-      ],
+      "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
+      "selected_names": ["MCP_RATE_LIMIT_MAX_BINDINGS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },
@@ -2519,14 +1975,8 @@
       "name": "LOG_LEVEL",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Only debug/info; same redaction; no secret-bearing debug output.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "LOG_LEVEL"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["LOG_LEVEL"],
       "execution": "Not run; source map frozen before expanded case execution",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2540,14 +1990,8 @@
       "name": "TUNNEL_ENABLED",
       "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
       "rule": "Conditional prerequisite, not automatic account/client creation.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "TUNNEL_ENABLED"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["TUNNEL_ENABLED"],
       "execution": "Not run; source map frozen before expanded case execution",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2559,15 +2003,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required while enabled; missing/blank rejects. Disabled optional fields may be empty; no process/network launch in units.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "TUNNEL_ID"
-      ],
+      "selected_names": ["TUNNEL_ID"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2579,15 +2017,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required while enabled; missing/blank rejects. Disabled optional fields may be empty; no process/network launch in units.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "TUNNEL_KEY_FILE"
-      ],
+      "selected_names": ["TUNNEL_KEY_FILE"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2599,15 +2031,9 @@
       "source": "TECH11.1",
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "rule": "Required while enabled; missing/blank rejects. Disabled optional fields may be empty; no process/network launch in units.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
       "execution": "Not run; source map frozen before expanded case execution",
-      "selected_names": [
-        "TUNNEL_RUNNER_PATH"
-      ],
+      "selected_names": ["TUNNEL_RUNNER_PATH"],
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2621,14 +2047,8 @@
       "name": "MCP_PUBLICATION_ENABLED",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "False overrides file true; enabling still requires actual client-specific trust evidence later.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "MCP_PUBLICATION_ENABLED"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["MCP_PUBLICATION_ENABLED"],
       "execution": "Not run; source map frozen before expanded case execution",
       "units": "typed descriptor or identifier",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2641,14 +2061,8 @@
       "name": "MCP_UI_ASSERTION_KEY_FILE",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Required only when publication enabled;32-byte separate MAC key, versioned ID; no demo/default material.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "MCP_UI_ASSERTION_KEY_FILE"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["MCP_UI_ASSERTION_KEY_FILE"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -2662,14 +2076,8 @@
       "name": "MCP_UI_ASSERTION_KEY_ID",
       "name_authority": "Exact source or accepted implementation key",
       "rule": "Required only when publication enabled;32-byte separate MAC key, versioned ID; no demo/default material.",
-      "recipe_families": [
-        "PRESENCE",
-        "REDACTION",
-        "TYPED-OR-MODE"
-      ],
-      "selected_names": [
-        "MCP_UI_ASSERTION_KEY_ID"
-      ],
+      "recipe_families": ["PRESENCE", "REDACTION", "TYPED-OR-MODE"],
+      "selected_names": ["MCP_UI_ASSERTION_KEY_ID"],
       "execution": "Not run; source map frozen before expanded case execution",
       "baseline": "Required explicit descriptor/reference; no default",
       "units": "typed descriptor or identifier",
@@ -2684,9 +2092,7 @@
       "name_authority": "Fixed fact or semantic row; no new deployment key implied",
       "units": "seconds",
       "rule": "Bounded old-read overlap; not a validation-policy field.",
-      "recipe_families": [
-        "FIXED-FACT"
-      ],
+      "recipe_families": ["FIXED-FACT"],
       "execution": "Not run; source map frozen before expanded case execution",
       "selected_fact": "old-key read overlap",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
@@ -2700,6 +2106,44 @@
     "registration_name_selected_upper": 10406,
     "account_overhead_reserved_bytes": 50,
     "account_email_copies": 2,
-    "local_test": "PolicyConfigurationBoundsRulesTest"
+    "local_test": "PolicyConfigurationBoundsRulesTest",
+    "complete_request_oracle": "tests/contracts/policy/request-capacity-vectors.json",
+    "request_rule": "For each candidate maximum, count the complete generated-SDL request or movie_proposal DTO with required sibling text at effective minima, fixed typed identifiers/revision, and worst-case JSON escaping. Reject the complete effective configuration before readiness.",
+    "selected_request_upper_code_points": {
+      "personName": 21797,
+      "title": 21781,
+      "originalTitle": 21777,
+      "synopsis": 21781,
+      "creditRole": 21797,
+      "characterName": 21772,
+      "biography": 21793,
+      "search": 21827
+    },
+    "minimum_boundary_contexts": {
+      "personName": {
+        "upper": 21793,
+        "BIOGRAPHY_MAX_CODE_POINTS": 1
+      },
+      "title": {
+        "upper": 21777,
+        "SYNOPSIS_MAX_CODE_POINTS": 1,
+        "ORIGINAL_TITLE_MAX_CODE_POINTS": 1,
+        "SOURCE_URL_MAX_CODE_POINTS": 1,
+        "REUSE_BASIS_MAX_CODE_POINTS": 1
+      },
+      "synopsis": {
+        "upper": 21777,
+        "TITLE_MAX_CODE_POINTS": 1,
+        "ORIGINAL_TITLE_MAX_CODE_POINTS": 1,
+        "SOURCE_URL_MAX_CODE_POINTS": 1,
+        "REUSE_BASIS_MAX_CODE_POINTS": 1
+      }
+    },
+    "fixed_caps_preserved": {
+      "email": 254,
+      "password": 512,
+      "sourceUrl": 2048,
+      "reuseBasis": 4000
+    }
   }
 }

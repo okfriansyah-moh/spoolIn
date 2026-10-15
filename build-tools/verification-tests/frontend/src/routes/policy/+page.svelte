@@ -7,7 +7,9 @@
     policyState,
     plainTextExample,
   } from './fixture';
-  const policy = specimenPolicy();
+  const policy = $derived(
+    specimenPolicy(page.url.searchParams.get('minimum') === 'raised'),
+  );
 </script>
 
 <svelte:head><title>Policy guidance · SpoolIn</title></svelte:head>

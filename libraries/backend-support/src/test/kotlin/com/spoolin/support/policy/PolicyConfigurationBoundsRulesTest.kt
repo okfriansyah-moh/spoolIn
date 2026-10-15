@@ -2,7 +2,6 @@ package com.spoolin.support.policy
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -11,16 +10,16 @@ class PolicyConfigurationBoundsRulesTest {
     private val upperBounds =
         mapOf(
             "registrationName" to 10406,
-            "personName" to 21842,
-            "title" to 21843,
-            "originalTitle" to 21842,
-            "synopsis" to 21842,
-            "creditRole" to 21842,
-            "characterName" to 21842,
-            "biography" to 21842,
+            "personName" to 21797,
+            "title" to 21781,
+            "originalTitle" to 21777,
+            "synopsis" to 21781,
+            "creditRole" to 21797,
+            "characterName" to 21772,
+            "biography" to 21793,
             "email" to 254,
             "password" to 512,
-            "search" to 21843,
+            "search" to 21827,
             "sourceUrl" to 2048,
             "reuseBasis" to 4000,
         )
@@ -49,8 +48,6 @@ class PolicyConfigurationBoundsRulesTest {
                     if (value in 1..upper) {
                         val actual = PolicySettings.resolve(ConfigurationSources(input)).textBounds.getValue(field)
                         assertEquals(value, actual.maxCodePoints)
-                        val encoded = PolicyJson.encode(mapOf(field to "\u0001".repeat(value)))
-                        assertTrue(encoded.toByteArray(Charsets.UTF_8).size <= 131072)
                     } else {
                         assertThrows(
                             ConfigurationViolation::class.java,
@@ -63,15 +60,29 @@ class PolicyConfigurationBoundsRulesTest {
     @TestFactory
     fun minimumConfigurationBounds() =
         configurableMinima.flatMap { field ->
-            val upper = upperBounds.getValue(field)
+            val maximum = upperBounds.getValue(field)
+            val upper =
+                when (field) {
+                    "personName" -> 21793
+                    "title", "synopsis" -> 21777
+                    else -> maximum
+                }
             listOf(0, 1, 2, upper - 1, upper, upper + 1).map { value ->
-                dynamicTest("F-CONFIG $field configured minimum $value with selected maximum $upper") {
+                dynamicTest(
+                    "F-CONFIG $field minimum $value (max $maximum; complete siblings)",
+                ) {
                     val prefix = field.replace(Regex("([a-z])([A-Z])"), "$1_$2").uppercase()
                     val input =
                         mapOf(
                             "${prefix}_MIN_CODE_POINTS" to value.toString(),
-                            "${prefix}_MAX_CODE_POINTS" to upper.toString(),
-                        )
+                            "${prefix}_MAX_CODE_POINTS" to maximum.toString(),
+                        ) +
+                            when (field) {
+                                "personName" -> mapOf("BIOGRAPHY_MAX_CODE_POINTS" to "1")
+                                "title" -> movieSiblingBounds("SYNOPSIS")
+                                "synopsis" -> movieSiblingBounds("TITLE")
+                                else -> emptyMap()
+                            }
                     if (value in 1..upper) {
                         assertEquals(
                             value,
@@ -89,6 +100,14 @@ class PolicyConfigurationBoundsRulesTest {
                 }
             }
         }
+
+    private fun movieSiblingBounds(other: String): Map<String, String> =
+        mapOf(
+            "${other}_MAX_CODE_POINTS" to "1",
+            "ORIGINAL_TITLE_MAX_CODE_POINTS" to "1",
+            "SOURCE_URL_MAX_CODE_POINTS" to "1",
+            "REUSE_BASIS_MAX_CODE_POINTS" to "1",
+        )
 
     @TestFactory
     fun presenceAndMalformedConfiguration() =

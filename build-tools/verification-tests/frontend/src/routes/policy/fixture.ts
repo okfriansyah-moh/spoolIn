@@ -15,7 +15,7 @@ const limits: Record<string, [number, number, boolean]> = {
   sourceUrl: [1, 2048, true],
   reuseBasis: [1, 4000, true],
 };
-export function specimenPolicy() {
+export function specimenPolicy(raisedMinima = false) {
   return parsePolicy({
     revision: 'a'.repeat(64),
     textBounds: Object.fromEntries(
@@ -25,7 +25,10 @@ export function specimenPolicy() {
         return [
           name,
           {
-            minCodePoints: range[0],
+            minCodePoints:
+              raisedMinima && (name === 'personName' || name === 'title')
+                ? 2
+                : range[0],
             maxCodePoints: range[1],
             required: range[2],
             normalization: name === 'password' ? 'EXACT' : 'TRIM_WHITE_SPACE',

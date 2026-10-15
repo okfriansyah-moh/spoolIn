@@ -36,7 +36,6 @@ private const val MAX_COST_DEFAULT = 1000
 private const val DEFAULT_PAGE_DEFAULT = 24
 private const val MAX_PAGE_DEFAULT = 100
 private const val PASSWORD_BYTE_CEILING = 512
-private const val JSON_FIELD_OVERHEAD = 7
 private const val ESCAPED_SCALAR_BYTES = 6
 private const val TWO_ESCAPED_SCALARS_BYTES = 12
 private const val ACCOUNT_JSON_OVERHEAD = 50
@@ -94,6 +93,7 @@ object PolicySettings {
                 resolveText(name, default, source, limits.getValue("metadataBytes"))
             }
         accountCapacity(bounds)
+        RequestCapacity.validate(bounds, limits)
         return PublicPolicy(bounds, artwork(source), limits)
     }
 
@@ -123,7 +123,7 @@ object PolicySettings {
                 "sourceUrl" -> SOURCE_URL_MAXIMUM
                 "reuseBasis" -> REUSE_BASIS_MAXIMUM
                 else ->
-                    ((metadata.toLong() - name.length - JSON_FIELD_OVERHEAD) / ESCAPED_SCALAR_BYTES)
+                    (metadata.toLong() / ESCAPED_SCALAR_BYTES)
                         .coerceAtLeast(
                             1,
                         ).toInt()

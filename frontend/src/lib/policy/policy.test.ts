@@ -184,3 +184,26 @@ describe('T009 draft feedback', () => {
     });
   });
 });
+
+describe('T009 configured guidance minima', () => {
+  it('C03 one-code-point examples reflect raised person and title minima', () => {
+    const raised = parsePolicy({
+      ...policy,
+      textBounds: {
+        ...policy.textBounds,
+        personName: { ...policy.textBounds.personName, minCodePoints: 2 },
+        title: { ...policy.textBounds.title, minCodePoints: 2 },
+      },
+    });
+    const body = render(PolicyGuidance, {
+      props: { view: 'text-boundaries', policy: raised },
+    }).body;
+    expect(body).toContain('person 2–100');
+    expect(body).toContain('Use 2 to 100 Unicode code points.');
+    expect(body).toContain('Use 2 to 255 Unicode code points.');
+    expect(body).not.toContain('Valid professional name');
+    expect(body).not.toContain('Accepted under the current title rule');
+    expect(body).toContain('O’Connor · 李 · Jean-Luc');
+    expect(body).toContain('é / é');
+  });
+});
