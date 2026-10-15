@@ -1,0 +1,218 @@
+name: ${SPOOLIN_INSTALLATION:?Set installation identifier}
+services:
+  postgres:
+    build:
+      context: ..
+      dockerfile: ops/containers/postgres/Dockerfile
+    image: spoolin-postgres-foundation:18.6
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+      TZ: UTC
+    networks: [private]
+    volumes: [database:/var/lib/postgresql]
+    tmpfs: [/run/spoolin:mode=0700]
+    mem_limit: 1g
+    cpus: 1
+    secrets:
+      - postgres-password
+      - postgres-key
+      - postgres-cert
+      - core-runtime-password
+      - core-migrator-password
+      - core-maintenance-password
+      - core-backup-password
+      - catalog-runtime-password
+      - catalog-migrator-password
+      - catalog-maintenance-password
+      - catalog-backup-password
+      - media-runtime-password
+      - media-migrator-password
+      - media-maintenance-password
+      - media-backup-password
+  core:
+    build:
+      context: ..
+      dockerfile: ops/containers/core.Dockerfile
+    image: spoolin-core-foundation:0.0.0
+    environment:
+      CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      CORE_DB_USER: spoolin_core_runtime
+      CORE_DB_PASSWORD_FILE: /run/secrets/core-runtime-password
+      SERVICE_CERT_FILE: /run/secrets/core-cert
+      SERVICE_KEY_FILE: /run/secrets/core-key
+      SERVICE_CA_FILE: /run/secrets/service-ca
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1
+    secrets:
+      - core-runtime-password
+      - core-cert
+      - core-key
+      - service-ca
+    ports: ["127.0.0.1:${CORE_HTTPS_PORT:-8443}:8443"]
+  core-migrator:
+    build:
+      context: ..
+      dockerfile: ops/containers/core.Dockerfile
+    image: spoolin-core-foundation:0.0.0
+    profiles: [migration]
+    environment:
+      CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      CORE_DB_USER: spoolin_core_migrator
+      CORE_DB_PASSWORD_FILE: /run/secrets/core-migrator-password
+      SERVICE_CA_FILE: /run/secrets/service-ca
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1
+    secrets:
+      - core-migrator-password
+      - service-ca
+  catalog:
+    build:
+      context: ..
+      dockerfile: ops/containers/catalog.Dockerfile
+    image: spoolin-catalog-foundation:0.0.0
+    environment:
+      CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      CATALOG_DB_USER: spoolin_catalog_runtime
+      CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
+      SERVICE_CERT_FILE: /run/secrets/catalog-cert
+      SERVICE_KEY_FILE: /run/secrets/catalog-key
+      SERVICE_CA_FILE: /run/secrets/service-ca
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1
+    secrets:
+      - catalog-runtime-password
+      - catalog-cert
+      - catalog-key
+      - service-ca
+  catalog-migrator:
+    build:
+      context: ..
+      dockerfile: ops/containers/catalog.Dockerfile
+    image: spoolin-catalog-foundation:0.0.0
+    profiles: [migration]
+    environment:
+      CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      CATALOG_DB_USER: spoolin_catalog_migrator
+      CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-migrator-password
+      SERVICE_CA_FILE: /run/secrets/service-ca
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1
+    secrets:
+      - catalog-migrator-password
+      - service-ca
+  media:
+    build:
+      context: ..
+      dockerfile: ops/containers/media.Dockerfile
+    image: spoolin-media-foundation:0.0.0
+    environment:
+      MEDIA_DB_URL: jdbc:postgresql://postgres:5432/spoolin_media?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      MEDIA_DB_USER: spoolin_media_runtime
+      MEDIA_DB_PASSWORD_FILE: /run/secrets/media-runtime-password
+      SERVICE_CERT_FILE: /run/secrets/media-cert
+      SERVICE_KEY_FILE: /run/secrets/media-key
+      SERVICE_CA_FILE: /run/secrets/service-ca
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1g
+    cpus: 1
+    secrets:
+      - media-runtime-password
+      - media-cert
+      - media-key
+      - service-ca
+  media-migrator:
+    build:
+      context: ..
+      dockerfile: ops/containers/media.Dockerfile
+    image: spoolin-media-foundation:0.0.0
+    profiles: [migration]
+    environment:
+      MEDIA_DB_URL: jdbc:postgresql://postgres:5432/spoolin_media?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      MEDIA_DB_USER: spoolin_media_migrator
+      MEDIA_DB_PASSWORD_FILE: /run/secrets/media-migrator-password
+      SERVICE_CA_FILE: /run/secrets/service-ca
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1g
+    cpus: 1
+    secrets:
+      - media-migrator-password
+      - service-ca
+networks:
+  private:
+    internal: true
+volumes:
+  database:
+secrets:
+  postgres-password:
+    file: ${POSTGRES_PASSWORD_FILE:?Provision bootstrap password file}
+  postgres-key:
+    file: ${POSTGRES_KEY_FILE:?Provision PostgreSQL TLS key}
+  postgres-cert:
+    file: ${POSTGRES_CERT_FILE:?Provision PostgreSQL TLS certificate}
+  service-ca:
+    file: ${SERVICE_CA_FILE:?Provision service CA}
+  core-runtime-password:
+    file: ${CORE_DB_RUNTIME_PASSWORD_FILE:?Provision owner credential}
+  core-migrator-password:
+    file: ${CORE_DB_MIGRATOR_PASSWORD_FILE:?Provision owner credential}
+  core-maintenance-password:
+    file: ${CORE_DB_MAINTENANCE_PASSWORD_FILE:?Provision owner credential}
+  core-backup-password:
+    file: ${CORE_DB_BACKUP_PASSWORD_FILE:?Provision owner credential}
+  core-key:
+    file: ${CORE_SERVICE_KEY_FILE:?Provision owner TLS material}
+  core-cert:
+    file: ${CORE_SERVICE_CERT_FILE:?Provision owner TLS material}
+  catalog-runtime-password:
+    file: ${CATALOG_DB_RUNTIME_PASSWORD_FILE:?Provision owner credential}
+  catalog-migrator-password:
+    file: ${CATALOG_DB_MIGRATOR_PASSWORD_FILE:?Provision owner credential}
+  catalog-maintenance-password:
+    file: ${CATALOG_DB_MAINTENANCE_PASSWORD_FILE:?Provision owner credential}
+  catalog-backup-password:
+    file: ${CATALOG_DB_BACKUP_PASSWORD_FILE:?Provision owner credential}
+  catalog-key:
+    file: ${CATALOG_SERVICE_KEY_FILE:?Provision owner TLS material}
+  catalog-cert:
+    file: ${CATALOG_SERVICE_CERT_FILE:?Provision owner TLS material}
+  media-runtime-password:
+    file: ${MEDIA_DB_RUNTIME_PASSWORD_FILE:?Provision owner credential}
+  media-migrator-password:
+    file: ${MEDIA_DB_MIGRATOR_PASSWORD_FILE:?Provision owner credential}
+  media-maintenance-password:
+    file: ${MEDIA_DB_MAINTENANCE_PASSWORD_FILE:?Provision owner credential}
+  media-backup-password:
+    file: ${MEDIA_DB_BACKUP_PASSWORD_FILE:?Provision owner credential}
+  media-key:
+    file: ${MEDIA_SERVICE_KEY_FILE:?Provision owner TLS material}
+  media-cert:
+    file: ${MEDIA_SERVICE_CERT_FILE:?Provision owner TLS material}
