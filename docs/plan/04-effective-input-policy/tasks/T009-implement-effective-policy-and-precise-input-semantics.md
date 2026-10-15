@@ -7,7 +7,7 @@ depends_on:
 - T003
 - T004
 readiness: Ready
-status: Blocked
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -431,6 +431,8 @@ Execution started — 16 October 2026: Accepted T004/G02 is Done and the refresh
 Execution stopped — 16 October 2026: The corrected policy source is retained at `3990e165d284f1f7ffb884383fb1dbcf1b92e599` on `codex/effective-policy-complete`, fingerprint `176cc6d93894bc7932ad347833cd63bf185f9d36dfab63715686108a00dbd269`. [Stopped execution record](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t009-stopped-execution.json) binds the actual receipt and independent review. The local selector passed 2,268 tests; shell and policy browser suites passed 32 and 40 tests. Required gates finished with 53 passed, seven not applicable and one failed: `core-account-boundaries` failed during disposable PostgreSQL startup before the recipe assertions. The database reported ready, while Testcontainers observed no mapped ports; the underlying runtime cause remains unknown.
 
 Independent review resolved source findings C01–C07 but rejected overall acceptance. The two failed correction rounds require this work group to stop. Fresh reader, actual browser 200% zoom and final visual acceptance remain incomplete. Preserve the frozen lane, both failed receipts, original reports/media and correction history. T010, T006, T008 and T007 remain unimplemented pending accepted prerequisites. The exact next action is a revised work-group decision followed by evidence-based runtime diagnosis and a bounded remedy before another required run; a presumed transient or a timeout increase alone is insufficient. No T009 source has been integrated or delivered.
+
+Execution resumed — 16 October 2026: The user authorized a revised runtime investigation, a bounded remedy and subsequent verification/delivery. Both failed receipts and the two historical failed correction rounds remain retained. [Runtime brief](/private/tmp/spoolin-policy-t009-runtime-resume/.ai/state/t009-runtime-resume-brief.json) records the new claim and unchanged imported source fingerprint. Investigation must establish the observed port-mapping cause and an independently reviewed remedy before one newly authorized complete required verification run. This resumption grants no pass, skipped check, timeout weakening or acceptance.
 
 ## Completion and handoff
 
