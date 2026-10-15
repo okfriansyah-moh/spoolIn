@@ -10,7 +10,7 @@ Workflow selection: `agent-workflow` 1.1.0, `movie-app` profile
 
 Status: configuration and operating guide; native readiness and application acceptance have separate results.
 
-Quick navigation: [hosts](#3-coding-hosts-and-native-adapters) · [roles](#4-agent-roles-ownership-and-coordination) · [tools](#6-supporting-tools-and-demonstrated-use) · [operating guide](#9-operating-guide) · [troubleshooting](#10-maintenance-troubleshooting-and-recovery) · [all 74 skills](#appendix-a-complete-pinned-skill-inventory) · [coverage matrix](#appendix-b-harness-coverage-matrix)
+Quick navigation: [hosts](#3-coding-hosts-and-native-adapters) · [roles](#4-agent-roles-ownership-and-coordination) · [tools](#6-supporting-tools-and-demonstrated-use) · [task prompt](#95-start-and-resume-prompts) · [operating guide](#9-operating-guide) · [troubleshooting](#10-maintenance-troubleshooting-and-recovery) · [all 74 skills](#appendix-a-complete-pinned-skill-inventory) · [coverage matrix](#appendix-b-harness-coverage-matrix)
 
 ## 1. Purpose, coverage, and evidence
 
@@ -68,7 +68,7 @@ Read the current request and applicable instructions first. The repository selec
 
 Use the selected global workflow bundle only when a repository has no `.ai/config.json`. User-level personal requirements, including observation and wording policy, still apply where relevant. Built-in and plugin tools remain separately owned capabilities, rather than becoming part of the tracked workflow bundle.
 
-The shared runtime requires Python 3.11+ and Git. The local launcher works without a global `agent-workflow` command or the original installer source checkout. Language toolchains, browsers, scanners, accounts, and host authentication are separate prerequisites. All four project skill directories contain 74 relative discovery symlinks, 296 in total; preserve them and the dot directories when cloning or relocating the repository.
+The shared runtime requires Python 3.11+ and Git. The local launcher works without a global `agent-workflow` command or the original installer source checkout. Language toolchains, browsers, scanners, accounts, and host authentication are separate prerequisites. The managed bundle supplies 74 relative discovery symlinks per project host directory, 296 in total. The separate `running-prompt` shortcut adds one project skill directory under `.agents/skills/` and three relative links for Claude, Cursor and Copilot. Preserve these entries and the dot directories when cloning or relocating the repository.
 
 Roles inherit the host's active model settings. A role prompt limits responsibility but creates no separate permission sandbox. Host trust, filesystem permissions, network access, and current authorization remain in force. Available skills do not authorize unrelated tasks, installations, deployments, or external messages.
 
@@ -162,6 +162,8 @@ After two failed correction/integration rounds, stop the affected group and reta
 ## 5. Skills and personal supporting workflows
 
 The pinned manifest contains 74 skills: 47 reused entries, 14 new entries, seven workflow adaptations, and six anti-slop adaptations. The release added Playwright CLI, Context7, and Strix guidance within those totals. All 74 appear in [Appendix A](#appendix-a-complete-pinned-skill-inventory); availability is not a claim that each was used on this project.
+
+The repository also provides the [running-prompt shortcut](../.agents/skills/running-prompt/SKILL.md), outside the 74-entry managed bundle. It accepts short task inputs and delegates to the [task implementation prompt](prompt/task-implementation.md) and pinned workflow, sharing the same execution state. See [start and resume usage](#95-start-and-resume-prompts).
 
 Load skills by the current task's activation boundary. `task-full-workflow` routes work, `forge` coordinates multi-task execution, and `task-implement` handles a bounded assignment. They share one execution state and findings ledger rather than opening competing loops. `test-driven-development` routes to `tdd`; it is not another test process. Security, accessibility, code quality, and anti-slop criteria feed the same review process.
 
@@ -336,15 +338,57 @@ Release changes claim state but retains the branch/worktree. Cleanup removes onl
 
 ### 9.5 Start and resume prompts
 
-For an authorized implementation, replace the task/group placeholder and provide its scope:
+Use `running-prompt` from a coding-agent chat at the repository root. Supply only the inputs you want to change; the skill reads the [task implementation prompt](prompt/task-implementation.md) for the full procedure and defaults, then follows the pinned workflow.
 
-> Use the repository-selected Forge workflow for TASK_OR_GROUP in docs/06-PLAN.md. Read AGENTS.md and .ai/config.json, then open relevant skills directly from the selected bundle. Validate sources and dependencies, record the integration revision, claim paths/resources, and create isolated writing lanes. Use inherited model settings and at most three workers within host capacity. Require actual checks, independent review, combined integration evidence, and case-boundary acceptance. Preserve requirements and unrelated tasks; report exact blockers.
+For one task:
+
+```text
+Use running prompt for T001.
+```
+
+You can also invoke `$running-prompt` explicitly. A plain `Use running prompt.` uses this complete set of defaults for a new run:
+
+```text
+Use running prompt.
+INPUTS
+Target: next
+Plan: docs/06-PLAN.md
+Mode: implement
+Dependencies: selected-only
+Delivery: local
+Additional context: none
+```
+
+| Input | Supported values and behavior |
+| --- | --- |
+| Target | A task ID, comma-separated task IDs, task-file path, group ID/path, `next`, or `all-ready`. `next` selects one incomplete dependency-eligible task and stops after its authorized work. A group selects its members and integration responsibility. `all-ready` explicitly authorizes the plan's incomplete tasks, processed as they become eligible until complete or blocked. |
+| Plan | Repository-relative root plan path; use the existing approved plan. |
+| Mode | `implement` starts selected work; `resume` reconciles the retained run before continuing. |
+| Dependencies | `selected-only` leaves unselected prerequisites outside the run and reports their blockers. `include-prerequisites` also authorizes the selected tasks' transitive prerequisite tasks. |
+| Delivery | `local` retains verified work locally. An explicit `draft-pr` run authorizes pushing the integration branch and creating/updating a draft PR after required checks succeed, when a remote and account access exist. PR merge, deployment and external messages remain separate actions. |
+| Additional context | Constraints, retained branch/claim details, evidence locations or an authorized integration target. It is task context, not executable shell input. |
+
+For overrides, omit fields that should keep their defaults:
+
+```text
+Use running prompt.
+Target: T005
+Mode: implement
+Dependencies: include-prerequisites
+Delivery: local
+```
 
 For interrupted work:
 
-> Resume TASK_OR_GROUP using the existing workflow state. Reconcile task execution fields, claims, source hashes, worktree revisions, receipts, reviews, evidence, and correction counts. Reuse available workers and current evidence only when their inputs still match. Preserve branches and local work. Continue eligible authorized work and return the exact next action for blocked work.
+```text
+Use running prompt for T005, mode resume.
+```
 
-The bundled [start](../.ai/bundles/1.1.0/prompts/start.md), [worker](../.ai/bundles/1.1.0/prompts/worker.md), [review](../.ai/bundles/1.1.0/prompts/review.md), [integration](../.ai/bundles/1.1.0/prompts/integrate.md), [evidence](../.ai/bundles/1.1.0/prompts/evidence.md), and [resume](../.ai/bundles/1.1.0/prompts/resume.md) templates provide detailed handoffs. Document-authoring prompts are retained under [prompts/](prompts/).
+On resume, explicit overrides take precedence over retained authorized run inputs; defaults fill only values absent from both. The coordinator reconciles task files, claims, branches, source hashes, evidence and the existing correction budget. If the interrupted selection cannot be established, it asks for that selection rather than choosing `next`. A stored Delivery value alone does not grant new publishing permission. Conflicting or unsupported inputs need clarification instead of silent scope expansion.
+
+The [project skill](../.agents/skills/running-prompt/SKILL.md) is the entrypoint; `.claude/skills/running-prompt`, `.cursor/skills/running-prompt` and `.github/skills/running-prompt` link to it. User-level entries are installed in each host's skill folder. Reload or start a fresh chat if the host has not discovered the entry. File installation is separate from native loading/trust; the readiness limits in section 3 still apply. The shortcut supplies inputs to one existing execution state and does not start another Forge loop. In Plan mode it prepares the work without implementation changes. Reading or updating these examples starts no application task.
+
+The bundled [start](../.ai/bundles/1.1.0/prompts/start.md), [worker](../.ai/bundles/1.1.0/prompts/worker.md), [review](../.ai/bundles/1.1.0/prompts/review.md), [integration](../.ai/bundles/1.1.0/prompts/integrate.md), [evidence](../.ai/bundles/1.1.0/prompts/evidence.md), and [resume](../.ai/bundles/1.1.0/prompts/resume.md) templates provide detailed handoffs. Document-authoring prompts remain under [prompts/](prompts/); the implementation prompt is under [prompt/](prompt/task-implementation.md).
 
 ### 9.6 Separate host verification and tool operations
 
