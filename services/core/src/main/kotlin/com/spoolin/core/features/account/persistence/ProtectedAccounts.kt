@@ -56,9 +56,9 @@ class ProtectedAccounts(
             AccountInsert.Unavailable
         }
 
-    fun identity(id: UUID): ProtectedRead<AccountIdentity> =
-        dataSource.readRows { connection ->
-            val envelope =
+    fun identity(id: UUID): ProtectedRead<AccountIdentity> {
+        val envelope =
+            dataSource.readRows { connection ->
                 connection
                     .queryBound(
                         "SELECT pii_key_id,pii_nonce,pii_cipher FROM appdata.user_account WHERE id=?",
@@ -71,8 +71,9 @@ class ProtectedAccounts(
                             it.getBytes("pii_cipher"),
                         )
                     }.singleOrNull()
-            if (envelope == null) ProtectedRead.Unavailable else decodeIdentity(id, envelope)
-        }
+            }
+        return if (envelope == null) ProtectedRead.Unavailable else decodeIdentity(id, envelope)
+    }
 
     fun credential(normalizedEmail: String): ProtectedRead<AccountCredential> =
         try {

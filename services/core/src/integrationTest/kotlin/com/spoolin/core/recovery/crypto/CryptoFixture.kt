@@ -29,6 +29,7 @@ class CryptoFixture : AutoCloseable {
     val allocator: NonceAllocator
     val crypto: AccountCryptography
     val accounts: ProtectedAccounts
+    private val checkpoints = mutableListOf<BackupCheckpoint>()
 
     init {
         owner.membership("core", "grant")
@@ -53,6 +54,13 @@ class CryptoFixture : AutoCloseable {
         allocator = NonceAllocator(pool)
         crypto = AccountCryptography(registry, keys, allocator, AeadCipher(), alert)
         accounts = ProtectedAccounts(pool, registry, crypto, AccountPayload(), alert)
+    }
+
+    fun backupCheckpoint(row: String): BackupCheckpoint {
+        val checkpoint = BackupCheckpoint(this, row)
+        checkpoint.prepare()
+        checkpoints.add(checkpoint)
+        return checkpoint
     }
 
     fun register(
@@ -106,5 +114,6 @@ class CryptoFixture : AutoCloseable {
         keys.close()
         pool.close()
         owner.close()
+        checkpoints.forEach { it.recordCleanup() }
     }
 }

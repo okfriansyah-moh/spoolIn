@@ -28,7 +28,9 @@ class NonceIntegrationTest {
     @Test
     fun concurrentEncryptionConsumesOneHundredAndOneCommittedDistinctCounters() =
         CryptoFixture().use { fixture ->
+            fixture.backupCheckpoint("concurrent-initial").actionStarted()
             val ids = concurrentAccounts(fixture)
+            fixture.backupCheckpoint("concurrent-committed")
             val envelopes =
                 fixture.owner.connection("core").use { connection ->
                     connection.queryBound("SELECT pii_key_id,pii_nonce,pii_cipher FROM appdata.user_account") {
@@ -96,6 +98,7 @@ class NonceIntegrationTest {
     @Test
     fun domainRollbackCannotRefundACommittedReservation() =
         CryptoFixture().use { fixture ->
+            fixture.backupCheckpoint("domain-rollback-initial").actionStarted()
             val first = fixture.allocator.reserve("pii-write", KeyPurpose.PII)
             fixture.owner.connection("core").use { domain ->
                 domain.autoCommit = false
@@ -134,6 +137,7 @@ class NonceIntegrationTest {
     @Test
     fun abruptProcessLossAfterCommitRequiresAFreshCounterInTheNextProcess() =
         CryptoFixture().use { fixture ->
+            fixture.backupCheckpoint("process-loss-initial").actionStarted()
             val config = fixture.owner.root.resolve("crash-config.json")
             Files.writeString(
                 config,
@@ -173,6 +177,7 @@ class NonceIntegrationTest {
     @Test
     fun rolledBackAndUncertainAllocationsNeverReturnAUsableNonce() =
         CryptoFixture().use { fixture ->
+            fixture.backupCheckpoint("allocation-rollback-initial").actionStarted()
             assertThrows(
                 SQLException::class.java,
             ) { NonceAllocator(failingCommit(fixture.pool, false)).reserve("pii-write", KeyPurpose.PII) }
@@ -197,6 +202,7 @@ class NonceIntegrationTest {
     @Test
     fun allocatorRefusesTheMaximumCounterAndWrongPurposeUntilANewWriteKeyIsAvailable() =
         CryptoFixture().use { fixture ->
+            fixture.backupCheckpoint("exhaustion-initial").actionStarted()
             fixture.owner.sql(
                 "core",
                 "UPDATE appdata.crypto_key_version SET next_nonce=9223372036854775806 WHERE id='pii-write'",
