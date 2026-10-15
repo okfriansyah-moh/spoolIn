@@ -7,7 +7,7 @@ depends_on:
 - T003
 - T004
 readiness: Ready
-status: In progress
+status: Blocked
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -416,15 +416,21 @@ These captures inspect this task’s controlled policy/draft/review component wi
 
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
-| local-tests | Not run | — | — | — | — |
+| local-tests | Passed: 2,268 selected/executed, zero failures | [Actual report](/private/tmp/spoolin-policy-t009-complete/.ai/evidence/t009-unit-results.json) | `3990e165` / `176cc6d9` | Node24/JDK21; isolated unit/component rules | `/root/reviewer` |
 | visual-review | Not run | — | — | — | — |
 | interaction-accessibility | Not run | — | — | — | — |
-| self-review | Not run | — | — | — | — |
-| independent-review | Not run | — | — | — | — |
+| self-review | Source corrections complete; overall verification blocked | [Self-review](/private/tmp/spoolin-policy-t009-complete/.ai/evidence/t009-policy/self-review-current.json) | `3990e165` / `176cc6d9` | Frozen implementation and retained actual results | `account-policy-implementer` |
+| independent-review | Blocked: required runtime gate failed; stop after two rounds | [Independent stop review](/private/tmp/spoolin-policy-t009-complete/.ai/evidence/t009-independent-stop-review.json) | `3990e165` / `176cc6d9` | Actual receipt, raw reports and fixture logs | `/root/reviewer` |
+| quality-gates | Failed: 53 passed, seven not applicable, one required failure | [Exact receipt](/private/tmp/spoolin-policy-t009-complete/.ai/evidence/run-7c49c139b35e4c75ab4a7133d4c44328/receipt.json) | `3990e165` / `176cc6d9` | Required delivery gates | `/root/reviewer` |
+| browser-automation | Passed: 32 shell and 40 policy cases; final visual/reader/zoom acceptance remains incomplete | [Actual gate result](/private/tmp/spoolin-policy-t009-complete/.ai/reports/1792092790141198000-47666/result.json) | `3990e165` / `176cc6d9` | Chromium/Firefox/WebKit controlled browser cases | `/root/reviewer` |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
 
 Execution started — 16 October 2026: Accepted T004/G02 is Done and the refreshed task index reports T009 execution eligible. Isolated branch `codex/effective-policy` in `/private/tmp/spoolin-policy-t009`, claim `lane-696b347b93c64d8e`, owner `account-policy-implementer`, starts from `306e6edaf610d9424ba1d22e170d14f09f1e7fff`. [Active brief](/private/tmp/spoolin-policy-t009/.ai/state/t009-brief.json) records exact scope, test-first strategy, selected cases, required commands, dedicated browser gate and separate visual/reader/zoom proof. Checks remain Not run until captured; this dispatch is not acceptance.
+
+Execution stopped — 16 October 2026: The corrected policy source is retained at `3990e165d284f1f7ffb884383fb1dbcf1b92e599` on `codex/effective-policy-complete`, fingerprint `176cc6d93894bc7932ad347833cd63bf185f9d36dfab63715686108a00dbd269`. [Stopped execution record](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t009-stopped-execution.json) binds the actual receipt and independent review. The local selector passed 2,268 tests; shell and policy browser suites passed 32 and 40 tests. Required gates finished with 53 passed, seven not applicable and one failed: `core-account-boundaries` failed during disposable PostgreSQL startup before the recipe assertions. The database reported ready, while Testcontainers observed no mapped ports; the underlying runtime cause remains unknown.
+
+Independent review resolved source findings C01–C07 but rejected overall acceptance. The two failed correction rounds require this work group to stop. Fresh reader, actual browser 200% zoom and final visual acceptance remain incomplete. Preserve the frozen lane, both failed receipts, original reports/media and correction history. T010, T006, T008 and T007 remain unimplemented pending accepted prerequisites. The exact next action is a revised work-group decision followed by evidence-based runtime diagnosis and a bounded remedy before another required run; a presumed transient or a timeout increase alone is insufficient. No T009 source has been integrated or delivered.
 
 ## Completion and handoff
 
