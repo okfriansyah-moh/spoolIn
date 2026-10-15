@@ -7,7 +7,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: In progress
+status: Blocked
 risk: medium
 test_strategy: alongside
 visual_review: required
@@ -413,15 +413,16 @@ Check keyboard/focus/labels/errors/announcements,200%zoom,reduced motion,touch a
 
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
-| local-tests | Not run | — | — | — | — |
-| visual-review | Not run | — | — | — | — |
-| interaction-accessibility | Not run | — | — | — | — |
-| self-review | Not run | — | — | — | — |
-| independent-review | Not run | — | — | — | — |
+| local-tests | Passed: 93/93 | [Final receipt](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/run-422ebc0a832340619261d437b7bbec38/receipt.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Pinned macOS toolchain | shell-implementer |
+| quality-gates | Blocked: 41 passed, 8 inapplicable, 1 failed | [Final receipt](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/run-422ebc0a832340619261d437b7bbec38/receipt.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Chromium executable path incomplete; 24 launch failures, 8 Firefox/WebKit passed | shell-implementer |
+| visual-review | Reviewed; minor consistency differences | [Independent review](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-independent-review.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Original paired desktop/mobile captures and held recordings | /root/reviewer |
+| interaction-accessibility | Blocked: native screen-reader and browser zoom proof unavailable | [Reader attempt](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-native-screen-reader-attempt.json), [Zoom attempt](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-native-zoom-attempt.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Reader produced no observable output; Mac locked during native zoom attempt | /root/reviewer |
+| self-review | Complete; required gaps retained | [Final receipt](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/run-422ebc0a832340619261d437b7bbec38/receipt.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Isolated development fixtures | shell-implementer |
+| independent-review | Blocked; earlier source findings resolved | [Review ledger](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-independent-review.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Actual test reports, original images and decoded recording frames | /root/reviewer |
 
-Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+Execution update — 15 October 2026: Implementation is retained on branch `codex/application-shell-correction` in `/private/tmp/spoolin-shell-t004-correction` and is not integrated or published. Input fingerprint: `429010ed80cda5f9e0ea549c9131f5f5d81e3471100cd9d8dc8437b2726f8c46`. Earlier same-input browser proof passed 32/32; the final required receipt failed Chromium startup because its invocation supplied an incomplete executable path. The secret scan passed after independently verified duplicate source-hash outputs were archived with a manifest. No scanner policy was weakened.
 
-Execution update — 15 October 2026: Application-shell implementation is active in claimed isolated worktree `/private/tmp/spoolin-shell-t004`, branch `codex/application-shell`. Required checks and independent review are pending.
+G02 stopped after two failed correction rounds. Retain all branches, receipts and original failed/limited captures. Next action: inspect the retained final receipt and establish a revised work-group decision under the workflow correction limit; validate the full Chromium executable path before rerunning the unchanged required contract. Run actual 200% native browser zoom and screen-reader checks in an available assistive environment. These gaps prevent Done and draft delivery of shell changes. T005 may proceed separately from accepted T002/T003 without this unaccepted shell implementation.
 
 ## Completion and handoff
 
