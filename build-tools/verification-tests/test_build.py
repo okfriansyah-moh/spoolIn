@@ -51,6 +51,7 @@ def locked_inputs():
     paths = [ROOT / "package-lock.json", ROOT / "gradle/wrapper/gradle-wrapper.properties",
              ROOT / "gradle/verification-metadata.xml", ROOT / "gradle/libs.versions.toml"]
     paths += sorted(ROOT.joinpath("gradle").rglob("*.lockfile"))
+    paths += sorted(ROOT.joinpath("contracts").rglob("gradle.lockfile"))
     paths += sorted(ROOT.joinpath("build-tools/verification-tests/jvm/proto").rglob("*.proto"))
     paths += sorted(ROOT.joinpath("build-tools/verification-tests/graphql").rglob("*.graphql"))
     return digest_files(paths)

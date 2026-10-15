@@ -1,0 +1,74 @@
+{
+  "source": "docs/04-spoolin-techdoc.md",
+  "source_sha256": "7f31eac77d88197bac8619e64886536b56d6556e138eac4971d44bfcd377be83",
+  "assembled": {
+    "contracts/graphql/schema.graphql": [
+      {
+        "heading": "#### 5.1.1 Scalars and enumerations",
+        "sha256": "14afa822c92664bcd15f875b7eaad32438316625995871b670bb2440faf796ca"
+      },
+      {
+        "heading": "#### 5.1.2 Catalog projections",
+        "sha256": "034061f12662188f570e6e08aa09d79f891557d23bf873b20a56c8f1c45acfb7"
+      },
+      {
+        "heading": "#### 5.1.3 Identity, policy and operation projections",
+        "sha256": "d0b6a6338b04c79cb34c4e443a1c477edb9a601f84de8614a7fb3c538421916c"
+      },
+      {
+        "heading": "#### 5.1.4 Browser input objects",
+        "sha256": "f3507309dd26810fd8effc140ae725c9ff444590f444c377e73dfeab71f5644f"
+      },
+      {
+        "heading": "#### 5.1.5 Browser queries",
+        "sha256": "9f3c16d74354694e67bac7b87b88d31dc49d7566223de4d11dc36297c3ca3f05"
+      },
+      {
+        "heading": "#### 5.1.6 Browser mutations",
+        "sha256": "ad12095833828993cc59d21e856f4c700368b4dcf4f36f66baf738cac982789c"
+      }
+    ],
+    "contracts/grpc/src/main/proto/spoolin/v1/spoolin.proto": [
+      {
+        "heading": "#### 5.2.1 Protobuf namespace and imports",
+        "sha256": "b9a8bd0333129b16b643055a0ab8b3fca240df98f6189396d99ec2a537956058"
+      },
+      {
+        "heading": "#### 5.2.2 Shared context and outcomes",
+        "sha256": "eb52ab938f84d23b1aaa413b3d2a7c94b01f658500fb33f0705a6b93aa61f2f0"
+      },
+      {
+        "heading": "#### 5.2.3 Catalog messages",
+        "sha256": "a6070e2c3f7ef12cb5199316b8fd0dcd04802ad6b31b1acdb23add620bbff008"
+      },
+      {
+        "heading": "#### 5.2.4 Identity messages",
+        "sha256": "96c5add532fd00eae98143c5e11b7a08818fd8e3f99e3c61b69e231a0eb8f9cd"
+      },
+      {
+        "heading": "#### 5.2.5 Media messages",
+        "sha256": "63a2aa3f26ce8522ce99d0e657b1614533c5c875359e8c2893d71a1468a6caa7"
+      },
+      {
+        "heading": "#### 5.2.6 MCP gateway and policy messages",
+        "sha256": "68351525c7044d3953ad89ceec965947445efd0f64ca9b3955bd7daf3ab179d5"
+      },
+      {
+        "heading": "#### 5.2.7 IdentityService",
+        "sha256": "e89ebdf39ab978805dafc7a0d9a622286ba3e17b85cbc9a327a7046e644ccbc6"
+      },
+      {
+        "heading": "#### 5.2.8 CatalogService",
+        "sha256": "9d8db1d87435ec48706205863af86d2a93e89706d641d6f7f63faea92f3e5931"
+      },
+      {
+        "heading": "#### 5.2.9 MediaService",
+        "sha256": "7652ec41597e850dfccc3118289af56aee3c9afe4014a76064169f6384cd2702"
+      },
+      {
+        "heading": "#### 5.2.10 McpGatewayService",
+        "sha256": "412532903594ab9883a05b743e9d6702cbd349607f6086f43b137fe679dc494f"
+      }
+    ]
+  }
+}

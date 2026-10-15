@@ -1,0 +1,474 @@
+syntax = "proto3";
+package spoolin.v1;
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+message Context {
+  string operation_id = 1;
+  string correlation_id = 2;
+  string policy_revision = 3;
+}
+
+message Id {
+  string id = 1;
+}
+
+message VersionedId {
+  Context context = 1;
+  string id = 2;
+  int64 expected_version = 3;
+}
+
+message PartialDate {
+  optional int32 year = 1;
+  optional int32 month = 2;
+  optional int32 day = 3;
+}
+
+message FieldIssue {
+  string path = 1;
+  string code = 2;
+  string message = 3;
+}
+
+message Problem {
+  string code = 1;
+  repeated FieldIssue fields = 2;
+  optional int32 retry_after_ms = 3;
+}
+
+message Outcome {
+  string operation_id = 1;
+  string state = 2;
+  optional string result_id = 3;
+  optional int64 version = 4;
+  optional Problem problem = 5;
+  bool result_expired = 6;
+}
+
+message MovieValues {
+  string title = 1;
+  optional string original_title = 2;
+  string synopsis = 3;
+  repeated string genre_ids = 4;
+  PartialDate release = 5;
+  optional int32 runtime_minutes = 6;
+  optional string original_language = 7;
+  string synopsis_language = 8;
+  repeated string countries = 9;
+}
+
+message MovieWrite {
+  Context context = 1;
+  optional string id = 2;
+  optional int64 expected_version = 3;
+  MovieValues values = 4;
+  google.protobuf.FieldMask update_mask = 5;
+}
+
+message PersonValues {
+  string name = 1;
+  optional string biography = 2;
+}
+
+message PersonWrite {
+  Context context = 1;
+  optional string id = 2;
+  optional int64 expected_version = 3;
+  PersonValues values = 4;
+  google.protobuf.FieldMask update_mask = 5;
+}
+
+message CreditWrite {
+  Context context = 1;
+  optional string id = 2;
+  string title_id = 3;
+  string person_id = 4;
+  string role_id = 5;
+  repeated string characters = 6;
+  int64 expected_version = 7;
+  google.protobuf.FieldMask update_mask = 8;
+}
+
+message Lifecycle {
+  VersionedId target = 1;
+  string action = 2;
+  bool confirmed = 3;
+  optional string impact_token = 4;
+}
+
+message Search {
+  optional string text = 1;
+  optional string kind = 2;
+  repeated string genre_ids = 3;
+  optional int32 year = 4;
+  optional int32 month = 5;
+  int32 first = 6;
+  optional string after = 7;
+}
+
+message Title {
+  string id = 1;
+  string kind = 2;
+  string state = 3;
+  MovieValues values = 4;
+  int64 version = 5;
+  optional string asset_id = 6;
+  optional string tv_status = 7;
+  PartialDate tv_end = 8;
+  optional string release_context = 9;
+  repeated Provenance provenance = 10;
+}
+
+message TitlePage {
+  repeated Title nodes = 1;
+  optional string end_cursor = 2;
+  bool has_next_page = 3;
+}
+
+message Provenance {
+  string source = 1;
+  string external_id = 2;
+  optional string record_url = 3;
+  google.protobuf.Timestamp retrieved_at = 4;
+  string reuse_note = 5;
+  repeated FieldSource field_sources = 6;
+  repeated string locally_changed = 7;
+}
+
+message FieldSource {
+  string field = 1;
+  string url = 2;
+  string reuse_basis = 3;
+  google.protobuf.Timestamp retrieved_at = 4;
+  optional string precision = 5;
+}
+
+message Person {
+  string id = 1;
+  PersonValues values = 2;
+  string state = 3;
+  int64 version = 4;
+}
+
+message PersonPage {
+  repeated Person nodes = 1;
+  optional string end_cursor = 2;
+  bool has_next_page = 3;
+}
+
+message Credit {
+  string id = 1;
+  string title_id = 2;
+  string person_id = 3;
+  string role_id = 4;
+  repeated string characters = 5;
+  int64 version = 6;
+  string person_name = 7;
+  string title_name = 8;
+  CreditRole role = 9;
+}
+
+message PageRequest {
+  optional string after = 1;
+  int32 first = 2;
+  optional string target_id = 3;
+  optional string state = 4;
+  optional string target_kind = 5;
+}
+
+message Genre {
+  string id = 1;
+  string label = 2;
+}
+
+message Genres {
+  repeated Genre nodes = 1;
+}
+
+message CreditRole {
+  string id = 1;
+  string category = 2;
+  string label = 3;
+  bool allows_characters = 4;
+}
+
+message Roles {
+  repeated CreditRole nodes = 1;
+}
+
+message RoleWrite {
+  Context context = 1;
+  string category = 2;
+  string label = 3;
+}
+
+message AuditChange {
+  string path = 1;
+  optional string before_json = 2;
+  optional string after_json = 3;
+}
+
+message AuditEvent {
+  string id = 1;
+  string actor_ref = 2;
+  string action = 3;
+  optional string subject_id = 4;
+  repeated AuditChange changes = 5;
+  optional string operation_id = 6;
+  google.protobuf.Timestamp at = 7;
+  string outcome = 8;
+  string subject_kind = 9;
+}
+
+message AuditPage {
+  repeated AuditEvent nodes = 1;
+  optional string end_cursor = 2;
+  bool has_next_page = 3;
+}
+
+message CreditPage {
+  repeated Credit nodes = 1;
+  optional string end_cursor = 2;
+  bool has_next_page = 3;
+}
+
+message Impact {
+  string target_id = 1;
+  int64 version = 2;
+  string token = 3;
+  int32 affected_credit_count = 4;
+  repeated string affected_titles = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message Proposal {
+  Context context = 1;
+  MovieValues values = 2;
+  repeated FieldSource sources = 3;
+  optional string proposal_id = 4;
+  optional int32 expected_revision = 5;
+}
+
+message ProposalRevision {
+  string proposal_id = 1;
+  int32 revision = 2;
+  MovieValues values = 3;
+  string content_hash = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  optional bytes ui_challenge = 6;
+}
+
+message ApprovalInput {
+  string proposal_id = 1;
+  int32 revision = 2;
+  string challenge = 3;
+  string content_hash = 4;
+}
+
+message CancelArtworkRequest {
+  Context context = 1;
+  string upload_operation_id = 2;
+}
+
+message ArtworkCancelOutcome {
+  Outcome operation = 1;
+  Outcome upload_operation = 2;
+  bool cancelled = 3;
+}
+
+message ArtworkAccessRequest {
+  string asset_id = 1;
+  bool management = 2;
+}
+
+message ArtworkGrant {
+  string asset_id = 1;
+  string hold_id = 2;
+  string title_id = 3;
+  int64 catalog_version = 4;
+}
+
+message ResolveActorRequest {
+  string credential = 1;
+  string audience = 2;
+}
+
+message Actor {
+  string account_id = 1;
+  string role = 2;
+  int64 auth_epoch = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  string credential_id = 5;
+  optional string client_kind = 6;
+}
+
+message CheckActorRequest {
+  string account_id = 1;
+  string credential_id = 2;
+  int64 auth_epoch = 3;
+  string audience = 4;
+}
+
+message UploadHeader {
+  Context context = 1;
+  string actor_id = 2;
+  int64 input_bytes = 3;
+  string asset_id = 4;
+  bytes input_sha256 = 5;
+  string intent_id = 6;
+}
+
+message UploadChunk {
+  oneof part {
+    UploadHeader header = 1;
+    bytes data = 2;
+  }
+}
+
+message Hold {
+  Context context = 1;
+  string hold_id = 2;
+  string asset_id = 3;
+  string title_id = 4;
+  optional int64 catalog_version = 5;
+  optional int64 expected_version = 6;
+  optional string actor_id = 7;
+}
+
+message Asset {
+  string id = 1;
+  string state = 2;
+  optional string format = 3;
+  optional int32 width = 4;
+  optional int32 height = 5;
+  optional int64 output_bytes = 6;
+  optional Problem problem = 7;
+}
+
+message Attachment {
+  string hold_id = 1;
+  string state = 2;
+  optional int64 catalog_version = 3;
+  optional string asset_id = 4;
+  optional string title_id = 5;
+  optional string actor_id = 6;
+}
+
+message AssetReadRequest {
+  string asset_id = 1;
+  string hold_id = 2;
+  int64 catalog_version = 3;
+}
+
+message AssetReadHeader {
+  string format = 1;
+  int64 output_bytes = 2;
+  int32 width = 3;
+  int32 height = 4;
+  bytes content_hash = 5;
+}
+
+message AssetReadChunk {
+  oneof part {
+    AssetReadHeader header = 1;
+    bytes data = 2;
+  }
+}
+
+message TextBound {
+  string field = 1;
+  int32 min_code_points = 2;
+  int32 max_code_points = 3;
+  bool required = 4;
+}
+
+message ArtworkPolicy {
+  int64 max_input_bytes = 1;
+  repeated string formats = 2;
+  int32 max_dimension_px = 3;
+  int64 max_pixels = 4;
+}
+
+message RequestLimits {
+  int32 max_page = 1;
+  int32 max_metadata_bytes = 2;
+  int32 max_search_code_points = 3;
+}
+
+message PolicySnapshot {
+  string revision = 1;
+  repeated TextBound text_bounds = 2;
+  ArtworkPolicy artwork = 3;
+  RequestLimits request_limits = 4;
+}
+
+message MovieContextRequest {
+  string query = 1;
+  int32 limit = 2;
+}
+
+message MovieContext {
+  TitlePage titles = 1;
+  Genres genres = 2;
+  Roles roles = 3;
+  PolicySnapshot policy = 4;
+}
+
+service IdentityService {
+  rpc ResolveActor(ResolveActorRequest) returns(Actor);
+  rpc CheckActor(CheckActorRequest) returns(Actor);
+}
+
+service CatalogService {
+  rpc SearchTitles(Search) returns(TitlePage);
+  rpc GetTitle(Id) returns(Title);
+  rpc SearchPeople(Search) returns(PersonPage);
+  rpc GetPerson(Id) returns(Person);
+  rpc PersonCredits(PageRequest) returns(CreditPage);
+  rpc TitleCredits(PageRequest) returns(CreditPage);
+  rpc ListGenres(google.protobuf.Empty) returns(Genres);
+  rpc ListRoles(google.protobuf.Empty) returns(Roles);
+  rpc CreateRole(RoleWrite) returns(Outcome);
+  rpc ManagedTitles(PageRequest) returns(TitlePage);
+  rpc ManagedPeople(PageRequest) returns(PersonPage);
+  rpc ManagedTitle(Id) returns(Title);
+  rpc ManagedPerson(Id) returns(Person);
+  rpc ManagedCredits(PageRequest) returns(CreditPage);
+  rpc Audit(PageRequest) returns(AuditPage);
+  rpc WriteMovie(MovieWrite) returns(Outcome);
+  rpc WritePerson(PersonWrite) returns(Outcome);
+  rpc WriteCredit(CreditWrite) returns(Outcome);
+  rpc RemoveCredit(VersionedId) returns(Outcome);
+  rpc MovieLifecycle(Lifecycle) returns(Outcome);
+  rpc PersonLifecycle(Lifecycle) returns(Outcome);
+  rpc DeletionImpact(Id) returns(Impact);
+  rpc GetOperation(Id) returns(Outcome);
+  rpc BeginArtwork(Hold) returns(Outcome);
+  rpc GetAttachment(Id) returns(Attachment);
+  rpc CancelArtwork(CancelArtworkRequest) returns(ArtworkCancelOutcome);
+  rpc ResolveArtworkAccess(ArtworkAccessRequest) returns(ArtworkGrant);
+  rpc ProposeMovie(Proposal) returns(ProposalRevision);
+  rpc ApproveAndCreate(ApprovalInput) returns(Outcome);
+  rpc RejectProposal(ApprovalInput) returns(Outcome);
+}
+
+service MediaService {
+  rpc Upload(stream UploadChunk) returns(Outcome);
+  rpc GetAsset(Id) returns(Asset);
+  rpc Reserve(Hold) returns(Attachment);
+  rpc Confirm(Hold) returns(Attachment);
+  rpc Release(Hold) returns(Attachment);
+  rpc GetOperation(Id) returns(Outcome);
+  rpc ReadAsset(AssetReadRequest) returns(stream AssetReadChunk);
+}
+
+service McpGatewayService {
+  rpc GetPolicy(google.protobuf.Empty) returns(PolicySnapshot);
+  rpc GetMovieContext(MovieContextRequest) returns(MovieContext);
+  rpc ProposeMovie(Proposal) returns(ProposalRevision);
+  rpc ApproveMovie(ApprovalInput) returns(Outcome);
+  rpc RejectMovie(ApprovalInput) returns(Outcome);
+  rpc GetMovieOperation(Id) returns(Outcome);
+}

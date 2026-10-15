@@ -94,7 +94,8 @@ def npm_record(item):
 
 def main():
     coordinates = set()
-    for lock in ROOT.joinpath("gradle").rglob("gradle.lockfile"):
+    locks = [*ROOT.joinpath("gradle").rglob("gradle.lockfile"), *ROOT.joinpath("contracts").rglob("gradle.lockfile")]
+    for lock in locks:
         coordinates.update(line.split("=", 1)[0] for line in lock.read_text().splitlines()
                            if line and not line.startswith(("#", "empty=")))
     lock = json.loads(ROOT.joinpath("package-lock.json").read_text())

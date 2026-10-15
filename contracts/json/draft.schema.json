@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "MOVIE": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "originalTitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "synopsis": {
+          "type": "string"
+        },
+        "genreIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "release": {
+          "type": "object",
+          "properties": {
+            "year": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 9999
+            },
+            "month": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 12
+            },
+            "day": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 31
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "runtimeMinutes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "originalLanguage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "synopsisLanguage": {
+          "type": "string"
+        },
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "PERSON": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "biography": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "CREDIT": {
+      "type": "object",
+      "properties": {
+        "titleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "personId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "characters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/MOVIE"
+    },
+    {
+      "$ref": "#/$defs/PERSON"
+    },
+    {
+      "$ref": "#/$defs/CREDIT"
+    }
+  ]
+}
