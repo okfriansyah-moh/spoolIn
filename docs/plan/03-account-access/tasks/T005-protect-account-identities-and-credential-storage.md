@@ -321,6 +321,8 @@ Create evidence files only after an actual authorized run. A Passed row needs a 
 
 Execution update — 15 October 2026: T005 implementation is active in isolated worktree `/private/tmp/spoolin-account-t005`, branch `codex/account-protection`, claim `lane-153c714853114ee6`, base `7cd8807bab0d1d4042e7005e3826da5ad68e39c2`. This uses accepted T002/T003 and status-only coordination commits; the blocked T004 implementation is excluded. Required local/database checks and independent review are pending. T006/T007 remain blocked by their unselected prerequisites.
 
+Integration support update — 15 October 2026: Seven exact Core source SHA-256 map entries were independently recomputed and classified as metadata. The secret-scanner declaration adds an exception only for those full hash-map lines in managed workflow receipt paths. Five isolated scanner-policy checks preserve detection for source credentials, credential-shaped receipt lines, unlisted source entries and hashes outside managed receipt paths. Product source scanning remains active.
+
 ## Completion and handoff
 
 - Finish the owned changes and all verification-role acceptance/row assertions; record actual changed files and source-contract dispositions.
