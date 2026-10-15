@@ -1,0 +1,6 @@
+**
+!services/
+!services/media/
+!services/media/build/
+!services/media/build/libs/
+!services/media/build/libs/*-boot.jar
