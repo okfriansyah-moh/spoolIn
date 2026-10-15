@@ -12,6 +12,12 @@ import spoolin.v1.Spoolin;
 /** Compile and execute generated Java consumers; this does not start a transport. */
 public final class Consumer {
   public static void main(String[] args) throws Exception {
+    movieRoundTrip();
+    serviceSignatures();
+    inputPresence();
+  }
+
+  private static void movieRoundTrip() throws Exception {
     var values = Spoolin.MovieValues.newBuilder().setTitle("Exact / title").build();
     var write = Spoolin.MovieWrite.newBuilder()
         .setValues(values)
@@ -25,6 +31,9 @@ public final class Consumer {
     var unknown = write.toBuilder().setUnknownFields(UnknownFieldSet.newBuilder()
         .addField(999, UnknownFieldSet.Field.newBuilder().addVarint(123).build()).build()).build();
     if (!Spoolin.MovieWrite.parseFrom(unknown.toByteArray()).getUnknownFields().hasField(999)) throw new AssertionError("Unknown field lost");
+  }
+
+  private static void serviceSignatures() {
     if (Spoolin.AuditEvent.getDescriptor().findFieldByName("outcome").getNumber() != 8) throw new AssertionError("Audit outcome number");
     if (Spoolin.AuditEvent.getDescriptor().findFieldByName("subject_kind").getNumber() != 9) throw new AssertionError("Audit subject number");
     if (Spoolin.getDescriptor().getServices().size() != 4) throw new AssertionError("Service inventory");
@@ -32,6 +41,9 @@ public final class Consumer {
     if (CatalogServiceGrpc.getServiceDescriptor().getMethods().size() != 30) throw new AssertionError("Catalog method inventory");
     if (MediaServiceGrpc.getUploadMethod().getType() != MethodDescriptor.MethodType.CLIENT_STREAMING) throw new AssertionError("Upload stream");
     if (MediaServiceGrpc.getReadAssetMethod().getType() != MethodDescriptor.MethodType.SERVER_STREAMING) throw new AssertionError("Read stream");
+  }
+
+  private static void inputPresence() {
     var supplied = new InputValue.Present<String>(null);
     var absent = new InputValue.Absent<String>();
     if (supplied.equals(absent)) throw new AssertionError("Null collapsed into omission");
