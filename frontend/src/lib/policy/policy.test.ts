@@ -1,0 +1,186 @@
+import { describe, expect, it } from 'vitest';
+import { render } from 'svelte/server';
+import {
+  specimenPolicy,
+  retainedDraft,
+  plainTextExample,
+} from '../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';
+import { parsePolicy } from './parse';
+import {
+  boundFor,
+  changedText,
+  checkText,
+  count,
+  optionalIntent,
+  trimOrdinary,
+} from './rules';
+import PolicyGuidance from './PolicyGuidance.svelte';
+import {
+  registrationFeedback,
+  optionalFeedback,
+  draftFeedback,
+} from './feedback';
+
+const policy = specimenPolicy();
+describe('T009 shared policy rules', () => {
+  it('ATDD-276 preserves exact Unicode and counts supplementary characters', () => {
+    expect(count('😀'.repeat(100))).toBe(100);
+    expect(
+      checkText('😀'.repeat(100), boundFor(policy, 'personName')).error,
+    ).toBe('');
+    expect(
+      checkText('😀'.repeat(101), boundFor(policy, 'personName')).value,
+    ).toBe('😀'.repeat(101));
+    expect(
+      checkText('😀'.repeat(101), boundFor(policy, 'personName')).error,
+    ).not.toBe('');
+    expect(trimOrdinary('\u0085\u00a0V\u0085')).toBe('V');
+    expect(trimOrdinary('\ufeffV\ufeff')).toBe('\ufeffV\ufeff');
+    expect(count('é')).toBe(1);
+    expect(count('e\u0301')).toBe(2);
+    expect(checkText('e\u0301', boundFor(policy, 'personName')).value).toBe(
+      'e\u0301',
+    );
+    expect(checkText('\ud800', boundFor(policy, 'personName')).error).not.toBe(
+      '',
+    );
+  });
+  it('T009-A3 omitted and clearing requests differ', () => {
+    expect(optionalIntent(false, null)).toEqual({ kind: 'omitted' });
+    for (const value of [null, '', ' \u0085 '])
+      expect(optionalIntent(true, value)).toEqual({ kind: 'clear' });
+    expect(optionalIntent(true, ' Maya / Echo ')).toEqual({
+      kind: 'value',
+      value: 'Maya / Echo',
+    });
+  });
+});
+
+describe('T009 retained content', () => {
+  it('T009-A2 tightening preserves complete stored content and rejected draft', () => {
+    const bound = { ...boundFor(policy, 'synopsis'), maxCodePoints: 100 };
+    expect(changedText(retainedDraft, retainedDraft, bound)).toEqual({
+      value: retainedDraft,
+      error: '',
+    });
+    expect(checkText(retainedDraft, bound).value).toBe(retainedDraft);
+    expect(checkText(retainedDraft, bound).error).toBe(
+      'Use 1 to 100 Unicode code points.',
+    );
+    const body = render(PolicyGuidance, {
+      props: { view: 'policy-changed', policy, initialDraft: retainedDraft },
+    }).body;
+    expect(body).toContain(retainedDraft);
+    expect(body).toContain('Current maximum: 100 Unicode code points.');
+  });
+  it('current password bytes stay exact', () => {
+    const exact = { ...boundFor(policy, 'password'), minCodePoints: 1 };
+    expect(checkText(' a\u00a0 ', exact).value).toBe(' a\u00a0 ');
+  });
+});
+
+describe('T009 policy projection boundary', () => {
+  it('accepts the complete safe policy and rejects private or missing keys', () => {
+    expect(parsePolicy(policy)).toEqual(policy);
+    expect(() =>
+      parsePolicy({ ...policy, privateKey: 'synthetic-private' }),
+    ).toThrow('could not be loaded safely');
+    expect(() => parsePolicy({ ...policy, revision: 'invalid' })).toThrow();
+    expect(() => parsePolicy({ ...policy, textBounds: {} })).toThrow();
+    expect(() =>
+      parsePolicy({ ...policy, artwork: { ...policy.artwork, formats: [] } }),
+    ).toThrow();
+    expect(() =>
+      parsePolicy({
+        ...policy,
+        requestLimits: { ...policy.requestLimits, maxPage: 0 },
+      }),
+    ).toThrow();
+  });
+  it('renders four distinct controlled components with safe text and no enabled unavailable submission', () => {
+    const text = render(PolicyGuidance, {
+      props: {
+        view: 'text-boundaries',
+        policy,
+        initialName: 'V',
+        plainTextExample,
+      },
+    }).body;
+    expect(text).toContain('&lt;script>');
+    expect(text).not.toContain('<script>alert');
+    const optional = render(PolicyGuidance, {
+      props: {
+        view: 'optional-clearing',
+        policy,
+        initialOriginalTitle: 'Cahaya Terakhir',
+      },
+    }).body;
+    expect(optional).toContain('Cahaya Terakhir');
+    const unavailable = render(PolicyGuidance, {
+      props: {
+        view: 'policy-unavailable',
+        policy,
+        initialDraft: retainedDraft,
+      },
+    }).body;
+    expect(unavailable).toContain('Editing is temporarily unavailable');
+    expect(unavailable).toContain('disabled');
+    expect(unavailable).toContain(retainedDraft);
+  });
+});
+
+describe('T009 visible policy feedback rules', () => {
+  it('links registration corrections and emits distinct success', () => {
+    const bound = boundFor(policy, 'registrationName');
+    expect(registrationFeedback('V', bound)).toEqual({
+      errors: [
+        {
+          id: 'policy-name',
+          message: 'Registration name: Use 2 to 100 Unicode code points.',
+        },
+      ],
+      outcome: '',
+    });
+    expect(registrationFeedback('李 · O’Connor', bound)).toEqual({
+      errors: [],
+      outcome: 'The name meets the current registration rule.',
+    });
+  });
+  it('preserves omission even when an old unchanged value exceeds current bounds', () => {
+    const bound = { ...boundFor(policy, 'originalTitle'), maxCodePoints: 3 };
+    expect(optionalFeedback(false, 'Cahaya Terakhir', bound)).toEqual({
+      errors: [],
+      outcome: 'Original title stays unchanged.',
+    });
+    expect(optionalFeedback(true, '\u0085 ', bound)).toEqual({
+      errors: [],
+      outcome: 'Original title will be cleared.',
+    });
+    expect(optionalFeedback(true, 'Cahaya Terakhir', bound).errors).toEqual([
+      { id: 'policy-original', message: 'Use 1 to 3 Unicode code points.' },
+    ]);
+    expect(optionalFeedback(true, ' A ', bound)).toEqual({
+      errors: [],
+      outcome: 'Original title will become A.',
+    });
+  });
+});
+
+describe('T009 draft feedback', () => {
+  it('links changed draft correction without truncation or a successful outcome', () => {
+    const bound = { ...boundFor(policy, 'synopsis'), maxCodePoints: 100 };
+    expect(draftFeedback(retainedDraft, bound)).toEqual({
+      errors: [
+        {
+          id: 'policy-draft',
+          message: 'Synopsis: Use 1 to 100 Unicode code points.',
+        },
+      ],
+      outcome: '',
+    });
+    expect(draftFeedback('First line.\nSecond line.', bound)).toEqual({
+      errors: [],
+      outcome: 'The revised draft meets the current rule.',
+    });
+  });
+});
