@@ -7,6 +7,7 @@ import {
   int32,
   uuid,
   unicode,
+  ordinaryText,
   dateTime,
   approvalChallenge,
   envelope,
@@ -198,13 +199,13 @@ export function validateDraft(kind, value) {
 }
 
 function patchText(value, required) {
-  const result = unicode(value).trim();
+  const result = ordinaryText(value);
   if (!result && required) throw new TypeError('FIELD_REQUIRED');
   return result || null;
 }
 
 function patchArray(key, value) {
-  let result = value.map((item) => unicode(item).trim());
+  let result = value.map(ordinaryText);
   if (key === 'characters') result = result.filter(Boolean);
   if (new Set(result).size !== result.length)
     throw new TypeError('Duplicate array member');

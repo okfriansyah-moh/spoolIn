@@ -2,6 +2,7 @@ import type {
   TitleQuery,
   UpdateMovieMutationVariables,
 } from '../../frontend/src/lib/generated/graphql.js';
+import type { MovieDraft } from '../../frontend/src/lib/generated/json-types.js';
 import {
   MovieWrite,
   Provenance,
@@ -56,6 +57,10 @@ void numericVersion;
 const empty: TitleQuery = { title: null };
 if (version !== '9223372036854775807' || empty.title !== null)
   throw new Error('Consumer type mismatch');
+
+const correction: MovieDraft = { release: { year: null } };
+if (correction.release?.year !== null)
+  throw new Error('Correction draft null year lost');
 
 const source = Provenance.fromPartial({
   retrievedAt: { seconds: '1791774000', nanos: 123456000 },

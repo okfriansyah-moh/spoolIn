@@ -57,6 +57,34 @@ assert.throws(()=>approvalChallenge(challenge+'='));
 assert.throws(()=>approvalChallenge(challenge.slice(0,-1)+'_'));
 """)
 
+    def test_timestamp_seconds_include_endpoints_and_reject_adjacent_values(self):
+        self.node(r"""
+import assert from 'node:assert/strict';
+import {truncateTimestamp} from './build-tools/contracts/wire.mjs';
+for (const seconds of ['-62135596800','253402300799']) {
+  assert.deepEqual(truncateTimestamp({seconds,nanos:999999999}),{seconds,nanos:999999000});
+  assert.deepEqual(truncateTimestamp({seconds,nanos:0}),{seconds,nanos:0});
+}
+for (const seconds of ['-62135596801','253402300800']) {
+  assert.throws(()=>truncateTimestamp({seconds,nanos:0}),/timestamp seconds/i);
+}
+""")
+
+    def test_ordinary_text_uses_unicode_white_space_without_normalizing(self):
+        self.node(r"""
+import assert from 'node:assert/strict';
+import {ordinaryText} from './build-tools/contracts/wire.mjs';
+const points=[9,10,11,12,13,32,133,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288];
+for (const point of points) {
+  const space=String.fromCodePoint(point);
+  assert.equal(ordinaryText(space+'A  e\u0301\nB'+space),'A  e\u0301\nB');
+  assert.equal(ordinaryText(space),'');
+}
+assert.equal(ordinaryText('\uFEFF'),'\uFEFF');
+assert.throws(()=>ordinaryText('A\u0000B'),/NUL/);
+assert.throws(()=>ordinaryText('\ud800'),/Unicode/);
+""")
+
     def test_request_and_result_envelopes_are_independent_utf8_bounds(self):
         self.node(r"""
 import assert from 'node:assert/strict';

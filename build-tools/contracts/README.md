@@ -54,6 +54,11 @@ omission, optional clearing, whole-date replacement and ordered-name rules local
 patch keys come from the SDL patch types, so draft-only credit endpoint fields cannot enter
 a patch.
 
+Ordinary patch text trims Unicode White_Space, including U+0085 and excluding U+FEFF,
+and rejects NUL. Correction drafts retain exact untrimmed text and may retain a null release
+year; final patch/write validation still requires that year. Timestamp seconds must fit the
+imported protobuf range from year0001 through year9999 before nanos truncate to microseconds.
+
 `bash ops/bin/test-unit.sh --task T002` runs the actual `tests/contracts/run.py` suites. JSON/JUnit
 reports contain real unittest outcomes, with generation/compile subprocess logs and hashes under
 `.ai/evidence/t002-generation/`. Java and TypeScript consumers exercise exact int64 values,

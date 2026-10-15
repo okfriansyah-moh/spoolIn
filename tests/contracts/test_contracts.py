@@ -158,3 +158,38 @@ assert.deepEqual(maskedValues('MOVIE',before,{},['countries']).countries,[]);
 assert.throws(()=>maskedValues('MOVIE',before,{},['genre_ids']),/REQUIRED/);
 assert.throws(()=>maskedValues('MOVIE',before,{},['release.year']),/mask/);
 """)
+
+    def test_draft_null_year_is_preserved_but_final_year_is_required(self):
+        self.node(r"""
+import assert from 'node:assert/strict';
+import {validateDraft,validateInput,patchValues} from './build-tools/contracts/validation.mjs';
+const draft={release:{year:null}};
+assert.equal(validateDraft('MOVIE',draft),draft);
+assert.deepEqual(draft,{release:{year:null}});
+for (const release of [{},{year:null},{month:2}]) {
+  assert.throws(()=>patchValues('MOVIE',{}, {release}),/REQUIRED/);
+  assert.throws(()=>validateInput('propose_movie',{operationId:'190db10d-02b8-437e-8e7c-ece9c105fe2a',title:'Movie',synopsis:'Synopsis',genreIds:['190db10d-02b8-437e-8e7c-ece9c105fe2a'],release}));
+}
+for (const year of [0,10000,1.5]) assert.throws(()=>validateDraft('MOVIE',{release:{year}}));
+""")
+
+    def test_ordinary_patch_unicode_whitespace_and_nul_differ_from_drafts(self):
+        self.node(r"""
+import assert from 'node:assert/strict';
+import {patchValues,validateDraft} from './build-tools/contracts/validation.mjs';
+assert.equal(patchValues('MOVIE',{}, {originalTitle:'\u0085'}).originalTitle,null);
+assert.throws(()=>patchValues('MOVIE',{}, {title:'\u0085'}),/REQUIRED/);
+for (const key of ['title','originalTitle']) {
+  assert.equal(patchValues('MOVIE',{}, {[key]:'\uFEFF'})[key],'\uFEFF');
+  assert.equal(patchValues('MOVIE',{}, {[key]:'\u0085A  e\u0301\u0085'})[key],'A  e\u0301');
+  assert.throws(()=>patchValues('MOVIE',{}, {[key]:'A\u0000B'}),/NUL/);
+}
+assert.deepEqual(patchValues('CREDIT',{}, {characters:['\u0085','\uFEFF','\u0085John / Jane\u0085']}).characters,['\uFEFF','John / Jane']);
+assert.throws(()=>patchValues('CREDIT',{}, {characters:['A\u0000B']}),/NUL/);
+assert.throws(()=>patchValues('MOVIE',{}, {countries:['I\u0000D']}),/NUL/);
+const draft={title:'\u0085\uFEFFA  e\u0301\u0085',originalTitle:'\u0085'};
+assert.equal(validateDraft('MOVIE',draft),draft);
+assert.equal(draft.title,'\u0085\uFEFFA  e\u0301\u0085');
+assert.equal(draft.originalTitle,'\u0085');
+assert.deepEqual(validateDraft('CREDIT',{characters:['\u0085','\uFEFF']}),{characters:['\u0085','\uFEFF']});
+""")

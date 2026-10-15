@@ -37,6 +37,12 @@ export function unicode(value) {
   return value;
 }
 
+export function ordinaryText(value) {
+  unicode(value);
+  if (value.includes('\u0000')) throw new TypeError('NUL in ordinary text');
+  return value.replace(/^\p{White_Space}+|\p{White_Space}+$/gu, '');
+}
+
 export function dateTime(value) {
   if (
     typeof value !== 'string' ||
@@ -59,6 +65,10 @@ export function dateTime(value) {
 
 export function truncateTimestamp({ seconds, nanos }) {
   longString(seconds);
+  const instant = BigInt(seconds);
+  if (instant < -62135596800n || instant > 253402300799n) {
+    throw new RangeError('Invalid timestamp seconds');
+  }
   if (!Number.isInteger(nanos) || nanos < 0 || nanos > 999999999) {
     throw new RangeError('Invalid timestamp nanos');
   }
