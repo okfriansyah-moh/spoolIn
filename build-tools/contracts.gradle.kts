@@ -6,5 +6,6 @@ project(":services:core") {
         }
     }
     tasks.named("compileJava") { dependsOn(rootProject.tasks.named("generateGraphql")) }
+    tasks.named("compileKotlin") { dependsOn(rootProject.tasks.named("generateGraphql")) }
     tasks.named("processResources") { dependsOn(rootProject.tasks.named("generateGraphql")) }
 }

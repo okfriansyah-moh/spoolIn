@@ -42,6 +42,12 @@ class GeneratedCompatibility(unittest.TestCase):
             self.assertEqual(archive.read('graphql/schema.graphql'), original)
         self.assertTrue(ROOT.joinpath('contracts/grpc/build/descriptors/spoolin.pb').stat().st_size)
 
+    def test_00_clean_kotlin_compile_generates_dtos_first(self):
+        self.command(['./gradlew', ':services:core:clean', ':services:core:compileKotlin',
+                      '--no-daemon', '--console', 'plain'], 'clean-kotlin-order')
+        dto = ROOT / 'services/core/build/generated/sources/graphql/com/spoolin/core/boundary/graphql/generated/MoviePatch.java'
+        self.assertTrue(dto.is_file(), 'Kotlin compilation must wait for its generated Java DTO sources')
+
     def test_generation_is_reproducible_and_repairs_missing_outputs(self):
         self.command(['node', 'build-tools/generate-contracts.mjs', '--force'], 'repeat-generate-first')
         first = json.loads(ROOT.joinpath('build/contract-generation.json').read_text())['outputs']

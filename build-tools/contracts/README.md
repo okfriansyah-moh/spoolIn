@@ -21,7 +21,8 @@ generated projection types. Audit before/after values retain the declared scalar
 shape; owner code must still construct the public-field allowlist.
 
 `build-tools/contracts.gradle.kts` connects generated Core Java sources and generated GraphQL
-resources to compilation/packaging. `contracts/grpc/build.gradle.kts` owns Java/streaming TypeScript
+resources to Java/Kotlin compilation and packaging. A direct clean Core Kotlin compile must
+generate its Java DTO sources first, even before Java compilation is selected. `contracts/grpc/build.gradle.kts` owns Java/streaming TypeScript
 protobuf generation and descriptors. This module consumes its strict lock at
 `contracts/grpc/gradle.lockfile`; it replaces the earlier empty module placeholder lock location.
 The root-owned other locks and artifact-integrity manifest remain unchanged. Dependency inventory
