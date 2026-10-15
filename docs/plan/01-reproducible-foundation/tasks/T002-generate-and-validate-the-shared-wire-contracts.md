@@ -5,7 +5,7 @@ group: G01
 depends_on:
 - T001
 readiness: Ready
-status: In progress
+status: In review
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
