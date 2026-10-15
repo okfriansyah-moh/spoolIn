@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "gradle": {
+    "version": "8.14.3",
+    "distribution_url": "https://downloads.gradle.org/distributions/gradle-8.14.3-bin.zip",
+    "sha256": "bd71102213493060956ec229d946beee57158dbd89d0e62b91bca0fa2c5f3531"
+  },
+  "node": "24.21.0",
+  "npm": "11.19.0",
+  "jdk": "Temurin 21.0.12.1+1",
+  "verification_tools": [
+    {
+      "tool": "osv",
+      "version": "v2.7.0",
+      "asset": {
+        "name": "osv-scanner_darwin_arm64",
+        "url": "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_darwin_arm64",
+        "digest": "sha256:d4926ef8da134332543be276dff157e4c170f99ad91fc48e89448a8816bdf70b"
+      },
+      "sha256": "d4926ef8da134332543be276dff157e4c170f99ad91fc48e89448a8816bdf70b",
+      "verified": true
+    },
+    {
+      "tool": "tunnel",
+      "version": "v0.0.16",
+      "asset": {
+        "name": "tunnel-client-v0.0.16-darwin-arm64.zip",
+        "url": "https://github.com/openai/tunnel-client/releases/download/v0.0.16/tunnel-client-v0.0.16-darwin-arm64.zip",
+        "digest": "sha256:a160820d45089b5253d8d671fe2a689bde0f73d78c135d1497a7b33f28a3ac62"
+      },
+      "sha256": "a160820d45089b5253d8d671fe2a689bde0f73d78c135d1497a7b33f28a3ac62",
+      "verified": true
+    }
+  ],
+  "libvips": {
+    "version": "8.18.7",
+    "source": {
+      "name": "vips-8.18.7.tar.xz",
+      "url": "https://github.com/libvips/libvips/releases/download/v8.18.7/vips-8.18.7.tar.xz",
+      "digest": "sha256:5baaead3b0bb20ffdb9e9ff09aa9fda08620923df77b63b436654cb5e0b3bf94"
+    },
+    "license": "LGPL-2.1"
+  },
+  "tunnel_flags": {
+    "cli": "tunnel-client",
+    "commands": [
+      "--version",
+      "help quickstart",
+      "init --help",
+      "doctor --help",
+      "run --help"
+    ],
+    "boundary": "Metadata only; no credential/profile/registration/live tunnel"
+  }
+}

@@ -1,0 +1,486 @@
+scalar UUID
+
+scalar Long
+
+scalar DateTime
+
+scalar Cursor
+
+scalar Base64
+
+scalar JSON
+
+enum TitleKind {
+  MOVIE
+  TV
+}
+
+enum RecordState {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ActorRole {
+  VIEWER
+  MAINTAINER
+}
+
+enum OperationState {
+  PENDING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+}
+
+enum AuditOutcome {
+  SUCCEEDED
+  DENIED
+  FAILED
+  APPROVED
+  REJECTED
+}
+
+enum OperationOwner {
+  CORE
+  CATALOG
+  MEDIA
+}
+
+enum LifecycleAction {
+  ARCHIVE
+  RESTORE
+  DELETE
+}
+
+enum RoleCategory {
+  CAST
+  CREATOR
+}
+
+enum DatePrecision {
+  YEAR
+  MONTH
+  DAY
+  UNKNOWN
+}
+
+type PartialDate {
+  year: Int
+  month: Int
+  day: Int
+  precision: DatePrecision!
+}
+
+type Artwork {
+  assetId: UUID!
+  url: String!
+  width: Int!
+  height: Int!
+}
+
+type Provenance {
+  source: String!
+  externalId: String!
+  recordUrl: String
+  retrievedAt: DateTime!
+  reuseNote: String!
+  fieldSources: JSON!
+  locallyChanged: [String!]!
+}
+
+type Genre {
+  id: UUID!
+  label: String!
+}
+
+type CreditRole {
+  id: UUID!
+  label: String!
+  category: RoleCategory!
+  allowsCharacters: Boolean!
+}
+
+type Credit {
+  id: UUID!
+  personId: UUID!
+  personName: String!
+  titleId: UUID!
+  titleName: String!
+  role: CreditRole!
+  characters: [String!]!
+  version: Long!
+}
+
+type Title {
+  id: UUID!
+  kind: TitleKind!
+  state: RecordState!
+  title: String!
+  originalTitle: String
+  synopsis: String!
+  genres: [Genre!]!
+  release: PartialDate!
+  runtimeMinutes: Int
+  originalLanguage: String
+  synopsisLanguage: String!
+  countries: [String!]!
+  tvStatus: String
+  tvEnd: PartialDate!
+  releaseContext: String
+  provenance: [Provenance!]!
+  artwork: Artwork
+  credits: CreditConnection!
+  version: Long!
+}
+
+type Person {
+  id: UUID!
+  name: String!
+  biography: String
+  state: RecordState!
+  version: Long!
+}
+
+type TitleConnection {
+  nodes: [Title!]!
+  pageInfo: PageInfo!
+}
+
+type PersonConnection {
+  nodes: [Person!]!
+  pageInfo: PageInfo!
+}
+
+type CreditConnection {
+  nodes: [Credit!]!
+  pageInfo: PageInfo!
+}
+
+type FieldIssue {
+  path: String!
+  code: String!
+  message: String!
+}
+
+type Problem {
+  code: String!
+  message: String!
+  fields: [FieldIssue!]!
+  retryAfterMs: Int
+}
+
+type PageInfo {
+  endCursor: Cursor
+  hasNextPage: Boolean!
+}
+
+type Session {
+  authenticated: Boolean!
+  role: ActorRole
+  accountId: UUID
+  displayName: String
+  expiresAt: DateTime
+  csrfToken: String!
+}
+
+type Policy {
+  revision: String!
+  textBounds: JSON!
+  artwork: JSON!
+  requestLimits: JSON!
+}
+
+type Impact {
+  targetId: UUID!
+  version: Long!
+  token: String!
+  affectedCreditCount: Int!
+  affectedTitles: [String!]!
+  expiresAt: DateTime!
+}
+
+type Operation {
+  id: UUID!
+  state: OperationState!
+  resultId: UUID
+  version: Long
+  problem: Problem
+  resultExpired: Boolean!
+  artworkPhase: String
+}
+
+type MutationResult {
+  operation: Operation!
+  problem: Problem
+}
+
+type ArtworkCancelResult {
+  operation: Operation!
+  uploadOperation: Operation
+  cancelled: Boolean!
+}
+
+type DraftDiscardResult {
+  operation: Operation!
+  discarded: Boolean!
+  problem: Problem
+}
+
+type Draft {
+  id: UUID!
+  targetKind: String!
+  targetId: UUID
+  baseVersion: Long
+  values: JSON!
+  operationId: UUID
+  version: Long!
+  expiresAt: DateTime!
+}
+
+type AuditEvent {
+  id: UUID!
+  actorRef: String!
+  action: String!
+  subjectId: UUID
+  changes: JSON!
+  operationId: UUID
+  at: DateTime!
+  outcome: AuditOutcome!
+  subjectKind: String!
+}
+
+type AuditConnection {
+  nodes: [AuditEvent!]!
+  pageInfo: PageInfo!
+}
+
+input PartialDateInput {
+  year: Int
+  month: Int
+  day: Int
+}
+
+input SearchInput {
+  text: String
+  kind: TitleKind
+  genreIds: [UUID!]
+  year: Int
+  month: Int
+}
+
+input MovieInput {
+  title: String!
+  originalTitle: String
+  synopsis: String!
+  genreIds: [UUID!]!
+  release: PartialDateInput!
+  runtimeMinutes: Int
+  originalLanguage: String
+  synopsisLanguage: String
+  countries: [String!]
+}
+
+input MoviePatch {
+  title: String
+  originalTitle: String
+  synopsis: String
+  genreIds: [UUID!]
+  release: PartialDateInput
+  runtimeMinutes: Int
+  originalLanguage: String
+  synopsisLanguage: String
+  countries: [String!]
+}
+
+input PersonInput {
+  name: String!
+  biography: String
+}
+
+input PersonPatch {
+  name: String
+  biography: String
+}
+
+input CreditInput {
+  personId: UUID!
+  roleId: UUID!
+  characters: [String!]!
+}
+
+input CreditPatch {
+  roleId: UUID
+  characters: [String!]
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input DraftInput {
+  targetKind: String!
+  targetId: UUID
+  baseVersion: Long
+  values: JSON!
+  operationId: UUID
+  policyRevision: String!
+}
+
+type Query {
+  session: Session!
+  policy: Policy!
+  titles(
+    filter: SearchInput!
+    first: Int = 24
+    after: Cursor
+  ): TitleConnection!
+  title(id: UUID!): Title
+  people(
+    text: String
+    first: Int = 24
+    after: Cursor
+  ): PersonConnection!
+  person(id: UUID!): Person
+  titleCredits(
+    id: UUID!
+    first: Int = 24
+    after: Cursor
+  ): CreditConnection!
+  personCredits(
+    id: UUID!
+    first: Int = 24
+    after: Cursor
+  ): CreditConnection!
+  genres: [Genre!]!
+  creditRoles: [CreditRole!]!
+  managedTitle(id: UUID!): Title
+  managedPerson(id: UUID!): Person
+  managedCredits(
+    titleId: UUID
+    personId: UUID
+    first: Int = 24
+    after: Cursor
+  ): CreditConnection!
+  managedTitles(
+    state: RecordState!
+    first: Int = 24
+    after: Cursor
+  ): TitleConnection!
+  managedPeople(
+    state: RecordState!
+    first: Int = 24
+    after: Cursor
+  ): PersonConnection!
+  deletionImpact(personId: UUID!): Impact!
+  operation(
+    id: UUID!
+    owner: OperationOwner
+  ): Operation
+  drafts: [Draft!]!
+  audit(
+    subjectId: UUID
+    first: Int = 24
+    after: Cursor
+  ): AuditConnection!
+}
+
+type Mutation {
+  register(
+    operationId: UUID!
+    input: RegisterInput!
+  ): MutationResult!
+  signIn(
+    operationId: UUID!
+    email: String!
+    password: String!
+  ): MutationResult!
+  signOut(operationId: UUID!): MutationResult!
+  createMovie(
+    operationId: UUID!
+    policyRevision: String!
+    input: MovieInput!
+  ): MutationResult!
+  updateMovie(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+    policyRevision: String!
+    patch: MoviePatch!
+  ): MutationResult!
+  movieLifecycle(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+    action: LifecycleAction!
+    confirmed: Boolean!
+  ): MutationResult!
+  createPerson(
+    operationId: UUID!
+    policyRevision: String!
+    input: PersonInput!
+  ): MutationResult!
+  updatePerson(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+    policyRevision: String!
+    patch: PersonPatch!
+  ): MutationResult!
+  personLifecycle(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+    action: LifecycleAction!
+    impactToken: String
+    confirmed: Boolean!
+  ): MutationResult!
+  createRole(
+    operationId: UUID!
+    category: RoleCategory!
+    label: String!
+    policyRevision: String!
+  ): MutationResult!
+  addCredit(
+    operationId: UUID!
+    titleId: UUID!
+    expectedVersion: Long!
+    policyRevision: String!
+    input: CreditInput!
+  ): MutationResult!
+  updateCredit(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+    policyRevision: String!
+    patch: CreditPatch!
+  ): MutationResult!
+  removeCredit(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+  ): MutationResult!
+  uploadArtwork(
+    operationId: UUID!
+    titleId: UUID!
+    expectedVersion: Long!
+    policyRevision: String!
+    content: Base64!
+  ): MutationResult!
+  cancelArtwork(
+    operationId: UUID!
+    uploadOperationId: UUID!
+  ): ArtworkCancelResult!
+  saveDraft(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long
+    input: DraftInput!
+  ): MutationResult!
+  discardDraft(
+    operationId: UUID!
+    id: UUID!
+    expectedVersion: Long!
+  ): DraftDiscardResult!
+}

@@ -6,7 +6,7 @@ depends_on:
 - T001
 - T002
 readiness: Ready
-status: Not started
+status: Done
 risk: high
 test_strategy: alongside
 visual_review: not-applicable
@@ -151,9 +151,12 @@ Visual review is not applicable: this owned result has no new graphical presenta
 
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
-| boundary-tests | Not run | — | — | — | — |
-| self-review | Not run | — | — | — | — |
-| independent-review | Not run | — | — | — | — |
+| boundary-tests | Passed: 15/15 real local boundary cases; fresh owner suites and all coverage thresholds pass in merged inputs | [Exact selector receipt](../../../../.ai/evidence/run-6e2d64a9b99d473398438ba183014e43/receipt.json), [retained selector proof](../../../../.ai/evidence/t003-final-selector/index.json), [combined correction receipt](../../../../.ai/evidence/integration-bd62ff8271c04e97aa8af6d21cd0f02c/integration.json) | Local `dc6e1ef42d76217bdcabc6777ee7c1b3efd5234e`; reconciled to `12e487f001b66c2f3a5802654c6928849aa47c49` | Disposable PostgreSQL 18.6 with TLS/SCRAM; actual TCP mTLS gRPC and HTTPS; namespace cleanup verified | `/root/foundation_review` |
+| self-review | Passed; mounted-password escaping corrected with real red/green regression; source and packaging reviewed | [Corrected self-review](../../../../.ai/evidence/t003-corrected-self-review.json), [handoff](../../../../.ai/evidence/t003-handoff.json) | `dc6e1ef42d76217bdcabc6777ee7c1b3efd5234e` | Claimed worker checkout; 30 owner tests and archived Kover proof | `/root/service_foundation` |
+| independent-review | Passed: all required findings resolved; real state, transport, HTTP, generated outputs and report hashes verified | [Local review](../../../../.ai/evidence/t003-independent-review.json), [integrated review](../../../../.ai/evidence/g01-integrated-review.json) | `12e487f001b66c2f3a5802654c6928849aa47c49`; fingerprint `f1177a13efa4a4681131430fba540f92b1d9fc26e6278efbc3f6b58765d2a58f` | Merged ownership, ordered verification and reviewed scanner configuration | `/root/foundation_review` |
+| G01 recheck | Passed: all nine selected foundation cases; 38 required check results reconciled with zero open findings | [Feature acceptance](../../../../.ai/evidence/g01-acceptance.json), [integrated review](../../../../.ai/evidence/g01-integrated-review.json), [gate reconciliation](../../../../.ai/evidence/g01-gate-reconciliation.json) | `12e487f001b66c2f3a5802654c6928849aa47c49`; fingerprint `f1177a13efa4a4681131430fba540f92b1d9fc26e6278efbc3f6b58765d2a58f` | Tracked merged inputs; Temurin 21.0.12.1+1, Node 24.21.0/npm 11.19.0, PostgreSQL 18.6, Docker 29.8.2, macOS arm64 | `/root/foundation_review` |
+
+The local T003 contribution and G01 foundation acceptance are complete. Production feature migrations, the production SPA, full ATDD-135/136 journeys and release proof remain assigned to later tasks.
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
 

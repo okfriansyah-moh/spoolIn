@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: core
+  main:
+    allow-circular-references: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: appdata
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: false
+  ssl:
+    bundle:
+      pem:
+        service:
+          keystore:
+            certificate: ${SERVICE_CERT_FILE}
+            private-key: ${SERVICE_KEY_FILE}
+          truststore:
+            certificate: ${SERVICE_CA_FILE}
+  grpc:
+    client:
+      channels:
+        catalog:
+          target: ${CATALOG_GRPC_TARGET:dns:///catalog:9090}
+          ssl:
+            enabled: true
+            bundle: service
+          default:
+            deadline: 2s
+        media:
+          target: ${MEDIA_GRPC_TARGET:dns:///media:9090}
+          ssl:
+            enabled: true
+            bundle: service
+          default:
+            deadline: 2s
+    server:
+      address: ${GRPC_ADDRESS:0.0.0.0}
+      port: ${GRPC_PORT:9090}
+      ssl:
+        enabled: true
+        bundle: service
+        client-auth: require
+      health:
+        enabled: false
+server:
+  address: ${HTTP_ADDRESS:0.0.0.0}
+  port: ${HTTP_PORT:8443}
+  ssl:
+    enabled: true
+    bundle: service
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+management:
+  server:
+    address: ${MANAGEMENT_ADDRESS:0.0.0.0}
+    port: ${MANAGEMENT_PORT:8081}
+    ssl:
+      enabled: true
+      bundle: service
+      client-auth: need
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,schema
+spoolin:
+  schema:
+    minimum: '1'
+    maximum: '1'

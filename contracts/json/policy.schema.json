@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "textBounds": {
+      "type": "object",
+      "properties": {
+        "registrationName": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "personName": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "title": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "originalTitle": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "synopsis": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "creditRole": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "characterName": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "biography": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "email": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "password": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "EXACT"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "search": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "sourceUrl": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        },
+        "reuseBasis": {
+          "type": "object",
+          "properties": {
+            "minCodePoints": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxCodePoints": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "normalization": {
+              "const": "TRIM_WHITE_SPACE"
+            }
+          },
+          "required": [
+            "minCodePoints",
+            "maxCodePoints",
+            "required",
+            "normalization"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "registrationName",
+        "personName",
+        "title",
+        "originalTitle",
+        "synopsis",
+        "creditRole",
+        "characterName",
+        "biography",
+        "email",
+        "password",
+        "search",
+        "sourceUrl",
+        "reuseBasis"
+      ],
+      "additionalProperties": false
+    },
+    "artwork": {
+      "type": "object",
+      "properties": {
+        "maxInputBytes": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "format": "int64-string"
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "JPEG",
+              "PNG",
+              "WEBP"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "maxDimensionPx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxPixels": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "format": "int64-string"
+        },
+        "maxDecodedBytes": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "format": "int64-string"
+        },
+        "maxOutputBytes": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$",
+          "format": "int64-string"
+        }
+      },
+      "required": [
+        "maxInputBytes",
+        "formats",
+        "maxDimensionPx",
+        "maxPixels",
+        "maxDecodedBytes",
+        "maxOutputBytes"
+      ],
+      "additionalProperties": false
+    },
+    "requestLimits": {
+      "type": "object",
+      "properties": {
+        "metadataBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "uploadEnvelopeBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "graphqlQueryBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "maxFields": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "maxAliases": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "maxCost": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "defaultPage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "maxPage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "metadataBytes",
+        "uploadEnvelopeBytes",
+        "graphqlQueryBytes",
+        "maxDepth",
+        "maxFields",
+        "maxAliases",
+        "maxCost",
+        "defaultPage",
+        "maxPage"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "textBounds",
+    "artwork",
+    "requestLimits"
+  ],
+  "additionalProperties": false
+}

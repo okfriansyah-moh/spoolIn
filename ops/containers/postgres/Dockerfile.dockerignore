@@ -1,0 +1,8 @@
+**
+!ops/
+!ops/containers/
+!ops/containers/postgres/
+!ops/containers/postgres/**
+!ops/postgres/
+!ops/postgres/bootstrap.sql
+!ops/postgres/grants.sql

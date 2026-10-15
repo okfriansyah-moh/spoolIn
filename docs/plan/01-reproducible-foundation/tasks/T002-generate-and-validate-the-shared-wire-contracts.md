@@ -5,7 +5,7 @@ group: G01
 depends_on:
 - T001
 readiness: Ready
-status: Not started
+status: Done
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
@@ -173,11 +173,13 @@ Visual review is not applicable: this owned result has no new graphical presenta
 
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
-| local-tests | Not run | — | — | — | — |
-| self-review | Not run | — | — | — | — |
-| independent-review | Not run | — | — | — | — |
+| local-tests | Passed: 22 selected/executed, zero failed; generated Java and strict TypeScript consumers compile | [Captured receipt](../../../../.ai/evidence/run-3682f6b9f7fc4c25b09faace61447a1d/receipt.json) | `b21d0f28a75f784f89df695ccd0125c426f833ce` | Claimed worker checkout; Temurin 21.0.12.1+1 and Node 24.21.0/npm 11.19.0 | `/root/foundation_review` |
+| self-review | Passed; scalar, timestamp, generation-order and patch-field regressions corrected | [Correction review](../../../../.ai/evidence/t002-round1-self-review.json), [red](../../../../.ai/evidence/t002-round1-red.txt)/[green](../../../../.ai/evidence/t002-round1-green.txt) | `b21d0f28a75f784f89df695ccd0125c426f833ce` | Original worker evidence and generated consumers retained in its checkout | `/root/baseline_check` |
+| independent-review | Passed: T002-A1/A2/A3; all four required findings resolved | [Local review](../../../../.ai/evidence/t002-independent-review.json), [integrated review](../../../../.ai/evidence/t002-integrated-review.json) | `90cfea0b86d021267be04c2d29a6a28feef69953`; fingerprint `89f6a88d0e051dab01fffd29618856be899fe0936b1232c43e21fc51e9f108c3` | Merged contracts, generators and reviewed scanner configuration | `/root/foundation_review` |
+| integrated gates | Passed: all 14 applicable gates; 22 fresh contract cases; T001 regression 32/32 and 22 identical output pairs | [Gate result](../../../../.ai/reports/1792049116674865000-67882/result.json), [integration record](../../../../.ai/evidence/integration-b754013511ca4326b48991cf647eebd9/integration.json) | `90cfea0b86d021267be04c2d29a6a28feef69953` | Tracked combined checkout; source schemas and packaged SDL verified | `/root/foundation_review` |
+| G01 recheck | Passed: all nine selected foundation cases; 38 required check results reconciled with zero open findings | [Feature acceptance](../../../../.ai/evidence/g01-acceptance.json), [integrated review](../../../../.ai/evidence/g01-integrated-review.json), [gate reconciliation](../../../../.ai/evidence/g01-gate-reconciliation.json) | `12e487f001b66c2f3a5802654c6928849aa47c49`; fingerprint `f1177a13efa4a4681131430fba540f92b1d9fc26e6278efbc3f6b58765d2a58f` | Tracked merged inputs; Temurin 21.0.12.1+1, Node 24.21.0/npm 11.19.0, PostgreSQL 18.6, Docker 29.8.2, macOS arm64 | `/root/foundation_review` |
 
-Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+The local contract contribution is complete. Live operation and complete presence proof remain with T042, the full ATDD-278 rule with T009, and PostgreSQL storage-size proof with its database case. G01’s nine foundation cases are accepted.
 
 ## Completion and handoff
 

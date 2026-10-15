@@ -1,0 +1,529 @@
+{
+  "schema_version": 1,
+  "levels": ["unit", "integration"],
+  "tasks": {
+    "T001": {
+      "source": "docs/plan/01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md",
+      "test_paths": [
+        "tests/integration/build.gradle.kts",
+        "tests/browser/package.json",
+        "tests/browser/playwright.config.ts",
+        "tests/browser/fixtures/",
+        "tests/fixtures/",
+        "ops/bin/test-unit.sh",
+        "ops/bin/test-integration.sh",
+        "build-tools/verification-tests/"
+      ],
+      "unit": [
+        {
+          "id": "harness",
+          "argv": ["python3", "build-tools/verification-tests/test_harness.py"],
+          "report": ".ai/evidence/t001-harness.json",
+          "timeout": 120
+        },
+        {
+          "id": "locked-build-twice",
+          "argv": ["python3", "build-tools/verification-tests/test_build.py"],
+          "report": ".ai/evidence/t001-build.json",
+          "timeout": 1800
+        }
+      ],
+      "integration": [],
+      "pending_reason": "Real PostgreSQL/Core/Catalog/Media and browser fixture is pending its owning tasks"
+    },
+    "T002": {
+      "source": "docs/plan/01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md",
+      "test_paths": [
+        "contracts/graphql/schema.graphql",
+        "contracts/grpc/",
+        "contracts/json/",
+        "tests/contracts/"
+      ],
+      "unit": [
+        {
+          "id": "wire-contracts",
+          "argv": ["python3", "tests/contracts/run.py"],
+          "required_paths": ["tests/contracts/run.py"],
+          "report": ".ai/evidence/t002-contract-tests.json",
+          "timeout": 1200
+        }
+      ],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T003": {
+      "source": "docs/plan/01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md",
+      "test_paths": [
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/bootstrap/",
+        "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/boundary/bootstrap/",
+        "services/media/src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/"
+      ],
+      "unit": [],
+      "integration": [
+        {
+          "id": "owner-bootstrap-boundaries",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_owner_integration.py",
+            "--task",
+            "T003"
+          ],
+          "required_paths": [
+            "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/bootstrap/**/*.kt",
+            "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/boundary/bootstrap/**/*.kt",
+            "services/media/src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/**/*.kt"
+          ],
+          "report": ".ai/evidence/t003-owner-tests.json",
+          "timeout": 1800
+        }
+      ],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T004": {
+      "source": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
+      "test_paths": ["tests/browser/flows/shell/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T005": {
+      "source": "docs/plan/03-account-access/tasks/T005-protect-account-identities-and-credential-storage.md",
+      "test_paths": [
+        "services/core/src/test/kotlin/com/spoolin/core/features/crypto/",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/account/persistence/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T006": {
+      "source": "docs/plan/03-account-access/tasks/T006-implement-registration-and-authoritative-sessions.md",
+      "test_paths": [
+        "services/core/src/test/kotlin/com/spoolin/core/features/session/",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/session/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/account/api/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/account/application/",
+        "services/core/src/test/kotlin/com/spoolin/core/boundary/http/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T007": {
+      "source": "docs/plan/03-account-access/tasks/T007-connect-account-and-session-browser-journeys.md",
+      "test_paths": ["tests/browser/flows/session/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T009": {
+      "source": "docs/plan/04-effective-input-policy/tasks/T009-implement-effective-policy-and-precise-input-semantics.md",
+      "test_paths": [
+        "tests/contracts/policy/",
+        "tests/browser/flows/policy/",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/problem/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/policy/",
+        "services/core/src/test/kotlin/com/spoolin/core/boundary/graphql/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T010": {
+      "source": "docs/plan/05-reliable-work/tasks/T010-implement-owner-receipts-and-atomic-mutation-evidence.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/work/receipts/",
+        "services/core/src/test/kotlin/com/spoolin/core/operations/receipts/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/receipts/",
+        "services/media/src/test/kotlin/com/spoolin/media/operations/receipts/",
+        "services/core/src/test/kotlin/com/spoolin/core/operations/events/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/events/",
+        "services/media/src/test/kotlin/com/spoolin/media/operations/events/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T011": {
+      "source": "docs/plan/05-reliable-work/tasks/T011-run-fenced-recovery-and-bounded-retries.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/work/leases/",
+        "services/core/src/test/kotlin/com/spoolin/core/operations/work/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/work/",
+        "services/media/src/test/kotlin/com/spoolin/media/operations/work/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T008": {
+      "source": "docs/plan/06-guarded-access/tasks/T008-enforce-scoped-service-identity-and-shared-admission.md",
+      "test_paths": [
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/admission/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/identity/",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/identity/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/ratelimit/",
+        "services/core/src/test/kotlin/com/spoolin/core/boundary/grpc/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/boundary/",
+        "services/media/src/test/kotlin/com/spoolin/media/boundary/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T012": {
+      "source": "docs/plan/07-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",
+      "test_paths": [
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/search/",
+        "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/persistence/search/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/reads/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/read/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/read/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/provenance/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/seed/persistence/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T013": {
+      "source": "docs/plan/07-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
+      "test_paths": ["tests/browser/flows/discovery/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T014": {
+      "source": "docs/plan/08-draft-recovery/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
+      "test_paths": [
+        "services/core/src/test/kotlin/com/spoolin/core/features/draft/",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/drafts/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T015": {
+      "source": "docs/plan/08-draft-recovery/tasks/T015-build-account-isolated-browser-draft-controllers.md",
+      "test_paths": [
+        "frontend/src/lib/features/draft/draft-controller.test.ts",
+        "tests/browser/flows/draft-component/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T016": {
+      "source": "docs/plan/08-draft-recovery/tasks/T016-prove-recovery-through-real-movie-person-and-credit-editors.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/identity/draft-recovery/",
+        "tests/browser/flows/draft-recovery/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T017": {
+      "source": "docs/plan/09-movie-management/tasks/T017-implement-authoritative-movie-creation-and-edits.md",
+      "test_paths": [
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/movie/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/writes/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/write/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/audit/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/movie/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T018": {
+      "source": "docs/plan/09-movie-management/tasks/T018-connect-movie-editors-and-confirmed-outcomes.md",
+      "test_paths": ["tests/browser/flows/movies/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T019": {
+      "source": "docs/plan/10-people-and-credits/tasks/T019-implement-shared-person-writes-and-identity.md",
+      "test_paths": [
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/people/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/write/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/person/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T020": {
+      "source": "docs/plan/10-people-and-credits/tasks/T020-connect-people-management-and-retained-edits.md",
+      "test_paths": ["tests/browser/flows/people/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T021": {
+      "source": "docs/plan/10-people-and-credits/tasks/T021-implement-ordered-credits-and-custom-contribution-roles.md",
+      "test_paths": [
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/credit/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/credits/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/roles/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/credit/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T022": {
+      "source": "docs/plan/10-people-and-credits/tasks/T022-connect-credit-editing-and-verify-the-people-outcome.md",
+      "test_paths": ["tests/browser/flows/credits/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T025": {
+      "source": "docs/plan/11-artwork-management/tasks/T025-accept-and-process-bounded-artwork-streams.md",
+      "test_paths": [
+        "services/media/src/test/kotlin/com/spoolin/media/features/processing/",
+        "services/media/src/integrationTest/kotlin/com/spoolin/media/recovery/processing/",
+        "services/media/src/test/kotlin/com/spoolin/media/features/upload/",
+        "services/media/src/test/kotlin/com/spoolin/media/features/asset/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T026": {
+      "source": "docs/plan/11-artwork-management/tasks/T026-coordinate-protective-holds-attachment-and-cleanup.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/artwork/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/artwork/",
+        "services/media/src/test/kotlin/com/spoolin/media/features/hold/",
+        "services/media/src/test/kotlin/com/spoolin/media/features/cleanup/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/artworkproxy/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T027": {
+      "source": "docs/plan/11-artwork-management/tasks/T027-connect-measured-progress-and-recover-attachment-outcomes.md",
+      "test_paths": ["tests/browser/flows/artwork/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T023": {
+      "source": "docs/plan/12-archive-management/tasks/T023-implement-current-impact-archive-restore-and-deletion.md",
+      "test_paths": [
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/lifecycle/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/lifecycle/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/lifecycle/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T024": {
+      "source": "docs/plan/12-archive-management/tasks/T024-connect-private-archives-and-irreversible-confirmations.md",
+      "test_paths": ["tests/browser/flows/archives/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T029": {
+      "source": "docs/plan/13-assisted-movie-creation/tasks/T029-implement-isolated-mcp-transport-and-connector-identity.md",
+      "test_paths": [
+        "mcp/test/transport/",
+        "mcp/test/gateway/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/connector/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/mcpgateway/",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/connector/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T030": {
+      "source": "docs/plan/13-assisted-movie-creation/tasks/T030-commit-immutable-proposals-and-exact-approval-once.md",
+      "test_paths": [
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/proposal/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/proposals/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T031": {
+      "source": "docs/plan/13-assisted-movie-creation/tasks/T031-build-the-trusted-in-chat-review-resource.md",
+      "test_paths": [
+        "mcp/test/review/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/mcp/reviewresource/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T032": {
+      "source": "docs/plan/13-assisted-movie-creation/tasks/T032-verify-trusted-approval-in-claude-desktop.md",
+      "test_paths": ["tests/clients/claude/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T033": {
+      "source": "docs/plan/13-assisted-movie-creation/tasks/T033-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
+      "test_paths": ["tests/clients/chatgpt/"],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T028": {
+      "source": "docs/plan/14-accountable-history/tasks/T028-expose-complete-read-only-audit-outcomes.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/audit/",
+        "tests/browser/flows/audit/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/audit/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/audit/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T034": {
+      "source": "docs/plan/15-reproducible-seed/tasks/T034-assemble-the-permitted-frozen-100-movie-and-100-series-dataset.md",
+      "test_paths": [],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T035": {
+      "source": "docs/plan/15-reproducible-seed/tasks/T035-initialize-and-replay-seed-and-prepared-accounts-safely.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/seed/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/seed/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/bootstrap/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T036": {
+      "source": "docs/plan/16-operational-notifications/tasks/T036-record-actionable-alerts-through-one-selected-mode.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/notifications/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/alerts/",
+        "services/core/src/test/kotlin/com/spoolin/core/operations/notifications/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/notifications/",
+        "services/media/src/test/kotlin/com/spoolin/media/operations/notifications/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T037": {
+      "source": "docs/plan/17-operational-evidence/tasks/T037-emit-bounded-private-safe-json-diagnostics.md",
+      "test_paths": [
+        "mcp/test/operations/logging.test.ts",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/logging/",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/logging/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T038": {
+      "source": "docs/plan/17-operational-evidence/tasks/T038-expose-logical-metrics-dashboards-and-alert-episodes.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/monitoring/",
+        "services/core/src/test/kotlin/com/spoolin/core/operations/metrics/",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/metrics/",
+        "services/media/src/test/kotlin/com/spoolin/media/operations/metrics/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T039": {
+      "source": "docs/plan/18-local-operations/tasks/T039-implement-the-seven-reproducible-lifecycle-commands.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/commands/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T040": {
+      "source": "docs/plan/19-protected-recovery/tasks/T040-rotate-keys-and-aliases-without-losing-access.md",
+      "test_paths": [
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/rotation/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/crypto/",
+        "services/core/src/test/kotlin/com/spoolin/core/features/crypto/rotation/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T041": {
+      "source": "docs/plan/19-protected-recovery/tasks/T041-verify-migrations-purge-and-coordinated-restore.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/migration/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/restore/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T042": {
+      "source": "docs/plan/20-release-assurance/tasks/T042-reconcile-every-real-api-and-rpc-boundary-row.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/contracts/",
+        "tests/contracts/release-matrix/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T043": {
+      "source": "docs/plan/20-release-assurance/tasks/T043-verify-policy-authorization-and-injection-across-complete-flows.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/policy/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/security/",
+        "tests/browser/flows/security/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T044": {
+      "source": "docs/plan/20-release-assurance/tasks/T044-complete-visual-interaction-and-accessibility-evidence.md",
+      "test_paths": [
+        "tests/browser/flows/presentation/",
+        "tests/browser/fixtures/visual-contexts/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T045": {
+      "source": "docs/plan/20-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
+      "test_paths": [
+        "tests/integration/src/test/kotlin/com/spoolin/integration/performance/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/release/"
+      ],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    },
+    "T046": {
+      "source": "docs/plan/20-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-assessment-handoff.md",
+      "test_paths": [],
+      "unit": [],
+      "integration": [],
+      "pending_reason": "Suite implementation is pending its owning task"
+    }
+  }
+}

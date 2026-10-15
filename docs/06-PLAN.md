@@ -14,7 +14,7 @@ sources:
   sha256: 03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: 3d285075a600b04e4bebeccf130bff22a02664ecead54c8fd6bce0ececa65a37
+  sha256: 7f31eac77d88197bac8619e64886536b56d6556e138eac4971d44bfcd377be83
 - id: ATDD
   path: 05-atdd.md
   sha256: d4d3bb1eb2047bee5ab7b70f28110f582fca7ed02d2b00380c9509cf08f3424f

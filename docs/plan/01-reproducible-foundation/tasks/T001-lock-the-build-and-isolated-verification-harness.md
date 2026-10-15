@@ -4,7 +4,7 @@ id: T001
 group: G01
 depends_on: []
 readiness: Ready
-status: Not started
+status: Done
 risk: high
 test_strategy: alongside
 visual_review: not-applicable
@@ -159,11 +159,13 @@ Visual review is not applicable: this owned result has no new graphical presenta
 
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
-| local-tests | Not run | — | — | — | — |
-| self-review | Not run | — | — | — | — |
-| independent-review | Not run | — | — | — | — |
+| local-tests | Passed: 32 selected/executed, zero failed; two clean builds produced 22 matching output pairs | [Captured receipt](../../../../.ai/evidence/run-fe11bfa4897343c9b6a99a5961433a95/receipt.json), [build assertions](../../../../.ai/evidence/t001-build.json) | `913242f19daa8227d6c8688268e88da6daeec386`; reconciled to integrated inputs | Temurin 21.0.12.1+1, Node 24.21.0/npm 11.19.0, macOS arm64; isolated fixtures | `/root/foundation_review` |
+| self-review | Passed; selector regressions and plugin dependency findings corrected | [Self-review](../../../../.ai/evidence/t001-round1-self-review.json) | `913242f19daa8227d6c8688268e88da6daeec386` | Claimed worker checkout | `/root/baseline_check` |
+| independent-review | Passed: T001-A1/A2/A3; zero unresolved required findings | [Local review](../../../../.ai/evidence/t001-independent-review.json), [integrated review](../../../../.ai/evidence/t001-integrated-review.json) | `132af27f552aa252e24c9052ae9f368e2efd66a9`; fingerprint `b8da560398341a8a00a0a96a13a26b3a36329ea0b02863caeed8c826132c2212` | Merged source, build and project scanner configuration | `/root/foundation_review` |
+| integrated gates | Passed: all 11 applicable checks, including OSV, Semgrep, Gitleaks, 30 harness and 3 JVM cases; no skipped selected tests | [Gate result](../../../../.ai/reports/1792043125255867000-50639/result.json), [integration record](../../../../.ai/evidence/integration-b75ef3426ff046afac490073fc9f3e2b/integration.json) | `132af27f552aa252e24c9052ae9f368e2efd66a9` | Tracked combined checkout; locked Node installation | `/root/foundation_review` |
+| G01 recheck | Passed: all nine selected foundation cases; 38 required check results reconciled with zero open findings | [Feature acceptance](../../../../.ai/evidence/g01-acceptance.json), [integrated review](../../../../.ai/evidence/g01-integrated-review.json), [gate reconciliation](../../../../.ai/evidence/g01-gate-reconciliation.json) | `12e487f001b66c2f3a5802654c6928849aa47c49`; fingerprint `f1177a13efa4a4681131430fba540f92b1d9fc26e6278efbc3f6b58765d2a58f` | Tracked merged inputs; Temurin 21.0.12.1+1, Node 24.21.0/npm 11.19.0, PostgreSQL 18.6, Docker 29.8.2, macOS arm64 | `/root/foundation_review` |
 
-Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+The local build/unit/source-review contribution is complete. G01’s nine foundation cases are accepted; later system and release proof remains separate. Real service, database, browser and complete ATDD-134 proof are not claimed here.
 
 ## Completion and handoff
 
