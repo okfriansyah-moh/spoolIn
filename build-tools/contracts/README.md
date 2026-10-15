@@ -50,7 +50,9 @@ JSON Schema implementation. Runtime GraphQL scalar coercion, GraphQL argument-pr
 service validation/authorization and output construction remain handwritten owner work. Draft
 checks preserve safe correction values and reject forbidden keys; they do not apply final-write
 normalization or current business-policy bounds. The separate patch fixtures prove the declared
-omission, optional clearing, whole-date replacement and ordered-name rules locally.
+omission, optional clearing, whole-date replacement and ordered-name rules locally. Allowed
+patch keys come from the SDL patch types, so draft-only credit endpoint fields cannot enter
+a patch.
 
 `bash ops/bin/test-unit.sh --task T002` runs the actual `tests/contracts/run.py` suites. JSON/JUnit
 reports contain real unittest outcomes, with generation/compile subprocess logs and hashes under

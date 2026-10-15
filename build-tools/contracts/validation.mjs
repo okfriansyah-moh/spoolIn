@@ -1,6 +1,7 @@
 /** Executable schema rules for generated-contract compatibility checks. */
 import { readFileSync } from 'node:fs';
-import { fileURLToPath, URL } from 'node:url';
+import { URL } from 'node:url';
+import { buildSchema } from 'graphql';
 import {
   longString,
   int32,
@@ -19,6 +20,15 @@ const load = (name) =>
 const outputs = load('mcp-outputs');
 const inputs = load('mcp-inputs');
 const drafts = load('draft');
+const graphql = buildSchema(
+  readFileSync(new URL('contracts/graphql/schema.graphql', root), 'utf8'),
+);
+const patchFields = Object.fromEntries(
+  ['Movie', 'Person', 'Credit'].map((name) => [
+    name.toUpperCase(),
+    new Set(Object.keys(graphql.getType(`${name}Patch`).getFields())),
+  ]),
+);
 
 export function resolveRef(registry, ref) {
   if (!ref.startsWith('#/'))
@@ -228,7 +238,7 @@ export function patchValues(kind, before, patch) {
   }[kind];
   const next = { ...before };
   for (const [key, raw] of Object.entries(patch)) {
-    if (!Object.hasOwn(properties, key))
+    if (!patchFields[kind].has(key))
       throw new TypeError('Undeclared patch field');
     const value = patchField(key, raw, required.includes(key));
     validateSchema(properties[key], value);
@@ -260,5 +270,3 @@ export function maskedValues(kind, before, values, paths) {
   }
   return patchValues(kind, before, patch);
 }
-
-export const contractRoot = fileURLToPath(root);

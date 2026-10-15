@@ -150,6 +150,8 @@ assert.deepEqual(patchValues('CREDIT',{}, {characters:['  John / Jane  ','','Doc
 assert.deepEqual(patchValues('CREDIT',{}, {characters:['  ','']}).characters,[]);
 assert.throws(()=>patchValues('CREDIT',{}, {characters:['John',' John ']}),/Duplicate/);
 assert.throws(()=>patchValues('CREDIT',{}, {characters:null}),/REQUIRED/);
+assert.throws(()=>patchValues('CREDIT',{}, {personId:'190db10d-02b8-437e-8e7c-ece9c105fe2a'}),/Undeclared/);
+assert.throws(()=>patchValues('CREDIT',{}, {titleId:'190db10d-02b8-437e-8e7c-ece9c105fe2a'}),/Undeclared/);
 assert.deepEqual(maskedValues('MOVIE',before,{originalTitle:'ignored'},[]),before);
 assert.equal(maskedValues('MOVIE',before,{},['original_title']).originalTitle,null);
 assert.deepEqual(maskedValues('MOVIE',before,{},['countries']).countries,[]);
