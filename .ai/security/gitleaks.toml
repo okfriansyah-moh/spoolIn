@@ -1,0 +1,20 @@
+title = "Project secret scan with reviewed hash and prose exceptions"
+
+[extend]
+path = ".ai/bundles/1.1.0/profiles/security/gitleaks.toml"
+
+[[allowlists]]
+description = "Receipt input-file SHA-256 values verified during foundation review"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)\.ai/evidence/(run-[0-9a-f]{32}/receipt\.json|t001-round1-receipt-output\.json)$''']
+regexes = ['''^\s*"(?:\.ai|\.agents|\.claude|\.cursor|\.github|docs)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Exact existing brainstorming phrase contains no credential value"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "match"
+paths = ['''(^|/)docs/01-brainstorming-result\.md$''', '''(^|/)\.ai/evidence/t001-round1-gitleaks-analysis\.json$''']
+regexes = ['''^credential storage, logout/expiry $''']
