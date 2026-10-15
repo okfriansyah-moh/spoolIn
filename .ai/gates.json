@@ -600,7 +600,7 @@
         "--exit-code",
         "1",
         "--config",
-        "{bundle}/profiles/security/gitleaks.toml",
+        ".ai/security/gitleaks.toml",
         "."
       ],
       "required": true
