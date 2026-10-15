@@ -8,6 +8,8 @@ import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.utility.MountableFile
 import tools.jackson.databind.ObjectMapper
+import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions
@@ -82,14 +84,21 @@ class OwnerFixture(
             .withEnv("POSTGRES_INITDB_ARGS", "--auth-host=scram-sha-256 --auth-local=scram-sha-256")
             .withExposedPorts(5432)
             .withCreateContainerCmdModifier { command ->
-                command.hostConfig?.withPortBindings(
-                    com.github.dockerjava.api.model.PortBinding(
-                        com.github.dockerjava.api.model.Ports.Binding
-                            .bindIpAndPort("127.0.0.1", 0),
-                        com.github.dockerjava.api.model.ExposedPort
-                            .tcp(5432),
-                    ),
-                )
+                val host = requireNotNull(command.hostConfig) { "Disposable database host configuration is required" }
+                ServerSocket().use { reservation ->
+                    reservation.reuseAddress = false
+                    reservation.bind(InetSocketAddress("127.0.0.1", 0))
+                    val selected = reservation.localPort
+                    check(selected > 0) { "A positive private fixture port is required" }
+                    host.withPortBindings(
+                        com.github.dockerjava.api.model.PortBinding(
+                            com.github.dockerjava.api.model.Ports.Binding
+                                .bindIpAndPort("127.0.0.1", selected),
+                            com.github.dockerjava.api.model.ExposedPort
+                                .tcp(5432),
+                        ),
+                    )
+                }
             }.withCommand(
                 "bash",
                 "/opt/spoolin/entrypoint.sh",
