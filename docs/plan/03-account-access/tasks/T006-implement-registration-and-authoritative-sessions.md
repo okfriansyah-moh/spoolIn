@@ -338,6 +338,8 @@ Create evidence files only after an actual authorized run. A Passed row needs a 
 
 Execution update — 15 October 2026: Selected-only dependency check: unselected T009 (effective policy) and T010 (owner receipts/atomic evidence) are Not started. T005 is selected but not yet complete. No registration/session implementation or acceptance run was dispatched. Resume after T005, T009 and T010 are Done.
 
+Resume — 15 October 2026: The user requested every selected shell/account-access implementation delivered. Required T009/T010 are now included in this run; their accepted implementations are pending. T005 is accepted in draft PR4. The earlier selected-only exclusion is superseded by this explicit completion request.
+
 ## Completion and handoff
 
 - Finish the owned changes and all verification-role acceptance/row assertions; record actual changed files and source-contract dispositions.

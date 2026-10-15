@@ -392,6 +392,8 @@ Create evidence files only after an actual authorized run. A Passed row needs a 
 
 Execution update — 15 October 2026: Selected-only dependency check: T006 is blocked and unselected T008 (scoped identity/admission) is Not started. T004 is selected and in progress. No browser account/session journey implementation or acceptance run was dispatched. Resume after T004, T006 and T008 are Done.
 
+Resume — 15 October 2026: Required T008 is now included in the completion run. T007 still awaits accepted T004/T006/T008, with T009/T010 included upstream. The original sequential group outcome remains the target; prerequisites execute in dependency order. No browser account-journey acceptance is asserted yet.
+
 ## Completion and handoff
 
 - Finish the owned changes and all verification-role acceptance/row assertions; record actual changed files and source-contract dispositions.

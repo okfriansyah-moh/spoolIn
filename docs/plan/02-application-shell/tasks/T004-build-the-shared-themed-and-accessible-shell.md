@@ -7,7 +7,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: Blocked
+status: In progress
 risk: medium
 test_strategy: alongside
 visual_review: required
@@ -425,6 +425,8 @@ Execution update — 15 October 2026: Implementation is retained on branch `code
 The parent stopped the temporary Firefox container after verification; worker fixture/preview servers and browser contexts are closed. [Fixture cleanup](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-parent-fixture-cleanup.json) and [validated resume commands](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/t004-resume.json) are retained.
 
 G02 stopped after two failed correction rounds. Retain all branches, receipts and original failed/limited captures. Next action: inspect the retained final receipt and establish a revised work-group decision under the workflow correction limit; validate the full Chromium executable path before rerunning the unchanged required contract. Run actual 200% native browser zoom and screen-reader checks in an available assistive environment. These gaps prevent Done and draft delivery of shell changes. T005 may proceed separately from accepted T002/T003 without this unaccepted shell implementation.
+
+Resume — 15 October 2026: User requested completion and delivery of all original shell/account-access tasks with required transitive prerequisites. Retained T004 commits are reapplied onto accepted T005 in `/private/tmp/spoolin-shell-resume`, claim `lane-7b350dcf6ea249ba`, revision `a85dcdfd0bdf0578431b35f438dce41d782583de`. All three browser startup checks passed with matching project runtimes and no malformed Chromium override. Actual native Chrome 200% zoom is independently observed; actual reader output and the new full receipt remain pending. The previous two failed correction rounds and blocked receipts remain retained; no old counter was erased. [Resume decision](/Users/mekari/Developer/personal-project/movie-app/.ai/state/shell-account-resume-decision.json), [Current review](/private/tmp/spoolin-shell-resume/.ai/evidence/t004-resume-independent-review.json).
 
 ## Completion and handoff
 
