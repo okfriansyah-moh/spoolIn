@@ -12,9 +12,9 @@ paths = ['''(^|/)\.ai/evidence/(run-[0-9a-f]{32}/receipt\.json|t001-round1-recei
 regexes = ['''^\s*"(?:\.ai|\.agents|\.claude|\.cursor|\.github|docs)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
 
 [[allowlists]]
-description = "Exact existing brainstorming sentence contains no credential value"
+description = "Exact existing brainstorming phrase contains no credential value"
 targetRules = ["generic-api-key"]
 condition = "AND"
-regexTarget = "line"
-paths = ['''(^|/)docs/01-brainstorming-result\.md$''']
-regexes = ['''^No\ fourth\ custom\ identity\ service\ is\ planned\.\ Sessions\ versus\ tokens,\ account\ provisioning,\ credential\ storage,\ logout/expiry\ behavior,\ transport\ protection,\ and\ CSRF/CORS\ configuration\ remain\ open\.\ Registration,\ password\ recovery,\ and\ a\ role\-management\ UI\ are\ outside\ the\ recommended\ bounded\ initial\ scope\.$''']
+regexTarget = "match"
+paths = ['''(^|/)docs/01-brainstorming-result\.md$''', '''(^|/)\.ai/evidence/t001-round1-gitleaks-analysis\.json$''']
+regexes = ['''^credential storage, logout/expiry $''']
