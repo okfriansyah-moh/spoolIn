@@ -4,6 +4,12 @@ export default defineConfig({
   plugins: [svelte()],
   resolve: {
     alias: {
+      '$app/state': new URL('./src/lib/state/kit.fixture.ts', import.meta.url)
+        .pathname,
+      '$app/navigation': new URL(
+        './src/lib/state/kit.fixture.ts',
+        import.meta.url,
+      ).pathname,
       '$app/paths': new URL(
         './src/lib/components/paths.fixture.ts',
         import.meta.url,
@@ -15,7 +21,7 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/lib/**/*.ts', 'src/lib/**/*.svelte'],
+      include: ['src/**/*.ts', 'src/**/*.svelte'],
       exclude: ['src/lib/generated/**', '**/*.test.ts'],
       reporter: ['text', 'lcov', 'json'],
       reportsDirectory: 'coverage',

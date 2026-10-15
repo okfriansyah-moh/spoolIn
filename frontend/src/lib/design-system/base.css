@@ -5,6 +5,7 @@ html {
   color-scheme: dark;
 }
 body {
+  overflow-wrap: anywhere;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -158,9 +159,11 @@ nav [aria-current='page'] {
   text-decoration-thickness: 3px;
 }
 .wordmark {
+  flex-wrap: wrap;
+  max-width: 100%;
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 26px;
+  font-size: 24px;
   display: inline-flex;
   gap: var(--primitive-space-3);
   align-items: center;

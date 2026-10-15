@@ -1,5 +1,6 @@
 import { it, expect, vi } from 'vitest';
-import { readTheme, selectTheme, browserStorage, THEME_KEY } from './theme';
+import { readTheme, selectTheme, browserStorage } from './theme';
+const THEME_KEY = 'spoolin.theme';
 const invalid = [
   'system',
   '',
