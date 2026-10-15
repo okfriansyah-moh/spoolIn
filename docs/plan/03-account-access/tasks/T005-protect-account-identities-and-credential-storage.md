@@ -6,7 +6,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: Not started
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
@@ -318,6 +318,8 @@ Visual review is not applicable: this owned result has no new graphical presenta
 | independent-review | Not run | — | — | — | — |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+
+Execution update — 15 October 2026: T005 implementation is active in isolated worktree `/private/tmp/spoolin-account-t005`, branch `codex/account-protection`, claim `lane-153c714853114ee6`, base `7cd8807bab0d1d4042e7005e3826da5ad68e39c2`. This uses accepted T002/T003 and status-only coordination commits; the blocked T004 implementation is excluded. Required local/database checks and independent review are pending. T006/T007 remain blocked by their unselected prerequisites.
 
 ## Completion and handoff
 
