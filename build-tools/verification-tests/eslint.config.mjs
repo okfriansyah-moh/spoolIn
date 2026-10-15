@@ -17,7 +17,23 @@ export default [
   ...svelte.configs['flat/recommended'],
   {
     languageOptions: {
-      globals: { console: 'readonly', process: 'readonly', module: 'readonly' },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        module: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        matchMedia: 'readonly',
+        Event: 'readonly',
+        SubmitEvent: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLSelectElement: 'readonly',
+        HTMLDialogElement: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        KeyboardEvent: 'readonly',
+      },
     },
     rules: {
       complexity: ['error', 10],

@@ -81,8 +81,18 @@
     },
     "T004": {
       "source": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
-      "test_paths": ["tests/browser/flows/shell/"],
-      "unit": [],
+      "test_paths": ["frontend/src/lib", "tests/browser/flows/shell/"],
+      "unit": [
+        {
+          "id": "shell-unit-components",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-tests.mjs"
+          ],
+          "report": ".ai/evidence/t004-unit.json",
+          "timeout": 1800
+        }
+      ],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
     },

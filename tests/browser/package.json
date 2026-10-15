@@ -4,7 +4,7 @@
   "version": "0.0.0-foundation",
   "type": "module",
   "scripts": {
-    "test": "node ../../build-tools/verification-tests/pending.mjs browser-acceptance"
+    "test": "playwright test flows/shell"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"
