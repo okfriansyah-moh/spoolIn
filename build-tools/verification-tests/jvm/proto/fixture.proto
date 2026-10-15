@@ -1,0 +1,11 @@
+syntax = "proto3";
+package spoolin.foundation.fixture;
+option java_package = "com.spoolin.foundation.fixture";
+option java_multiple_files = true;
+
+// This build fixture is separate from the production service contracts owned by T002.
+message BuildProbe { string value = 1; }
+service BuildFixture {
+  rpc Echo(BuildProbe) returns (BuildProbe);
+  rpc Stream(stream BuildProbe) returns (stream BuildProbe);
+}

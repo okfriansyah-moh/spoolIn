@@ -1,0 +1,4 @@
+{
+  "extends": "../build-tools/verification-tests/frontend/tsconfig.json",
+  "compilerOptions": { "strict": true, "noUncheckedIndexedAccess": true }
+}

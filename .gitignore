@@ -157,3 +157,7 @@ appendonly.aof
 
 # Agent-workflow state/evidence/backups are scoped by .ai/.gitignore.
 # Keep harness configuration, roles, skills, schemas, lockfiles, and docs tracked.
+
+# T001 fixture outputs remain derived build inputs.
+/build-tools/verification-tests/frontend/.svelte-kit/
+/build-tools/verification-tests/frontend/build/
