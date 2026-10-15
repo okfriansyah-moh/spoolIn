@@ -1,0 +1,2705 @@
+{
+  "task": "T009",
+  "status": "Selected local policy mapping; execution results are retained separately with actual JUnit reports",
+  "source": "TECH11.1 plus referenced clauses and F-CONFIG; existing keys also from accepted T003/T005 code",
+  "important": "Source-explicit names are preserved; selected names and local descriptor boundaries are frozen here before subsequent execution. Fixed compatibility facts have no invented operator overrides. Private-reference fixtures use synthetic paths only.",
+  "required_record_per_expanded_recipe": [
+    "setting_name",
+    "source_clause",
+    "value_source",
+    "units",
+    "baseline",
+    "boundary_or_invalid_value",
+    "expected_outcome",
+    "safe_error_correction",
+    "actual_result_after_execution"
+  ],
+  "recipe_families": {
+    "NUMERIC": {
+      "vectors": [
+        "baseline",
+        "lower-1",
+        "lower",
+        "lower+1",
+        "upper-1",
+        "upper",
+        "upper+1",
+        "negative",
+        "0 where invalid",
+        "fraction1.5",
+        "NaN",
+        "overflow",
+        "empty",
+        "whitespace"
+      ],
+      "expected": "Literal range and cross-field capacity rules determine pass/reject; no overflow; dynamic upper bounds must be recorded with their actual capacity proof before execution."
+    },
+    "PRESENCE": {
+      "vectors": [
+        "env valid vs different valid file/default",
+        "env absent/file valid",
+        "env+file absent/default listed",
+        "all absent/no default",
+        "env explicit empty vs valid lower source",
+        "env whitespace vs valid lower source",
+        "meaningful0",
+        "meaningfulfalse"
+      ],
+      "expected": "Present environment wins; invalid present rejects without fallback; omitted falls through; missing required rejects; defaults only when declared."
+    },
+    "REDACTION": {
+      "vectors": [
+        "synthetic secret/input canaries",
+        "setting name plus correction"
+      ],
+      "expected": "No secret or raw value; complete correction names affected setting."
+    },
+    "TYPED-OR-MODE": {
+      "vectors": [
+        "valid enum/type/group",
+        "unknown enum",
+        "malformed type",
+        "enabled required missing",
+        "disabled optional empty",
+        "conflicting selected groups"
+      ],
+      "expected": "Exact source selected values/dependencies; no external effects."
+    },
+    "FIXED-FACT": {
+      "vectors": [
+        "exact selected literal",
+        "independent incompatible fact where rule accepts a descriptor"
+      ],
+      "expected": "Assert exact selected fact; never create an operator override solely to test +/-1."
+    },
+    "NUMERIC-TEXT": {
+      "vectors": [
+        "configured min/max baseline",
+        "each permitted numeric setting lower\u22121/lower/lower+1 and independently established representable upper\u22121/upper/upper+1",
+        "new input min\u22121/min/min+1/max\u22121/max/max+1",
+        "min>max",
+        "unchanged old value after tightening",
+        "changed old value outside new bounds"
+      ],
+      "expected": "Count Unicode code points; preserve exact permitted text; fixed UTF8/request/encryption capacities still apply separately. Do not invent an arbitrary numeric upper when source requires a derived capacity check."
+    }
+  },
+  "cross_field_recipes": [
+    "every text min<=max and required min>=1 except optional search0",
+    "cap>=base; saved budget relationships",
+    "enabled format subset nonempty",
+    "max dimensions/pixels/decoded/output capacity consistent",
+    "defaultPage<=maxPage and selected request caps finite",
+    "every selected secret reference present, correct role/purpose, no default",
+    "all participating validation-policy revisions equal before protected writes",
+    "rate revision separate from validation revision; no private config/path leakage into public policy",
+    "same normalized policy data yields stable hash despite config key order; changed effective value changes revision",
+    "tightening preserves unchanged legacy text/artwork and existing exact credentials"
+  ],
+  "rows": [
+    {
+      "group": "DB",
+      "semantic": "CORE verify-full owner-specific JDBC URL",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "CORE_DB_URL",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CORE_DB_URL"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "CORE owner-specific runtime/migrator principal",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "CORE_DB_USER",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CORE_DB_USER"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "CORE protected credential reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "CORE_DB_PASSWORD_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CORE_DB_PASSWORD_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "CATALOG verify-full owner-specific JDBC URL",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "CATALOG_DB_URL",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CATALOG_DB_URL"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "CATALOG owner-specific runtime/migrator principal",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "CATALOG_DB_USER",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CATALOG_DB_USER"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "CATALOG protected credential reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "CATALOG_DB_PASSWORD_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CATALOG_DB_PASSWORD_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "MEDIA verify-full owner-specific JDBC URL",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "MEDIA_DB_URL",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "MEDIA_DB_URL"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "MEDIA owner-specific runtime/migrator principal",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "MEDIA_DB_USER",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "MEDIA_DB_USER"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "MEDIA protected credential reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "MEDIA_DB_PASSWORD_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "No default; reject missing/blank; role/database ownership and TLS downgrade invalid. Never print credential content.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "MEDIA_DB_PASSWORD_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "pool.maximum",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 8,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "connections",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "pool.maximum",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "pool.minimumIdle",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "connections",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "pool.minimumIdle",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "connectTimeout",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 2000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "ms",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "connectTimeout",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "statementTimeout",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 3000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "ms",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "statementTimeout",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "lockTimeout",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 2000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "ms",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "lockTimeout",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "idleTransactionTimeout",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 5000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "ms",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "idleTransactionTimeout",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "DB",
+      "semantic": "migrationStatementTimeout",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 120000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "ms",
+      "rule": "Selected operational contract; do not invent independent arbitrary tunability.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "migrationStatementTimeout",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "trusted browser origin",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "baseline": "https://localhost:8443",
+      "name": "BROWSER_ORIGIN",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Exact scheme/host/port; no wildcard/foreign origin/plaintext downgrade.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "BROWSER_ORIGIN"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "SERVICE_CERT_FILE",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "SERVICE_CERT_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Required certificate/key/CA reference; mode/key/TLS facts checked locally as controlled facts, actual files later runtime proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "SERVICE_CERT_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "SERVICE_KEY_FILE",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "SERVICE_KEY_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Required certificate/key/CA reference; mode/key/TLS facts checked locally as controlled facts, actual files later runtime proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "SERVICE_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "SERVICE_CA_FILE",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "SERVICE_CA_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Required certificate/key/CA reference; mode/key/TLS facts checked locally as controlled facts, actual files later runtime proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "SERVICE_CA_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "service certificate SAN",
+      "kind": "enum",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "core/catalog/media/mcp only for application identities; no arbitrary service role.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "SERVICE_IDENTITY"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "CoreHTTPSport",
+      "kind": "fixed-contract",
+      "source": "TECH5.5/11.1",
+      "baseline": 8443,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "TCPport",
+      "rule": "Selected listener facts; binding/real TLS tested by boundary owner, not these units.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "CoreHTTPSport",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "MCPtransportPort",
+      "kind": "fixed-contract",
+      "source": "TECH5.5/11.1",
+      "baseline": 8787,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "TCPport",
+      "rule": "Selected listener facts; binding/real TLS tested by boundary owner, not these units.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "MCPtransportPort",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Network",
+      "semantic": "MCPprivateExporterPort",
+      "kind": "fixed-contract",
+      "source": "TECH5.5/11.1",
+      "baseline": 8788,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "TCPport",
+      "rule": "Selected listener facts; binding/real TLS tested by boundary owner, not these units.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "MCPprivateExporterPort",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "PII secret reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "PII_KEY_FILE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "PII_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "DRAFT secret reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "DRAFT_KEY_FILE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "DRAFT_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "EMAIL_LOOKUP secret reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "EMAIL_LOOKUP_KEY_FILE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "EMAIL_LOOKUP_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "operation-HMAC secret reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "OPERATION_HMAC_KEY_FILE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "OPERATION_HMAC_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "cursor secret reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "CURSOR_KEY_FILE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CURSOR_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "CSRF secret reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "CSRF_KEY_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Required selected-purpose reference; no shared/default material; mounted file metadata never enters public policy.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "CSRF_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "active/read key IDs",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required version identifiers, independent purpose material. Bounded key-ID syntax per relevant owner contract.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "PII_KEY_ID",
+        "DRAFT_KEY_ID",
+        "EMAIL_LOOKUP_KEY_ID",
+        "OPERATION_HMAC_KEY_ID"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "AES key size",
+      "kind": "fixed-contract",
+      "source": "TECH8.1",
+      "baseline": 32,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "In-memory length31/32/33 \u2192 reject/pass/reject; only actual file loader proves disk facts.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "AES key size",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "protected file mode",
+      "kind": "fixed-contract",
+      "source": "TECH8.1",
+      "baseline": "0600",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Controlled owner-only fact valid; symlink/public-readable facts invalid. No filesystem started by assigned unit cases.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "protected file mode",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Crypto",
+      "semantic": "account/draft plaintext envelope",
+      "kind": "fixed-contract",
+      "source": "TECH11.1/5.11",
+      "baseline": 65536,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Compatibility ceiling, not a text-field max setting; max policy values must fit complete encoded payload.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "account/draft plaintext envelope",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "ACTOR_SIGNING_PRIVATE_KEY_FILE",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "ACTOR_SIGNING_PRIVATE_KEY_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Role-specific: Core private PKCS8 Ed25519; receivers bounded SPKI public map only; no default.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "ACTOR_SIGNING_PRIVATE_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "ACTOR_SIGNING_KEY_ID",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name": "ACTOR_SIGNING_KEY_ID",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Role-specific: Core private PKCS8 Ed25519; receivers bounded SPKI public map only; no default.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "ACTOR_SIGNING_KEY_ID"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "ACTOR_VERIFY_KEYS_FILE",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name": "ACTOR_VERIFY_KEYS_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Role-specific: Core private PKCS8 Ed25519; receivers bounded SPKI public map only; no default.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "ACTOR_VERIFY_KEYS_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "verify map entries maximum",
+      "kind": "fixed-contract",
+      "source": "TECH5.7",
+      "baseline": 4,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Wire/security compatibility rule; not a new operator tunable.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "verify map entries maximum",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "previous verifier minimum retention seconds",
+      "kind": "fixed-contract",
+      "source": "TECH5.7",
+      "baseline": 60,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Wire/security compatibility rule; not a new operator tunable.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "previous verifier minimum retention seconds",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "assertion lifetime maximum seconds",
+      "kind": "fixed-contract",
+      "source": "TECH5.7",
+      "baseline": 30,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Wire/security compatibility rule; not a new operator tunable.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "assertion lifetime maximum seconds",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "assertion metadata maximum bytes",
+      "kind": "fixed-contract",
+      "source": "TECH5.7",
+      "baseline": 4096,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Wire/security compatibility rule; not a new operator tunable.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "assertion metadata maximum bytes",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Actor signatures",
+      "semantic": "skew maximum seconds",
+      "kind": "fixed-contract",
+      "source": "TECH5.7",
+      "baseline": 2,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Wire/security compatibility rule; not a new operator tunable.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "skew maximum seconds",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Bootstrap",
+      "semantic": "Viewer identity reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "VIEWER_IDENTITY_FILE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Bootstrap",
+      "semantic": "Viewer password reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "VIEWER_PASSWORD_FILE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Bootstrap",
+      "semantic": "Maintainer identity reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "MAINTAINER_IDENTITY_FILE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Bootstrap",
+      "semantic": "Maintainer password reference",
+      "kind": "required-secret-reference",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "MAINTAINER_PASSWORD_FILE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Bootstrap",
+      "semantic": "frozen manifest identity",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "manifest.manifestVersion"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Bootstrap",
+      "semantic": "frozen manifest hash",
+      "kind": "required-string",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Protected synthetic references for units. No demo credentials or arbitrary adoption; actual provisioning is later owner proof.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "manifest.snapshotSHA256"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "selected mode",
+      "kind": "enum",
+      "source": "TECH7.7/11.1",
+      "baseline": "database",
+      "name": "NOTIFICATION_MODE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Exactly database/smtp/slack/google_chat; empty/unknown rejects. Selected mode only.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "NOTIFICATION_MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "SMTP fixed endpoint",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "SMTP_HOST",
+        "SMTP_PORT"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "SMTP TLS verification",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "SMTP_TLS_VERIFY"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "SMTP fixed from/to",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "SMTP_FROM",
+        "SMTP_TO"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "SMTP credential references as required",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "SMTP_USERNAME",
+        "SMTP_PASSWORD_FILE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "Slack fixed webhook or token/channel",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "SLACK_WEBHOOK_FILE",
+        "SLACK_BOT_TOKEN_FILE",
+        "SLACK_CHANNEL"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Notification",
+      "semantic": "Google Chat fixed space webhook/credential",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required only for selected external mode; deliberately disabled optional adapter fields may be empty. Destination fixed/allowlisted; no provider request in unit tests.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "GOOGLE_CHAT_WEBHOOK_FILE",
+        "GOOGLE_CHAT_CREDENTIAL_FILE",
+        "GOOGLE_CHAT_SPACE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Recovery",
+      "semantic": "maximum retries",
+      "kind": "configurable-integer",
+      "source": "TECH11.1",
+      "baseline": 2,
+      "minimum": 0,
+      "maximum": 9,
+      "name": "RETRY_MAX_RETRIES",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "retries",
+      "rule": "0 valid \u2192 one initial attempt, no retries; total attempts=retries+1.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RETRY_MAX_RETRIES"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Recovery",
+      "semantic": "base delay",
+      "kind": "configurable-integer",
+      "source": "TECH11.1",
+      "baseline": 500,
+      "minimum": 1,
+      "maximum": 60000,
+      "name": "RETRY_BASE_DELAY_MS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "ms",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RETRY_BASE_DELAY_MS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Recovery",
+      "semantic": "cap delay",
+      "kind": "configurable-integer",
+      "source": "TECH11.1",
+      "baseline": 5000,
+      "minimum": 1,
+      "maximum": "at least base; finite representable and inside selected budget",
+      "name": "RETRY_MAX_DELAY_MS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "ms",
+      "rule": "Reject cap<base; source gives no independent numeric upper beyond selected safe budget.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RETRY_MAX_DELAY_MS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Recovery",
+      "semantic": "work deadline",
+      "kind": "configurable-integer",
+      "source": "TECH11.1",
+      "baseline": 60000,
+      "minimum": 1000,
+      "maximum": 3600000,
+      "name": "RETRY_DEADLINE_MS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "ms",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RETRY_DEADLINE_MS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Recovery",
+      "semantic": "multiplier",
+      "kind": "configurable-integer",
+      "source": "TECH11.1",
+      "baseline": 2,
+      "minimum": 1,
+      "maximum": 10,
+      "name": "RETRY_MULTIPLIER",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "factor",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RETRY_MULTIPLIER"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Recovery",
+      "semantic": "jitter algorithm",
+      "kind": "fixed-contract",
+      "source": "TECH7.7",
+      "baseline": "uniform[0,min(cap,base*2^(attempt-1))]",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Full jitter; saved retry values belong to durable work, not policy public output.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "jitter algorithm",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "registrationName",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 2,
+        "maxCodePoints": 100,
+        "required": true,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "REGISTRATIONNAME_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REGISTRATION_NAME_MIN_CODE_POINTS",
+        "REGISTRATION_NAME_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "personName",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 100,
+        "required": true,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "PERSONNAME_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "PERSON_NAME_MIN_CODE_POINTS",
+        "PERSON_NAME_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "title",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 255,
+        "required": true,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "TITLE_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "TITLE_MIN_CODE_POINTS",
+        "TITLE_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "originalTitle",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 255,
+        "required": false,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "ORIGINALTITLE_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "ORIGINAL_TITLE_MIN_CODE_POINTS",
+        "ORIGINAL_TITLE_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "synopsis",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 5000,
+        "required": true,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "SYNOPSIS_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "SYNOPSIS_MIN_CODE_POINTS",
+        "SYNOPSIS_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "creditRole",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 100,
+        "required": true,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "CREDITROLE_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "CREDIT_ROLE_MIN_CODE_POINTS",
+        "CREDIT_ROLE_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "characterName",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 200,
+        "required": false,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "CHARACTERNAME_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "CHARACTER_NAME_MIN_CODE_POINTS",
+        "CHARACTER_NAME_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Text",
+      "semantic": "biography",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 1,
+        "maxCodePoints": 5000,
+        "required": false,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 1,
+      "maximum": "derived from fixed complete request/encrypted payload/representation capacity",
+      "name": "BIOGRAPHY_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Independent min/max recipes and min<=max; omitted optional field unchanged; null/trimmed blank clear; required blank rejects. No NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "BIOGRAPHY_MIN_CODE_POINTS",
+        "BIOGRAPHY_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Credentials/search",
+      "semantic": "email",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "maxCodePoints": 254,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "maximum": "syntax octet and complete account envelope bounds",
+      "name": "EMAIL_MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Separate syntax/IDNA validator; no directory exposure. Do not guess unspecified minimum as a new policy.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "EMAIL_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Credentials/search",
+      "semantic": "new password",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 15,
+        "maxCodePoints": 128,
+        "normalization": "EXACT"
+      },
+      "minimum": 1,
+      "maximum": "exact UTF8 ceiling512bytes and representable configured bound",
+      "name": "PASSWORD_MIN/MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Current input only; existing verification eligibility remains independent. No trimming/NFC/truncation.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "PASSWORD_MIN_CODE_POINTS",
+        "PASSWORD_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Credentials/search",
+      "semantic": "new-password byte ceiling",
+      "kind": "fixed-contract",
+      "source": "TECH8",
+      "baseline": 512,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "UTF8bytes",
+      "rule": "Compatibility ceiling; 512/513 fixtures independent of code-point length.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "new-password byte ceiling",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Credentials/search",
+      "semantic": "search",
+      "kind": "configurable-text-bound",
+      "source": "TECH11.1",
+      "baseline": {
+        "minCodePoints": 0,
+        "maxCodePoints": 200,
+        "required": false,
+        "normalization": "TRIM_WHITE_SPACE"
+      },
+      "minimum": 0,
+      "maximum": "request capacity",
+      "name": "SEARCH_MAX_CODE_POINTS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "Unicodecodepoints",
+      "rule": "Empty clears only text search, preserves other filters; no wildcard/SQL execution.",
+      "recipe_families": [
+        "NUMERIC-TEXT",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "SEARCH_MAX_CODE_POINTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Credentials/search",
+      "semantic": "sourceUrl",
+      "kind": "fixed-contract",
+      "source": "TECH5.11/5.4",
+      "baseline": 2048,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "codepoints",
+      "rule": "Request-envelope bound with ordinary trim; source URL HTTP/HTTPS, never server fetch. Required when source evidence is provided.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "sourceUrl",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded",
+      "selected_names": [
+        "SOURCE_URL_MAX_CODE_POINTS"
+      ],
+      "guidance_note": "Effective text guidance may be lowered, but its fixed request-envelope ceiling cannot increase."
+    },
+    {
+      "group": "Credentials/search",
+      "semantic": "reuseBasis",
+      "kind": "fixed-contract",
+      "source": "TECH5.11/5.4",
+      "baseline": 4000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "codepoints",
+      "rule": "Request-envelope bound with ordinary trim; source URL HTTP/HTTPS, never server fetch. Required when source evidence is provided.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "reuseBasis",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded",
+      "selected_names": [
+        "REUSE_BASIS_MAX_CODE_POINTS"
+      ],
+      "guidance_note": "Effective text guidance may be lowered, but its fixed request-envelope ceiling cannot increase."
+    },
+    {
+      "group": "Files",
+      "semantic": "input byte maximum",
+      "kind": "configurable-integer",
+      "source": "TECH11.1",
+      "baseline": 5242880,
+      "minimum": 1,
+      "maximum": 5242880,
+      "name": "ARTWORK_MAX_INPUT_BYTES",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "bytes",
+      "rule": "Validate separately from HTTP Base64 envelope.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "ARTWORK_MAX_INPUT_BYTES"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "enabled formats",
+      "kind": "enum-set",
+      "source": "TECH11.1",
+      "baseline": [
+        "JPEG",
+        "PNG",
+        "WEBP"
+      ],
+      "name": "ARTWORK_FORMATS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Nonempty subset; empty/GIF/SVG/unknown rejects. No decode/process invoked by units.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "ARTWORK_FORMATS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "maxDimensionPx",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 8192,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "pixels",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "maxDimensionPx",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "maxPixels",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 40000000,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "pixels",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "maxPixels",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "maxDecodedBytes",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 160000000,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "maxDecodedBytes",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "processorRss",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 268435456,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "processorRss",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "processorCpu",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 5,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "seconds",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "processorCpu",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "processorWall",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 10,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "seconds",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "processorWall",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "processorTempDisk",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 33554432,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "processorTempDisk",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Files",
+      "semantic": "maxOutputBytes",
+      "kind": "selected-processing-bound",
+      "source": "TECH7.6",
+      "baseline": 8388608,
+      "minimum": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Selected engineering default/envelope; do not invent an unsupported larger cap or arbitrary setting. Consistency checked in pure descriptor; real codec/resource proof belongs to Media.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "maxOutputBytes",
+      "selection": "Selected engineering default descriptor, no independently invented deployment override",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "genre count maximum",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 20,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Storage/contract envelope, not new arbitrary configuration.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "genre count maximum",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "BCP47 maximum characters",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 35,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Storage/contract envelope, not new arbitrary configuration.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "BCP47 maximum characters",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "runtime minimum minutes",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Storage/contract envelope, not new arbitrary configuration.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "runtime minimum minutes",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "runtime maximum minutes",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 100000,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Storage/contract envelope, not new arbitrary configuration.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "runtime maximum minutes",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "year minimum",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 1,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Storage/contract envelope, not new arbitrary configuration.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "year minimum",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "year maximum",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 9999,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Storage/contract envelope, not new arbitrary configuration.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "year maximum",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Structural",
+      "semantic": "country tags",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": "uppercase ISO3166-1 alpha2",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Validate selected code vocabulary; no guessed countries.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "country tags",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "metadataBytes",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 131072,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_METADATABYTES",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "bytes",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_METADATA_BYTES"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "uploadEnvelopeBytes",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 7100000,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_UPLOADENVELOPEBYTES",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "bytes",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_UPLOAD_ENVELOPE_BYTES"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "graphqlQueryBytes",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 16384,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_GRAPHQLQUERYBYTES",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "bytes",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_GRAPHQL_QUERY_BYTES"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "maxDepth",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 8,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_MAXDEPTH",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "count",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_MAX_DEPTH"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "maxFields",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 200,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_MAXFIELDS",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "count",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_MAX_FIELDS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "maxAliases",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 20,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_MAXALIASES",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "count",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_MAX_ALIASES"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "maxCost",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 1000,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_MAXCOST",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "count",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_MAX_COST"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "defaultPage",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 24,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_DEFAULTPAGE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "count",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_DEFAULT_PAGE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "maxPage",
+      "kind": "configurable-integer",
+      "source": "TECH5.3/5.11",
+      "baseline": 100,
+      "minimum": 1,
+      "maximum": "complete protocol/resource capacity; defaultPage<=maxPage; page contract<=100",
+      "name": "REQUEST_MAXPAGE",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "units": "count",
+      "rule": "Positive finite and representable. Preserve distinct metadata/upload/response bounds; no unbounded body or silent truncation.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "REQUEST_MAX_PAGE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "gRPC metadata message",
+      "kind": "fixed-contract",
+      "source": "TECH5.3",
+      "baseline": 262144,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "gRPC metadata message",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "gRPC list reply",
+      "kind": "fixed-contract",
+      "source": "TECH5.3",
+      "baseline": 1048576,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "gRPC list reply",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "upload chunk",
+      "kind": "fixed-contract",
+      "source": "TECH5.3",
+      "baseline": 65536,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "upload chunk",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Request/page",
+      "semantic": "upload message",
+      "kind": "fixed-contract",
+      "source": "TECH5.3",
+      "baseline": 131072,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "bytes",
+      "rule": "Protocol/transfer capacity, not silently repurposed as field guidance.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "upload message",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "SIGNIN_ACCOUNT quota",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 10,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "name": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "requests",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "SIGNIN_ACCOUNT duration",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 900,
+      "minimum": 1,
+      "maximum": 86400,
+      "name": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "seconds",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "SIGNIN_SOURCE quota",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 60,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "name": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "requests",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "SIGNIN_SOURCE duration",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 900,
+      "minimum": 1,
+      "maximum": 86400,
+      "name": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "seconds",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "REGISTER quota",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 5,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "name": "RATE_LIMIT_REGISTER_MAX_REQUESTS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "requests",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_REGISTER_MAX_REQUESTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "REGISTER duration",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 3600,
+      "minimum": 1,
+      "maximum": 86400,
+      "name": "RATE_LIMIT_REGISTER_WINDOW_SECONDS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "seconds",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_REGISTER_WINDOW_SECONDS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "MUTATION quota",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 60,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "name": "RATE_LIMIT_MUTATION_MAX_REQUESTS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "requests",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_MUTATION_MAX_REQUESTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "MUTATION duration",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 60,
+      "minimum": 1,
+      "maximum": 86400,
+      "name": "RATE_LIMIT_MUTATION_WINDOW_SECONDS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "seconds",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_MUTATION_WINDOW_SECONDS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "READ quota",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 120,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "name": "RATE_LIMIT_READ_MAX_REQUESTS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "requests",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_READ_MAX_REQUESTS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "READ duration",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.1/F-RATE",
+      "baseline": 60,
+      "minimum": 1,
+      "maximum": 86400,
+      "name": "RATE_LIMIT_READ_WINDOW_SECONDS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "seconds",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_READ_WINDOW_SECONDS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "Core rate MAC key reference",
+      "kind": "required-secret-reference",
+      "source": "TECH8.4.1/F-RATE",
+      "name": "RATE_LIMIT_KEY_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "32-byte owner-only controlled fact; separate Core secret, never loaded by MCP.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "RATE_LIMIT_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Rate admission",
+      "semantic": "MCP local binding capacity",
+      "kind": "configurable-integer",
+      "source": "TECH8.4.3/F-RATE",
+      "baseline": 1024,
+      "minimum": 1,
+      "maximum": 100000,
+      "name": "MCP_RATE_LIMIT_MAX_BINDINGS",
+      "name_authority": "Exact source or accepted implementation key",
+      "units": "bindings",
+      "rule": "No live eviction decision; actual counter enforcement belongs to T008/adapter owners.",
+      "recipe_families": [
+        "NUMERIC",
+        "PRESENCE",
+        "REDACTION"
+      ],
+      "selected_names": [
+        "MCP_RATE_LIMIT_MAX_BINDINGS"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Logging",
+      "semantic": "level",
+      "kind": "enum",
+      "source": "TECH11.1/12.2.1",
+      "baseline": "info",
+      "name": "LOG_LEVEL",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Only debug/info; same redaction; no secret-bearing debug output.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "LOG_LEVEL"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Tunnel",
+      "semantic": "enabled for configured ChatGPT verification",
+      "kind": "boolean",
+      "source": "TECH11.1",
+      "baseline": true,
+      "name": "TUNNEL_ENABLED",
+      "name_authority": "Proposed mapping; record in generated effective-config artifact before execution",
+      "rule": "Conditional prerequisite, not automatic account/client creation.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "TUNNEL_ENABLED"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Tunnel",
+      "semantic": "tunnel identity",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required while enabled; missing/blank rejects. Disabled optional fields may be empty; no process/network launch in units.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "TUNNEL_ID"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Tunnel",
+      "semantic": "runtime key reference",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required while enabled; missing/blank rejects. Disabled optional fields may be empty; no process/network launch in units.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "TUNNEL_KEY_FILE"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "Tunnel",
+      "semantic": "runner path",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "rule": "Required while enabled; missing/blank rejects. Disabled optional fields may be empty; no process/network launch in units.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_names": [
+        "TUNNEL_RUNNER_PATH"
+      ],
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "MCP UI assertions",
+      "semantic": "publication enabled",
+      "kind": "boolean",
+      "source": "TECH11.1",
+      "baseline": false,
+      "name": "MCP_PUBLICATION_ENABLED",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "False overrides file true; enabling still requires actual client-specific trust evidence later.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "MCP_PUBLICATION_ENABLED"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "MCP UI assertions",
+      "semantic": "MCP_UI_ASSERTION_KEY_FILE",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name": "MCP_UI_ASSERTION_KEY_FILE",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Required only when publication enabled;32-byte separate MAC key, versioned ID; no demo/default material.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "MCP_UI_ASSERTION_KEY_FILE"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "MCP UI assertions",
+      "semantic": "MCP_UI_ASSERTION_KEY_ID",
+      "kind": "conditional-setting",
+      "source": "TECH11.1",
+      "name": "MCP_UI_ASSERTION_KEY_ID",
+      "name_authority": "Exact source or accepted implementation key",
+      "rule": "Required only when publication enabled;32-byte separate MAC key, versioned ID; no demo/default material.",
+      "recipe_families": [
+        "PRESENCE",
+        "REDACTION",
+        "TYPED-OR-MODE"
+      ],
+      "selected_names": [
+        "MCP_UI_ASSERTION_KEY_ID"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "baseline": "Required explicit descriptor/reference; no default",
+      "units": "typed descriptor or identifier",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    },
+    {
+      "group": "MCP UI assertions",
+      "semantic": "old-key read overlap",
+      "kind": "fixed-contract",
+      "source": "TECH11.1",
+      "baseline": 60,
+      "name_authority": "Fixed fact or semantic row; no new deployment key implied",
+      "units": "seconds",
+      "rule": "Bounded old-read overlap; not a validation-policy field.",
+      "recipe_families": [
+        "FIXED-FACT"
+      ],
+      "execution": "Not run; source map frozen before expanded case execution",
+      "selected_fact": "old-key read overlap",
+      "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
+    }
+  ],
+  "selected_mapping_revision": "T009 policy implementation, reviewed source-derived setting names",
+  "capacity_examples": {
+    "metadata_bytes": 131072,
+    "max_escaped_scalar_bytes": 6,
+    "account_plaintext_bytes": 65536,
+    "registration_name_selected_upper": 10406,
+    "account_overhead_reserved_bytes": 50,
+    "account_email_copies": 2,
+    "local_test": "PolicyConfigurationBoundsRulesTest"
+  }
+}
