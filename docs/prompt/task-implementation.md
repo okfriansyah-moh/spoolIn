@@ -1,6 +1,6 @@
 # Reusable task implementation prompt
 
-Use the `running-prompt` skill from the repository root and supply only the inputs you want to override. It reads this document and fills omitted fields from the defaults below. You can also copy the full prompt. Saving, editing or explaining this document does not start application work; invoking its implementation workflow authorizes the selected run.
+Use the `running-prompt` skill from the repository root and supply only the inputs you want to override. It reads this document and fills omitted fields from the defaults below for new runs. On resume, explicit overrides take precedence over retained authorized run inputs; defaults fill only values missing from both. You can also copy the full prompt. Saving, editing or explaining this document does not start application work; invoking its implementation workflow authorizes the selected run.
 
 ```text
 Use running prompt for T001.
