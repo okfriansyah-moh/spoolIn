@@ -7,7 +7,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: In progress
+status: Done
 risk: medium
 test_strategy: alongside
 visual_review: required
@@ -411,6 +411,8 @@ Check keyboard/focus/labels/errors/announcements,200%zoom,reduced motion,touch a
 
 ## Evidence
 
+The first table and subsequent stopped/resume notes retain the historical checks. The completed combined result is recorded at the end of this section.
+
 | Check | Result | Artifact | Revision | Environment | Reviewer |
 |---|---|---|---|---|---|
 | local-tests | Passed: 93/93 | [Final receipt](/private/tmp/spoolin-shell-t004-correction/.ai/evidence/run-422ebc0a832340619261d437b7bbec38/receipt.json) | `572f5a2411086f0248d27f0d90613cd21b022f36` | Pinned macOS toolchain | shell-implementer |
@@ -427,6 +429,21 @@ The parent stopped the temporary Firefox container after verification; worker fi
 G02 stopped after two failed correction rounds. Retain all branches, receipts and original failed/limited captures. Next action: inspect the retained final receipt and establish a revised work-group decision under the workflow correction limit; validate the full Chromium executable path before rerunning the unchanged required contract. Run actual 200% native browser zoom and screen-reader checks in an available assistive environment. These gaps prevent Done and draft delivery of shell changes. T005 may proceed separately from accepted T002/T003 without this unaccepted shell implementation.
 
 Resume — 15 October 2026: User requested completion and delivery of all original shell/account-access tasks with required transitive prerequisites. Retained T004 commits are reapplied onto accepted T005 in `/private/tmp/spoolin-shell-resume`, claim `lane-7b350dcf6ea249ba`, revision `a85dcdfd0bdf0578431b35f438dce41d782583de`. All three browser startup checks passed with matching project runtimes and no malformed Chromium override. Actual native Chrome 200% zoom is independently observed; actual reader output and the new full receipt remain pending. The previous two failed correction rounds and blocked receipts remain retained; no old counter was erased. [Resume decision](/Users/mekari/Developer/personal-project/movie-app/.ai/state/shell-account-resume-decision.json), [Current review](/private/tmp/spoolin-shell-resume/.ai/evidence/t004-resume-independent-review.json).
+
+
+Completed combined result — 16 October 2026: T004 and the G02 shared-shell outcome are accepted at integration revision `710dd94dde49bbe560e0d3a0bf4c03151b9c5a81`, input fingerprint `ca500f2ff4ade01cd5bbee46dd71697cdb4ee61b6727569133cadd5cd218536c`. Independent comparison verified all 2,040 implementation input hashes and modes equal the accepted worker. The corrected worker and combined commands passed; no required finding remains. The original two-round stop and resumed server-lifecycle failure remain retained, followed by one successful runtime correction with unchanged source.
+
+| Check | Result | Artifact | Revision | Environment | Reviewer |
+|---|---|---|---|---|---|
+| local-tests | Passed: 93/93 in worker and combined checks | [Combined command record](/private/tmp/spoolin-shell-account-complete/.ai/evidence/integration-da76f6d567794ceea1c557f673d1d634/integration.json) | `710dd94dde49bbe560e0d3a0bf4c03151b9c5a81` | Pinned Node24/JDK21; retained actual Vitest reports | /root/reviewer |
+| quality-gates | Passed: 44; 7 inapplicable; 32/32 browser cases | [Delivery gates](/private/tmp/spoolin-shell-account-complete/.ai/reports/1792083241230294000-10567/result.json) | `710dd94dde49bbe560e0d3a0bf4c03151b9c5a81` | Chromium156, Firefox157, WebKit27.2; real PostgreSQL owner checks | /root/reviewer |
+| visual-review | Passed: both themes at1440/390/320; required differences resolved | [Original artifact index](/private/tmp/spoolin-shell-account-complete/.ai/evidence/g02-shell-resume/worker-artifacts.json) | Worker `a85dcdfd0bdf0578431b35f438dce41d782583de`; identical combined inputs | Matched references, six contexts per journey, original recordings and decoded frames | /root/reviewer |
+| interaction-accessibility | Passed local keyboard/error/dialog, touch, reduced motion and three-browser checks; actual reader and browser zoom observed | [Reader observations](/private/tmp/spoolin-shell-account-complete/.ai/evidence/g02-orca-runtime/reader-observations.json), [Native zoom](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t004-native-zoom-resume-observations.json) | Same accepted implementation fingerprint | Real Linux Orca/Firefox speech; native Chrome200%; no full downstream ATDD-273 claim | /root/reviewer |
+| self-review | Passed; source and proof limitations recorded | [Self-review](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t004-resume-self-review.json) | `a85dcdfd0bdf0578431b35f438dce41d782583de` | Same combined implementation inputs | shell-resume-implementer |
+| independent-review | Accepted; no unresolved required findings | [Combined independent ledger](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t004-combined-independent-review.json) | `710dd94dde49bbe560e0d3a0bf4c03151b9c5a81` | Source, actual command/log hashes, XML, original captures and assertions inspected | /root/reviewer |
+| integrated feature acceptance | Passed: 15 assigned local cases; G02 outcome accepted | [Feature evidence](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t004-feature-acceptance.json), [Independent evidence check](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t004-feature-acceptance-independent-result.json) | `710dd94dde49bbe560e0d3a0bf4c03151b9c5a81` | Exact source-equivalent media, actual combined checks and case mapping | /root/reviewer |
+
+Owned worker/preview and formal browser listeners are stopped; port43104 is idle. [Listener cleanup](/private/tmp/spoolin-shell-account-complete/.ai/evidence/t004-combined-listener-cleanup.json) records the actual result. The parent retains the private Firefox/Orca fixtures for the remaining authorized tasks. Restoring temporary Mac VoiceOver and Chrome zoom settings awaits host unlock; this limitation remains visible. T009 may now consume the accepted shell. Account access and release outcomes remain with their named owners.
 
 ## Completion and handoff
 
