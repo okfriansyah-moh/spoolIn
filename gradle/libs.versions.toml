@@ -12,6 +12,8 @@ kover = "0.9.11"
 archunit = "1.5.1"
 
 [libraries]
+bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version = "1.86" }
+icu4j = { module = "com.ibm.icu:icu4j", version = "78.3" }
 boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-grpc-bom = { module = "org.springframework.grpc:spring-grpc-dependencies", version.ref = "spring-grpc" }
 protobuf = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
