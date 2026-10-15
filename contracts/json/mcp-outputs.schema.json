@@ -1,0 +1,397 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "context": {
+      "type": "object",
+      "properties": {
+        "titles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "title": {
+                "type": "string"
+              },
+              "release": {
+                "type": "object",
+                "properties": {
+                  "year": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 9999
+                  },
+                  "month": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 12
+                  },
+                  "day": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 31
+                  },
+                  "precision": {
+                    "enum": [
+                      "YEAR",
+                      "MONTH",
+                      "DAY",
+                      "UNKNOWN"
+                    ]
+                  }
+                },
+                "required": [
+                  "year",
+                  "month",
+                  "day",
+                  "precision"
+                ],
+                "additionalProperties": false
+              },
+              "genreIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "maxItems": 20
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "release",
+              "genreIds"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 20
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "label": {
+                "type": "string"
+              },
+              "category": {
+                "enum": [
+                  "CAST",
+                  "CREATOR"
+                ]
+              },
+              "allowsCharacters": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "category",
+              "allowsCharacters"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "policyRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "titles",
+        "genres",
+        "roles",
+        "policyRevision"
+      ],
+      "additionalProperties": false
+    },
+    "proposalReview": {
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "normalizedMovie": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "originalTitle": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "synopsis": {
+              "type": "string"
+            },
+            "genreIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "maxItems": 20
+            },
+            "release": {
+              "type": "object",
+              "properties": {
+                "year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 9999
+                },
+                "month": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "day": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 31
+                }
+              },
+              "required": [
+                "year",
+                "month",
+                "day"
+              ],
+              "additionalProperties": false
+            },
+            "runtimeMinutes": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 100000
+            },
+            "originalLanguage": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "synopsisLanguage": {
+              "type": "string"
+            },
+            "countries": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "title",
+            "originalTitle",
+            "synopsis",
+            "genreIds",
+            "release",
+            "runtimeMinutes",
+            "originalLanguage",
+            "synopsisLanguage",
+            "countries"
+          ],
+          "additionalProperties": false
+        },
+        "policyRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "status": {
+          "const": "REVIEW"
+        },
+        "reviewResourceUri": {
+          "type": "string",
+          "pattern": "^spoolin://proposal/[0-9a-f-]{36}/[0-9]+$"
+        }
+      },
+      "required": [
+        "proposalId",
+        "revision",
+        "contentHash",
+        "expiresAt",
+        "normalizedMovie",
+        "policyRevision",
+        "status",
+        "reviewResourceUri"
+      ],
+      "additionalProperties": false
+    },
+    "operationReceipt": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "state": {
+          "enum": [
+            "PENDING",
+            "SUCCEEDED",
+            "FAILED",
+            "EXPIRED"
+          ]
+        },
+        "resultId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]+$"
+        },
+        "problem": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "code": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "code",
+                      "message"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "retryAfterMs": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "code",
+                "message",
+                "fields",
+                "retryAfterMs"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resultExpired": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "operationId",
+        "state",
+        "resultExpired"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "toolOutputs": {
+    "movie_context": {
+      "$ref": "#/$defs/context"
+    },
+    "propose_movie": {
+      "$ref": "#/$defs/proposalReview"
+    },
+    "movie_operation": {
+      "$ref": "#/$defs/operationReceipt"
+    },
+    "approve_movie": {
+      "$ref": "#/$defs/operationReceipt"
+    },
+    "reject_movie": {
+      "$ref": "#/$defs/operationReceipt"
+    }
+  }
+}

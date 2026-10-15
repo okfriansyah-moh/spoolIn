@@ -25,14 +25,14 @@ def parent_id(test):
     return getattr(test, "test_case", test).id()
 
 
-def write_junit(path, tests, result):
+def write_junit(path, tests, result, suite_name="T001 isolated harness"):
     failures = {parent_id(test): detail for test, detail in result.failures}
     errors = {parent_id(test): detail for test, detail in result.errors}
     skipped = {parent_id(test): reason for test, reason in result.skipped}
     skipped.update({parent_id(test): "Expected failure remains unexecuted acceptance" for test, _ in result.expectedFailures})
     failures.update({parent_id(test): "Unexpected success" for test in result.unexpectedSuccesses})
     skipped.update({test.id(): "Not executed" for test in tests if test.id() not in result.started_ids})
-    suite = ET.Element("testsuite", name="T001 isolated harness", tests=str(len(tests)),
+    suite = ET.Element("testsuite", name=suite_name, tests=str(len(tests)),
                        failures=str(len(failures)), errors=str(len(errors)), skipped=str(len(skipped)))
     for test in tests:
         identity = test.id()
