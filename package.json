@@ -15,10 +15,10 @@
   "packageManager": "npm@11.19.0",
   "scripts": {
     "check": "npm run check --workspace frontend && npm run check --workspace mcp",
-    "lint": "eslint --config build-tools/verification-tests/eslint.config.mjs build-tools/verification-tests --max-warnings 0",
-    "format:check": "prettier --config build-tools/verification-tests/prettier.config.mjs --ignore-path .gitignore --check build-tools/verification-tests frontend/*.json frontend/*.ts mcp/*.json tests/browser/*.json tests/browser/*.ts package.json",
+    "lint": "eslint --config build-tools/verification-tests/eslint.config.mjs build-tools/verification-tests frontend/src tests/browser/flows/shell --max-warnings 0",
+    "format:check": "prettier --config build-tools/verification-tests/prettier.config.mjs --ignore-path .gitignore --check build-tools/verification-tests frontend/src frontend/*.json frontend/*.ts mcp/*.json tests/browser/*.json tests/browser/*.ts tests/browser/flows/shell package.json",
     "build": "npm run build --workspace frontend && npm run build --workspace mcp",
-    "test:e2e": "node build-tools/verification-tests/pending.mjs browser-acceptance",
+    "test:e2e": "npm run test --workspace tests/browser",
     "generate:fixture": "node build-tools/verification-tests/graphql/codegen.mjs",
     "generate:graphql": "node build-tools/generate-graphql.mjs",
     "generate:grpc": "./gradlew :contracts:grpc:generateProto",

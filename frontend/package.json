@@ -4,13 +4,14 @@
   "version": "0.0.0-foundation",
   "type": "module",
   "scripts": {
-    "build": "cd ../build-tools/verification-tests/frontend && vite build --config ../../../frontend/vite.config.ts",
-    "check": "cd ../build-tools/verification-tests/frontend && svelte-kit sync --config ../../../frontend/vite.config.ts && svelte-check --tsconfig tsconfig.json",
-    "lint": "npm run lint --prefix ..",
-    "check:dependencies": "depcruise --config ../build-tools/verification-tests/dependency-cruiser.cjs ../build-tools/verification-tests/frontend/src",
-    "test:coverage": "node ../build-tools/verification-tests/pending.mjs frontend-unit",
+    "build": "vite build",
+    "check": "svelte-kit sync && svelte-check --tsconfig tsconfig.json",
+    "lint": "eslint --config ../build-tools/verification-tests/eslint.config.mjs src --max-warnings 0",
+    "check:dependencies": "depcruise --config ../build-tools/verification-tests/dependency-cruiser.cjs src",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
     "precheck": "node ../build-tools/verification-tests/production_contracts.mjs",
-    "prebuild": "node ../build-tools/verification-tests/production_contracts.mjs"
+    "prebuild": "node ../build-tools/verification-tests/production_contracts.mjs",
+    "dev": "vite --host 127.0.0.1"
   },
   "dependencies": {
     "svelte": "5.57.2"
