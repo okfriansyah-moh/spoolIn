@@ -7,7 +7,8 @@ to that JDK. `bash ops/bin/test-unit.sh --task T001` runs the isolated harness c
 clean locked builds. Network access is needed for uncached dependencies. `make test-unit TASK=T001`
 selects the same check. Generated protobuf/gRPC fixture Java, the static Kit 3 fallback, compiled
 MCP SDK fixture types and the JAR must have identical bytes across both cycles. Root report:
-`.ai/evidence/t001-tests.json`; command logs, inputs and output hashes:
+`.ai/evidence/t001-tests.json`; actual harness outcomes are also exported to
+`.ai/evidence/t001-harness.xml` as JUnit cases. Command logs, inputs and output hashes:
 `.ai/evidence/t001-build/`. No normal database or client connector is selected.
 
 The task map records each planned task’s actual source file and proposed test paths. Unknown,
@@ -79,3 +80,9 @@ Explicit lock maintenance also records Gradle SHA-256 artifact verification meta
 Linux arm64/amd64 protobuf/gRPC generator binaries. Normal builds enforce that metadata without
 rewriting it. Historical evidence from the original dependency baseline is archived separately
 under `.ai/evidence/archive/t001-original-baseline/`; it cannot prove the patched implementation.
+
+Explicit lock maintenance archives the previous integrity manifest under
+`.ai/evidence/lock-maintenance/` before regenerating metadata for the selected graph. A failed
+resolution restores the previous manifest. Plugin classpath Jackson uses the same approved
+3.1.7 BOM; older BOM descriptors can still be read as upstream metadata, while selected
+Jackson core/databind artifacts and resolver locks use 3.1.7.

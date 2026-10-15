@@ -40,22 +40,22 @@ def execute(entry, cwd=ROOT):
             return 2, {"selected": 1, "executed": 0, "failed": 0}
     try:
         result = subprocess.run(entry["argv"], cwd=cwd, timeout=entry["timeout"], check=False)
-    except (FileNotFoundError, subprocess.TimeoutExpired) as error:
+    except (OSError, subprocess.TimeoutExpired) as error:
         print(f"Setup unavailable: {error}", file=sys.stderr)
         return 2, {"selected": 1, "executed": 0, "failed": 0}
     if not report.is_file():
-        return result.returncode or 2, {"selected": 1, "executed": 0, "failed": 0}
+        return 2, {"selected": 1, "executed": 0, "failed": 0}
     try:
         counts = json.loads(report.read_text())
         if any(type(counts[key]) is not int or counts[key] < 0 for key in ("selected", "executed", "failed")):
             raise ValueError("Invalid report counts")
         if counts["selected"] < 1 or counts["executed"] != counts["selected"]:
-            return result.returncode or 2, counts
+            return 2, counts
         if counts["failed"] > counts["executed"]:
             raise ValueError("Invalid failure count")
-    except (ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError):
         return 2, {"selected": 1, "executed": 0, "failed": 0}
-    if counts["failed"] and result.returncode == 0:
+    if counts["failed"]:
         return 1, counts
     return 0 if result.returncode == 0 else 2 if result.returncode == 2 else 1, counts
 
@@ -91,13 +91,13 @@ def main():
     parser.add_argument("--task", action="append")
     arguments = parser.parse_args()
     report = report_path(arguments.level, arguments.task)
-    report.unlink(missing_ok=True)
     try:
         mapping = json.loads(MAP.read_text())
         entries = selected_entries(mapping, arguments.level, arguments.task)
     except (ValueError, OSError) as error:
         print(f"Setup unavailable: {error}", file=sys.stderr)
         return 2
+    report.unlink(missing_ok=True)
     return run(entries, report, arguments.level)
 
 

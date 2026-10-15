@@ -7,6 +7,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 buildscript {
     dependencies {
+        classpath(enforcedPlatform("tools.jackson:jackson-bom:3.1.7"))
         classpath("org.apache.commons:commons-lang3:3.20.0")
         classpath("org.freemarker:freemarker:2.3.35")
     }

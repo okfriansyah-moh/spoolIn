@@ -1,4 +1,5 @@
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -9,12 +10,15 @@ import sys
 import tempfile
 import time
 import unittest
+import xml.etree.ElementTree as ET
 from unittest.mock import patch
 from uuid import uuid4
 
 from fixture import SetupError, TestInstallation, preserve_failure, validate_namespace
 from lock_dependencies import relocate_local_catalog
+import lock_dependencies
 from run_owner_integration import junit_counts
+from unittest_reports import ObservedResult, test_list, write_junit
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("task_selector", Path(__file__).with_name("task_selector.py"))
@@ -94,6 +98,25 @@ class IsolationTests(unittest.TestCase):
 
 
 class SelectionTests(unittest.TestCase):
+    def wrapper_fixture(self, root):
+        paths = ["ops/bin/test-unit.sh", "ops/bin/test-integration.sh",
+                 "build-tools/verification-tests/task_selector.py"]
+        for name in paths:
+            target = root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / name, target)
+        pending = "Isolated pending suite"
+        mapping = {"tasks": {
+            "T001": {"unit": [], "integration": [], "pending_reason": pending},
+            "T002": {"unit": [{"id": "fixture-contracts", "argv": [sys.executable, "tests/contracts/run.py"],
+                                  "report": ".ai/evidence/t002-contract-tests.json", "timeout": 5,
+                                  "required_paths": ["tests/contracts/run.py"]}], "pending_reason": pending},
+            "T003": {"integration": [{"id": "fixture-owner", "argv": [sys.executable, "missing.py"],
+                                         "report": ".ai/evidence/t003-owner-tests.json", "timeout": 5,
+                                         "required_paths": ["services/core/bootstrap/**/*.kt"]}], "pending_reason": pending},
+        }}
+        root.joinpath("build-tools/verification-map.json").write_text(json.dumps(mapping))
+
     def test_report_paths_are_specific_to_selected_task(self):
         self.assertEqual(selector.report_path("unit", ["T001"]).name, "t001-tests.json")
         self.assertEqual(selector.report_path("unit", ["T002"]).name, "t002-tests.json")
@@ -159,10 +182,55 @@ class SelectionTests(unittest.TestCase):
 
     def test_public_wrappers_reject_invalid_and_unavailable_selection(self):
         cases = [("unit", "T999"), ("unit", "T002"), ("integration", "T001"), ("integration", "T003")]
-        for level, task in cases:
-            result = subprocess.run(["bash", f"ops/bin/test-{level}.sh", "--task", task], cwd=ROOT, capture_output=True)
-            self.assertEqual(result.returncode, 2, result.stderr.decode())
-            self.assertIn(b"Setup unavailable", result.stderr)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.wrapper_fixture(root)
+            for level, task in cases:
+                result = subprocess.run(["bash", f"ops/bin/test-{level}.sh", "--task", task], cwd=root, capture_output=True)
+                self.assertEqual(result.returncode, 2, result.stderr.decode())
+                self.assertIn(b"Setup unavailable", result.stderr)
+
+    def test_downstream_activation_does_not_change_pending_fixture_selection(self):
+        with tempfile.TemporaryDirectory() as active, tempfile.TemporaryDirectory() as pending:
+            self.wrapper_fixture(Path(active))
+            self.wrapper_fixture(Path(pending))
+            program = Path(active) / "tests/contracts/run.py"
+            program.parent.mkdir(parents=True)
+            program.write_text("import json,pathlib,unittest\nclass Probe(unittest.TestCase):\n def test_probe(self): self.assertTrue(True)\nsuite=unittest.defaultTestLoader.loadTestsFromTestCase(Probe)\nselected=suite.countTestCases()\nresult=unittest.TextTestRunner().run(suite)\np=pathlib.Path('.ai/evidence/t002-contract-tests.json')\np.parent.mkdir(parents=True,exist_ok=True)\np.write_text(json.dumps({'selected':selected,'executed':result.testsRun,'failed':len(result.failures)+len(result.errors)}))\n")
+            command = ["bash", "ops/bin/test-unit.sh", "--task", "T002"]
+            self.assertEqual(subprocess.run(command, cwd=active, capture_output=True).returncode, 0)
+            self.assertEqual(subprocess.run(command, cwd=pending, capture_output=True).returncode, 2)
+
+    def test_invalid_integration_selection_preserves_retained_unit_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.wrapper_fixture(root)
+            report = root / ".ai/evidence/t001-tests.json"
+            report.parent.mkdir(parents=True)
+            retained = json.dumps({"selected": 1, "executed": 1, "failed": 0, "level": "unit"})
+            report.write_text(retained)
+            result = subprocess.run(["bash", "ops/bin/test-integration.sh", "--task", "T001"], cwd=root, capture_output=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(report.read_text(), retained)
+
+    def test_absent_empty_and_unexecuted_reports_are_setup_errors_for_any_child_exit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for content in (None, {"selected": 0, "executed": 0, "failed": 0}, {"selected": 1, "executed": 0, "failed": 0}):
+                for ending in ("raise SystemExit(3)", "raise SystemExit(5)", "import os,signal;os.kill(os.getpid(),signal.SIGTERM)"):
+                    write = "" if content is None else f"import json,pathlib;pathlib.Path('report.json').write_text(json.dumps({content!r}));"
+                    entry = {"argv": [sys.executable, "-c", write + ending], "report": "report.json", "timeout": 5}
+                    with self.subTest(report=content, ending=ending):
+                        self.assertEqual(selector.execute(entry, root)[0], 2)
+
+    def test_executed_failures_normalize_to_one_for_any_child_exit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for ending in ("raise SystemExit(0)", "raise SystemExit(2)", "raise SystemExit(3)", "raise SystemExit(5)", "import os,signal;os.kill(os.getpid(),signal.SIGTERM)"):
+                script = "import json,pathlib;pathlib.Path('report.json').write_text(json.dumps({'selected':1,'executed':1,'failed':1}));" + ending
+                entry = {"argv": [sys.executable, "-c", script], "report": "report.json", "timeout": 5}
+                with self.subTest(ending=ending):
+                    self.assertEqual(selector.execute(entry, root)[0], 1)
 
     def test_make_passes_task_argument_without_shell_evaluation(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -173,6 +241,29 @@ class SelectionTests(unittest.TestCase):
 
 
 class JunitAdapterTests(unittest.TestCase):
+    def test_unittest_export_records_actual_pass_failure_and_skip(self):
+        class Outcomes(unittest.TestCase):
+            def test_pass(self):
+                self.assertTrue(True)
+
+            def test_failure(self):
+                self.fail("Intentional exporter fixture failure")
+
+            @unittest.skip("Intentional exporter fixture skip")
+            def test_skip(self):
+                self.fail("Skipped method must not execute")
+
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(Outcomes)
+        tests = test_list(suite)
+        result = unittest.TextTestRunner(stream=io.StringIO(), resultclass=ObservedResult).run(suite)
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "unittest.xml"
+            self.assertEqual(write_junit(report, tests, result), {"selected": 3, "executed": 2, "failed": 1})
+            xml = ET.parse(report).getroot()
+            self.assertEqual(len(xml.findall("testcase")), 3)
+            self.assertEqual(len(xml.findall("testcase/failure")), 1)
+            self.assertEqual(len(xml.findall("testcase/skipped")), 1)
+
     def test_counts_come_from_cases_and_preserve_skipped_and_failed_results(self):
         with tempfile.TemporaryDirectory() as directory:
             report = Path(directory) / "TEST-fixture.xml"
@@ -230,6 +321,20 @@ class ProductionGenerationTests(unittest.TestCase):
 
 
 class LockMaintenanceTests(unittest.TestCase):
+    def test_failed_resolution_restores_the_previous_integrity_manifest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            metadata = root / "gradle/verification-metadata.xml"
+            metadata.parent.mkdir()
+            previous = b"<verification-metadata/>"
+            metadata.write_bytes(previous)
+            with patch.object(lock_dependencies, "ROOT", root), patch.object(lock_dependencies.subprocess, "run", return_value=subprocess.CompletedProcess([], 1)):
+                self.assertEqual(lock_dependencies.main(), 1)
+            self.assertEqual(metadata.read_bytes(), previous)
+            archives = list(root.glob(".ai/evidence/lock-maintenance/*.xml"))
+            self.assertEqual(len(archives), 1)
+            self.assertEqual(archives[0].read_bytes(), previous)
+
     def test_empty_local_catalog_inventory_moves_to_owned_path(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -252,11 +357,10 @@ class LockMaintenanceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
-    selected = suite.countTestCases()
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    tests = test_list(suite)
+    result = unittest.TextTestRunner(verbosity=2, resultclass=ObservedResult).run(suite)
+    counts = write_junit(ROOT / ".ai/evidence/t001-harness.xml", tests, result)
     report = ROOT / ".ai/evidence/t001-harness.json"
     report.parent.mkdir(parents=True, exist_ok=True)
-    report.write_text(json.dumps({"selected": selected, "executed": result.testsRun,
-                                  "failed": len(result.failures) + len(result.errors),
-                                  "cases": ["T001-A2", "T001-A3"]}, indent=2) + "\n")
-    sys.exit(0 if result.wasSuccessful() else 1)
+    report.write_text(json.dumps({**counts, "cases": ["T001-A2", "T001-A3"]}, indent=2) + "\n")
+    sys.exit(2 if counts["selected"] != counts["executed"] else 1 if counts["failed"] else 0)
