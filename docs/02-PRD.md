@@ -1,36 +1,34 @@
-# PRD: SpoolIn assessment delivery
+# PRD: SpoolIn initial release delivery
 
 | Field | Value |
 |---|---|
 | Version / status | 2.4 / Ready for technical design |
 | Owner | Muhammad Okfriansyah |
 | Created / updated | 10 October 2026 / 11 October 2026, Asia/Jakarta |
-| Release purpose | PALO IT technical assessment associated with a potential GovTech Singapore placement |
-| Confirmed deadline | 18 October 2026, end of day Singapore time (UTC+8). Interpreting end of day as 23:59 gives approximately 22:59 on 18 October in Jakarta (UTC+7). No more precise recruiter cutoff is recorded. |
-| Internal target | Recommended: submit on 17 October and retain 18 October as contingency. Daily availability is unknown; no effort-based schedule is approved. |
-| Product authority | Assessment obligations in [section 6.3](#63-assessment-coverage) and project decisions in [section 6.4](#64-project-decision-register) and [section 13.1](#131-resolved-product-decisions) |
+| Release purpose | Initial SpoolIn movie and TV catalog release |
+| Product authority | Baseline obligations in [section 6.3](#63-project-requirements-coverage) and project decisions in [section 6.4](#64-project-decision-register) and [section 13.1](#131-resolved-product-decisions) |
 | Readiness meaning | Product scope, permissions, journeys, and observable outcomes are settled sufficiently to start the detailed techdoc. Engineering decisions remain assigned to that document. |
-| Evidence boundary | This status does not establish implementation, passing software tests, deployment, provider delivery, or assessment approval. |
+| Evidence boundary | This status does not establish implementation, passing software tests, deployment, provider delivery, or release acceptance. |
 
 ## 1. Purpose and problem
 
-Deliver SpoolIn so an assessment reviewer can run, use, and understand it independently. Visitors can discover movies and TV series through artwork, metadata, people, search, and filters. Maintainers keep movie information accurate and can ask an assistant in ChatGPT or Claude to propose a movie for explicit human review and approval before creation.
+Deliver SpoolIn so a release reviewer can run, use, and understand it independently. Visitors can discover movies and TV series through artwork, metadata, people, search, and filters. Maintainers keep movie information accurate and can ask an assistant in ChatGPT or Claude to propose a movie for explicit human review and approval before creation.
 
-The initial catalog contains 100 distinct movies and 100 distinct TV series. Movie management, clear feedback, protected accounts, accountable changes, and recoverable failures support the assessment experience. Registered Viewers currently have the same catalog-reading capabilities as visitors; ratings and reviews belong to a future release.
+The initial catalog contains 100 distinct movies and 100 distinct TV series. Movie management, clear feedback, protected accounts, accountable changes, and recoverable failures support the initial release experience. Registered Viewers currently have the same catalog-reading capabilities as visitors; ratings and reviews belong to a future release.
 
-This PRD defines product behavior and delivery outcomes. The future techdoc will specify architecture, interfaces, data storage, security mechanisms, configuration mechanisms, infrastructure, and engineering verification. Product input and artwork policies are defined in [section 5.5](#55-input-validation-and-artwork-policy). The assessment's stack/protocol constraints and existing engineering commitments remain traceable in [section 10](#10-compact-engineering-handoff) without making their detailed design a prerequisite for PRD readiness.
+This PRD defines product behavior and delivery outcomes. The future techdoc will specify architecture, interfaces, data storage, security mechanisms, configuration mechanisms, infrastructure, and engineering verification. Product input and artwork policies are defined in [section 5.5](#55-input-validation-and-artwork-policy). The project's stack/protocol constraints and existing engineering commitments remain traceable in [section 10](#10-compact-engineering-handoff) without making their detailed design a prerequisite for PRD readiness.
 
-Commercial demand, adoption, performance baselines, and market differentiation are unverified. A completed product or a particular architecture cannot guarantee assessment acceptance or placement.
+Commercial demand, adoption, performance baselines, and market differentiation are unverified. Release acceptance requires verification against the project requirements.
 
 SpoolIn is named after the spool that holds a length of film. Its brand promise is **“Unspooling stories and discovering what’s behind them.”** The discovery homepage headline is **“Every reel holds a story.”** See the [brand history](design-system/brand-history.md) for the naming narrative and presentation guidance. This branding update, adopted on 11 October 2026, does not change the approved product behavior.
 
 ## 2. Authority, interpretation, and status
 
-This PRD contains the assessment obligations, product decisions, business rules, and acceptance criteria needed to review the release. Its requirement and decision identifiers refer to content defined in this document. Public references provide optional supporting guidance; they do not replace requirements stated here.
+This PRD contains the baseline obligations, product decisions, business rules, and acceptance criteria needed to review the release. Its requirement and decision identifiers refer to content defined in this document. Public references provide optional supporting guidance; they do not replace requirements stated here.
 
 | Basis | Requirements established here | Interpretation |
 |---|---|---|
-| External assessment | A01 through A17 in [section 6.3](#63-assessment-coverage) cover the required technologies, catalog operations, feedback, testing, repository submission, README, and code explanation | Verified against the assessment brief. AI assistance is permitted, and the developer must understand submitted code. The brief does not require authentication, three services, cloud hosting, ISO certification, or a numerical coverage threshold. The submission deadline is stated in the document metadata. |
+| Project baseline | A01 through A17 in [section 6.3](#63-project-requirements-coverage) cover the required technologies, catalog operations, feedback, testing, repository release access, README, and code explanation | The baseline defines project requirements. AI assistance is permitted, and the developer must understand the code. Authentication and the three-service design are additional project commitments; cloud hosting, ISO certification, and a numerical coverage threshold are not baseline requirements. |
 | Project decisions | D01 through D26 in [section 6.4](#64-project-decision-register) record commitments, working designs, recommendations, open choices, and deferred work | Read each decision with its status and current disposition. [Section 13.1](#131-resolved-product-decisions) states the resolved product policies, including adoption of previously recommended roles and stale-edit protection. |
 | Release product policy | [Sections 3 through 9](#3-application-users-permissions-and-journeys) and [section 13.1](#131-resolved-product-decisions) define public access, accounts, catalog behavior, lifecycle, credits, artwork, audit, MCP approval, and privacy | These policies are the approved release behavior. Detailed engineering choices belong to the future techdoc under [section 10](#10-compact-engineering-handoff) and [section 13.2](#132-engineering-and-other-next-phase-register). |
 | Input and artwork policy | [Section 5.5](#55-input-validation-and-artwork-policy), FR-017, and NFR-016 establish configurable bounds, accepted content, validation feedback, and safe handling | The selected person/registration name defaults and validation behavior are Committed release policy. Other numerical defaults remain Recommended; technical design records their adoption or alternatives. Public examples support the rationale without establishing universal limits or measured user coverage. |
@@ -40,12 +38,12 @@ All section references point within this PRD. Acceptance scenarios describe inte
 
 | Status | Meaning |
 |---|---|
-| Required | External assessment obligation verified against the assessment brief |
+| Required | Project baseline obligation |
 | Committed | Approved release requirement |
 | Working design | Preferred engineering direction to carry into technical design |
 | Recommended | Proposal that remains unselected unless its adoption is explicitly recorded in this PRD |
 | Open | Engineering, operational, or future-scope decision assigned to the appropriate next phase |
-| Deferred | Outside assessment delivery, even where the future direction itself is accepted |
+| Deferred | Outside initial release delivery, even where the future direction itself is accepted |
 
 Functionality-first sequencing does not remove committed security, audit, reliability, testing, or operational completion. The release includes seeded TV-series discovery and details, public Viewer registration, movie and person archive/restore, a Maintainer audit screen, and limited MCP creation. Viewer/Maintainer permissions and stale-edit protection are settled product policies; their engineering mechanisms remain for the techdoc.
 
@@ -59,7 +57,7 @@ The application has three user types. Only signed-in accounts have an account ro
 | Viewer | A signed-in account with the Viewer role | The same catalog-reading access as a Visitor; ratings and reviews remain deferred |
 | Maintainer | A signed-in account with the Maintainer role | Catalog reading plus movie, person, credit, artwork, archive, and audit capabilities listed below |
 
-Throughout the product sections, **reader** means any of these users browsing permitted catalog information, and **account holder** means a Viewer or Maintainer. Assessment, operations, and development responsibilities are defined separately in [section 12.3](#123-delivery-responsibilities-and-journeys).
+Throughout the product sections, **reader** means any of these users browsing permitted catalog information, and **account holder** means a Viewer or Maintainer. Release review, operations, and development responsibilities are defined separately in [section 12.3](#123-delivery-responsibilities-and-journeys).
 
 ### 3.1 Permission matrix
 
@@ -99,14 +97,14 @@ J-05, J-06, and J-07 describe delivery work and appear in [section 12.3](#123-de
 
 | ID | Outcome | Acceptance measure | Baseline / status |
 |---|---|---|---|
-| SC-01 | Meet the external assessment | Every A01 through A17 obligation has a mapped requirement and planned evidence | Software evidence unverified; Required |
+| SC-01 | Meet the project baseline | Every A01 through A17 obligation has a mapped requirement and planned evidence | Software evidence unverified; Required |
 | SC-02 | Provide a useful starting catalog | Fresh initial dataset contains exactly 100 distinct movies and 100 distinct TV series with usable metadata, provenance, and multiple years/known months per type | Unverified; Committed |
 | SC-03 | Preserve user decisions | Edits, archive state, and permanent deletions survive ordinary seed reruns; saved data/artwork survive restarts | Unverified; Committed |
 | SC-04 | Protect access and accountability | Public/Viewer/Maintainer permissions hold; private account data stay protected; permitted changes and AI approvals are attributable | Unverified; Committed |
 | SC-05 | Make review reproducible | Documented setup, seed, execution, tests, and code explanation can be followed independently | Unverified; Required/Committed |
 | SC-06 | Make failures understandable and recoverable | Users see accurate outcomes; operations owners can inspect retained failures, receive alerts, and recover eligible work | Unverified; Committed |
 | SC-07 | Establish justified performance expectations | Techdoc defines workload, measurement, limits, and operational targets | Baselines unknown; no invented SLO, coverage percentage, or SLA |
-| SC-08 | Submit by the recorded deadline | Accessible reviewed repository and submission evidence by 18 October EOD Singapore | Not submitted by this PRD; 17 October remains a Recommended target |
+| SC-08 | Publish a reviewable release revision | Publicly accessible reviewed repository revision and release evidence | Release access unverified by this PRD |
 | SC-09 | Keep humans in control of AI creation | Both supported chat clients demonstrate exact-content human approval, correction/rejection, safe retry, and denied unauthorized creation | Unverified; Committed |
 
 ## 5. Release scope and business rules
@@ -155,7 +153,7 @@ Ratings, reviews, critic aggregation (D15 Committed, deferred), personal journal
 
 Also excluded: interactive TV management, email verification, password recovery, role-management screens, public account directories, AI editing/deletion/account management/artwork actions, arbitrary restoration from audit history, and a separate in-app AI approval queue. Custom credit labels do not imply a separate credit-role administration product.
 
-Cloud hosting remains Open D14 and does not replace local reproducibility. The MCP experience must work in ChatGPT and Claude; the techdoc must determine the required connectivity without assuming that full application hosting has been approved. No extra notification channels, generic saga product, message broker, or fourth identity/audit/review service is required. ISO certification, regulatory compliance, production readiness, and assessment success are not claimed.
+Cloud hosting remains Open D14 and does not replace local reproducibility. The MCP experience must work in ChatGPT and Claude; the techdoc must determine the required connectivity without assuming that full application hosting has been approved. No extra notification channels, generic saga product, message broker, or fourth identity/audit/review service is required. ISO certification, regulatory compliance, production readiness, and release success are not claimed.
 
 ### 5.5 Input validation and artwork policy
 
@@ -174,7 +172,7 @@ The [LGA workforce data standard, page 20](https://www.local.gov.uk/sites/defaul
 
 #### Recommended defaults for other inputs
 
-These Recommended starting values remain unselected and are not external assessment obligations. The techdoc must record adopted values or justified alternatives before implementing the affected inputs. Acceptance criteria referring to these numbers apply when these recommended values are configured; the Committed behavior is enforcement of the effective policy.
+These Recommended starting values remain unselected and are not baseline requirements. The techdoc must record adopted values or justified alternatives before implementing the affected inputs. Acceptance criteria referring to these numbers apply when these recommended values are configured; the Committed behavior is enforcement of the effective policy.
 
 | Input already within release scope | Recommended minimum when supplied | Recommended maximum | Additional rule |
 |---|---:|---:|---|
@@ -258,7 +256,7 @@ FR-014 and FR-015 describe operational outcomes under the delivery responsibilit
 
 | ID | Outcome / constraint | Basis / status | Acceptance or compact handoff |
 |---|---|---|---|
-| NFR-001 | Required assessment stack and real frontend/backend protocols | A01 through A05, D03 Required | AC-064 through AC-066; [section 10](#10-compact-engineering-handoff) |
+| NFR-001 | Required project stack and real frontend/backend protocols | A01 through A05, D03 Required | AC-064 through AC-066; [section 10](#10-compact-engineering-handoff) |
 | NFR-002 | Preferred App/Catalog/Media ownership with unrelated catalog work usable during artwork outage | D02/D10 Working design | AC-067, AC-068; [section 10](#10-compact-engineering-handoff) |
 | NFR-003 | Saved data/artwork persist through restarts; committed persistence safeguards remain | D18/D19 Committed | AC-069 through AC-071 |
 | NFR-004 | Safe recovery is bounded and respects cancellation; uncertain outcomes cannot multiply effects | D21 Committed; D22 defaults Recommended | AC-072 through AC-075 |
@@ -266,7 +264,7 @@ FR-014 and FR-015 describe operational outcomes under the delivery responsibilit
 | NFR-006 | Operations owners can assess readiness, diagnose user failures, and act on alerts | D23 Committed | AC-079 through AC-082 |
 | NFR-007 | Responsive, keyboard-usable journeys with accurate feedback and retained recoverable work | A13/A14 Required; keyboard use Committed | AC-083 through AC-085, AC-139, AC-147, AC-159 |
 | NFR-008 | Meaningful unit/edge and integration evidence proves release behavior | A12 Required; D19 Committed | AC-086 through AC-088 |
-| NFR-009 | Cohesive vertical slices and understandable, maintainable submitted code | D04/D17 Committed | AC-089, AC-090 |
+| NFR-009 | Cohesive vertical slices and understandable, maintainable project code | D04/D17 Committed | AC-089, AC-090 |
 | NFR-010 | Reproducible local setup preserves normal data and isolates verification | D13/D24 Committed | AC-091 through AC-094 |
 | NFR-011 | Accessible repository, truthful README/AI disclosure, and code ownership | A15 through A17 Required; D01 Committed | AC-095 through AC-097 |
 | NFR-012 | Risk-informed security consideration with accurate evidence and limitations | D06 Committed | AC-098, AC-099 |
@@ -275,9 +273,9 @@ FR-014 and FR-015 describe operational outcomes under the delivery responsibilit
 | NFR-015 | Protect account PII with the selected encryption/rotation constraint; passwords use one-way hashing | Committed product policy ([section 13.1](#131-resolved-product-decisions)) | AC-123 through AC-125, AC-127, AC-128; [section 10](#10-compact-engineering-handoff) |
 | NFR-016 | Treat entered text and artwork as untrusted content; enforce the effective policy without unsafe execution, bypass, or silent data loss | Committed input policy ([section 5.5](#55-input-validation-and-artwork-policy)); mechanisms assigned to techdoc | AC-142/AC-143, AC-147/AC-148, AC-151 through AC-158 |
 
-### 6.3 Assessment coverage
+### 6.3 Project requirements coverage
 
-| Assessment ID | Obligation | Requirement / evidence |
+| Baseline ID | Obligation | Requirement / evidence |
 |---|---|---|
 | A01 | Svelte frontend in TypeScript | NFR-001 / AC-064 |
 | A02 | Spring Boot in Kotlin | NFR-001 / AC-064 |
@@ -293,16 +291,16 @@ FR-014 and FR-015 describe operational outcomes under the delivery responsibilit
 | A12 | Unit tests including complete relevant edge cases | NFR-008 / AC-086, AC-088 |
 | A13 | Responsive application | NFR-007 / AC-083 |
 | A14 | Sufficient operation feedback | NFR-007; FR-001/FR-002/FR-004/FR-009 / AC-002, AC-009, AC-018, AC-038, AC-085 |
-| A15 | Git repository submission | NFR-011 / AC-095 |
+| A15 | Public Git repository access | NFR-011 / AC-095 |
 | A16 | Setup/run/AI-use README | NFR-010/NFR-011 / AC-091, AC-096 |
-| A17 | Explain submitted code | NFR-009/NFR-011 / AC-090, AC-097 |
+| A17 | Explain project code | NFR-009/NFR-011 / AC-090, AC-097 |
 
 ### 6.4 Project decision register
 
 | Decision ID / recorded status | Decision and current disposition | Requirements / acceptance |
 |---|---|---|
-| D01 Committed | Assessment first; future product work stays separate | NFR-011 / AC-095, AC-096; [section 5.4](#54-excluded-and-deferred) |
-| D02 Working design | Three App/Catalog/Media applications; two remains the assessment minimum | NFR-002 / AC-067; techdoc |
+| D01 Committed | Initial release first; future product work stays separate | NFR-011 / AC-095, AC-096; [section 5.4](#54-excluded-and-deferred) |
+| D02 Working design | Three App/Catalog/Media applications; two remains the project minimum | NFR-002 / AC-067; techdoc |
 | D03 Required | GraphQL frontend and gRPC backend boundaries | NFR-001/NFR-013 / AC-065, AC-066, AC-100 |
 | D04 Committed | Vertical slices | NFR-009 / AC-089; techdoc |
 | D05 Committed | Authentication, authorization, RBAC, audit completed for release | FR-011 through FR-013 / AC-047 through AC-056 |
@@ -315,7 +313,7 @@ FR-014 and FR-015 describe operational outcomes under the delivery responsibilit
 | D12 Open | Authentication mechanism and verified internal identity | Product access settled; mechanics Open in techdoc. FR-011/FR-012 / AC-047 through AC-052 |
 | D13 Committed | Compose and Make wrappers | NFR-010 / AC-091 through AC-094 |
 | D14 Open | Live deployment host, budget, scope | Remains outside this PRD revision; OD-016 |
-| D15 Committed, deferred | Transparent review aggregation after assessment | Excluded by [section 5.4](#54-excluded-and-deferred); provenance groundwork FR-007 / AC-031 remains included |
+| D15 Committed, deferred | Transparent review aggregation after the initial release | Excluded by [section 5.4](#54-excluded-and-deferred); provenance groundwork FR-007 / AC-031 remains included |
 | D16 Deferred hypothesis | Journaling, discovery assistance, series tracking, personal critics | Excluded by [section 5.4](#54-excluded-and-deferred); no current acceptance obligation |
 | D17 Committed | SOLID/DRY/KISS/YAGNI, code quality, constructor injection | NFR-009 / AC-089, AC-090; techdoc |
 | D18 Committed | JPA/Hibernate and justified parameterized native SQL | NFR-003 / AC-069, AC-070; techdoc |
@@ -436,7 +434,7 @@ As a visitor, I want an account I can use immediately; as a signed-in user, I wa
 |---|---|---|---|---|
 | AC-047 | Sign in | A prepared or registered account exists | Correct or incorrect credentials are submitted | Correct credentials permit sign-in with the assigned role; invalid credentials do not grant access and receive non-sensitive feedback. |
 | AC-048 | Expiry/sign-out | A user signs out or their sign-in expires during work | They attempt another restricted action | Require sign-in again; public browsing remains available. Do not claim already committed work rolled back or expose protected drafts to a later different user. |
-| AC-049 | Demo access | An assessment reviewer follows documented account setup | They sign in with prepared Viewer/Maintainer access | Each account demonstrates its assigned capabilities; no unrestricted development bypass substitutes for role enforcement. |
+| AC-049 | Demo access | A release reviewer follows documented account setup | They sign in with prepared Viewer/Maintainer access | Each account demonstrates its assigned capabilities; no unrestricted development bypass substitutes for role enforcement. |
 | AC-050 | Role matrix | Visitors, Viewers, and Maintainers try each capability | An action is requested | Results match [section 3.1](#31-permission-matrix), including direct attempts to access hidden actions; all Maintainers have the same management permissions. |
 | AC-051 | Bypass attempt | A caller supplies fabricated identity/role claims | They attempt a restricted action | No privilege or data access is granted from those claims; a connected assistant cannot exceed its user's permissions. |
 | AC-052 | Mixed permitted/restricted actions | A request combines readable data and restricted effects | It is handled | Restricted information/effects stay denied; any completed permitted action and failed action are distinguishable, without claiming all actions succeeded. |
@@ -460,7 +458,7 @@ As a Maintainer, I want read-only history so I can understand catalog changes an
 
 ### US-011: Continue metadata work during an artwork outage
 
-As a Maintainer, I want to edit movie metadata when artwork handling is unavailable so I can continue work that does not need an image change. Requirement: NFR-002. Related assessment technology constraints NFR-001 and AC-064 through AC-067 remain in [section 10](#10-compact-engineering-handoff).
+As a Maintainer, I want to edit movie metadata when artwork handling is unavailable so I can continue work that does not need an image change. Requirement: NFR-002. Related project technology constraints NFR-001 and AC-064 through AC-067 remain in [section 10](#10-compact-engineering-handoff).
 
 | ID | Scenario | Given | When | Then |
 |---|---|---|---|---|
@@ -519,7 +517,7 @@ As an account holder, I want my private information protected while I can contin
 |---|---|---|---|---|
 | AC-123 | Private data boundaries | Accounts contain names/emails and password credentials | Public pages, catalog search, other users' access, diagnostics, or MCP proposals are inspected | Private account information is not exposed outside its authorized purpose; email and private name data receive the selected encrypted-at-rest protection. |
 | AC-124 | Key rotation continuity | Existing accounts contain protected data and rotation occurs | Existing and new users use permitted account operations | Authorized use continues with correct data; rotation does not expose plaintext, lose account information, or make old accounts inaccessible. |
-| AC-125 | Password protection | A user has registered or signed in | Credential storage and outputs are checked by authorized assessment reviewers | Passwords are protected by one-way password hashing, cannot be retrieved as an account feature, and never appear in readable storage, audit, logs, or AI payloads. |
+| AC-125 | Password protection | A user has registered or signed in | Credential storage and outputs are checked by authorized release reviewers | Passwords are protected by one-way password hashing, cannot be retrieved as an account feature, and never appear in readable storage, audit, logs, or AI payloads. |
 | AC-128 | Protection failure | Encryption/decryption or required key access fails | A protected operation is attempted | Fail with non-sensitive feedback and operational evidence; never fall back to plaintext, invent missing account values, or overwrite valid protected data with an empty value. |
 
 ### US-021: Submit accepted input and correct validation failures
@@ -872,7 +870,7 @@ These existing IDs are retained, not renumbered or claimed passed. Their short d
 | AC-087 | Exercise GraphQL contracts, real gRPC, selected database, security/audit, native SQL where used, seed, artwork, recovery, and notification integration | NFR-008; technical design |
 | AC-088 | Report failures/blocked/unexecuted checks honestly; test commands fail correctly and isolate normal data | NFR-008; technical design |
 | AC-089 | Review cohesive tested vertical slices, shared rules, constructor dependencies, and justified abstractions | NFR-009; technical design |
-| AC-090 | Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs | NFR-009; developer/assessment reviewer |
+| AC-090 | Verify readability, ownership, and explanation of generated/handwritten code and design tradeoffs | NFR-009; developer/release reviewer |
 | AC-098 | Record relevant risks, selected controls, owners, evidence, and limitations | NFR-012; technical design |
 | AC-099 | Distinguish intended controls from tested/deployed proof; do not imply ISO/regulatory certification, TLS enforcement, or successful restore without evidence | NFR-012; technical design |
 | AC-100 | Define/verify GraphQL validation against section 5.5, authorization, omission versus clearing, and allowed partial results without partial invalid saves | NFR-013/FR-017/NFR-016; technical design |
@@ -887,7 +885,7 @@ The techdoc also owns schemas, bounds for remaining exposed fields/collections, 
 
 | Dependency / risk | Product or delivery impact | Response / ownership |
 |---|---|---|
-| Expanded registration/archive/audit/MCP scope versus unknown availability | More delivery work before the unchanged deadline | Product owner Muhammad Okfriansyah owns any subsequent scope change; schedule only after availability is known. No commitment is silently dropped. |
+| Expanded registration/archive/audit/MCP scope versus unknown availability | Additional delivery work affects release sequencing | Product owner Muhammad Okfriansyah owns any subsequent scope change; schedule only after availability is known. No commitment is silently dropped. |
 | MCP human approval and client compatibility | A model-generated approval claim could bypass the user, or one client might not support the intended interaction | Techdoc must demonstrate trustworthy exact-content approval in both clients. This is a feature-completion blocker, not a reason to invent its mechanism in the PRD. |
 | Seed metadata/artwork sources and reuse permission | Dataset may be incomplete or unsuitable to redistribute | Select a permitted versioned source and validate counts, variety, identity, provenance, and non-destructive reruns; technical owner unassigned. |
 | Archive/person deletion interactions | Restoring one record could reveal another archived record or recreate removed credits | Require active title and active person for public credits; preserve retained relationships privately, preview deletion impact, and honor explicit removals; AC-024/AC-109/AC-129, AC-131 through AC-138. |
@@ -904,14 +902,14 @@ The techdoc also owns schemas, bounds for remaining exposed fields/collections, 
 
 ### 12.1 Ready for technical design
 
-Product readiness requires complete product scope, clear application users and permissions, observable outcomes, coherent flowcharts, assessment and decision coverage, and explicit handoff of engineering choices. It does not require implemented code, selected providers, passing software tests, or deployment.
+Product readiness requires complete product scope, clear application users and permissions, observable outcomes, coherent flowcharts, requirements and decision coverage, and explicit handoff of engineering choices. It does not require implemented code, selected providers, passing software tests, or deployment.
 
 | Readiness check | Result |
 |---|---|
 | Release product scope and commitments incorporated | Complete: registration, movie/person lifecycle, audit UI, MCP, PII, and configurable input/artwork policies are included; Recommended numerical defaults and deferred scope remain explicit |
 | Product decisions separated from implementation choices | Complete: [section 13](#13-product-decisions-and-technical-design-matters) distinguishes resolved product decisions and next-phase ownership |
 | Product users, stories, flows, and acceptance outcomes agree | Complete after document review; nine product flowcharts and input/artwork boundary, safe handling, configuration, and compatibility criteria included |
-| Assessment and project decision IDs remain traceable | Complete after ID/coverage checks; A01 through A17 and D01 through D26 retained |
+| Baseline and project decision IDs remain traceable | Complete after ID/coverage checks; A01 through A17 and D01 through D26 retained |
 | Existing requirement/story/acceptance/open-decision IDs preserved | Complete after continuity checks; new IDs appended without reuse |
 | Standalone writing and document integrity | Writing and document checks complete; requirements are stated here and references stay within the PRD or point to optional public guidance |
 
@@ -927,34 +925,34 @@ G-01 establishes product handoff readiness. G-02 through G-08 require future imp
 | G-04 Artwork/reliability | Upload, replacement, interrupted work, safe retries, exhaustion, and configured notification work | FR-009/FR-010/FR-014/FR-015/FR-017; NFR-004/NFR-016; AC-149 through AC-152, AC-155/AC-157 | Planned |
 | G-05 Security/operations | Role enforcement, registration, private movie/people archives, audit UI, private-data protection/rotation, and monitoring/alerts work | FR-011 through FR-013, FR-017; NFR-005/NFR-006/NFR-012/NFR-015/NFR-016; AC-133/AC-134, AC-139/AC-141/AC-142, AC-145 through AC-148, AC-153 through AC-155 | Planned; functionality-first does not waive it |
 | G-06 Integrated quality/reproducibility | Responsive/keyboard journeys, restart persistence, real integration, and independent setup work | NFR-003/NFR-007 through NFR-010; US-015 through US-017 | Planned |
-| G-07 Submission/walkthrough | All Required/Committed outcomes, including both MCP clients and human approval, have evidence; repository/README and code ownership are verified | NFR-011; FR-016 / AC-116 through AC-122, AC-126, AC-156; AC-095 through AC-097 | Planned; final deadline unchanged |
+| G-07 Release access/walkthrough | All Required/Committed outcomes, including both MCP clients and human approval, have evidence; repository/README and code ownership are verified | NFR-011; FR-016 / AC-116 through AC-122, AC-126, AC-156; AC-095 through AC-097 | Planned; release access requires verification |
 | G-08 Hosted deployment, only if selected | Hosting-specific protection, storage/recovery, objectives, and ownership are verified | D14; OD-014/OD-016; NFR-012 | Conditional; no live deployment promised |
 
 ### 12.3 Delivery responsibilities and journeys
 
-The following responsibilities concern running, building, and evaluating the submission. They are not application user types or account roles. One person may perform several responsibilities; no additional permissions follow from the label.
+The following responsibilities concern running, building, and evaluating the release. They are not application user types or account roles. One person may perform several responsibilities; no additional permissions follow from the label.
 
 | Responsibility | Purpose | Access boundary |
 |---|---|---|
-| Assessment reviewer | Evaluate the submission, setup instructions, behavior, and verification evidence | Uses Visitor access or prepared Viewer/Maintainer accounts when exercising the application. Access to repository and assessment evidence does not itself grant catalog-management or infrastructure permissions. |
+| Release reviewer | Evaluate the release, setup instructions, behavior, and verification evidence | Uses Visitor access or prepared Viewer/Maintainer accounts when exercising the application. Access to repository and release evidence does not itself grant catalog-management or infrastructure permissions. |
 | Operations owner | Run the system, inspect failures, receive configured notifications, and recover eligible work | Uses restricted, documented operational facilities specified in the techdoc. The person and access mechanism remain unassigned. Maintainer status does not grant infrastructure access. |
-| Developer | Implement, verify, document, and explain the solution | Uses development and assessment facilities. Any application access still follows the Visitor/Viewer/Maintainer permissions. |
+| Developer | Implement, verify, document, and explain the solution | Uses development and release facilities. Any application access still follows the Visitor/Viewer/Maintainer permissions. |
 
 Operational requirements do not add an in-app operations console. The Maintainer audit screen remains the product's read-only catalog-history feature; operational diagnostics and recovery facilities are a separate technical-design responsibility.
 
 | ID | Responsibility and need | Entry condition | Delivery outcome |
 |---|---|---|---|
-| J-05 | Assessment reviewer runs the assessment | Repository access and documented prerequisites | Obtain the initial catalog, exercise product behavior, run documented checks, and verify persistence across restarts |
+| J-05 | Release reviewer runs the initial release | Repository access and documented prerequisites | Obtain the initial catalog, exercise product behavior, run documented checks, and verify persistence across restarts |
 | J-06 | Operations owner diagnoses failed work | Restricted operational access | Identify failed follow-up, receive configured notification, and recover safely without losing the original failure evidence |
-| J-07 | Developer explains the solution | Reviewed submission available | Explain submitted code, tradeoffs, failure behavior, checks, and AI contributions |
+| J-07 | Developer explains the solution | Reviewed release available | Explain project code, tradeoffs, failure behavior, checks, and AI contributions |
 
 ### 12.4 Delivery and operational verification
 
-These scenarios preserve setup, seed, reliability, notification, testing, and submission commitments. Their US identifiers are retained for traceability; they describe delivery responsibilities rather than additional application users. Product stories remain in [section 7](#7-product-stories-and-acceptance-criteria). The verification below is planned, not completed software evidence.
+These scenarios preserve setup, seed, reliability, notification, testing, and release-access commitments. Their US identifiers are retained for traceability; they describe delivery responsibilities rather than additional application users. Product stories remain in [section 7](#7-product-stories-and-acceptance-criteria). The verification below is planned, not completed software evidence.
 
 #### US-006: Start with a reproducible catalog
 
-As an assessment reviewer or operations owner, I want a consistent starting dataset that respects later user decisions. Requirements: FR-008, FR-007, NFR-010. Seed access and invocation are engineering design matters; the observable results are fixed.
+As a release reviewer or operations owner, I want a consistent starting dataset that respects later user decisions. Requirements: FR-008, FR-007, NFR-010. Seed access and invocation are engineering design matters; the observable results are fixed.
 
 | ID | Scenario | Given | When | Then |
 |---|---|---|---|---|
@@ -994,21 +992,21 @@ As an operations owner, I want to connect a failed user action with a cause and 
 
 #### US-016: Verify and explain the work
 
-As a developer or assessment reviewer, I want meaningful evidence and understandable code. Requirements: NFR-008, NFR-009. AC-086 through AC-090 remain in [section 10](#10-compact-engineering-handoff) as engineering verification obligations, with unit/edge, actual-database, real-gRPC, and code-quality commitments preserved.
+As a developer or release reviewer, I want meaningful evidence and understandable code. Requirements: NFR-008, NFR-009. AC-086 through AC-090 remain in [section 10](#10-compact-engineering-handoff) as engineering verification obligations, with unit/edge, actual-database, real-gRPC, and code-quality commitments preserved.
 
-#### US-017: Reproduce and submit the assessment
+#### US-017: Reproduce and review the release
 
-As an assessment reviewer, I want setup instructions and honest evidence so I can assess the intended revision. Requirements: NFR-010, NFR-011, FR-008.
+As a release reviewer, I want setup instructions and honest evidence so I can assess the intended revision. Requirements: NFR-010, NFR-011, FR-008.
 
 | ID | Scenario | Given | When | Then |
 |---|---|---|---|---|
-| AC-091 | Fresh setup | A clean checkout and documented prerequisites are available | The assessment reviewer follows setup and seed instructions | The runnable stack and correct initial catalog become available, with clear access details or actionable startup failure. |
+| AC-091 | Fresh setup | A clean checkout and documented prerequisites are available | The release reviewer follows setup and seed instructions | The runnable stack and correct initial catalog become available, with clear access details or actionable startup failure. |
 | AC-092 | Normal operations | Edits, artwork, and archived movies/people exist | Documented stop/start/restart/status/log actions run | Preserve data and both archive states, verify readiness where appropriate, and expose diagnostic state without secrets. No implicit destructive reset occurs. |
 | AC-093 | Verification commands | Normal application data exist | Unit/integration checks run, including a failing case | Tests use isolated data, report failures honestly, and leave normal records/artwork intact. |
 | AC-094 | Repeatability | A second environment follows the same documented setup/snapshot | Setup completes | Equivalent supported behavior and initial records result; platform and external-client/provider prerequisites are explicit. Offline operation is not promised. |
-| AC-095 | Repository submission | The reviewed revision is ready | Submission access is checked | The assessment reviewer can access the intended Git revision and required material by the recorded deadline; evidence identifies what was submitted. |
+| AC-095 | Repository release access | The reviewed revision is ready | Public release access is checked | The release reviewer can publicly access the intended Git revision and required material; evidence identifies the reviewed revision. |
 | AC-096 | README/AI disclosure | Implementation and actual verification results exist | README is compared with them | Setup/run/seed/test/recovery instructions and AI use are accurate; limitations and unexecuted checks are explicit. MCP client use is documented without claiming unverified compatibility. |
-| AC-097 | Walkthrough | Submitted code and evidence are available | The developer explains a feature and rehearses a small change | They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. No assessment result is guaranteed. |
+| AC-097 | Walkthrough | Reviewed code and evidence are available | The developer explains a feature and rehearses a small change | They can explain generated/handwritten code, decisions, failure behavior, tests, and AI contribution. Release readiness requires verification evidence. |
 
 ## 13. Product decisions and technical-design matters
 
@@ -1053,7 +1051,7 @@ The following approved policies resolve product questions for this release. The 
 | OD-014 | Operational outcomes committed; telemetry tools, readiness rules, definitions/windows/thresholds, retention/access, and response owner remain for techdoc | NFR-006 | Technical design; before monitoring implementation; deployment SLO/SLA only with justified assumptions |
 | OD-015 | Mandated technologies and working ownership retained; compatible versions, database/build/test/migration choices, and detailed boundaries remain for techdoc | NFR-001/NFR-002/NFR-003/NFR-008 | Technical design; before build/contracts |
 | OD-016 | Live host/budget/deployment scope stays Open outside this revision; MCP connectivity still needs a viable design | FR-016/NFR-010/NFR-012 | Product owner for hosting scope, technical design for connectivity; before deployment commitment |
-| OD-017 | Availability and more precise recruiter cutoff remain unconfirmed; recorded deadline still governs | NFR-011 | Muhammad Okfriansyah; before effort-based scheduling |
+| OD-017 | Contributor availability and release scheduling remain unconfirmed | NFR-011 | Muhammad Okfriansyah; before effort-based scheduling |
 | OD-019 | Product discovery/feedback and section 5.5 input/artwork policy settled; GraphQL/gRPC and MCP contracts, human-approval enforcement, consistent counting/validation, safe display/data handling, compatibility, remaining request/query/page and decoding resource bounds, ordering ties/navigation, responsive support matrix, and accessibility verification remain for techdoc | NFR-007/NFR-013/NFR-016, FR-016/FR-017 | Technical design; before dependent implementation |
 | OD-020 | Startup/secret protection and input-policy configuration/compatibility outcomes fixed; config keys/inventory/sources/precedence, distribution, startup/application/reload mechanics, and secure key/provider provisioning remain for techdoc | NFR-005/NFR-015/NFR-016, FR-017 | Technical design; before runnable setup |
 
@@ -1061,7 +1059,7 @@ Recommendations remain proposals unless expressly adopted above. Section 5.5 sel
 
 ## 14. References and revision history
 
-The assessment obligations are listed in [section 6.3](#63-assessment-coverage), project decisions in [section 6.4](#64-project-decision-register), and resolved product policies in [section 13.1](#131-resolved-product-decisions). Requirements map to product acceptance in [section 7](#7-product-stories-and-acceptance-criteria), engineering verification in [section 10.2](#102-retained-engineering-acceptance-references), and delivery/operational verification in [section 12.4](#124-delivery-and-operational-verification). These registers provide the release's traceability within this document.
+The baseline obligations are listed in [section 6.3](#63-project-requirements-coverage), project decisions in [section 6.4](#64-project-decision-register), and resolved product policies in [section 13.1](#131-resolved-product-decisions). Requirements map to product acceptance in [section 7](#7-product-stories-and-acceptance-criteria), engineering verification in [section 10.2](#102-retained-engineering-acceptance-references), and delivery/operational verification in [section 12.4](#124-delivery-and-operational-verification). These registers provide the release's traceability within this document.
 
 [OWASP password storage guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) is optional supporting guidance for one-way password hashing. NFR-015 and AC-125 state the applicable requirement directly; the techdoc will select its implementation parameters.
 
@@ -1069,9 +1067,9 @@ Supporting references for the input/artwork policy are linked beside their ratio
 
 | Version | Date / timezone | Change / evidence |
 |---|---|---|
-| 1.0 | 10 October 2026, Asia/Jakarta | Initial Draft with A01 through A17 and D01 through D26 coverage, 107 acceptance identifiers, and open product/engineering decisions. Assessment obligations verified; no implementation evidence claimed. |
-| 2.0 | 10 October 2026, Asia/Jakarta | Establishes the product and technical-design boundary. Resolves product policies, adds registration/archive/restore/audit UI/MCP/PII commitments and nine actor/action flowcharts, preserves existing IDs, and moves engineering detail into a compact techdoc handoff. Status is Ready for technical design after document checks and writing review; software verification and assessment approval remain pending. |
-| 2.1 | 10 October 2026, Asia/Jakarta | Makes the PRD self-contained for assessment review, with internal requirement/decision references and independently stated account data protection requirements. Removes private reference dependencies and unrelated personal context, retains all IDs and release behavior, and keeps Ready for technical design status. |
+| 1.0 | 10 October 2026, Asia/Jakarta | Initial Draft with A01 through A17 and D01 through D26 coverage, 107 acceptance identifiers, and open product/engineering decisions. Baseline obligations verified; no implementation evidence claimed. |
+| 2.0 | 10 October 2026, Asia/Jakarta | Establishes the product and technical-design boundary. Resolves product policies, adds registration/archive/restore/audit UI/MCP/PII commitments and nine actor/action flowcharts, preserves existing IDs, and moves engineering detail into a compact techdoc handoff. Status is Ready for technical design after document checks and writing review; software verification and release acceptance remain pending. |
+| 2.1 | 10 October 2026, Asia/Jakarta | Makes the PRD self-contained for release review, with internal requirement/decision references and independently stated account data protection requirements. Removes private reference dependencies and unrelated personal context, retains all IDs and release behavior, and keeps Ready for technical design status. |
 | 2.2 | 10 October 2026, Asia/Jakarta | Clarifies Visitor, Viewer, and Maintainer as the application user types and MCP as a connected tool. Separates delivery responsibilities, journeys, and verification from product stories; preserves all identifiers, release commitments, and Ready for technical design status. |
 | 2.3 | 10 October 2026, Asia/Jakarta | Applies archive-first removal to movies and people. Person archiving retains credits privately; restoration reveals only surviving credits on active titles. Adds AC-131 through AC-138, aligns permissions, flows, audit, and seed preservation, and retains Ready for technical design status. |
 | 2.4 | 10 October 2026, Asia/Jakarta | Adds configurable input/artwork policies, selected separate name defaults, Recommended other text/password/file-size values, static image formats, safe plain-text/content handling, and compatibility after changed limits. Adds FR-017, NFR-016, US-021, and AC-139 through AC-159; aligns flows, handoff, risks, gates, and OD-003/OD-007/OD-019/OD-020. Document checks complete; Ready for technical design retained, with implementation and software verification pending. |

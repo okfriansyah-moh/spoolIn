@@ -8,19 +8,19 @@ repositories:
 sources:
 - id: BRAIN
   path: 01-brainstorming-result.md
-  sha256: 591abb89e7760aa8889efa61d81e565684b8a7399eb21e589c56bf94abd2988e
+  sha256: 2450ae03d7772787ffb5271d9eab3dac6d54aff67ac8d1e6ceb68d87b491f161
 - id: PRD
   path: 02-PRD.md
-  sha256: 03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d
+  sha256: d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: 7f31eac77d88197bac8619e64886536b56d6556e138eac4971d44bfcd377be83
+  sha256: 2a67202ff540d98b055000ddca7c22e63ceda4a47a164eb633d70a402a14ea28
 - id: ATDD
   path: 05-atdd.md
-  sha256: d4d3bb1eb2047bee5ab7b70f28110f582fca7ed02d2b00380c9509cf08f3424f
+  sha256: 4af828cf702d29d5cc3b924f949ac6f8a8ef6cd2f7a6986f829351acc38ce0a7
 - id: S-DESIGN-SYSTEM-03-DESIGN-SYSTEM-MD
   path: 03-design-system.md
-  sha256: 87a1cb546fb5a5601878385f6a6d29cb740aeb296fa957515d805272a49954f6
+  sha256: 585b222d387bc113d8ee63ddda0f08729b970037252ad02eb076b39098411113
 - id: S-DESIGN-SYSTEM-BRAND-HISTORY-MD
   path: design-system/brand-history.md
   sha256: dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba
@@ -32,10 +32,10 @@ sources:
   sha256: 906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f
 - id: S-DESIGN-SYSTEM-COVERAGE-JSON
   path: design-system/coverage.json
-  sha256: f5e725d6e85b79bc8dceb353ca7d45dd0574ef4df86f31e68b2f6d3157eea599
+  sha256: 7029e44e15817319e764cf26f01e9446b42d462e7779f65236ff34f4a099b52c
 - id: S-DESIGN-SYSTEM-COVERAGE-MD
   path: design-system/coverage.md
-  sha256: d328ebd526c42dedadc139af95ed2b15f7fae20dfcc9cb08c62dd6e4164282ee
+  sha256: 7c53617473f52c4bac3034c1d70bf6a4cd610d926beb9dc2527ad1f375564df4
 - id: S-DESIGN-SYSTEM-INDEX-MD
   path: design-system/index.md
   sha256: 02b14ff599491bfbc100fc943e7b441df12b61604f4b84b2ec91ebbc47c6a79b
@@ -131,10 +131,10 @@ sources:
   sha256: 6f9027d220b163585f62befa50e913ed81dc97f164b84940d7116e339f762131
 - id: S-PROMPTS-DESIGN-SYSTEM-CREATION-MD
   path: prompts/design-system-creation.md
-  sha256: 498cc3ef159952ac8ac71fefc335039edf13800e814048c48c51ecd100462aa4
+  sha256: c13d3811c14caecc74382eaa9e54d5b75137ff7e0bb114ed0bec42392d8e403b
 - id: S-PROMPTS-TECHDOC-CREATION-MD
   path: prompts/techdoc-creation.md
-  sha256: 78b2ec5697f98344decebd4f19450bd3383e56c77dd689c98f6116ee54df3f95
+  sha256: fc0a58563c9b9e735903e6430ec86ad77f7dc10ecdc28d5dc7ea68fe90cdc6e7
 groups:
 - id: G01
   path: plan/01-reproducible-foundation/group.md
@@ -182,7 +182,7 @@ groups:
 
 ## Goal and scope
 
-This package is the execution handoff for the complete committed local SpoolIn assessment release. It contains 20 outcome groups and 46 reviewable tasks, covering discovery, identity, movies, shared people/credits, archives, artwork, recovery, audit, exact-content MCP creation, seed data, operations and release delivery. Read this entry point, the chosen group, its task, then the task's exact source sections. Task files own execution status and evidence; indexes do not duplicate them.
+This package is the execution handoff for the complete committed local SpoolIn initial release. It contains 20 outcome groups and 46 reviewable tasks, covering discovery, identity, movies, shared people/credits, archives, artwork, recovery, audit, exact-content MCP creation, seed data, operations and release delivery. Read this entry point, the chosen group, its task, then the task's exact source sections. Task files own execution status and evidence; indexes do not duplicate them.
 
 **Document readiness: Ready.** All 46 task definitions are Ready, including T009 after the authorized ATDD-278 correction. All tasks are Not started and all future task checks are Not run. Ready means instructions are settled, not that prerequisites exist or software passed. No application implementation, acceptance execution, provider send, publication or deployment occurred while authoring this plan.
 
@@ -190,7 +190,7 @@ The existing checkout contains documentation only and has no Git metadata, root 
 
 ### Authority and dispositions
 
-Current user instructions govern this planning operation. [PRD](02-PRD.md) owns product behavior; [design specification](03-design-system.md), [tokens](design-system/tokens.json), [components](design-system/components.md) and all linked states own adopted presentation; [techdoc](04-spoolin-techdoc.md) owns selected engineering; [ATDD](05-atdd.md) supplies specified cases and proof boundaries. The YAML source register fingerprints every material local handoff file, including screen scripts/styles/assets and invocation decisions. Historical brainstorming and mockup examples do not replace accepted constraints. The photographed assessment is represented by the existing PRD/brainstorming records; no new verification of that original image is claimed.
+Current user instructions govern this planning operation. [PRD](02-PRD.md) owns product behavior; [design specification](03-design-system.md), [tokens](design-system/tokens.json), [components](design-system/components.md) and all linked states own adopted presentation; [techdoc](04-spoolin-techdoc.md) owns selected engineering; [ATDD](05-atdd.md) supplies specified cases and proof boundaries. The YAML source register fingerprints every material local handoff file, including screen scripts/styles/assets and invocation decisions. Historical brainstorming and mockup examples do not replace accepted constraints. The PRD and brainstorming records state the project baseline requirements.
 
 Retain TD-U-001–009 and ADR-01–10: Svelte/TypeScript static frontend packaged in Core; Kotlin/Spring Boot Core/Catalog/Media; GraphQL and real mTLS gRPC; three owned PostgreSQL18.6 databases with JPA/native bound queries; separate top-level Node MCP adapter; local Compose/Make; reusable frozen seed facts; private outbound ChatGPT tunnel and Claude stdio. No UI library, broker, extra domain service, full application hosting or paid infrastructure is added. Selected dependency pins remain targets until T001 locks and builds them.
 
@@ -198,7 +198,7 @@ TD-U-005/ADR-07 supersede the PRD's earlier external-only notification wording: 
 
 Source resolutions within accepted scope: use `contracts/json/draft.schema.json` from the declared tree instead of the source-consumer table's alternate spelling; enforce proposal quota20 in Catalog under its lock, with adapter feedback; treat dark as base palette while initial unset/invalid theme follows OS preference. Old ATDD revision/count prose does not remove current source hashes or any of its342 active cases. The authorized ATDD revision1.7 correction below resolves GAP-01; other source documents remain unchanged.
 
-Ratings/reviews/aggregation, journals/tracking/community, episodes, direct TV management, account/role administration, email verification/password recovery, AI edits/deletes/artwork, in-app approval queue and configuration UI remain excluded/deferred as registered. Their denial boundaries are still implemented where required. Shared-person changes can affect seeded TV credits without enabling TV writes. Confirmed assessment deadline remains18October2026 end of day Singapore (approximately22:59 Jakarta if interpreted as23:59 Singapore); daily availability and precise cutoff remain unknown, so no effort schedule or guarantee is added.
+Ratings/reviews/aggregation, journals/tracking/community, episodes, direct TV management, account/role administration, email verification/password recovery, AI edits/deletes/artwork, in-app approval queue and configuration UI remain excluded/deferred as registered. Their denial boundaries are still implemented where required. Shared-person changes can affect seeded TV credits without enabling TV writes. Release scheduling depends on verified scope and contributor availability; no release date is committed here.
 
 ### Material source gap
 
@@ -207,6 +207,10 @@ Ratings/reviews/aggregation, journals/tracking/community, episodes, direct TV ma
 | GAP-01 — Resolved, 14 October 2026 | The user-authorized [ATDD-278 revision1.7](05-atdd.md#case-atdd-278-distinguish-omitted-fields-from-clearing-and-ordered-replacements) correction at line11592 now agrees with [PRD optional clearing](02-PRD.md#validation-safe-handling-and-feedback), line196, and [techdoc mutation semantics](04-spoolin-techdoc.md#516-browser-mutations), line1676: omission preserves optional text; explicit null or trimmed blank clears it. Empty-string and whitespace-only fixtures are explicit; required genres and ordered character replacements are unchanged. | T009 is Ready and owns the isolated rule proof. T002/T042 retain transport presence duties; T043/T046 retain integrated/release checks. Plan copies and the independent inventory are refreshed. All case/task execution evidence remains Not run; the source correction establishes no runtime pass. |
 
 G-01–G-06 are future execution/release prerequisites, not additional unresolved product outcomes: actual dependency/image/tunnel lock, real DB/contracts, independently trusted approval in each installed client, licensed100/100 seed, operational proof and named ownership/access. Missing host enforcement keeps that client's publication disabled and the two-client release incomplete; local contributor tasks can still finish their declared narrower proof. Product owner Muhammad Okfriansyah coordinates named technical/security/operator assignments through T046; logical task owners below do not invent human assignments.
+
+### Public documentation reconciliation
+
+On 15 October 2026, the release purpose and contributor guidance were rewritten for public readers. SC-08, AC-095 and ATDD-076 now require public access to the reviewed revision and release material without a calendar cutoff. Their IDs, owners and remaining proof obligations are retained. T046 keeps its ID under the release-handoff filename. Copied source excerpts, line locators and source fingerprints are reconciled with the updated documents. Other product and engineering behavior, task dependencies and execution records are unchanged; this documentation update establishes no software or release-acceptance result.
 
 ## Shared execution rules
 
@@ -359,7 +363,7 @@ Broad requirement/AC/contract clauses are collectively verified: each task prove
 | ATDD-073 | ATDD | [ATDD-073 · L3161](05-atdd.md#case-atdd-073-normal-operations) | Covered | T039 | T039 | — |
 | ATDD-074 | ATDD | [ATDD-074 · L3195](05-atdd.md#case-atdd-074-verification-commands) | Covered | T039 | T039 | — |
 | ATDD-075 | ATDD | [ATDD-075 · L3229](05-atdd.md#case-atdd-075-repeatability) | Covered | T039 | T039 | — |
-| ATDD-076 | ATDD | [ATDD-076 · L3263](05-atdd.md#case-atdd-076-repository-submission) | Covered | T046 | T046 | — |
+| ATDD-076 | ATDD | [ATDD-076 · L3263](05-atdd.md#case-atdd-076-repository-release-access) | Covered | T046 | T046 | — |
 | ATDD-077 | ATDD | [ATDD-077 · L3297](05-atdd.md#case-atdd-077-readmeai-disclosure) | Covered | T046 | T046 | — |
 | ATDD-078 | ATDD | [ATDD-078 · L3331](05-atdd.md#case-atdd-078-walkthrough) | Covered | T046 | T046 | — |
 | ATDD-038 | ATDD | [ATDD-038 · L3367](05-atdd.md#case-atdd-038-progress) | Covered | T025, T026, T027 | T027 | — |
@@ -1111,646 +1115,646 @@ Broad requirement/AC/contract clauses are collectively verified: each task prove
 | ATDD-340-T1-R12 | ATDD | [ATDD-340-T1-R12 · L14056](05-atdd.md#case-atdd-340-select-log-severity-and-validate-logging-configuration) | Covered | T037 | T037 | — |
 | ATDD-341 | ATDD | [ATDD-341 · L14066](05-atdd.md#case-atdd-341-keep-trace-context-scoped-to-real-requests-and-recovery) | Covered | T037 | T037 | — |
 | ATDD-342 | ATDD | [ATDD-342 · L14109](05-atdd.md#case-atdd-342-enforce-json-diagnostics-and-bounded-sink-failure-behavior) | Covered | T037 | T039 | — |
-| J-01 | PRD | [J-01 · L89](02-PRD.md#32-application-journeys) | Covered | T012 | T012 | — |
-| J-02 | PRD | [J-02 · L90](02-PRD.md#32-application-journeys) | Covered | T017, T042 | T017, T042 | — |
-| J-03 | PRD | [J-03 · L91](02-PRD.md#32-application-journeys) | Covered | T023 | T023 | — |
-| J-04 | PRD | [J-04 · L92](02-PRD.md#32-application-journeys) | Covered | T025, T026, T027 | T027 | — |
-| J-08 | PRD | [J-08 · L93](02-PRD.md#32-application-journeys) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| J-09 | PRD | [J-09 · L94](02-PRD.md#32-application-journeys) | Covered | T023 | T023 | — |
-| J-10 | PRD | [J-10 · L95](02-PRD.md#32-application-journeys) | Covered | T030 | T030 | — |
-| J-11 | PRD | [J-11 · L96](02-PRD.md#32-application-journeys) | Covered | T017, T028, T042 | T028, T042 | — |
-| SC-01 | PRD | [SC-01 · L102](02-PRD.md#4-goals-and-success-criteria) | Covered | T039, T046 | T039, T046 | — |
-| SC-02 | PRD | [SC-02 · L103](02-PRD.md#4-goals-and-success-criteria) | Covered | T034, T035 | T035 | — |
-| SC-03 | PRD | [SC-03 · L104](02-PRD.md#4-goals-and-success-criteria) | Covered | T039, T041 | T039, T041 | — |
-| SC-04 | PRD | [SC-04 · L105](02-PRD.md#4-goals-and-success-criteria) | Covered | T008, T009, T017, T043 | T008, T017, T043 | — |
-| SC-05 | PRD | [SC-05 · L106](02-PRD.md#4-goals-and-success-criteria) | Covered | T039, T046 | T039, T046 | — |
-| SC-06 | PRD | [SC-06 · L107](02-PRD.md#4-goals-and-success-criteria) | Covered | T036, T038 | T036, T038 | — |
-| SC-07 | PRD | [SC-07 · L108](02-PRD.md#4-goals-and-success-criteria) | Covered | T045 | T045 | — |
-| SC-08 | PRD | [SC-08 · L109](02-PRD.md#4-goals-and-success-criteria) | Covered | T046 | T046 | — |
-| SC-09 | PRD | [SC-09 · L110](02-PRD.md#4-goals-and-success-criteria) | Covered | T029, T030, T031, T033 | T033 | — |
-| FR-001 | PRD | [FR-001 · L237](02-PRD.md#61-functional-requirements) | Covered | T012, T013, T023, T024 | T013, T024 | — |
-| FR-002 | PRD | [FR-002 · L238](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T012, T013, T023, T024, T025, T026, T027, T043 | T012, T013, T024, T027, T043 | — |
-| FR-003 | PRD | [FR-003 · L239](02-PRD.md#61-functional-requirements) | Covered | T012, T013 | T013 | — |
-| FR-004 | PRD | [FR-004 · L240](02-PRD.md#61-functional-requirements) | Covered | T006, T008, T009, T017, T018, T023, T024, T026, T038, T039, T042, T043 | T006, T017, T018, T024, T026, T038, T039, T042, T043 | — |
-| FR-005 | PRD | [FR-005 · L241](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T012, T013, T017, T019, T020, T023, T024, T034, T035, T041, T042, T043 | T013, T017, T020, T023, T024, T035, T041, T042, T043 | — |
-| FR-006 | PRD | [FR-006 · L242](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T019, T020, T021, T022, T023, T024, T042, T043 | T022, T024, T042, T043 | — |
-| FR-007 | PRD | [FR-007 · L243](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T012, T013, T034, T035, T042, T043 | T013, T035, T042, T043 | — |
-| FR-008 | PRD | [FR-008 · L244](02-PRD.md#61-functional-requirements) | Covered | T034, T035, T041 | T035, T041 | — |
-| FR-009 | PRD | [FR-009 · L245](02-PRD.md#61-functional-requirements) | Covered | T025, T026, T027 | T027 | — |
-| FR-010 | PRD | [FR-010 · L246](02-PRD.md#61-functional-requirements) | Covered | T006, T008, T009, T025, T026, T027, T039, T043 | T006, T025, T026, T027, T039, T043 | — |
-| FR-011 | PRD | [FR-011 · L247](02-PRD.md#61-functional-requirements) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T034, T035, T040, T042, T043 | T006, T007, T016, T035, T040, T042, T043 | — |
-| FR-012 | PRD | [FR-012 · L248](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T023, T024, T029, T030, T031, T032, T033, T039, T043 | T008, T024, T032, T033, T039, T043 | — |
-| FR-013 | PRD | [FR-013 · L249](02-PRD.md#61-functional-requirements) | Covered | T017, T023, T024, T028, T042 | T017, T024, T028, T042 | — |
-| FR-014 | PRD | [FR-014 · L250](02-PRD.md#61-functional-requirements) | Covered | T011, T017, T036 | T011, T017, T036 | — |
-| FR-015 | PRD | [FR-015 · L251](02-PRD.md#61-functional-requirements) | Covered | T036, T038 | T036, T038 | — |
-| FR-016 | PRD | [FR-016 · L252](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T029, T030, T031, T032, T033, T042, T043 | T030, T032, T033, T042, T043 | — |
-| FR-017 | PRD | [FR-017 · L253](02-PRD.md#61-functional-requirements) | Covered | T005, T006, T007, T008, T009, T012, T013, T019, T020, T025, T026, T027, T029, T030, T031, T032, T033, T034, T035, T039, T042, T043 | T006, T007, T013, T020, T027, T032, T033, T035, T039, T042, T043 | — |
-| NFR-001 | PRD | [NFR-001 · L261](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T004, T025, T026, T027, T039, T042, T044 | T027, T039, T042, T044 | — |
-| NFR-002 | PRD | [NFR-002 · L262](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T025, T026, T027, T039 | T027, T039 | — |
-| NFR-003 | PRD | [NFR-003 · L263](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T012, T017, T039, T041, T045 | T012, T017, T039, T041, T045 | — |
-| NFR-004 | PRD | [NFR-004 · L264](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T011, T026, T036, T039, T042 | T011, T026, T036, T039, T042 | — |
-| NFR-005 | PRD | [NFR-005 · L265](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T006, T008, T009, T025, T026, T027, T039, T043 | T006, T027, T039, T043 | — |
-| NFR-006 | PRD | [NFR-006 · L266](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T008, T036, T038, T039 | T008, T036, T038, T039 | — |
-| NFR-007 | PRD | [NFR-007 · L267](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T004, T008, T009, T012, T013, T025, T026, T027, T043, T044 | T012, T013, T027, T043, T044 | — |
-| NFR-008 | PRD | [NFR-008 · L268](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T002, T004, T005, T008, T009, T010, T011, T012, T013, T014, T015, T017, T025, T026, T027, T030, T031, T034, T035, T036, T038, T039, T043, T046 | T002, T004, T005, T008, T009, T010, T011, T012, T013, T014, T015, T017, T027, T030, T031, T034, T035, T036, T038, T039, T043, T046 | — |
-| NFR-009 | PRD | [NFR-009 · L269](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T039, T046 | T039, T046 | — |
-| NFR-010 | PRD | [NFR-010 · L270](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T039, T046 | T039, T046 | — |
-| NFR-011 | PRD | [NFR-011 · L271](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T046 | T046 | — |
-| NFR-012 | PRD | [NFR-012 · L272](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T008, T009, T043, T046 | T043, T046 | — |
-| NFR-013 | PRD | [NFR-013 · L273](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T004, T006, T008, T009, T017, T025, T026, T027, T042, T043 | T004, T006, T017, T027, T042, T043 | — |
-| NFR-014 | PRD | [NFR-014 · L274](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T017, T018, T019, T020, T021, T022, T042 | T017, T018, T022, T042 | — |
-| NFR-015 | PRD | [NFR-015 · L275](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T005, T006, T007, T008, T009, T014, T017, T028, T040, T043 | T006, T007, T014, T028, T040, T043 | — |
-| NFR-016 | PRD | [NFR-016 · L276](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T006, T008, T009, T012, T025, T026, T027, T029, T030, T031, T032, T033, T034, T035, T039, T042, T043 | T006, T012, T027, T032, T033, T035, T039, T042, T043 | — |
-| A01 | PRD | [A01 · L282](02-PRD.md#63-assessment-coverage) | Covered | T039 | T039 | — |
-| A02 | PRD | [A02 · L283](02-PRD.md#63-assessment-coverage) | Covered | T039 | T039 | — |
-| A03 | PRD | [A03 · L284](02-PRD.md#63-assessment-coverage) | Covered | T025, T026, T027, T039 | T027, T039 | — |
-| A04 | PRD | [A04 · L285](02-PRD.md#63-assessment-coverage) | Covered | T011, T017, T025, T026, T027, T034, T035, T036, T039 | T011, T017, T027, T035, T036, T039 | — |
-| A05 | PRD | [A05 · L286](02-PRD.md#63-assessment-coverage) | Covered | T004, T017, T025, T026, T027, T042, T044 | T017, T027, T042, T044 | — |
-| A06 | PRD | [A06 · L287](02-PRD.md#63-assessment-coverage) | Covered | T012, T013 | T013 | — |
-| A07 | PRD | [A07 · L288](02-PRD.md#63-assessment-coverage) | Covered | T017, T018, T023, T024, T026, T038, T042 | T017, T018, T024, T026, T038, T042 | — |
-| A08 | PRD | [A08 · L289](02-PRD.md#63-assessment-coverage) | Covered | T025, T026, T027 | T025, T026, T027 | — |
-| A09 | PRD | [A09 · L290](02-PRD.md#63-assessment-coverage) | Covered | T012, T013, T019, T020, T021, T022, T023, T024 | T013, T022, T024 | — |
-| A10 | PRD | [A10 · L291](02-PRD.md#63-assessment-coverage) | Covered | T017, T019, T020, T021, T022, T023, T024, T042 | T017, T020, T022, T023, T024, T042 | — |
-| A11 | PRD | [A11 · L292](02-PRD.md#63-assessment-coverage) | Covered | T012, T013, T023, T024 | T012, T013, T024 | — |
-| A12 | PRD | [A12 · L293](02-PRD.md#63-assessment-coverage) | Covered | T039, T046 | T039, T046 | — |
-| A13 | PRD | [A13 · L294](02-PRD.md#63-assessment-coverage) | Covered | T004, T044 | T044 | — |
-| A14 | PRD | [A14 · L295](02-PRD.md#63-assessment-coverage) | Covered | T004, T012, T013, T017, T018, T025, T026, T027, T044 | T013, T018, T027, T044 | — |
-| A15 | PRD | [A15 · L296](02-PRD.md#63-assessment-coverage) | Covered | T046 | T046 | — |
-| A16 | PRD | [A16 · L297](02-PRD.md#63-assessment-coverage) | Covered | T039, T046 | T039, T046 | — |
-| A17 | PRD | [A17 · L298](02-PRD.md#63-assessment-coverage) | Covered | T046 | T046 | — |
-| D01 | PRD | [D01 · L304](02-PRD.md#64-project-decision-register) | Covered | T046 | T046 | — |
-| D02 | PRD | [D02 · L305](02-PRD.md#64-project-decision-register) | Covered | T039 | T039 | — |
-| D03 | PRD | [D03 · L306](02-PRD.md#64-project-decision-register) | Covered | T004, T017, T025, T026, T027, T039, T042, T044 | T017, T027, T039, T042, T044 | — |
-| D04 | PRD | [D04 · L307](02-PRD.md#64-project-decision-register) | Covered | T039, T046 | T039, T046 | — |
-| D05 | PRD | [D05 · L308](02-PRD.md#64-project-decision-register) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T017, T028, T034, T035, T039, T043 | T007, T008, T016, T017, T028, T035, T039, T043 | — |
-| D06 | PRD | [D06 · L309](02-PRD.md#64-project-decision-register) | Covered | T008, T009, T043, T046 | T043, T046 | — |
-| D07 | PRD | [D07 · L310](02-PRD.md#64-project-decision-register) | Covered | T005, T006, T007, T008, T009, T034, T035, T039, T043 | T006, T007, T008, T035, T039, T043 | — |
-| D08 | PRD | [D08 · L311](02-PRD.md#64-project-decision-register) | Covered | T017, T042 | T017, T042 | — |
-| D09 | PRD | [D09 · L312](02-PRD.md#64-project-decision-register) | Covered | T017, T018, T019, T020, T021, T022, T042 | T017, T018, T022, T042 | — |
-| D10 | PRD | [D10 · L313](02-PRD.md#64-project-decision-register) | Covered | T025, T026, T027, T039 | T027, T039 | — |
-| D11 | PRD | [D11 · L314](02-PRD.md#64-project-decision-register) | Covered | T025, T026, T027 | T025, T026, T027 | — |
-| D12 | PRD | [D12 · L315](02-PRD.md#64-project-decision-register) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T034, T035, T039, T043 | T007, T008, T016, T035, T039, T043 | — |
-| D13 | PRD | [D13 · L316](02-PRD.md#64-project-decision-register) | Covered | T039, T046 | T039, T046 | — |
-| D14 | PRD | [D14 · L317](02-PRD.md#64-project-decision-register) | Excluded | — | — | Live deployment remains unselected; local reproducibility and viable MCP connectivity remain included. |
-| D15 | PRD | [D15 · L318](02-PRD.md#64-project-decision-register) | Deferred | — | — | Excluded from assessment delivery by PRD section 5.4; retain included provenance groundwork separately. |
-| D16 | PRD | [D16 · L319](02-PRD.md#64-project-decision-register) | Deferred | — | — | Excluded from assessment delivery by PRD section 5.4; retain included provenance groundwork separately. |
-| D17 | PRD | [D17 · L320](02-PRD.md#64-project-decision-register) | Covered | T039, T046 | T039, T046 | — |
-| D18 | PRD | [D18 · L321](02-PRD.md#64-project-decision-register) | Covered | T012, T017, T045 | T012, T017, T045 | — |
-| D19 | PRD | [D19 · L322](02-PRD.md#64-project-decision-register) | Covered | T011, T017, T025, T026, T027, T034, T035, T036, T039, T046 | T011, T017, T027, T035, T036, T039, T046 | — |
-| D20 | PRD | [D20 · L323](02-PRD.md#64-project-decision-register) | Covered | T011, T017, T028, T036 | T011, T017, T028, T036 | — |
-| D21 | PRD | [D21 · L324](02-PRD.md#64-project-decision-register) | Covered | T008, T009, T011, T026, T036, T038, T039, T042, T043 | T011, T026, T036, T038, T039, T042, T043 | — |
-| D22 | PRD | [D22 · L325](02-PRD.md#64-project-decision-register) | Covered | T011, T039 | T011, T039 | — |
-| D23 | PRD | [D23 · L326](02-PRD.md#64-project-decision-register) | Covered | T008, T036, T037, T038, T039 | T008, T036, T037, T038, T039 | — |
-| D24 | PRD | [D24 · L327](02-PRD.md#64-project-decision-register) | Covered | T034, T035, T041 | T035, T041 | — |
-| D25 | PRD | [D25 · L328](02-PRD.md#64-project-decision-register) | Covered | T012, T013, T019, T020, T021, T022, T023, T024, T034, T035, T042 | T013, T022, T024, T035, T042 | — |
-| D26 | PRD | [D26 · L329](02-PRD.md#64-project-decision-register) | Covered | T012, T013, T034, T035 | T013, T035 | — |
-| AC-001 | PRD | [AC-001 · L341](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-001-C01 | PRD | [AC-001-C01 · L341](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-001-C02 | PRD | [AC-001-C02 · L341](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-002 | PRD | [AC-002 · L342](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-002-C01 | PRD | [AC-002-C01 · L342](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-003 | PRD | [AC-003 · L343](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-003-C01 | PRD | [AC-003-C01 · L343](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-004 | PRD | [AC-004 · L344](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-004-C01 | PRD | [AC-004-C01 · L344](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-004-C02 | PRD | [AC-004-C02 · L344](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-005 | PRD | [AC-005 · L345](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-005-C01 | PRD | [AC-005-C01 · L345](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
-| AC-006 | PRD | [AC-006 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-006-C01 | PRD | [AC-006-C01 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-006-C02 | PRD | [AC-006-C02 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-006-C03 | PRD | [AC-006-C03 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-007 | PRD | [AC-007 · L354](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-007-C01 | PRD | [AC-007-C01 · L354](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-008 | PRD | [AC-008 · L355](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
-| AC-008-C01 | PRD | [AC-008-C01 · L355](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
-| AC-008-C02 | PRD | [AC-008-C02 · L355](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
-| AC-008-C03 | PRD | [AC-008-C03 · L355](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
-| AC-009 | PRD | [AC-009 · L356](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-009-C01 | PRD | [AC-009-C01 · L356](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-010 | PRD | [AC-010 · L357](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-010-C01 | PRD | [AC-010-C01 · L357](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-011 | PRD | [AC-011 · L358](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-011-C01 | PRD | [AC-011-C01 · L358](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-012 | PRD | [AC-012 · L359](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-012-C01 | PRD | [AC-012-C01 · L359](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-012-C02 | PRD | [AC-012-C02 · L359](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-013 | PRD | [AC-013 · L360](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-013-C01 | PRD | [AC-013-C01 · L360](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-013-C02 | PRD | [AC-013-C02 · L360](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-014 | PRD | [AC-014 · L361](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-014-C01 | PRD | [AC-014-C01 · L361](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-015 | PRD | [AC-015 · L362](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-015-C01 | PRD | [AC-015-C01 · L362](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
-| AC-016 | PRD | [AC-016 · L370](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T017, T018 | — |
-| AC-016-C01 | PRD | [AC-016-C01 · L370](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T017, T018 | — |
-| AC-017 | PRD | [AC-017 · L371](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
-| AC-017-C01 | PRD | [AC-017-C01 · L371](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
-| AC-017-C02 | PRD | [AC-017-C02 · L371](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
-| AC-018 | PRD | [AC-018 · L372](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
-| AC-018-C01 | PRD | [AC-018-C01 · L372](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
-| AC-018-C02 | PRD | [AC-018-C02 · L372](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
-| AC-019 | PRD | [AC-019 · L373](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024, T026, T038 | T024, T026, T038 | — |
-| AC-019-C01 | PRD | [AC-019-C01 · L373](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024, T026, T038 | T024, T026, T038 | — |
-| AC-019-C02 | PRD | [AC-019-C02 · L373](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024, T026, T038 | T024, T026, T038 | — |
-| AC-020 | PRD | [AC-020 · L374](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-020-C01 | PRD | [AC-020-C01 · L374](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-021 | PRD | [AC-021 · L375](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018, T042 | T018, T042 | — |
-| AC-021-C01 | PRD | [AC-021-C01 · L375](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018, T042 | T018, T042 | — |
-| AC-108 | PRD | [AC-108 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-108-C01 | PRD | [AC-108-C01 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-108-C02 | PRD | [AC-108-C02 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-109 | PRD | [AC-109 · L377](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-109-C01 | PRD | [AC-109-C01 · L377](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-109-C02 | PRD | [AC-109-C02 · L377](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-109-C03 | PRD | [AC-109-C03 · L377](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-110 | PRD | [AC-110 · L378](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-110-C01 | PRD | [AC-110-C01 · L378](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-110-C02 | PRD | [AC-110-C02 · L378](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-110-C03 | PRD | [AC-110-C03 · L378](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-130 | PRD | [AC-130 · L379](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-130-C01 | PRD | [AC-130-C01 · L379](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
-| AC-022 | PRD | [AC-022 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T012, T013 | T013 | — |
-| AC-022-C01 | PRD | [AC-022-C01 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T012, T013 | T013 | — |
-| AC-022-C02 | PRD | [AC-022-C02 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T012, T013 | T013 | — |
-| AC-023 | PRD | [AC-023 · L388](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020 | T020 | — |
-| AC-023-C01 | PRD | [AC-023-C01 · L388](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020 | T020 | — |
-| AC-023-C02 | PRD | [AC-023-C02 · L388](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020 | T020 | — |
-| AC-024 | PRD | [AC-024 · L389](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
-| AC-024-C01 | PRD | [AC-024-C01 · L389](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
-| AC-024-C02 | PRD | [AC-024-C02 · L389](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
-| AC-024-C03 | PRD | [AC-024-C03 · L389](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
-| AC-025 | PRD | [AC-025 · L390](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-025-C01 | PRD | [AC-025-C01 · L390](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-025-C02 | PRD | [AC-025-C02 · L390](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-129 | PRD | [AC-129 · L391](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T023, T024 | — |
-| AC-129-C01 | PRD | [AC-129-C01 · L391](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T023, T024 | — |
-| AC-026 | PRD | [AC-026 · L392](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022 | T022 | — |
-| AC-026-C01 | PRD | [AC-026-C01 · L392](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022 | T022 | — |
-| AC-027 | PRD | [AC-027 · L393](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022, T042 | T022, T042 | — |
-| AC-027-C01 | PRD | [AC-027-C01 · L393](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022, T042 | T022, T042 | — |
-| AC-027-C02 | PRD | [AC-027-C02 · L393](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022, T042 | T022, T042 | — |
-| AC-028 | PRD | [AC-028 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-028-C01 | PRD | [AC-028-C01 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-028-C02 | PRD | [AC-028-C02 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-028-C03 | PRD | [AC-028-C03 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-131 | PRD | [AC-131 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-131-C01 | PRD | [AC-131-C01 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-131-C02 | PRD | [AC-131-C02 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-132 | PRD | [AC-132 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-132-C01 | PRD | [AC-132-C01 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-132-C02 | PRD | [AC-132-C02 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-132-C03 | PRD | [AC-132-C03 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-133 | PRD | [AC-133 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-133-C01 | PRD | [AC-133-C01 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-133-C02 | PRD | [AC-133-C02 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-133-C03 | PRD | [AC-133-C03 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-134 | PRD | [AC-134 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-134-C01 | PRD | [AC-134-C01 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-134-C02 | PRD | [AC-134-C02 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-134-C03 | PRD | [AC-134-C03 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-135 | PRD | [AC-135 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-135-C01 | PRD | [AC-135-C01 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-135-C02 | PRD | [AC-135-C02 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-135-C03 | PRD | [AC-135-C03 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-135-C04 | PRD | [AC-135-C04 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-136 | PRD | [AC-136 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-136-C01 | PRD | [AC-136-C01 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-136-C02 | PRD | [AC-136-C02 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-136-C03 | PRD | [AC-136-C03 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| AC-137 | PRD | [AC-137 · L401](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
-| AC-137-C01 | PRD | [AC-137-C01 · L401](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
-| AC-137-C02 | PRD | [AC-137-C02 · L401](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
-| AC-137-C03 | PRD | [AC-137-C03 · L401](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
-| AC-138 | PRD | [AC-138 · L402](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T034, T035, T041 | T035, T041 | — |
-| AC-138-C01 | PRD | [AC-138-C01 · L402](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T034, T035, T041 | T035, T041 | — |
-| AC-138-C02 | PRD | [AC-138-C02 · L402](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T034, T035, T041 | T035, T041 | — |
-| AC-029 | PRD | [AC-029 · L410](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T034, T035 | T035 | — |
-| AC-029-C01 | PRD | [AC-029-C01 · L410](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T034, T035 | T035 | — |
-| AC-030 | PRD | [AC-030 · L411](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-030-C01 | PRD | [AC-030-C01 · L411](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-031 | PRD | [AC-031 · L412](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-031-C01 | PRD | [AC-031-C01 · L412](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-031-C02 | PRD | [AC-031-C02 · L412](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-032 | PRD | [AC-032 · L413](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-032-C01 | PRD | [AC-032-C01 · L413](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| AC-038 | PRD | [AC-038 · L421](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-038-C01 | PRD | [AC-038-C01 · L421](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-038-C02 | PRD | [AC-038-C02 · L421](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-039 | PRD | [AC-039 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-039-C01 | PRD | [AC-039-C01 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-039-C02 | PRD | [AC-039-C02 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-039-C03 | PRD | [AC-039-C03 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-040 | PRD | [AC-040 · L423](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-040-C01 | PRD | [AC-040-C01 · L423](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-041 | PRD | [AC-041 · L424](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-041-C01 | PRD | [AC-041-C01 · L424](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-041-C02 | PRD | [AC-041-C02 · L424](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-042 | PRD | [AC-042 · L425](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-042-C01 | PRD | [AC-042-C01 · L425](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-043 | PRD | [AC-043 · L426](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-043-C01 | PRD | [AC-043-C01 · L426](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-043-C02 | PRD | [AC-043-C02 · L426](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-044 | PRD | [AC-044 · L427](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-044-C01 | PRD | [AC-044-C01 · L427](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-044-C02 | PRD | [AC-044-C02 · L427](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-045 | PRD | [AC-045 · L428](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-045-C01 | PRD | [AC-045-C01 · L428](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-045-C02 | PRD | [AC-045-C02 · L428](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| AC-046 | PRD | [AC-046 · L429](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T025, T026, T027 | — |
-| AC-046-C01 | PRD | [AC-046-C01 · L429](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T025, T026, T027 | — |
-| AC-047 | PRD | [AC-047 · L437](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008 | T007 | — |
-| AC-047-C01 | PRD | [AC-047-C01 · L437](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008 | T007 | — |
-| AC-048 | PRD | [AC-048 · L438](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T043 | T007, T016, T043 | — |
-| AC-048-C01 | PRD | [AC-048-C01 · L438](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T014, T015, T016 | T007, T016 | — |
-| AC-048-C02 | PRD | [AC-048-C02 · L438](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T014, T015, T016 | T007, T016 | — |
-| AC-049 | PRD | [AC-049 · L439](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T034, T035 | T035 | — |
-| AC-049-C01 | PRD | [AC-049-C01 · L439](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T034, T035 | T035 | — |
-| AC-050 | PRD | [AC-050 · L440](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T039, T043 | T008, T039, T043 | — |
-| AC-050-C01 | PRD | [AC-050-C01 · L440](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T039, T043 | T008, T039, T043 | — |
-| AC-051 | PRD | [AC-051 · L441](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
-| AC-051-C01 | PRD | [AC-051-C01 · L441](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
-| AC-052 | PRD | [AC-052 · L442](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
-| AC-052-C01 | PRD | [AC-052-C01 · L442](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
-| AC-111 | PRD | [AC-111 · L443](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T034, T035 | T006, T007, T035 | — |
-| AC-111-C01 | PRD | [AC-111-C01 · L443](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T034, T035 | T006, T007, T035 | — |
-| AC-112 | PRD | [AC-112 · L444](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T040 | T006, T007, T040 | — |
-| AC-112-C01 | PRD | [AC-112-C01 · L444](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T040 | T006, T007, T040 | — |
-| AC-112-C02 | PRD | [AC-112-C02 · L444](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T040 | T006, T007, T040 | — |
-| AC-113 | PRD | [AC-113 · L445](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T023, T024 | T024 | — |
-| AC-113-C01 | PRD | [AC-113-C01 · L445](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T023, T024 | T024 | — |
-| AC-113-C02 | PRD | [AC-113-C02 · L445](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T023, T024 | T024 | — |
-| AC-053 | PRD | [AC-053 · L453](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T017, T028 | — |
-| AC-053-C01 | PRD | [AC-053-C01 · L453](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T017, T028 | — |
-| AC-053-C02 | PRD | [AC-053-C02 · L453](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T017, T028 | — |
-| AC-054 | PRD | [AC-054 · L454](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-054-C01 | PRD | [AC-054-C01 · L454](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-055 | PRD | [AC-055 · L455](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-055-C01 | PRD | [AC-055-C01 · L455](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-055-C02 | PRD | [AC-055-C02 · L455](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-056 | PRD | [AC-056 · L456](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-056-C01 | PRD | [AC-056-C01 · L456](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-056-C02 | PRD | [AC-056-C02 · L456](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-056-C03 | PRD | [AC-056-C03 · L456](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-114 | PRD | [AC-114 · L457](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028, T042 | T028, T042 | — |
-| AC-114-C01 | PRD | [AC-114-C01 · L457](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028, T042 | T028, T042 | — |
-| AC-114-C02 | PRD | [AC-114-C02 · L457](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028, T042 | T028, T042 | — |
-| AC-115 | PRD | [AC-115 · L458](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-115-C01 | PRD | [AC-115-C01 · L458](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-127 | PRD | [AC-127 · L459](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-127-C01 | PRD | [AC-127-C01 · L459](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-127-C02 | PRD | [AC-127-C02 · L459](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
-| AC-068 | PRD | [AC-068 · L467](02-PRD.md#us-011-continue-metadata-work-during-an-artwork-outage) | Covered | T025, T026, T027 | T027 | — |
-| AC-068-C01 | PRD | [AC-068-C01 · L467](02-PRD.md#us-011-continue-metadata-work-during-an-artwork-outage) | Covered | T025, T026, T027 | T027 | — |
-| AC-071 | PRD | [AC-071 · L475](02-PRD.md#us-012-preserve-saved-work) | Covered | T039, T041 | T039, T041 | — |
-| AC-071-C01 | PRD | [AC-071-C01 · L475](02-PRD.md#us-012-preserve-saved-work) | Covered | T039, T041 | T039, T041 | — |
-| AC-083 | PRD | [AC-083 · L483](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
-| AC-083-C01 | PRD | [AC-083-C01 · L483](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
-| AC-084 | PRD | [AC-084 · L484](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
-| AC-084-C01 | PRD | [AC-084-C01 · L484](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
-| AC-085 | PRD | [AC-085 · L485](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
-| AC-085-C01 | PRD | [AC-085-C01 · L485](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
-| AC-104 | PRD | [AC-104 · L493](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T019, T020, T021, T022 | T017, T022 | — |
-| AC-104-C01 | PRD | [AC-104-C01 · L493](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T019, T020, T021, T022 | T017, T022 | — |
-| AC-105 | PRD | [AC-105 · L494](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T018 | T017, T018 | — |
-| AC-105-C01 | PRD | [AC-105-C01 · L494](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T018 | T017, T018 | — |
-| AC-107 | PRD | [AC-107 · L495](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T019, T020, T021, T022 | T022 | — |
-| AC-107-C01 | PRD | [AC-107-C01 · L495](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T019, T020, T021, T022 | T022 | — |
-| AC-116 | PRD | [AC-116 · L503](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-116-C01 | PRD | [AC-116-C01 · L503](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-117 | PRD | [AC-117 · L504](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T030, T032 | — |
-| AC-117-C01 | PRD | [AC-117-C01 · L504](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T030, T032 | — |
-| AC-117-C02 | PRD | [AC-117-C02 · L504](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T030, T032 | — |
-| AC-118 | PRD | [AC-118 · L505](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T030, T032, T033 | — |
-| AC-118-C01 | PRD | [AC-118-C01 · L505](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T030, T032, T033 | — |
-| AC-118-C02 | PRD | [AC-118-C02 · L505](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T030, T032, T033 | — |
-| AC-119 | PRD | [AC-119 · L506](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-119-C01 | PRD | [AC-119-C01 · L506](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-119-C02 | PRD | [AC-119-C02 · L506](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-120 | PRD | [AC-120 · L507](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T032 | — |
-| AC-120-C01 | PRD | [AC-120-C01 · L507](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T032 | — |
-| AC-120-C02 | PRD | [AC-120-C02 · L507](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T032 | — |
-| AC-121 | PRD | [AC-121 · L508](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T042 | T030, T032, T042 | — |
-| AC-121-C01 | PRD | [AC-121-C01 · L508](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T042 | T030, T032, T042 | — |
-| AC-122 | PRD | [AC-122 · L509](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-122-C01 | PRD | [AC-122-C01 · L509](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T033 | T033 | — |
-| AC-126 | PRD | [AC-126 · L510](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-126-C01 | PRD | [AC-126-C01 · L510](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-123 | PRD | [AC-123 · L520](02-PRD.md#us-020-protect-private-account-information) | Covered | T008, T009, T014, T043 | T014, T043 | — |
-| AC-123-C01 | PRD | [AC-123-C01 · L520](02-PRD.md#us-020-protect-private-account-information) | Covered | T008, T009, T014, T043 | T014, T043 | — |
-| AC-124 | PRD | [AC-124 · L521](02-PRD.md#us-020-protect-private-account-information) | Covered | T040 | T040 | — |
-| AC-124-C01 | PRD | [AC-124-C01 · L521](02-PRD.md#us-020-protect-private-account-information) | Covered | T040 | T040 | — |
-| AC-125 | PRD | [AC-125 · L522](02-PRD.md#us-020-protect-private-account-information) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-125-C01 | PRD | [AC-125-C01 · L522](02-PRD.md#us-020-protect-private-account-information) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-128 | PRD | [AC-128 · L523](02-PRD.md#us-020-protect-private-account-information) | Covered | T014, T040 | T014, T040 | — |
-| AC-128-C01 | PRD | [AC-128-C01 · L523](02-PRD.md#us-020-protect-private-account-information) | Covered | T014, T040 | T014, T040 | — |
-| AC-139 | PRD | [AC-139 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-139-C01 | PRD | [AC-139-C01 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-139-C02 | PRD | [AC-139-C02 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-139-C03 | PRD | [AC-139-C03 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-140 | PRD | [AC-140 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T019, T020 | T020 | — |
-| AC-140-C01 | PRD | [AC-140-C01 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T019, T020 | T020 | — |
-| AC-140-C02 | PRD | [AC-140-C02 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T019, T020 | T020 | — |
-| AC-141 | PRD | [AC-141 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
-| AC-141-C01 | PRD | [AC-141-C01 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
-| AC-141-C02 | PRD | [AC-141-C02 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
-| AC-141-C03 | PRD | [AC-141-C03 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
-| AC-142 | PRD | [AC-142 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-142-C01 | PRD | [AC-142-C01 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-142-C02 | PRD | [AC-142-C02 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-142-C03 | PRD | [AC-142-C03 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-143 | PRD | [AC-143 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-143-C01 | PRD | [AC-143-C01 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-143-C02 | PRD | [AC-143-C02 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-143-C03 | PRD | [AC-143-C03 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
-| AC-144 | PRD | [AC-144 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-144-C01 | PRD | [AC-144-C01 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-144-C02 | PRD | [AC-144-C02 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-144-C03 | PRD | [AC-144-C03 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-145 | PRD | [AC-145 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-145-C01 | PRD | [AC-145-C01 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-145-C02 | PRD | [AC-145-C02 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-145-C03 | PRD | [AC-145-C03 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-145-C04 | PRD | [AC-145-C04 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-146 | PRD | [AC-146 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-146-C01 | PRD | [AC-146-C01 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-146-C02 | PRD | [AC-146-C02 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-146-C03 | PRD | [AC-146-C03 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-146-C04 | PRD | [AC-146-C04 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
-| AC-147 | PRD | [AC-147 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
-| AC-147-C01 | PRD | [AC-147-C01 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
-| AC-147-C02 | PRD | [AC-147-C02 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
-| AC-147-C03 | PRD | [AC-147-C03 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
-| AC-148 | PRD | [AC-148 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-148-C01 | PRD | [AC-148-C01 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-148-C02 | PRD | [AC-148-C02 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-148-C03 | PRD | [AC-148-C03 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
-| AC-149 | PRD | [AC-149 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-149-C01 | PRD | [AC-149-C01 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-149-C02 | PRD | [AC-149-C02 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-149-C03 | PRD | [AC-149-C03 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-150 | PRD | [AC-150 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-150-C01 | PRD | [AC-150-C01 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-150-C02 | PRD | [AC-150-C02 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-150-C03 | PRD | [AC-150-C03 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-151 | PRD | [AC-151 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-151-C01 | PRD | [AC-151-C01 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-151-C02 | PRD | [AC-151-C02 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-151-C03 | PRD | [AC-151-C03 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-152 | PRD | [AC-152 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-152-C01 | PRD | [AC-152-C01 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-152-C02 | PRD | [AC-152-C02 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-152-C03 | PRD | [AC-152-C03 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| AC-153 | PRD | [AC-153 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-153-C01 | PRD | [AC-153-C01 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-153-C02 | PRD | [AC-153-C02 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-153-C03 | PRD | [AC-153-C03 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-153-C04 | PRD | [AC-153-C04 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-153-C05 | PRD | [AC-153-C05 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-154 | PRD | [AC-154 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-154-C01 | PRD | [AC-154-C01 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-154-C02 | PRD | [AC-154-C02 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-154-C03 | PRD | [AC-154-C03 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-154-C04 | PRD | [AC-154-C04 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-155 | PRD | [AC-155 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
-| AC-155-C01 | PRD | [AC-155-C01 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
-| AC-155-C02 | PRD | [AC-155-C02 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
-| AC-155-C03 | PRD | [AC-155-C03 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
-| AC-156 | PRD | [AC-156 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-156-C01 | PRD | [AC-156-C01 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-156-C02 | PRD | [AC-156-C02 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-156-C03 | PRD | [AC-156-C03 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
-| AC-157 | PRD | [AC-157 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T025, T026, T027, T039, T043 | T027, T039, T043 | — |
-| AC-157-C01 | PRD | [AC-157-C01 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T025, T026, T027, T039, T043 | T027, T039, T043 | — |
-| AC-157-C02 | PRD | [AC-157-C02 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T025, T026, T027, T039, T043 | T027, T039, T043 | — |
-| AC-158 | PRD | [AC-158 · L550](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
-| AC-158-C01 | PRD | [AC-158-C01 · L550](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
-| AC-158-C02 | PRD | [AC-158-C02 · L550](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
-| AC-158-C03 | PRD | [AC-158-C03 · L550](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
-| AC-159 | PRD | [AC-159 · L551](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
-| AC-159-C01 | PRD | [AC-159-C01 · L551](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
-| AC-159-C02 | PRD | [AC-159-C02 · L551](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
-| AC-159-C03 | PRD | [AC-159-C03 · L551](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
-| AC-064 | PRD | [AC-064 · L857](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
-| AC-065 | PRD | [AC-065 · L858](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T025, T026, T027, T039 | T027, T039 | — |
-| AC-066 | PRD | [AC-066 · L859](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T004, T025, T026, T027, T042, T044 | T027, T042, T044 | — |
-| AC-067 | PRD | [AC-067 · L860](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
-| AC-069 | PRD | [AC-069 · L861](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T017 | T017 | — |
-| AC-070 | PRD | [AC-070 · L862](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T012, T017, T045 | T012, T017, T045 | — |
-| AC-072 | PRD | [AC-072 · L863](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T011 | T011 | — |
-| AC-074 | PRD | [AC-074 · L864](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T011, T039 | T011, T039 | — |
-| AC-076 | PRD | [AC-076 · L865](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
-| AC-077 | PRD | [AC-077 · L866](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
-| AC-079 | PRD | [AC-079 · L867](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T038, T039 | T038, T039 | — |
-| AC-080 | PRD | [AC-080 · L868](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T008, T038 | T008, T038 | — |
-| AC-081 | PRD | [AC-081 · L869](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T038 | T038 | — |
-| AC-082 | PRD | [AC-082 · L870](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T036, T038 | T036, T038 | — |
-| AC-086 | PRD | [AC-086 · L871](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T046 | T046 | — |
-| AC-087 | PRD | [AC-087 · L872](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T011, T017, T025, T026, T027, T034, T035, T036, T039 | T011, T017, T027, T035, T036, T039 | — |
-| AC-088 | PRD | [AC-088 · L873](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039, T046 | T039, T046 | — |
-| AC-089 | PRD | [AC-089 · L874](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039, T046 | T039, T046 | — |
-| AC-090 | PRD | [AC-090 · L875](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T046 | T046 | — |
-| AC-098 | PRD | [AC-098 · L876](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T008, T009, T043 | T043 | — |
-| AC-099 | PRD | [AC-099 · L877](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T008, T009, T043, T046 | T043, T046 | — |
-| AC-100 | PRD | [AC-100 · L878](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T017, T042 | T017, T042 | — |
-| AC-101 | PRD | [AC-101 · L879](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T042 | T042 | — |
-| AC-102 | PRD | [AC-102 · L880](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T006, T009, T042 | T006, T009, T042 | — |
-| AC-103 | PRD | [AC-103 · L881](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T025, T026, T027, T042 | T027, T042 | — |
-| AC-106 | PRD | [AC-106 · L882](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T017, T042 | T017, T042 | — |
-| G-01 | PRD | [G-01 · L924](02-PRD.md#122-release-gates-remain-planned) | Covered | T046 | T046 | — |
-| G-02 | PRD | [G-02 · L925](02-PRD.md#122-release-gates-remain-planned) | Covered | T004, T006, T017, T025, T026, T027, T039, T042, T044 | T006, T017, T027, T039, T042, T044 | — |
-| G-03 | PRD | [G-03 · L926](02-PRD.md#122-release-gates-remain-planned) | Covered | T005, T006, T007, T008, T009, T012, T013, T017, T018, T019, T020, T021, T022, T023, T024, T026, T034, T035, T038, T039, T041, T042, T043 | T006, T007, T012, T013, T017, T018, T020, T022, T023, T024, T026, T035, T038, T039, T041, T042, T043 | — |
-| G-04 | PRD | [G-04 · L927](02-PRD.md#122-release-gates-remain-planned) | Covered | T006, T008, T009, T011, T025, T026, T027, T036, T039, T043 | T006, T011, T026, T027, T036, T039, T043 | — |
-| G-05 | PRD | [G-05 · L928](02-PRD.md#122-release-gates-remain-planned) | Covered | T005, T006, T007, T008, T009, T012, T014, T023, T024, T025, T026, T027, T038, T039, T042, T043 | T006, T007, T008, T012, T014, T024, T027, T038, T039, T042, T043 | — |
-| G-06 | PRD | [G-06 · L929](02-PRD.md#122-release-gates-remain-planned) | Covered | T039, T046 | T039, T046 | — |
-| G-07 | PRD | [G-07 · L930](02-PRD.md#122-release-gates-remain-planned) | Covered | T029, T030, T031, T032, T033, T042, T046 | T030, T032, T033, T042, T046 | — |
-| G-08 | PRD | [G-08 · L931](02-PRD.md#122-release-gates-remain-planned) | Excluded | — | — | Live deployment remains unselected; local reproducibility and viable MCP connectivity remain included. |
-| J-05 | PRD | [J-05 · L947](02-PRD.md#123-delivery-responsibilities-and-journeys) | Covered | T039 | T039 | — |
-| J-06 | PRD | [J-06 · L948](02-PRD.md#123-delivery-responsibilities-and-journeys) | Covered | T036 | T036 | — |
-| J-07 | PRD | [J-07 · L949](02-PRD.md#123-delivery-responsibilities-and-journeys) | Covered | T046 | T046 | — |
-| AC-033 | PRD | [AC-033 · L961](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-033-C01 | PRD | [AC-033-C01 · L961](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-034 | PRD | [AC-034 · L962](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-034-C01 | PRD | [AC-034-C01 · L962](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-034-C02 | PRD | [AC-034-C02 · L962](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-035 | PRD | [AC-035 · L963](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035, T041 | T035, T041 | — |
-| AC-035-C01 | PRD | [AC-035-C01 · L963](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035, T041 | T035, T041 | — |
-| AC-035-C02 | PRD | [AC-035-C02 · L963](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035, T041 | T035, T041 | — |
-| AC-036 | PRD | [AC-036 · L964](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-036-C01 | PRD | [AC-036-C01 · L964](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-037 | PRD | [AC-037 · L965](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-037-C01 | PRD | [AC-037-C01 · L965](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| AC-057 | PRD | [AC-057 · L973](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T017 | T011, T017 | — |
-| AC-057-C01 | PRD | [AC-057-C01 · L973](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T017 | T011, T017 | — |
-| AC-058 | PRD | [AC-058 · L974](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
-| AC-058-C01 | PRD | [AC-058-C01 · L974](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
-| AC-059 | PRD | [AC-059 · L975](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
-| AC-059-C01 | PRD | [AC-059-C01 · L975](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
-| AC-060 | PRD | [AC-060 · L976](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T036 | T011, T036 | — |
-| AC-060-C01 | PRD | [AC-060-C01 · L976](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T036 | T011, T036 | — |
-| AC-061 | PRD | [AC-061 · L977](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
-| AC-061-C01 | PRD | [AC-061-C01 · L977](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
-| AC-062 | PRD | [AC-062 · L978](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
-| AC-062-C01 | PRD | [AC-062-C01 · L978](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
-| AC-063 | PRD | [AC-063 · L979](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036, T038 | T036, T038 | — |
-| AC-063-C01 | PRD | [AC-063-C01 · L979](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036, T038 | T036, T038 | — |
-| AC-073 | PRD | [AC-073 · L987](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T011 | T011 | — |
-| AC-073-C01 | PRD | [AC-073-C01 · L987](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T011 | T011 | — |
-| AC-075 | PRD | [AC-075 · L988](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T026, T036, T042 | T026, T036, T042 | — |
-| AC-075-C01 | PRD | [AC-075-C01 · L988](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T026, T036, T042 | T026, T036, T042 | — |
-| AC-075-C02 | PRD | [AC-075-C02 · L988](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T026, T036, T042 | T026, T036, T042 | — |
-| AC-078 | PRD | [AC-078 · L989](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-078-C01 | PRD | [AC-078-C01 · L989](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T008, T009, T039, T043 | T039, T043 | — |
-| AC-091 | PRD | [AC-091 · L1005](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-091-C01 | PRD | [AC-091-C01 · L1005](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-092 | PRD | [AC-092 · L1006](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-092-C01 | PRD | [AC-092-C01 · L1006](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-092-C02 | PRD | [AC-092-C02 · L1006](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-093 | PRD | [AC-093 · L1007](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039, T046 | T039, T046 | — |
-| AC-093-C01 | PRD | [AC-093-C01 · L1007](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039, T046 | T039, T046 | — |
-| AC-094 | PRD | [AC-094 · L1008](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-094-C01 | PRD | [AC-094-C01 · L1008](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-094-C02 | PRD | [AC-094-C02 · L1008](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T039 | T039 | — |
-| AC-095 | PRD | [AC-095 · L1009](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-095-C01 | PRD | [AC-095-C01 · L1009](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-096 | PRD | [AC-096 · L1010](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-096-C01 | PRD | [AC-096-C01 · L1010](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-096-C02 | PRD | [AC-096-C02 · L1010](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-097 | PRD | [AC-097 · L1011](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-097-C01 | PRD | [AC-097-C01 · L1011](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| AC-097-C02 | PRD | [AC-097-C02 · L1011](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| OD-002 | PRD | [OD-002 · L1021](02-PRD.md#131-resolved-product-decisions) | Covered | T008, T009, T023, T024, T034, T035, T039, T043 | T008, T024, T035, T039, T043 | — |
-| OD-004 | PRD | [OD-004 · L1022](02-PRD.md#131-resolved-product-decisions) | Covered | T017, T023, T024, T026, T034, T035, T038, T041, T042 | T017, T023, T024, T026, T035, T038, T041, T042 | — |
-| OD-005 | PRD | [OD-005 · L1023](02-PRD.md#131-resolved-product-decisions) | Covered | T012, T013 | T012, T013 | — |
-| OD-009 | PRD | [OD-009 · L1024](02-PRD.md#131-resolved-product-decisions) | Covered | T017, T019, T020, T021, T022, T023, T024 | T017, T022, T024 | — |
-| OD-018 | PRD | [OD-018 · L1025](02-PRD.md#131-resolved-product-decisions) | Covered | T012, T013, T034, T035 | T013, T035 | — |
-| OD-001 | PRD | [OD-001 · L1044](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T005, T006, T007, T008 | T006, T007, T008 | — |
-| OD-003 | PRD | [OD-003 · L1045](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T042 | T042 | — |
-| OD-006 | PRD | [OD-006 · L1046](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T034, T035 | T035 | — |
-| OD-007 | PRD | [OD-007 · L1047](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T025, T026, T027 | T027 | — |
-| OD-008 | PRD | [OD-008 · L1048](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T026, T038 | T026, T038 | — |
-| OD-010 | PRD | [OD-010 · L1049](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T017, T042 | T017, T042 | — |
-| OD-011 | PRD | [OD-011 · L1050](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T017, T028, T042 | T028, T042 | — |
-| OD-012 | PRD | [OD-012 · L1051](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T011 | T011 | — |
-| OD-013 | PRD | [OD-013 · L1052](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T036 | T036 | — |
-| OD-014 | PRD | [OD-014 · L1053](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T038 | T038 | — |
-| OD-015 | PRD | [OD-015 · L1054](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T039 | T039 | — |
-| OD-016 | PRD | [OD-016 · L1055](02-PRD.md#132-engineering-and-other-next-phase-register) | Deferred | — | — | Unselected hosting and scheduling details remain outside local assessment plan; retain required local delivery and MCP connectivity under later accepted engineering decisions. |
-| OD-017 | PRD | [OD-017 · L1056](02-PRD.md#132-engineering-and-other-next-phase-register) | Deferred | — | — | Unselected hosting and scheduling details remain outside local assessment plan; retain required local delivery and MCP connectivity under later accepted engineering decisions. |
-| OD-019 | PRD | [OD-019 · L1057](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T025, T026, T027, T029, T030, T031, T033, T042 | T027, T033, T042 | — |
-| OD-020 | PRD | [OD-020 · L1058](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T039 | T039 | — |
-| US-001 | PRD | [US-001 · L335](02-PRD.md#us-001-browse-titles-and-people) | Covered | T025, T026, T027 | T027 | — |
-| US-002 | PRD | [US-002 · L347](02-PRD.md#us-002-search-and-filter) | Covered | T019, T020 | T020 | — |
-| US-003 | PRD | [US-003 · L364](02-PRD.md#us-003-maintain-movies) | Covered | T038 | T038 | — |
-| US-004 | PRD | [US-004 · L381](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
-| US-005 | PRD | [US-005 · L404](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
-| US-007 | PRD | [US-007 · L415](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
-| US-008 | PRD | [US-008 · L431](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008 | T007 | — |
-| US-009 | PRD | [US-009 · L447](02-PRD.md#us-009-review-accountable-history) | Covered | T029, T030, T031, T033 | T033 | — |
-| US-011 | PRD | [US-011 · L461](02-PRD.md#us-011-continue-metadata-work-during-an-artwork-outage) | Covered | T025, T026, T027 | T027 | — |
-| US-012 | PRD | [US-012 · L469](02-PRD.md#us-012-preserve-saved-work) | Covered | T039 | T039 | — |
-| US-015 | PRD | [US-015 · L477](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T017, T028 | T028 | — |
-| US-018 | PRD | [US-018 · L487](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T046 | T046 | — |
-| US-019 | PRD | [US-019 · L497](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T033 | T033 | — |
-| US-020 | PRD | [US-020 · L514](02-PRD.md#us-020-protect-private-account-information) | Covered | T005, T006, T007, T008 | T007 | — |
-| US-021 | PRD | [US-021 · L525](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
-| US-006 | PRD | [US-006 · L955](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
-| US-010 | PRD | [US-010 · L967](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
-| US-013 | PRD | [US-013 · L981](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T046 | T046 | — |
-| US-014 | PRD | [US-014 · L991](02-PRD.md#us-014-diagnose-user-visible-failure) | Covered | T046 | T046 | — |
-| US-016 | PRD | [US-016 · L995](02-PRD.md#us-016-verify-and-explain-the-work) | Covered | T042 | T042 | — |
-| US-017 | PRD | [US-017 · L999](02-PRD.md#us-017-reproduce-and-submit-the-assessment) | Covered | T046 | T046 | — |
-| PRD-PERM-01 | PRD | [PRD-PERM-01 · L70](02-PRD.md#31-permission-matrix) | Covered | T019, T020, T021, T022 | T022 | — |
-| PRD-PERM-02 | PRD | [PRD-PERM-02 · L71](02-PRD.md#31-permission-matrix) | Covered | T046 | T046 | — |
-| PRD-PERM-03 | PRD | [PRD-PERM-03 · L72](02-PRD.md#31-permission-matrix) | Covered | T025, T026, T027 | T027 | — |
-| PRD-PERM-04 | PRD | [PRD-PERM-04 · L73](02-PRD.md#31-permission-matrix) | Covered | T023, T024 | T024 | — |
-| PRD-PERM-05 | PRD | [PRD-PERM-05 · L74](02-PRD.md#31-permission-matrix) | Covered | T019, T020, T021, T022 | T022 | — |
-| PRD-PERM-06 | PRD | [PRD-PERM-06 · L75](02-PRD.md#31-permission-matrix) | Covered | T017, T028 | T028 | — |
-| PRD-PERM-07 | PRD | [PRD-PERM-07 · L76](02-PRD.md#31-permission-matrix) | Covered | T017, T018 | T018 | — |
-| PRD-PERM-08 | PRD | [PRD-PERM-08 · L77](02-PRD.md#31-permission-matrix) | Covered | T046 | T046 | — |
-| PRD-POLICY-01 | PRD | [PRD-POLICY-01 · L116](02-PRD.md#51-included-behavior) | Covered | T034, T035 | T035 | — |
-| PRD-POLICY-02 | PRD | [PRD-POLICY-02 · L118](02-PRD.md#51-included-behavior) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-POLICY-03 | PRD | [PRD-POLICY-03 · L120](02-PRD.md#51-included-behavior) | Covered | T019, T020 | T020 | — |
-| PRD-POLICY-04 | PRD | [PRD-POLICY-04 · L122](02-PRD.md#51-included-behavior) | Covered | T012, T013 | T013 | — |
-| PRD-POLICY-05 | PRD | [PRD-POLICY-05 · L124](02-PRD.md#51-included-behavior) | Covered | T019, T020, T021, T022 | T022 | — |
-| PRD-POLICY-06 | PRD | [PRD-POLICY-06 · L128](02-PRD.md#52-removal-and-editing-rules) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-07 | PRD | [PRD-POLICY-07 · L130](02-PRD.md#52-removal-and-editing-rules) | Covered | T023, T024 | T024 | — |
-| PRD-POLICY-08 | PRD | [PRD-POLICY-08 · L132](02-PRD.md#52-removal-and-editing-rules) | Covered | T023, T024 | T024 | — |
-| PRD-POLICY-09 | PRD | [PRD-POLICY-09 · L134](02-PRD.md#52-removal-and-editing-rules) | Covered | T034, T035 | T035 | — |
-| PRD-POLICY-10 | PRD | [PRD-POLICY-10 · L136](02-PRD.md#52-removal-and-editing-rules) | Covered | T023, T024 | T024 | — |
-| PRD-POLICY-11 | PRD | [PRD-POLICY-11 · L138](02-PRD.md#52-removal-and-editing-rules) | Covered | T034, T035 | T035 | — |
-| PRD-POLICY-12 | PRD | [PRD-POLICY-12 · L140](02-PRD.md#52-removal-and-editing-rules) | Covered | T046 | T046 | — |
-| PRD-POLICY-13 | PRD | [PRD-POLICY-13 · L142](02-PRD.md#52-removal-and-editing-rules) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-14 | PRD | [PRD-POLICY-14 · L146](02-PRD.md#53-accounts-audit-and-ai-boundaries) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-POLICY-15 | PRD | [PRD-POLICY-15 · L148](02-PRD.md#53-accounts-audit-and-ai-boundaries) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-POLICY-16 | PRD | [PRD-POLICY-16 · L150](02-PRD.md#53-accounts-audit-and-ai-boundaries) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-SCOPE-01 | PRD | [PRD-SCOPE-01 · L154](02-PRD.md#54-excluded-and-deferred) | Deferred | — | — | Explicitly outside assessment release; conditional connectivity remains included. |
-| PRD-SCOPE-02 | PRD | [PRD-SCOPE-02 · L156](02-PRD.md#54-excluded-and-deferred) | Deferred | — | — | Explicitly outside assessment release; conditional connectivity remains included. |
-| PRD-SCOPE-03 | PRD | [PRD-SCOPE-03 · L158](02-PRD.md#54-excluded-and-deferred) | Deferred | — | — | Explicitly outside assessment release; conditional connectivity remains included. |
-| PRD-POLICY-17 | PRD | [PRD-POLICY-17 · L162](02-PRD.md#55-input-validation-and-artwork-policy) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-POLICY-18 | PRD | [PRD-POLICY-18 · L166](02-PRD.md#name-defaults) | Covered | T019, T020 | T020 | — |
-| PRD-BOUND-01 | PRD | [PRD-BOUND-01 · L170](02-PRD.md#name-defaults) | Covered | T019, T020 | T020 | — |
-| PRD-BOUND-02 | PRD | [PRD-BOUND-02 · L171](02-PRD.md#name-defaults) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-POLICY-19 | PRD | [PRD-POLICY-19 · L173](02-PRD.md#name-defaults) | Covered | T034, T035 | T035 | — |
-| PRD-POLICY-20 | PRD | [PRD-POLICY-20 · L177](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T008, T009, T043 | T043 | — |
-| PRD-BOUND-03 | PRD | [PRD-BOUND-03 · L181](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T017, T018 | T018 | — |
-| PRD-BOUND-04 | PRD | [PRD-BOUND-04 · L182](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T017, T018 | T018 | — |
-| PRD-BOUND-05 | PRD | [PRD-BOUND-05 · L183](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T019, T020, T021, T022 | T022 | — |
-| PRD-BOUND-06 | PRD | [PRD-BOUND-06 · L184](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T046 | T046 | — |
-| PRD-BOUND-07 | PRD | [PRD-BOUND-07 · L185](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T012, T013 | T013 | — |
-| PRD-BOUND-08 | PRD | [PRD-BOUND-08 · L186](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-BOUND-09 | PRD | [PRD-BOUND-09 · L187](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-BOUND-10 | PRD | [PRD-BOUND-10 · L188](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T046 | T046 | — |
-| PRD-POLICY-21 | PRD | [PRD-POLICY-21 · L190](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-POLICY-22 | PRD | [PRD-POLICY-22 · L194](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-POLICY-23 | PRD | [PRD-POLICY-23 · L196](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T012, T013 | T013 | — |
-| PRD-POLICY-24 | PRD | [PRD-POLICY-24 · L198](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T017, T028 | T028 | — |
-| PRD-POLICY-25 | PRD | [PRD-POLICY-25 · L200](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-POLICY-26 | PRD | [PRD-POLICY-26 · L202](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T017, T028 | T028 | — |
-| PRD-POLICY-27 | PRD | [PRD-POLICY-27 · L206](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
-| PRD-BOUND-11 | PRD | [PRD-BOUND-11 · L210](02-PRD.md#artwork-policy) | Covered | T008, T009, T043 | T043 | — |
-| PRD-BOUND-12 | PRD | [PRD-BOUND-12 · L211](02-PRD.md#artwork-policy) | Covered | T046 | T046 | — |
-| PRD-BOUND-13 | PRD | [PRD-BOUND-13 · L212](02-PRD.md#artwork-policy) | Covered | T046 | T046 | — |
-| PRD-BOUND-14 | PRD | [PRD-BOUND-14 · L213](02-PRD.md#artwork-policy) | Covered | T046 | T046 | — |
-| PRD-POLICY-28 | PRD | [PRD-POLICY-28 · L215](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-29 | PRD | [PRD-POLICY-29 · L217](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-30 | PRD | [PRD-POLICY-30 · L219](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-31 | PRD | [PRD-POLICY-31 · L223](02-PRD.md#configuration-and-existing-content) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-32 | PRD | [PRD-POLICY-32 · L225](02-PRD.md#configuration-and-existing-content) | Covered | T025, T026, T027 | T027 | — |
-| PRD-POLICY-33 | PRD | [PRD-POLICY-33 · L227](02-PRD.md#configuration-and-existing-content) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-FEEDBACK-01 | PRD | [PRD-FEEDBACK-01 · L797](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
-| PRD-FEEDBACK-02 | PRD | [PRD-FEEDBACK-02 · L798](02-PRD.md#810-shared-feedback-rules) | Covered | T025, T026, T027 | T027 | — |
-| PRD-FEEDBACK-03 | PRD | [PRD-FEEDBACK-03 · L799](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
-| PRD-FEEDBACK-04 | PRD | [PRD-FEEDBACK-04 · L800](02-PRD.md#810-shared-feedback-rules) | Covered | T008, T009, T043 | T043 | — |
-| PRD-FEEDBACK-05 | PRD | [PRD-FEEDBACK-05 · L801](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
-| PRD-FEEDBACK-06 | PRD | [PRD-FEEDBACK-06 · L802](02-PRD.md#810-shared-feedback-rules) | Covered | T011 | T011 | — |
-| PRD-FEEDBACK-07 | PRD | [PRD-FEEDBACK-07 · L803](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
-| PRD-CONCEPT-01 | PRD | [PRD-CONCEPT-01 · L811](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T025, T026, T027 | T027 | — |
-| PRD-CONCEPT-02 | PRD | [PRD-CONCEPT-02 · L812](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T034, T035 | T035 | — |
-| PRD-CONCEPT-03 | PRD | [PRD-CONCEPT-03 · L813](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T025, T026, T027 | T027 | — |
-| PRD-CONCEPT-04 | PRD | [PRD-CONCEPT-04 · L814](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T017, T018 | T018 | — |
-| PRD-CONCEPT-05 | PRD | [PRD-CONCEPT-05 · L815](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T034, T035 | T035 | — |
-| PRD-CONCEPT-06 | PRD | [PRD-CONCEPT-06 · L816](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T023, T024 | T024 | — |
-| PRD-CONCEPT-07 | PRD | [PRD-CONCEPT-07 · L817](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T017, T028 | T028 | — |
-| PRD-CONCEPT-08 | PRD | [PRD-CONCEPT-08 · L818](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T023, T024 | T024 | — |
-| PRD-CONCEPT-09 | PRD | [PRD-CONCEPT-09 · L819](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T019, T020 | T020 | — |
-| PRD-CONCEPT-10 | PRD | [PRD-CONCEPT-10 · L820](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-CONCEPT-11 | PRD | [PRD-CONCEPT-11 · L821](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-CONCEPT-12 | PRD | [PRD-CONCEPT-12 · L822](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T034, T035 | T035 | — |
-| PRD-HANDOFF-01 | PRD | [PRD-HANDOFF-01 · L836](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
-| PRD-HANDOFF-02 | PRD | [PRD-HANDOFF-02 · L837](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
-| PRD-HANDOFF-03 | PRD | [PRD-HANDOFF-03 · L838](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T046 | T046 | — |
-| PRD-HANDOFF-04 | PRD | [PRD-HANDOFF-04 · L839](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T042 | T042 | — |
-| PRD-HANDOFF-05 | PRD | [PRD-HANDOFF-05 · L840](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T017, T028 | T028 | — |
-| PRD-HANDOFF-06 | PRD | [PRD-HANDOFF-06 · L841](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T036 | T036 | — |
-| PRD-HANDOFF-07 | PRD | [PRD-HANDOFF-07 · L842](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T042 | T042 | — |
-| PRD-HANDOFF-08 | PRD | [PRD-HANDOFF-08 · L843](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
-| PRD-HANDOFF-09 | PRD | [PRD-HANDOFF-09 · L844](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T034, T035 | T035 | — |
-| PRD-HANDOFF-10 | PRD | [PRD-HANDOFF-10 · L845](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T008, T009, T043 | T043 | — |
-| PRD-HANDOFF-11 | PRD | [PRD-HANDOFF-11 · L846](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T005, T006, T007, T008 | T007 | — |
-| PRD-HANDOFF-12 | PRD | [PRD-HANDOFF-12 · L847](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T029, T030, T031, T033 | T033 | — |
-| PRD-HANDOFF-13 | PRD | [PRD-HANDOFF-13 · L848](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
-| PRD-HANDOFF-14 | PRD | [PRD-HANDOFF-14 · L849](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T005, T006, T007, T008 | T007 | — |
+| J-01 | PRD | [J-01 · L87](02-PRD.md#32-application-journeys) | Covered | T012 | T012 | — |
+| J-02 | PRD | [J-02 · L88](02-PRD.md#32-application-journeys) | Covered | T017, T042 | T017, T042 | — |
+| J-03 | PRD | [J-03 · L89](02-PRD.md#32-application-journeys) | Covered | T023 | T023 | — |
+| J-04 | PRD | [J-04 · L90](02-PRD.md#32-application-journeys) | Covered | T025, T026, T027 | T027 | — |
+| J-08 | PRD | [J-08 · L91](02-PRD.md#32-application-journeys) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| J-09 | PRD | [J-09 · L92](02-PRD.md#32-application-journeys) | Covered | T023 | T023 | — |
+| J-10 | PRD | [J-10 · L93](02-PRD.md#32-application-journeys) | Covered | T030 | T030 | — |
+| J-11 | PRD | [J-11 · L94](02-PRD.md#32-application-journeys) | Covered | T017, T028, T042 | T028, T042 | — |
+| SC-01 | PRD | [SC-01 · L100](02-PRD.md#4-goals-and-success-criteria) | Covered | T039, T046 | T039, T046 | — |
+| SC-02 | PRD | [SC-02 · L101](02-PRD.md#4-goals-and-success-criteria) | Covered | T034, T035 | T035 | — |
+| SC-03 | PRD | [SC-03 · L102](02-PRD.md#4-goals-and-success-criteria) | Covered | T039, T041 | T039, T041 | — |
+| SC-04 | PRD | [SC-04 · L103](02-PRD.md#4-goals-and-success-criteria) | Covered | T008, T009, T017, T043 | T008, T017, T043 | — |
+| SC-05 | PRD | [SC-05 · L104](02-PRD.md#4-goals-and-success-criteria) | Covered | T039, T046 | T039, T046 | — |
+| SC-06 | PRD | [SC-06 · L105](02-PRD.md#4-goals-and-success-criteria) | Covered | T036, T038 | T036, T038 | — |
+| SC-07 | PRD | [SC-07 · L106](02-PRD.md#4-goals-and-success-criteria) | Covered | T045 | T045 | — |
+| SC-08 | PRD | [SC-08 · L107](02-PRD.md#4-goals-and-success-criteria) | Covered | T046 | T046 | — |
+| SC-09 | PRD | [SC-09 · L108](02-PRD.md#4-goals-and-success-criteria) | Covered | T029, T030, T031, T033 | T033 | — |
+| FR-001 | PRD | [FR-001 · L235](02-PRD.md#61-functional-requirements) | Covered | T012, T013, T023, T024 | T013, T024 | — |
+| FR-002 | PRD | [FR-002 · L236](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T012, T013, T023, T024, T025, T026, T027, T043 | T012, T013, T024, T027, T043 | — |
+| FR-003 | PRD | [FR-003 · L237](02-PRD.md#61-functional-requirements) | Covered | T012, T013 | T013 | — |
+| FR-004 | PRD | [FR-004 · L238](02-PRD.md#61-functional-requirements) | Covered | T006, T008, T009, T017, T018, T023, T024, T026, T038, T039, T042, T043 | T006, T017, T018, T024, T026, T038, T039, T042, T043 | — |
+| FR-005 | PRD | [FR-005 · L239](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T012, T013, T017, T019, T020, T023, T024, T034, T035, T041, T042, T043 | T013, T017, T020, T023, T024, T035, T041, T042, T043 | — |
+| FR-006 | PRD | [FR-006 · L240](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T019, T020, T021, T022, T023, T024, T042, T043 | T022, T024, T042, T043 | — |
+| FR-007 | PRD | [FR-007 · L241](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T012, T013, T034, T035, T042, T043 | T013, T035, T042, T043 | — |
+| FR-008 | PRD | [FR-008 · L242](02-PRD.md#61-functional-requirements) | Covered | T034, T035, T041 | T035, T041 | — |
+| FR-009 | PRD | [FR-009 · L243](02-PRD.md#61-functional-requirements) | Covered | T025, T026, T027 | T027 | — |
+| FR-010 | PRD | [FR-010 · L244](02-PRD.md#61-functional-requirements) | Covered | T006, T008, T009, T025, T026, T027, T039, T043 | T006, T025, T026, T027, T039, T043 | — |
+| FR-011 | PRD | [FR-011 · L245](02-PRD.md#61-functional-requirements) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T034, T035, T040, T042, T043 | T006, T007, T016, T035, T040, T042, T043 | — |
+| FR-012 | PRD | [FR-012 · L246](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T023, T024, T029, T030, T031, T032, T033, T039, T043 | T008, T024, T032, T033, T039, T043 | — |
+| FR-013 | PRD | [FR-013 · L247](02-PRD.md#61-functional-requirements) | Covered | T017, T023, T024, T028, T042 | T017, T024, T028, T042 | — |
+| FR-014 | PRD | [FR-014 · L248](02-PRD.md#61-functional-requirements) | Covered | T011, T017, T036 | T011, T017, T036 | — |
+| FR-015 | PRD | [FR-015 · L249](02-PRD.md#61-functional-requirements) | Covered | T036, T038 | T036, T038 | — |
+| FR-016 | PRD | [FR-016 · L250](02-PRD.md#61-functional-requirements) | Covered | T008, T009, T029, T030, T031, T032, T033, T042, T043 | T030, T032, T033, T042, T043 | — |
+| FR-017 | PRD | [FR-017 · L251](02-PRD.md#61-functional-requirements) | Covered | T005, T006, T007, T008, T009, T012, T013, T019, T020, T025, T026, T027, T029, T030, T031, T032, T033, T034, T035, T039, T042, T043 | T006, T007, T013, T020, T027, T032, T033, T035, T039, T042, T043 | — |
+| NFR-001 | PRD | [NFR-001 · L259](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T004, T025, T026, T027, T039, T042, T044 | T027, T039, T042, T044 | — |
+| NFR-002 | PRD | [NFR-002 · L260](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T025, T026, T027, T039 | T027, T039 | — |
+| NFR-003 | PRD | [NFR-003 · L261](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T012, T017, T039, T041, T045 | T012, T017, T039, T041, T045 | — |
+| NFR-004 | PRD | [NFR-004 · L262](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T011, T026, T036, T039, T042 | T011, T026, T036, T039, T042 | — |
+| NFR-005 | PRD | [NFR-005 · L263](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T006, T008, T009, T025, T026, T027, T039, T043 | T006, T027, T039, T043 | — |
+| NFR-006 | PRD | [NFR-006 · L264](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T008, T036, T038, T039 | T008, T036, T038, T039 | — |
+| NFR-007 | PRD | [NFR-007 · L265](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T004, T008, T009, T012, T013, T025, T026, T027, T043, T044 | T012, T013, T027, T043, T044 | — |
+| NFR-008 | PRD | [NFR-008 · L266](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T002, T004, T005, T008, T009, T010, T011, T012, T013, T014, T015, T017, T025, T026, T027, T030, T031, T034, T035, T036, T038, T039, T043, T046 | T002, T004, T005, T008, T009, T010, T011, T012, T013, T014, T015, T017, T027, T030, T031, T034, T035, T036, T038, T039, T043, T046 | — |
+| NFR-009 | PRD | [NFR-009 · L267](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T039, T046 | T039, T046 | — |
+| NFR-010 | PRD | [NFR-010 · L268](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T039, T046 | T039, T046 | — |
+| NFR-011 | PRD | [NFR-011 · L269](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T046 | T046 | — |
+| NFR-012 | PRD | [NFR-012 · L270](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T008, T009, T043, T046 | T043, T046 | — |
+| NFR-013 | PRD | [NFR-013 · L271](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T004, T006, T008, T009, T017, T025, T026, T027, T042, T043 | T004, T006, T017, T027, T042, T043 | — |
+| NFR-014 | PRD | [NFR-014 · L272](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T017, T018, T019, T020, T021, T022, T042 | T017, T018, T022, T042 | — |
+| NFR-015 | PRD | [NFR-015 · L273](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T005, T006, T007, T008, T009, T014, T017, T028, T040, T043 | T006, T007, T014, T028, T040, T043 | — |
+| NFR-016 | PRD | [NFR-016 · L274](02-PRD.md#62-quality-and-delivery-requirements) | Covered | T006, T008, T009, T012, T025, T026, T027, T029, T030, T031, T032, T033, T034, T035, T039, T042, T043 | T006, T012, T027, T032, T033, T035, T039, T042, T043 | — |
+| A01 | PRD | [A01 · L280](02-PRD.md#63-project-requirements-coverage) | Covered | T039 | T039 | — |
+| A02 | PRD | [A02 · L281](02-PRD.md#63-project-requirements-coverage) | Covered | T039 | T039 | — |
+| A03 | PRD | [A03 · L282](02-PRD.md#63-project-requirements-coverage) | Covered | T025, T026, T027, T039 | T027, T039 | — |
+| A04 | PRD | [A04 · L283](02-PRD.md#63-project-requirements-coverage) | Covered | T011, T017, T025, T026, T027, T034, T035, T036, T039 | T011, T017, T027, T035, T036, T039 | — |
+| A05 | PRD | [A05 · L284](02-PRD.md#63-project-requirements-coverage) | Covered | T004, T017, T025, T026, T027, T042, T044 | T017, T027, T042, T044 | — |
+| A06 | PRD | [A06 · L285](02-PRD.md#63-project-requirements-coverage) | Covered | T012, T013 | T013 | — |
+| A07 | PRD | [A07 · L286](02-PRD.md#63-project-requirements-coverage) | Covered | T017, T018, T023, T024, T026, T038, T042 | T017, T018, T024, T026, T038, T042 | — |
+| A08 | PRD | [A08 · L287](02-PRD.md#63-project-requirements-coverage) | Covered | T025, T026, T027 | T025, T026, T027 | — |
+| A09 | PRD | [A09 · L288](02-PRD.md#63-project-requirements-coverage) | Covered | T012, T013, T019, T020, T021, T022, T023, T024 | T013, T022, T024 | — |
+| A10 | PRD | [A10 · L289](02-PRD.md#63-project-requirements-coverage) | Covered | T017, T019, T020, T021, T022, T023, T024, T042 | T017, T020, T022, T023, T024, T042 | — |
+| A11 | PRD | [A11 · L290](02-PRD.md#63-project-requirements-coverage) | Covered | T012, T013, T023, T024 | T012, T013, T024 | — |
+| A12 | PRD | [A12 · L291](02-PRD.md#63-project-requirements-coverage) | Covered | T039, T046 | T039, T046 | — |
+| A13 | PRD | [A13 · L292](02-PRD.md#63-project-requirements-coverage) | Covered | T004, T044 | T044 | — |
+| A14 | PRD | [A14 · L293](02-PRD.md#63-project-requirements-coverage) | Covered | T004, T012, T013, T017, T018, T025, T026, T027, T044 | T013, T018, T027, T044 | — |
+| A15 | PRD | [A15 · L294](02-PRD.md#63-project-requirements-coverage) | Covered | T046 | T046 | — |
+| A16 | PRD | [A16 · L295](02-PRD.md#63-project-requirements-coverage) | Covered | T039, T046 | T039, T046 | — |
+| A17 | PRD | [A17 · L296](02-PRD.md#63-project-requirements-coverage) | Covered | T046 | T046 | — |
+| D01 | PRD | [D01 · L302](02-PRD.md#64-project-decision-register) | Covered | T046 | T046 | — |
+| D02 | PRD | [D02 · L303](02-PRD.md#64-project-decision-register) | Covered | T039 | T039 | — |
+| D03 | PRD | [D03 · L304](02-PRD.md#64-project-decision-register) | Covered | T004, T017, T025, T026, T027, T039, T042, T044 | T017, T027, T039, T042, T044 | — |
+| D04 | PRD | [D04 · L305](02-PRD.md#64-project-decision-register) | Covered | T039, T046 | T039, T046 | — |
+| D05 | PRD | [D05 · L306](02-PRD.md#64-project-decision-register) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T017, T028, T034, T035, T039, T043 | T007, T008, T016, T017, T028, T035, T039, T043 | — |
+| D06 | PRD | [D06 · L307](02-PRD.md#64-project-decision-register) | Covered | T008, T009, T043, T046 | T043, T046 | — |
+| D07 | PRD | [D07 · L308](02-PRD.md#64-project-decision-register) | Covered | T005, T006, T007, T008, T009, T034, T035, T039, T043 | T006, T007, T008, T035, T039, T043 | — |
+| D08 | PRD | [D08 · L309](02-PRD.md#64-project-decision-register) | Covered | T017, T042 | T017, T042 | — |
+| D09 | PRD | [D09 · L310](02-PRD.md#64-project-decision-register) | Covered | T017, T018, T019, T020, T021, T022, T042 | T017, T018, T022, T042 | — |
+| D10 | PRD | [D10 · L311](02-PRD.md#64-project-decision-register) | Covered | T025, T026, T027, T039 | T027, T039 | — |
+| D11 | PRD | [D11 · L312](02-PRD.md#64-project-decision-register) | Covered | T025, T026, T027 | T025, T026, T027 | — |
+| D12 | PRD | [D12 · L313](02-PRD.md#64-project-decision-register) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T034, T035, T039, T043 | T007, T008, T016, T035, T039, T043 | — |
+| D13 | PRD | [D13 · L314](02-PRD.md#64-project-decision-register) | Covered | T039, T046 | T039, T046 | — |
+| D14 | PRD | [D14 · L315](02-PRD.md#64-project-decision-register) | Excluded | — | — | Live deployment remains unselected; local reproducibility and viable MCP connectivity remain included. |
+| D15 | PRD | [D15 · L316](02-PRD.md#64-project-decision-register) | Deferred | — | — | Excluded from initial release delivery by PRD section 5.4; retain included provenance groundwork separately. |
+| D16 | PRD | [D16 · L317](02-PRD.md#64-project-decision-register) | Deferred | — | — | Excluded from initial release delivery by PRD section 5.4; retain included provenance groundwork separately. |
+| D17 | PRD | [D17 · L318](02-PRD.md#64-project-decision-register) | Covered | T039, T046 | T039, T046 | — |
+| D18 | PRD | [D18 · L319](02-PRD.md#64-project-decision-register) | Covered | T012, T017, T045 | T012, T017, T045 | — |
+| D19 | PRD | [D19 · L320](02-PRD.md#64-project-decision-register) | Covered | T011, T017, T025, T026, T027, T034, T035, T036, T039, T046 | T011, T017, T027, T035, T036, T039, T046 | — |
+| D20 | PRD | [D20 · L321](02-PRD.md#64-project-decision-register) | Covered | T011, T017, T028, T036 | T011, T017, T028, T036 | — |
+| D21 | PRD | [D21 · L322](02-PRD.md#64-project-decision-register) | Covered | T008, T009, T011, T026, T036, T038, T039, T042, T043 | T011, T026, T036, T038, T039, T042, T043 | — |
+| D22 | PRD | [D22 · L323](02-PRD.md#64-project-decision-register) | Covered | T011, T039 | T011, T039 | — |
+| D23 | PRD | [D23 · L324](02-PRD.md#64-project-decision-register) | Covered | T008, T036, T037, T038, T039 | T008, T036, T037, T038, T039 | — |
+| D24 | PRD | [D24 · L325](02-PRD.md#64-project-decision-register) | Covered | T034, T035, T041 | T035, T041 | — |
+| D25 | PRD | [D25 · L326](02-PRD.md#64-project-decision-register) | Covered | T012, T013, T019, T020, T021, T022, T023, T024, T034, T035, T042 | T013, T022, T024, T035, T042 | — |
+| D26 | PRD | [D26 · L327](02-PRD.md#64-project-decision-register) | Covered | T012, T013, T034, T035 | T013, T035 | — |
+| AC-001 | PRD | [AC-001 · L339](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-001-C01 | PRD | [AC-001-C01 · L339](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-001-C02 | PRD | [AC-001-C02 · L339](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-002 | PRD | [AC-002 · L340](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-002-C01 | PRD | [AC-002-C01 · L340](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-003 | PRD | [AC-003 · L341](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-003-C01 | PRD | [AC-003-C01 · L341](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-004 | PRD | [AC-004 · L342](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-004-C01 | PRD | [AC-004-C01 · L342](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-004-C02 | PRD | [AC-004-C02 · L342](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-005 | PRD | [AC-005 · L343](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-005-C01 | PRD | [AC-005-C01 · L343](02-PRD.md#us-001-browse-titles-and-people) | Covered | T012, T013 | T013 | — |
+| AC-006 | PRD | [AC-006 · L351](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-006-C01 | PRD | [AC-006-C01 · L351](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-006-C02 | PRD | [AC-006-C02 · L351](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-006-C03 | PRD | [AC-006-C03 · L351](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-007 | PRD | [AC-007 · L352](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-007-C01 | PRD | [AC-007-C01 · L352](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-008 | PRD | [AC-008 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
+| AC-008-C01 | PRD | [AC-008-C01 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
+| AC-008-C02 | PRD | [AC-008-C02 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
+| AC-008-C03 | PRD | [AC-008-C03 · L353](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T012, T013 | — |
+| AC-009 | PRD | [AC-009 · L354](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-009-C01 | PRD | [AC-009-C01 · L354](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-010 | PRD | [AC-010 · L355](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-010-C01 | PRD | [AC-010-C01 · L355](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-011 | PRD | [AC-011 · L356](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-011-C01 | PRD | [AC-011-C01 · L356](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-012 | PRD | [AC-012 · L357](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-012-C01 | PRD | [AC-012-C01 · L357](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-012-C02 | PRD | [AC-012-C02 · L357](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-013 | PRD | [AC-013 · L358](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-013-C01 | PRD | [AC-013-C01 · L358](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-013-C02 | PRD | [AC-013-C02 · L358](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-014 | PRD | [AC-014 · L359](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-014-C01 | PRD | [AC-014-C01 · L359](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-015 | PRD | [AC-015 · L360](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-015-C01 | PRD | [AC-015-C01 · L360](02-PRD.md#us-002-search-and-filter) | Covered | T012, T013 | T013 | — |
+| AC-016 | PRD | [AC-016 · L368](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T017, T018 | — |
+| AC-016-C01 | PRD | [AC-016-C01 · L368](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T017, T018 | — |
+| AC-017 | PRD | [AC-017 · L369](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
+| AC-017-C01 | PRD | [AC-017-C01 · L369](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
+| AC-017-C02 | PRD | [AC-017-C02 · L369](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
+| AC-018 | PRD | [AC-018 · L370](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
+| AC-018-C01 | PRD | [AC-018-C01 · L370](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
+| AC-018-C02 | PRD | [AC-018-C02 · L370](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018 | T018 | — |
+| AC-019 | PRD | [AC-019 · L371](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024, T026, T038 | T024, T026, T038 | — |
+| AC-019-C01 | PRD | [AC-019-C01 · L371](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024, T026, T038 | T024, T026, T038 | — |
+| AC-019-C02 | PRD | [AC-019-C02 · L371](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024, T026, T038 | T024, T026, T038 | — |
+| AC-020 | PRD | [AC-020 · L372](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-020-C01 | PRD | [AC-020-C01 · L372](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-021 | PRD | [AC-021 · L373](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018, T042 | T018, T042 | — |
+| AC-021-C01 | PRD | [AC-021-C01 · L373](02-PRD.md#us-003-maintain-movies) | Covered | T017, T018, T042 | T018, T042 | — |
+| AC-108 | PRD | [AC-108 · L374](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-108-C01 | PRD | [AC-108-C01 · L374](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-108-C02 | PRD | [AC-108-C02 · L374](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-109 | PRD | [AC-109 · L375](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-109-C01 | PRD | [AC-109-C01 · L375](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-109-C02 | PRD | [AC-109-C02 · L375](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-109-C03 | PRD | [AC-109-C03 · L375](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-110 | PRD | [AC-110 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-110-C01 | PRD | [AC-110-C01 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-110-C02 | PRD | [AC-110-C02 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-110-C03 | PRD | [AC-110-C03 · L376](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-130 | PRD | [AC-130 · L377](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-130-C01 | PRD | [AC-130-C01 · L377](02-PRD.md#us-003-maintain-movies) | Covered | T023, T024 | T024 | — |
+| AC-022 | PRD | [AC-022 · L385](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T012, T013 | T013 | — |
+| AC-022-C01 | PRD | [AC-022-C01 · L385](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T012, T013 | T013 | — |
+| AC-022-C02 | PRD | [AC-022-C02 · L385](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T012, T013 | T013 | — |
+| AC-023 | PRD | [AC-023 · L386](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020 | T020 | — |
+| AC-023-C01 | PRD | [AC-023-C01 · L386](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020 | T020 | — |
+| AC-023-C02 | PRD | [AC-023-C02 · L386](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020 | T020 | — |
+| AC-024 | PRD | [AC-024 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
+| AC-024-C01 | PRD | [AC-024-C01 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
+| AC-024-C02 | PRD | [AC-024-C02 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
+| AC-024-C03 | PRD | [AC-024-C03 · L387](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024 | T017, T023, T024 | — |
+| AC-025 | PRD | [AC-025 · L388](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-025-C01 | PRD | [AC-025-C01 · L388](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-025-C02 | PRD | [AC-025-C02 · L388](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-129 | PRD | [AC-129 · L389](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T023, T024 | — |
+| AC-129-C01 | PRD | [AC-129-C01 · L389](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T023, T024 | — |
+| AC-026 | PRD | [AC-026 · L390](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022 | T022 | — |
+| AC-026-C01 | PRD | [AC-026-C01 · L390](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022 | T022 | — |
+| AC-027 | PRD | [AC-027 · L391](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022, T042 | T022, T042 | — |
+| AC-027-C01 | PRD | [AC-027-C01 · L391](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022, T042 | T022, T042 | — |
+| AC-027-C02 | PRD | [AC-027-C02 · L391](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T019, T020, T021, T022, T042 | T022, T042 | — |
+| AC-028 | PRD | [AC-028 · L392](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-028-C01 | PRD | [AC-028-C01 · L392](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-028-C02 | PRD | [AC-028-C02 · L392](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-028-C03 | PRD | [AC-028-C03 · L392](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-131 | PRD | [AC-131 · L393](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-131-C01 | PRD | [AC-131-C01 · L393](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-131-C02 | PRD | [AC-131-C02 · L393](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-132 | PRD | [AC-132 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-132-C01 | PRD | [AC-132-C01 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-132-C02 | PRD | [AC-132-C02 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-132-C03 | PRD | [AC-132-C03 · L394](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-133 | PRD | [AC-133 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-133-C01 | PRD | [AC-133-C01 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-133-C02 | PRD | [AC-133-C02 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-133-C03 | PRD | [AC-133-C03 · L395](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-134 | PRD | [AC-134 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-134-C01 | PRD | [AC-134-C01 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-134-C02 | PRD | [AC-134-C02 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-134-C03 | PRD | [AC-134-C03 · L396](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-135 | PRD | [AC-135 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-135-C01 | PRD | [AC-135-C01 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-135-C02 | PRD | [AC-135-C02 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-135-C03 | PRD | [AC-135-C03 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-135-C04 | PRD | [AC-135-C04 · L397](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-136 | PRD | [AC-136 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-136-C01 | PRD | [AC-136-C01 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-136-C02 | PRD | [AC-136-C02 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-136-C03 | PRD | [AC-136-C03 · L398](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| AC-137 | PRD | [AC-137 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
+| AC-137-C01 | PRD | [AC-137-C01 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
+| AC-137-C02 | PRD | [AC-137-C02 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
+| AC-137-C03 | PRD | [AC-137-C03 · L399](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T017, T023, T024, T042 | T017, T024, T042 | — |
+| AC-138 | PRD | [AC-138 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T034, T035, T041 | T035, T041 | — |
+| AC-138-C01 | PRD | [AC-138-C01 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T034, T035, T041 | T035, T041 | — |
+| AC-138-C02 | PRD | [AC-138-C02 · L400](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T034, T035, T041 | T035, T041 | — |
+| AC-029 | PRD | [AC-029 · L408](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T034, T035 | T035 | — |
+| AC-029-C01 | PRD | [AC-029-C01 · L408](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T034, T035 | T035 | — |
+| AC-030 | PRD | [AC-030 · L409](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-030-C01 | PRD | [AC-030-C01 · L409](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-031 | PRD | [AC-031 · L410](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-031-C01 | PRD | [AC-031-C01 · L410](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-031-C02 | PRD | [AC-031-C02 · L410](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-032 | PRD | [AC-032 · L411](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-032-C01 | PRD | [AC-032-C01 · L411](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| AC-038 | PRD | [AC-038 · L419](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-038-C01 | PRD | [AC-038-C01 · L419](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-038-C02 | PRD | [AC-038-C02 · L419](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-039 | PRD | [AC-039 · L420](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-039-C01 | PRD | [AC-039-C01 · L420](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-039-C02 | PRD | [AC-039-C02 · L420](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-039-C03 | PRD | [AC-039-C03 · L420](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-040 | PRD | [AC-040 · L421](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-040-C01 | PRD | [AC-040-C01 · L421](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-041 | PRD | [AC-041 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-041-C01 | PRD | [AC-041-C01 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-041-C02 | PRD | [AC-041-C02 · L422](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-042 | PRD | [AC-042 · L423](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-042-C01 | PRD | [AC-042-C01 · L423](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-043 | PRD | [AC-043 · L424](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-043-C01 | PRD | [AC-043-C01 · L424](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-043-C02 | PRD | [AC-043-C02 · L424](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-044 | PRD | [AC-044 · L425](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-044-C01 | PRD | [AC-044-C01 · L425](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-044-C02 | PRD | [AC-044-C02 · L425](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-045 | PRD | [AC-045 · L426](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-045-C01 | PRD | [AC-045-C01 · L426](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-045-C02 | PRD | [AC-045-C02 · L426](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| AC-046 | PRD | [AC-046 · L427](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T025, T026, T027 | — |
+| AC-046-C01 | PRD | [AC-046-C01 · L427](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T025, T026, T027 | — |
+| AC-047 | PRD | [AC-047 · L435](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008 | T007 | — |
+| AC-047-C01 | PRD | [AC-047-C01 · L435](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008 | T007 | — |
+| AC-048 | PRD | [AC-048 · L436](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T009, T014, T015, T016, T043 | T007, T016, T043 | — |
+| AC-048-C01 | PRD | [AC-048-C01 · L436](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T014, T015, T016 | T007, T016 | — |
+| AC-048-C02 | PRD | [AC-048-C02 · L436](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T014, T015, T016 | T007, T016 | — |
+| AC-049 | PRD | [AC-049 · L437](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T034, T035 | T035 | — |
+| AC-049-C01 | PRD | [AC-049-C01 · L437](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T034, T035 | T035 | — |
+| AC-050 | PRD | [AC-050 · L438](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T039, T043 | T008, T039, T043 | — |
+| AC-050-C01 | PRD | [AC-050-C01 · L438](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T039, T043 | T008, T039, T043 | — |
+| AC-051 | PRD | [AC-051 · L439](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
+| AC-051-C01 | PRD | [AC-051-C01 · L439](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
+| AC-052 | PRD | [AC-052 · L440](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
+| AC-052-C01 | PRD | [AC-052-C01 · L440](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T008, T009, T043 | T043 | — |
+| AC-111 | PRD | [AC-111 · L441](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T034, T035 | T006, T007, T035 | — |
+| AC-111-C01 | PRD | [AC-111-C01 · L441](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T034, T035 | T006, T007, T035 | — |
+| AC-112 | PRD | [AC-112 · L442](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T040 | T006, T007, T040 | — |
+| AC-112-C01 | PRD | [AC-112-C01 · L442](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T040 | T006, T007, T040 | — |
+| AC-112-C02 | PRD | [AC-112-C02 · L442](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008, T040 | T006, T007, T040 | — |
+| AC-113 | PRD | [AC-113 · L443](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T023, T024 | T024 | — |
+| AC-113-C01 | PRD | [AC-113-C01 · L443](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T023, T024 | T024 | — |
+| AC-113-C02 | PRD | [AC-113-C02 · L443](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T023, T024 | T024 | — |
+| AC-053 | PRD | [AC-053 · L451](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T017, T028 | — |
+| AC-053-C01 | PRD | [AC-053-C01 · L451](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T017, T028 | — |
+| AC-053-C02 | PRD | [AC-053-C02 · L451](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T017, T028 | — |
+| AC-054 | PRD | [AC-054 · L452](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-054-C01 | PRD | [AC-054-C01 · L452](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-055 | PRD | [AC-055 · L453](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-055-C01 | PRD | [AC-055-C01 · L453](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-055-C02 | PRD | [AC-055-C02 · L453](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-056 | PRD | [AC-056 · L454](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-056-C01 | PRD | [AC-056-C01 · L454](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-056-C02 | PRD | [AC-056-C02 · L454](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-056-C03 | PRD | [AC-056-C03 · L454](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-114 | PRD | [AC-114 · L455](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028, T042 | T028, T042 | — |
+| AC-114-C01 | PRD | [AC-114-C01 · L455](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028, T042 | T028, T042 | — |
+| AC-114-C02 | PRD | [AC-114-C02 · L455](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028, T042 | T028, T042 | — |
+| AC-115 | PRD | [AC-115 · L456](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-115-C01 | PRD | [AC-115-C01 · L456](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-127 | PRD | [AC-127 · L457](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-127-C01 | PRD | [AC-127-C01 · L457](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-127-C02 | PRD | [AC-127-C02 · L457](02-PRD.md#us-009-review-accountable-history) | Covered | T017, T028 | T028 | — |
+| AC-068 | PRD | [AC-068 · L465](02-PRD.md#us-011-continue-metadata-work-during-an-artwork-outage) | Covered | T025, T026, T027 | T027 | — |
+| AC-068-C01 | PRD | [AC-068-C01 · L465](02-PRD.md#us-011-continue-metadata-work-during-an-artwork-outage) | Covered | T025, T026, T027 | T027 | — |
+| AC-071 | PRD | [AC-071 · L473](02-PRD.md#us-012-preserve-saved-work) | Covered | T039, T041 | T039, T041 | — |
+| AC-071-C01 | PRD | [AC-071-C01 · L473](02-PRD.md#us-012-preserve-saved-work) | Covered | T039, T041 | T039, T041 | — |
+| AC-083 | PRD | [AC-083 · L481](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
+| AC-083-C01 | PRD | [AC-083-C01 · L481](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
+| AC-084 | PRD | [AC-084 · L482](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
+| AC-084-C01 | PRD | [AC-084-C01 · L482](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
+| AC-085 | PRD | [AC-085 · L483](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
+| AC-085-C01 | PRD | [AC-085-C01 · L483](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T004, T044 | T044 | — |
+| AC-104 | PRD | [AC-104 · L491](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T019, T020, T021, T022 | T017, T022 | — |
+| AC-104-C01 | PRD | [AC-104-C01 · L491](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T019, T020, T021, T022 | T017, T022 | — |
+| AC-105 | PRD | [AC-105 · L492](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T018 | T017, T018 | — |
+| AC-105-C01 | PRD | [AC-105-C01 · L492](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T017, T018 | T017, T018 | — |
+| AC-107 | PRD | [AC-107 · L493](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T019, T020, T021, T022 | T022 | — |
+| AC-107-C01 | PRD | [AC-107-C01 · L493](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T019, T020, T021, T022 | T022 | — |
+| AC-116 | PRD | [AC-116 · L501](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-116-C01 | PRD | [AC-116-C01 · L501](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-117 | PRD | [AC-117 · L502](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T030, T032 | — |
+| AC-117-C01 | PRD | [AC-117-C01 · L502](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T030, T032 | — |
+| AC-117-C02 | PRD | [AC-117-C02 · L502](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T030, T032 | — |
+| AC-118 | PRD | [AC-118 · L503](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T030, T032, T033 | — |
+| AC-118-C01 | PRD | [AC-118-C01 · L503](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T030, T032, T033 | — |
+| AC-118-C02 | PRD | [AC-118-C02 · L503](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T030, T032, T033 | — |
+| AC-119 | PRD | [AC-119 · L504](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-119-C01 | PRD | [AC-119-C01 · L504](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-119-C02 | PRD | [AC-119-C02 · L504](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-120 | PRD | [AC-120 · L505](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T032 | — |
+| AC-120-C01 | PRD | [AC-120-C01 · L505](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T032 | — |
+| AC-120-C02 | PRD | [AC-120-C02 · L505](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032 | T032 | — |
+| AC-121 | PRD | [AC-121 · L506](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T042 | T030, T032, T042 | — |
+| AC-121-C01 | PRD | [AC-121-C01 · L506](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T042 | T030, T032, T042 | — |
+| AC-122 | PRD | [AC-122 · L507](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-122-C01 | PRD | [AC-122-C01 · L507](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T033 | T033 | — |
+| AC-126 | PRD | [AC-126 · L508](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-126-C01 | PRD | [AC-126-C01 · L508](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-123 | PRD | [AC-123 · L518](02-PRD.md#us-020-protect-private-account-information) | Covered | T008, T009, T014, T043 | T014, T043 | — |
+| AC-123-C01 | PRD | [AC-123-C01 · L518](02-PRD.md#us-020-protect-private-account-information) | Covered | T008, T009, T014, T043 | T014, T043 | — |
+| AC-124 | PRD | [AC-124 · L519](02-PRD.md#us-020-protect-private-account-information) | Covered | T040 | T040 | — |
+| AC-124-C01 | PRD | [AC-124-C01 · L519](02-PRD.md#us-020-protect-private-account-information) | Covered | T040 | T040 | — |
+| AC-125 | PRD | [AC-125 · L520](02-PRD.md#us-020-protect-private-account-information) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-125-C01 | PRD | [AC-125-C01 · L520](02-PRD.md#us-020-protect-private-account-information) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-128 | PRD | [AC-128 · L521](02-PRD.md#us-020-protect-private-account-information) | Covered | T014, T040 | T014, T040 | — |
+| AC-128-C01 | PRD | [AC-128-C01 · L521](02-PRD.md#us-020-protect-private-account-information) | Covered | T014, T040 | T014, T040 | — |
+| AC-139 | PRD | [AC-139 · L529](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-139-C01 | PRD | [AC-139-C01 · L529](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-139-C02 | PRD | [AC-139-C02 · L529](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-139-C03 | PRD | [AC-139-C03 · L529](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-140 | PRD | [AC-140 · L530](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T019, T020 | T020 | — |
+| AC-140-C01 | PRD | [AC-140-C01 · L530](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T019, T020 | T020 | — |
+| AC-140-C02 | PRD | [AC-140-C02 · L530](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T019, T020 | T020 | — |
+| AC-141 | PRD | [AC-141 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
+| AC-141-C01 | PRD | [AC-141-C01 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
+| AC-141-C02 | PRD | [AC-141-C02 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
+| AC-141-C03 | PRD | [AC-141-C03 · L531](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T007 | — |
+| AC-142 | PRD | [AC-142 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-142-C01 | PRD | [AC-142-C01 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-142-C02 | PRD | [AC-142-C02 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-142-C03 | PRD | [AC-142-C03 · L532](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-143 | PRD | [AC-143 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-143-C01 | PRD | [AC-143-C01 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-143-C02 | PRD | [AC-143-C02 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-143-C03 | PRD | [AC-143-C03 · L533](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T042, T043 | T042, T043 | — |
+| AC-144 | PRD | [AC-144 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-144-C01 | PRD | [AC-144-C01 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-144-C02 | PRD | [AC-144-C02 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-144-C03 | PRD | [AC-144-C03 · L534](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-145 | PRD | [AC-145 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-145-C01 | PRD | [AC-145-C01 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-145-C02 | PRD | [AC-145-C02 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-145-C03 | PRD | [AC-145-C03 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-145-C04 | PRD | [AC-145-C04 · L535](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-146 | PRD | [AC-146 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-146-C01 | PRD | [AC-146-C01 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-146-C02 | PRD | [AC-146-C02 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-146-C03 | PRD | [AC-146-C03 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-146-C04 | PRD | [AC-146-C04 · L536](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T005, T006, T007, T008 | T006, T007 | — |
+| AC-147 | PRD | [AC-147 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
+| AC-147-C01 | PRD | [AC-147-C01 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
+| AC-147-C02 | PRD | [AC-147-C02 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
+| AC-147-C03 | PRD | [AC-147-C03 · L537](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T012, T025, T026, T027, T043 | T012, T027, T043 | — |
+| AC-148 | PRD | [AC-148 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-148-C01 | PRD | [AC-148-C01 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-148-C02 | PRD | [AC-148-C02 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-148-C03 | PRD | [AC-148-C03 · L538](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T043 | T043 | — |
+| AC-149 | PRD | [AC-149 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-149-C01 | PRD | [AC-149-C01 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-149-C02 | PRD | [AC-149-C02 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-149-C03 | PRD | [AC-149-C03 · L539](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-150 | PRD | [AC-150 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-150-C01 | PRD | [AC-150-C01 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-150-C02 | PRD | [AC-150-C02 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-150-C03 | PRD | [AC-150-C03 · L540](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-151 | PRD | [AC-151 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-151-C01 | PRD | [AC-151-C01 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-151-C02 | PRD | [AC-151-C02 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-151-C03 | PRD | [AC-151-C03 · L541](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-152 | PRD | [AC-152 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-152-C01 | PRD | [AC-152-C01 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-152-C02 | PRD | [AC-152-C02 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-152-C03 | PRD | [AC-152-C03 · L542](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| AC-153 | PRD | [AC-153 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-153-C01 | PRD | [AC-153-C01 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-153-C02 | PRD | [AC-153-C02 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-153-C03 | PRD | [AC-153-C03 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-153-C04 | PRD | [AC-153-C04 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-153-C05 | PRD | [AC-153-C05 · L543](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-154 | PRD | [AC-154 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-154-C01 | PRD | [AC-154-C01 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-154-C02 | PRD | [AC-154-C02 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-154-C03 | PRD | [AC-154-C03 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-154-C04 | PRD | [AC-154-C04 · L544](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-155 | PRD | [AC-155 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
+| AC-155-C01 | PRD | [AC-155-C01 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
+| AC-155-C02 | PRD | [AC-155-C02 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
+| AC-155-C03 | PRD | [AC-155-C03 · L545](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T006, T008, T009, T039, T043 | T006, T039, T043 | — |
+| AC-156 | PRD | [AC-156 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-156-C01 | PRD | [AC-156-C01 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-156-C02 | PRD | [AC-156-C02 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-156-C03 | PRD | [AC-156-C03 · L546](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T029, T030, T031, T032, T033 | T032, T033 | — |
+| AC-157 | PRD | [AC-157 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T025, T026, T027, T039, T043 | T027, T039, T043 | — |
+| AC-157-C01 | PRD | [AC-157-C01 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T025, T026, T027, T039, T043 | T027, T039, T043 | — |
+| AC-157-C02 | PRD | [AC-157-C02 · L547](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T008, T009, T025, T026, T027, T039, T043 | T027, T039, T043 | — |
+| AC-158 | PRD | [AC-158 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
+| AC-158-C01 | PRD | [AC-158-C01 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
+| AC-158-C02 | PRD | [AC-158-C02 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
+| AC-158-C03 | PRD | [AC-158-C03 · L548](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T034, T035 | T035 | — |
+| AC-159 | PRD | [AC-159 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
+| AC-159-C01 | PRD | [AC-159-C01 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
+| AC-159-C02 | PRD | [AC-159-C02 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
+| AC-159-C03 | PRD | [AC-159-C03 · L549](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T012, T013 | T013 | — |
+| AC-064 | PRD | [AC-064 · L855](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
+| AC-065 | PRD | [AC-065 · L856](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T025, T026, T027, T039 | T027, T039 | — |
+| AC-066 | PRD | [AC-066 · L857](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T004, T025, T026, T027, T042, T044 | T027, T042, T044 | — |
+| AC-067 | PRD | [AC-067 · L858](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
+| AC-069 | PRD | [AC-069 · L859](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T017 | T017 | — |
+| AC-070 | PRD | [AC-070 · L860](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T012, T017, T045 | T012, T017, T045 | — |
+| AC-072 | PRD | [AC-072 · L861](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T011 | T011 | — |
+| AC-074 | PRD | [AC-074 · L862](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T011, T039 | T011, T039 | — |
+| AC-076 | PRD | [AC-076 · L863](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
+| AC-077 | PRD | [AC-077 · L864](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039 | T039 | — |
+| AC-079 | PRD | [AC-079 · L865](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T038, T039 | T038, T039 | — |
+| AC-080 | PRD | [AC-080 · L866](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T008, T038 | T008, T038 | — |
+| AC-081 | PRD | [AC-081 · L867](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T038 | T038 | — |
+| AC-082 | PRD | [AC-082 · L868](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T036, T038 | T036, T038 | — |
+| AC-086 | PRD | [AC-086 · L869](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T046 | T046 | — |
+| AC-087 | PRD | [AC-087 · L870](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T011, T017, T025, T026, T027, T034, T035, T036, T039 | T011, T017, T027, T035, T036, T039 | — |
+| AC-088 | PRD | [AC-088 · L871](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039, T046 | T039, T046 | — |
+| AC-089 | PRD | [AC-089 · L872](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T039, T046 | T039, T046 | — |
+| AC-090 | PRD | [AC-090 · L873](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T046 | T046 | — |
+| AC-098 | PRD | [AC-098 · L874](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T008, T009, T043 | T043 | — |
+| AC-099 | PRD | [AC-099 · L875](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T008, T009, T043, T046 | T043, T046 | — |
+| AC-100 | PRD | [AC-100 · L876](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T017, T042 | T017, T042 | — |
+| AC-101 | PRD | [AC-101 · L877](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T042 | T042 | — |
+| AC-102 | PRD | [AC-102 · L878](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T006, T009, T042 | T006, T009, T042 | — |
+| AC-103 | PRD | [AC-103 · L879](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T025, T026, T027, T042 | T027, T042 | — |
+| AC-106 | PRD | [AC-106 · L880](02-PRD.md#102-retained-engineering-acceptance-references) | Covered | T017, T042 | T017, T042 | — |
+| G-01 | PRD | [G-01 · L922](02-PRD.md#122-release-gates-remain-planned) | Covered | T046 | T046 | — |
+| G-02 | PRD | [G-02 · L923](02-PRD.md#122-release-gates-remain-planned) | Covered | T004, T006, T017, T025, T026, T027, T039, T042, T044 | T006, T017, T027, T039, T042, T044 | — |
+| G-03 | PRD | [G-03 · L924](02-PRD.md#122-release-gates-remain-planned) | Covered | T005, T006, T007, T008, T009, T012, T013, T017, T018, T019, T020, T021, T022, T023, T024, T026, T034, T035, T038, T039, T041, T042, T043 | T006, T007, T012, T013, T017, T018, T020, T022, T023, T024, T026, T035, T038, T039, T041, T042, T043 | — |
+| G-04 | PRD | [G-04 · L925](02-PRD.md#122-release-gates-remain-planned) | Covered | T006, T008, T009, T011, T025, T026, T027, T036, T039, T043 | T006, T011, T026, T027, T036, T039, T043 | — |
+| G-05 | PRD | [G-05 · L926](02-PRD.md#122-release-gates-remain-planned) | Covered | T005, T006, T007, T008, T009, T012, T014, T023, T024, T025, T026, T027, T038, T039, T042, T043 | T006, T007, T008, T012, T014, T024, T027, T038, T039, T042, T043 | — |
+| G-06 | PRD | [G-06 · L927](02-PRD.md#122-release-gates-remain-planned) | Covered | T039, T046 | T039, T046 | — |
+| G-07 | PRD | [G-07 · L928](02-PRD.md#122-release-gates-remain-planned) | Covered | T029, T030, T031, T032, T033, T042, T046 | T030, T032, T033, T042, T046 | — |
+| G-08 | PRD | [G-08 · L929](02-PRD.md#122-release-gates-remain-planned) | Excluded | — | — | Live deployment remains unselected; local reproducibility and viable MCP connectivity remain included. |
+| J-05 | PRD | [J-05 · L945](02-PRD.md#123-delivery-responsibilities-and-journeys) | Covered | T039 | T039 | — |
+| J-06 | PRD | [J-06 · L946](02-PRD.md#123-delivery-responsibilities-and-journeys) | Covered | T036 | T036 | — |
+| J-07 | PRD | [J-07 · L947](02-PRD.md#123-delivery-responsibilities-and-journeys) | Covered | T046 | T046 | — |
+| AC-033 | PRD | [AC-033 · L959](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-033-C01 | PRD | [AC-033-C01 · L959](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-034 | PRD | [AC-034 · L960](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-034-C01 | PRD | [AC-034-C01 · L960](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-034-C02 | PRD | [AC-034-C02 · L960](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-035 | PRD | [AC-035 · L961](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035, T041 | T035, T041 | — |
+| AC-035-C01 | PRD | [AC-035-C01 · L961](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035, T041 | T035, T041 | — |
+| AC-035-C02 | PRD | [AC-035-C02 · L961](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035, T041 | T035, T041 | — |
+| AC-036 | PRD | [AC-036 · L962](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-036-C01 | PRD | [AC-036-C01 · L962](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-037 | PRD | [AC-037 · L963](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-037-C01 | PRD | [AC-037-C01 · L963](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| AC-057 | PRD | [AC-057 · L971](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T017 | T011, T017 | — |
+| AC-057-C01 | PRD | [AC-057-C01 · L971](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T017 | T011, T017 | — |
+| AC-058 | PRD | [AC-058 · L972](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
+| AC-058-C01 | PRD | [AC-058-C01 · L972](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
+| AC-059 | PRD | [AC-059 · L973](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
+| AC-059-C01 | PRD | [AC-059-C01 · L973](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011 | T011 | — |
+| AC-060 | PRD | [AC-060 · L974](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T036 | T011, T036 | — |
+| AC-060-C01 | PRD | [AC-060-C01 · L974](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T011, T036 | T011, T036 | — |
+| AC-061 | PRD | [AC-061 · L975](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
+| AC-061-C01 | PRD | [AC-061-C01 · L975](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
+| AC-062 | PRD | [AC-062 · L976](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
+| AC-062-C01 | PRD | [AC-062-C01 · L976](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
+| AC-063 | PRD | [AC-063 · L977](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036, T038 | T036, T038 | — |
+| AC-063-C01 | PRD | [AC-063-C01 · L977](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036, T038 | T036, T038 | — |
+| AC-073 | PRD | [AC-073 · L985](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T011 | T011 | — |
+| AC-073-C01 | PRD | [AC-073-C01 · L985](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T011 | T011 | — |
+| AC-075 | PRD | [AC-075 · L986](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T026, T036, T042 | T026, T036, T042 | — |
+| AC-075-C01 | PRD | [AC-075-C01 · L986](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T026, T036, T042 | T026, T036, T042 | — |
+| AC-075-C02 | PRD | [AC-075-C02 · L986](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T026, T036, T042 | T026, T036, T042 | — |
+| AC-078 | PRD | [AC-078 · L987](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-078-C01 | PRD | [AC-078-C01 · L987](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T008, T009, T039, T043 | T039, T043 | — |
+| AC-091 | PRD | [AC-091 · L1003](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-091-C01 | PRD | [AC-091-C01 · L1003](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-092 | PRD | [AC-092 · L1004](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-092-C01 | PRD | [AC-092-C01 · L1004](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-092-C02 | PRD | [AC-092-C02 · L1004](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-093 | PRD | [AC-093 · L1005](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039, T046 | T039, T046 | — |
+| AC-093-C01 | PRD | [AC-093-C01 · L1005](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039, T046 | T039, T046 | — |
+| AC-094 | PRD | [AC-094 · L1006](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-094-C01 | PRD | [AC-094-C01 · L1006](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-094-C02 | PRD | [AC-094-C02 · L1006](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T039 | T039 | — |
+| AC-095 | PRD | [AC-095 · L1007](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-095-C01 | PRD | [AC-095-C01 · L1007](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-096 | PRD | [AC-096 · L1008](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-096-C01 | PRD | [AC-096-C01 · L1008](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-096-C02 | PRD | [AC-096-C02 · L1008](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-097 | PRD | [AC-097 · L1009](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-097-C01 | PRD | [AC-097-C01 · L1009](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| AC-097-C02 | PRD | [AC-097-C02 · L1009](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| OD-002 | PRD | [OD-002 · L1019](02-PRD.md#131-resolved-product-decisions) | Covered | T008, T009, T023, T024, T034, T035, T039, T043 | T008, T024, T035, T039, T043 | — |
+| OD-004 | PRD | [OD-004 · L1020](02-PRD.md#131-resolved-product-decisions) | Covered | T017, T023, T024, T026, T034, T035, T038, T041, T042 | T017, T023, T024, T026, T035, T038, T041, T042 | — |
+| OD-005 | PRD | [OD-005 · L1021](02-PRD.md#131-resolved-product-decisions) | Covered | T012, T013 | T012, T013 | — |
+| OD-009 | PRD | [OD-009 · L1022](02-PRD.md#131-resolved-product-decisions) | Covered | T017, T019, T020, T021, T022, T023, T024 | T017, T022, T024 | — |
+| OD-018 | PRD | [OD-018 · L1023](02-PRD.md#131-resolved-product-decisions) | Covered | T012, T013, T034, T035 | T013, T035 | — |
+| OD-001 | PRD | [OD-001 · L1042](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T005, T006, T007, T008 | T006, T007, T008 | — |
+| OD-003 | PRD | [OD-003 · L1043](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T042 | T042 | — |
+| OD-006 | PRD | [OD-006 · L1044](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T034, T035 | T035 | — |
+| OD-007 | PRD | [OD-007 · L1045](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T025, T026, T027 | T027 | — |
+| OD-008 | PRD | [OD-008 · L1046](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T026, T038 | T026, T038 | — |
+| OD-010 | PRD | [OD-010 · L1047](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T017, T042 | T017, T042 | — |
+| OD-011 | PRD | [OD-011 · L1048](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T017, T028, T042 | T028, T042 | — |
+| OD-012 | PRD | [OD-012 · L1049](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T011 | T011 | — |
+| OD-013 | PRD | [OD-013 · L1050](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T036 | T036 | — |
+| OD-014 | PRD | [OD-014 · L1051](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T038 | T038 | — |
+| OD-015 | PRD | [OD-015 · L1052](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T039 | T039 | — |
+| OD-016 | PRD | [OD-016 · L1053](02-PRD.md#132-engineering-and-other-next-phase-register) | Deferred | — | — | Unselected hosting and scheduling details remain outside local release plan; retain required local delivery and MCP connectivity under later accepted engineering decisions. |
+| OD-017 | PRD | [OD-017 · L1054](02-PRD.md#132-engineering-and-other-next-phase-register) | Deferred | — | — | Unselected hosting and scheduling details remain outside local release plan; retain required local delivery and MCP connectivity under later accepted engineering decisions. |
+| OD-019 | PRD | [OD-019 · L1055](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T025, T026, T027, T029, T030, T031, T033, T042 | T027, T033, T042 | — |
+| OD-020 | PRD | [OD-020 · L1056](02-PRD.md#132-engineering-and-other-next-phase-register) | Covered | T039 | T039 | — |
+| US-001 | PRD | [US-001 · L333](02-PRD.md#us-001-browse-titles-and-people) | Covered | T025, T026, T027 | T027 | — |
+| US-002 | PRD | [US-002 · L345](02-PRD.md#us-002-search-and-filter) | Covered | T019, T020 | T020 | — |
+| US-003 | PRD | [US-003 · L362](02-PRD.md#us-003-maintain-movies) | Covered | T038 | T038 | — |
+| US-004 | PRD | [US-004 · L379](02-PRD.md#us-004-maintain-people-and-credits) | Covered | T023, T024 | T024 | — |
+| US-005 | PRD | [US-005 · L402](02-PRD.md#us-005-read-trustworthy-metadata) | Covered | T012, T013 | T013 | — |
+| US-007 | PRD | [US-007 · L413](02-PRD.md#us-007-upload-and-recover-artwork) | Covered | T025, T026, T027 | T027 | — |
+| US-008 | PRD | [US-008 · L429](02-PRD.md#us-008-register-sign-in-and-enforce-access) | Covered | T005, T006, T007, T008 | T007 | — |
+| US-009 | PRD | [US-009 · L445](02-PRD.md#us-009-review-accountable-history) | Covered | T029, T030, T031, T033 | T033 | — |
+| US-011 | PRD | [US-011 · L459](02-PRD.md#us-011-continue-metadata-work-during-an-artwork-outage) | Covered | T025, T026, T027 | T027 | — |
+| US-012 | PRD | [US-012 · L467](02-PRD.md#us-012-preserve-saved-work) | Covered | T039 | T039 | — |
+| US-015 | PRD | [US-015 · L475](02-PRD.md#us-015-complete-tasks-across-devices) | Covered | T017, T028 | T028 | — |
+| US-018 | PRD | [US-018 · L485](02-PRD.md#us-018-save-edits-without-losing-or-duplicating-work) | Covered | T046 | T046 | — |
+| US-019 | PRD | [US-019 · L495](02-PRD.md#us-019-approve-ai-assisted-movie-creation-in-chat) | Covered | T029, T030, T031, T033 | T033 | — |
+| US-020 | PRD | [US-020 · L512](02-PRD.md#us-020-protect-private-account-information) | Covered | T005, T006, T007, T008 | T007 | — |
+| US-021 | PRD | [US-021 · L523](02-PRD.md#us-021-submit-accepted-input-and-correct-validation-failures) | Covered | T025, T026, T027 | T027 | — |
+| US-006 | PRD | [US-006 · L953](02-PRD.md#us-006-start-with-a-reproducible-catalog) | Covered | T034, T035 | T035 | — |
+| US-010 | PRD | [US-010 · L965](02-PRD.md#us-010-recover-follow-up-and-notify-failures) | Covered | T036 | T036 | — |
+| US-013 | PRD | [US-013 · L979](02-PRD.md#us-013-bound-recovery-and-protect-setup) | Covered | T046 | T046 | — |
+| US-014 | PRD | [US-014 · L989](02-PRD.md#us-014-diagnose-user-visible-failure) | Covered | T046 | T046 | — |
+| US-016 | PRD | [US-016 · L993](02-PRD.md#us-016-verify-and-explain-the-work) | Covered | T042 | T042 | — |
+| US-017 | PRD | [US-017 · L997](02-PRD.md#us-017-reproduce-and-review-the-release) | Covered | T046 | T046 | — |
+| PRD-PERM-01 | PRD | [PRD-PERM-01 · L68](02-PRD.md#31-permission-matrix) | Covered | T019, T020, T021, T022 | T022 | — |
+| PRD-PERM-02 | PRD | [PRD-PERM-02 · L69](02-PRD.md#31-permission-matrix) | Covered | T046 | T046 | — |
+| PRD-PERM-03 | PRD | [PRD-PERM-03 · L70](02-PRD.md#31-permission-matrix) | Covered | T025, T026, T027 | T027 | — |
+| PRD-PERM-04 | PRD | [PRD-PERM-04 · L71](02-PRD.md#31-permission-matrix) | Covered | T023, T024 | T024 | — |
+| PRD-PERM-05 | PRD | [PRD-PERM-05 · L72](02-PRD.md#31-permission-matrix) | Covered | T019, T020, T021, T022 | T022 | — |
+| PRD-PERM-06 | PRD | [PRD-PERM-06 · L73](02-PRD.md#31-permission-matrix) | Covered | T017, T028 | T028 | — |
+| PRD-PERM-07 | PRD | [PRD-PERM-07 · L74](02-PRD.md#31-permission-matrix) | Covered | T017, T018 | T018 | — |
+| PRD-PERM-08 | PRD | [PRD-PERM-08 · L75](02-PRD.md#31-permission-matrix) | Covered | T046 | T046 | — |
+| PRD-POLICY-01 | PRD | [PRD-POLICY-01 · L114](02-PRD.md#51-included-behavior) | Covered | T034, T035 | T035 | — |
+| PRD-POLICY-02 | PRD | [PRD-POLICY-02 · L116](02-PRD.md#51-included-behavior) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-POLICY-03 | PRD | [PRD-POLICY-03 · L118](02-PRD.md#51-included-behavior) | Covered | T019, T020 | T020 | — |
+| PRD-POLICY-04 | PRD | [PRD-POLICY-04 · L120](02-PRD.md#51-included-behavior) | Covered | T012, T013 | T013 | — |
+| PRD-POLICY-05 | PRD | [PRD-POLICY-05 · L122](02-PRD.md#51-included-behavior) | Covered | T019, T020, T021, T022 | T022 | — |
+| PRD-POLICY-06 | PRD | [PRD-POLICY-06 · L126](02-PRD.md#52-removal-and-editing-rules) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-07 | PRD | [PRD-POLICY-07 · L128](02-PRD.md#52-removal-and-editing-rules) | Covered | T023, T024 | T024 | — |
+| PRD-POLICY-08 | PRD | [PRD-POLICY-08 · L130](02-PRD.md#52-removal-and-editing-rules) | Covered | T023, T024 | T024 | — |
+| PRD-POLICY-09 | PRD | [PRD-POLICY-09 · L132](02-PRD.md#52-removal-and-editing-rules) | Covered | T034, T035 | T035 | — |
+| PRD-POLICY-10 | PRD | [PRD-POLICY-10 · L134](02-PRD.md#52-removal-and-editing-rules) | Covered | T023, T024 | T024 | — |
+| PRD-POLICY-11 | PRD | [PRD-POLICY-11 · L136](02-PRD.md#52-removal-and-editing-rules) | Covered | T034, T035 | T035 | — |
+| PRD-POLICY-12 | PRD | [PRD-POLICY-12 · L138](02-PRD.md#52-removal-and-editing-rules) | Covered | T046 | T046 | — |
+| PRD-POLICY-13 | PRD | [PRD-POLICY-13 · L140](02-PRD.md#52-removal-and-editing-rules) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-14 | PRD | [PRD-POLICY-14 · L144](02-PRD.md#53-accounts-audit-and-ai-boundaries) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-POLICY-15 | PRD | [PRD-POLICY-15 · L146](02-PRD.md#53-accounts-audit-and-ai-boundaries) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-POLICY-16 | PRD | [PRD-POLICY-16 · L148](02-PRD.md#53-accounts-audit-and-ai-boundaries) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-SCOPE-01 | PRD | [PRD-SCOPE-01 · L152](02-PRD.md#54-excluded-and-deferred) | Deferred | — | — | Explicitly outside initial release; conditional connectivity remains included. |
+| PRD-SCOPE-02 | PRD | [PRD-SCOPE-02 · L154](02-PRD.md#54-excluded-and-deferred) | Deferred | — | — | Explicitly outside initial release; conditional connectivity remains included. |
+| PRD-SCOPE-03 | PRD | [PRD-SCOPE-03 · L156](02-PRD.md#54-excluded-and-deferred) | Deferred | — | — | Explicitly outside initial release; conditional connectivity remains included. |
+| PRD-POLICY-17 | PRD | [PRD-POLICY-17 · L160](02-PRD.md#55-input-validation-and-artwork-policy) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-POLICY-18 | PRD | [PRD-POLICY-18 · L164](02-PRD.md#name-defaults) | Covered | T019, T020 | T020 | — |
+| PRD-BOUND-01 | PRD | [PRD-BOUND-01 · L168](02-PRD.md#name-defaults) | Covered | T019, T020 | T020 | — |
+| PRD-BOUND-02 | PRD | [PRD-BOUND-02 · L169](02-PRD.md#name-defaults) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-POLICY-19 | PRD | [PRD-POLICY-19 · L171](02-PRD.md#name-defaults) | Covered | T034, T035 | T035 | — |
+| PRD-POLICY-20 | PRD | [PRD-POLICY-20 · L175](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T008, T009, T043 | T043 | — |
+| PRD-BOUND-03 | PRD | [PRD-BOUND-03 · L179](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T017, T018 | T018 | — |
+| PRD-BOUND-04 | PRD | [PRD-BOUND-04 · L180](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T017, T018 | T018 | — |
+| PRD-BOUND-05 | PRD | [PRD-BOUND-05 · L181](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T019, T020, T021, T022 | T022 | — |
+| PRD-BOUND-06 | PRD | [PRD-BOUND-06 · L182](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T046 | T046 | — |
+| PRD-BOUND-07 | PRD | [PRD-BOUND-07 · L183](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T012, T013 | T013 | — |
+| PRD-BOUND-08 | PRD | [PRD-BOUND-08 · L184](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-BOUND-09 | PRD | [PRD-BOUND-09 · L185](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-BOUND-10 | PRD | [PRD-BOUND-10 · L186](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T046 | T046 | — |
+| PRD-POLICY-21 | PRD | [PRD-POLICY-21 · L188](02-PRD.md#recommended-defaults-for-other-inputs) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-POLICY-22 | PRD | [PRD-POLICY-22 · L192](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-POLICY-23 | PRD | [PRD-POLICY-23 · L194](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T012, T013 | T013 | — |
+| PRD-POLICY-24 | PRD | [PRD-POLICY-24 · L196](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T017, T028 | T028 | — |
+| PRD-POLICY-25 | PRD | [PRD-POLICY-25 · L198](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-POLICY-26 | PRD | [PRD-POLICY-26 · L200](02-PRD.md#validation-safe-handling-and-feedback) | Covered | T017, T028 | T028 | — |
+| PRD-POLICY-27 | PRD | [PRD-POLICY-27 · L204](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
+| PRD-BOUND-11 | PRD | [PRD-BOUND-11 · L208](02-PRD.md#artwork-policy) | Covered | T008, T009, T043 | T043 | — |
+| PRD-BOUND-12 | PRD | [PRD-BOUND-12 · L209](02-PRD.md#artwork-policy) | Covered | T046 | T046 | — |
+| PRD-BOUND-13 | PRD | [PRD-BOUND-13 · L210](02-PRD.md#artwork-policy) | Covered | T046 | T046 | — |
+| PRD-BOUND-14 | PRD | [PRD-BOUND-14 · L211](02-PRD.md#artwork-policy) | Covered | T046 | T046 | — |
+| PRD-POLICY-28 | PRD | [PRD-POLICY-28 · L213](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-29 | PRD | [PRD-POLICY-29 · L215](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-30 | PRD | [PRD-POLICY-30 · L217](02-PRD.md#artwork-policy) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-31 | PRD | [PRD-POLICY-31 · L221](02-PRD.md#configuration-and-existing-content) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-32 | PRD | [PRD-POLICY-32 · L223](02-PRD.md#configuration-and-existing-content) | Covered | T025, T026, T027 | T027 | — |
+| PRD-POLICY-33 | PRD | [PRD-POLICY-33 · L225](02-PRD.md#configuration-and-existing-content) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-FEEDBACK-01 | PRD | [PRD-FEEDBACK-01 · L795](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
+| PRD-FEEDBACK-02 | PRD | [PRD-FEEDBACK-02 · L796](02-PRD.md#810-shared-feedback-rules) | Covered | T025, T026, T027 | T027 | — |
+| PRD-FEEDBACK-03 | PRD | [PRD-FEEDBACK-03 · L797](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
+| PRD-FEEDBACK-04 | PRD | [PRD-FEEDBACK-04 · L798](02-PRD.md#810-shared-feedback-rules) | Covered | T008, T009, T043 | T043 | — |
+| PRD-FEEDBACK-05 | PRD | [PRD-FEEDBACK-05 · L799](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
+| PRD-FEEDBACK-06 | PRD | [PRD-FEEDBACK-06 · L800](02-PRD.md#810-shared-feedback-rules) | Covered | T011 | T011 | — |
+| PRD-FEEDBACK-07 | PRD | [PRD-FEEDBACK-07 · L801](02-PRD.md#810-shared-feedback-rules) | Covered | T046 | T046 | — |
+| PRD-CONCEPT-01 | PRD | [PRD-CONCEPT-01 · L809](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T025, T026, T027 | T027 | — |
+| PRD-CONCEPT-02 | PRD | [PRD-CONCEPT-02 · L810](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T034, T035 | T035 | — |
+| PRD-CONCEPT-03 | PRD | [PRD-CONCEPT-03 · L811](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T025, T026, T027 | T027 | — |
+| PRD-CONCEPT-04 | PRD | [PRD-CONCEPT-04 · L812](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T017, T018 | T018 | — |
+| PRD-CONCEPT-05 | PRD | [PRD-CONCEPT-05 · L813](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T034, T035 | T035 | — |
+| PRD-CONCEPT-06 | PRD | [PRD-CONCEPT-06 · L814](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T023, T024 | T024 | — |
+| PRD-CONCEPT-07 | PRD | [PRD-CONCEPT-07 · L815](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T017, T028 | T028 | — |
+| PRD-CONCEPT-08 | PRD | [PRD-CONCEPT-08 · L816](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T023, T024 | T024 | — |
+| PRD-CONCEPT-09 | PRD | [PRD-CONCEPT-09 · L817](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T019, T020 | T020 | — |
+| PRD-CONCEPT-10 | PRD | [PRD-CONCEPT-10 · L818](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-CONCEPT-11 | PRD | [PRD-CONCEPT-11 · L819](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-CONCEPT-12 | PRD | [PRD-CONCEPT-12 · L820](02-PRD.md#9-conceptual-information-and-privacy) | Covered | T034, T035 | T035 | — |
+| PRD-HANDOFF-01 | PRD | [PRD-HANDOFF-01 · L834](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
+| PRD-HANDOFF-02 | PRD | [PRD-HANDOFF-02 · L835](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
+| PRD-HANDOFF-03 | PRD | [PRD-HANDOFF-03 · L836](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T046 | T046 | — |
+| PRD-HANDOFF-04 | PRD | [PRD-HANDOFF-04 · L837](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T042 | T042 | — |
+| PRD-HANDOFF-05 | PRD | [PRD-HANDOFF-05 · L838](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T017, T028 | T028 | — |
+| PRD-HANDOFF-06 | PRD | [PRD-HANDOFF-06 · L839](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T036 | T036 | — |
+| PRD-HANDOFF-07 | PRD | [PRD-HANDOFF-07 · L840](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T042 | T042 | — |
+| PRD-HANDOFF-08 | PRD | [PRD-HANDOFF-08 · L841](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
+| PRD-HANDOFF-09 | PRD | [PRD-HANDOFF-09 · L842](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T034, T035 | T035 | — |
+| PRD-HANDOFF-10 | PRD | [PRD-HANDOFF-10 · L843](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T008, T009, T043 | T043 | — |
+| PRD-HANDOFF-11 | PRD | [PRD-HANDOFF-11 · L844](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T005, T006, T007, T008 | T007 | — |
+| PRD-HANDOFF-12 | PRD | [PRD-HANDOFF-12 · L845](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T029, T030, T031, T033 | T033 | — |
+| PRD-HANDOFF-13 | PRD | [PRD-HANDOFF-13 · L846](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T025, T026, T027 | T027 | — |
+| PRD-HANDOFF-14 | PRD | [PRD-HANDOFF-14 · L847](02-PRD.md#101-constraints-to-carry-into-the-techdoc) | Covered | T005, T006, T007, T008 | T007 | — |
 | UI-discovery-catalog | S-DESIGN-SYSTEM-MOCKUP-DISCOVERY-HTML | [UI-discovery-catalog · L1](design-system/mockup/discovery.html#catalog) | Covered | T013 | T013, T044 | — |
 | UI-discovery-catalog-loading | S-DESIGN-SYSTEM-MOCKUP-DISCOVERY-HTML | [UI-discovery-catalog-loading · L5](design-system/mockup/discovery.html#catalog-loading) | Covered | T013 | T013, T044 | — |
 | UI-discovery-catalog-empty | S-DESIGN-SYSTEM-MOCKUP-DISCOVERY-HTML | [UI-discovery-catalog-empty · L5](design-system/mockup/discovery.html#catalog-empty) | Covered | T013 | T013, T044 | — |
@@ -2788,49 +2792,49 @@ Broad requirement/AC/contract clauses are collectively verified: each task prove
 | F-EXPIRY-proposal | ATDD | [F-EXPIRY-proposal · L176](05-atdd.md#f-expiry-eligibility-versus-purge) | Covered | T041 | T041 | — |
 | F-EXPIRY-challenge | ATDD | [F-EXPIRY-challenge · L176](05-atdd.md#f-expiry-eligibility-versus-purge) | Covered | T041 | T041 | — |
 | F-EXPIRY-approval | ATDD | [F-EXPIRY-approval · L176](05-atdd.md#f-expiry-eligibility-versus-purge) | Covered | T041 | T041 | — |
-| BRAIN-A01 | BRAIN | [BRAIN-A01 · L48](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T039 | T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A02 | BRAIN | [BRAIN-A02 · L49](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T039 | T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A03 | BRAIN | [BRAIN-A03 · L50](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T027, T039 | T027, T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A04 | BRAIN | [BRAIN-A04 · L51](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T011, T017, T027, T035, T036, T039 | T011, T017, T027, T035, T036, T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A05 | BRAIN | [BRAIN-A05 · L52](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T017, T027, T042, T044 | T017, T027, T042, T044 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A06 | BRAIN | [BRAIN-A06 · L53](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T013 | T013 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A07 | BRAIN | [BRAIN-A07 · L54](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T017, T018, T024, T026, T038, T042 | T017, T018, T024, T026, T038, T042 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A08 | BRAIN | [BRAIN-A08 · L55](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T025, T026, T027 | T025, T026, T027 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A09 | BRAIN | [BRAIN-A09 · L56](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T013, T022, T024 | T013, T022, T024 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A10 | BRAIN | [BRAIN-A10 · L57](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T017, T020, T022, T023, T024, T042 | T017, T020, T022, T023, T024, T042 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A11 | BRAIN | [BRAIN-A11 · L58](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T012, T013, T024 | T012, T013, T024 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A12 | BRAIN | [BRAIN-A12 · L59](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A13 | BRAIN | [BRAIN-A13 · L60](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T044 | T044 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A14 | BRAIN | [BRAIN-A14 · L61](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T013, T018, T027, T044 | T013, T018, T027, T044 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A15 | BRAIN | [BRAIN-A15 · L62](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T046 | T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A16 | BRAIN | [BRAIN-A16 · L63](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-A17 | BRAIN | [BRAIN-A17 · L64](01-brainstorming-result.md#3-assessment-requirements-and-acceptance-baseline) | Covered | T046 | T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D01 | BRAIN | [BRAIN-D01 · L72](01-brainstorming-result.md#4-decision-register) | Covered | T046 | T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D02 | BRAIN | [BRAIN-D02 · L73](01-brainstorming-result.md#4-decision-register) | Covered | T039 | T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D03 | BRAIN | [BRAIN-D03 · L74](01-brainstorming-result.md#4-decision-register) | Covered | T017, T027, T039, T042, T044 | T017, T027, T039, T042, T044 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D04 | BRAIN | [BRAIN-D04 · L75](01-brainstorming-result.md#4-decision-register) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D05 | BRAIN | [BRAIN-D05 · L76](01-brainstorming-result.md#4-decision-register) | Covered | T007, T008, T016, T017, T028, T035, T039, T043 | T007, T008, T016, T017, T028, T035, T039, T043 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D06 | BRAIN | [BRAIN-D06 · L77](01-brainstorming-result.md#4-decision-register) | Covered | T043, T046 | T043, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D07 | BRAIN | [BRAIN-D07 · L78](01-brainstorming-result.md#4-decision-register) | Covered | T006, T007, T008, T035, T039, T043 | T006, T007, T008, T035, T039, T043 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D08 | BRAIN | [BRAIN-D08 · L79](01-brainstorming-result.md#4-decision-register) | Covered | T017, T042 | T017, T042 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D09 | BRAIN | [BRAIN-D09 · L80](01-brainstorming-result.md#4-decision-register) | Covered | T017, T018, T022, T042 | T017, T018, T022, T042 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D10 | BRAIN | [BRAIN-D10 · L81](01-brainstorming-result.md#4-decision-register) | Covered | T027, T039 | T027, T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D11 | BRAIN | [BRAIN-D11 · L82](01-brainstorming-result.md#4-decision-register) | Covered | T025, T026, T027 | T025, T026, T027 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D12 | BRAIN | [BRAIN-D12 · L83](01-brainstorming-result.md#4-decision-register) | Covered | T007, T008, T016, T035, T039, T043 | T007, T008, T016, T035, T039, T043 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D13 | BRAIN | [BRAIN-D13 · L84](01-brainstorming-result.md#4-decision-register) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D14 | BRAIN | [BRAIN-D14 · L85](01-brainstorming-result.md#4-decision-register) | Excluded | — | — | Live deployment remains unselected; local reproducibility and viable MCP connectivity remain included. |
-| BRAIN-D15 | BRAIN | [BRAIN-D15 · L86](01-brainstorming-result.md#4-decision-register) | Deferred | — | — | Excluded from assessment delivery by PRD section 5.4; retain included provenance groundwork separately. |
-| BRAIN-D16 | BRAIN | [BRAIN-D16 · L87](01-brainstorming-result.md#4-decision-register) | Deferred | — | — | Excluded from assessment delivery by PRD section 5.4; retain included provenance groundwork separately. |
-| BRAIN-D17 | BRAIN | [BRAIN-D17 · L88](01-brainstorming-result.md#4-decision-register) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D18 | BRAIN | [BRAIN-D18 · L89](01-brainstorming-result.md#4-decision-register) | Covered | T012, T017, T045 | T012, T017, T045 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D19 | BRAIN | [BRAIN-D19 · L90](01-brainstorming-result.md#4-decision-register) | Covered | T011, T017, T027, T035, T036, T039, T046 | T011, T017, T027, T035, T036, T039, T046 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D20 | BRAIN | [BRAIN-D20 · L91](01-brainstorming-result.md#4-decision-register) | Covered | T011, T017, T028, T036 | T011, T017, T028, T036 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D21 | BRAIN | [BRAIN-D21 · L92](01-brainstorming-result.md#4-decision-register) | Covered | T011, T026, T036, T038, T039, T042, T043 | T011, T026, T036, T038, T039, T042, T043 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D22 | BRAIN | [BRAIN-D22 · L93](01-brainstorming-result.md#4-decision-register) | Covered | T011, T039 | T011, T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D23 | BRAIN | [BRAIN-D23 · L94](01-brainstorming-result.md#4-decision-register) | Covered | T008, T036, T037, T038, T039 | T008, T036, T037, T038, T039 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D24 | BRAIN | [BRAIN-D24 · L95](01-brainstorming-result.md#4-decision-register) | Covered | T035, T041 | T035, T041 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D25 | BRAIN | [BRAIN-D25 · L96](01-brainstorming-result.md#4-decision-register) | Covered | T013, T022, T024, T035, T042 | T013, T022, T024, T035, T042 | Source-local clause/contract; source status and conditional examples retained |
-| BRAIN-D26 | BRAIN | [BRAIN-D26 · L97](01-brainstorming-result.md#4-decision-register) | Covered | T013, T035 | T013, T035 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A01 | BRAIN | [BRAIN-A01 · L46](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T039 | T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A02 | BRAIN | [BRAIN-A02 · L47](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T039 | T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A03 | BRAIN | [BRAIN-A03 · L48](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T027, T039 | T027, T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A04 | BRAIN | [BRAIN-A04 · L49](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T011, T017, T027, T035, T036, T039 | T011, T017, T027, T035, T036, T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A05 | BRAIN | [BRAIN-A05 · L50](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T017, T027, T042, T044 | T017, T027, T042, T044 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A06 | BRAIN | [BRAIN-A06 · L51](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T013 | T013 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A07 | BRAIN | [BRAIN-A07 · L52](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T017, T018, T024, T026, T038, T042 | T017, T018, T024, T026, T038, T042 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A08 | BRAIN | [BRAIN-A08 · L53](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T025, T026, T027 | T025, T026, T027 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A09 | BRAIN | [BRAIN-A09 · L54](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T013, T022, T024 | T013, T022, T024 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A10 | BRAIN | [BRAIN-A10 · L55](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T017, T020, T022, T023, T024, T042 | T017, T020, T022, T023, T024, T042 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A11 | BRAIN | [BRAIN-A11 · L56](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T012, T013, T024 | T012, T013, T024 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A12 | BRAIN | [BRAIN-A12 · L57](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A13 | BRAIN | [BRAIN-A13 · L58](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T044 | T044 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A14 | BRAIN | [BRAIN-A14 · L59](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T013, T018, T027, T044 | T013, T018, T027, T044 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A15 | BRAIN | [BRAIN-A15 · L60](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T046 | T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A16 | BRAIN | [BRAIN-A16 · L61](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-A17 | BRAIN | [BRAIN-A17 · L62](01-brainstorming-result.md#3-project-requirements-and-acceptance-baseline) | Covered | T046 | T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D01 | BRAIN | [BRAIN-D01 · L70](01-brainstorming-result.md#4-decision-register) | Covered | T046 | T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D02 | BRAIN | [BRAIN-D02 · L71](01-brainstorming-result.md#4-decision-register) | Covered | T039 | T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D03 | BRAIN | [BRAIN-D03 · L72](01-brainstorming-result.md#4-decision-register) | Covered | T017, T027, T039, T042, T044 | T017, T027, T039, T042, T044 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D04 | BRAIN | [BRAIN-D04 · L73](01-brainstorming-result.md#4-decision-register) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D05 | BRAIN | [BRAIN-D05 · L74](01-brainstorming-result.md#4-decision-register) | Covered | T007, T008, T016, T017, T028, T035, T039, T043 | T007, T008, T016, T017, T028, T035, T039, T043 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D06 | BRAIN | [BRAIN-D06 · L75](01-brainstorming-result.md#4-decision-register) | Covered | T043, T046 | T043, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D07 | BRAIN | [BRAIN-D07 · L76](01-brainstorming-result.md#4-decision-register) | Covered | T006, T007, T008, T035, T039, T043 | T006, T007, T008, T035, T039, T043 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D08 | BRAIN | [BRAIN-D08 · L77](01-brainstorming-result.md#4-decision-register) | Covered | T017, T042 | T017, T042 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D09 | BRAIN | [BRAIN-D09 · L78](01-brainstorming-result.md#4-decision-register) | Covered | T017, T018, T022, T042 | T017, T018, T022, T042 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D10 | BRAIN | [BRAIN-D10 · L79](01-brainstorming-result.md#4-decision-register) | Covered | T027, T039 | T027, T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D11 | BRAIN | [BRAIN-D11 · L80](01-brainstorming-result.md#4-decision-register) | Covered | T025, T026, T027 | T025, T026, T027 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D12 | BRAIN | [BRAIN-D12 · L81](01-brainstorming-result.md#4-decision-register) | Covered | T007, T008, T016, T035, T039, T043 | T007, T008, T016, T035, T039, T043 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D13 | BRAIN | [BRAIN-D13 · L82](01-brainstorming-result.md#4-decision-register) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D14 | BRAIN | [BRAIN-D14 · L83](01-brainstorming-result.md#4-decision-register) | Excluded | — | — | Live deployment remains unselected; local reproducibility and viable MCP connectivity remain included. |
+| BRAIN-D15 | BRAIN | [BRAIN-D15 · L84](01-brainstorming-result.md#4-decision-register) | Deferred | — | — | Excluded from initial release delivery by PRD section 5.4; retain included provenance groundwork separately. |
+| BRAIN-D16 | BRAIN | [BRAIN-D16 · L85](01-brainstorming-result.md#4-decision-register) | Deferred | — | — | Excluded from initial release delivery by PRD section 5.4; retain included provenance groundwork separately. |
+| BRAIN-D17 | BRAIN | [BRAIN-D17 · L86](01-brainstorming-result.md#4-decision-register) | Covered | T039, T046 | T039, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D18 | BRAIN | [BRAIN-D18 · L87](01-brainstorming-result.md#4-decision-register) | Covered | T012, T017, T045 | T012, T017, T045 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D19 | BRAIN | [BRAIN-D19 · L88](01-brainstorming-result.md#4-decision-register) | Covered | T011, T017, T027, T035, T036, T039, T046 | T011, T017, T027, T035, T036, T039, T046 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D20 | BRAIN | [BRAIN-D20 · L89](01-brainstorming-result.md#4-decision-register) | Covered | T011, T017, T028, T036 | T011, T017, T028, T036 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D21 | BRAIN | [BRAIN-D21 · L90](01-brainstorming-result.md#4-decision-register) | Covered | T011, T026, T036, T038, T039, T042, T043 | T011, T026, T036, T038, T039, T042, T043 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D22 | BRAIN | [BRAIN-D22 · L91](01-brainstorming-result.md#4-decision-register) | Covered | T011, T039 | T011, T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D23 | BRAIN | [BRAIN-D23 · L92](01-brainstorming-result.md#4-decision-register) | Covered | T008, T036, T037, T038, T039 | T008, T036, T037, T038, T039 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D24 | BRAIN | [BRAIN-D24 · L93](01-brainstorming-result.md#4-decision-register) | Covered | T035, T041 | T035, T041 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D25 | BRAIN | [BRAIN-D25 · L94](01-brainstorming-result.md#4-decision-register) | Covered | T013, T022, T024, T035, T042 | T013, T022, T024, T035, T042 | Source-local clause/contract; source status and conditional examples retained |
+| BRAIN-D26 | BRAIN | [BRAIN-D26 · L95](01-brainstorming-result.md#4-decision-register) | Covered | T013, T035 | T013, T035 | Source-local clause/contract; source status and conditional examples retained |
 
 ## Release verification
 
@@ -2841,12 +2845,12 @@ Broad requirement/AC/contract clauses are collectively verified: each task prove
 | G-03 both host approvals | T032 and T033; T033 integrates | Independent actual Claude/ChatGPT capability/versions/registration, UI/model isolation, O1–O6/H1–H8, exact approval/correction/refusal/uncertain outcomes; no bypass | Not run |
 | G-04 frozen dataset | T034 and T035; T035 integrates | Actual permitted100/100 snapshot, field/source/reuse/checksum/distribution evidence and safe concurrent/rerun preservation | Not run |
 | G-05 operations/recovery | T045, with T036–T041 | Seven commands/exits, TLS/keys/private listeners, truthful default recording/conditional external evidence, logging/metrics/alerts, controlled failure, rotation/purge/backup/restore and benchmark protocol | Not run |
-| G-06 ownership/delivery | T046 | Named technical/security/operator/backup custodians, supported environment versions, accurate README/AI disclosure, code explanation, accessible intended Git revision and actual submission/access evidence by recorded deadline | Not run |
+| G-06 ownership/delivery | T046 | Named technical/security/operator/backup custodians, supported environment versions, accurate README/AI disclosure, code explanation, accessible intended Git revision and actual release access evidence for the reviewed release | Not run |
 | Cross-feature privacy/policy | T043 | Actual role/owner/visibility/injection/storage/cookie/rate/policy boundaries, preserved stored content after tightening, stale/uncertain replay safety and risk/control residual mapping | Not run |
 | Complete UI outcome | T044 | All97 states, both themes/three widths, expected/actual comparisons and separate browser/keyboard/assistive/zoom/motion evidence; real host proof retained separately | Not run |
 | Current source acceptance | T009 then T046 | Verify corrected ATDD-278 omission/null/blank behavior, then confirm release sources and fingerprints still agree; retain valid source IDs and prior evidence history | Not run |
 
-The release remains incomplete until every included obligation has current required evidence, each task/group is complete and all release gates pass. A default database notification proves recording only; an unselected external provider needs no invented delivery claim. A failed/unavailable required client cannot be replaced by another client's success, a mock or model text. Targets remain measured local targets, not SLAs/certification/assessment guarantees. This planning package itself authorizes no deployment, publication, external message or real provider send.
+The release remains incomplete until every included obligation has current required evidence, each task/group is complete and all release gates pass. A default database notification proves recording only; an unselected external provider needs no invented delivery claim. A failed/unavailable required client cannot be replaced by another client's success, a mock or model text. Targets remain measured local targets, not SLAs/certification/release guarantees. This planning package itself authorizes no deployment, publication, external message or real provider send.
 
 ## Package validation
 
@@ -2886,4 +2890,4 @@ All 20 feature folders now use consecutive `01-` through `20-` prefixes. The pre
 
 This update changes navigation and the future authoring convention. It performs no application implementation or acceptance execution. Temporary maps, inventories and reports remain outside project deliverables.
 
-Concurrent ATDD layout impact: revision1.7 SHA-256 `3bb4f10614f83bad18009e9d0387fd30de4f0b5c581ba67e2e4aab8554224c86` → revision1.8 SHA-256 `d4d3bb1eb2047bee5ab7b70f28110f582fca7ed02d2b00380c9509cf08f3424f`. A complete before/after comparison found only thematic breaks, the revision/date field, layout history and verified cached source fingerprints. Source cases, expectations and execution evidence are unchanged. The plan source register and ATDD line references were refreshed without editing ATDD.
+Concurrent ATDD layout impact: revision1.7 SHA-256 `3bb4f10614f83bad18009e9d0387fd30de4f0b5c581ba67e2e4aab8554224c86` → revision1.8 SHA-256 `4af828cf702d29d5cc3b924f949ac6f8a8ef6cd2f7a6986f829351acc38ce0a7`. A complete before/after comparison found only thematic breaks, the revision/date field, layout history and verified cached source fingerprints. Source cases, expectations and execution evidence are unchanged. The plan source register and ATDD line references were refreshed without editing ATDD.

@@ -52,7 +52,7 @@ Use [the adopted design](../../03-design-system.md), [shared components](../../d
 | T043 | Authorization: Visitor/Viewer/forged/cross-owner callers obtain no restricted data/effects through any real boundary. | [T043 — Verify policy, authorization and injection across complete flows](tasks/T043-verify-policy-authorization-and-injection-across-complete-flows.md) |
 | T044 | Coverage: all97 states have appropriate source/current evidence, with both themes and three widths; expected actual differences have explicit verdicts. | [T044 — Complete visual, interaction and accessibility evidence](tasks/T044-complete-visual-interaction-and-accessibility-evidence.md) |
 | T045 | Benchmark: each run reports all offered/admitted/completed/throttled/error counts and independently computed p95 at the stated workload with active rate limits. | [T045 — Measure capacity and prove operational recovery limits](tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md) |
-| T046 | Reproduction: a fresh reader follows README to the reviewed usable100/100 installation, correct role access and truthful test/blocked results without private authoring context. | [T046 — Prepare the reviewed repository and assessment handoff](tasks/T046-prepare-the-reviewed-repository-and-assessment-handoff.md) |
+| T046 | Reproduction: a fresh reader follows README to the reviewed usable100/100 installation, correct role access and truthful test/blocked results without private authoring context. | [T046 — Prepare the reviewed repository and release handoff](tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md) |
 
 ## Dependencies
 
@@ -68,7 +68,7 @@ Dependency edges control execution, not display order. Root lockfiles/generators
 
 ## Integrated acceptance
 
-[T046 — Prepare the reviewed repository and assessment handoff](tasks/T046-prepare-the-reviewed-repository-and-assessment-handoff.md) owns the combined feature verdict. Require every member task Done with current local evidence plus the following real-boundary outcomes. Do not make this downstream proof a prerequisite for its upstream contributors to finish their local checks.
+[T046 — Prepare the reviewed repository and release handoff](tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md) owns the combined feature verdict. Require every member task Done with current local evidence plus the following real-boundary outcomes. Do not make this downstream proof a prerequisite for its upstream contributors to finish their local checks.
 
 - T042: Matrix: all28 storage families/260 column rows plus36 GraphQL and45 RPC rows have their complete physical, owner, projection, retention, allowed/denied/presence/deadline/error/side-effect results. ResolveActor remains deny-only on selected network callers.
 - T042: Compatibility: exact declared values and safe failures survive real boundaries without private entity leakage or loss of scalar precision.
@@ -83,7 +83,7 @@ Dependency edges control execution, not display order. Root lockfiles/generators
 - T045: Resources: overload is rejected before unbounded allocation, normal unrelated metadata remains usable during Media faults, and persistence/recovery survives forced stop.
 - T045: Claims: targets without reproducible measurement remain unverified; selected external provider claims require actual evidence, database recording is identified accurately.
 - T046: Reproduction: a fresh reader follows README to the reviewed usable100/100 installation, correct role access and truthful test/blocked results without private authoring context.
-- T046: Delivery: accessible intended Git revision,actual submission/access timestamp,accurate AI disclosure and owner walkthrough evidence exist; prepared documents alone do not satisfy repository submission.
+- T046: Delivery: accessible intended Git revision,actual public-access verification timestamp,accurate AI disclosure and owner walkthrough evidence exist; prepared documents alone do not satisfy repository release access.
 - T046: Release: every required task/group/gate has fresh passing evidence or release remains incomplete; future evidence and unsupported client/provider checks never become implicit passes.
 
 Exact case/row owners are in member Traceability/Tests and the root register. At integration, follow the complete journey across actual participating owners and reconcile the corresponding current case/row evidence; an isolated mock or source link does not establish that journey. Include declared denied/invalid/stale/failed/uncertain/recovered variants and absence of prohibited effects. Retain matched expected/actual state captures with separate interaction/accessibility findings at the task-declared themes/viewports/hosts. For non-UI paths observe exact response, persisted state, file bytes, diagnostic/operational outcomes and restart behavior as relevant. If a required runtime/host/provider is unavailable, keep feature completion open with its concrete prerequisite.

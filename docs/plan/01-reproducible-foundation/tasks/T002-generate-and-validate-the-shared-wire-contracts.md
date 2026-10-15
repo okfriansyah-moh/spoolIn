@@ -84,7 +84,7 @@ The following assigned source clauses are a checklist, not new contracts. Read t
 
 | Source knowledge | Rule or exact owned surface |
 |---|---|
-| [NFR-008 · L268](../../../02-PRD.md#62-quality-and-delivery-requirements) | Meaningful unit/edge and integration evidence proves release behavior \| A12 Required; D19 Committed \| AC-086 through AC-088 |
+| [NFR-008 · L266](../../../02-PRD.md#62-quality-and-delivery-requirements) | Meaningful unit/edge and integration evidence proves release behavior \| A12 Required; D19 Committed \| AC-086 through AC-088 |
 | [TD-C-014 · L1105](../../../04-spoolin-techdoc.md#51-graphql-sdl) | Assemble complete GraphQL SDL once, preserving exact operations, scalars/enums/nullability and presence. Typed domain failures differ from transport errors; invalid mutations never partially apply; strict UUID/Long/DateTime/Base64 rules. |
 | [TD-C-015 · L1722](../../../04-spoolin-techdoc.md#52-internal-protobuf-contracts) | Assemble one spoolin.v1 source proto with all messages, field numbers, four services, generated Java/TypeScript consumers, client/server streaming and FieldMask semantics; no generic SQL/GraphQL tunnel. |
 | [TD-C-065 · L6526](../../../04-spoolin-techdoc.md#appendix-a-decision-history) | Honor accepted TD-U-001..009 and ADR01..10, target spoolin namespace/service/DB/cookie/owner renames, additive audit fields8/9 and durable draft new signatures; no historical aliases or rename of actual checkout. |

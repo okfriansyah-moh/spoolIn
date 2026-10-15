@@ -75,15 +75,15 @@ The following assigned source clauses are a checklist, not new contracts. Read t
 
 | Source knowledge | Rule or exact owned surface |
 |---|---|
-| [SC-07 · L108](../../../02-PRD.md#4-goals-and-success-criteria) | Establish justified performance expectations \| Techdoc defines workload, measurement, limits, and operational targets \| Baselines unknown; no invented SLO, coverage percentage, or SLA |
-| [NFR-003 · L263](../../../02-PRD.md#62-quality-and-delivery-requirements) | Saved data/artwork persist through restarts; committed persistence safeguards remain \| D18/D19 Committed \| AC-069 through AC-071 |
-| [D18 · L321](../../../02-PRD.md#64-project-decision-register) | JPA/Hibernate and justified parameterized native SQL \| NFR-003 / AC-069, AC-070; techdoc |
-| [AC-070 · L862](../../../02-PRD.md#102-retained-engineering-acceptance-references) | Verify applicable native SQL parameterization, joins/order/pagination, mapping, plans, and write safeguards against the chosen engine \| NFR-003; technical design |
+| [SC-07 · L106](../../../02-PRD.md#4-goals-and-success-criteria) | Establish justified performance expectations \| Techdoc defines workload, measurement, limits, and operational targets \| Baselines unknown; no invented SLO, coverage percentage, or SLA |
+| [NFR-003 · L261](../../../02-PRD.md#62-quality-and-delivery-requirements) | Saved data/artwork persist through restarts; committed persistence safeguards remain \| D18/D19 Committed \| AC-069 through AC-071 |
+| [D18 · L319](../../../02-PRD.md#64-project-decision-register) | JPA/Hibernate and justified parameterized native SQL \| NFR-003 / AC-069, AC-070; techdoc |
+| [AC-070 · L860](../../../02-PRD.md#102-retained-engineering-acceptance-references) | Verify applicable native SQL parameterization, joins/order/pagination, mapping, plans, and write safeguards against the chosen engine \| NFR-003; technical design |
 | [TD-C-043 · L5328](../../../04-spoolin-techdoc.md#74-index-and-query-plan-obligations) | Exact indexes and native typed bindings; measure EXPLAIN ANALYZE BUFFERS on seed and100k titles, no N+1/unbounded responses, limiter-active benchmark quotas/reporting, actual constraints vs owner invariants; bounded purge/nonce/rate queries. |
 | [TD-C-059 · L6085](../../../04-spoolin-techdoc.md#12-operations-observability-and-recovery) | Own-DB least privilege roles/TLS/SCRAM, append-only audit/runtime restrictions and measured pool/memory/disk/processor budgets; performance budgets are targets pending measured host evidence. |
 | [TECH-G-05 · L6521](../../../04-spoolin-techdoc.md#14-technical-dependencies-and-release-criteria) | G-05 operational proof \| Verify seven command contracts, isolated test data, selected notification evidence, TLS/keys, graceful/forced restart, disk targets and coordinated restore \| Local operational acceptance; operator owner unassigned |
 | [V-OPS · L6397](../../../04-spoolin-techdoc.md#131-verification-families-and-database-specific-obligations) | V-OPS \| JSON log parsing/level/config/redaction/context/sink checks in §12.2.1 plus isolated Make commands including deliberate failures, clean setup and rerun, metric/alert rules, HTTP 200 domain failures, logs/correlation redaction, graceful/forced restart, disk pressure, backup and full restore with keys/artwork; assert truthful exits and state |
-| [BRAIN-D18 · L89](../../../01-brainstorming-result.md#4-decision-register) | D18 \| Committed \| Spring Data JPA/Hibernate for ordinary persistence; parameterized native SQL for complex joins when it improves clarity or query control |
+| [BRAIN-D18 · L87](../../../01-brainstorming-result.md#4-decision-register) | D18 \| Committed \| Spring Data JPA/Hibernate for ordinary persistence; parameterized native SQL for complex joins when it improves clarity or query control |
 
 ## Implementation
 
@@ -162,6 +162,6 @@ Create evidence files only after an actual authorized run. A Passed row needs a 
 - Finish the owned changes and all verification-role acceptance/row assertions; record actual changed files and source-contract dispositions.
 - Reach Ready instructions and Passed evidence for every required check, including self-review, fresh independent review and applicable visual/interaction checks. Any unresolved required oracle prevents the affected task from Done.
 - Record exact revision, generated/artifact locations, commands/results, findings/rechecks, fixture cleanup and any unverified downstream proof.
-- Hand the owned outputs to [T046 — Prepare the reviewed repository and assessment handoff](T046-prepare-the-reviewed-repository-and-assessment-handoff.md) for feature integration. This task may finish its local obligations while that downstream evidence remains Not run; feature completion waits for all group tasks plus integrated proof.
+- Hand the owned outputs to [T046 — Prepare the reviewed repository and release handoff](T046-prepare-the-reviewed-repository-and-release-handoff.md) for feature integration. This task may finish its local obligations while that downstream evidence remains Not run; feature completion waits for all group tasks plus integrated proof.
 - If unfinished, retain status In progress/In review or a genuine external Blocked prerequisite; list the exact unresolved finding, last verified state, attempted fixes and next file/command/action. Budget exhaustion alone is not an external blocker.
 - Initial next action: read the prerequisite outputs, verify source fingerprints and task eligibility, then perform Implementation step1 under the separately authorized implementation request.

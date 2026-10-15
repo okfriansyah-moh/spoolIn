@@ -3,7 +3,7 @@
 Recorded: 9 October 2026, Asia/Jakarta  
 Updated: 10 October 2026, Asia/Jakarta — catalog seed data and metadata commitments  
 Owner: Muhammad Okfriansyah  
-Status: Assessment scope and future direction recorded; detailed implementation decisions remain open.
+Status: Initial release scope and future direction recorded; detailed implementation decisions remain open.
 
 ## 1. Purpose and interpretation
 
@@ -11,22 +11,20 @@ This document consolidates the substantive product, architecture, security, rese
 
 Status vocabulary:
 
-- **Required:** explicitly stated in the photographed assessment.
+- **Required:** part of the project requirements baseline.
 - **Committed:** explicitly accepted or requested during brainstorming.
 - **Working design:** the current architectural direction, carried into detailed design; individual mechanics may still need resolution.
 - **Recommended:** a proposed approach that has not been explicitly selected.
 - **Open:** a decision or fact still needed before dependent implementation.
-- **Deferred:** post-assessment work; not part of the current delivery.
+- **Deferred:** future release work; not part of the current delivery.
 
 Earlier suggestions that authentication or audit logging were optional have been superseded by the user's explicit commitment to include them. Earlier Movie/People service diagrams have been superseded by the App/Catalog/Media working design. Examples of schemas, roles, storage, and failure handling must not be mistaken for finalized contracts.
 
-## 2. Objective, deadline, and developer context
+## 2. Objective and developer context
 
-The immediate objective is an independently understandable, runnable, tested submission for the PALO IT technical assessment associated with a potential GovTech Singapore placement. The user reports a PALO IT start date of December 8; that is separate from the submission deadline.
+The immediate objective is an independently understandable, runnable, tested initial release of SpoolIn, a movie and TV catalog with reliable management and discovery workflows.
 
-**Confirmed deadline:** 18 October 2026, end of day in Singapore time (UTC+8). This corresponds to approximately 22:59 on 18 October in Jakarta (UTC+7), interpreting end of day as 23:59 Singapore time. No more precise recruiter cutoff has been supplied.
-
-**Recommended internal target:** submit on October 17 and retain October 18 as contingency. Daily working hours and unavailable days remain unknown, so no effort-based schedule has been confirmed.
+Release scheduling depends on verified scope and contributor availability; no release date is committed here.
 
 Developer experience reported by the user:
 
@@ -37,13 +35,13 @@ Developer experience reported by the user:
 | GraphQL | Experience in Ruby | Transfer schema/query concepts; learn Spring implementation and tests |
 | gRPC | No prior experience | Prove and explain a small integration early |
 
-Success includes being able to trace requests, explain tradeoffs and failures, understand AI-assisted code, and make small changes during a walkthrough. Passing or client placement cannot be guaranteed by architecture or feature count.
+Success includes being able to trace requests, explain tradeoffs and failures, understand AI-assisted code, and make small changes during a walkthrough. Release readiness requires observed behavior and verification evidence.
 
-## 3. Assessment requirements and acceptance baseline
+## 3. Project requirements and acceptance baseline
 
-The photographed brief is the primary requirements source. Prior ChatGPT analysis, Notion notes, and public repositories are supporting material, not additional employer instructions.
+The requirements below define the project baseline. Research notes and public repositories provide supporting material without adding requirements.
 
-| ID | Explicit requirement | Evidence expected from the submission |
+| ID | Explicit requirement | Evidence expected from the release |
 |---|---|---|
 | A01 | Svelte frontend in TypeScript | Frontend source and working build |
 | A02 | Spring Boot services in Kotlin | Backend source and runnable applications |
@@ -59,17 +57,17 @@ The photographed brief is the primary requirements source. Prior ChatGPT analysi
 | A12 | Unit tests with complete cases, including edges | Requirement-linked business and boundary cases; no unsupported coverage guarantee |
 | A13 | Responsive web application | Usable layouts at relevant desktop and mobile sizes |
 | A14 | Sufficient feedback for upload, listing, updating, and searching | Loading, success, failure, validation, and empty states integrated into features |
-| A15 | Git repository submission | Accessible reviewable repository |
+| A15 | Public Git repository access | Accessible reviewable repository |
 | A16 | README explaining setup, execution, and AI usage | Reproducible instructions and accurate disclosure |
-| A17 | Explain submitted code in a possible walkthrough | Developer understands generated and handwritten code and design choices |
+| A17 | Explain project code in a possible walkthrough | Developer understands generated and handwritten code and design choices |
 
-The brief permits additional useful functionality and explicitly permits AI assistance while requiring ownership of the code. It does not explicitly mandate authentication, RBAC, audit logging, ISO certification, cloud deployment, a particular database, ATDD terminology, a numerical coverage threshold, or three services. Security capabilities below are user-added commitments.
+AI assistance is permitted while contributors remain responsible for understanding the code. The baseline does not mandate authentication, RBAC, audit logging, ISO certification, cloud deployment, a particular database, ATDD terminology, a numerical coverage threshold, or three services. Security capabilities below are additional project commitments.
 
 ## 4. Decision register
 
 | ID | Status | Decision or direction |
 |---|---|---|
-| D01 | Committed | Satisfy the assessment first; future product expansion stays separate |
+| D01 | Committed | Deliver the initial release first; future product expansion stays separate |
 | D02 | Working design | Three Kotlin/Spring Boot applications: `app-service`, `catalog-service`, `media-service` |
 | D03 | Required | GraphQL for frontend application operations; gRPC between backend services |
 | D04 | Committed | Organize implementation around vertical slices |
@@ -82,8 +80,8 @@ The brief permits additional useful functionality and explicitly permits AI assi
 | D11 | Open | Select artwork transport, attachment/replacement protocol, and recovery/cleanup policy |
 | D12 | Open | Select authentication/session mechanism and verified identity propagation through gRPC |
 | D13 | Committed | Docker Compose with Make wrappers for reproducible startup, shutdown, restart, inspection, and testing |
-| D14 | Open | Live deployment host, budget, and whether deployment belongs in assessment delivery |
-| D15 | Committed, deferred | Explore transparent review aggregation after the assessment |
+| D14 | Open | Live deployment host, budget, and whether deployment belongs in initial release delivery |
+| D15 | Committed, deferred | Explore transparent review aggregation after the initial release |
 | D16 | Deferred hypothesis | Personal journal, watch-next assistance, series tracking, and personalized critic selection |
 | D17 | Committed | Apply code quality, SOLID, DRY, KISS, YAGNI, and constructor dependency injection within vertical slices |
 | D18 | Committed | Spring Data JPA/Hibernate for ordinary persistence; parameterized native SQL for complex joins when it improves clarity or query control |
@@ -140,7 +138,7 @@ The boundary is justified by artwork's separate lifecycle and storage/failure co
 
 | Alternative | Benefit | Why it is not the current working design |
 |---|---|---|
-| One modular application | Simpler operation and transactions | Reasonable without the assessment constraint, but does not meet its minimum service count |
+| One modular application | Simpler operation and transactions | Reasonable without the project constraint, but does not meet its minimum service count |
 | Movie + People, optionally with an API gateway | Independent person management | Credits and deletion rules cross a service boundary unnecessarily for our current workflows |
 | Catalog + Media, with GraphQL inside Catalog | Meets the minimum with fewer applications | Still viable; combines frontend API concerns with catalog responsibilities |
 | App + Catalog + Media | Explicit frontend boundary and two cohesive capabilities | Current preference; accepts another application, network boundary, and integration-test burden |
@@ -240,7 +238,7 @@ Keep transaction boundaries explicit. Native writes must preserve applicable ver
 
 ### 8.2 Initial catalog, categorization, and seed metadata
 
-**Committed:** provide 100 distinct movies and 100 distinct TV series with metadata in the initial seed dataset. This is user-added project scope; the photographed assessment still explicitly requires the movie workflows. TV-series catalog entries are now in scope, while detailed season/episode management, watch tracking, and review aggregation remain deferred.
+**Committed:** provide 100 distinct movies and 100 distinct TV series with metadata in the initial seed dataset. This extends the project baseline, which requires the movie workflows. TV-series catalog entries are now in scope, while detailed season/episode management, watch tracking, and review aggregation remain deferred.
 
 Genres and synopses are part of the catalog rather than future review-only features. A title may have multiple genres. Keep the title type (movie or TV series) separate from its genres, and use consistent genre identities to avoid duplicated categories with different spellings. Catalog owns these records and their categorization; the three-service boundary remains unchanged.
 
@@ -267,11 +265,11 @@ Use a documented, versioned seed snapshot so a fresh demo is reproducible. Runni
 
 Preserve whether the source supplies a year, year/month, or full date. A title known only to have released in 2024 matches the 2024 filter but no specific month; do not fabricate January 1. A known year/month can match that month without inventing a day. Titles with unknown release years remain available without a date filter and are excluded when a year is selected. Show the available precision honestly in the UI.
 
-Future critic reviews should reference stable catalog identities and retain their own source provenance. No scraped review corpus, invented critic scores, aggregate ratings, season/episode seed quota, or review-ingestion service is included in this seed commitment. Review aggregation remains the post-assessment direction in section 18.
+Future critic reviews should reference stable catalog identities and retain their own source provenance. No scraped review corpus, invented critic scores, aggregate ratings, season/episode seed quota, or review-ingestion service is included in this seed commitment. Review aggregation remains the future release direction in section 18.
 
 ## 9. Artwork transport and lifecycle
 
-The assessment combines upload progress with frontend-to-backend GraphQL. Spring GraphQL does not directly implement the informal multipart upload specification. Investigate the upload path early rather than leaving it to the final feature.
+The release combines upload progress with frontend-to-backend GraphQL. Spring GraphQL does not directly implement the informal multipart upload specification. Investigate the upload path early rather than leaving it to the final feature.
 
 | Option discussed | Benefit | Cost or question |
 |---|---|---|
@@ -326,7 +324,7 @@ Honor cancellation, server retry guidance where applicable, and the total operat
 
 ### 9.3 Exhaustion and notifications
 
-**Committed:** when an eligible operation exhausts its retry policy, retain actionable failure details and notify through one configured provider. Implement one notification channel for the assessment, behind a small replaceable interface; email, Google Chat, Slack, and Teams are alternatives, not a commitment to implement all four. Provider, destination, and secure credential provisioning remain open deployment decisions. Secrets must not appear in this document, source control, or notification payloads.
+**Committed:** when an eligible operation exhausts its retry policy, retain actionable failure details and notify through one configured provider. Implement one notification channel for the initial release, behind a small replaceable interface; email, Google Chat, Slack, and Teams are alternatives, not a commitment to implement all four. Provider, destination, and secure credential provisioning remain open deployment decisions. Secrets must not appear in this document, source control, or notification payloads.
 
 Record the operation/correlation identifier, owning service, attempt count, sanitized failure category, and recovery guidance. Deduplicate exhaustion notifications by the failed operation to limit alert storms. For durable work, retain a failed state and support controlled recovery without discarding the original failure evidence or blindly replaying an unsafe action.
 
@@ -469,7 +467,7 @@ Recommended sequence:
 5. Implement CRUD, relationships, search, and artwork as tested vertical slices with feedback.
 6. Complete real authentication, authorization/RBAC, and audit behavior; replace any temporary development mechanism.
 7. Verify integrated behavior, clean setup, security cases, and deployment-specific controls where applicable.
-8. Rehearse, submit the repository with accurate documentation, and preserve the reviewed submission version.
+8. Rehearse, publish the reviewed repository revision with accurate documentation, and preserve the release version.
 
 Functionality-first is sequencing, not permission to omit committed security. A precise daily schedule depends on available hours. Reserve time for integration and rehearsal rather than allocating every hour to feature work.
 
@@ -479,7 +477,7 @@ Useful questions include: why these boundaries; why GraphQL/gRPC; what happens d
 
 ## 16. Hosting and reproducible setup
 
-The assessment requires a repository and README, not a live URL. **Committed:** Docker Compose with Make wrappers provides the reproducible local multi-service setup, including persistent application data and artwork, the 100-movie/100-TV-series seed dataset, and migrations where selected. Document the seed invocation alongside setup; whether it is an explicit command or part of initial startup remains open. CI build/lint/test checks remain recommended. The command contract below records intended behavior; no Makefile, containers, or CI configuration have been implemented by this document.
+The release requires a repository and README, not a live URL. **Committed:** Docker Compose with Make wrappers provides the reproducible local multi-service setup, including persistent application data and artwork, the 100-movie/100-TV-series seed dataset, and migrations where selected. Document the seed invocation alongside setup; whether it is an explicit command or part of initial startup remains open. CI build/lint/test checks remain recommended. The command contract below records intended behavior; no Makefile, containers, or CI configuration have been implemented by this document.
 
 ### 16.1 Make command contract
 
@@ -521,9 +519,9 @@ Initial searches did not find a near-exact match. The user supplied a prior Chat
 
 Verified snapshot: [E0167358/movie-app at a9d728c3851a1efcb4a2d240c6076250bc711a34](https://github.com/E0167358/movie-app/tree/a9d728c3851a1efcb4a2d240c6076250bc711a34).
 
-Inspected manifests/contracts show Svelte/TypeScript, three Kotlin/Spring Boot applications, GraphQL, gRPC, movie/person/credit operations, search, and artwork upload. The frontend uses a base64 GraphQL request with XHR progress. The README calls it a technical-assessment project but does not identify PALO IT/GovTech or report a passing outcome. Its declared limitations include best-effort credit cleanup, local storage, no containerized startup, and restricted credit-picker behavior. Test files exist; reported counts and behavior were not independently executed or verified. No repository license was detected.
+Inspected manifests/contracts show Svelte/TypeScript, three Kotlin/Spring Boot applications, GraphQL, gRPC, movie/person/credit operations, search, and artwork upload. The frontend uses a base64 GraphQL request with XHR progress. Its declared limitations include best-effort credit cleanup, local storage, no containerized startup, and restricted credit-picker behavior. Test files exist; reported counts and behavior were not independently executed or verified. No repository license was detected.
 
-Use it to compare decisions and investigate questions. It is not an employer-approved solution, proof of acceptance, or automatic permission to reuse code. Our Catalog/Media boundaries were reasoned from this project's workflows rather than copied from its Movie/People split.
+Use it to compare decisions and investigate questions. It does not establish project correctness or permission to reuse code. Our Catalog/Media boundaries were reasoned from this project's workflows rather than copied from its Movie/People split.
 
 ### 17.2 Additional references
 
@@ -537,15 +535,13 @@ Use it to compare decisions and investigate questions. It is not an employer-app
 | [Kotlin Spring gRPC Microservice](https://github.com/AleksK1NG/Kotlin-Spring-gRPC-Microservice) | Internal RPC setup reference | Broader infrastructure than needed; reuse licensing not established |
 | [Sultanov GraphQL/gRPC walkthrough](https://sultanov.dev/blog/graphql-api-for-grpc-using-rejoiner-and-spring-boot/) | Gateway composition concept | Historical Java/Rejoiner example, not a current stack template |
 
-Historical [PALO IT interview reports](https://www.glassdoor.co.uk/Interview/Palo-IT-Full-Stack-Developer-Interview-Questions-EI_IE856942.0,7_KO8,28.htm) and [GovTech internship discussion](https://www.reddit.com/r/nus/comments/scucnd) describe practical exercises but do not establish this assignment's rubric or outcome. Anonymous accounts are anecdotal. A NodeFlair take-home page encountered during research labeled its detailed answer “Generated Answer”; it was not treated as firsthand evidence.
-
 The prior pasted ChatGPT report also named other examples without complete repository links. Those unverified references are not relied on for architecture or implementation. Its proposed three-service Movie/People architecture, base64 upload recommendation, and workload priorities were evaluated rather than automatically adopted.
 
 ## 18. Deferred personal-product direction
 
 ### 18.1 Locked future direction: transparent review aggregation
 
-The user accepted review aggregation as the scale-up direction, explicitly after assessment completion. The working ambition is:
+The user accepted review aggregation as the scale-up direction, explicitly after initial release completion. The working ambition is:
 
 > Explore how critics across languages reviewed a title, understand how its aggregate was calculated, and compare those perspectives with personal taste.
 
@@ -561,7 +557,7 @@ Potential future capabilities:
 
 Data governance questions precede automation: permitted source access, attribution/reuse, matching titles and seasons correctly, score normalization, syndicated-review deduplication, revised reviews, source inclusion criteria, and reproducible calculation history. Unscored reviews should not silently receive invented numeric ratings. Audience, critic, and personal ratings remain distinct; averaging existing platform aggregates can double-count evidence.
 
-Reviews introduces a domain responsibility for source ingestion, editorial verification, and scoring. It can start with a clear module boundary and become a service when justified. No review tables, ingestion jobs, scoring APIs, or fourth service are required for the assessment.
+Reviews introduces a domain responsibility for source ingestion, editorial verification, and scoring. It can start with a clear module boundary and become a service when justified. No review tables, ingestion jobs, scoring APIs, or fourth service are required for the initial release.
 
 ### 18.2 Journaling/discovery ideas explored but not selected as release scope
 
@@ -584,22 +580,17 @@ The supplied [Metacritic film review page](https://www.metacritic.com/movie/my-u
 
 ### 18.4 Growth without speculative infrastructure
 
-The three-service assessment foundation is sufficient to begin, not proof of IMDb-scale capacity. Feature growth and traffic growth are different problems. Add cohesive slices/modules for behavior; use measurement to guide query/index improvements, caching, image delivery, and scaling.
+The three-service initial release foundation is sufficient to begin, not proof of IMDb-scale capacity. Feature growth and traffic growth are different problems. Add cohesive slices/modules for behavior; use measurement to guide query/index improvements, caching, image delivery, and scaling.
 
-TV-series catalog records and metadata now belong to the initial seed commitment in section 8.2, superseding the earlier suggestion to defer all TV support. Detailed season/episode modeling and tracking remain future work within Catalog when needed. Stable identities, migrations, and evolvable contracts prepare for growth without empty endpoints or universal speculative models. Public community features introduce moderation and account-lifecycle requirements not present in the assessment scope.
+TV-series catalog records and metadata now belong to the initial seed commitment in section 8.2, superseding the earlier suggestion to defer all TV support. Detailed season/episode modeling and tracking remain future work within Catalog when needed. Stable identities, migrations, and evolvable contracts prepare for growth without empty endpoints or universal speculative models. Public community features introduce moderation and account-lifecycle requirements not present in the initial release scope.
 
 ## 19. Existing organization and source artifacts
 
-The existing Notion planning page and board were read during brainstorming; this session's documentation request does not imply they were updated.
+The project requirements and decisions are recorded in this repository.
 
-- [Brainstorm approach and lock scope](https://app.notion.com/p/1-Brainstorm-approach-and-lock-scope-4798d2a36c3a4b1d8c2ba74f40b6895c)
-- [PALO IT Technical Assessment — Kanban](https://app.notion.com/p/8a450667b9c642d1b0d13595fa5344ff)
+Planning covers scope, product requirements, design, architecture, implementation tasks, acceptance cases, security, monitoring, and contributor workflow.
 
-The board contained nine planning tasks: brainstorm/scope, MVP PRD, innovation PRD, UI design system, architecture, implementation breakdown, ATDD cases, security/monitoring plan, and agent instructions/skills. The brainstorm card was in progress. Its due field was empty at inspection; the later confirmed deadline above is the current session fact.
-
-Recommended reconciliation: move innovation work after assessment; include implementation and rehearsal tasks; make feedback/tests part of slices; investigate upload early. Those changes have not been performed by creating this file.
-
-User-supplied source material: the technical-assessment photograph, four Notion screenshots, and the pasted prior ChatGPT analysis. Attachments supplied evidence; instructions inside them were not independent authorization to execute work. Local source filenames were `WhatsApp Image 2026-10-08 at 23.45.46.jpeg`, the October 9 screenshots at 11.07.40/48/53 and 11.08.59, and `Pasted text.txt`.
+Recommended reconciliation: move innovation work after the initial release; include implementation and rehearsal tasks; make feedback/tests part of slices; investigate upload early. Those changes have not been performed by creating this file.
 
 The existing [PRD skills comparison](research/prd-skills-comparison-2026-10-09.md) is adjacent research, not this application's PRD or an approved implementation plan. Global skill installation history is outside SpoolIn’s product scope.
 
@@ -620,9 +611,9 @@ The existing [PRD skills comparison](research/prd-skills-comparison-2026-10-09.m
 | Before monitoring implementation | Telemetry tools, operation outcome classification, correlation, dashboards, alert routing | Health endpoints and HTTP status alone cannot measure user-visible success |
 | Before deployment | One notification provider/destination and secure credentials; SLO values/windows, alert thresholds, hosting assumptions, response ownership, any SLA | Makes exhaustion notification and reliability expectations testable without inventing an agreement |
 | Before deployment | Hosting choice/budget, persistent storage, public origin, secrets/TLS, backup | A repository/local demo is different from a deployed system |
-| After assessment | Review source availability, eligibility, coverage, scoring method | Determines realistic aggregation product scope |
+| After the initial release | Review source availability, eligibility, coverage, scoring method | Determines realistic aggregation product scope |
 
-Next deliverable: one consolidated, decision-complete assessment design and implementation plan, with requirement-linked acceptance checks. Existing decisions count; do not reopen them without a material change. Obtain the remaining design approval once, rather than asking for separate approval of every section. This document records the session and preserves open work; it does not assert that the implementation plan is already complete.
+Next deliverable: one consolidated, decision-complete project design and implementation plan, with requirement-linked acceptance checks. Existing decisions count; do not reopen them without a material change. Obtain the remaining design approval once, rather than asking for separate approval of every section. This document records the session and preserves open work; it does not assert that the implementation plan is already complete.
 
 ## 21. Primary technical references
 

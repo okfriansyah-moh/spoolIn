@@ -14,7 +14,7 @@ The design-system handoff is complete for technical-document creation. Authentic
 
 ## Authority, scope, and targets
 
-Product authority: [PRD v2.4, Ready for technical design](02-PRD.md), SHA-256 `03f3374a341a4823c102c80fb817af45e7ff529951ba22755c27534cdcad0b5d`. Product behavior outranks examples and design recommendations. [Coverage JSON](design-system/coverage.json) records all 17 FRs, 16 NFRs, and 159 ACs, including specific technical dispositions. A visual mapping is not a passing production test.
+Product authority: [PRD v2.4, Ready for technical design](02-PRD.md), SHA-256 `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895`. Product behavior outranks examples and design recommendations. [Coverage JSON](design-system/coverage.json) records all 17 FRs, 16 NFRs, and 159 ACs, including specific technical dispositions. A visual mapping is not a passing production test.
 
 | Decision | Selected target / evidence |
 |---|---|

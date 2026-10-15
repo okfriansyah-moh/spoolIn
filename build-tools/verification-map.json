@@ -519,7 +519,7 @@
       "pending_reason": "Suite implementation is pending its owning task"
     },
     "T046": {
-      "source": "docs/plan/20-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-assessment-handoff.md",
+      "source": "docs/plan/20-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md",
       "test_paths": [],
       "unit": [],
       "integration": [],
