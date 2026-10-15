@@ -1,0 +1,6 @@
+interface:
+  display_name: "Running Prompt"
+  short_description: "Run planned tasks with defaults and input overrides"
+  default_prompt: "Use $running-prompt with Target: next and Mode: implement."
+policy:
+  allow_implicit_invocation: true
