@@ -1,6 +1,7 @@
 package com.spoolin.core.features.session
 
-import com.spoolin.core.features.account.persistence.AccountRole
+import com.spoolin.core.identity.AccountAuthority
+import com.spoolin.core.identity.AccountRole
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -109,7 +110,7 @@ class SessionStore(
     private fun verified(
         connection: Connection,
         credential: SessionCredential,
-        account: SessionAccount,
+        account: AccountAuthority,
     ): SessionPrincipal? {
         val stored =
             connection
@@ -149,17 +150,17 @@ class SessionStore(
     private fun lockAccount(
         connection: Connection,
         id: UUID,
-    ): SessionAccount =
+    ): AccountAuthority =
         connection
             .queryBound("SELECT role,auth_epoch FROM user_account WHERE id=? FOR UPDATE", listOf(id)) {
-                SessionAccount(id, AccountRole.valueOf(it.getString("role")), it.getLong("auth_epoch"))
+                AccountAuthority(id, AccountRole.valueOf(it.getString("role")), it.getLong("auth_epoch"))
             }.single()
 
     private fun issuanceAccount(
         connection: Connection,
         accountId: UUID,
         previous: SessionCredential?,
-    ): SessionAccount {
+    ): AccountAuthority {
         val prior =
             previous?.let { credential ->
                 connection

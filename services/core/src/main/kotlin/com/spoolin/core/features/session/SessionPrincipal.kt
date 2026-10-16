@@ -1,18 +1,13 @@
 package com.spoolin.core.features.session
 
-import com.spoolin.core.features.account.persistence.AccountRole
+import com.spoolin.core.identity.AccountAuthority
+import com.spoolin.core.identity.AccountRole
 import java.time.Instant
 import java.util.UUID
 
-class SessionAccount(
-    val id: UUID,
-    val role: AccountRole,
-    val authEpoch: Long,
-)
-
 class SessionPrincipal(
     val id: UUID,
-    private val account: SessionAccount,
+    private val account: AccountAuthority,
     val expiresAt: Instant,
     val csrfToken: String,
 ) {
