@@ -60,3 +60,11 @@ paths = [
   '''(^|/)\.ai/evidence/autonomy-1\.1\.1/sessions/session-copilot-4e102219/(fresh|resumed)-stdout\.jsonl$'''
 ]
 regexes = ['''^apiCallId\\?":\s*\\?"[A-Za-z0-9+/=_-]+(?:\\?")?$''']
+
+[[allowlists]]
+description = "Independently verified shared policy source snapshot SHA-256 lines in workflow receipts"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''']
+regexes = ['''^\s*"(?:libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ConfigurationKeyRulesTest\.kt)": "[0-9a-f]{64}",?\s*$''']

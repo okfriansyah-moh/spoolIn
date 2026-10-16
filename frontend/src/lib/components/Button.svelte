@@ -8,6 +8,7 @@
     onclick,
     type = 'button',
     selected,
+    tabindex,
   }: {
     children: Snippet;
     variant?: 'primary' | 'secondary' | 'danger';
@@ -16,6 +17,7 @@
     onclick?: () => void;
     type?: 'button' | 'submit';
     selected?: boolean;
+    tabindex?: 0;
   } = $props();
   const id = $props.id();
 </script>
@@ -23,6 +25,7 @@
 <span class="button-group"
   ><button
     {type}
+    {tabindex}
     class={variant}
     disabled={pending || !!disabledReason}
     aria-busy={pending}
