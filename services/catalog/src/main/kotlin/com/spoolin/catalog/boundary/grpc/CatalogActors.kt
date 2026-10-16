@@ -5,6 +5,7 @@ import com.spoolin.support.identity.ActorInterceptor
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorTrust
 import com.spoolin.support.identity.ActorVerifier
+import com.spoolin.support.identity.Permissions
 import org.springframework.core.env.Environment
 import org.springframework.grpc.client.GrpcChannelFactory
 import spoolin.v1.IdentityServiceGrpc
@@ -18,6 +19,8 @@ class CatalogActors(
     private val clock: Clock = Clock.systemUTC(),
 ) {
     fun check(claims: ActorClaims) {
+        permission(claims)
+
         val current =
             identity.withDeadlineAfter(1, TimeUnit.SECONDS).checkActor(
                 CheckActorRequest
@@ -35,6 +38,14 @@ class CatalogActors(
         val sameGrant = current.role == claims.role && client == claims.clientKind
         val live = current.expiresAt.seconds > clock.instant().epochSecond
         if (!sameIdentity || !sameGrant || !live) throw ActorRejected()
+    }
+
+    private fun permission(claims: ActorClaims) {
+        val receipt = claims.method == "/spoolin.v1.CatalogService/GetOperation"
+        if (!receipt && !Permissions.management(claims.role)) throw ActorRejected()
+        val method = claims.method.substringAfterLast('/')
+        val connector = method in setOf("ProposeMovie", "ApproveAndCreate", "RejectProposal")
+        if (connector && claims.clientKind == null) throw ActorRejected()
     }
 
     companion object {

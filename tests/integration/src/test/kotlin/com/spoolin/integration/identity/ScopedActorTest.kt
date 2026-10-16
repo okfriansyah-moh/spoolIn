@@ -139,6 +139,31 @@ class ScopedActorTest {
                             client(caller, "$token-x").getOperation(Id.newBuilder().setId(operation.toString()).build())
                         }.status.code,
                     )
+                    hostile(signer, claims, pair.private).forEach { (name, hostile) ->
+                        val failure =
+                            assertThrows(StatusRuntimeException::class.java, {
+                                client(caller, hostile).getOperation(Id.newBuilder().setId(operation.toString()).build())
+                            }, name)
+                        assertEquals(Status.Code.PERMISSION_DENIED, failure.status.code, name)
+                        assertEquals(1, lookups.get(), name)
+                    }
+                    val wrongSan = channel(owner.root, "media", "catalog", catalog.port)
+                    try {
+                        assertEquals(
+                            Status.Code.PERMISSION_DENIED,
+                            assertThrows(StatusRuntimeException::class.java) {
+                                client(wrongSan, token).getOperation(Id.newBuilder().setId(operation.toString()).build())
+                            }.status.code,
+                        )
+                    } finally {
+                        wrongSan.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
+                    }
+                    assertEquals(
+                        Status.Code.PERMISSION_DENIED,
+                        assertThrows(StatusRuntimeException::class.java) {
+                            client(caller, token).getOperation(Id.newBuilder().setId(UUID.randomUUID().toString()).build())
+                        }.status.code,
+                    )
                     fixture.pool.committed { sessions.revoke(it, issued.principal.id, account) }
                     assertEquals(
                         Status.Code.PERMISSION_DENIED,
@@ -157,6 +182,63 @@ class ScopedActorTest {
         }
     }
 
+    private fun hostile(
+        signer: ActorSigner,
+        claims: ActorClaims,
+        privateKey: java.security.PrivateKey,
+    ): List<Pair<String, String>> {
+        val foreign = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
+        val variants =
+            listOf(
+                "audience" to claims.copy(audience = "media"),
+                "method" to claims.copy(method = "/spoolin.v1.CatalogService/WriteMovie"),
+                "account" to claims.copy(accountId = UUID.randomUUID()),
+                "credential" to claims.copy(credentialId = UUID.randomUUID()),
+                "epoch" to claims.copy(authEpoch = 1),
+                "role" to claims.copy(role = "VIEWER"),
+                "credit role" to claims.copy(role = "Actor"),
+                "client binding" to claims.copy(clientKind = "CHATGPT"),
+                "operation" to claims.copy(operationId = UUID.randomUUID()),
+                "missing operation" to claims.copy(operationId = null),
+                "nonce" to claims.copy(nonce = "AA"),
+                "padded nonce" to claims.copy(nonce = "AAAAAAAAAAAAAAAAAAAAAA=="),
+                "zero duration" to claims.copy(expiresAt = claims.issuedAt),
+                "duration31" to claims.copy(expiresAt = claims.issuedAt + 31),
+                "expired" to claims.copy(issuedAt = claims.issuedAt - 60, expiresAt = claims.issuedAt - 30),
+                "future" to claims.copy(issuedAt = claims.issuedAt + 20, expiresAt = claims.issuedAt + 30),
+            ).map { (name, value) -> name to signer.sign(value) }
+        val valid = signer.sign(claims)
+        val input = valid.split('.')[1]
+        val json = String(Base64.getUrlDecoder().decode(input), Charsets.UTF_8)
+        val corrupt =
+            listOf(
+                "duplicate JSON" to json.replace("\"issuer\":\"core\"", "\"issuer\":\"core\",\"issuer\":\"core\""),
+                "caller algorithm" to json.replace("{", "{\"alg\":\"EdDSA\","),
+                "issuer" to json.replace("\"issuer\":\"core\"", "\"issuer\":\"media\""),
+                "epoch encoding" to json.replace("\"authEpoch\":\"0\"", "\"authEpoch\":0"),
+                "trailing JSON" to (json + "{}"),
+            ).map { (name, payload) -> name to raw(payload.toByteArray(), privateKey) }
+        return variants + corrupt +
+            listOf(
+                "wrong signing key" to ActorSigner("key_A", foreign.private).sign(claims),
+                "unknown key" to ActorSigner("unknown", foreign.private).sign(claims),
+                "oversized metadata" to "x".repeat(4097),
+                "padded encoding" to (signer.sign(claims) + "="),
+                "extra segment" to (signer.sign(claims) + ".extra"),
+            )
+    }
+
+    private fun raw(
+        payload: ByteArray,
+        key: java.security.PrivateKey,
+    ): String {
+        val input = "key_A.${Base64.getUrlEncoder().withoutPadding().encodeToString(payload)}"
+        val signature = java.security.Signature.getInstance("Ed25519")
+        signature.initSign(key)
+        signature.update(input.toByteArray(Charsets.US_ASCII))
+        return "$input.${Base64.getUrlEncoder().withoutPadding().encodeToString(signature.sign())}"
+    }
+
     private fun client(
         channel: ManagedChannel,
         token: String,
@@ -168,7 +250,7 @@ class ScopedActorTest {
             .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
     }
 
-    private fun server(
+    internal fun server(
         root: Path,
         owner: String,
         rpc: BindableService,
@@ -188,7 +270,7 @@ class ScopedActorTest {
             .start()
     }
 
-    private fun channel(
+    internal fun channel(
         root: Path,
         from: String,
         receiver: String,

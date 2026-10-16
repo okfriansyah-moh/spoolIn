@@ -3,6 +3,7 @@ package com.spoolin.core
 import com.spoolin.core.features.policy.PolicyAccess
 import com.spoolin.core.features.policy.PolicyGateway
 import com.spoolin.core.features.policy.PolicyProvider
+import com.spoolin.core.features.ratelimit.RateMaintenance
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -101,7 +103,9 @@ class Application {
     fun readinessLifecycle(
         schema: SchemaReadiness,
         manager: HealthStatusManager,
-    ): ReadinessLifecycle = ReadinessLifecycle(schema, manager)
+        environment: Environment,
+        rates: ObjectProvider<RateMaintenance>,
+    ): ReadinessLifecycle = ReadinessLifecycle(schema, manager) { rateReady(environment, rates) }
 
     @Bean
     @GlobalServerInterceptor
@@ -329,6 +333,7 @@ class SchemaReadiness(
 class ReadinessLifecycle(
     private val schema: SchemaReadiness,
     private val manager: HealthStatusManager,
+    private val admissionReady: () -> Boolean = { true },
 ) : ApplicationRunner {
     @Volatile
     private var started = false
@@ -341,7 +346,8 @@ class ReadinessLifecycle(
 
     @Scheduled(fixedDelay = 1000)
     fun refresh() {
-        val status = if (started && schema.ready()) ServingStatus.SERVING else ServingStatus.NOT_SERVING
+        val ready = started && schema.ready() && admissionReady()
+        val status = if (ready) ServingStatus.SERVING else ServingStatus.NOT_SERVING
         (serviceNames + "").forEach { manager.setStatus(it, status) }
     }
 
@@ -483,4 +489,29 @@ class BoundaryErrors : org.springframework.boot.webmvc.error.ErrorController {
                 mapOf("error" to "REQUEST_FAILED"),
             )
     }
+}
+
+private fun rateReady(
+    environment: Environment,
+    rates: ObjectProvider<RateMaintenance>,
+): Boolean {
+    val account = environment.getProperty("spoolin.account-protection.enabled", Boolean::class.java, false)
+    val admission = environment.getProperty("spoolin.rate-limit.enabled", Boolean::class.java, false)
+    return if (account || admission) rates.ifAvailable?.ready() == true else true
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class AdmissionReadinessConfiguration {
+    @Bean
+    fun rateReadiness(
+        environment: Environment,
+        rates: ObjectProvider<RateMaintenance>,
+    ): HealthIndicator =
+        HealthIndicator {
+            if (rateReady(environment, rates)) {
+                Health.up().build()
+            } else {
+                Health.down().withDetail("reason", "ADMISSION_UNAVAILABLE").build()
+            }
+        }
 }

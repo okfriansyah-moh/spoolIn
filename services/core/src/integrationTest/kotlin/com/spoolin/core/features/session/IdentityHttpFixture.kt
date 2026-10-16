@@ -59,8 +59,9 @@ class IdentityHttpFixture(
     private val admitted: Boolean,
     private val trusted: Boolean = false,
     private val rateOverrides: Map<String, String> = emptyMap(),
+    private val sharedCrypto: CryptoFixture? = null,
 ) : AutoCloseable {
-    val crypto = CryptoFixture("t006-identity-https.json")
+    val crypto = sharedCrypto ?: CryptoFixture("t006-identity-https.json")
     private val port = ServerSocket(0).use { it.localPort }
     val origin = "https://localhost:$port"
     val context: ConfigurableApplicationContext
@@ -76,7 +77,13 @@ class IdentityHttpFixture(
             }
         if (admitted) app.setAdditionalProfiles("t006-identity-fixture")
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
-        context = app.run(*configuration().toTypedArray())
+        context =
+            try {
+                app.run(*configuration().toTypedArray())
+            } catch (failure: Exception) {
+                if (sharedCrypto == null) crypto.close()
+                throw failure
+            }
         val ssl = context.getBean(SslBundles::class.java).getBundle("service").createSslContext()
         client = HttpClient.newBuilder().sslContext(ssl).build()
     }
@@ -167,8 +174,10 @@ class IdentityHttpFixture(
         mac.init(javax.crypto.spec.SecretKeySpec(Files.readAllBytes(keys.getValue("rate-limiter-key")), "HmacSHA256"))
         val canary = mac.doFinal("spoolin-rate-agreement-v1".toByteArray()).joinToString("") { "%02x".format(it) }
         val agreement = owner.root.resolve("rate-agreement.json")
-        Files.writeString(agreement, """{"profileRevision":"${rateProfiles.revision}","keyCanary":"$canary"}""")
-        Files.setPosixFilePermissions(agreement, PosixFilePermissions.fromString("rw-------"))
+        if (!Files.exists(agreement)) {
+            Files.writeString(agreement, """{"profileRevision":"${rateProfiles.revision}","keyCanary":"$canary"}""")
+            Files.setPosixFilePermissions(agreement, PosixFilePermissions.fromString("rw-------"))
+        }
         val settings =
             listOf(
                 "CORE_DB_URL=${owner.url("core")}",
@@ -206,6 +215,6 @@ class IdentityHttpFixture(
 
     override fun close() {
         context.close()
-        crypto.close()
+        if (sharedCrypto == null) crypto.close()
     }
 }

@@ -20,6 +20,14 @@ object MediaActors {
                 null
             }
         val methods = setOf("Upload", "GetOperation", "GetAsset").map { "spoolin.v1.MediaService/$it" }.toSet()
-        return ActorInterceptor("media", methods, verifier, {})
+        return ActorInterceptor("media", methods, verifier, { claims ->
+            if (claims.method.endsWith("/Upload") &&
+                !com.spoolin.support.identity.Permissions
+                    .management(claims.role)
+            ) {
+                throw com.spoolin.support.identity
+                    .ActorRejected()
+            }
+        })
     }
 }

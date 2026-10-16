@@ -64,6 +64,12 @@ class RateConfiguration {
     }
 
     @Bean
+    fun admissionHealth(
+        dataSource: DataSource,
+        agreement: RateAgreement,
+    ): RateMaintenance = RateMaintenance(dataSource, agreement)
+
+    @Bean
     fun admission(trusted: TrustedAdmission): AuthenticationAdmission = AuthenticationAdmission(trusted::check)
 
     @Bean

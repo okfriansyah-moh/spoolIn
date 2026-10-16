@@ -76,7 +76,7 @@ management:
         enabled: true
       group:
         readiness:
-          include: readinessState,schema
+          include: readinessState,schema,rateReadiness
 spoolin:
   schema:
     minimum: '1'
