@@ -19,6 +19,7 @@ class PolicyGraphql(
     private val provider: PolicyProvider,
     accounts: AccountGraphql? = null,
     operations: ScopedOperationQuery? = null,
+    catalog: com.spoolin.core.features.catalogview.read.CatalogViewGraphql? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
@@ -44,6 +45,7 @@ class PolicyGraphql(
             }
         }
         accounts?.bind(wiring)
+        catalog?.bind(wiring)
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }
@@ -116,6 +118,7 @@ class PolicyGraphqlConfiguration {
     fun policyGraphql(
         provider: PolicyProvider,
         accounts: org.springframework.beans.factory.ObjectProvider<AccountGraphql>,
+        catalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.read.CatalogViewGraphql>,
     ): PolicyGraphql {
         val schema =
             ClassPathResource(
@@ -123,6 +126,6 @@ class PolicyGraphqlConfiguration {
             ).inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
         return PolicyGraphql(schema, provider, accounts = accounts.ifAvailable, operations = { id, owner, context ->
             context?.operation(id, owner)
-        })
+        }, catalog = catalogView.ifAvailable)
     }
 }

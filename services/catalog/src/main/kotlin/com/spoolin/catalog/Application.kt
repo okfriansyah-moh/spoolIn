@@ -115,18 +115,25 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun catalogService(dataSource: DataSource): io.grpc.BindableService {
-        val reads =
-            com.spoolin.catalog.operations.receipts
-                .OwnerReceiptReads(dataSource)
-        return com.spoolin.catalog.operations.receipts.ReceiptRpc(
-            com.spoolin.support.receipts
-                .ReceiptAuthority {
-                    com.spoolin.support.identity.ActorRpc
-                        .current()
-                        ?.let { "account:${it.accountId}" }
-                },
-            reads::find,
+    fun catalogCursorKey(): ByteArray = com.spoolin.catalog.features.search.CatalogCursor.newRandomKey()
+
+    @Bean
+    fun catalogService(dataSource: DataSource, cursorKey: ByteArray): io.grpc.BindableService {
+        val reads = com.spoolin.catalog.operations.receipts.OwnerReceiptReads(dataSource)
+        val authority = com.spoolin.support.receipts.ReceiptAuthority {
+            com.spoolin.support.identity.ActorRpc.current()?.let { "account:${it.accountId}" }
+        }
+        val titleCursor = com.spoolin.catalog.features.search.CatalogCursor(cursorKey)
+        val peopleCursor = com.spoolin.catalog.features.search.PeopleCursor(cursorKey)
+        return com.spoolin.catalog.boundary.grpc.CatalogServiceRpc(
+            titleSearch = com.spoolin.catalog.features.search.TitleSearchSql(dataSource),
+            personSearch = com.spoolin.catalog.features.person.read.PersonSearch(dataSource),
+            taxonomy = com.spoolin.catalog.features.taxonomy.read.TaxonomyReads(dataSource),
+            provenance = com.spoolin.catalog.features.provenance.ProvenanceReads(dataSource),
+            receiptReads = reads,
+            receiptAuthority = authority,
+            titleCursor = titleCursor,
+            peopleCursor = peopleCursor,
         )
     }
 }

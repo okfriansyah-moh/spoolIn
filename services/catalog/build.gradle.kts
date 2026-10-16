@@ -73,6 +73,26 @@ val workIntegrationTest by tasks.registering(Test::class) {
 
 tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
 
+val catalogReadUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = files(
+        sourceSets["test"].output.classesDirs,
+        sourceSets["main"].output,
+        configurations["testRuntimeClasspath"],
+    )
+    filter {
+        includeTestsMatching("com.spoolin.catalog.features.search.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.person.read.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.provenance.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.seed.persistence.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogReadUnitTest) }
+
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts"))
     config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))

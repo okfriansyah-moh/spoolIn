@@ -97,6 +97,22 @@ val workIntegrationTest by tasks.registering(Test::class) {
 
 tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
 
+val catalogViewUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = files(
+        sourceSets["test"].output.classesDirs,
+        sourceSets["main"].output,
+        configurations["testRuntimeClasspath"],
+    )
+    filter {
+        includeTestsMatching("com.spoolin.core.features.catalogview.read.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogViewUnitTest) }
+
 val accountIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
