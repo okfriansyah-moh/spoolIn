@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import io
 import json
 import os
@@ -19,6 +20,7 @@ from lock_dependencies import relocate_local_catalog
 import lock_dependencies
 from run_owner_integration import junit_counts
 from unittest_reports import ObservedResult, test_list, write_junit
+from test_scan_metadata import ScanMetadataTests
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("task_selector", Path(__file__).with_name("task_selector.py"))
@@ -353,6 +355,140 @@ class LockMaintenanceTests(unittest.TestCase):
                 relocate_local_catalog(root)
             self.assertEqual(source.read_text(), "external:module:1.0=classpath\n")
             self.assertFalse(root.joinpath("gradle/locks/settings/gradle.lockfile").exists())
+
+
+class ReceiptMetadataScannerTests(unittest.TestCase):
+    """Run the pinned detector on marked fragments, never a claimed workflow run."""
+
+    marker = '[[allowlists]]\ndescription = "Independently verified shared policy source snapshot SHA-256 lines in workflow receipts"'
+    # cd55bc8 added two reviewed provenance blocks before this selected-policy marker.
+    baseline_sha256 = "aa3cf252a96dd98089c62d6f62b04010cd7fffaabc02b940c46c94e5c774e58b"
+    shared_paths = (
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules.kt",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest.kt",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ConfigurationKeyRulesTest.kt",
+    )
+    core_paths = (
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/CredentialIntegrationTest.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/KeyRegistry.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/MountedKeys.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHash.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHasher.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordInput.kt",
+        "services/core/src/test/kotlin/com/spoolin/core/features/crypto/PasswordRulesTest.kt",
+    )
+    managed_path = ".ai/evidence/run-" + "a" * 32 + "/receipt.json"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.output = ROOT / ".ai/evidence/t009-policy/scanner" / ("run-" + uuid4().hex)
+        cls.output.mkdir(parents=True)
+        cls.records = []
+        cls.binary = shutil.which("gitleaks")
+        if not cls.binary:
+            raise SetupError("Pinned Gitleaks executable is required")
+        tool = next(item for item in json.loads((ROOT / ".ai/bundles/1.1.1/docs/verification-tools.json").read_text())["tools"] if item["name"] == "gitleaks")
+        version = subprocess.run([cls.binary, "version"], capture_output=True, text=True, check=True).stdout.strip()
+        if version != tool["version"].removeprefix("v"):
+            raise SetupError("Gitleaks version differs from the selected tool pin")
+        cls.version = version
+        cls.candidate = (ROOT / ".ai/security/gitleaks.toml").read_text()
+        cls.baseline = cls.candidate.split(cls.marker)[0].rstrip() + "\n"
+        if hashlib.sha256(cls.baseline.encode()).hexdigest() != cls.baseline_sha256:
+            raise SetupError("Existing reviewed scanner policy changed outside the selected three-path block")
+        cls.policy_inputs = Path(tempfile.gettempdir()) / "spoolin-t009-scanner-policy-inputs" / cls.output.name
+        cls.policy_inputs.mkdir(parents=True)
+        for name, text in (("baseline", cls.baseline), ("candidate", cls.candidate)):
+            target = cls.policy_inputs / f"{name}.toml"
+            target.write_text(text)
+            target.chmod(0o600)
+
+    @classmethod
+    def tearDownClass(cls):
+        document = {"boundary": "Test-only scanner fragments, not workflow receipts", "version": cls.version,
+                    "binary": cls.binary, "binary_sha256": hashlib.sha256(Path(cls.binary).read_bytes()).hexdigest(),
+                    "policy_inputs": str(cls.policy_inputs),
+                    "baseline_sha256": hashlib.sha256(cls.baseline.encode()).hexdigest(),
+                    "candidate_sha256": hashlib.sha256(cls.candidate.encode()).hexdigest(), "scans": cls.records}
+        (cls.output / "observations.json").write_text(json.dumps(document, indent=2) + "\n")
+
+    def metadata(self, paths):
+        entries = []
+        for name in paths:
+            path = ROOT / name
+            mode = oct(path.stat().st_mode & 0o777)
+            digest = hashlib.sha256(mode.encode() + b"\0" + path.read_bytes()).hexdigest()
+            entries.append((name, digest))
+        return entries
+
+    def fragment(self, entries):
+        return "// TEST-ONLY SCANNER FRAGMENT; NOT A WORKFLOW RECEIPT\n" + "\n".join(
+            f'  "{name}": "{digest}",' for name, digest in entries) + "\n"
+
+    def scan(self, policy, relative, content, label):
+        number = len(self.records) + 1
+        report = self.output / f"scan-{number:03d}.json"
+        with tempfile.TemporaryDirectory(prefix="spoolin-t009-scanner-") as directory:
+            fixture = Path(directory) / "marked-test-fragments"
+            path = fixture / relative
+            path.parent.mkdir(parents=True)
+            path.write_text(content)
+            argv = [self.binary, "dir", str(fixture), "--config", str(self.policy_inputs / f"{policy}.toml"),
+                    "--redact", "--no-banner", "--exit-code", "1", "--report-format", "json", "--report-path", str(report)]
+            result = subprocess.run(argv, cwd=ROOT, capture_output=True, timeout=30)
+        (self.output / f"scan-{number:03d}.stdout.log").write_bytes(result.stdout)
+        (self.output / f"scan-{number:03d}.stderr.log").write_bytes(result.stderr)
+        findings = json.loads(report.read_text()) if report.exists() else []
+        self.records.append({"label": label, "policy": policy, "argv": argv, "exit_code": result.returncode,
+                             "fixture_sha256": hashlib.sha256(content.encode()).hexdigest(),
+                             "report": str(report.relative_to(ROOT)), "report_sha256": hashlib.sha256(report.read_bytes()).hexdigest() if report.exists() else None,
+                             "findings": [{"rule": item["RuleID"], "line": item["StartLine"], "file": item["File"]} for item in findings]})
+        self.assertIn(result.returncode, (0, 1), result.stderr.decode())
+        self.assertTrue(all(item["RuleID"] == "generic-api-key" for item in findings))
+        self.assertTrue(all(item["Secret"] == "REDACTED" for item in findings))
+        return findings
+
+    def denied(self, relative, content, label):
+        baseline = self.scan("baseline", relative, content, label)
+        self.assertGreater(len(baseline), 0, "Negative fixture must first demonstrate detector sensitivity")
+        candidate = self.scan("candidate", relative, content, label)
+        self.assertGreater(len(candidate), 0, "The selected exception must preserve this finding")
+
+    def test_three_shared_source_metadata_lines_are_allowed_only_in_managed_context(self):
+        content = self.fragment(self.metadata(self.shared_paths))
+        self.assertEqual(len(self.scan("baseline", self.managed_path, content, "three current shared inputs")), 3)
+        self.assertEqual(len(self.scan("candidate", self.managed_path, content, "three current shared inputs")), 0)
+
+    def test_existing_seven_core_metadata_controls_remain_unchanged(self):
+        content = self.fragment(self.metadata(self.core_paths))
+        self.assertEqual(len(self.scan("baseline", self.managed_path, content, "seven current Core inputs")), 0)
+        self.assertEqual(len(self.scan("candidate", self.managed_path, content, "seven current Core inputs")), 0)
+        self.denied("outside-core.json", content, "Core inputs outside managed receipt")
+
+    def test_identical_shared_lines_outside_exact_receipt_paths_stay_detected(self):
+        content = self.fragment(self.metadata(self.shared_paths))
+        paths = ("saved-preflight.json", ".ai/evidence/run-" + "a" * 31 + "/receipt.json",
+                 ".ai/evidence/run-" + "A" * 32 + "/receipt.json", self.managed_path + ".old")
+        for relative in paths:
+            with self.subTest(relative=relative):
+                self.denied(relative, content, "Shared inputs outside exact managed path")
+
+    def test_ordinary_credential_fields_and_library_source_stay_scanned(self):
+        digest = self.metadata(self.shared_paths)[0][1]
+        self.denied(self.managed_path, self.fragment((("api_key", digest),)), "Ordinary credential field in receipt context")
+        source = "// TEST-ONLY SOURCE FRAGMENT\n" + f'val api_key = "{digest}"\n'
+        self.denied(self.shared_paths[0], source, "Credential field in actual library source path")
+
+    def test_unlisted_library_filenames_stay_detected(self):
+        name, digest = self.metadata(self.shared_paths)[0]
+        name = name.replace("ActorKeyRules.kt", "UnlistedActorKeyRules.kt")
+        self.denied(self.managed_path, self.fragment(((name, digest),)), "Unlisted source filename")
+
+    def test_malformed_digest_controls_prove_sensitivity_then_remain_denied(self):
+        name, digest = self.metadata(self.shared_paths)[0]
+        for malformed in (digest[:-1], digest + "a", "g" + digest[1:], digest.upper()):
+            with self.subTest(value_shape=len(malformed)):
+                self.denied(self.managed_path, self.fragment(((name, malformed),)), "Malformed digest shape")
 
 
 if __name__ == "__main__":

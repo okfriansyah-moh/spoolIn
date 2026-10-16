@@ -7,9 +7,11 @@ import com.spoolin.core.features.crypto.KeyMount
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
 import com.spoolin.core.features.crypto.MountedKeys
+import com.spoolin.core.features.crypto.NewPasswordPolicy
 import com.spoolin.core.features.crypto.NonceAllocator
 import com.spoolin.core.features.crypto.PasswordHasher
 import com.spoolin.core.features.crypto.ProtectionAlert
+import com.spoolin.core.features.policy.PolicyProvider
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -65,11 +67,24 @@ class AccountProtectionConfiguration {
         registry: KeyRegistry,
         crypto: AccountCryptography,
         alert: ProtectionAlert,
-    ): ProtectedAccounts = ProtectedAccounts(dataSource, registry, crypto, AccountPayload(), alert)
+        rules: IdentityRules,
+    ): ProtectedAccounts = ProtectedAccounts(dataSource, registry, crypto, AccountPayload(), alert, rules)
 
     @Bean
-    fun passwordHasher(): PasswordHasher = PasswordHasher(Argon2Engine())
+    fun passwordHasher(provider: PolicyProvider): PasswordHasher {
+        val bound = provider.policy.textBounds.getValue("password")
+        return PasswordHasher(Argon2Engine(), NewPasswordPolicy(bound.minCodePoints, bound.maxCodePoints))
+    }
 
     @Bean
-    fun identityRules(): IdentityRules = IdentityRules()
+    fun identityRules(provider: PolicyProvider): IdentityRules {
+        val bound = provider.policy.textBounds.getValue("registrationName")
+        return IdentityRules(
+            bound.minCodePoints,
+            bound.maxCodePoints,
+            provider.policy.textBounds
+                .getValue("email")
+                .maxCodePoints,
+        )
+    }
 }

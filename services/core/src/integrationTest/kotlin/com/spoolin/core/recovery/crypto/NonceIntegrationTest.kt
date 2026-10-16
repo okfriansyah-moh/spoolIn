@@ -1,16 +1,22 @@
 package com.spoolin.core.recovery.crypto
 
+import com.github.dockerjava.api.exception.NotFoundException
+import com.github.dockerjava.api.model.ExposedPort
+import com.spoolin.core.boundary.bootstrap.OwnerFixture
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.NonceAllocator
 import com.spoolin.core.features.crypto.ProtectedEnvelope
 import com.spoolin.core.features.crypto.ProtectedRead
 import com.spoolin.core.features.crypto.ProtectionUnavailable
 import com.spoolin.core.features.crypto.queryBound
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.testcontainers.DockerClientFactory
 import tools.jackson.databind.ObjectMapper
 import java.lang.reflect.Proxy
 import java.nio.ByteBuffer
@@ -25,6 +31,91 @@ import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 class NonceIntegrationTest {
+    @Test
+    fun hostSelectedLoopbackPortReachesOwnedTlsDatabase() {
+        val fixture = OwnerFixture("t005-host-port-observations.json")
+        var id: String? = null
+        try {
+            fixture.start()
+            id = fixture.postgres.containerId
+            assertHostBindingAndTls(fixture, requireNotNull(id))
+        } finally {
+            fixture.close()
+            id?.let { ownId -> assertFixtureStopped(fixture, ownId) }
+            assertFalse(Files.exists(fixture.root))
+        }
+    }
+
+    private fun assertFixtureStopped(
+        fixture: OwnerFixture,
+        id: String,
+    ) {
+        val absent =
+            assertThrows(NotFoundException::class.java) {
+                DockerClientFactory
+                    .instance()
+                    .client()
+                    .inspectContainerCmd(id)
+                    .exec()
+            }
+        val rootExists = Files.exists(fixture.root)
+        assertFalse(rootExists)
+        Files.writeString(
+            fixture.repository.resolve(".ai/evidence/t009-runtime-fixture-cleanup.json"),
+            ObjectMapper().writeValueAsString(
+                mapOf(
+                    "containerId" to id,
+                    "namespace" to fixture.namespace,
+                    "inspectionExceptionType" to absent.javaClass.name,
+                    "privateRootExists" to rootExists,
+                    "observedAtEpochMs" to System.currentTimeMillis(),
+                ),
+            ),
+        )
+    }
+
+    private fun assertHostBindingAndTls(
+        fixture: OwnerFixture,
+        id: String,
+    ) {
+        val fresh =
+            DockerClientFactory
+                .instance()
+                .client()
+                .inspectContainerCmd(id)
+                .exec()
+        val port = ExposedPort.tcp(5432)
+        val requested =
+            fresh.hostConfig.portBindings.bindings
+                .getValue(port)
+                .single()
+        val published =
+            fresh.networkSettings.ports.bindings
+                .getValue(port)
+                .single()
+        val identity = NonceTlsFixture.identity(fixture)
+        fixture.record(
+            "host-selected-mapping",
+            mapOf(
+                "freshDockerInspection" to true,
+                "containerId" to id,
+                "requestedHost" to requested.hostIp,
+                "requestedPort" to requested.hostPortSpec.toInt(),
+                "publishedHost" to published.hostIp,
+                "publishedPort" to published.hostPortSpec.toInt(),
+                "tlsIdentity" to identity,
+            ),
+        )
+        assertAll(
+            { assertTrue(requested.hostPortSpec.toInt() in 1..65535, "Docker must receive a positive host-selected port.") },
+            { assertEquals("127.0.0.1", requested.hostIp) },
+            { assertEquals("127.0.0.1", published.hostIp) },
+            { assertEquals(requested.hostPortSpec, published.hostPortSpec) },
+            { assertEquals(listOf("spoolin_core", "spoolin_core_runtime", true), identity) },
+            { assertEquals(fixture.namespace, requireNotNull(fresh.config.labels).getValue("spoolin.test.namespace")) },
+        )
+    }
+
     @Test
     fun concurrentEncryptionConsumesOneHundredAndOneCommittedDistinctCounters() =
         CryptoFixture().use { fixture ->

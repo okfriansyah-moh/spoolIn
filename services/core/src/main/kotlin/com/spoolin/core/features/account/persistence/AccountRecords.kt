@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.spoolin.core.features.crypto.StoredPasswordHash
 import java.util.UUID
 
-enum class AccountRole { VIEWER, MAINTAINER }
+typealias AccountRole = com.spoolin.core.identity.AccountRole
 
 data class AccountProjection(
     val id: UUID,

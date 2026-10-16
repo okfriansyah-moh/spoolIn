@@ -7,7 +7,7 @@ depends_on:
 - T006
 - T008
 readiness: Ready
-status: Not started
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: required

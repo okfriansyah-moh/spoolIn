@@ -9,6 +9,15 @@ import org.junit.jupiter.api.Test
 
 class PasswordRulesTest {
     @Test
+    fun effectivePasswordBoundsRetainByteCeiling() {
+        val configured = NewPasswordPolicy(20, 512)
+        assertTrue(configured.accepts("a".repeat(512)))
+        assertFalse(configured.accepts("a".repeat(513)))
+        assertFalse(configured.accepts("😀".repeat(129)))
+        assertFalse(configured.accepts("a".repeat(19)))
+    }
+
+    @Test
     fun exactUtf8PreparationDoesNotTrimNormalizeOrTruncate() {
         val password = "a".repeat(14) + "é"
         assertArrayEquals(

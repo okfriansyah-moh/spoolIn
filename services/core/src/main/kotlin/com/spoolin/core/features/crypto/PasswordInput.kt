@@ -9,7 +9,7 @@ class NewPasswordPolicy(
     val maximum: Int = 128,
 ) {
     init {
-        require(minimum > 0 && maximum >= minimum && maximum <= DEFAULT_PASSWORD_MAXIMUM)
+        require(minimum > 0 && maximum >= minimum && maximum <= MAX_NEW_PASSWORD_BYTES)
     }
 
     fun accepts(value: String): Boolean =

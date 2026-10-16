@@ -1,0 +1,17 @@
+mutation AccountRegistration($operationId: UUID!, $input: RegisterInput!) {
+  register(operationId: $operationId, input: $input) {
+    operation {
+      id
+      state
+      resultExpired
+      problem {
+        code
+        retryAfterMs
+      }
+    }
+    problem {
+      code
+      retryAfterMs
+    }
+  }
+}

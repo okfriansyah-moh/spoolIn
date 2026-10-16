@@ -1,0 +1,11 @@
+query AccountOperation($id: UUID!) {
+  operation(id: $id, owner: CORE) {
+    id
+    state
+    resultExpired
+    problem {
+      code
+      retryAfterMs
+    }
+  }
+}

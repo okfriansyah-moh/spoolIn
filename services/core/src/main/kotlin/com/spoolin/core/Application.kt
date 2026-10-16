@@ -1,5 +1,9 @@
 package com.spoolin.core
 
+import com.spoolin.core.features.policy.PolicyAccess
+import com.spoolin.core.features.policy.PolicyGateway
+import com.spoolin.core.features.policy.PolicyProvider
+import com.spoolin.core.features.ratelimit.RateMaintenance
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -15,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -36,7 +41,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.filter.OncePerRequestFilter
 import spoolin.v1.IdentityServiceGrpc
-import spoolin.v1.McpGatewayServiceGrpc
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -99,7 +103,9 @@ class Application {
     fun readinessLifecycle(
         schema: SchemaReadiness,
         manager: HealthStatusManager,
-    ): ReadinessLifecycle = ReadinessLifecycle(schema, manager)
+        environment: Environment,
+        rates: ObjectProvider<RateMaintenance>,
+    ): ReadinessLifecycle = ReadinessLifecycle(schema, manager) { rateReady(environment, rates) }
 
     @Bean
     @GlobalServerInterceptor
@@ -108,6 +114,7 @@ class Application {
     @Bean
     fun httpSecurity(http: HttpSecurity): SecurityFilterChain {
         http.authorizeHttpRequests { it.anyRequest().permitAll() }
+        http.csrf { it.ignoringRequestMatchers("/graphql") }
         return http.build()
     }
 
@@ -115,10 +122,17 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun identityService(): io.grpc.BindableService = object : IdentityServiceGrpc.IdentityServiceImplBase() {}
+    fun identityService(
+        sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
+    ): io.grpc.BindableService =
+        com.spoolin.core.boundary.grpc
+            .IdentityRpc { sessions.ifAvailable }
 
     @Bean
-    fun mcpGatewayService(): io.grpc.BindableService = object : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {}
+    fun mcpGatewayService(provider: PolicyProvider): io.grpc.BindableService {
+        val access = PolicyAccess { false }
+        return PolicyGateway(provider, access)
+    }
 }
 
 fun main(args: Array<String>) {
@@ -319,6 +333,7 @@ class SchemaReadiness(
 class ReadinessLifecycle(
     private val schema: SchemaReadiness,
     private val manager: HealthStatusManager,
+    private val admissionReady: () -> Boolean = { true },
 ) : ApplicationRunner {
     @Volatile
     private var started = false
@@ -331,7 +346,8 @@ class ReadinessLifecycle(
 
     @Scheduled(fixedDelay = 1000)
     fun refresh() {
-        val status = if (started && schema.ready()) ServingStatus.SERVING else ServingStatus.NOT_SERVING
+        val ready = started && schema.ready() && admissionReady()
+        val status = if (ready) ServingStatus.SERVING else ServingStatus.NOT_SERVING
         (serviceNames + "").forEach { manager.setStatus(it, status) }
     }
 
@@ -431,18 +447,32 @@ class ListenerBoundary(
 
 @RestController
 class FrontendNavigation {
-    @GetMapping("/", "/movies", "/people", produces = [MediaType.TEXT_HTML_VALUE])
+    @GetMapping(
+        "/",
+        "/movies",
+        "/people",
+        "/sign-in",
+        "/register",
+        "/manage",
+        "/manage/movies",
+        "/manage/people",
+        "/manage/archives",
+        "/manage/audit",
+        produces = [MediaType.TEXT_HTML_VALUE],
+    )
     fun navigation(): ResponseEntity<ByteArray> {
         val resource = ClassPathResource("static/200.html")
         if (!resource.exists()) return ResponseEntity.notFound().build()
+        val bytes = resource.contentAsByteArray
         return ResponseEntity
             .ok()
             .contentType(
                 MediaType.TEXT_HTML,
             ).header(
                 "Content-Security-Policy",
-                "default-src 'self'; object-src 'none'; frame-ancestors 'none'",
-            ).body(resource.contentAsByteArray)
+                com.spoolin.core.boundary.FrontendPolicy
+                    .forHtml(bytes),
+            ).body(bytes)
     }
 
     @GetMapping("/movies/{id}", "/people/{id}", produces = [MediaType.TEXT_HTML_VALUE])
@@ -473,4 +503,29 @@ class BoundaryErrors : org.springframework.boot.webmvc.error.ErrorController {
                 mapOf("error" to "REQUEST_FAILED"),
             )
     }
+}
+
+private fun rateReady(
+    environment: Environment,
+    rates: ObjectProvider<RateMaintenance>,
+): Boolean {
+    val account = environment.getProperty("spoolin.account-protection.enabled", Boolean::class.java, false)
+    val admission = environment.getProperty("spoolin.rate-limit.enabled", Boolean::class.java, false)
+    return if (account || admission) rates.ifAvailable?.ready() == true else true
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class AdmissionReadinessConfiguration {
+    @Bean
+    fun rateReadiness(
+        environment: Environment,
+        rates: ObjectProvider<RateMaintenance>,
+    ): HealthIndicator =
+        HealthIndicator {
+            if (rateReady(environment, rates)) {
+                Health.up().build()
+            } else {
+                Health.down().withDetail("reason", "ADMISSION_UNAVAILABLE").build()
+            }
+        }
 }

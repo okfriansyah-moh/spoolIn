@@ -76,8 +76,16 @@ management:
         enabled: true
       group:
         readiness:
-          include: readinessState,schema
+          include: readinessState,schema,rateReadiness
 spoolin:
   schema:
     minimum: '1'
-    maximum: '1'
+    maximum: '4'
+
+# Operation comparison keys use exact IDs in the native Spring map. For example,
+# spoolin.operations.comparison-keys[Old_A]=/run/secrets/operation-old.
+# SPRING_APPLICATION_JSON may supply {"spoolin":{"operations":{"comparison-keys":
+# {"Old_A":"/run/secrets/operation-old","active":"/run/secrets/operation-active"}}}}.
+# Entries merge by exact ID across sources; present invalid values fail validation.
+# OPERATION_HMAC_KEY_ID and OPERATION_HMAC_KEY_FILE must select an explicit entry.
+# Keep retained mounts for lifetime receipt references and protected backups.

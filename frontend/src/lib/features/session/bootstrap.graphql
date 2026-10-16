@@ -1,0 +1,16 @@
+query AccountBootstrap {
+  session {
+    authenticated
+    role
+    accountId
+    displayName
+    expiresAt
+    csrfToken
+  }
+  policy {
+    revision
+    textBounds
+    artwork
+    requestLimits
+  }
+}

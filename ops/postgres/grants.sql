@@ -27,6 +27,10 @@ BEGIN
       EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON appdata.%I TO %I',table_name,runtime_role);
     END IF;
   END LOOP;
+  IF to_regclass('appdata.operation_receipt') IS NOT NULL THEN
+    EXECUTE format('REVOKE DELETE ON appdata.operation_receipt FROM %I',runtime_role);
+    EXECUTE format('GRANT SELECT,UPDATE ON appdata.operation_receipt TO %I',maintenance_role);
+  END IF;
   IF db = 'spoolin_core' AND to_regclass('appdata.crypto_key_version') IS NOT NULL THEN
     EXECUTE format('GRANT SELECT,INSERT,UPDATE ON appdata.crypto_key_version TO %I',runtime_role);
   END IF;

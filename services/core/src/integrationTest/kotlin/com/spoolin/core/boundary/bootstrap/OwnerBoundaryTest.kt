@@ -382,12 +382,12 @@ class OwnerBoundaryTest {
                 .sslContext(
                     context.getBean(SslBundles::class.java).getBundle("service").createSslContext(),
                 ).build()
+        graphqlMethodDenials(client, httpPort)
         val navigation = get(client, httpPort, "/movies")
         assertEquals(200, navigation.statusCode())
         assertTrue(navigation.body().contains("Representative navigation fixture"))
         listOf(
             "/api/missing",
-            "/graphql",
             "/artwork/00000000-0000-4000-8000-000000000000",
             "/graphql/missing",
             "/artwork/missing",
@@ -398,7 +398,7 @@ class OwnerBoundaryTest {
             "/actuator/health/readiness",
         ).forEach { path ->
             val response = get(client, httpPort, path)
-            assertTrue(response.statusCode() in setOf(403, 404))
+            assertTrue(response.statusCode() in setOf(403, 404), "$path returned ${response.statusCode()}")
             assertFalse(response.body().contains("Representative navigation fixture"))
             assertFalse(
                 response
@@ -558,6 +558,31 @@ class OwnerBoundaryTest {
         }
     }
 
+    private fun graphqlMethodDenials(
+        client: HttpClient,
+        port: Int,
+    ) {
+        val html = get(client, port, "/graphql")
+        assertEquals(406, html.statusCode())
+        assertFalse(html.body().contains("Representative navigation fixture"))
+        assertFalse(
+            html
+                .headers()
+                .firstValue("Content-Type")
+                .orElse("")
+                .contains("text/html"),
+        )
+        val json = get(client, port, "/graphql", "application/json")
+        assertEquals(403, json.statusCode())
+        assertFalse(
+            json
+                .headers()
+                .firstValue("Content-Type")
+                .orElse("")
+                .contains("text/html"),
+        )
+    }
+
     private fun application(): ConfigurableApplicationContext {
         val app = SpringApplication(Application::class.java)
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
@@ -605,12 +630,13 @@ class OwnerBoundaryTest {
         client: HttpClient,
         port: Int,
         path: String,
+        accept: String = if (path.startsWith("/actuator")) "application/json" else "text/html",
     ): HttpResponse<String> =
         client.send(
             HttpRequest
                 .newBuilder(
                     URI("https://localhost:$port$path"),
-                ).header("Accept", if (path.startsWith("/actuator")) "application/json" else "text/html")
+                ).header("Accept", accept)
                 .timeout(Duration.ofSeconds(2))
                 .GET()
                 .build(),

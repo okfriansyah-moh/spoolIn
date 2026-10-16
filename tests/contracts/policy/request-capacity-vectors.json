@@ -1,0 +1,143 @@
+{
+  "scope": "Independent compact generated-SDL envelope byte oracles; synthetic UUIDs/revision and one escaped candidate maximum with effective sibling minima. No live operation proof.",
+  "source": "contracts/graphql/schema.graphql; TECH11.1",
+  "vectors": {
+    "personName": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$input:PersonInput!){createPerson(operationId:$id,policyRevision:$p,input:$input){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "input": {
+            "name": "<candidate>"
+          }
+        }
+      },
+      "path": ["variables", "input", "name"],
+      "overhead": 288,
+      "upper": 21797
+    },
+    "title": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$input:MovieInput!){createMovie(operationId:$id,policyRevision:$p,input:$input){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "input": {
+            "title": "<candidate>",
+            "synopsis": "\u0001",
+            "genreIds": ["c1bb0e81-232b-5f83-9d73-a5273dcac001"],
+            "release": {
+              "year": 2026
+            }
+          }
+        }
+      },
+      "path": ["variables", "input", "title"],
+      "overhead": 383,
+      "upper": 21781
+    },
+    "originalTitle": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$input:MovieInput!){createMovie(operationId:$id,policyRevision:$p,input:$input){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "input": {
+            "title": "\u0001",
+            "synopsis": "\u0001",
+            "genreIds": ["c1bb0e81-232b-5f83-9d73-a5273dcac001"],
+            "release": {
+              "year": 2026
+            },
+            "originalTitle": "<candidate>"
+          }
+        }
+      },
+      "path": ["variables", "input", "originalTitle"],
+      "overhead": 408,
+      "upper": 21777
+    },
+    "synopsis": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$input:MovieInput!){createMovie(operationId:$id,policyRevision:$p,input:$input){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "input": {
+            "title": "\u0001",
+            "synopsis": "<candidate>",
+            "genreIds": ["c1bb0e81-232b-5f83-9d73-a5273dcac001"],
+            "release": {
+              "year": 2026
+            }
+          }
+        }
+      },
+      "path": ["variables", "input", "synopsis"],
+      "overhead": 383,
+      "upper": 21781
+    },
+    "biography": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$input:PersonInput!){createPerson(operationId:$id,policyRevision:$p,input:$input){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "input": {
+            "name": "\u0001",
+            "biography": "<candidate>"
+          }
+        }
+      },
+      "path": ["variables", "input", "biography"],
+      "overhead": 309,
+      "upper": 21793
+    },
+    "creditRole": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$label:String!){createRole(operationId:$id,policyRevision:$p,category:CAST,label:$label){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "label": "<candidate>"
+        }
+      },
+      "path": ["variables", "label"],
+      "overhead": 286,
+      "upper": 21797
+    },
+    "characterName": {
+      "envelope": {
+        "query": "mutation($id:UUID!,$p:String!,$v:Long!,$input:CreditInput!){addCredit(operationId:$id,titleId:$id,expectedVersion:$v,policyRevision:$p,input:$input){problem{code}}}",
+        "variables": {
+          "id": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+          "p": "0000000000000000000000000000000000000000000000000000000000000000",
+          "input": {
+            "personId": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+            "roleId": "c1bb0e81-232b-5f83-9d73-a5273dcac001",
+            "characters": ["<candidate>"]
+          },
+          "v": "1"
+        }
+      },
+      "path": ["variables", "input", "characters", 0],
+      "overhead": 439,
+      "upper": 21772
+    },
+    "search": {
+      "envelope": {
+        "query": "query($filter:SearchInput!){titles(filter:$filter){nodes{id}}}",
+        "variables": {
+          "filter": {
+            "text": "<candidate>"
+          }
+        }
+      },
+      "path": ["variables", "filter", "text"],
+      "overhead": 109,
+      "upper": 21827
+    }
+  },
+  "byte_oracle_note": "Empty candidate overhead excludes the <candidate> marker; replace it with literal JSON-escaped U+0001 scalars. Credit expectedVersion uses the generated scalar contract: typed Long variable encoded as string."
+}

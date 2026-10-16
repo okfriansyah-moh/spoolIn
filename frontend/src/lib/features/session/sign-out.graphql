@@ -1,0 +1,17 @@
+mutation AccountSignOut($operationId: UUID!) {
+  signOut(operationId: $operationId) {
+    operation {
+      id
+      state
+      resultExpired
+      problem {
+        code
+        retryAfterMs
+      }
+    }
+    problem {
+      code
+      retryAfterMs
+    }
+  }
+}

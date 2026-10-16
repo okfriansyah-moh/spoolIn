@@ -11,10 +11,12 @@
   } from '../state/theme';
   let {
     children,
+    account,
     capabilities = { verified: false, manageCatalog: false },
     currentPath = '/',
   }: {
     children: Snippet;
+    account?: Snippet;
     capabilities?: Capabilities;
     currentPath?: string;
   } = $props();
@@ -59,6 +61,7 @@
         >{item.label}</a
       ><!-- eslint-enable svelte/no-navigation-without-resolve -->{/each}
   </nav>
+  {#if account}{@render account()}{/if}
   <button
     class="secondary"
     onclick={toggleTheme}

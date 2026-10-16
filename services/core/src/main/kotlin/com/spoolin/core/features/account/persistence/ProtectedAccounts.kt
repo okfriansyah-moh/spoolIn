@@ -23,6 +23,7 @@ class ProtectedAccounts(
     private val crypto: AccountCryptography,
     private val payload: AccountPayload,
     private val alert: ProtectionAlert,
+    private val rules: IdentityRules = IdentityRules(),
 ) {
     fun insert(
         id: UUID,
@@ -31,23 +32,8 @@ class ProtectedAccounts(
         role: AccountRole,
     ): AccountInsert =
         try {
-            val checked = IdentityRules().identity(identity.name, identity.emailDisplay)
-            require(checked.emailNormalized == identity.emailNormalized) { "Account identity is invalid" }
-            val plaintext = payload.encode(checked)
-            val envelope =
-                try {
-                    crypto.encrypt(id, plaintext)
-                } finally {
-                    plaintext.fill(0)
-                }
-            dataSource.committed { connection ->
-                val lookupKeys = registry.lookupKeys(connection)
-                if (lookupKeys.none { it.state == KeyState.WRITE }) throw ProtectionUnavailable()
-                val aliases = lookupKeys.map { it.id to crypto.lookupDigest(it, identity.emailNormalized) }
-                insertAccount(connection, id, envelope, password, role)
-                aliases.forEach { (key, digest) -> insertAlias(connection, id, key, digest) }
-                AccountInsert.Stored(AccountProjection(id, role, 0))
-            }
+            val prepared = prepare(id, identity, password, role)
+            AccountInsert.Stored(dataSource.committed { connection -> insert(connection, prepared) })
         } catch (_: AccountIdentityConflict) {
             AccountInsert.Conflict
         } catch (failure: SQLException) {
@@ -55,6 +41,36 @@ class ProtectedAccounts(
         } catch (_: ProtectionUnavailable) {
             AccountInsert.Unavailable
         }
+
+    fun prepare(
+        id: UUID,
+        identity: AccountIdentity,
+        password: StoredPasswordHash,
+        role: AccountRole,
+    ): PreparedAccount {
+        val checked = rules.identity(identity.name, identity.emailDisplay)
+        require(checked.emailNormalized == identity.emailNormalized) { "Account identity is invalid" }
+        val plaintext = payload.encode(checked)
+        val envelope =
+            try {
+                crypto.encrypt(id, plaintext)
+            } finally {
+                plaintext.fill(0)
+            }
+        return PreparedAccount(id, identity.emailNormalized, envelope, password, role)
+    }
+
+    fun insert(
+        connection: Connection,
+        prepared: PreparedAccount,
+    ): AccountProjection {
+        val lookupKeys = registry.lookupKeys(connection)
+        if (lookupKeys.none { it.state == KeyState.WRITE }) throw ProtectionUnavailable()
+        val aliases = lookupKeys.map { it.id to crypto.lookupDigest(it, prepared.normalizedEmail) }
+        insertAccount(connection, prepared.id, prepared.envelope, prepared.password, prepared.role)
+        aliases.forEach { (key, digest) -> insertAlias(connection, prepared.id, key, digest) }
+        return AccountProjection(prepared.id, prepared.role, 0)
+    }
 
     fun identity(id: UUID): ProtectedRead<AccountIdentity> {
         val envelope =
@@ -174,4 +190,14 @@ class ProtectedAccounts(
         }
 }
 
-private class AccountIdentityConflict : IllegalStateException("Account cannot be created")
+internal class AccountIdentityConflict : IllegalStateException("Account cannot be created")
+
+class PreparedAccount internal constructor(
+    internal val id: UUID,
+    internal val normalizedEmail: String,
+    internal val envelope: ProtectedEnvelope,
+    internal val password: StoredPasswordHash,
+    internal val role: AccountRole,
+) {
+    override fun toString(): String = "PreparedAccount(content=redacted)"
+}

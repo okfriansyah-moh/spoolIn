@@ -9,6 +9,34 @@ class IdentityRulesTest {
     private val rules = IdentityRules()
 
     @Test
+    fun effectiveEmailMaximumCountsTrimmedDisplayCodePointsOnlyForNewAccounts() {
+        val configured = IdentityRules(maximumEmail = 8)
+        assertEquals("A@faß.de", configured.identity("A Person", "  A@faß.de  ").emailDisplay)
+        assertEquals("a@xn--fa-hia.de", configured.normalizedEmail("A@faß.de"))
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("A Person", "aa@faß.de") }
+        assertEquals("historical@sample.org", configured.normalizedEmail("historical@sample.org"))
+    }
+
+    @Test
+    fun effectiveEmailMaximumCountsSupplementaryDomainCodePoints() {
+        val email = "a@a\uD804\uDDC9.example"
+        val points = email.codePointCount(0, email.length)
+        val configured = IdentityRules(maximumEmail = points)
+        assertEquals(email, configured.identity("A Person", email).emailDisplay)
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("A Person", "a$email") }
+    }
+
+    @Test
+    fun effectiveNameBoundsUseSharedWhitespaceRules() {
+        val configured = IdentityRules(3, 120)
+        assertEquals("abc", configured.identity("\u00a0abc\u0085", "a@b.org").name)
+        assertEquals("x".repeat(120), configured.identity("x".repeat(120), "a@b.org").name)
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("ab", "a@b.org") }
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("x".repeat(121), "a@b.org") }
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("a\nb", "a@b.org") }
+    }
+
+    @Test
     fun caseFoldingAndIdna2008PreserveIdentityDistinctions() {
         assertEquals("a@example.org", rules.normalizedEmail(" A@EXAMPLE.ORG "))
         assertEquals("a@xn--fa-hia.de", rules.normalizedEmail("A@faß.de"))

@@ -1,6 +1,7 @@
 import com.google.protobuf.gradle.id
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
+import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 import org.gradle.api.artifacts.dsl.LockMode
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
@@ -225,4 +226,17 @@ tasks.named<Detekt>("detekt") {
 val contractBuild = file("build-tools/contracts.gradle.kts")
 if (contractBuild.isFile) {
     apply(from = contractBuild)
+}
+
+configure(
+    subprojects.filter {
+        it.path in setOf(":services:core", ":services:catalog", ":services:media", ":libraries:backend-support")
+    },
+) {
+    extensions.configure<KoverProjectExtension> {
+        reports.total {
+            additionalBinaryReports.add(rootProject.file("tests/integration/build/kover/bin-reports/test.ic"))
+        }
+    }
+    tasks.named("koverXmlReport") { dependsOn(":tests:integration:test") }
 }
