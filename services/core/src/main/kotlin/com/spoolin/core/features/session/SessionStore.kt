@@ -27,6 +27,7 @@ class SessionStore(
         accountId: UUID,
         expectedEpoch: Long,
         previous: SessionCredential?,
+        id: UUID = UUID.randomUUID(),
     ): IssuedSession {
         val account = lockAccount(connection, accountId)
         check(account.second == expectedEpoch) { "Credential authority changed" }
@@ -34,7 +35,6 @@ class SessionStore(
         retire(connection, accountId, previous, now)
         val credential = SessionCredential.issue()
         val token = csrf.derive(credential)
-        val id = UUID.randomUUID()
         val expires = now.plus(Duration.ofHours(SESSION_HOURS))
         connection.executeBound(
             "INSERT INTO browser_session(token_hash,id,account_id,auth_epoch,csrf_hash," +
@@ -64,6 +64,21 @@ class SessionStore(
             val account = lockAccount(connection, accountId)
             verified(connection, credential, accountId, account)
         }
+
+    fun logoutIdentity(
+        credential: SessionCredential,
+        suppliedCsrf: String,
+    ): LogoutIdentity? {
+        if (!csrf.matches(suppliedCsrf, csrf.digest(csrf.derive(credential)))) return null
+        return dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT id,account_id FROM browser_session WHERE token_hash=? AND csrf_hash=?",
+                    listOf(credential.digest(), csrf.digest(suppliedCsrf)),
+                ) { LogoutIdentity(it.getObject("id", UUID::class.java), it.getObject("account_id", UUID::class.java)) }
+                .singleOrNull()
+        }
+    }
 
     fun revoke(
         connection: Connection,
