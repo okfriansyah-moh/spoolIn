@@ -107,7 +107,8 @@ def main():
     report = {"observed_at_utc": datetime.now(timezone.utc).isoformat(), "maven": maven, "npm": npm,
               "limitations": ["Registry license declarations are an inventory, not a legal opinion.",
                               "Plugin marker metadata can omit the implementation artifact license."]}
-    output = ROOT / ".ai/evidence/t001-dependency-inventory.json"
+    output = ROOT / ".ai/evidence/numbering-v1/t001-dependency-inventory.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"maven": len(maven), "npm": len(npm),
                       "maven_without_declared_license": sum(not row["licenses"] for row in maven),

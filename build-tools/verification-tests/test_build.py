@@ -13,7 +13,7 @@ import unittest
 from run_owner_integration import junit_counts
 
 ROOT = Path(__file__).resolve().parents[2]
-EVIDENCE = ROOT / ".ai/evidence/t001-build"
+EVIDENCE = ROOT / ".ai/evidence/numbering-v1/t001-build"
 COMMANDS = []
 
 
@@ -162,7 +162,7 @@ def main():
         counts = {"selected": suite.countTestCases(), "executed": result.testsRun,
                   "failed": len(result.errors) + len(result.failures), "cases": ["T001-A1"]}
         exit_code = 0 if result.wasSuccessful() else 1
-    ROOT.joinpath(".ai/evidence/t001-build.json").write_text(json.dumps(counts, indent=2) + "\n")
+    ROOT.joinpath(".ai/evidence/numbering-v1/t001-build.json").write_text(json.dumps(counts, indent=2) + "\n")
     EVIDENCE.joinpath("commands.json").write_text(json.dumps(COMMANDS, indent=2) + "\n")
     return exit_code
 

@@ -146,8 +146,12 @@ it('uncertain form checks the original registration and never resubmits a passwo
   await fireEvent.submit(
     screen.getByRole('form', { name: 'Create Viewer account' }),
   );
-  const check = await screen.findByRole('button', { name: 'Check original request' });
-  await waitFor(() => expect(check instanceof HTMLButtonElement && !check.disabled).toBe(true));
+  const check = await screen.findByRole('button', {
+    name: 'Check original request',
+  });
+  await waitFor(() =>
+    expect(check instanceof HTMLButtonElement && !check.disabled).toBe(true),
+  );
   await fireEvent.click(check);
   await screen.findByRole('heading', { name: 'Your Viewer account is ready' });
   expect(submit).toHaveBeenCalledTimes(1);

@@ -7,9 +7,9 @@ to that JDK. `bash ops/bin/test-unit.sh --task T001` runs the isolated harness c
 clean locked builds. Network access is needed for uncached dependencies. `make test-unit TASK=T001`
 selects the same check. Generated protobuf/gRPC fixture Java, the static Kit 3 fallback, compiled
 MCP SDK fixture types and the JAR must have identical bytes across both cycles. Root report:
-`.ai/evidence/t001-tests.json`; actual harness outcomes are also exported to
-`.ai/evidence/t001-harness.xml` as JUnit cases. Command logs, inputs and output hashes:
-`.ai/evidence/t001-build/`. No normal database or client connector is selected.
+`.ai/evidence/numbering-v1/t001-tests.json`; actual harness outcomes are also exported to
+`.ai/evidence/numbering-v1/t001-harness.xml` as JUnit cases. Command logs, inputs and output hashes:
+`.ai/evidence/numbering-v1/t001-build/`. No normal database or client connector is selected.
 
 The task map records each planned task’s actual source file and proposed test paths. Unknown,
 empty and unavailable required selections return 2. A failed runnable test returns 1. A full
@@ -29,7 +29,7 @@ cannot replace an earlier test failure. Runtime notification, actor and catalog 
 remain pending and cannot be inferred from these fixture interfaces.
 
 The seven public command contracts are defined in technical design §11.3. Only test-unit and
-test-integration are wired here. T039 owns start, stop, restart, status and logs.
+test-integration are wired here. T037 owns start, stop, restart, status and logs.
 
 Lock maintenance is an explicit build-owner action: regenerate npm’s single lock with the selected
 tools and strict peers; run `python3 build-tools/verification-tests/lock_dependencies.py` for project/settings/plugin
@@ -63,7 +63,7 @@ T002 supplies `build-tools/contracts.gradle.kts`, applied by the root when prese
 contract sources exist. That entry point owns ordered generation; missing required generation
 returns2. `npm run generate` requires the production entry point. T002’s selected unit runner is
 `python3 tests/contracts/run.py`; it writes fresh workflow-test counts to
-`.ai/evidence/t002-contract-tests.json`. The selector writes `.ai/evidence/t002-tests.json`.
+`.ai/evidence/numbering-v1/t002-contract-tests.json`. The selector writes `.ai/evidence/numbering-v1/t002-tests.json`.
 
 T003’s integration selector invokes all three actual owner `integrationTest` tasks through
 `run_owner_integration.py`. Every declared bootstrap source glob, Docker and a fresh nonempty
@@ -71,7 +71,7 @@ JUnit report per owner are required. The runner passes `SPOOLIN_TEST_NAMESPACE` 
 `SPOOLIN_TEST_CONFIG` file; owner suites must use that disposable fixture and independently
 verify their real PostgreSQL/gRPC boundaries. Testcontainers reuse is disabled. Skipped cases
 remain unexecuted and block the result. Test counts come from actual JUnit testcase elements;
-missing, stale or empty reports cannot pass. Final report: `.ai/evidence/t003-tests.json`.
+missing, stale or empty reports cannot pass. Final report: `.ai/evidence/numbering-v1/t003-tests.json`.
 The `architectureTest` service task uses compiled integration-test sources and selects
 `*ArchitectureTest`; T003 configures its owned bootstrap classes and unit/coverage selections.
 ArchUnit1.5.1 is pinned and exercised with the selected JUnit engine in the build fixture.
@@ -79,10 +79,10 @@ ArchUnit1.5.1 is pinned and exercised with the selected JUnit engine in the buil
 Explicit lock maintenance also records Gradle SHA-256 artifact verification metadata, including
 Linux arm64/amd64 protobuf/gRPC generator binaries. Normal builds enforce that metadata without
 rewriting it. Historical evidence from the original dependency baseline is archived separately
-under `.ai/evidence/archive/t001-original-baseline/`; it cannot prove the patched implementation.
+under `.ai/evidence/numbering-v1/archive/t001-original-baseline/`; it cannot prove the patched implementation.
 
 Explicit lock maintenance archives the previous integrity manifest under
-`.ai/evidence/lock-maintenance/` before regenerating metadata for the selected graph. A failed
+`.ai/evidence/numbering-v1/lock-maintenance/` before regenerating metadata for the selected graph. A failed
 resolution restores the previous manifest. Plugin classpath Jackson uses the same approved
 3.1.7 BOM; older BOM descriptors can still be read as upstream metadata, while selected
 Jackson core/databind artifacts and resolver locks use 3.1.7.

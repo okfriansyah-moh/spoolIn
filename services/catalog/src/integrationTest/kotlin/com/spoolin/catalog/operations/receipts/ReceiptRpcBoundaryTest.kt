@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 class ReceiptRpcBoundaryTest {
     @Test
     fun `actual TCP mutual TLS routes owner receipt and denies unverified actor before lookup`() {
-        OwnerFixture("t010-catalog-rpc.json").start().use { fixture ->
+        OwnerFixture("t007-catalog-rpc.json").start().use { fixture ->
             fixture.membership("catalog", "grant")
             fixture.pool("catalog", "migrator").use { MigrationRunner(it).migrate() }
             fixture.grants("catalog")

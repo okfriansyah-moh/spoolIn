@@ -32,7 +32,7 @@ function textGuidanceMarkup() {
     },
   }).body;
 }
-describe('T009 feedback accessibility', () => {
+describe('T006 feedback accessibility', () => {
   it('keeps a polite status region present before the first outcome', () => {
     for (const view of [
       'text-boundaries',
@@ -47,7 +47,7 @@ describe('T009 feedback accessibility', () => {
   });
 });
 
-describe('T009 shared policy rules', () => {
+describe('T006 shared policy rules', () => {
   it('ATDD-276 preserves exact Unicode and counts supplementary characters', () => {
     expect(count('😀'.repeat(100))).toBe(100);
     expect(
@@ -70,7 +70,7 @@ describe('T009 shared policy rules', () => {
       '',
     );
   });
-  it('T009-A3 omitted and clearing requests differ', () => {
+  it('T006-A3 omitted and clearing requests differ', () => {
     expect(optionalIntent(false, null)).toEqual({ kind: 'omitted' });
     for (const value of [null, '', ' \u0085 '])
       expect(optionalIntent(true, value)).toEqual({ kind: 'clear' });
@@ -81,8 +81,8 @@ describe('T009 shared policy rules', () => {
   });
 });
 
-describe('T009 retained content', () => {
-  it('T009-A2 tightening preserves complete stored content and rejected draft', () => {
+describe('T006 retained content', () => {
+  it('T006-A2 tightening preserves complete stored content and rejected draft', () => {
     const bound = { ...boundFor(policy, 'synopsis'), maxCodePoints: 100 };
     expect(changedText(retainedDraft, retainedDraft, bound)).toEqual({
       value: retainedDraft,
@@ -109,7 +109,7 @@ describe('T009 retained content', () => {
   });
 });
 
-describe('T009 policy projection boundary', () => {
+describe('T006 policy projection boundary', () => {
   it('accepts the complete safe policy and rejects private or missing keys', () => {
     expect(parsePolicy(policy)).toEqual(policy);
     expect(() =>
@@ -157,7 +157,7 @@ describe('T009 policy projection boundary', () => {
   });
 });
 
-describe('T009 visible policy feedback rules', () => {
+describe('T006 visible policy feedback rules', () => {
   it('links registration corrections and emits distinct success', () => {
     const bound = boundFor(policy, 'registrationName');
     expect(registrationFeedback('V', bound)).toEqual({
@@ -194,7 +194,7 @@ describe('T009 visible policy feedback rules', () => {
   });
 });
 
-describe('T009 draft feedback', () => {
+describe('T006 draft feedback', () => {
   it('links changed draft correction without truncation or a successful outcome', () => {
     const bound = { ...boundFor(policy, 'synopsis'), maxCodePoints: 100 };
     expect(draftFeedback(retainedDraft, bound)).toEqual({
@@ -213,7 +213,7 @@ describe('T009 draft feedback', () => {
   });
 });
 
-describe('T009 configured guidance minima', () => {
+describe('T006 configured guidance minima', () => {
   it('C03 one-code-point examples reflect raised person and title minima', () => {
     const raised = parsePolicy({
       ...policy,

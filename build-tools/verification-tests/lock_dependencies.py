@@ -25,7 +25,7 @@ def main():
     metadata = ROOT / "gradle/verification-metadata.xml"
     previous = metadata.read_bytes() if metadata.exists() else None
     if metadata.exists():
-        archive = ROOT / ".ai/evidence/lock-maintenance"
+        archive = ROOT / ".ai/evidence/numbering-v1/lock-maintenance"
         archive.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
         archive.joinpath(f"{stamp}-verification-metadata.xml").write_bytes(metadata.read_bytes())

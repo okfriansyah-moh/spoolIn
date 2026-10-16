@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit
 class ActorRotationTest {
     @Test
     fun `actual receivers overlap public keys and retire after sixty seconds without private distribution`() {
-        SignedReceiptFixture("t008-actor-rotation.json").use { fixture ->
+        SignedReceiptFixture("t009-actor-rotation.json").use { fixture ->
             RotationProof(fixture).run()
         }
     }

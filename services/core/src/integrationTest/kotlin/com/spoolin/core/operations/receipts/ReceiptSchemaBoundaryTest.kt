@@ -24,7 +24,7 @@ class ReceiptSchemaBoundaryTest {
 
     @BeforeAll
     fun prepare() {
-        fixture = OwnerFixture("t010-core-schema.json").start()
+        fixture = OwnerFixture("t007-core-schema.json").start()
         fixture.membership("core", "grant")
         fixture.pool("core", "migrator").use { MigrationRunner(it).migrate() }
         fixture.grants("core")

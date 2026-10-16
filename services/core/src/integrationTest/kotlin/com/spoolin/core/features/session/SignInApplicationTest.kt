@@ -22,7 +22,7 @@ import java.util.UUID
 class SignInApplicationTest {
     @Test
     fun `lost sign in response rechecks credential issues fresh opaque session and never stores raw cookie`() {
-        CryptoFixture("t006-signin-application.json").use { fixture ->
+        CryptoFixture("t008-signin-application.json").use { fixture ->
             PasswordHasher(Argon2Engine()).use { hasher ->
                 val rules = IdentityRules()
                 val accountId = UUID.randomUUID()

@@ -26,7 +26,7 @@ import javax.crypto.spec.SecretKeySpec
 class SharedAdmissionTest {
     @Test
     fun `two independent replicas admit one remaining slot and restart preserves counters`() {
-        OwnerFixture("t008-admission-replicas.json").start().use { fixture ->
+        OwnerFixture("t009-admission-replicas.json").start().use { fixture ->
             prepare(fixture)
             fixture.pool("core").use { pool -> replicaClaims(fixture, pool) }
         }
@@ -88,7 +88,7 @@ class SharedAdmissionTest {
 
     @Test
     fun `denied profile consumes available companion and deduplicates exact dimension only`() {
-        OwnerFixture("t008-admission-companions.json").start().use { fixture ->
+        OwnerFixture("t009-admission-companions.json").start().use { fixture ->
             prepare(fixture)
             fixture.pool("core").use { pool -> companionClaims(fixture, pool) }
         }
@@ -112,7 +112,7 @@ class SharedAdmissionTest {
 
     @Test
     fun `explicit max and duration transition retains prior counters and outage never admits`() {
-        OwnerFixture("t008-admission-transition.json").start().use { fixture ->
+        OwnerFixture("t009-admission-transition.json").start().use { fixture ->
             prepare(fixture)
             fixture.pool("core").use { pool -> transitionClaims(fixture, pool) }
         }

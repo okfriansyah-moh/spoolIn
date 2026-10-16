@@ -25,7 +25,7 @@ class ReceiptCrashBoundaryTest {
         expected: String,
         exit: Int,
     ) {
-        OwnerFixture("t010-media-crash-$stage.json").start().use { fixture ->
+        OwnerFixture("t007-media-crash-$stage.json").start().use { fixture ->
             prepare(fixture)
             listOf("v1", "v2").forEachIndexed { index, name ->
                 val key = fixture.root.resolve(name)

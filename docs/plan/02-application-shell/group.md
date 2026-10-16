@@ -1,6 +1,7 @@
 ---
 kind: group
 id: G02
+feature: application-shell
 tasks:
 - T004
 integration_owner: T004
@@ -8,11 +9,13 @@ integration_owner: T004
 
 # 02-application-shell
 
-[Overall plan](../../06-PLAN.md)
+[Overall plan](../../06-PLAN.md) · [Numbering history](../../plan-numbering-v1.md)
 
 ## Outcome and scope
 
-Theme: switching preserves focus, input, filters and route state; unset storage follows system preference while dark remains the base token palette. The tasks bind backend, frontend and verification where that produces an observable outcome. Only the named local results are owned here; source documents stay intact.
+Theme: switching preserves focus, input, filters and route state; unset storage follows system preference while dark remains the base token palette.
+
+This stage belongs to **application-shell**. It owns only the member tasks below. Other stages of this feature retain their separate prerequisites and proof.
 
 ## Shared context
 
@@ -32,15 +35,15 @@ Use [the adopted design](../../03-design-system.md), [shared components](../../d
 
 ## Dependencies
 
-External inputs: [T001 — Lock the build and isolated verification harness](../01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md), [T002 — Generate and validate the shared wire contracts](../01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md), [T003 — Establish private service and database ownership](../01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md). Consume their concrete outputs as stated in member prerequisites.
+External inputs: [T001 — Lock the build and isolated verification harness](../01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md), [T002 — Generate and validate the shared wire contracts](../01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md), [T003 — Establish private service and database ownership](../01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md).
 
-- T004 starts after T001, T002, T003; its task definition owns the specific files/contracts and acceptance boundary.
+- T004 starts after T001, T002, T003.
 
-Dependency edges control execution, not display order. Root lockfiles/generators remain T001/T002-owned; serialize migration-version allocation and shared configuration. Parallel workers use disjoint change surfaces, independent test namespaces/ports/DBs and compatible generated outputs. Ancestor/subfolder writes are conflicts even when filenames differ. A source update invalidates affected instructions/evidence.
+Complete earlier stages first. Explicit task dependencies retain their original obligations; numbering does not waive checks or authorize concurrent writers.
 
 ## Integrated acceptance
 
-[T004 — Build the shared themed and accessible shell](tasks/T004-build-the-shared-themed-and-accessible-shell.md) owns the combined feature verdict. Require every member task Done with current local evidence plus the following real-boundary outcomes. Do not make this downstream proof a prerequisite for its upstream contributors to finish their local checks.
+[T004 — Build the shared themed and accessible shell](tasks/T004-build-the-shared-themed-and-accessible-shell.md) owns this stage's combined verdict. Require all members Done with their assigned current checks and independent review. Later feature and release proof remains with its mapped owner; it does not reopen accepted contributor work.
 
 - T004: Theme: switching preserves focus, input, filters and route state; unset storage follows system preference while dark remains the base token palette.
 - T004: Controls: keyboard-only invalid submission points to associated correction without color-only signals or lost content; dialog cancellation changes no business state.

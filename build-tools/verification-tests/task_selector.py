@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MAP = ROOT / "build-tools/verification-map.json"
 def report_path(level, tasks):
     name = tasks[0].lower() if tasks and len(tasks) == 1 and re.fullmatch(r"T[0-9]{3}", tasks[0]) else f"{level}-selection"
-    return ROOT / f".ai/evidence/{name}-tests.json"
+    return ROOT / f".ai/evidence/numbering-v1/{name}-tests.json"
 
 
 def selected_entries(mapping, level, tasks):

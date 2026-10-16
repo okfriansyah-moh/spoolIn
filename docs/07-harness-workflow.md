@@ -222,7 +222,7 @@ The [PRD skill comparison](research/prd-skills-comparison-2026-10-09.md) and [de
 
 OpenAI `image_gen`, through the installed imagegen skill, produced four fictional prototype artwork assets. Their prompts, generator, purpose, and provenance are retained in the [artwork record](design-system/mockup/assets/artwork-provenance.json). They are illustrative design fixtures, not production catalog seed data. The imagegen capability is supporting host/plugin tooling, outside the 74-skill workflow inventory.
 
-SpoolIn's planned in-chat movie proposal and approval flow for ChatGPT and Claude is product functionality. It is not the development harness's Context7 connection or coding-agent permissions. Its transport, exact-content approval, replay prevention, and real-client acceptance are specified in [the technical design](04-spoolin-techdoc.md), [ATDD](05-atdd.md), and [assisted creation task group](plan/13-assisted-movie-creation/group.md). Development host fixtures do not satisfy those product cases.
+SpoolIn's planned in-chat movie proposal and approval flow for ChatGPT and Claude is product functionality. It is not the development harness's Context7 connection or coding-agent permissions. Its transport, exact-content approval, replay prevention, and real-client acceptance are specified in [the technical design](04-spoolin-techdoc.md), [ATDD](05-atdd.md), and [assisted creation task group](plan/18-assisted-movie-creation-transport-and-review/group.md). Development host fixtures do not satisfy those product cases.
 
 ## 7. Development lifecycle and source traceability
 
@@ -621,4 +621,4 @@ This matrix maps the inventory to its sources and distinguishes configured capab
 | Image generation | [Artwork provenance](design-system/mockup/assets/artwork-provenance.json) | Four original AI-generated prototype assets; outside the workflow skill bundle. |
 | Personal observation, voice, wording | [Task observer](../.ai/bundles/1.2.0/skills/task-observer/SKILL.md), [humanizer](../.ai/bundles/1.2.0/skills/humanizer/SKILL.md), [wording policy](../.ai/bundles/1.2.0/resources/wording/output-wording.md) | Active-session observation proposals; conditional personal voice; required authored-output check. |
 | Maintenance and relocation | [Installation](../.ai/bundles/1.2.0/docs/INSTALLATION.md), [tool lifecycle](../.ai/bundles/1.2.0/docs/TOOLS.md) | Reviewed updates, ownership-preserving recovery, and separate external tool lifecycle. |
-| Planned ChatGPT/Claude product integration | [Assisted creation group](plan/13-assisted-movie-creation/group.md), [ATDD](05-atdd.md) | Future product behavior and real-client acceptance; separate from development harnesses. |
+| Planned ChatGPT/Claude product integration | [Assisted creation group](plan/18-assisted-movie-creation-transport-and-review/group.md), [ATDD](05-atdd.md) | Future product behavior and real-client acceptance; separate from development harnesses. |

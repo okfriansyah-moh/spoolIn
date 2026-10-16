@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 class OwnerReceiptBoundaryTest {
     @Test
     fun `concurrent intent commits once and replay after expiry never repeats effect`() {
-        OwnerFixture("t010-core-observations.json").start().use { fixture ->
+        OwnerFixture("t007-core-observations.json").start().use { fixture ->
             prepare(fixture)
             fixture.pool("core").use { pool ->
                 concurrentClaims(fixture, pool)
@@ -94,7 +94,7 @@ class OwnerReceiptBoundaryTest {
 
     @Test
     fun `failed domain mutation rolls back receipt and audit atomically`() {
-        OwnerFixture("t010-core-rollback.json").start().use { fixture ->
+        OwnerFixture("t007-core-rollback.json").start().use { fixture ->
             prepare(fixture)
             fixture.pool("core").use { pool ->
                 rollbackClaims(fixture, pool)

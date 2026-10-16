@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 class CoreReplicaAdmissionTest {
     @Test
     fun `two real Core HTTPS replicas share one remaining slot and full application restart retains quota`() {
-        CryptoFixture("t008-core-replica.json").use { crypto ->
+        CryptoFixture("t009-core-replica.json").use { crypto ->
             val settings = mapOf("RATE_LIMIT_READ_MAX_REQUESTS" to "5", "RATE_LIMIT_READ_WINDOW_SECONDS" to "86400")
             replicaClaims(crypto, settings)
             IdentityHttpFixture(false, true, settings, crypto).use { restarted ->
@@ -71,7 +71,7 @@ class CoreReplicaAdmissionTest {
 
     @Test
     fun `divergent actual resolved replica profile cannot become ready under existing protected agreement`() {
-        CryptoFixture("t008-core-profile-mismatch.json").use { crypto ->
+        CryptoFixture("t009-core-profile-mismatch.json").use { crypto ->
             val firstSettings = mapOf("RATE_LIMIT_READ_MAX_REQUESTS" to "5")
             IdentityHttpFixture(false, true, firstSettings, crypto).use { first ->
                 assertThrows(Exception::class.java) {

@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference
 class OperationRouterBoundaryTest {
     @Test
     fun `explicit owners and omitted ambiguity use typed TLS clients without database fanout`() {
-        OwnerFixture("t010-core-router.json").start().use { fixture ->
+        OwnerFixture("t007-core-router.json").start().use { fixture ->
             val id = UUID.randomUUID()
             val catalogCalls = AtomicInteger()
             val mediaCalls = AtomicInteger()

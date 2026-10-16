@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 class EmailIdentityTest {
     @Test
     fun `ATDD175 application case race commits one encrypted Viewer and one audit without directory projection`() {
-        CryptoFixture("t006-email-race.json").use { fixture ->
+        CryptoFixture("t008-email-race.json").use { fixture ->
             PasswordHasher(Argon2Engine()).use { hasher ->
                 raceClaims(fixture, hasher)
             }
@@ -33,7 +33,7 @@ class EmailIdentityTest {
 
     @Test
     fun `ATDD175 plus dots IDNA and encrypted display preserve distinct actual owner identities`() {
-        CryptoFixture("t006-email-variants.json").use { fixture ->
+        CryptoFixture("t008-email-variants.json").use { fixture ->
             PasswordHasher(Argon2Engine()).use { hasher ->
                 variantClaims(fixture, hasher)
             }

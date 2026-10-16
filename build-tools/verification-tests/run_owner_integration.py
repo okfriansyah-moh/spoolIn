@@ -15,7 +15,7 @@ from fixture import SetupError, TestInstallation, preserve_failure
 
 ROOT = Path(__file__).resolve().parents[2]
 OWNERS = ("core", "catalog", "media")
-REPORT = ROOT / ".ai/evidence/t003-owner-tests.json"
+REPORT = ROOT / ".ai/evidence/numbering-v1/t003-owner-tests.json"
 
 
 def junit_counts(paths, started_ns):
@@ -73,7 +73,7 @@ def invoke(fixture):
         for path in ROOT.glob(f"services/{owner}/build/test-results/integrationTest/TEST-*.xml"):
             path.unlink()
     result = subprocess.run(argv, cwd=ROOT, env=environment, capture_output=True, timeout=1500)
-    log = ROOT / ".ai/evidence/t003-owner-command.txt"
+    log = ROOT / ".ai/evidence/numbering-v1/t003-owner-command.txt"
     log.write_bytes(result.stdout + result.stderr)
     command = {"argv": argv, "exit_code": result.returncode, "started_ns": started_ns,
                "log": str(log.relative_to(ROOT)), "log_sha256": hashlib.sha256(log.read_bytes()).hexdigest()}

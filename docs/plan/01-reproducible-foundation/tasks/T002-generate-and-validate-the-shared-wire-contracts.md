@@ -124,7 +124,7 @@ Use parameter binding, fixed identifiers/allowlisted projections and safe text s
 ## Acceptance
 
 - **T002-A1:** Schema: all 36 browser operations and all four RPC services generate against the single source; no duplicate schema or legacy identity alias appears.
-- **T002-A2:** Presence: omitted optional edit preserves and explicit null/trimmed blank clears according to PRD/techdoc; ordered arrays retain complete names. T009 owns the ATDD-278 rule proof; T042 owns complete GraphQL/protobuf presence proof.
+- **T002-A2:** Presence: omitted optional edit preserves and explicit null/trimmed blank clears according to PRD/techdoc; ordered arrays retain complete names. T006 owns the ATDD-278 rule proof; T042 owns complete GraphQL/protobuf presence proof.
 - **T002-A3:** Projection: an undeclared output field and out-of-range scalar are rejected without narrowing/truncation; source contracts remain unmodified.
 
 Verification ownership is scoped: the exact cases and case rows in Tests require their full stated boundary. Shared requirement/AC/contract clauses require this task’s owned contribution and local assertions; their combined outcome is reconciled by the case, feature and release owners. An implementation-only contribution stops at its owned change and local tests; a downstream full-case result is not a condition for this task to finish.

@@ -24,7 +24,7 @@ class ReceiptSchemaBoundaryTest {
 
     @BeforeAll
     fun prepare() {
-        fixture = OwnerFixture("t010-catalog-schema.json").start()
+        fixture = OwnerFixture("t007-catalog-schema.json").start()
         fixture.membership("catalog", "grant")
         fixture.pool("catalog", "migrator").use { MigrationRunner(it).migrate() }
         fixture.grants("catalog")

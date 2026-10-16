@@ -79,7 +79,7 @@
       "timeout_seconds": 1800,
       "test_report": {
         "format": "junit",
-        "glob": ".ai/evidence/t002-contract-tests.xml"
+        "glob": ".ai/evidence/numbering-v1/t002-contract-tests.xml"
       }
     },
     {
@@ -765,7 +765,7 @@
       "timeout_seconds": 1800,
       "test_report": {
         "format": "junit",
-        "glob": ".ai/evidence/t001-harness.xml"
+        "glob": ".ai/evidence/numbering-v1/t001-harness.xml"
       }
     },
     {
@@ -1360,6 +1360,25 @@
       ],
       "required": true,
       "timeout_seconds": 1800
+    },
+    {
+      "id": "plan-numbering-regressions",
+      "component": "plan-numbering",
+      "stage": "fast",
+      "when": [
+        "build-tools/plan-numbering/**",
+        "docs/plan-numbering-v1.json"
+      ],
+      "argv": [
+        "python3",
+        "build-tools/plan-numbering/run_tests.py"
+      ],
+      "required": true,
+      "timeout_seconds": 120,
+      "test_report": {
+        "format": "junit",
+        "glob": ".ai/evidence/numbering-v1/migration-regressions.xml"
+      }
     }
   ],
   "coverage": [
@@ -1516,6 +1535,10 @@
     "media": [
       "services/media/**",
       "tests/media/**"
+    ],
+    "plan-numbering": [
+      "build-tools/plan-numbering/**",
+      "docs/plan-numbering-v1.json"
     ]
   },
   "component_dependencies": {
@@ -1541,7 +1564,8 @@
     ],
     "media": [
       "contracts"
-    ]
+    ],
+    "plan-numbering": []
   },
   "shared_input_patterns": [
     ".ai/**",
