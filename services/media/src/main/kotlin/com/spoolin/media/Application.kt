@@ -1,5 +1,6 @@
 package com.spoolin.media
 
+import com.spoolin.media.operations.maintenance.ReceiptExpiry
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -126,6 +127,9 @@ class Application {
             reads::find,
         )
     }
+
+    @Bean
+    fun receiptExpiry(dataSource: DataSource): ReceiptExpiry = ReceiptExpiry(dataSource)
 }
 
 fun main(args: Array<String>) {
