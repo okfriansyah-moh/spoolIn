@@ -24,3 +24,7 @@ kover {
 tasks.named("koverXmlReport") {
     dependsOn(receiptOwners.map { ":services:$it:receiptIntegrationTest" })
 }
+
+dependencies {
+    implementation("tools.jackson.core:jackson-databind:${rootProject.libs.versions.jackson.get()}")
+}
