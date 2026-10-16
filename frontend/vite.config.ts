@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
         fallback: '200.html',
       }),
       preprocess: vitePreprocess(),
-      ...(mode === 'shell-test'
+      ...(mode === 'shell-test' || mode === 'policy-test'
         ? {
             files: {
               routes: '../build-tools/verification-tests/frontend/src/routes',
