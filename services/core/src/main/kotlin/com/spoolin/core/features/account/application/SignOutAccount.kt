@@ -22,7 +22,9 @@ class SignOutAccount(
         correlation: UUID,
         request: AuthenticationRequest = AuthenticationRequest.unavailable,
     ): ReceiptOutcome {
+        request.requireActive()
         admission.check(AuthenticationAction.SIGN_OUT, null, request)
+        request.requireActive()
         val target = sessions.logoutIdentity(credential, csrf) ?: throw CredentialRejected()
         val intent =
             OperationIntent(
@@ -37,6 +39,7 @@ class SignOutAccount(
         val audit = ReceiptAudit(ReceiptAction.SESSION_SIGNED_OUT, target.accountId, target.sessionId)
         return receipts.executeAudited(intent, correlation, audit) { connection ->
             sessions.revoke(connection, target.sessionId, target.accountId)
+            request.requireActive()
             SafeResult(operationId)
         }
     }

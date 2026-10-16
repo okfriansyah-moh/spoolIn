@@ -39,7 +39,9 @@ class SignInAccount(
         request: AuthenticationRequest = AuthenticationRequest.unavailable,
     ): LoginResult {
         val identity = verifier.normalizedEmail(input.email)
+        request.requireActive()
         admission.check(AuthenticationAction.SIGN_IN, identity, request)
+        request.requireActive()
         val account = verifier.verify(identity, input.password)
         val intent =
             OperationIntent(
@@ -49,12 +51,14 @@ class SignInAccount(
                 "signin-v1",
                 listOf("account" to account.id.toString(), "nonce" to submission.nonce.toString()),
             )
+        request.requireActive()
         val id = UUID.randomUUID()
         val audit = ReceiptAudit(ReceiptAction.SESSION_SIGNED_IN, account.id, id)
         var issued: IssuedSession? = null
         val outcome =
             receipts.executeAudited(intent, correlation, audit) { connection ->
                 issued = sessions.issue(connection, account.id, account.authEpoch, previous, id)
+                request.requireActive()
                 SafeResult(input.operationId)
             }
         return LoginResult(outcome, issued)

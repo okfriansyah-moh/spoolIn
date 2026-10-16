@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.context.request.async.DeferredResult
 import tools.jackson.core.StreamReadFeature
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.json.JsonMapper
@@ -21,9 +22,16 @@ class BrowserGraphql(
     private val graphql: PolicyGraphql,
     private val boundary: BrowserBoundary,
     private val identity: org.springframework.beans.factory.ObjectProvider<BrowserIdentity>,
+    private val requests: BrowserRequests,
 ) {
     @RequestMapping("/graphql")
-    fun execute(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> =
+    fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> =
+        requests.run { deadline -> dispatch(request, deadline) }
+
+    private fun dispatch(
+        request: HttpServletRequest,
+        deadline: Long,
+    ): ResponseEntity<Map<String, Any?>> =
         try {
             boundary.check(request)
             val body = body(request)
@@ -38,6 +46,7 @@ class BrowserGraphql(
                     parsed.mutation,
                     parsed.roots == listOf("signOut"),
                     "session" in parsed.roots,
+                    deadline,
                 )
             val result = graphql.execute(body.input, context)
             val headers = HttpHeaders()
@@ -57,7 +66,7 @@ class BrowserGraphql(
         val error = (result["errors"] as? List<*>)?.firstOrNull() as? Map<*, *>
         val code = (error?.get("extensions") as? Map<*, *>)?.get("code")
         return when (code) {
-            "UNAVAILABLE" -> BrowserBoundary.UNAVAILABLE
+            "UNAVAILABLE", "DEADLINE_EXCEEDED" -> BrowserBoundary.UNAVAILABLE
             "RESOURCE_EXHAUSTED" -> TOO_MANY_REQUESTS
             else -> HTTP_OK
         }
@@ -94,10 +103,16 @@ class BrowserGraphql(
 
     private fun invalidBody(): Nothing = throw BrowserRejected(BrowserBoundary.BAD_REQUEST)
 
-    private fun failure(status: Int): ResponseEntity<Map<String, Any?>> =
-        ResponseEntity.status(status).body(
-            mapOf("data" to null, "errors" to listOf(mapOf("message" to "The request could not be completed."))),
-        )
+    private fun failure(status: Int): ResponseEntity<Map<String, Any?>> {
+        val code =
+            when (status) {
+                BrowserBoundary.FORBIDDEN -> "FORBIDDEN"
+                BrowserBoundary.UNAVAILABLE -> "UNAVAILABLE"
+                BrowserBoundary.TOO_LARGE -> "RESOURCE_EXHAUSTED"
+                else -> "FIELD_INVALID"
+            }
+        return BrowserResponses.failure(status, code)
+    }
 }
 
 private const val HTTP_OK = 200

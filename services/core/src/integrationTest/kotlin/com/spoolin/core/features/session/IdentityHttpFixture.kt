@@ -1,7 +1,10 @@
 package com.spoolin.core.features.session
 
 import com.spoolin.core.Application
+import com.spoolin.core.features.account.application.AuthenticationAction
 import com.spoolin.core.features.account.application.AuthenticationAdmission
+import com.spoolin.core.features.account.application.AuthenticationDenied
+import com.spoolin.core.features.account.application.AuthenticationRequest
 import com.spoolin.core.recovery.crypto.CryptoFixture
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.ssl.SslBundles
@@ -24,7 +27,32 @@ import java.time.Duration
 class AdmittedIdentityFixture {
     @Bean
     @Primary
-    fun fixtureAdmission(): AuthenticationAdmission = AuthenticationAdmission { _, _, _ -> }
+    fun fixtureAdmission(): AdmissionFixture = AdmissionFixture()
+}
+
+class AdmissionFixture : AuthenticationAdmission {
+    val entered = java.util.concurrent.CountDownLatch(8)
+    val release = java.util.concurrent.CountDownLatch(1)
+    val observed = java.util.concurrent.CopyOnWriteArrayList<AuthenticationRequest>()
+
+    @Volatile var block = false
+
+    override fun check(
+        action: AuthenticationAction,
+        identity: String?,
+        request: AuthenticationRequest,
+    ) {
+        observed.add(request)
+        if (block) {
+            entered.countDown()
+            try {
+                check(release.await(10, java.util.concurrent.TimeUnit.SECONDS))
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+                throw AuthenticationDenied()
+            }
+        }
+    }
 }
 
 class IdentityHttpFixture(
@@ -79,8 +107,9 @@ class IdentityHttpFixture(
         headers: Map<String, String>,
         method: String = "POST",
         repeatCsrf: String? = null,
+        timeout: Duration = Duration.ofSeconds(5),
     ): HttpResponse<String> {
-        val builder = HttpRequest.newBuilder(URI("$origin/graphql")).timeout(Duration.ofSeconds(5))
+        val builder = HttpRequest.newBuilder(URI("$origin/graphql")).timeout(timeout)
         headers.forEach { (name, value) -> builder.header(name, value) }
         repeatCsrf?.let { builder.header("X-CSRF-Token", it) }
         return client.send(

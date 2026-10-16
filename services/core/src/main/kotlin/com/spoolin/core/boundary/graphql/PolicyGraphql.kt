@@ -56,6 +56,7 @@ class PolicyGraphql(
             is com.spoolin.core.features.account.persistence.AccountIdentityConflict -> "FIELD_INVALID"
             is IllegalArgumentException -> "FIELD_INVALID"
             is com.spoolin.core.features.crypto.HashingBusy -> "RESOURCE_EXHAUSTED"
+            is com.spoolin.core.features.account.application.AuthenticationDeadlineExceeded -> "DEADLINE_EXCEEDED"
             else -> "UNAVAILABLE"
         }
 

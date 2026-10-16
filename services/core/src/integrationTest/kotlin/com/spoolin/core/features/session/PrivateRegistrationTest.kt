@@ -1,8 +1,11 @@
 package com.spoolin.core.features.session
 
 import com.spoolin.core.features.account.application.AuthenticationAdmission
+import com.spoolin.core.features.account.application.CredentialVerifier
+import com.spoolin.core.features.account.application.LoginInput
 import com.spoolin.core.features.account.application.RegisterAccount
 import com.spoolin.core.features.account.application.RegistrationInput
+import com.spoolin.core.features.account.application.SignInAccount
 import com.spoolin.core.features.account.persistence.IdentityRules
 import com.spoolin.core.features.crypto.Argon2Engine
 import com.spoolin.core.features.crypto.PasswordHasher
@@ -58,17 +61,56 @@ class PrivateRegistrationTest {
                 val replay = RegistrationInput(input.operationId, "", "a@example.test", "changed invalid password")
                 assertEquals(result, service.register(replay, submission, UUID.randomUUID()))
                 assertEquals(input.operationId, result.result?.resultId)
-                assertThrows(ReceiptConflict::class.java) {
-                    receipts.resolve(
-                        intent.copy(
-                            fields =
-                                intent.fields + ("nonce" to UUID.randomUUID().toString()),
-                        ),
+                val changedNonce =
+                    RegistrationIntent.create(
+                        input.operationId,
+                        submission.scope,
+                        "registration-v1",
+                        "a@example.test",
+                        UUID.randomUUID(),
                     )
-                }
+                assertThrows(ReceiptConflict::class.java) { receipts.resolve(changedNonce) }
                 assertEquals(0, fixture.scalar("SELECT count(*) FROM appdata.browser_session"))
                 assertEquals(1, fixture.scalar("SELECT count(*) FROM appdata.operational_event WHERE action='ACCOUNT_REGISTERED'"))
+                verifySignIn(fixture, hasher, receipts, submission, input)
             }
         }
+    }
+
+    private fun verifySignIn(
+        fixture: CryptoFixture,
+        hasher: PasswordHasher,
+        receipts: OwnerReceipts,
+        submission: AnonymousSubmission,
+        registration: RegistrationInput,
+    ) {
+        val service =
+            SignInAccount(
+                CredentialVerifier(fixture.accounts, hasher, IdentityRules()),
+                SessionStore(fixture.pool, SessionCsrf(ByteArray(32) { 11 })),
+                receipts,
+                AuthenticationAdmission { _, _, _ -> },
+            )
+        val result =
+            service.signIn(
+                LoginInput(UUID.randomUUID(), registration.email, registration.password),
+                submission,
+                null,
+                UUID.randomUUID(),
+            )
+        val raw = requireNotNull(result.issued).cookie().substringAfter('=').substringBefore(';')
+        fixture.owner.connection("core").use { connection ->
+            val rows =
+                connection.queryBound(
+                    "SELECT row_to_json(r)::text AS receipt FROM appdata.operation_receipt r",
+                    emptyList(),
+                ) { it.getString("receipt") }
+            assertEquals(2, rows.size)
+            rows.forEach { row ->
+                listOf(raw, registration.password, registration.email, registration.name, "argon2", submission.csrfToken)
+                    .forEach { assertFalse(row.contains(it)) }
+            }
+        }
+        assertEquals(2, fixture.scalar("SELECT count(*) FROM appdata.operation_receipt WHERE hash_key_id='v1'"))
     }
 }

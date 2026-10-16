@@ -35,7 +35,9 @@ class RegisterAccount(
         correlation: UUID,
         request: AuthenticationRequest = AuthenticationRequest.unavailable,
     ): ReceiptOutcome {
+        request.requireActive()
         admission.check(AuthenticationAction.REGISTER, null, request)
+        request.requireActive()
         val email = rules.normalizedEmail(input.email)
         val intent =
             RegistrationIntent.create(
@@ -49,11 +51,14 @@ class RegisterAccount(
         if (existing != null) return existing
         val identity = rules.identity(input.name, input.email)
         val hash = hasher.hashNew(input.password)
+        request.requireActive()
         val id = UUID.randomUUID()
+        request.requireActive()
         val prepared = accounts.prepare(id, identity, hash, AccountRole.VIEWER)
         val audit = ReceiptAudit(ReceiptAction.ACCOUNT_REGISTERED, subjectId = id)
         return receipts.executeAudited(intent, correlation, audit) {
             accounts.insert(it, prepared)
+            request.requireActive()
             SafeResult(input.operationId)
         }
     }

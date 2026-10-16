@@ -17,6 +17,7 @@ class BrowserIdentity(
         mutation: Boolean,
         logoutOnly: Boolean,
         bootstrap: Boolean = true,
+        deadline: Long? = null,
     ): BrowserContext {
         val cookies = request.cookies.orEmpty().groupBy { it.name }
         if (cookies.values.any { it.size != 1 }) throw BrowserRejected(BrowserBoundary.FORBIDDEN)
@@ -27,7 +28,7 @@ class BrowserIdentity(
         val submission = anonymous.verify(cookie("__Host-spoolin_registration"), cookie("__Host-spoolin_csrf"))
         val supplied = request.getHeaders("X-CSRF-Token").toList().singleOrNull()
         val observed = BrowserContext(principal, submission, credential, supplied)
-        val authority = authority(request, observed, logoutOnly)
+        val authority = authority(request, observed, logoutOnly, deadline)
         val context = BrowserContext(principal, submission, credential, supplied, authority)
         if (mutation && !permitted(context, logoutOnly)) throw BrowserRejected(BrowserBoundary.FORBIDDEN)
         val current = submission ?: anonymous.issue()
@@ -40,6 +41,7 @@ class BrowserIdentity(
         request: HttpServletRequest,
         context: BrowserContext,
         logoutOnly: Boolean,
+        deadline: Long?,
     ): AuthenticationRequest {
         val retained =
             if (context.principal == null && logoutOnly && context.credential != null) {
@@ -47,7 +49,7 @@ class BrowserIdentity(
             } else {
                 null
             }
-        return AuthenticationRequest(request.remoteAddr, context.principal?.id ?: retained?.sessionId)
+        return AuthenticationRequest(request.remoteAddr, context.principal?.id ?: retained?.sessionId, deadline)
     }
 
     private fun permitted(
