@@ -9,6 +9,7 @@ import org.springframework.core.env.Environment
 object ComparisonKeySettings {
     fun load(environment: Environment): IntentHashes {
         val name = "spoolin.operations.comparison-keys"
+        require(environment.getProperty(name) == null) { "$name: Supply a map, not a scalar root." }
         val paths =
             runCatching {
                 Binder.get(environment).bind(name, Bindable.mapOf(String::class.java, String::class.java)).get()

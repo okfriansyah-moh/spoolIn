@@ -108,7 +108,16 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun catalogService(): io.grpc.BindableService = object : CatalogServiceGrpc.CatalogServiceImplBase() {}
+    fun catalogService(dataSource: DataSource): io.grpc.BindableService {
+        val reads =
+            com.spoolin.catalog.operations.receipts
+                .OwnerReceiptReads(dataSource)
+        return com.spoolin.catalog.operations.receipts.ReceiptRpc(
+            com.spoolin.support.receipts
+                .ReceiptAuthority { null },
+            reads::find,
+        )
+    }
 }
 
 fun main(args: Array<String>) {

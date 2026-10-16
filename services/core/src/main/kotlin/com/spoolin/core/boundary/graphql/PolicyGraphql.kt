@@ -12,6 +12,7 @@ import org.springframework.core.io.ClassPathResource
 class PolicyGraphql(
     schema: String,
     private val provider: PolicyProvider,
+    operation: (java.util.UUID, com.spoolin.support.receipts.OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
     private val engine: GraphQL
@@ -20,6 +21,17 @@ class PolicyGraphql(
         val wiring = RuntimeWiring.newRuntimeWiring()
         PolicyScalars.all().forEach(wiring::scalar)
         wiring.type("Query") { it.dataFetcher("policy") { provider.projection() } }
+        wiring.type("Query") { query ->
+            query.dataFetcher("operation") { environment ->
+                val id = java.util.UUID.fromString(environment.getArgument<String>("id"))
+                val owner =
+                    environment.getArgument<String>("owner")?.let {
+                        com.spoolin.support.receipts.OperationOwner
+                            .valueOf(it)
+                    }
+                operation(id, owner)
+            }
+        }
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }

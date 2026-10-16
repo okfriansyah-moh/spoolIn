@@ -28,7 +28,7 @@ data class SafeResult(
 data class ReceiptOutcome(
     val id: UUID,
     val state: ReceiptState,
-    val result: String?,
+    val result: SafeResult?,
     val errorCode: String?,
     val correlationId: UUID,
     val createdAt: Instant,

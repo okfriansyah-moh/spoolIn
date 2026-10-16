@@ -108,7 +108,16 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun mediaService(): io.grpc.BindableService = object : MediaServiceGrpc.MediaServiceImplBase() {}
+    fun mediaService(dataSource: DataSource): io.grpc.BindableService {
+        val reads =
+            com.spoolin.media.operations.receipts
+                .OwnerReceiptReads(dataSource)
+        return com.spoolin.media.operations.receipts.ReceiptRpc(
+            com.spoolin.support.receipts
+                .ReceiptAuthority { null },
+            reads::find,
+        )
+    }
 }
 
 fun main(args: Array<String>) {

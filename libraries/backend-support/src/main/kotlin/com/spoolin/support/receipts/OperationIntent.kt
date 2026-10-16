@@ -8,6 +8,10 @@ import java.util.UUID
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
+private const val MAX_ACTOR_SCOPE = 96
+private const val MAX_KIND = 64
+private const val COMPARISON_KEY_BYTES = 32
+
 enum class Comparison { REPLAY, CONFLICT, HIDDEN }
 
 data class OperationIntent(
@@ -18,7 +22,7 @@ data class OperationIntent(
     val fields: List<Pair<String, String?>>,
 ) {
     init {
-        require(actorScope.length in 1..96 && kind.length in 1..64)
+        require(actorScope.length in 1..MAX_ACTOR_SCOPE && kind.length in 1..MAX_KIND)
         require(fields.map { it.first }.distinct().size == fields.size)
     }
 
@@ -28,15 +32,22 @@ data class OperationIntent(
             listOf(actorScope, kind, policyRevision).forEach { output.text(it) }
             output.writeInt(fields.size)
             fields.forEach { (name, value) ->
-                output.text(name)
-                output.writeBoolean(value != null)
-                value?.let { output.text(it) }
+                output.field(name, value)
             }
         }
         return buffer.toByteArray()
     }
 
     override fun toString(): String = "OperationIntent(id=$id, content=redacted)"
+}
+
+private fun DataOutputStream.field(
+    name: String,
+    value: String?,
+) {
+    text(name)
+    writeBoolean(value != null)
+    if (value != null) text(value)
 }
 
 private fun DataOutputStream.text(value: String) {
@@ -53,7 +64,7 @@ class IntentHashes(
 
     init {
         require(material.containsKey(active)) { "Operation comparison key is unavailable" }
-        require(material.all { it.key.matches(Regex("[a-zA-Z0-9_-]{1,64}")) && it.value.size == 32 })
+        require(material.all { it.key.matches(Regex("[a-zA-Z0-9_-]{1,64}")) && it.value.size == COMPARISON_KEY_BYTES })
     }
 
     fun hash(

@@ -1,6 +1,9 @@
 {
   "schema_version": 1,
-  "levels": ["unit", "integration"],
+  "levels": [
+    "unit",
+    "integration"
+  ],
   "tasks": {
     "T001": {
       "source": "docs/plan/01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md",
@@ -17,13 +20,19 @@
       "unit": [
         {
           "id": "harness",
-          "argv": ["python3", "build-tools/verification-tests/test_harness.py"],
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/test_harness.py"
+          ],
           "report": ".ai/evidence/t001-harness.json",
           "timeout": 120
         },
         {
           "id": "locked-build-twice",
-          "argv": ["python3", "build-tools/verification-tests/test_build.py"],
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/test_build.py"
+          ],
           "report": ".ai/evidence/t001-build.json",
           "timeout": 1800
         }
@@ -42,8 +51,13 @@
       "unit": [
         {
           "id": "wire-contracts",
-          "argv": ["python3", "tests/contracts/run.py"],
-          "required_paths": ["tests/contracts/run.py"],
+          "argv": [
+            "python3",
+            "tests/contracts/run.py"
+          ],
+          "required_paths": [
+            "tests/contracts/run.py"
+          ],
           "report": ".ai/evidence/t002-contract-tests.json",
           "timeout": 1200
         }
@@ -81,7 +95,10 @@
     },
     "T004": {
       "source": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
-      "test_paths": ["frontend/src/lib", "tests/browser/flows/shell/"],
+      "test_paths": [
+        "frontend/src/lib",
+        "tests/browser/flows/shell/"
+      ],
       "unit": [
         {
           "id": "shell-unit-components",
@@ -155,7 +172,9 @@
     },
     "T007": {
       "source": "docs/plan/03-account-access/tasks/T007-connect-account-and-session-browser-journeys.md",
-      "test_paths": ["tests/browser/flows/session/"],
+      "test_paths": [
+        "tests/browser/flows/session/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -202,11 +221,45 @@
         "services/media/src/test/kotlin/com/spoolin/media/operations/receipts/",
         "services/core/src/test/kotlin/com/spoolin/core/operations/events/",
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/events/",
-        "services/media/src/test/kotlin/com/spoolin/media/operations/events/"
+        "services/media/src/test/kotlin/com/spoolin/media/operations/events/",
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t010-receipts-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_receipts.py",
+            "--task",
+            "T010",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t010-unit-results.json",
+          "required_paths": [
+            "libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/*Test.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t010-receipts-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_receipts.py",
+            "--task",
+            "T010",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t010-integration-results.json",
+          "required_paths": [
+            "services/*/src/integrationTest/kotlin/com/spoolin/*/operations/receipts/*Test.kt"
+          ]
+        }
+      ]
     },
     "T011": {
       "source": "docs/plan/05-reliable-work/tasks/T011-run-fenced-recovery-and-bounded-retries.md",
@@ -253,7 +306,9 @@
     },
     "T013": {
       "source": "docs/plan/07-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
-      "test_paths": ["tests/browser/flows/discovery/"],
+      "test_paths": [
+        "tests/browser/flows/discovery/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -303,7 +358,9 @@
     },
     "T018": {
       "source": "docs/plan/09-movie-management/tasks/T018-connect-movie-editors-and-confirmed-outcomes.md",
-      "test_paths": ["tests/browser/flows/movies/"],
+      "test_paths": [
+        "tests/browser/flows/movies/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -322,7 +379,9 @@
     },
     "T020": {
       "source": "docs/plan/10-people-and-credits/tasks/T020-connect-people-management-and-retained-edits.md",
-      "test_paths": ["tests/browser/flows/people/"],
+      "test_paths": [
+        "tests/browser/flows/people/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -341,7 +400,9 @@
     },
     "T022": {
       "source": "docs/plan/10-people-and-credits/tasks/T022-connect-credit-editing-and-verify-the-people-outcome.md",
-      "test_paths": ["tests/browser/flows/credits/"],
+      "test_paths": [
+        "tests/browser/flows/credits/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -373,7 +434,9 @@
     },
     "T027": {
       "source": "docs/plan/11-artwork-management/tasks/T027-connect-measured-progress-and-recover-attachment-outcomes.md",
-      "test_paths": ["tests/browser/flows/artwork/"],
+      "test_paths": [
+        "tests/browser/flows/artwork/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -391,7 +454,9 @@
     },
     "T024": {
       "source": "docs/plan/12-archive-management/tasks/T024-connect-private-archives-and-irreversible-confirmations.md",
-      "test_paths": ["tests/browser/flows/archives/"],
+      "test_paths": [
+        "tests/browser/flows/archives/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
@@ -431,14 +496,18 @@
     },
     "T032": {
       "source": "docs/plan/13-assisted-movie-creation/tasks/T032-verify-trusted-approval-in-claude-desktop.md",
-      "test_paths": ["tests/clients/claude/"],
+      "test_paths": [
+        "tests/clients/claude/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
     },
     "T033": {
       "source": "docs/plan/13-assisted-movie-creation/tasks/T033-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
-      "test_paths": ["tests/clients/chatgpt/"],
+      "test_paths": [
+        "tests/clients/chatgpt/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
