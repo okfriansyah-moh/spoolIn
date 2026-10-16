@@ -19,6 +19,7 @@ from lock_dependencies import relocate_local_catalog
 import lock_dependencies
 from run_owner_integration import junit_counts
 from unittest_reports import ObservedResult, test_list, write_junit
+from test_scan_metadata import ScanMetadataTests
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("task_selector", Path(__file__).with_name("task_selector.py"))

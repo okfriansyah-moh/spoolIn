@@ -37,3 +37,26 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''']
 regexes = ['''^\s*"(?:services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/CredentialIntegrationTest\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/KeyRegistry\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/MountedKeys\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHash\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHasher\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordInput\.kt|services/core/src/test/kotlin/com/spoolin/core/features/crypto/PasswordRulesTest\.kt)": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Source snapshot and cache digests in retained workflow provenance records"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''(^|/)\.ai/evidence/(autonomy-1\.1\.1|harness-running-prompt-doc|release-1\.1\.0|running-prompt-shortcut|task-prompt)/''',
+  '''(^|/)\.ai/state/(host-verifications/|account-selection(?:-checkpoint-result)?\.json$)'''
+]
+regexes = ['''^\s*"(?:cache_key|(?:(?:global|repo):)?(?:skills|tests|\.agents|\.ai|\.claude|\.codex|\.copilot|\.cursor|\.github|docs|build-tools|design-system|plan|services)/[^"\r\n]+)": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Native host call identifiers in retained host-event records, including truncated scanner matches"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''(^|/)\.ai/evidence/release-1\.1\.0/native/.*\.json$''',
+  '''(^|/)\.ai/state/host-verifications/[^/]+/(pass|fail)-native-smoke\.json$''',
+  '''(^|/)\.ai/evidence/autonomy-1\.1\.1/sessions/session-copilot-4e102219/(fresh|resumed)-stdout\.jsonl$'''
+]
+regexes = ['''^apiCallId\\?":\s*\\?"[A-Za-z0-9+/=_-]+(?:\\?")?$''']
