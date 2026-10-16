@@ -1,0 +1,21 @@
+mutation AccountSignIn(
+  $operationId: UUID!
+  $email: String!
+  $password: String!
+) {
+  signIn(operationId: $operationId, email: $email, password: $password) {
+    operation {
+      id
+      state
+      resultExpired
+      problem {
+        code
+        retryAfterMs
+      }
+    }
+    problem {
+      code
+      retryAfterMs
+    }
+  }
+}

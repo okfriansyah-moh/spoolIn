@@ -1,5 +1,5 @@
-import type { ActorRole, SessionQuery } from "../../generated/graphql";
-import type { Policy } from "../../policy/types";
+import type { ActorRole, SessionQuery } from '../../generated/graphql';
+import type { Policy } from '../../policy/types';
 export type Identity = Readonly<{
   accountId: string;
   displayName: string;
@@ -7,12 +7,12 @@ export type Identity = Readonly<{
   expiresAt: string;
 }>;
 export type SessionKind =
-  | "checking"
-  | "anonymous"
-  | "verified"
-  | "unavailable"
-  | "expired"
-  | "uncertain";
+  | 'checking'
+  | 'anonymous'
+  | 'verified'
+  | 'unavailable'
+  | 'expired'
+  | 'uncertain';
 export type SessionState = Readonly<{
   kind: SessionKind;
   identity: Identity | null;
@@ -20,16 +20,16 @@ export type SessionState = Readonly<{
   message: string;
 }>;
 export type SessionBootstrap = {
-  session: SessionQuery["session"];
+  session: SessionQuery['session'];
   policy: Policy;
 };
 export interface SessionSource {
   bootstrap(signal: AbortSignal): Promise<SessionBootstrap>;
 }
-export function identityOf(session: SessionQuery["session"]): Identity | null {
+export function identityOf(session: SessionQuery['session']): Identity | null {
   if (!session.authenticated) return null;
   const { accountId, displayName, role, expiresAt } = session;
   if (!accountId || !displayName || !role || !expiresAt)
-    throw new Error("Session verification unavailable.");
+    throw new Error('Session verification unavailable.');
   return Object.freeze({ accountId, displayName, role, expiresAt });
 }
