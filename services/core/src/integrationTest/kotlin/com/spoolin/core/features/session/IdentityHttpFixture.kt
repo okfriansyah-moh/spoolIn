@@ -156,14 +156,25 @@ class IdentityHttpFixture(
 
     private fun configuration(): List<String> {
         val owner = crypto.owner
-        val keys =
-            listOf("csrf-key", "operation-key", "rate-limiter-key").associateWith { name ->
-                owner.root.resolve(name).also {
-                    Files.write(it, ByteArray(32) { index -> (index + name.length).toByte() })
-                    Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
-                }
-            }
+        val keys = fixtureKeys(owner)
         val rateValues = mapOf("RATE_LIMIT_READ_MAX_REQUESTS" to "1000000") + rateOverrides
+        val agreement = fixtureAgreement(owner, keys, rateValues)
+        return (identitySettings(owner, keys, agreement) + protectionMounts() + rateValues.map { "${it.key}=${it.value}" }).map { "--$it" }
+    }
+
+    private fun fixtureKeys(owner: com.spoolin.core.boundary.bootstrap.OwnerFixture): Map<String, java.nio.file.Path> =
+        listOf("csrf-key", "operation-key", "rate-limiter-key").associateWith { name ->
+            owner.root.resolve(name).also {
+                Files.write(it, ByteArray(32) { index -> (index + name.length).toByte() })
+                Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+            }
+        }
+
+    private fun fixtureAgreement(
+        owner: com.spoolin.core.boundary.bootstrap.OwnerFixture,
+        keys: Map<String, java.nio.file.Path>,
+        rateValues: Map<String, String>,
+    ): java.nio.file.Path {
         val rateProfiles =
             com.spoolin.support.identity
                 .RateProfiles(
@@ -178,40 +189,46 @@ class IdentityHttpFixture(
             Files.writeString(agreement, """{"profileRevision":"${rateProfiles.revision}","keyCanary":"$canary"}""")
             Files.setPosixFilePermissions(agreement, PosixFilePermissions.fromString("rw-------"))
         }
-        val settings =
-            listOf(
-                "CORE_DB_URL=${owner.url("core")}",
-                "CORE_DB_USER=spoolin_core_runtime",
-                "CORE_DB_PASSWORD_FILE=${owner.passwords.getValue("core-runtime")}",
-                "SERVICE_CERT_FILE=${owner.root.resolve("core.crt")}",
-                "SERVICE_KEY_FILE=${owner.root.resolve("core.key")}",
-                "SERVICE_CA_FILE=${owner.root.resolve("ca.crt")}",
-                "HTTP_ADDRESS=127.0.0.1",
-                "HTTP_PORT=$port",
-                "GRPC_ADDRESS=127.0.0.1",
-                "GRPC_PORT=0",
-                "MANAGEMENT_ADDRESS=127.0.0.1",
-                "MANAGEMENT_PORT=0",
-                "spoolin.account-protection.enabled=true",
-                "spoolin.operations.enabled=true",
-                "CSRF_KEY_FILE=${keys.getValue("csrf-key")}",
-                "RATE_LIMIT_KEY_FILE=${keys.getValue("rate-limiter-key")}",
-                "spoolin.rate-limit.enabled=${admitted || trusted}",
-                "spoolin.rate-limit.agreement-file=$agreement",
-                "OPERATION_HMAC_KEY_ID=v1",
-                "OPERATION_HMAC_KEY_FILE=${keys.getValue("operation-key")}",
-                "spoolin.operations.comparison-keys.v1=${keys.getValue("operation-key")}",
-                "BROWSER_ORIGIN=$origin",
-            )
-        val mounts =
-            crypto.mounts.flatMap { (id, mount) ->
-                listOf(
-                    "spoolin.account-protection.keys.$id.purpose=${mount.purpose}",
-                    "spoolin.account-protection.keys.$id.file=${mount.file}",
-                )
-            }
-        return (settings + mounts + rateValues.map { "${it.key}=${it.value}" }).map { "--$it" }
+        return agreement
     }
+
+    private fun identitySettings(
+        owner: com.spoolin.core.boundary.bootstrap.OwnerFixture,
+        keys: Map<String, java.nio.file.Path>,
+        agreement: java.nio.file.Path,
+    ): List<String> =
+        listOf(
+            "CORE_DB_URL=${owner.url("core")}",
+            "CORE_DB_USER=spoolin_core_runtime",
+            "CORE_DB_PASSWORD_FILE=${owner.passwords.getValue("core-runtime")}",
+            "SERVICE_CERT_FILE=${owner.root.resolve("core.crt")}",
+            "SERVICE_KEY_FILE=${owner.root.resolve("core.key")}",
+            "SERVICE_CA_FILE=${owner.root.resolve("ca.crt")}",
+            "HTTP_ADDRESS=127.0.0.1",
+            "HTTP_PORT=$port",
+            "GRPC_ADDRESS=127.0.0.1",
+            "GRPC_PORT=0",
+            "MANAGEMENT_ADDRESS=127.0.0.1",
+            "MANAGEMENT_PORT=0",
+            "spoolin.account-protection.enabled=true",
+            "spoolin.operations.enabled=true",
+            "CSRF_KEY_FILE=${keys.getValue("csrf-key")}",
+            "RATE_LIMIT_KEY_FILE=${keys.getValue("rate-limiter-key")}",
+            "spoolin.rate-limit.enabled=${admitted || trusted}",
+            "spoolin.rate-limit.agreement-file=$agreement",
+            "OPERATION_HMAC_KEY_ID=v1",
+            "OPERATION_HMAC_KEY_FILE=${keys.getValue("operation-key")}",
+            "spoolin.operations.comparison-keys.v1=${keys.getValue("operation-key")}",
+            "BROWSER_ORIGIN=$origin",
+        )
+
+    private fun protectionMounts(): List<String> =
+        crypto.mounts.flatMap { (id, mount) ->
+            listOf(
+                "spoolin.account-protection.keys.$id.purpose=${mount.purpose}",
+                "spoolin.account-protection.keys.$id.file=${mount.file}",
+            )
+        }
 
     override fun close() {
         context.close()

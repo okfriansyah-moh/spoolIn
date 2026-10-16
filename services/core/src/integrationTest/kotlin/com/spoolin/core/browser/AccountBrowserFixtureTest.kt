@@ -36,31 +36,49 @@ class AccountBrowserFixtureTest {
                 ),
             )
         try {
-            IdentityHttpFixture(admitted = false, trusted = true).use { fixture ->
-                val password = password()
-                val people = seed(fixture, password)
-                ObjectMapper().writeValue(credentials.toFile(), people + mapOf("password" to password))
-                val handoff =
+            IdentityHttpFixture(
+                admitted = false,
+                trusted = true,
+                rateOverrides =
                     mapOf(
-                        "origin" to fixture.origin,
-                        "ca" to
-                            fixture.crypto.owner.root
-                                .resolve("ca.crt")
-                                .toString(),
-                        "credentialsFile" to credentials.toString(),
-                        "releaseFile" to release.toString(),
-                        "deadlineMinutes" to FIXTURE_MINUTES,
-                        "admission" to "production",
-                    )
-                ObjectMapper().writeValue(publicFile.toFile(), handoff)
-                val deadline = System.nanoTime() + Duration.ofMinutes(FIXTURE_MINUTES).toNanos()
-                while (!Files.exists(release) && System.nanoTime() < deadline) Thread.sleep(RELEASE_POLL_MILLIS)
-                assertTrue(Files.exists(release), "Browser observation fixture reached its finite deadline")
+                        "RATE_LIMIT_REGISTER_MAX_REQUESTS" to "100",
+                        "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS" to "1000",
+                        "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS" to "100",
+                    ),
+            ).use { fixture ->
+                hold(fixture, publicFile, credentials, release)
             }
         } finally {
             Files.deleteIfExists(credentials)
             Files.deleteIfExists(publicFile)
         }
+    }
+
+    private fun hold(
+        fixture: IdentityHttpFixture,
+        publicFile: Path,
+        credentials: Path,
+        release: Path,
+    ) {
+        val password = password()
+        val people = seed(fixture, password)
+        ObjectMapper().writeValue(credentials.toFile(), people + mapOf("password" to password))
+        val handoff =
+            mapOf(
+                "origin" to fixture.origin,
+                "ca" to
+                    fixture.crypto.owner.root
+                        .resolve("ca.crt")
+                        .toString(),
+                "credentialsFile" to credentials.toString(),
+                "releaseFile" to release.toString(),
+                "deadlineMinutes" to FIXTURE_MINUTES,
+                "admission" to "production",
+            )
+        ObjectMapper().writeValue(publicFile.toFile(), handoff)
+        val deadline = System.nanoTime() + Duration.ofMinutes(FIXTURE_MINUTES).toNanos()
+        while (!Files.exists(release) && System.nanoTime() < deadline) Thread.sleep(RELEASE_POLL_MILLIS)
+        assertTrue(Files.exists(release), "Browser observation fixture reached its finite deadline")
     }
 
     private fun seed(

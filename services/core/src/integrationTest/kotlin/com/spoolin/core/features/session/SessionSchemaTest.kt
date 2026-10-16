@@ -70,18 +70,26 @@ class SessionSchemaTest {
                 val columns = row.values.keys.joinToString()
                 val values = row.values.values.joinToString()
                 val sql = "INSERT INTO appdata.browser_session ($columns) VALUES ($values)"
-                connection.createStatement().use { statement ->
-                    if (row.failure == null) {
-                        assertEquals(1, statement.executeUpdate(sql))
-                    } else {
-                        assertEquals(row.failure, assertThrows(SQLException::class.java) { statement.executeUpdate(sql) }.sqlState)
-                    }
-                }
+                executeProbe(connection, sql, row.failure)
             } finally {
                 connection.rollback()
             }
         }
         assertEquals(0, fixture.scalar("SELECT count(*) FROM appdata.browser_session"))
+    }
+
+    private fun executeProbe(
+        connection: java.sql.Connection,
+        sql: String,
+        failure: String?,
+    ) {
+        connection.createStatement().use { statement ->
+            if (failure == null) {
+                assertEquals(1, statement.executeUpdate(sql))
+            } else {
+                assertEquals(failure, assertThrows(SQLException::class.java) { statement.executeUpdate(sql) }.sqlState)
+            }
+        }
     }
 
     private fun values(): Map<String, String> =

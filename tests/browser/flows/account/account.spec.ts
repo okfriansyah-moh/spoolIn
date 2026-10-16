@@ -18,6 +18,30 @@ async function signOut(page: Page) {
     page.getByRole('status').filter({ hasText: /^Signed out\.$/ }),
   ).toBeVisible();
 }
+async function assertPrivateStorage(page: Page, password: string) {
+  const absent = await page.evaluate(
+    (secret) =>
+      !JSON.stringify({
+        local: { ...localStorage },
+        session: { ...sessionStorage },
+        url: location.href,
+      }).includes(secret),
+    password,
+  );
+  expect(absent).toBe(true);
+  const storage = await page.evaluate(() => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      window,
+      '__accountStorageProof',
+    );
+    return (
+      Array.isArray(descriptor?.value) &&
+      descriptor.value.length > 0 &&
+      descriptor.value.every((allowed: unknown) => allowed === true)
+    );
+  });
+  expect(storage).toBe(true);
+}
 test.beforeEach(async ({ context }) => {
   await context.clearCookies();
 });
@@ -45,16 +69,7 @@ test('actual registration assigns Viewer and keeps the password out of recovery 
   await expect(
     page.getByText('Viewer is assigned to this account.', { exact: false }),
   ).toBeVisible();
-  const absent = await page.evaluate(
-    (secret) =>
-      !JSON.stringify({
-        local: { ...localStorage },
-        session: { ...sessionStorage },
-        url: location.href,
-      }).includes(secret),
-    input.password,
-  );
-  expect(absent).toBe(true);
+  await assertPrivateStorage(page, input.password);
   await page.getByRole('link', { name: 'Sign in', exact: true }).last().click();
   await page.getByLabel(/^Email\b/).fill(input.registrationEmail);
   await page.getByLabel(/^Password\b/).fill(input.password);
@@ -90,7 +105,7 @@ test('real cookies rotate at sign-in and Viewer cannot reveal management', async
   ).toBe(false);
   await page.goto('/manage');
   await expect(
-    page.getByText('Access not permitted', { exact: true }),
+    page.getByText('You do not have access', { exact: true }),
   ).toBeVisible();
   await expect(page.locator('[data-private] section')).toHaveCount(0);
   await signOut(page);

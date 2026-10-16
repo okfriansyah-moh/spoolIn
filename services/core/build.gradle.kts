@@ -140,3 +140,25 @@ val accountBrowserFixture by tasks.registering(Test::class) {
     systemProperty("account.browser.handoff", rootProject.file(".ai/state/account-browser-public.json").absolutePath)
     outputs.upToDateWhen { false }
 }
+
+val accountIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
+    setSource(
+        files(
+            "src/integrationTest/kotlin/com/spoolin/core/features/session",
+            "src/integrationTest/kotlin/com/spoolin/core/operations/receipts",
+            "src/integrationTest/kotlin/com/spoolin/core/boundary/admission",
+            "src/integrationTest/kotlin/com/spoolin/core/browser",
+            "src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/NonceTlsFixture.kt",
+        ),
+    )
+    config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
+    buildUponDefaultConfig = false
+    ignoreFailures = false
+    reports {
+        xml.outputLocation.set(layout.buildDirectory.file("reports/detekt/account-integration-thresholds.xml"))
+        txt.outputLocation.set(layout.buildDirectory.file("reports/detekt/account-integration-thresholds.txt"))
+        html.outputLocation.set(layout.buildDirectory.file("reports/detekt/account-integration-thresholds.html"))
+        sarif.outputLocation.set(layout.buildDirectory.file("reports/detekt/account-integration-thresholds.sarif"))
+        md.outputLocation.set(layout.buildDirectory.file("reports/detekt/account-integration-thresholds.md"))
+    }
+}

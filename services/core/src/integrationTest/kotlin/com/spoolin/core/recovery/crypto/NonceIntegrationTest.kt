@@ -93,7 +93,7 @@ class NonceIntegrationTest {
             fresh.networkSettings.ports.bindings
                 .getValue(port)
                 .single()
-        val identity = tlsIdentity(fixture)
+        val identity = NonceTlsFixture.identity(fixture)
         fixture.record(
             "host-selected-mapping",
             mapOf(
@@ -115,19 +115,6 @@ class NonceIntegrationTest {
             { assertEquals(fixture.namespace, requireNotNull(fresh.config.labels).getValue("spoolin.test.namespace")) },
         )
     }
-
-    private fun tlsIdentity(fixture: OwnerFixture): List<Any> =
-        fixture.connection("core").use { connection ->
-            connection.createStatement().use { statement ->
-                statement
-                    .executeQuery(
-                        "SELECT current_database(), current_user, ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()",
-                    ).use { rows ->
-                        assertTrue(rows.next())
-                        listOf(rows.getString(1), rows.getString(2), rows.getBoolean(3))
-                    }
-            }
-        }
 
     @Test
     fun concurrentEncryptionConsumesOneHundredAndOneCommittedDistinctCounters() =

@@ -3,6 +3,7 @@ package com.spoolin.core.features.session
 import com.spoolin.core.features.account.persistence.AccountRole
 import com.spoolin.core.features.account.persistence.IdentityRules
 import com.spoolin.core.features.crypto.StoredPasswordHash
+import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.recovery.crypto.CryptoFixture
 import com.spoolin.support.receipts.committed
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -69,9 +70,7 @@ class SessionLifecycleTest {
             val store = SessionStore(fixture.pool, csrf, Clock.fixed(now, ZoneOffset.UTC))
             val issued = fixture.pool.committed { store.issue(it, id, 0, null) }
             fixture.pool.connection.use { connection ->
-                connection.createStatement().use {
-                    it.executeUpdate("UPDATE appdata.browser_session SET last_seen_at=expires_at - INTERVAL '1 minute'")
-                }
+                connection.executeBound("UPDATE appdata.browser_session SET last_seen_at=expires_at - INTERVAL '1 minute'")
             }
             val cutoff = now.plusSeconds(43200)
             val before = SessionStore(fixture.pool, csrf, Clock.fixed(cutoff.minusNanos(1000), ZoneOffset.UTC))

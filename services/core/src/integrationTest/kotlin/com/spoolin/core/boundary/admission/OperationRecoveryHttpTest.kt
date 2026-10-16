@@ -60,24 +60,77 @@ class OperationRecoveryHttpTest {
                     .path("state")
                     .asString(),
             )
-            val unknown = fixture.request(envelope("""query { operation(id:"${UUID.randomUUID()}",owner:CORE){state} }"""), csrf)
             assertTrue(
-                mapper
-                    .readTree(unknown.body())
-                    .path("data")
-                    .path("operation")
-                    .isNull,
+                original.headers().allValues("Set-Cookie").any { it.startsWith("__Host-spoolin_session=") && it.contains("Max-Age=0") },
             )
-            val wrong = fixture.request(envelope("""query { operation(id:"$operation",owner:CORE){state} }"""), "wrong")
-            assertTrue(
-                mapper
-                    .readTree(wrong.body())
-                    .path("data")
-                    .path("operation")
-                    .isNull,
-            )
+            assertTrue("__Host-spoolin_session" !in fixture.cookies)
+            deniedOriginalQueries(fixture, operation, csrf, cookie)
             assertEquals(3, fixture.crypto.scalar("SELECT count(*) FROM appdata.operation_receipt"))
+            otherSessionRetained(fixture, operation, anonymous, false)
+            otherSessionRetained(fixture, operation, anonymous, true)
         }
+    }
+
+    private fun deniedOriginalQueries(
+        fixture: IdentityHttpFixture,
+        operation: UUID,
+        csrf: String,
+        cookie: String,
+    ) {
+        fixture.cookies["__Host-spoolin_session"] = cookie
+        val unknown = fixture.request(envelope("""query { operation(id:"${UUID.randomUUID()}",owner:CORE){state} }"""), csrf)
+        assertTrue(
+            mapper
+                .readTree(unknown.body())
+                .path("data")
+                .path("operation")
+                .isNull,
+        )
+        val wrong = fixture.request(envelope("""query { operation(id:"$operation",owner:CORE){state} }"""), "wrong")
+        assertTrue(
+            mapper
+                .readTree(wrong.body())
+                .path("data")
+                .path("operation")
+                .isNull,
+        )
+        assertNoDeletion(unknown)
+        assertNoDeletion(wrong)
+    }
+
+    private fun otherSessionRetained(
+        fixture: IdentityHttpFixture,
+        operation: UUID,
+        anonymous: String,
+        foreign: Boolean,
+    ) {
+        fixture.cookies.remove("__Host-spoolin_session")
+        val email = if (foreign) "b@example.test" else "a@example.test"
+        if (foreign) {
+            assertEquals(
+                200,
+                fixture.request(envelope(register(UUID.randomUUID()).replace("a@example.test", email)), anonymous).statusCode(),
+            )
+        }
+        val login = """mutation { signIn(operationId:"${UUID.randomUUID()}",email:"$email",
+            password:"valid exact password") { operation { state } } }"""
+        assertEquals(200, fixture.request(envelope(login), anonymous).statusCode())
+        val cookie = fixture.cookies.getValue("__Host-spoolin_session")
+        val currentCsrf = sessionCsrf(fixture)
+        val response = fixture.request(envelope("""query { operation(id:"$operation",owner:CORE){state} }"""), currentCsrf)
+        assertTrue(
+            mapper
+                .readTree(response.body())
+                .path("data")
+                .path("operation")
+                .isNull,
+        )
+        assertNoDeletion(response)
+        assertTrue(fixture.cookies["__Host-spoolin_session"] == cookie)
+    }
+
+    private fun assertNoDeletion(response: java.net.http.HttpResponse<String>) {
+        assertTrue(response.headers().allValues("Set-Cookie").none { it.startsWith("__Host-spoolin_session=") && it.contains("Max-Age=0") })
     }
 
     private fun sessionCsrf(fixture: IdentityHttpFixture): String {

@@ -20,7 +20,11 @@ function execute(argv, env = process.env) {
   return result.status ?? 1;
 }
 function readerEnvironment() {
-  const environment = { ...process.env, DISPLAY: process.env.DISPLAY || ':99' };
+  const environment = {
+    ...process.env,
+    DISPLAY: process.env.DISPLAY || ':99',
+    NODE_EXTRA_CA_CERTS: process.env.ACCOUNT_CA,
+  };
   const server = readdirSync('/proc')
     .filter((name) => /^\d+$/.test(name))
     .find((name) => {
@@ -65,6 +69,7 @@ function run() {
       ...process.env,
       ACCOUNT_ORIGIN: handoff.origin,
       ACCOUNT_CA: handoff.ca,
+      NODE_EXTRA_CA_CERTS: handoff.ca,
       ACCOUNT_CREDENTIALS_FILE: handoff.credentialsFile,
       ACCOUNT_JUNIT: report,
     });
@@ -107,7 +112,7 @@ function runContainer(container, handoff) {
     timeout: 30000,
   });
   if (copied.status === 0) writeFileSync(report, copied.stdout);
-  return code || copied.status || (copied.error ? 2 : 0);
+  return code || (copied.status === 0 ? 0 : 2);
 }
 try {
   process.exitCode = run();

@@ -5,6 +5,8 @@ import com.spoolin.support.receipts.ComparisonKeys
 import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
 import com.spoolin.support.receipts.WorkRequest
+import com.spoolin.support.receipts.executeBound
+import com.spoolin.support.receipts.queryBound
 import tools.jackson.databind.ObjectMapper
 import java.nio.file.Files
 import java.nio.file.Path
@@ -53,30 +55,38 @@ object ReceiptCrashProcess {
                     emptyList(),
                 )
             if (arguments[2].startsWith("inspect")) {
-                val tables = listOf("receipt_domain", "operation_receipt", "operational_event", "durable_work")
-                val counts =
-                    tables.map { table ->
-                        pool.connection.use { connection ->
-                            connection.createStatement().use { statement ->
-                                statement.executeQuery("SELECT count(*) FROM $table").use { rows ->
-                                    rows.next()
-                                    rows.getInt(1)
-                                }
-                            }
-                        }
-                    }
-                if (arguments[2] == "inspect-after") {
-                    receipts.execute(intent, UUID.randomUUID(), true) { error("Committed intent executed again") }
-                }
-                Files.writeString(Path.of(arguments[1]), counts.joinToString(","))
+                inspect(pool, receipts, intent, arguments[2], Path.of(arguments[1]))
                 return
             }
             val work = WorkRequest("followup", "SYNC", intent.id, Instant.now().plusSeconds(3600))
             receipts.execute(intent, UUID.randomUUID(), true, listOf(work)) { connection ->
-                connection.createStatement().use { it.executeUpdate("INSERT INTO receipt_domain VALUES (1)") }
+                connection.executeBound("INSERT INTO receipt_domain VALUES (1)")
                 SafeResult(intent.id, version = 0)
             }
             Runtime.getRuntime().halt(74)
         }
     }
+
+    private fun inspect(
+        pool: javax.sql.DataSource,
+        receipts: OwnerReceipts,
+        intent: OperationIntent,
+        mode: String,
+        output: Path,
+    ) {
+        val tables = listOf("receipt_domain", "operation_receipt", "operational_event", "durable_work")
+        val counts = tables.map { table -> count(pool, table) }
+        if (mode == "inspect-after") {
+            receipts.execute(intent, UUID.randomUUID(), true) { error("Committed intent executed again") }
+        }
+        Files.writeString(output, counts.joinToString(","))
+    }
+
+    private fun count(
+        pool: javax.sql.DataSource,
+        table: String,
+    ): Int =
+        pool.connection.use { connection ->
+            connection.queryBound("SELECT count(*) FROM $table", emptyList()) { it.getInt(1) }.single()
+        }
 }

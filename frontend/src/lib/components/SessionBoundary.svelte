@@ -19,8 +19,8 @@
         : state === 'expired'
           ? 'Your session expired'
           : state === 'denied'
-            ? 'Access not permitted'
-            : 'Session check unavailable'}</strong
+            ? 'You do not have access'
+            : 'Sign-in is temporarily unavailable'}</strong
     >
     <p>
       Protected work is concealed until your session and access are verified.

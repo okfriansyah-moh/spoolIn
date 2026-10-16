@@ -45,19 +45,7 @@ class PrivateRegistrationTest {
                     )
                 val mac = Mac.getInstance("HmacSHA256")
                 mac.init(SecretKeySpec(key, "HmacSHA256"))
-                fixture.owner.connection("core").use { connection ->
-                    val row =
-                        connection
-                            .queryBound(
-                                "SELECT request_hash,hash_key_id,row_to_json(r)::text AS receipt FROM appdata.operation_receipt r WHERE id=?",
-                                listOf(input.operationId),
-                            ) { Triple(it.getBytes("request_hash"), it.getString("hash_key_id"), it.getString("receipt")) }
-                            .single()
-                    assertArrayEquals(mac.doFinal(intent.serialized()), row.first)
-                    assertEquals("v1", row.second)
-                    listOf(input.name, input.email, "a@example.test", input.password, "argon2", submission.csrfToken)
-                        .forEach { assertFalse(row.third.contains(it)) }
-                }
+                inspectRegistrationReceipt(fixture, input, mac, intent, submission)
                 val replay = RegistrationInput(input.operationId, "", "a@example.test", "changed invalid password")
                 assertEquals(result, service.register(replay, submission, UUID.randomUUID()))
                 assertEquals(input.operationId, result.result?.resultId)
@@ -75,6 +63,37 @@ class PrivateRegistrationTest {
                 verifySignIn(fixture, hasher, receipts, submission, input)
             }
         }
+    }
+
+    private fun inspectRegistrationReceipt(
+        fixture: CryptoFixture,
+        input: RegistrationInput,
+        mac: Mac,
+        intent: com.spoolin.support.receipts.OperationIntent,
+        submission: AnonymousSubmission,
+    ) {
+        fixture.owner.connection("core").use { connection ->
+            val row =
+                connection
+                    .queryBound(
+                        "SELECT request_hash,hash_key_id,row_to_json(r)::text AS receipt FROM appdata.operation_receipt r WHERE id=?",
+                        listOf(input.operationId),
+                    ) { Triple(it.getBytes("request_hash"), it.getString("hash_key_id"), it.getString("receipt")) }
+                    .single()
+            assertArrayEquals(mac.doFinal(intent.serialized()), row.first)
+            assertEquals("v1", row.second)
+            assertPrivateValuesAbsent(
+                row.third,
+                listOf(input.name, input.email, "a@example.test", input.password, "argon2", submission.csrfToken),
+            )
+        }
+    }
+
+    private fun assertPrivateValuesAbsent(
+        row: String,
+        privateValues: List<String>,
+    ) {
+        privateValues.forEach { assertFalse(row.contains(it)) }
     }
 
     private fun verifySignIn(
@@ -107,8 +126,10 @@ class PrivateRegistrationTest {
                 ) { it.getString("receipt") }
             assertEquals(2, rows.size)
             rows.forEach { row ->
-                listOf(raw, registration.password, registration.email, registration.name, "argon2", submission.csrfToken)
-                    .forEach { assertFalse(row.contains(it)) }
+                assertPrivateValuesAbsent(
+                    row,
+                    listOf(raw, registration.password, registration.email, registration.name, "argon2", submission.csrfToken),
+                )
             }
         }
         assertEquals(2, fixture.scalar("SELECT count(*) FROM appdata.operation_receipt WHERE hash_key_id='v1'"))

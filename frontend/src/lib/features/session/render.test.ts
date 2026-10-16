@@ -60,3 +60,22 @@ it('checking conceals credentials and private projections', () => {
   expect(html).not.toContain('data-private');
   controller.dispose();
 });
+it('uncertain sign-out shows its actual status while keeping identity concealed', async () => {
+  const controller = await visitor();
+  const html = render(SessionMenu, {
+    props: {
+      controller,
+      session: {
+        ...controller.snapshot,
+        kind: 'uncertain',
+        identity: null,
+        message: 'Sign-out is not confirmed. Protected work stays concealed.',
+      },
+    },
+  }).body;
+  expect(html).toContain(
+    'Sign-out is not confirmed. Protected work stays concealed.',
+  );
+  expect(html).not.toContain('data-private');
+  controller.dispose();
+});

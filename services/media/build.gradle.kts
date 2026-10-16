@@ -55,3 +55,17 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
 }
 
 tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
+
+val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
+    setSource(files("src/integrationTest/kotlin/com/spoolin/media/operations/receipts"))
+    config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
+    buildUponDefaultConfig = false
+    ignoreFailures = false
+    reports {
+        xml.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.xml"))
+        txt.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.txt"))
+        html.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.html"))
+        sarif.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.sarif"))
+        md.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.md"))
+    }
+}

@@ -9,7 +9,9 @@
   }: { controller: SessionController; session: SessionState } = $props();
   let confirm = $state(false);
   const announcement = $derived(
-    session.kind === 'verified' || session.message === 'Signed out.'
+    session.kind === 'verified' ||
+      ['uncertain', 'expired', 'unavailable'].includes(session.kind) ||
+      session.message === 'Signed out.'
       ? session.message
       : '',
   );

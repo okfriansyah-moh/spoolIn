@@ -842,7 +842,9 @@
         "frontend/vitest.config.ts",
         "tests/browser/flows/shell/**/*.ts",
         "tests/browser/playwright.policy.config.ts",
-        "tests/browser/flows/policy/**/*.ts"
+        "tests/browser/flows/policy/**/*.ts",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/flows/account/**/*.ts"
       ],
       "argv": [
         "node",
@@ -864,7 +866,12 @@
         "tests/browser/flows/shell/shell.spec.ts",
         "tests/browser/playwright.policy.config.ts",
         "tests/browser/flows/policy/helpers.ts",
-        "tests/browser/flows/policy/policy.spec.ts"
+        "tests/browser/flows/policy/policy.spec.ts",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/flows/account/fixture.ts",
+        "tests/browser/flows/account/account.spec.ts",
+        "tests/browser/flows/account/boundaries.spec.ts",
+        "tests/browser/flows/account/guards.spec.ts"
       ],
       "required": true,
       "timeout_seconds": 1800
@@ -1297,6 +1304,52 @@
         "tests/browser/playwright.account.config.ts",
         "tests/browser/flows/account",
         "tests/browser/run-account.mjs"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "account-integration-thresholds",
+      "component": "core",
+      "stage": "fast",
+      "when": [
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/features/session/**",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/operations/receipts/**",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/admission/**",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/browser/**",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/NonceTlsFixture.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:accountIntegrationThresholds"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "catalog-receipt-integration-thresholds",
+      "component": "catalog",
+      "stage": "fast",
+      "when": [
+        "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:receiptIntegrationThresholds"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "media-receipt-integration-thresholds",
+      "component": "media",
+      "stage": "fast",
+      "when": [
+        "services/media/src/integrationTest/kotlin/com/spoolin/media/operations/receipts/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:receiptIntegrationThresholds"
       ],
       "required": true,
       "timeout_seconds": 1800

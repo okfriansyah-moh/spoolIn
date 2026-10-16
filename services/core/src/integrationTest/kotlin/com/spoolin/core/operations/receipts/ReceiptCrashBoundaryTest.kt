@@ -2,6 +2,7 @@ package com.spoolin.core.operations.receipts
 
 import com.spoolin.core.MigrationRunner
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
+import com.spoolin.core.features.crypto.executeBound
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -60,10 +61,8 @@ class ReceiptCrashBoundaryTest {
         fixture.grants("core")
         fixture.pool("core", "migrator").use { pool ->
             pool.connection.use { connection ->
-                connection.createStatement().use {
-                    it.execute("CREATE TABLE receipt_domain(value integer PRIMARY KEY)")
-                    it.execute("GRANT SELECT,INSERT ON receipt_domain TO spoolin_core_runtime")
-                }
+                connection.executeBound("CREATE TABLE receipt_domain(value integer PRIMARY KEY)")
+                connection.executeBound("GRANT SELECT,INSERT ON receipt_domain TO spoolin_core_runtime")
             }
         }
         fixture.membership("core", "revoke")

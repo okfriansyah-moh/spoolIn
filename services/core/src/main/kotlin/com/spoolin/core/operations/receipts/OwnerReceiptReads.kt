@@ -24,6 +24,20 @@ class OwnerReceiptReads(
                 .singleOrNull() ?: false
         }
 
+    fun isSignOut(
+        id: UUID,
+        actorScope: String,
+    ): Boolean =
+        dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT 1 FROM operation_receipt WHERE id=? AND actor_scope=? " +
+                        "AND receipt_type='REQUEST' AND kind='SignOut'",
+                    listOf(id, actorScope),
+                ) { true }
+                .singleOrNull() ?: false
+        }
+
     fun find(
         id: UUID,
         actorScope: String,

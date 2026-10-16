@@ -74,10 +74,11 @@ class OperationQueries(
         context: BrowserContext,
     ): Map<String, Any?>? {
         val principal = context.principal ?: return logout(selected, context)
-        return if (selected.owner == OperationOwner.CORE) {
-            local(selected.id, "account:${principal.accountId}")
-        } else {
-            remote(selected, context, principal)
+        val scope = "account:${principal.accountId}"
+        return when {
+            core(selected) && reads.isSignOut(selected.id, scope) -> logout(selected, context)
+            selected.owner == OperationOwner.CORE -> local(selected.id, scope)
+            else -> remote(selected, context, principal)
         }
     }
 
@@ -143,6 +144,12 @@ class OperationQueries(
             } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
                 null
             }
+        if (result?.state == com.spoolin.support.receipts.ReceiptState.SUCCEEDED) {
+            context.issue(
+                com.spoolin.core.features.session.SessionCredential
+                    .deletion(),
+            )
+        }
         return OperationRouter(ReceiptAuthority { scope }, { _, _ -> result }, catalog, media)
             .find(selected.id, OperationOwner.CORE)
     }

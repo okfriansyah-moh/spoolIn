@@ -14,6 +14,33 @@ export function credentials(): Credentials {
   if (!file) throw new Error('Protected browser input is required');
   return JSON.parse(readFileSync(file, 'utf8'));
 }
+async function observeStorage(context: BrowserContext) {
+  await context.addInitScript(() => {
+    const observations: boolean[] = [];
+    Object.defineProperty(window, '__accountStorageProof', {
+      value: observations,
+    });
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      observations.push(
+        this === localStorage &&
+          key === 'spoolin.theme' &&
+          (value === 'dark' || value === 'light'),
+      );
+      return set.call(this, key, value);
+    };
+    const get = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key: string) {
+      observations.push(this === localStorage && key === 'spoolin.theme');
+      return get.call(this, key);
+    };
+    const open = indexedDB.open.bind(indexedDB);
+    indexedDB.open = (...arguments_: Parameters<typeof open>) => {
+      observations.push(false);
+      return open(...arguments_);
+    };
+  });
+}
 export const test = base.extend<object, { accountContext: BrowserContext }>({
   accountContext: [
     async ({ playwright }, use) => {
@@ -53,6 +80,7 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
             reducedMotion: 'reduce',
           },
         );
+        await observeStorage(context);
         try {
           await use(context);
         } finally {

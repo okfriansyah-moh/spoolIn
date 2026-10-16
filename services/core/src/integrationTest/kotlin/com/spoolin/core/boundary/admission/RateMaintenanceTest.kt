@@ -1,5 +1,6 @@
 package com.spoolin.core.boundary.admission
 
+import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.ratelimit.RateMaintenance
 import com.spoolin.core.features.session.IdentityHttpFixture
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,13 +17,11 @@ class RateMaintenanceTest {
             val body = """{"query":"query { policy { revision } }"}"""
             assertEquals(200, fixture.request(body).statusCode())
             fixture.crypto.owner.connection("core").use { connection ->
-                connection.createStatement().use { statement ->
-                    statement.executeUpdate(
-                        "INSERT INTO appdata.request_rate_window(bucket_key,window_start,hits,expires_at) " +
-                            "VALUES (decode(repeat('00',32),'hex'),clock_timestamp()-interval '2 hours',1," +
-                            "clock_timestamp()-interval '1 hour')",
-                    )
-                }
+                connection.executeBound(
+                    "INSERT INTO appdata.request_rate_window(bucket_key,window_start,hits,expires_at) " +
+                        "VALUES (decode(repeat('00',32),'hex'),clock_timestamp()-interval '2 hours',1," +
+                        "clock_timestamp()-interval '1 hour')",
+                )
             }
             assertTrue(maintenance.ready())
             assertEquals(1, maintenance.purge())
