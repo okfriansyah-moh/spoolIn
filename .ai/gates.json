@@ -187,7 +187,8 @@
         ":services:core:koverXmlReport",
         "--rerun-tasks"
       ],
-      "required": true
+      "required": true,
+      "timeout_seconds": 1800
     },
     {
       "id": "catalog-ktlint",

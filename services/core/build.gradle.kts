@@ -51,7 +51,10 @@ dependencies {
 }
 
 kover {
-    currentProject { sources { includedSourceSets.add("main") } }
+    currentProject {
+        sources { includedSourceSets.add("main") }
+        instrumentation { disabledForTestTasks.add("accountBrowserFixture") }
+    }
 }
 
 tasks.named("koverXmlReport") { dependsOn("integrationTest", "architectureTest", cryptoIntegrationTest) }
