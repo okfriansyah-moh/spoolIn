@@ -39,7 +39,7 @@ class AccountGraphql(
         val input = requireNotNull(env.getArgument<Map<String, Any?>>("input"))
         val command = RegistrationInput(id(env), text(input, "name"), text(input, "email"), text(input, "password"))
         val submission = context.anonymous ?: throw CredentialRejected()
-        return mutation(registration.register(command, submission, context.correlation))
+        return mutation(registration.register(command, submission, context.correlation, context.request))
     }
 
     private fun signIn(env: DataFetchingEnvironment): Map<String, Any?> {
@@ -48,7 +48,7 @@ class AccountGraphql(
         val email = requireNotNull(env.getArgument<String>("email"))
         val password = requireNotNull(env.getArgument<String>("password"))
         val input = LoginInput(id(env), email, password)
-        val result = login.signIn(input, submission, context.credential, context.correlation)
+        val result = login.signIn(input, submission, context.credential, context.correlation, context.request)
         result.issued?.let { context.issue(it.cookie()) }
         return mutation(result.outcome)
     }
@@ -57,7 +57,7 @@ class AccountGraphql(
         val context = context(env)
         val credential = context.credential ?: throw CredentialRejected()
         val csrf = context.csrf ?: throw CredentialRejected()
-        val result = logout.signOut(id(env), credential, csrf, context.correlation)
+        val result = logout.signOut(id(env), credential, csrf, context.correlation, context.request)
         if (result.state == ReceiptState.SUCCEEDED) context.issue(SessionCredential.deletion())
         return mutation(result)
     }

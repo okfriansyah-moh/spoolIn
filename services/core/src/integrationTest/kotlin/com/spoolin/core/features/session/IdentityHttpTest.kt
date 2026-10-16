@@ -14,6 +14,8 @@ class IdentityHttpTest {
     @Test
     fun `trusted HTTPS identities deliver credentials only through scoped headers`() {
         IdentityHttpFixture(true).use { fixture ->
+            val policy = fixture.request(envelope("query { policy { revision } }"))
+            assertTrue(policy.headers().allValues("Set-Cookie").isEmpty())
             val csrf = bootstrap(fixture)
             val missingOrigin = fixture.request(envelope("query { policy { revision } }"), originValue = null)
             assertEquals(403, missingOrigin.statusCode())

@@ -20,7 +20,9 @@ private fun invalidEnvelope(): Nothing = throw InputViolation("request", ENVELOP
 class GraphqlEnvelope(
     private val policy: PublicPolicy,
 ) {
-    fun parse(input: Map<String, Any?>): ExecutionInput {
+    fun parse(input: Map<String, Any?>): ExecutionInput = prepare(input).execution
+
+    fun prepare(input: Map<String, Any?>): PreparedGraphql {
         val query = query(input)
         val name = input["operationName"]
         if (name != null && name !is String) invalidEnvelope()
@@ -32,18 +34,22 @@ class GraphqlEnvelope(
         val fragments = document.getDefinitionsOfType(FragmentDefinition::class.java).associateBy { it.name }
         val budget = SelectionBudget(policy.requestLimits, fragments)
         budget.count(operation.selectionSet)
-        checkBody(input, operation, budget.roots(operation.selectionSet))
-        return ExecutionInput
-            .newExecutionInput(query)
-            .operationName(name as? String)
-            .variables(variables)
-            .build()
+        val roots = budget.roots(operation.selectionSet)
+        checkBody(input, operation, roots)
+        val execution =
+            ExecutionInput
+                .newExecutionInput(query)
+                .operationName(name as? String)
+                .variables(variables)
+                .build()
+        val mutation = operation.operation == OperationDefinition.Operation.MUTATION
+        return PreparedGraphql(execution, mutation, roots.map { it.name })
     }
 
     private fun query(input: Map<String, Any?>): String {
         if (input.keys.any { it !in setOf("query", "operationName", "variables") }) invalidEnvelope()
         val query = input["query"] as? String ?: invalidEnvelope()
-        if (query.toByteArray(Charsets.UTF_8).size > limit("graphqlQueryBytes")) invalidEnvelope()
+        if (query.toByteArray(Charsets.UTF_8).size > limit("graphqlQueryBytes")) throw GraphqlSizeExceeded()
         return query
     }
 
@@ -61,7 +67,7 @@ class GraphqlEnvelope(
         if (operation.operation == OperationDefinition.Operation.MUTATION && root.size != 1) invalidEnvelope()
         val upload = root.singleOrNull()?.name == "uploadArtwork"
         val bytes = PolicyJson.encode(input).toByteArray(Charsets.UTF_8).size
-        if (bytes > limit(if (upload) "uploadEnvelopeBytes" else "metadataBytes")) invalidEnvelope()
+        if (bytes > limit(if (upload) "uploadEnvelopeBytes" else "metadataBytes")) throw GraphqlSizeExceeded()
     }
 
     private fun limit(name: String): Int = policy.requestLimits.getValue(name)
@@ -126,3 +132,11 @@ private class SelectionBudget(
 
     private fun limit(name: String): Int = limits.getValue(name)
 }
+
+data class PreparedGraphql(
+    val execution: ExecutionInput,
+    val mutation: Boolean,
+    val roots: List<String>,
+)
+
+class GraphqlSizeExceeded : IllegalArgumentException("GraphQL request is too large")

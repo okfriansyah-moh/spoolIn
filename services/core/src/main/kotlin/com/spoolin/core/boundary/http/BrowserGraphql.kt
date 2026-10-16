@@ -1,13 +1,11 @@
 package com.spoolin.core.boundary.http
 
 import com.spoolin.core.boundary.graphql.GraphqlEnvelope
+import com.spoolin.core.boundary.graphql.GraphqlSizeExceeded
 import com.spoolin.core.boundary.graphql.PolicyGraphql
 import com.spoolin.core.features.account.application.AuthenticationDenied
 import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.support.policy.PolicyJson
-import graphql.language.Field
-import graphql.language.OperationDefinition
-import graphql.parser.Parser
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -28,21 +26,27 @@ class BrowserGraphql(
     fun execute(request: HttpServletRequest): ResponseEntity<Map<String, Any?>> =
         try {
             boundary.check(request)
-            val input = body(request)
-            val parsed = GraphqlEnvelope(policy.policy).parse(input)
-            val document = Parser().parseDocument(parsed.query)
-            val operation = document.getDefinitionsOfType(OperationDefinition::class.java).single()
-            val mutation = operation.operation == OperationDefinition.Operation.MUTATION
-            val roots = operation.selectionSet.selections.filterIsInstance<Field>()
-            val logoutOnly = roots.size == 1 && roots.single().name == "signOut"
+            val body = body(request)
+            val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
+            val upload = parsed.roots.singleOrNull() == "uploadArtwork"
+            val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
+            if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
             val identities = identity.ifAvailable ?: throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
-            val context = identities.context(request, mutation, logoutOnly)
-            val result = graphql.execute(input, context)
+            val context =
+                identities.context(
+                    request,
+                    parsed.mutation,
+                    parsed.roots == listOf("signOut"),
+                    "session" in parsed.roots,
+                )
+            val result = graphql.execute(body.input, context)
             val headers = HttpHeaders()
             context.cookies().forEach { headers.add(HttpHeaders.SET_COOKIE, it) }
             ResponseEntity.status(status(result)).headers(headers).body(result)
         } catch (failure: BrowserRejected) {
             failure(failure.status)
+        } catch (_: GraphqlSizeExceeded) {
+            failure(BrowserBoundary.TOO_LARGE)
         } catch (_: AuthenticationDenied) {
             failure(BrowserBoundary.UNAVAILABLE)
         } catch (_: IllegalArgumentException) {
@@ -59,20 +63,36 @@ class BrowserGraphql(
         }
     }
 
-    private fun body(request: HttpServletRequest): Map<String, Any?> {
+    private fun body(request: HttpServletRequest): GraphqlBody {
         val maximum = policy.policy.requestLimits.getValue("uploadEnvelopeBytes")
         val bytes = request.inputStream.readNBytes(maximum + 1)
         if (bytes.size > maximum) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
-        val mapper = JsonMapper.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build()
+        val constraints =
+            tools.jackson.core.StreamReadConstraints
+                .builder()
+                .maxNestingDepth(policy.policy.requestLimits.getValue("maxDepth") + JSON_ENVELOPE_DEPTH)
+                .build()
+        val factory =
+            tools.jackson.core.json.JsonFactory
+                .builder()
+                .streamReadConstraints(constraints)
+                .build()
+        val mapper = JsonMapper.builder(factory).enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build()
         val input =
             try {
-                mapper.readValue(bytes, object : TypeReference<Map<String, Any?>>() {})
+                requireNotNull(mapper.readValue(bytes, object : TypeReference<Map<String, Any?>>() {}))
             } catch (_: tools.jackson.core.JacksonException) {
-                throw BrowserRejected(BrowserBoundary.BAD_REQUEST)
+                invalidBody()
             }
-        PolicyJson.encode(input)
-        return input
+        try {
+            PolicyJson.encode(input)
+        } catch (_: IllegalStateException) {
+            invalidBody()
+        }
+        return GraphqlBody(input, bytes.size)
     }
+
+    private fun invalidBody(): Nothing = throw BrowserRejected(BrowserBoundary.BAD_REQUEST)
 
     private fun failure(status: Int): ResponseEntity<Map<String, Any?>> =
         ResponseEntity.status(status).body(
@@ -82,3 +102,10 @@ class BrowserGraphql(
 
 private const val HTTP_OK = 200
 private const val TOO_MANY_REQUESTS = 429
+
+private class GraphqlBody(
+    val input: Map<String, Any?>,
+    val size: Int,
+)
+
+private const val JSON_ENVELOPE_DEPTH = 4

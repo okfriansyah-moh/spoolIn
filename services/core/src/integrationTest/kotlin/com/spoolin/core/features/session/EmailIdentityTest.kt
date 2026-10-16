@@ -104,6 +104,6 @@ class EmailIdentityTest {
             hasher,
             IdentityRules(),
             OwnerReceipts(fixture.pool, IntentHashes(mapOf("v1" to ByteArray(32) { 17 }), "v1")),
-            AuthenticationAdmission { _, _ -> },
+            AuthenticationAdmission { _, _, _ -> },
         )
 }

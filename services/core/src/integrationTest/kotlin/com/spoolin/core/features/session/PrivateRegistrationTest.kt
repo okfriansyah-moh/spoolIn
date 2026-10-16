@@ -28,7 +28,7 @@ class PrivateRegistrationTest {
             PasswordHasher(Argon2Engine()).use { hasher ->
                 val key = ByteArray(32) { 17 }
                 val receipts = OwnerReceipts(fixture.pool, IntentHashes(mapOf("v1" to key), "v1"))
-                val service = RegisterAccount(fixture.accounts, hasher, IdentityRules(), receipts, AuthenticationAdmission { _, _ -> })
+                val service = RegisterAccount(fixture.accounts, hasher, IdentityRules(), receipts, AuthenticationAdmission { _, _, _ -> })
                 val submission = AnonymousCsrf(ByteArray(32) { 11 }).issue()
                 val input = RegistrationInput(UUID.randomUUID(), "Private Name Canary", "A@Example.test", "private exact password canary")
                 val result = service.register(input, submission, UUID.randomUUID())

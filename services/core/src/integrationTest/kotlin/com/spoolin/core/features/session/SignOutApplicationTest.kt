@@ -31,7 +31,7 @@ class SignOutApplicationTest {
             val issued = fixture.pool.committed { sessions.issue(it, id, 0, null) }
             val credential = requireNotNull(SessionCredential.parse(issued.cookie().substringAfter('=').substringBefore(';')))
             val receipts = OwnerReceipts(fixture.pool, IntentHashes(mapOf("v1" to ByteArray(32) { 11 }), "v1"))
-            val service = SignOutAccount(sessions, receipts, AuthenticationAdmission { _, _ -> })
+            val service = SignOutAccount(sessions, receipts, AuthenticationAdmission { _, _, _ -> })
             val operation = UUID.randomUUID()
             assertThrows(CredentialRejected::class.java) { service.signOut(operation, credential, "wrong", UUID.randomUUID()) }
             val result = service.signOut(operation, credential, issued.principal.csrfToken, UUID.randomUUID())

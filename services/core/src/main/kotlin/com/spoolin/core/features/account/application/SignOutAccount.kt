@@ -20,8 +20,9 @@ class SignOutAccount(
         credential: SessionCredential,
         csrf: String,
         correlation: UUID,
+        request: AuthenticationRequest = AuthenticationRequest.unavailable,
     ): ReceiptOutcome {
-        admission.check(AuthenticationAction.SIGN_OUT, "session")
+        admission.check(AuthenticationAction.SIGN_OUT, null, request)
         val target = sessions.logoutIdentity(credential, csrf) ?: throw CredentialRejected()
         val intent =
             OperationIntent(

@@ -42,6 +42,7 @@ class SignInApplicationTest {
                         AuthenticationAdmission {
                             _,
                             _,
+                            _,
                             ->
                         },
                     )

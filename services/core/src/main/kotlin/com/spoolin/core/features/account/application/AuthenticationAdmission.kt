@@ -7,10 +7,11 @@ class AuthenticationDenied : IllegalStateException("Authentication admission is 
 fun interface AuthenticationAdmission {
     fun check(
         action: AuthenticationAction,
-        identity: String,
+        identity: String?,
+        request: AuthenticationRequest,
     )
 
     companion object {
-        val unavailable = AuthenticationAdmission { _, _ -> throw AuthenticationDenied() }
+        val unavailable = AuthenticationAdmission { _, _, _ -> throw AuthenticationDenied() }
     }
 }

@@ -24,7 +24,7 @@ import java.time.Duration
 class AdmittedIdentityFixture {
     @Bean
     @Primary
-    fun fixtureAdmission(): AuthenticationAdmission = AuthenticationAdmission { _, _ -> }
+    fun fixtureAdmission(): AuthenticationAdmission = AuthenticationAdmission { _, _, _ -> }
 }
 
 class IdentityHttpFixture(
@@ -64,7 +64,7 @@ class IdentityHttpFixture(
                 .header("X-Spoolin-Client", "web")
                 .timeout(Duration.ofSeconds(5))
         originValue?.let { builder.header("Origin", it) }
-        csrf?.let { builder.header("X-CSRF", it) }
+        csrf?.let { builder.header("X-CSRF-Token", it) }
         if (cookies.isNotEmpty()) builder.header("Cookie", cookies.entries.joinToString("; ") { "${it.key}=${it.value}" })
         val response = client.send(builder.POST(HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString())
         response.headers().allValues("Set-Cookie").forEach {
@@ -72,6 +72,48 @@ class IdentityHttpFixture(
             if (pair[1].isEmpty()) cookies.remove(pair[0]) else cookies[pair[0]] = pair[1]
         }
         return response
+    }
+
+    fun raw(
+        body: String,
+        headers: Map<String, String>,
+        method: String = "POST",
+        repeatCsrf: String? = null,
+    ): HttpResponse<String> {
+        val builder = HttpRequest.newBuilder(URI("$origin/graphql")).timeout(Duration.ofSeconds(5))
+        headers.forEach { (name, value) -> builder.header(name, value) }
+        repeatCsrf?.let { builder.header("X-CSRF-Token", it) }
+        return client.send(
+            builder.method(method, HttpRequest.BodyPublishers.ofString(body)).build(),
+            HttpResponse.BodyHandlers.ofString(),
+        )
+    }
+
+    fun wrongHost(): Pair<Int, Map<String, String>> {
+        val socket = client.sslContext().socketFactory.createSocket("localhost", port) as javax.net.ssl.SSLSocket
+        socket.use {
+            val parameters = it.sslParameters
+            parameters.endpointIdentificationAlgorithm = "HTTPS"
+            it.sslParameters = parameters
+            it.soTimeout = 5000
+            it.startHandshake()
+            val body = """{"query":"query { policy { revision } }"}"""
+            val message =
+                "POST /graphql HTTP/1.1\r\nHost: foreign.example\r\nConnection: close\r\n" +
+                    "Origin: $origin\r\nX-Spoolin-Client: web\r\nContent-Type: application/json\r\n" +
+                    "Content-Length: ${body.toByteArray(Charsets.UTF_8).size}\r\n\r\n$body"
+            it.outputStream.write(message.toByteArray(Charsets.UTF_8))
+            it.outputStream.flush()
+            val reader = it.inputStream.bufferedReader()
+            val status = reader.readLine().split(' ')[1].toInt()
+            val headers = mutableMapOf<String, String>()
+            var line = reader.readLine()
+            while (!line.isNullOrEmpty()) {
+                headers[line.substringBefore(':').lowercase()] = line.substringAfter(':').trim()
+                line = reader.readLine()
+            }
+            return status to headers
+        }
     }
 
     private fun configuration(): List<String> {

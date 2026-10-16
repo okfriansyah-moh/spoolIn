@@ -28,7 +28,7 @@ class RegistrationApplicationTest {
                 assertThrows(AuthenticationDenied::class.java) { denied.register(input, submission, UUID.randomUUID()) }
                 assertEquals(0, fixture.scalar("SELECT count(*) FROM appdata.user_account"))
                 assertEquals(0, fixture.scalar("SELECT count(*) FROM appdata.operation_receipt"))
-                val admitted = RegisterAccount(fixture.accounts, hasher, rules, receipts, AuthenticationAdmission { _, _ -> })
+                val admitted = RegisterAccount(fixture.accounts, hasher, rules, receipts, AuthenticationAdmission { _, _, _ -> })
                 val result = admitted.register(input, submission, UUID.randomUUID())
                 val changed = RegistrationInput(input.operationId, "", "a@example.org", "invalid")
                 assertEquals(result, admitted.register(changed, submission, UUID.randomUUID()))

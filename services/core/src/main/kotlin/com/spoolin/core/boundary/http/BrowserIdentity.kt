@@ -1,5 +1,6 @@
 package com.spoolin.core.boundary.http
 
+import com.spoolin.core.features.account.application.AuthenticationRequest
 import com.spoolin.core.features.session.AnonymousCsrf
 import com.spoolin.core.features.session.SessionCredential
 import com.spoolin.core.features.session.SessionCsrf
@@ -15,6 +16,7 @@ class BrowserIdentity(
         request: HttpServletRequest,
         mutation: Boolean,
         logoutOnly: Boolean,
+        bootstrap: Boolean = true,
     ): BrowserContext {
         val cookies = request.cookies.orEmpty().groupBy { it.name }
         if (cookies.values.any { it.size != 1 }) throw BrowserRejected(BrowserBoundary.FORBIDDEN)
@@ -23,13 +25,29 @@ class BrowserIdentity(
         val credential = SessionCredential.parse(cookie("__Host-spoolin_session"))
         val principal = credential?.let(sessions::find)
         val submission = anonymous.verify(cookie("__Host-spoolin_registration"), cookie("__Host-spoolin_csrf"))
-        val supplied = request.getHeaders("X-CSRF").toList().singleOrNull()
-        val context = BrowserContext(principal, submission, credential, supplied)
+        val supplied = request.getHeaders("X-CSRF-Token").toList().singleOrNull()
+        val observed = BrowserContext(principal, submission, credential, supplied)
+        val authority = authority(request, observed, logoutOnly)
+        val context = BrowserContext(principal, submission, credential, supplied, authority)
         if (mutation && !permitted(context, logoutOnly)) throw BrowserRejected(BrowserBoundary.FORBIDDEN)
         val current = submission ?: anonymous.issue()
-        val result = BrowserContext(principal, current, credential, supplied)
-        if (submission == null && !mutation) current.cookies().forEach(result::issue)
+        val result = BrowserContext(principal, current, credential, supplied, authority)
+        if (submission == null && !mutation && bootstrap) current.cookies().forEach(result::issue)
         return result
+    }
+
+    private fun authority(
+        request: HttpServletRequest,
+        context: BrowserContext,
+        logoutOnly: Boolean,
+    ): AuthenticationRequest {
+        val retained =
+            if (context.principal == null && logoutOnly && context.credential != null) {
+                sessions.logoutIdentity(context.credential, context.csrf.orEmpty())
+            } else {
+                null
+            }
+        return AuthenticationRequest(request.remoteAddr, context.principal?.id ?: retained?.sessionId)
     }
 
     private fun permitted(

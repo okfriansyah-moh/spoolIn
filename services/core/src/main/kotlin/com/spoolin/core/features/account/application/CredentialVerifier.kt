@@ -14,6 +14,8 @@ class CredentialVerifier(
     private val hasher: PasswordHasher,
     private val rules: IdentityRules,
 ) {
+    fun normalizedEmail(email: String): String = rules.normalizedEmail(email)
+
     fun verify(
         email: String,
         password: String,

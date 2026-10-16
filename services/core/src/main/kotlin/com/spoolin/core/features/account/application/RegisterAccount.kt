@@ -33,8 +33,9 @@ class RegisterAccount(
         input: RegistrationInput,
         submission: AnonymousSubmission,
         correlation: UUID,
+        request: AuthenticationRequest = AuthenticationRequest.unavailable,
     ): ReceiptOutcome {
-        admission.check(AuthenticationAction.REGISTER, input.email)
+        admission.check(AuthenticationAction.REGISTER, null, request)
         val email = rules.normalizedEmail(input.email)
         val intent =
             RegistrationIntent.create(

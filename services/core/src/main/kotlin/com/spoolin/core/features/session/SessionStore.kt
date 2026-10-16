@@ -31,7 +31,7 @@ class SessionStore(
         id: UUID = UUID.randomUUID(),
     ): IssuedSession {
         val account = issuanceAccount(connection, accountId, previous)
-        check(account.second == expectedEpoch) { "Credential authority changed" }
+        check(account.authEpoch == expectedEpoch) { "Credential authority changed" }
         val now = clock.instant()
         retire(connection, accountId, previous, now)
         val credential = SessionCredential.issue()
@@ -50,7 +50,7 @@ class SessionStore(
             Timestamp.from(now),
             Timestamp.from(expires),
         )
-        return IssuedSession(SessionPrincipal(id, accountId, account.first, expires, token), credential)
+        return IssuedSession(SessionPrincipal(id, account, expires, token), credential)
     }
 
     fun find(credential: SessionCredential): SessionPrincipal? =
@@ -63,7 +63,7 @@ class SessionStore(
                     ) { it.getObject("account_id", UUID::class.java) }
                     .singleOrNull() ?: return@committed null
             val account = lockAccount(connection, accountId)
-            verified(connection, credential, accountId, account)
+            verified(connection, credential, account)
         }
 
     fun logoutIdentity(
@@ -109,8 +109,7 @@ class SessionStore(
     private fun verified(
         connection: Connection,
         credential: SessionCredential,
-        accountId: UUID,
-        account: Pair<AccountRole, Long>,
+        account: SessionAccount,
     ): SessionPrincipal? {
         val stored =
             connection
@@ -132,7 +131,8 @@ class SessionStore(
                 }.singleOrNull() ?: return null
         val now = clock.instant()
         val token = csrf.derive(credential)
-        return if (stored.window.eligible(now, stored.epoch, account.second) && csrf.matches(token, stored.csrfHash)) {
+        val eligible = stored.window.eligible(now, stored.epoch, account.authEpoch)
+        return if (eligible && csrf.matches(token, stored.csrfHash)) {
             if (stored.window.shouldTouch(now)) {
                 connection.executeBound(
                     "UPDATE browser_session SET last_seen_at=? WHERE id=?",
@@ -140,7 +140,7 @@ class SessionStore(
                     stored.id,
                 )
             }
-            SessionPrincipal(stored.id, accountId, account.first, stored.window.expires, token)
+            SessionPrincipal(stored.id, account, stored.window.expires, token)
         } else {
             null
         }
@@ -149,17 +149,17 @@ class SessionStore(
     private fun lockAccount(
         connection: Connection,
         id: UUID,
-    ): Pair<AccountRole, Long> =
+    ): SessionAccount =
         connection
             .queryBound("SELECT role,auth_epoch FROM user_account WHERE id=? FOR UPDATE", listOf(id)) {
-                AccountRole.valueOf(it.getString("role")) to it.getLong("auth_epoch")
+                SessionAccount(id, AccountRole.valueOf(it.getString("role")), it.getLong("auth_epoch"))
             }.single()
 
     private fun issuanceAccount(
         connection: Connection,
         accountId: UUID,
         previous: SessionCredential?,
-    ): Pair<AccountRole, Long> {
+    ): SessionAccount {
         val prior =
             previous?.let { credential ->
                 connection

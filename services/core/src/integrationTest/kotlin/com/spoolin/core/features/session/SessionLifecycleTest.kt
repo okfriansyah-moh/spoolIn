@@ -60,6 +60,28 @@ class SessionLifecycleTest {
         }
     }
 
+    @Test
+    fun `absolute eligibility ends before purge even after recent activity`() {
+        CryptoFixture("t006-session-absolute-expiry.json").use { fixture ->
+            val id = seed(fixture, "a@example.test")
+            val now = Instant.parse("2026-10-20T00:00:00Z")
+            val csrf = SessionCsrf(ByteArray(32) { 11 })
+            val store = SessionStore(fixture.pool, csrf, Clock.fixed(now, ZoneOffset.UTC))
+            val issued = fixture.pool.committed { store.issue(it, id, 0, null) }
+            fixture.pool.connection.use { connection ->
+                connection.createStatement().use {
+                    it.executeUpdate("UPDATE appdata.browser_session SET last_seen_at=expires_at - INTERVAL '1 minute'")
+                }
+            }
+            val cutoff = now.plusSeconds(43200)
+            val before = SessionStore(fixture.pool, csrf, Clock.fixed(cutoff.minusNanos(1000), ZoneOffset.UTC))
+            org.junit.jupiter.api.Assertions
+                .assertNotNull(before.find(credential(issued)))
+            assertNull(SessionStore(fixture.pool, csrf, Clock.fixed(cutoff, ZoneOffset.UTC)).find(credential(issued)))
+            assertEquals(1, fixture.scalar("SELECT count(*) FROM appdata.browser_session"))
+        }
+    }
+
     private fun credential(issued: IssuedSession): SessionCredential =
         requireNotNull(SessionCredential.parse(issued.cookie().substringAfter('=').substringBefore(';')))
 

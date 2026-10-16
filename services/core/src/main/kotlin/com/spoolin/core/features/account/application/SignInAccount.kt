@@ -36,9 +36,11 @@ class SignInAccount(
         submission: AnonymousSubmission,
         previous: SessionCredential?,
         correlation: UUID,
+        request: AuthenticationRequest = AuthenticationRequest.unavailable,
     ): LoginResult {
-        admission.check(AuthenticationAction.SIGN_IN, input.email)
-        val account = verifier.verify(input.email, input.password)
+        val identity = verifier.normalizedEmail(input.email)
+        admission.check(AuthenticationAction.SIGN_IN, identity, request)
+        val account = verifier.verify(identity, input.password)
         val intent =
             OperationIntent(
                 input.operationId,
