@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -114,6 +114,7 @@
     outcome = null;
     if (errors.length) return;
     busy = true;
+    await tick();
     try {
       await apply(await controller.submit(input));
     } catch {

@@ -124,3 +124,99 @@ it('a confirmed failure before revocation retains the known active identity', as
     message: 'Sign-out did not complete.',
   });
 });
+it.each([true, false])(
+  'confirmed HTTP rejection rechecks actual authority (%s)',
+  async (authenticated) => {
+    const source = vi
+      .fn<SessionSource['bootstrap']>()
+      .mockResolvedValueOnce(bootstrap())
+      .mockResolvedValue(bootstrap(authenticated));
+    const controller = new SessionController({
+      bootstrap: source,
+      signOut: async () => {
+        throw new TransportFailure('rejected');
+      },
+    });
+    await controller.check();
+    await controller.signOut();
+    expect(controller.snapshot.kind).toBe(
+      authenticated ? 'verified' : 'expired',
+    );
+    expect(controller.snapshot.message).not.toBe('Signed out.');
+    controller.dispose();
+  },
+);
+it('an unavailable rejection recheck keeps logout uncertain', async () => {
+  const source = vi
+    .fn<SessionSource['bootstrap']>()
+    .mockResolvedValueOnce(bootstrap())
+    .mockRejectedValue(new Error('offline'));
+  const controller = new SessionController({
+    bootstrap: source,
+    signOut: async () => {
+      throw new TransportFailure('rejected');
+    },
+  });
+  await controller.check();
+  await controller.signOut();
+  expect(controller.snapshot.kind).toBe('uncertain');
+  controller.dispose();
+});
+it('a failed original logout receipt restores only the same current account', async () => {
+  const controller = new SessionController({
+    bootstrap: async () => bootstrap(),
+    signOut: async (id) => result(id, 'PENDING'),
+    operation: async (id) => result(id, 'FAILED'),
+  });
+  await controller.check();
+  await controller.signOut();
+  await controller.check();
+  expect(controller.snapshot).toMatchObject({
+    kind: 'verified',
+    identity: { accountId },
+    message: 'Sign-out did not complete.',
+  });
+  controller.dispose();
+});
+it.each([true, false])(
+  'fresh sign-in preparation keeps old logout unconfirmed even when authenticated=%s',
+  async (authenticated) => {
+    const source = vi
+      .fn<SessionSource['bootstrap']>()
+      .mockResolvedValueOnce(bootstrap())
+      .mockResolvedValue(bootstrap(authenticated));
+    const controller = new SessionController({
+      bootstrap: source,
+      signOut: async (id) => result(id, 'PENDING'),
+    });
+    await controller.check();
+    await controller.signOut();
+    await controller.prepareSignIn();
+    expect(controller.snapshot.identity).toBeNull();
+    expect(controller.snapshot.message).not.toBe('Signed out.');
+    expect(controller.hasUnconfirmedLogout).toBe(true);
+    controller.dispose();
+  },
+);
+it('unavailable sign-in preparation and receipt lookup preserve concealed uncertain logout', async () => {
+  const source = vi
+    .fn<SessionSource['bootstrap']>()
+    .mockResolvedValueOnce(bootstrap())
+    .mockRejectedValue(new Error('offline'));
+  const controller = new SessionController({
+    bootstrap: source,
+    signOut: async (id) => result(id, 'PENDING'),
+    operation: async () => {
+      throw new Error('offline');
+    },
+  });
+  await controller.check();
+  await controller.signOut();
+  await controller.prepareSignIn();
+  await controller.reconcileSignOut();
+  expect(controller.snapshot).toMatchObject({
+    kind: 'uncertain',
+    identity: null,
+  });
+  controller.dispose();
+});

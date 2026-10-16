@@ -106,3 +106,37 @@ val admissionIntegrationTest by tasks.registering(Test::class) {
 }
 
 tasks.named("koverXmlReport") { dependsOn(admissionIntegrationTest) }
+
+val buildAccountFrontend by tasks.registering(Exec::class) {
+    workingDir(rootProject.projectDir)
+    commandLine("npm", "run", "build", "--workspace", "frontend")
+    inputs.dir(rootProject.file("frontend/src"))
+    inputs.files(rootProject.file("frontend/package.json"), rootProject.file("package-lock.json"))
+    inputs.dir(rootProject.file("build-tools/verification-tests"))
+    outputs.dir(rootProject.file("frontend/build"))
+}
+val stageAccountFrontend by tasks.registering(Sync::class) {
+    dependsOn(buildAccountFrontend)
+    from(rootProject.file("frontend/build")) { into("static") }
+    into(layout.buildDirectory.dir("frontend-runtime"))
+}
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    dependsOn(stageAccountFrontend)
+    from(stageAccountFrontend) { into("BOOT-INF/classes") }
+}
+val accountBrowserFixture by tasks.registering(Test::class) {
+    dependsOn("integrationTestClasses", stageAccountFrontend)
+    testClassesDirs = bootstrapTests.output.classesDirs
+    classpath =
+        files(
+            stageAccountFrontend,
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.core.browser.AccountBrowserFixtureTest") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("account.browser.handoff", rootProject.file(".ai/state/account-browser-public.json").absolutePath)
+    outputs.upToDateWhen { false }
+}

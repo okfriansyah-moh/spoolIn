@@ -447,18 +447,32 @@ class ListenerBoundary(
 
 @RestController
 class FrontendNavigation {
-    @GetMapping("/", "/movies", "/people", produces = [MediaType.TEXT_HTML_VALUE])
+    @GetMapping(
+        "/",
+        "/movies",
+        "/people",
+        "/sign-in",
+        "/register",
+        "/manage",
+        "/manage/movies",
+        "/manage/people",
+        "/manage/archives",
+        "/manage/audit",
+        produces = [MediaType.TEXT_HTML_VALUE],
+    )
     fun navigation(): ResponseEntity<ByteArray> {
         val resource = ClassPathResource("static/200.html")
         if (!resource.exists()) return ResponseEntity.notFound().build()
+        val bytes = resource.contentAsByteArray
         return ResponseEntity
             .ok()
             .contentType(
                 MediaType.TEXT_HTML,
             ).header(
                 "Content-Security-Policy",
-                "default-src 'self'; object-src 'none'; frame-ancestors 'none'",
-            ).body(resource.contentAsByteArray)
+                com.spoolin.core.boundary.FrontendPolicy
+                    .forHtml(bytes),
+            ).body(bytes)
     }
 
     @GetMapping("/movies/{id}", "/people/{id}", produces = [MediaType.TEXT_HTML_VALUE])

@@ -4,7 +4,10 @@ import { SessionController } from './controller';
 import type { SessionBootstrap, SessionSource } from './types';
 const firstId = '10000000-0000-4000-8000-000000000001';
 const secondId = '20000000-0000-4000-8000-000000000002';
-function response(accountId = firstId): SessionBootstrap {
+function response(
+  accountId = firstId,
+  expiresAt = '2099-01-01T00:00:00Z',
+): SessionBootstrap {
   return {
     policy: specimenPolicy(),
     session: {
@@ -12,7 +15,7 @@ function response(accountId = firstId): SessionBootstrap {
       role: 'MAINTAINER',
       accountId,
       displayName: 'A Person',
-      expiresAt: '2099-01-01T00:00:00Z',
+      expiresAt,
       csrfToken: 'A'.repeat(43),
     },
   };
@@ -73,10 +76,8 @@ it('conceals an expired session and cancels an older account expiry', async () =
   vi.useFakeTimers();
   try {
     const initial = Date.now();
-    const first = response();
-    first.session.expiresAt = new Date(initial + 1000).toISOString();
-    const second = response(secondId);
-    second.session.expiresAt = new Date(initial + 3000).toISOString();
+    const first = response(firstId, new Date(initial + 1000).toISOString());
+    const second = response(secondId, new Date(initial + 3000).toISOString());
     const bootstrap = vi
       .fn<SessionSource['bootstrap']>()
       .mockResolvedValueOnce(first)
