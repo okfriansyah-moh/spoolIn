@@ -52,6 +52,7 @@ class PolicyGraphql(
 
     private fun authenticationFailure(failure: Throwable): String =
         when (failure) {
+            is com.spoolin.core.features.ratelimit.RateLimited -> "RATE_LIMITED"
             is com.spoolin.core.features.account.application.CredentialRejected -> "UNAUTHENTICATED"
             is com.spoolin.core.features.account.persistence.AccountIdentityConflict -> "FIELD_INVALID"
             is IllegalArgumentException -> "FIELD_INVALID"
@@ -59,6 +60,15 @@ class PolicyGraphql(
             is com.spoolin.core.features.account.application.AuthenticationDeadlineExceeded -> "DEADLINE_EXCEEDED"
             else -> "UNAVAILABLE"
         }
+
+    private fun failureDetails(errors: List<graphql.GraphQLError>): Map<String, Any?> {
+        val exception = errors.filterIsInstance<graphql.ExceptionWhileDataFetching>().firstOrNull()?.exception
+        val details = mutableMapOf<String, Any?>("code" to failureCode(errors))
+        if (exception is com.spoolin.core.features.ratelimit.RateLimited) {
+            details["retryAfterMs"] = exception.retryAfterMs
+        }
+        return details
+    }
 
     fun execute(
         input: Map<String, Any?>,
@@ -82,7 +92,7 @@ class PolicyGraphql(
                     listOf(
                         mapOf(
                             "message" to "The request could not be completed.",
-                            "extensions" to mapOf("code" to failureCode(result?.errors.orEmpty())),
+                            "extensions" to failureDetails(result?.errors.orEmpty()),
                         ),
                     ),
             )

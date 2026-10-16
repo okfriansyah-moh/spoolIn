@@ -23,6 +23,7 @@ class BrowserGraphql(
     private val boundary: BrowserBoundary,
     private val identity: org.springframework.beans.factory.ObjectProvider<BrowserIdentity>,
     private val requests: BrowserRequests,
+    private val admission: org.springframework.beans.factory.ObjectProvider<BrowserAdmission>,
 ) {
     @RequestMapping("/graphql")
     fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> =
@@ -33,25 +34,11 @@ class BrowserGraphql(
         deadline: Long,
     ): ResponseEntity<Map<String, Any?>> =
         try {
-            boundary.check(request)
-            val body = body(request)
-            val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
-            val upload = parsed.roots.singleOrNull() == "uploadArtwork"
-            val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
-            if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
-            val identities = identity.ifAvailable ?: throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
-            val context =
-                identities.context(
-                    request,
-                    parsed.mutation,
-                    parsed.roots == listOf("signOut"),
-                    "session" in parsed.roots,
-                    deadline,
-                )
-            val result = graphql.execute(body.input, context)
-            val headers = HttpHeaders()
-            context.cookies().forEach { headers.add(HttpHeaders.SET_COOKIE, it) }
-            ResponseEntity.status(status(result)).headers(headers).body(result)
+            perform(request, deadline)
+        } catch (failure: com.spoolin.core.features.ratelimit.RateLimited) {
+            BrowserResponses.limited(failure.retryAfterMs)
+        } catch (_: com.spoolin.core.features.ratelimit.RateUnavailable) {
+            failure(BrowserBoundary.UNAVAILABLE)
         } catch (failure: BrowserRejected) {
             failure(failure.status)
         } catch (_: GraphqlSizeExceeded) {
@@ -62,12 +49,43 @@ class BrowserGraphql(
             failure(BrowserBoundary.BAD_REQUEST)
         }
 
+    private fun perform(
+        request: HttpServletRequest,
+        deadline: Long,
+    ): ResponseEntity<Map<String, Any?>> {
+        boundary.check(request)
+        val body = body(request)
+        val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
+        val upload = parsed.roots.singleOrNull() == "uploadArtwork"
+        val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
+        if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
+        val identities = identity.ifAvailable ?: throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
+        val context =
+            admission.ifAvailable?.context(request, parsed, identities, deadline)
+                ?: unavailable()
+        val result = graphql.execute(body.input, context)
+        val headers = HttpHeaders()
+        context.cookies().forEach { headers.add(HttpHeaders.SET_COOKIE, it) }
+        retryAfter(result)?.let { headers.set("Retry-After", it) }
+        return ResponseEntity.status(status(result)).headers(headers).body(result)
+    }
+
+    private fun unavailable(): Nothing =
+        throw com.spoolin.core.features.ratelimit
+            .RateUnavailable()
+
+    private fun retryAfter(result: Map<String, Any?>): String? {
+        val error = (result["errors"] as? List<*>)?.firstOrNull() as? Map<*, *>
+        val milliseconds = (error?.get("extensions") as? Map<*, *>)?.get("retryAfterMs") as? Long
+        return milliseconds?.let(BrowserResponses::retrySeconds)
+    }
+
     private fun status(result: Map<String, Any?>): Int {
         val error = (result["errors"] as? List<*>)?.firstOrNull() as? Map<*, *>
         val code = (error?.get("extensions") as? Map<*, *>)?.get("code")
         return when (code) {
             "UNAVAILABLE", "DEADLINE_EXCEEDED" -> BrowserBoundary.UNAVAILABLE
-            "RESOURCE_EXHAUSTED" -> TOO_MANY_REQUESTS
+            "RESOURCE_EXHAUSTED", "RATE_LIMITED" -> TOO_MANY_REQUESTS
             else -> HTTP_OK
         }
     }

@@ -56,7 +56,9 @@ class AdmissionFixture : AuthenticationAdmission {
 }
 
 class IdentityHttpFixture(
-    admitted: Boolean,
+    private val admitted: Boolean,
+    private val trusted: Boolean = false,
+    private val rateOverrides: Map<String, String> = emptyMap(),
 ) : AutoCloseable {
     val crypto = CryptoFixture("t006-identity-https.json")
     private val port = ServerSocket(0).use { it.localPort }
@@ -148,12 +150,25 @@ class IdentityHttpFixture(
     private fun configuration(): List<String> {
         val owner = crypto.owner
         val keys =
-            listOf("csrf-key", "operation-key").associateWith { name ->
+            listOf("csrf-key", "operation-key", "rate-limiter-key").associateWith { name ->
                 owner.root.resolve(name).also {
                     Files.write(it, ByteArray(32) { index -> (index + name.length).toByte() })
                     Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
                 }
             }
+        val rateValues = mapOf("RATE_LIMIT_READ_MAX_REQUESTS" to "1000000") + rateOverrides
+        val rateProfiles =
+            com.spoolin.support.identity
+                .RateProfiles(
+                    com.spoolin.support.policy
+                        .ConfigurationSources(rateValues),
+                )
+        val mac = javax.crypto.Mac.getInstance("HmacSHA256")
+        mac.init(javax.crypto.spec.SecretKeySpec(Files.readAllBytes(keys.getValue("rate-limiter-key")), "HmacSHA256"))
+        val canary = mac.doFinal("spoolin-rate-agreement-v1".toByteArray()).joinToString("") { "%02x".format(it) }
+        val agreement = owner.root.resolve("rate-agreement.json")
+        Files.writeString(agreement, """{"profileRevision":"${rateProfiles.revision}","keyCanary":"$canary"}""")
+        Files.setPosixFilePermissions(agreement, PosixFilePermissions.fromString("rw-------"))
         val settings =
             listOf(
                 "CORE_DB_URL=${owner.url("core")}",
@@ -171,6 +186,9 @@ class IdentityHttpFixture(
                 "spoolin.account-protection.enabled=true",
                 "spoolin.operations.enabled=true",
                 "CSRF_KEY_FILE=${keys.getValue("csrf-key")}",
+                "RATE_LIMIT_KEY_FILE=${keys.getValue("rate-limiter-key")}",
+                "spoolin.rate-limit.enabled=${admitted || trusted}",
+                "spoolin.rate-limit.agreement-file=$agreement",
                 "OPERATION_HMAC_KEY_ID=v1",
                 "OPERATION_HMAC_KEY_FILE=${keys.getValue("operation-key")}",
                 "spoolin.operations.comparison-keys.v1=${keys.getValue("operation-key")}",
@@ -183,7 +201,7 @@ class IdentityHttpFixture(
                     "spoolin.account-protection.keys.$id.file=${mount.file}",
                 )
             }
-        return (settings + mounts).map { "--$it" }
+        return (settings + mounts + rateValues.map { "${it.key}=${it.value}" }).map { "--$it" }
     }
 
     override fun close() {

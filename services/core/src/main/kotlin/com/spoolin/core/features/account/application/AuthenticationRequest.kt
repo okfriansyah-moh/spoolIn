@@ -9,6 +9,20 @@ class AuthenticationRequest(
     val credentialId: UUID?,
     private val deadline: Long? = null,
 ) {
+    private val admitted = mutableSetOf<Any>()
+
+    @Synchronized
+    fun <T : Any> charge(
+        demands: List<T>,
+        consume: (List<T>) -> Unit,
+    ) {
+        requireActive()
+        val pending = demands.distinct().filterNot { it in admitted }
+        if (pending.isEmpty()) return
+        consume(pending)
+        admitted.addAll(pending)
+    }
+
     fun requireActive() {
         if (deadline != null && System.nanoTime() - deadline >= 0) throw AuthenticationDeadlineExceeded()
     }

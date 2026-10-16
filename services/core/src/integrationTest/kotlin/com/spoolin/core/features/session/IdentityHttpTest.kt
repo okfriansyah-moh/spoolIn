@@ -51,14 +51,15 @@ class IdentityHttpTest {
     @Test
     fun `missing admission denies registration before hashing receipt or account effects`() {
         IdentityHttpFixture(false).use { fixture ->
-            val csrf = bootstrap(fixture)
+            val bootstrap = fixture.request(envelope("query { session { authenticated csrfToken } }"))
+            assertEquals(503, bootstrap.statusCode())
             val query =
                 """
                 mutation { register(operationId: "${UUID.randomUUID()}", input: {
                   name: "A Person", email: "a@example.org", password: "valid exact password"
                 }) { operation { state } } }
                 """.trimIndent()
-            val denied = fixture.request(envelope(query), csrf)
+            val denied = fixture.request(envelope(query))
             assertEquals(503, denied.statusCode())
             assertEquals("no-store", denied.headers().firstValue("Cache-Control").orElse(""))
             assertEquals(0, fixture.crypto.scalar("SELECT count(*) FROM appdata.operation_receipt"))

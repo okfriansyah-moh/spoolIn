@@ -23,7 +23,7 @@ class RateLimited(
 
 class RateUnavailable : IllegalStateException("Request admission unavailable")
 
-class RateDemand(
+data class RateDemand(
     val profile: RateProfile,
     val scope: RateScope,
     internal val identity: String,

@@ -24,6 +24,7 @@ import javax.sql.DataSource
 class AuthenticationConfiguration {
     @Bean
     @ConditionalOnMissingBean(AuthenticationAdmission::class)
+    @ConditionalOnProperty(name = ["spoolin.rate-limit.enabled"], havingValue = "false", matchIfMissing = true)
     fun authenticationAdmission(): AuthenticationAdmission = AuthenticationAdmission.unavailable
 
     @Bean
