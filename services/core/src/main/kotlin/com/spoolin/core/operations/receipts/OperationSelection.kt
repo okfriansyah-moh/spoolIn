@@ -18,7 +18,7 @@ internal fun operationSelections(parsed: PreparedGraphql): List<OperationSelecti
     parsed.fields
         .filter { it.name == "operation" }
         .map { field ->
-            val args = field.arguments.associate { it.name to value(it.value, parsed.execution.variables) }
+            val args = field.arguments.associate { it.name to value(it.value, parsed) }
             val text = requireNotNull(args["id"] as? String)
             val id = UUID.fromString(text).also { require(it.toString() == text) }
             OperationSelection(id, (args["owner"] as? String)?.let(OperationOwner::valueOf))
@@ -26,12 +26,24 @@ internal fun operationSelections(parsed: PreparedGraphql): List<OperationSelecti
 
 private fun value(
     node: Value<*>,
-    variables: Map<String, Any>,
+    parsed: PreparedGraphql,
 ): Any? =
     when (node) {
         is StringValue -> node.value
         is EnumValue -> node.name
         is NullValue -> null
-        is VariableReference -> variables[node.name]
+        is VariableReference -> variable(node.name, parsed)
         else -> throw IllegalArgumentException("Invalid operation lookup")
     }
+
+private fun variable(
+    name: String,
+    parsed: PreparedGraphql,
+): Any? {
+    val variables = parsed.execution.variables
+    return if (variables.containsKey(name)) {
+        variables[name]
+    } else {
+        parsed.variableDefaults[name]?.let { value(it, parsed) }
+    }
+}

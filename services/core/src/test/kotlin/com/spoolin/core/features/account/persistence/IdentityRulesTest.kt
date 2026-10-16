@@ -9,6 +9,24 @@ class IdentityRulesTest {
     private val rules = IdentityRules()
 
     @Test
+    fun effectiveEmailMaximumCountsTrimmedDisplayCodePointsOnlyForNewAccounts() {
+        val configured = IdentityRules(maximumEmail = 8)
+        assertEquals("A@faß.de", configured.identity("A Person", "  A@faß.de  ").emailDisplay)
+        assertEquals("a@xn--fa-hia.de", configured.normalizedEmail("A@faß.de"))
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("A Person", "aa@faß.de") }
+        assertEquals("historical@sample.org", configured.normalizedEmail("historical@sample.org"))
+    }
+
+    @Test
+    fun effectiveEmailMaximumCountsSupplementaryDomainCodePoints() {
+        val email = "a@a\uD804\uDDC9.example"
+        val points = email.codePointCount(0, email.length)
+        val configured = IdentityRules(maximumEmail = points)
+        assertEquals(email, configured.identity("A Person", email).emailDisplay)
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("A Person", "a$email") }
+    }
+
+    @Test
     fun effectiveNameBoundsUseSharedWhitespaceRules() {
         val configured = IdentityRules(3, 120)
         assertEquals("abc", configured.identity("\u00a0abc\u0085", "a@b.org").name)

@@ -38,7 +38,9 @@
     policy ? boundFor(policy, 'registrationName') : null,
   );
   const newPassword = $derived(policy ? boundFor(policy, 'password') : null);
-  const emailRule = $derived(policy ? boundFor(policy, 'email') : null);
+  const emailRule = $derived(
+    mode === 'register' && policy ? boundFor(policy, 'email') : null,
+  );
   const feedback = $derived(
     outcome?.kind === 'registered' ? outcome.message : '',
   );

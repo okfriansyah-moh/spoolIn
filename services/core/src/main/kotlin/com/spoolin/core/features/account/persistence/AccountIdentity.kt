@@ -13,6 +13,7 @@ class AccountIdentity internal constructor(
 class IdentityRules(
     private val minimumName: Int = MIN_ACCOUNT_NAME,
     private val maximumName: Int = MAX_ACCOUNT_NAME,
+    private val maximumEmail: Int = MAX_EMAIL_CHARACTERS,
 ) {
     private val idna = Idna2008()
     private val localSyntax = Regex("[a-zA-Z0-9!#\$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#\$%&'*+/=?^_`{|}~-]+)*")
@@ -23,7 +24,9 @@ class IdentityRules(
     ): AccountIdentity {
         val trimmed = TextRules.ordinary(name, TextBound(minimumName, maximumName), "name")
         require(trimmed.none { it.isISOControl() }) { "Account name is invalid" }
-        return AccountIdentity(trimmed, email.trim(), normalizedEmail(email))
+        val displayEmail = email.trim()
+        require(displayEmail.codePointCount(0, displayEmail.length) <= maximumEmail) { "Email is invalid" }
+        return AccountIdentity(trimmed, displayEmail, normalizedEmail(email))
     }
 
     fun normalizedEmail(value: String): String {

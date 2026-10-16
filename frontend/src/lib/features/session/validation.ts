@@ -7,8 +7,13 @@ function field(
   name: 'registrationName' | 'email' | 'password',
   label: string,
   policy: Policy,
+  maximum?: number,
 ): FieldError[] {
-  const result = checkText(value, boundFor(policy, name));
+  const bound = boundFor(policy, name);
+  const result = checkText(
+    value,
+    maximum === undefined ? bound : { ...bound, maxCodePoints: maximum },
+  );
   const id = name === 'registrationName' ? 'account-name' : `account-${name}`;
   return result.error ? [{ id, message: `${label}: ${result.error}` }] : [];
 }
@@ -16,7 +21,13 @@ export function validateSubmission(
   input: AccountSubmission,
   policy: Policy,
 ): FieldError[] {
-  const errors = field(input.email, 'email', 'Email', policy);
+  const errors = field(
+    input.email,
+    'email',
+    'Email',
+    policy,
+    input.kind === 'signIn' ? 254 : undefined,
+  );
   if (!/^[^\s@]+@[^\s@]+$/u.test(trimOrdinary(input.email)))
     errors.push({
       id: 'account-email',

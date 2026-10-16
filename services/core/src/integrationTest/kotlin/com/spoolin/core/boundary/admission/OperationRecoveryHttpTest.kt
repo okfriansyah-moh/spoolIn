@@ -35,6 +35,48 @@ class OperationRecoveryHttpTest {
     }
 
     @Test
+    fun `operation variable defaults and explicit null match actual GraphQL execution`() {
+        IdentityHttpFixture(false, true).use { fixture ->
+            val csrf = sessionCsrf(fixture)
+            val operation = UUID.randomUUID()
+            assertEquals(200, fixture.request(envelope(register(operation)), csrf).statusCode())
+            val query = """query(${'$'}id:UUID!="$operation",${'$'}owner:OperationOwner=CORE){
+                operation(id:${'$'}id,owner:${'$'}owner){state}}"""
+            val omitted = fixture.request(envelope(query))
+            assertEquals(
+                "SUCCEEDED",
+                mapper
+                    .readTree(omitted.body())
+                    .path("data")
+                    .path("operation")
+                    .path("state")
+                    .asString(),
+            )
+            val explicitNull = mapper.writeValueAsString(mapOf("query" to query, "variables" to mapOf("owner" to null)))
+            val unscoped = fixture.request(explicitNull)
+            assertEquals(
+                "SUCCEEDED",
+                mapper
+                    .readTree(unscoped.body())
+                    .path("data")
+                    .path("operation")
+                    .path("state")
+                    .asString(),
+            )
+            val unknown = mapper.writeValueAsString(mapOf("query" to query, "variables" to mapOf("id" to UUID.randomUUID().toString())))
+            assertTrue(
+                mapper
+                    .readTree(fixture.request(unknown).body())
+                    .path("data")
+                    .path("operation")
+                    .isNull,
+            )
+            val nullId = mapper.writeValueAsString(mapOf("query" to query, "variables" to mapOf("id" to null)))
+            assertTrue(mapper.readTree(fixture.request(nullId).body()).path("errors").isArray)
+        }
+    }
+
+    @Test
     fun `lost sign out is reconciled only for original session and original intent`() {
         IdentityHttpFixture(false, true).use { fixture ->
             val anonymous = sessionCsrf(fixture)

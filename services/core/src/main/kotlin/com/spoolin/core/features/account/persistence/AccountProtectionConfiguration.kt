@@ -79,6 +79,12 @@ class AccountProtectionConfiguration {
     @Bean
     fun identityRules(provider: PolicyProvider): IdentityRules {
         val bound = provider.policy.textBounds.getValue("registrationName")
-        return IdentityRules(bound.minCodePoints, bound.maxCodePoints)
+        return IdentityRules(
+            bound.minCodePoints,
+            bound.maxCodePoints,
+            provider.policy.textBounds
+                .getValue("email")
+                .maxCodePoints,
+        )
     }
 }
