@@ -22,6 +22,16 @@ import {
 } from './feedback';
 
 const policy = specimenPolicy();
+function textGuidanceMarkup() {
+  return render(PolicyGuidance, {
+    props: {
+      view: 'text-boundaries',
+      policy,
+      initialName: 'V',
+      plainTextExample,
+    },
+  }).body;
+}
 describe('T009 shared policy rules', () => {
   it('ATDD-276 preserves exact Unicode and counts supplementary characters', () => {
     expect(count('😀'.repeat(100))).toBe(100);
@@ -72,6 +82,9 @@ describe('T009 retained content', () => {
     }).body;
     expect(body).toContain(retainedDraft);
     expect(body).toContain('Current maximum: 100 Unicode code points.');
+    expect(body.match(/<button\b[^>]*>/g)).toEqual([
+      expect.not.stringContaining('tabindex='),
+    ]);
   });
   it('current password bytes stay exact', () => {
     const exact = { ...boundFor(policy, 'password'), minCodePoints: 1 };
@@ -98,16 +111,12 @@ describe('T009 policy projection boundary', () => {
     ).toThrow();
   });
   it('renders four distinct controlled components with safe text and no enabled unavailable submission', () => {
-    const text = render(PolicyGuidance, {
-      props: {
-        view: 'text-boundaries',
-        policy,
-        initialName: 'V',
-        plainTextExample,
-      },
-    }).body;
+    const text = textGuidanceMarkup();
     expect(text).toContain('&lt;script>');
     expect(text).not.toContain('<script>alert');
+    expect(text.match(/<button\b[^>]*>/g)).toEqual([
+      expect.stringContaining('tabindex="0"'),
+    ]);
     const optional = render(PolicyGuidance, {
       props: {
         view: 'optional-clearing',
@@ -116,6 +125,7 @@ describe('T009 policy projection boundary', () => {
       },
     }).body;
     expect(optional).toContain('Cahaya Terakhir');
+    expect(optional).not.toMatch(/<button\b[^>]*\btabindex=/);
     const unavailable = render(PolicyGuidance, {
       props: {
         view: 'policy-unavailable',
@@ -125,6 +135,7 @@ describe('T009 policy projection boundary', () => {
     }).body;
     expect(unavailable).toContain('Editing is temporarily unavailable');
     expect(unavailable).toContain('disabled');
+    expect(unavailable).not.toMatch(/<button\b[^>]*\btabindex=/);
     expect(unavailable).toContain(retainedDraft);
   });
 });

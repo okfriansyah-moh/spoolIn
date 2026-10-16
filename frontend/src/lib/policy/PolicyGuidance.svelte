@@ -145,7 +145,7 @@
         help={`Use ${registration.minCodePoints} to ${registration.maxCodePoints} Unicode code points.`}
         error={errors.find((item) => item.id === 'policy-name')?.message ?? ''}
       />
-      <Button type="submit">Check name</Button>
+      <Button type="submit" tabindex={0}>Check name</Button>
     </form>
   {:else if view === 'optional-clearing'}
     <h1>Optional movie information</h1>
