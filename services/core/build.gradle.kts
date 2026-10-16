@@ -27,7 +27,7 @@ tasks.named<Test>("test") {
 tasks.named<Test>("integrationTest") {
     classpath = foundationTestRuntime
     dependsOn("integrationTestClasses")
-    filter { includeTestsMatching("*BoundaryTest") }
+    filter { includeTestsMatching("com.spoolin.core.boundary.bootstrap.*BoundaryTest") }
 }
 
 val cryptoIntegrationTest by tasks.registering(Test::class) {

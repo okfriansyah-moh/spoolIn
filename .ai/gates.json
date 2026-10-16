@@ -1109,7 +1109,8 @@
       ],
       "argv": [
         "./gradlew",
-        ":services:core:receiptIntegrationTest"
+        ":services:core:receiptIntegrationTest",
+        "--rerun-tasks"
       ],
       "required": true,
       "timeout_seconds": 1800,
@@ -1130,7 +1131,8 @@
       ],
       "argv": [
         "./gradlew",
-        ":services:core:accountIntegrationTest"
+        ":services:core:accountIntegrationTest",
+        "--rerun-tasks"
       ],
       "required": true,
       "timeout_seconds": 1800,
@@ -1151,7 +1153,8 @@
       ],
       "argv": [
         "./gradlew",
-        ":services:core:admissionIntegrationTest"
+        ":services:core:admissionIntegrationTest",
+        "--rerun-tasks"
       ],
       "required": true,
       "timeout_seconds": 1800,
@@ -1172,7 +1175,8 @@
       ],
       "argv": [
         "./gradlew",
-        ":services:catalog:receiptIntegrationTest"
+        ":services:catalog:receiptIntegrationTest",
+        "--rerun-tasks"
       ],
       "required": true,
       "timeout_seconds": 1800,
@@ -1193,7 +1197,8 @@
       ],
       "argv": [
         "./gradlew",
-        ":services:media:receiptIntegrationTest"
+        ":services:media:receiptIntegrationTest",
+        "--rerun-tasks"
       ],
       "required": true,
       "timeout_seconds": 1800,
@@ -1214,7 +1219,8 @@
       ],
       "argv": [
         "./gradlew",
-        ":tests:integration:test"
+        ":tests:integration:test",
+        "--rerun-tasks"
       ],
       "required": true,
       "timeout_seconds": 1800,
