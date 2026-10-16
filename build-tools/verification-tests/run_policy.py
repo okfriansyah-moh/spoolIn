@@ -65,6 +65,9 @@ def backend(module, patterns, name):
 def frontend():
     path = OUTPUT / "vitest.json"
     path.unlink(missing_ok=True)
+    _, setup = command(["npm", "run", "pretest:coverage", "--workspace", "frontend"], "frontend-setup")
+    if setup["exit_code"]:
+        raise ValueError("Required policy frontend setup failed")
     argv = ["npm", "exec", "--workspace", "frontend", "--", "vitest", "run", "--config", "vitest.config.ts",
             "src/lib/policy/policy.test.ts", "--reporter=json", f"--outputFile=../{path.relative_to(ROOT)}"]
     started, result = command(argv, "frontend")
@@ -73,6 +76,7 @@ def frontend():
     document = json.loads(path.read_text())
     cases = [{"class": suite["name"], "method": case["fullName"], "executed": case["status"] != "pending",
               "failed": case["status"] != "passed"} for suite in document["testResults"] for case in suite["assertionResults"]]
+    result["setup"] = setup
     return result, cases, [artifact(path)]
 
 
