@@ -12,6 +12,10 @@ Status: configuration and operating guide; native readiness and application acce
 
 Quick navigation: [hosts](#3-coding-hosts-and-native-adapters) · [roles](#4-agent-roles-ownership-and-coordination) · [tools](#6-supporting-tools-and-demonstrated-use) · [task prompt](#95-start-and-resume-prompts) · [operating guide](#9-operating-guide) · [troubleshooting](#10-maintenance-troubleshooting-and-recovery) · [all 74 skills](#appendix-a-complete-pinned-skill-inventory) · [coverage matrix](#appendix-b-harness-coverage-matrix)
 
+## Current selection delivery policy
+
+The 1.2 workflow implements the complete requested selection, verifies affected behavior with unchanged quality gates, obtains one combined independent review, fixes findings, then publishes. Serial work reuses one checkout; concurrent writers use isolated claimed lanes. Track actual product progress every 45 minutes and keep one optional media-repair budget of two attempts or 20 minutes across all phases/resumes. Report local and PR revisions and metadata-only changes literally. Real accessibility defects remain blocking; optional trace export does not replace diagnosis. See the pinned bundle docs/DELIVERY.md and [execution prompt](prompt/task-implementation.md). Historical runtime evidence below is retained; installing this update does not resume account-access work.
+
 ## 1. Purpose, coverage, and evidence
 
 The AI harness is the environment around the model: instructions, coding clients, agent roles, skills, tools, ownership controls, checks, and retained evidence. It turns an authorized request into reviewable work while keeping the developer responsible for requirements, decisions, code understanding, and delivery.
@@ -35,7 +39,7 @@ Verification always needs a boundary. A disposable host fixture, static mockup, 
 
 ### 1.2 Sources and current snapshot
 
-The primary configuration sources are [root instructions](../AGENTS.md), [bundle selection](../.ai/config.json), the [manifest](../.ai/bundles/1.1.0/manifest.json), [role catalog](../.ai/bundles/1.1.0/agents/catalog.json), and [movie-app gate profile](../.ai/bundles/1.1.0/profiles/movie-app.json). The bundled [release verification](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md) records earlier installation, host, browser, and tool results; it is not a new verification run for this document.
+The primary configuration sources are [root instructions](../AGENTS.md), [bundle selection](../.ai/config.json), the [manifest](../.ai/bundles/1.2.0/manifest.json), [role catalog](../.ai/bundles/1.2.0/agents/catalog.json), and [movie-app gate profile](../.ai/bundles/1.2.0/profiles/movie-app.json). The bundled [release verification](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md) records earlier installation, host, browser, and tool results; it is not a new verification run for this document.
 
 During this documentation session, `python3 .ai/bin/agent-workflow doctor --repo .` returned `healthy`, 74 skill entries, no integrity findings, and no preserved conflicts. All four hosts' installation loading remained `unverified`. The saved Codex record was `stale`, Claude and Copilot were `fixture-blocked`, and Cursor had no saved native record in the location read by doctor. Separate historical Cursor UI records remain described in the release report.
 
@@ -72,7 +76,7 @@ The shared runtime requires Python 3.11+ and Git. The local launcher works witho
 
 Roles inherit the host's active model settings. A role prompt limits responsibility but creates no separate permission sandbox. Host trust, filesystem permissions, network access, and current authorization remain in force. Available skills do not authorize unrelated tasks, installations, deployments, or external messages.
 
-Sources: [skill selection and activation](../.ai/bundles/1.1.0/docs/SKILLS.md), [installation and relocation](../.ai/bundles/1.1.0/docs/INSTALLATION.md), [host boundaries](../.ai/bundles/1.1.0/docs/HOSTS.md).
+Sources: [skill selection and activation](../.ai/bundles/1.2.0/docs/SKILLS.md), [installation and relocation](../.ai/bundles/1.2.0/docs/INSTALLATION.md), [host boundaries](../.ai/bundles/1.2.0/docs/HOSTS.md).
 
 ### 2.1 Configuration, state, and storage map
 
@@ -119,7 +123,7 @@ Global/project wrappers reuse results only when native event identity and the im
 
 ### 3.3 Observed host readiness
 
-The following summarizes the retained 15 October rollout, not fresh live runs. See [the complete native results](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#native-host-results) for captures and qualifications.
+The following summarizes the retained 15 October rollout, not fresh live runs. See [the complete native results](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#native-host-results) for captures and qualifications.
 
 | Host | Historical observations | Remaining limits |
 | --- | --- | --- |
@@ -130,7 +134,7 @@ The following summarizes the retained 15 October rollout, not fresh live runs. S
 
 A Codex standalone CLI, the engine embedded in a desktop app, and the desktop UI are distinct verification surfaces. An executable found on PATH does not prove which surface this chat uses. Likewise, a Cursor CLI lookup returning no executable does not establish that the GUI is absent. Inspect the exact runtime and native observations.
 
-`doctor` checks managed-file integrity and saved verification freshness without launching a host. `verify-host` without `--live` previews runtime/configuration binding without writing verification records. Live checks can use accounts and model usage; they are separate work. Fixture passes and observer-attested UI imports retain their own proof boundaries and cannot establish loading in an existing project session. The [host guide](../.ai/bundles/1.1.0/docs/HOSTS.md) explains discovery, role lifecycles, selected skills, hook correlation, and trust separately.
+`doctor` checks managed-file integrity and saved verification freshness without launching a host. `verify-host` without `--live` previews runtime/configuration binding without writing verification records. Live checks can use accounts and model usage; they are separate work. Fixture passes and observer-attested UI imports retain their own proof boundaries and cannot establish loading in an existing project session. The [host guide](../.ai/bundles/1.2.0/docs/HOSTS.md) explains discovery, role lifecycles, selected skills, hook correlation, and trust separately.
 
 Host verification tracks five separate categories: `discovery`, `role_invocation`, `skills`, `hooks`, and `trust`; Copilot also records instruction-source discovery. A role-invocation pass requires a completed Forge/backend/independent-reviewer relationship, with the edit completed inside the backend lifecycle before review. UI imports additionally bind observer identity, capture hashes, runtime/configuration hashes, and capture age; assistant-written descriptions alone do not establish these observations. Runtime, role, skill, hook, or configuration changes can stale saved proof. The retained Cursor imports are present in the release archive even though doctor has no latest Cursor record; archival observations and doctor discovery are different sources.
 
@@ -145,9 +149,9 @@ Host verification tracks five separate categories: `discovery`, `role_invocation
 | `aw-security` | Inspect concrete threats and security-sensitive changes. | Independent findings; no product-source or task-status edits. |
 | `aw-operations` | Implement assigned build, CI, Compose, telemetry, and recovery work. | Use claimed environments; rollout and external messages require their own authorization. |
 | `aw-review-verify` | Inspect requirements, diff, actual checks, and evidence. | Independent of the implementer; return findings without fixing product code. |
-| `aw-integrator` | Combine accepted commits and verify combined behavior. | Exclusive integration ownership, combined checks, and independent review of corrections. |
+| `aw-integrator` | Compose tested concurrent contributions. | Exclusive ownership and affected combined checks; acceptance follows one independent selection review. |
 
-The [role catalog](../.ai/bundles/1.1.0/agents/catalog.json) records skills and permissions for each role. Catalog ownership identifies the workflow responsibility; it does not mean only that role can read a skill. Workers return to the parent coordinator and do not dispatch their own subagents.
+The [role catalog](../.ai/bundles/1.2.0/agents/catalog.json) records skills and permissions for each role. Catalog ownership identifies the workflow responsibility; it does not mean only that role can read a skill. Workers return to the parent coordinator and do not dispatch their own subagents.
 
 Use Forge for authorized multi-task execution. A bounded documentation request can use a proportionate sequential workflow; it does not need to dispatch unrelated application tasks. Native delegation must be authorized and available. Do not describe a self-review as independent review.
 
@@ -155,9 +159,9 @@ For coordinated implementation, record the integration revision and provide ever
 
 Claims use `agent-workflow/registry.json` inside Git's shared metadata directory, with file locking and atomic replacement across participating worktrees. Overlapping paths, duplicate task IDs, or resource collisions block new claims. Reserve ports, databases, namespaces, output directories, schema/build/lockfile changes, and other shared resources explicitly. Brief `paths` claim implementation files; the helper rejects `.ai/state`, `.ai/evidence`, and `.ai/reports` as implementation ownership paths. Assign those output locations through the brief/resources instead. Separate clones do not share this registry. An old claim timestamp calls for investigation, not reassignment without ownership/liveness evidence.
 
-Workers commit their bounded changes before receipt capture. A separate reviewer inspects the reviewed revision and actual outputs. The integrator validates ownership, ancestry, changed surfaces, receipts, reviews, and hashes before merging in dependency order. Resolve conflicts against accepted behavior; do not use a line-union merge driver for code. Rerun combined checks and review integration corrections.
+Concurrent workers commit bounded contributions with actual check results. The integration owner validates ownership, ancestry, changed surfaces and result freshness before composition in dependency order; individual worker reviews are not required. One independent reviewer then inspects the complete selection and actual combined outputs. Resolve conflicts against intended behavior without a union driver, rerun affected checks, and review fixes in the same ledger.
 
-After two failed correction/integration rounds, stop the affected group and retain branches, worktrees, records, and the exact recovery action. Renaming a group does not reset the meaning of its failures. See [coordination](../.ai/bundles/1.1.0/docs/COORDINATION.md) for brief, receipt, review, integration, and evidence formats.
+After two failed correction/integration rounds, stop the affected group and retain branches, worktrees, records, and the exact recovery action. Renaming a group does not reset the meaning of its failures. See [coordination](../.ai/bundles/1.2.0/docs/COORDINATION.md) for brief, receipt, review, integration, and evidence formats.
 
 ## 5. Skills and personal supporting workflows
 
@@ -171,13 +175,13 @@ Design references cannot choose another implementation stack. Database portabili
 
 The personal task-observer workflow reads relevant open observations and captures useful corrections as proposals in `~/.codex/skill-workspace`. It runs during active work, with no schedule, hook, or background service. Plan mode permits inspection and reasoning only; denied persistence is reported without blocking the main task. Skill updates are staged for review and installed only within authorization. This session inspected existing observation headers; this guide does not change personal skills.
 
-The personal wording policy applies to all authored output. The voice-specific `humanizer` skill activates only when the task calls for that voice; the wording check applies regardless. Run the installed checker against the complete authored artifact and proposed completion text. Its personal path is a machine dependency; the bundle also retains a [portable checker](../.ai/bundles/1.1.0/resources/wording/check_output_wording.py) and [policy](../.ai/bundles/1.1.0/resources/wording/output-wording.md).
+The personal wording policy applies to all authored output. The voice-specific `humanizer` skill activates only when the task calls for that voice; the wording check applies regardless. Run the installed checker against the complete authored artifact and proposed completion text. Its personal path is a machine dependency; the bundle also retains a [portable checker](../.ai/bundles/1.2.0/resources/wording/check_output_wording.py) and [policy](../.ai/bundles/1.2.0/resources/wording/output-wording.md).
 
 ## 6. Supporting tools and demonstrated use
 
 ### 6.1 Browser automation and readable evidence
 
-The release records managed `@playwright/cli` 0.1.22, its exact Playwright dependency `1.64.0-alpha-1790635538000`, and Chromium revision 1247. The prerelease driver is an explicit dependency of the pinned CLI. A successful full Chromium launch proves browser availability at that recorded time, not an application journey. Runtime locks and integrity records live under `~/.local/share/agent-workflow/tools`; [tool locks](../.ai/bundles/1.1.0/profiles/tools-lock.json) retain the package inputs.
+The release records managed `@playwright/cli` 0.1.22, its exact Playwright dependency `1.64.0-alpha-1790635538000`, and Chromium revision 1247. The prerelease driver is an explicit dependency of the pinned CLI. A successful full Chromium launch proves browser availability at that recorded time, not an application journey. Runtime locks and integrity records live under `~/.local/share/agent-workflow/tools`; [tool locks](../.ai/bundles/1.2.0/profiles/tools-lock.json) retain the package inputs.
 
 Use one browser session per lane. The CLI's `video-start`, `video-stop`, `video-chapter`, and `video-show-actions` support recordings; `recording-start` and `recording-stop` generate test code. Inspect installed help before using annotation options. Keep assertions, screenshots, traces, videos, case intervals, and artifact hashes together.
 
@@ -191,13 +195,13 @@ All four repository MCP configurations select the hosted OAuth endpoint `https:/
 
 Global configuration uses `~/.codex/config.toml`, `~/.claude.json`, `~/.cursor/mcp.json`, and `~/.copilot/mcp-config.json`. The repository map is in section 3. Credentials remain host-managed. A configured endpoint does not prove a connection or successful native OAuth.
 
-The release records successful anonymous public tool discovery and Svelte/TypeScript documentation retrieval. Native authentication remained unverified; Cursor's OAuth attempt timed out. To complete a future connection, use the selected host's native action: `codex mcp login context7`, Claude `/mcp`, Cursor's Context7 connection action, or Copilot `/mcp auth context7`. These are user/account actions, not actions performed for this guide. See [Context7 configuration](../.ai/bundles/1.1.0/docs/TOOLS.md#context7-configuration-and-authentication).
+The release records successful anonymous public tool discovery and Svelte/TypeScript documentation retrieval. Native authentication remained unverified; Cursor's OAuth attempt timed out. To complete a future connection, use the selected host's native action: `codex mcp login context7`, Claude `/mcp`, Cursor's Context7 connection action, or Copilot `/mcp auth context7`. These are user/account actions, not actions performed for this guide. See [Context7 configuration](../.ai/bundles/1.2.0/docs/TOOLS.md#context7-configuration-and-authentication).
 
 ### 6.3 Strix and security tooling
 
 Strix `strix-agent` 1.7.0 is recorded as installed in an isolated Python 3.13 environment with hashed dependencies, but inactive. It requires Docker and a configured LLM provider for an assessment. The historical preflight reached Docker; provider environment values were absent, authentication was unverified, and stored credentials were not inspected. No SpoolIn security assessment was authorized or executed in that rollout.
 
-Activate `strix-security` only for an explicitly requested assessment with an authorized target and scope. Preflight does not authorize a scan. Report ingestion checks the target, completed run metadata, findings format, and hashes; it does not execute proof scripts or mark security acceptance. There is no automatic Strix scan hook, cloud upload, or scheduled assessment. [Strix procedures](../.ai/bundles/1.1.0/docs/TOOLS.md#strix-stays-inactive-until-requested) remain separate from ordinary gates.
+Activate `strix-security` only for an explicitly requested assessment with an authorized target and scope. Preflight does not authorize a scan. Report ingestion checks the target, completed run metadata, findings format, and hashes; it does not execute proof scripts or mark security acceptance. There is no automatic Strix scan hook, cloud upload, or scheduled assessment. [Strix procedures](../.ai/bundles/1.2.0/docs/TOOLS.md#strix-stays-inactive-until-requested) remain separate from ordinary gates.
 
 | Tool family | Purpose in the harness | Evidence and limit |
 | --- | --- | --- |
@@ -210,7 +214,7 @@ Activate `strix-security` only for an explicitly requested assessment with an au
 | OSV-Scanner | Dependency vulnerability checks | Retained fixtures used 2.7.0. Supported lockfiles/SBOMs and network/database availability determine coverage. |
 | Sonar | Optional external analysis gate | Profile is `not-configured` and not required. No project analysis is claimed. |
 
-These versions describe retained evidence, not a new machine inventory or a recommendation to upgrade. See [gate rules](../.ai/bundles/1.1.0/docs/GATES.md) and [retained tool verification](../.ai/bundles/1.1.0/docs/verification-tools.json).
+These versions describe retained evidence, not a new machine inventory or a recommendation to upgrade. See [gate rules](../.ai/bundles/1.2.0/docs/GATES.md) and [retained tool verification](../.ai/bundles/1.2.0/docs/verification-tools.json).
 
 ### 6.4 Research, design generation, and product integration
 
@@ -248,7 +252,7 @@ After required checks and review succeed, delivery follows existing authorizatio
 
 ### 8.1 Shared stages and thresholds
 
-The [movie-app profile](../.ai/bundles/1.1.0/profiles/movie-app.json) supplies the current command registry for explicit gates and native hook dispatch. No `.ai/gates.json` override is present. The helper uses an existing `--registry PATH` when supplied; with no explicit override it uses `.ai/gates.json` when present, otherwise the selected bundle's profile. A supplied registry path that does not exist currently falls back to the profile, so verify the intended file exists and inspect the recorded registry hash. Hooks have no explicit registry override. Any adopted local registry must preserve the required checks across entrypoints. Stages accumulate earlier checks.
+The [movie-app profile](../.ai/bundles/1.2.0/profiles/movie-app.json) supplies the current command registry for explicit gates and native hook dispatch. No `.ai/gates.json` override is present. The helper uses an existing `--registry PATH` when supplied; with no explicit override it uses `.ai/gates.json` when present, otherwise the selected bundle's profile. A supplied registry path that does not exist currently falls back to the profile, so verify the intended file exists and inspect the recorded registry hash. Hooks have no explicit registry override. Any adopted local registry must preserve the required checks across entrypoints. Stages accumulate earlier checks.
 
 | Stage | Selected checks when their source inputs exist |
 | --- | --- |
@@ -268,9 +272,9 @@ Missing wrappers, scripts, executables, reports, or required services block appl
 
 Unit tests prove local behavior. PostgreSQL tests prove the required persistence behavior; real RPC/GraphQL calls prove transport behavior; browser/client journeys prove inspected user interactions. Mocks cannot be relabeled as database, transport, or real-client acceptance. Test Spring wiring through context startup and persistence behavior against the intended engine.
 
-Requirements/evidence JSON binds exact case IDs, boundaries, current input fingerprint, distinct implementer/reviewer identities, integration owner where applicable, assertions, and artifact hashes. The requirements digest uses deterministic JSON serialization as specified in [the coordination contract](../.ai/bundles/1.1.0/docs/COORDINATION.md#verify-acceptance-evidence).
+Requirements/evidence JSON binds exact case IDs, boundaries, current input fingerprint, distinct implementer/reviewer identities, integration owner where applicable, assertions, and artifact hashes. The requirements digest uses deterministic JSON serialization as specified in [the coordination contract](../.ai/bundles/1.2.0/docs/COORDINATION.md#verify-acceptance-evidence).
 
-Browser and client-UI cases also need recordings, case intervals, redaction review, and inspected readable frames tied to the source video. The verifier uses `ffprobe` for duration/video checks and `ffmpeg` for decoded frame comparisons. A file hash cannot establish readability, truthful assertions, or the right service boundary; an independent reviewer must inspect actual frames, traces, and state outcomes.
+Browser and client-UI cases use assertion artifacts/direct observations by default. Explicitly required recordings retain case intervals, redaction review and inspected readable frames tied to the source video. The verifier uses `ffprobe` for duration/video checks and `ffmpeg` for decoded frame comparisons. A file hash cannot establish readability, truthful assertions, or the right service boundary; an independent reviewer must inspect actual frames, traces, and state outcomes.
 
 Required failed gates and unresolved required findings block completion. Any exception needs its exact scope, rationale, owner, and human approval in the applicable configuration. Do not weaken thresholds, introduce no-op scripts, or replace missing evidence with an older pass. Sonar remains optional unless configured as required; a future required result must match the current revision.
 
@@ -307,7 +311,7 @@ python3 .ai/bin/agent-workflow claim --repo . --spec .ai/state/brief.json --outp
 python3 .ai/bin/agent-workflow worktree --repo . --claim CLAIM_ID --owner WORKER_ID --path WORKTREE_PATH --branch codex/TASK_SLUG
 ```
 
-The brief needs `owner`, `task_ids`, `base_revision`, claimed `paths` and `resources`, `source_references`, `acceptance_ids`, and `required_checks`. Include `plan` for planned implementation; a bounded request without a saved task can omit it and supply explicit dependencies. Checks specify `id`, `kind`, `argv`, and optional working directory/timeout; tests also declare fresh report paths/formats. Use actual commands rather than illustrative checks. See the [brief schema](../.ai/bundles/1.1.0/schemas/worker-brief.schema.json) and [claim procedure](../.ai/bundles/1.1.0/docs/COORDINATION.md#reserve-a-writing-lane).
+The brief needs `owner`, `task_ids`, `base_revision`, claimed `paths` and `resources`, `source_references`, `acceptance_ids`, and `required_checks`. Include `plan` for planned implementation; a bounded request without a saved task can omit it and supply explicit dependencies. Checks specify `id`, `kind`, `argv`, and optional working directory/timeout; tests also declare fresh report paths/formats. Use actual commands rather than illustrative checks. See the [brief schema](../.ai/bundles/1.2.0/schemas/worker-brief.schema.json) and [claim procedure](../.ai/bundles/1.2.0/docs/COORDINATION.md#reserve-a-writing-lane).
 
 ### 9.3 Capture checks, review, and integration
 
@@ -388,7 +392,7 @@ On resume, explicit overrides take precedence over retained authorized run input
 
 The [project skill](../.agents/skills/running-prompt/SKILL.md) is the entrypoint; `.claude/skills/running-prompt`, `.cursor/skills/running-prompt` and `.github/skills/running-prompt` link to it. User-level entries are installed in each host's skill folder. Reload or start a fresh chat if the host has not discovered the entry. File installation is separate from native loading/trust; the readiness limits in section 3 still apply. The shortcut supplies inputs to one existing execution state and does not start another Forge loop. In Plan mode it prepares the work without implementation changes. Reading or updating these examples starts no application task.
 
-The bundled [start](../.ai/bundles/1.1.0/prompts/start.md), [worker](../.ai/bundles/1.1.0/prompts/worker.md), [review](../.ai/bundles/1.1.0/prompts/review.md), [integration](../.ai/bundles/1.1.0/prompts/integrate.md), [evidence](../.ai/bundles/1.1.0/prompts/evidence.md), and [resume](../.ai/bundles/1.1.0/prompts/resume.md) templates provide detailed handoffs. Document-authoring prompts remain under [prompts/](prompts/); the implementation prompt is under [prompt/](prompt/task-implementation.md).
+The bundled [start](../.ai/bundles/1.2.0/prompts/start.md), [worker](../.ai/bundles/1.2.0/prompts/worker.md), [review](../.ai/bundles/1.2.0/prompts/review.md), [integration](../.ai/bundles/1.2.0/prompts/integrate.md), [evidence](../.ai/bundles/1.2.0/prompts/evidence.md), and [resume](../.ai/bundles/1.2.0/prompts/resume.md) templates provide detailed handoffs. Document-authoring prompts remain under [prompts/](prompts/); the implementation prompt is under [prompt/](prompt/task-implementation.md).
 
 ### 9.6 Separate host verification and tool operations
 
@@ -446,7 +450,7 @@ python3 .ai/bin/agent-workflow doctor --repo .
 python3 .ai/bin/agent-workflow rollback --repo . --backup .ai/install-backups/TRANSACTION_ID
 ```
 
-Rollback requires unchanged installed snapshots and intact backups; user changes can block it. Restore later applicable transactions in reverse order. Explicit selected-skill resolution backs up personal directories outside host discovery folders; it is not an incidental documentation step. Uninstall preserves unrelated and modified content and does not remove external tools or host credentials. Tool installation/removal has its own locks and ownership ledger, with separate repository Context7 scope cleanup. See [installation lifecycle](../.ai/bundles/1.1.0/docs/INSTALLATION.md) and [managed tools](../.ai/bundles/1.1.0/docs/TOOLS.md).
+Rollback requires unchanged installed snapshots and intact backups; user changes can block it. Restore later applicable transactions in reverse order. Explicit selected-skill resolution backs up personal directories outside host discovery folders; it is not an incidental documentation step. Uninstall preserves unrelated and modified content and does not remove external tools or host credentials. Tool installation/removal has its own locks and ownership ledger, with separate repository Context7 scope cleanup. See [installation lifecycle](../.ai/bundles/1.2.0/docs/INSTALLATION.md) and [managed tools](../.ai/bundles/1.2.0/docs/TOOLS.md).
 
 The remaining administrative commands are `install` for initial provisioning/repair and `uninstall` for removal, using the appropriate global or repository scope. `resolve-skills --global --hosts claude cursor --skills design-system ui-ux-pro-max --use-bundle` is the reviewed conflict-resolution interface for the four personal skill directories described in the release report. It changes global discovery links and recovery data; use its recorded transaction for rollback. `host-hook` is the native stdin-payload adapter used by installed wrappers; `hook` executes the same fast-gate path beneath it. Manual inspection normally uses `doctor`, `verify-host` preview, and explicit `gate`, rather than fabricating a native hook event.
 
@@ -462,131 +466,131 @@ python3 /Users/mekari/.codex/skills/humanizer/scripts/check_output_wording.py do
 
 ## Appendix A. Complete pinned skill inventory
 
-All entries below are available in the selected bundle. Each name links to its actual instructions; purpose summaries describe activation, not usage claims. Owner values come from the manifest and identify workflow responsibility. Related native roles can load the same skill under their assignment. The [full catalog](../.ai/bundles/1.1.0/docs/SKILLS.md) and [manifest](../.ai/bundles/1.1.0/manifest.json) retain dependencies, provenance, hashes, and activation details.
+All entries below are available in the selected bundle. Each name links to its actual instructions; purpose summaries describe activation, not usage claims. Owner values come from the manifest and identify workflow responsibility. Related native roles can load the same skill under their assignment. The [full catalog](../.ai/bundles/1.2.0/docs/SKILLS.md) and [manifest](../.ai/bundles/1.2.0/manifest.json) retain dependencies, provenance, hashes, and activation details.
 
 ### A.1 Requirements and design authoring
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [brainstorming](../.ai/bundles/1.1.0/skills/brainstorming/SKILL.md) | `forge` | Explore substantial choices and establish accepted direction. |
-| [deliver-prd](../.ai/bundles/1.1.0/skills/deliver-prd/SKILL.md) | `forge` | Author product requirements, stories, and acceptance criteria. |
-| [techdoc-creation](../.ai/bundles/1.1.0/skills/techdoc-creation/SKILL.md) | `forge` | Author engineering contracts, boundaries, data behavior, and traceability. |
-| [design-system](../.ai/bundles/1.1.0/skills/design-system/SKILL.md) | `forge` | Coordinate requirements-based tokens, components, flows, and visual examples. |
-| [atdd-creation](../.ai/bundles/1.1.0/skills/atdd-creation/SKILL.md) | `forge` | Author traceable acceptance cases and proof requirements. |
-| [plan-creation](../.ai/bundles/1.1.0/skills/plan-creation/SKILL.md) | `forge` | Create dependency-ordered groups, tasks, and acceptance mappings. |
+| [brainstorming](../.ai/bundles/1.2.0/skills/brainstorming/SKILL.md) | `forge` | Explore substantial choices and establish accepted direction. |
+| [deliver-prd](../.ai/bundles/1.2.0/skills/deliver-prd/SKILL.md) | `forge` | Author product requirements, stories, and acceptance criteria. |
+| [techdoc-creation](../.ai/bundles/1.2.0/skills/techdoc-creation/SKILL.md) | `forge` | Author engineering contracts, boundaries, data behavior, and traceability. |
+| [design-system](../.ai/bundles/1.2.0/skills/design-system/SKILL.md) | `forge` | Coordinate requirements-based tokens, components, flows, and visual examples. |
+| [atdd-creation](../.ai/bundles/1.2.0/skills/atdd-creation/SKILL.md) | `forge` | Author traceable acceptance cases and proof requirements. |
+| [plan-creation](../.ai/bundles/1.2.0/skills/plan-creation/SKILL.md) | `forge` | Create dependency-ordered groups, tasks, and acceptance mappings. |
 
 ### A.2 Visual design and accessibility
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [design-system-foundations](../.ai/bundles/1.1.0/skills/design-system-foundations/SKILL.md) | `forge` | Define layered tokens, component specifications, and states. |
-| [frontend-design](../.ai/bundles/1.1.0/skills/frontend-design/SKILL.md) | `forge` | Establish intentional visual direction for new or reshaped UI. |
-| [impeccable](../.ai/bundles/1.1.0/skills/impeccable/SKILL.md) | `forge` | Refine visual hierarchy, responsive states, and design craft. |
-| [fixing-accessibility](../.ai/bundles/1.1.0/skills/fixing-accessibility/SKILL.md) | `forge` | Audit and fix semantics, keyboard behavior, focus, contrast, and errors. |
-| [ui-ux-pro-max](../.ai/bundles/1.1.0/skills/ui-ux-pro-max/SKILL.md) | `forge` | Search bundled UI references within the adopted design and framework. |
+| [design-system-foundations](../.ai/bundles/1.2.0/skills/design-system-foundations/SKILL.md) | `forge` | Define layered tokens, component specifications, and states. |
+| [frontend-design](../.ai/bundles/1.2.0/skills/frontend-design/SKILL.md) | `forge` | Establish intentional visual direction for new or reshaped UI. |
+| [impeccable](../.ai/bundles/1.2.0/skills/impeccable/SKILL.md) | `forge` | Refine visual hierarchy, responsive states, and design craft. |
+| [fixing-accessibility](../.ai/bundles/1.2.0/skills/fixing-accessibility/SKILL.md) | `forge` | Audit and fix semantics, keyboard behavior, focus, contrast, and errors. |
+| [ui-ux-pro-max](../.ai/bundles/1.2.0/skills/ui-ux-pro-max/SKILL.md) | `forge` | Search bundled UI references within the adopted design and framework. |
 
 ### A.3 Architecture and contracts
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [architecture-designer](../.ai/bundles/1.1.0/skills/architecture-designer/SKILL.md) | `forge` | Define system boundaries, interactions, and quality tradeoffs. |
-| [architecture-decision-records](../.ai/bundles/1.1.0/skills/architecture-decision-records/SKILL.md) | `forge` | Record significant decisions, alternatives, and consequences. |
-| [domain-modeling](../.ai/bundles/1.1.0/skills/domain-modeling/SKILL.md) | `forge` | Clarify domain concepts, terminology, and vocabulary. |
-| [codebase-design](../.ai/bundles/1.1.0/skills/codebase-design/SKILL.md) | `forge` | Design deep modules with small, useful interfaces. |
-| [modularity](../.ai/bundles/1.1.0/skills/modularity/SKILL.md) | `forge` | Define module ownership, public surfaces, and dependency boundaries. |
-| [dependency-analysis](../.ai/bundles/1.1.0/skills/dependency-analysis/SKILL.md) | `forge` | Map coupling, cycles, and safe dependency order. |
-| [vertical-slice](../.ai/bundles/1.1.0/skills/vertical-slice/SKILL.md) | `forge` | Organize a feature around end-to-end behavior. |
-| [api-design](../.ai/bundles/1.1.0/skills/api-design/SKILL.md) | `forge` | Design compatible endpoint, RPC, event, or library contracts. |
-| [dto](../.ai/bundles/1.1.0/skills/dto/SKILL.md) | `forge` | Define data contracts and producer-consumer compatibility. |
-| [config-validation](../.ai/bundles/1.1.0/skills/config-validation/SKILL.md) | `forge` | Validate configuration sources, precedence, defaults, and startup. |
+| [architecture-designer](../.ai/bundles/1.2.0/skills/architecture-designer/SKILL.md) | `forge` | Define system boundaries, interactions, and quality tradeoffs. |
+| [architecture-decision-records](../.ai/bundles/1.2.0/skills/architecture-decision-records/SKILL.md) | `forge` | Record significant decisions, alternatives, and consequences. |
+| [domain-modeling](../.ai/bundles/1.2.0/skills/domain-modeling/SKILL.md) | `forge` | Clarify domain concepts, terminology, and vocabulary. |
+| [codebase-design](../.ai/bundles/1.2.0/skills/codebase-design/SKILL.md) | `forge` | Design deep modules with small, useful interfaces. |
+| [modularity](../.ai/bundles/1.2.0/skills/modularity/SKILL.md) | `forge` | Define module ownership, public surfaces, and dependency boundaries. |
+| [dependency-analysis](../.ai/bundles/1.2.0/skills/dependency-analysis/SKILL.md) | `forge` | Map coupling, cycles, and safe dependency order. |
+| [vertical-slice](../.ai/bundles/1.2.0/skills/vertical-slice/SKILL.md) | `forge` | Organize a feature around end-to-end behavior. |
+| [api-design](../.ai/bundles/1.2.0/skills/api-design/SKILL.md) | `forge` | Design compatible endpoint, RPC, event, or library contracts. |
+| [dto](../.ai/bundles/1.2.0/skills/dto/SKILL.md) | `forge` | Define data contracts and producer-consumer compatibility. |
+| [config-validation](../.ai/bundles/1.2.0/skills/config-validation/SKILL.md) | `forge` | Validate configuration sources, precedence, defaults, and startup. |
 
 ### A.4 Reliability and persistence design
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [determinism](../.ai/bundles/1.1.0/skills/determinism/SKILL.md) | `forge` | Make ordering and computation reproducible within a defined boundary. |
-| [idempotency](../.ai/bundles/1.1.0/skills/idempotency/SKILL.md) | `forge` | Prevent duplicate effects during retries and concurrent operations. |
-| [failure](../.ai/bundles/1.1.0/skills/failure/SKILL.md) | `forge` | Define failure classes, bounded retries, partial outcomes, and recovery. |
-| [pipeline](../.ai/bundles/1.1.0/skills/pipeline/SKILL.md) | `forge` | Design staged processing, handoffs, ordering, and checkpoints. |
-| [migration-management](../.ai/bundles/1.1.0/skills/migration-management/SKILL.md) | `forge` | Manage schema/data changes, backfills, and recovery. |
-| [database-portability](../.ai/bundles/1.1.0/skills/database-portability/SKILL.md) | `forge` | Support multiple database engines only when explicitly required. |
+| [determinism](../.ai/bundles/1.2.0/skills/determinism/SKILL.md) | `forge` | Make ordering and computation reproducible within a defined boundary. |
+| [idempotency](../.ai/bundles/1.2.0/skills/idempotency/SKILL.md) | `forge` | Prevent duplicate effects during retries and concurrent operations. |
+| [failure](../.ai/bundles/1.2.0/skills/failure/SKILL.md) | `forge` | Define failure classes, bounded retries, partial outcomes, and recovery. |
+| [pipeline](../.ai/bundles/1.2.0/skills/pipeline/SKILL.md) | `forge` | Design staged processing, handoffs, ordering, and checkpoints. |
+| [migration-management](../.ai/bundles/1.2.0/skills/migration-management/SKILL.md) | `forge` | Manage schema/data changes, backfills, and recovery. |
+| [database-portability](../.ai/bundles/1.2.0/skills/database-portability/SKILL.md) | `forge` | Support multiple database engines only when explicitly required. |
 
 ### A.5 Code quality, tests, and diagnosis
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [coding-standards](../.ai/bundles/1.1.0/skills/coding-standards/SKILL.md) | `review-verify` | Apply conventions for the affected language and component. |
-| [code-quality](../.ai/bundles/1.1.0/skills/code-quality/SKILL.md) | `review-verify` | Assess scoped correctness and maintainability. |
-| [code-review](../.ai/bundles/1.1.0/skills/code-review/SKILL.md) | `review-verify` | Review a fixed diff against requirements and repository standards. |
-| [tdd](../.ai/bundles/1.1.0/skills/tdd/SKILL.md) | `forge` | Develop behavior through a test-first red/green/refactor loop. |
-| [test-driven-development](../.ai/bundles/1.1.0/skills/test-driven-development/SKILL.md) | `forge` | Route explicitly requested test-first work through tdd. |
-| [test-generation](../.ai/bundles/1.1.0/skills/test-generation/SKILL.md) | `forge` | Add meaningful behavior, boundary, and regression coverage. |
-| [diagnosing-bugs](../.ai/bundles/1.1.0/skills/diagnosing-bugs/SKILL.md) | `forge` | Investigate failures and regressions with evidence. |
+| [coding-standards](../.ai/bundles/1.2.0/skills/coding-standards/SKILL.md) | `review-verify` | Apply conventions for the affected language and component. |
+| [code-quality](../.ai/bundles/1.2.0/skills/code-quality/SKILL.md) | `review-verify` | Assess scoped correctness and maintainability. |
+| [code-review](../.ai/bundles/1.2.0/skills/code-review/SKILL.md) | `review-verify` | Review a fixed diff against requirements and repository standards. |
+| [tdd](../.ai/bundles/1.2.0/skills/tdd/SKILL.md) | `forge` | Develop behavior through a test-first red/green/refactor loop. |
+| [test-driven-development](../.ai/bundles/1.2.0/skills/test-driven-development/SKILL.md) | `forge` | Route explicitly requested test-first work through tdd. |
+| [test-generation](../.ai/bundles/1.2.0/skills/test-generation/SKILL.md) | `forge` | Add meaningful behavior, boundary, and regression coverage. |
+| [diagnosing-bugs](../.ai/bundles/1.2.0/skills/diagnosing-bugs/SKILL.md) | `forge` | Investigate failures and regressions with evidence. |
 
 ### A.6 Security and acceptance
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [security-audit](../.ai/bundles/1.1.0/skills/security-audit/SKILL.md) | `review-verify` | Review scoped security risks and evidence-backed remediation. |
-| [security-requirement-extraction](../.ai/bundles/1.1.0/skills/security-requirement-extraction/SKILL.md) | `review-verify` | Turn concrete threats into enforceable requirements and checks. |
-| [stride-analysis-patterns](../.ai/bundles/1.1.0/skills/stride-analysis-patterns/SKILL.md) | `review-verify` | Analyze threats across trust boundaries using STRIDE. |
-| [acceptance-verification](../.ai/bundles/1.1.0/skills/acceptance-verification/SKILL.md) | `qa-evidence` | Evaluate assigned ATDD cases at their required proof boundaries. |
-| [verify-test-evidence](../.ai/bundles/1.1.0/skills/verify-test-evidence/SKILL.md) | `review-verify` | Independently inspect evidence mapping, freshness, and readability. |
-| [strix-security](../.ai/bundles/1.1.0/skills/strix-security/SKILL.md) | `security` | Prepare or review an explicitly authorized scoped Strix assessment. |
+| [security-audit](../.ai/bundles/1.2.0/skills/security-audit/SKILL.md) | `review-verify` | Review scoped security risks and evidence-backed remediation. |
+| [security-requirement-extraction](../.ai/bundles/1.2.0/skills/security-requirement-extraction/SKILL.md) | `review-verify` | Turn concrete threats into enforceable requirements and checks. |
+| [stride-analysis-patterns](../.ai/bundles/1.2.0/skills/stride-analysis-patterns/SKILL.md) | `review-verify` | Analyze threats across trust boundaries using STRIDE. |
+| [acceptance-verification](../.ai/bundles/1.2.0/skills/acceptance-verification/SKILL.md) | `qa-evidence` | Evaluate assigned ATDD cases at their required proof boundaries. |
+| [verify-test-evidence](../.ai/bundles/1.2.0/skills/verify-test-evidence/SKILL.md) | `review-verify` | Independently inspect evidence mapping, freshness, and readability. |
+| [strix-security](../.ai/bundles/1.2.0/skills/strix-security/SKILL.md) | `security` | Prepare or review an explicitly authorized scoped Strix assessment. |
 
 ### A.7 Implementation and operations
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [project-scaffold](../.ai/bundles/1.1.0/skills/project-scaffold/SKILL.md) | `forge` | Initialize an explicitly requested project or component. |
-| [kotlin-spring](../.ai/bundles/1.1.0/skills/kotlin-spring/SKILL.md) | `backend` | Implement validated Kotlin/Spring service and transport behavior. |
-| [spring-dependency-injection](../.ai/bundles/1.1.0/skills/spring-dependency-injection/SKILL.md) | `backend` | Implement constructor wiring, qualifiers, and safe bean lifecycles. |
-| [jpa-hibernate](../.ai/bundles/1.1.0/skills/jpa-hibernate/SKILL.md) | `backend` | Implement persistence, transactions, locking, and PostgreSQL-backed checks. |
-| [svelte-typescript](../.ai/bundles/1.1.0/skills/svelte-typescript/SKILL.md) | `frontend` | Implement typed Svelte screens, states, responsiveness, and accessibility. |
-| [node-backend](../.ai/bundles/1.1.0/skills/node-backend/SKILL.md) | `backend` | Implement validated Node/TypeScript services or MCP adapters. |
-| [devops-ci](../.ai/bundles/1.1.0/skills/devops-ci/SKILL.md) | `operations` | Implement reproducible builds, Compose, CI, and recovery checks. |
-| [observability](../.ai/bundles/1.1.0/skills/observability/SKILL.md) | `operations` | Implement useful redacted logs, metrics, traces, and alerts. |
-| [performance-optimization](../.ai/bundles/1.1.0/skills/performance-optimization/SKILL.md) | `forge` | Measure and improve a specific performance bottleneck. |
-| [analyze-alert](../.ai/bundles/1.1.0/skills/analyze-alert/SKILL.md) | `operations` | Investigate a supplied alert against telemetry and a bounded timeline. |
+| [project-scaffold](../.ai/bundles/1.2.0/skills/project-scaffold/SKILL.md) | `forge` | Initialize an explicitly requested project or component. |
+| [kotlin-spring](../.ai/bundles/1.2.0/skills/kotlin-spring/SKILL.md) | `backend` | Implement validated Kotlin/Spring service and transport behavior. |
+| [spring-dependency-injection](../.ai/bundles/1.2.0/skills/spring-dependency-injection/SKILL.md) | `backend` | Implement constructor wiring, qualifiers, and safe bean lifecycles. |
+| [jpa-hibernate](../.ai/bundles/1.2.0/skills/jpa-hibernate/SKILL.md) | `backend` | Implement persistence, transactions, locking, and PostgreSQL-backed checks. |
+| [svelte-typescript](../.ai/bundles/1.2.0/skills/svelte-typescript/SKILL.md) | `frontend` | Implement typed Svelte screens, states, responsiveness, and accessibility. |
+| [node-backend](../.ai/bundles/1.2.0/skills/node-backend/SKILL.md) | `backend` | Implement validated Node/TypeScript services or MCP adapters. |
+| [devops-ci](../.ai/bundles/1.2.0/skills/devops-ci/SKILL.md) | `operations` | Implement reproducible builds, Compose, CI, and recovery checks. |
+| [observability](../.ai/bundles/1.2.0/skills/observability/SKILL.md) | `operations` | Implement useful redacted logs, metrics, traces, and alerts. |
+| [performance-optimization](../.ai/bundles/1.2.0/skills/performance-optimization/SKILL.md) | `forge` | Measure and improve a specific performance bottleneck. |
+| [analyze-alert](../.ai/bundles/1.2.0/skills/analyze-alert/SKILL.md) | `operations` | Investigate a supplied alert against telemetry and a bounded timeline. |
 
 ### A.8 Execution, integration, and delivery
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [forge](../.ai/bundles/1.1.0/skills/forge/SKILL.md) | `forge` | Coordinate approved multi-task execution and independent review. |
-| [task-full-workflow](../.ai/bundles/1.1.0/skills/task-full-workflow/SKILL.md) | `forge` | Route authorized work through one shared execution state. |
-| [task-implement](../.ai/bundles/1.1.0/skills/task-implement/SKILL.md) | `forge` | Execute one bounded approved task and return a verifiable receipt. |
-| [task-delivery](../.ai/bundles/1.1.0/skills/task-delivery/SKILL.md) | `forge` | Deliver checked changes through commits and an authorized draft PR. |
-| [worktree-integration](../.ai/bundles/1.1.0/skills/worktree-integration/SKILL.md) | `integrator` | Coordinate claims, isolated worktrees, and semantic integration. |
-| [conflict-resolution](../.ai/bundles/1.1.0/skills/conflict-resolution/SKILL.md) | `forge` | Resolve merge or concurrent-edit conflicts against intended behavior. |
-| [quality-gates](../.ai/bundles/1.1.0/skills/quality-gates/SKILL.md) | `review-verify` | Run configured checks and report revision-bound outcomes. |
-| [workflow-install](../.ai/bundles/1.1.0/skills/workflow-install/SKILL.md) | `operations` | Maintain workflow installation, conflicts, upgrades, and removal. |
-| [docs-sync](../.ai/bundles/1.1.0/skills/docs-sync/SKILL.md) | `forge` | Reconcile documentation, implementation, and accepted requirements. |
-| [pr](../.ai/bundles/1.1.0/skills/pr/SKILL.md) | `forge` | Write a reviewable pull request description. |
+| [forge](../.ai/bundles/1.2.0/skills/forge/SKILL.md) | `forge` | Coordinate approved multi-task execution and independent review. |
+| [task-full-workflow](../.ai/bundles/1.2.0/skills/task-full-workflow/SKILL.md) | `forge` | Route authorized work through one shared execution state. |
+| [task-implement](../.ai/bundles/1.2.0/skills/task-implement/SKILL.md) | `forge` | Execute one bounded approved task and return a verifiable receipt. |
+| [task-delivery](../.ai/bundles/1.2.0/skills/task-delivery/SKILL.md) | `forge` | Deliver checked changes through commits and an authorized draft PR. |
+| [worktree-integration](../.ai/bundles/1.2.0/skills/worktree-integration/SKILL.md) | `integrator` | Coordinate claims, isolated worktrees, and semantic integration. |
+| [conflict-resolution](../.ai/bundles/1.2.0/skills/conflict-resolution/SKILL.md) | `forge` | Resolve merge or concurrent-edit conflicts against intended behavior. |
+| [quality-gates](../.ai/bundles/1.2.0/skills/quality-gates/SKILL.md) | `review-verify` | Run configured checks and report revision-bound outcomes. |
+| [workflow-install](../.ai/bundles/1.2.0/skills/workflow-install/SKILL.md) | `operations` | Maintain workflow installation, conflicts, upgrades, and removal. |
+| [docs-sync](../.ai/bundles/1.2.0/skills/docs-sync/SKILL.md) | `forge` | Reconcile documentation, implementation, and accepted requirements. |
+| [pr](../.ai/bundles/1.2.0/skills/pr/SKILL.md) | `forge` | Write a reviewable pull request description. |
 
 ### A.9 Writing, upkeep, and tool use
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [humanizer](../.ai/bundles/1.1.0/skills/humanizer/SKILL.md) | `forge` | Write in the requested personal voice without altering facts. |
-| [writing-for-agents](../.ai/bundles/1.1.0/skills/writing-for-agents/SKILL.md) | `forge` | Write or edit agent instructions and skill documentation. |
-| [task-observer](../.ai/bundles/1.1.0/skills/task-observer/SKILL.md) | `forge` | Capture useful corrections as proposals during active work. |
-| [rtk](../.ai/bundles/1.1.0/skills/rtk/SKILL.md) | `forge` | Reduce verbose CLI output when RTK is available and suitable. |
-| [token-optimization](../.ai/bundles/1.1.0/skills/token-optimization/SKILL.md) | `forge` | Reduce context/output overhead while preserving necessary evidence. |
-| [playwright-cli](../.ai/bundles/1.1.0/skills/playwright-cli/SKILL.md) | `qa-evidence` | Drive managed browser journeys, screenshots, traces, and video. |
-| [record-test-video](../.ai/bundles/1.1.0/skills/record-test-video/SKILL.md) | `qa-evidence` | Capture readable real UI journeys with case timestamps and assertions. |
-| [context7](../.ai/bundles/1.1.0/skills/context7/SKILL.md) | `forge` | Retrieve version-relevant library documentation through Context7 MCP. |
+| [humanizer](../.ai/bundles/1.2.0/skills/humanizer/SKILL.md) | `forge` | Write in the requested personal voice without altering facts. |
+| [writing-for-agents](../.ai/bundles/1.2.0/skills/writing-for-agents/SKILL.md) | `forge` | Write or edit agent instructions and skill documentation. |
+| [task-observer](../.ai/bundles/1.2.0/skills/task-observer/SKILL.md) | `forge` | Capture useful corrections as proposals during active work. |
+| [rtk](../.ai/bundles/1.2.0/skills/rtk/SKILL.md) | `forge` | Reduce verbose CLI output when RTK is available and suitable. |
+| [token-optimization](../.ai/bundles/1.2.0/skills/token-optimization/SKILL.md) | `forge` | Reduce context/output overhead while preserving necessary evidence. |
+| [playwright-cli](../.ai/bundles/1.2.0/skills/playwright-cli/SKILL.md) | `qa-evidence` | Drive managed browser journeys, screenshots, traces, and video. |
+| [record-test-video](../.ai/bundles/1.2.0/skills/record-test-video/SKILL.md) | `qa-evidence` | Capture readable real UI journeys with case timestamps and assertions. |
+| [context7](../.ai/bundles/1.2.0/skills/context7/SKILL.md) | `forge` | Retrieve version-relevant library documentation through Context7 MCP. |
 
 ### A.10 Focused anti-slop review
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [antislop](../.ai/bundles/1.1.0/skills/antislop/SKILL.md) | `review-verify` | Apply focused UI/copy/interaction review in the existing review process. |
-| [antislop-ui](../.ai/bundles/1.1.0/skills/antislop-ui/SKILL.md) | `review-verify` | Review composition and remove generic decorative filler. |
-| [antislop-copywriting](../.ai/bundles/1.1.0/skills/antislop-copywriting/SKILL.md) | `review-verify` | Keep product copy specific and factual without invented claims. |
-| [antislop-human](../.ai/bundles/1.1.0/skills/antislop-human/SKILL.md) | `review-verify` | Check usability across input, vision, and motion needs. |
-| [antislop-layoutmobile](../.ai/bundles/1.1.0/skills/antislop-layoutmobile/SKILL.md) | `review-verify` | Check reflow, touch behavior, sizing, and mobile navigation. |
-| [antislop-code](../.ai/bundles/1.1.0/skills/antislop-code/SKILL.md) | `review-verify` | Review comment hygiene while preserving necessary explanation. |
+| [antislop](../.ai/bundles/1.2.0/skills/antislop/SKILL.md) | `review-verify` | Apply focused UI/copy/interaction review in the existing review process. |
+| [antislop-ui](../.ai/bundles/1.2.0/skills/antislop-ui/SKILL.md) | `review-verify` | Review composition and remove generic decorative filler. |
+| [antislop-copywriting](../.ai/bundles/1.2.0/skills/antislop-copywriting/SKILL.md) | `review-verify` | Keep product copy specific and factual without invented claims. |
+| [antislop-human](../.ai/bundles/1.2.0/skills/antislop-human/SKILL.md) | `review-verify` | Check usability across input, vision, and motion needs. |
+| [antislop-layoutmobile](../.ai/bundles/1.2.0/skills/antislop-layoutmobile/SKILL.md) | `review-verify` | Check reflow, touch behavior, sizing, and mobile navigation. |
+| [antislop-code](../.ai/bundles/1.2.0/skills/antislop-code/SKILL.md) | `review-verify` | Review comment hygiene while preserving necessary explanation. |
 
 ## Appendix B. Harness coverage matrix
 
@@ -594,27 +598,27 @@ This matrix maps the inventory to its sources and distinguishes configured capab
 
 | Component | Source | Status / proof boundary |
 | --- | --- | --- |
-| Bundle selection, version, limits | [Configuration](../.ai/config.json), [manifest](../.ai/bundles/1.1.0/manifest.json) | 1.1.0 selected; doctor healthy; 74 skill entries. |
-| Global fallback and retained bundles | [Storage map](#21-configuration-state-and-storage-map), [installation](../.ai/bundles/1.1.0/docs/INSTALLATION.md) | Global 1.1.0/general inspected; project 1.1.0/movie-app governs; retained project 1.0.0 is inactive. |
+| Bundle selection, version, limits | [Configuration](../.ai/config.json), [manifest](../.ai/bundles/1.2.0/manifest.json) | 1.1.0 selected; doctor healthy; 74 skill entries. |
+| Global fallback and retained bundles | [Storage map](#21-configuration-state-and-storage-map), [installation](../.ai/bundles/1.2.0/docs/INSTALLATION.md) | Global 1.1.0/general inspected; project 1.1.0/movie-app governs; retained project 1.0.0 is inactive. |
 | Local state, archives, and recovery data | [Storage map](#21-configuration-state-and-storage-map), [ignore rules](../.ai/.gitignore) | Local release archive present; state/evidence/reports/backups are ignored and need deliberate preservation. |
 | Instructions and discovery | [Root policy](../AGENTS.md), [host map](#31-repository-configuration-map) | Four configured adapters; 74 skill symlinks per host. Native precedence needs separate proof. |
-| Codex | [Native host results](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#native-host-results) | Historical fixture blocked; saved record stale; project installation loading unverified. |
-| Claude Code | [Native host results](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#native-host-results) | Partial catalog/edit evidence; saved fixture blocked; project installation loading unverified. |
-| Cursor | [Native host results](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#native-host-results) | Historical native UI fixture observations/imports; no movie-app loading proof; doctor has no saved native record. |
-| GitHub Copilot | [Native host results](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#native-host-results) | Partial skill/instruction discovery; saved fixture blocked; project installation loading unverified. |
-| Eight roles and skill ownership | [Role catalog](../.ai/bundles/1.1.0/agents/catalog.json), [Appendix A](#appendix-a-complete-pinned-skill-inventory) | Profiles installed; role-specific native execution remains bounded by host evidence. |
-| Hooks and gate dispatch | [Host guide](../.ai/bundles/1.1.0/docs/HOSTS.md), [gate guide](../.ai/bundles/1.1.0/docs/GATES.md) | Post-edit feedback configured; explicit completion checks required; no installed CI/pre-commit chain claimed. |
-| Claims, worktrees, receipts, integration | [Coordination](../.ai/bundles/1.1.0/docs/COORDINATION.md) | Helpers available; no application task execution follows from installation. |
+| Codex | [Native host results](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#native-host-results) | Historical fixture blocked; saved record stale; project installation loading unverified. |
+| Claude Code | [Native host results](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#native-host-results) | Partial catalog/edit evidence; saved fixture blocked; project installation loading unverified. |
+| Cursor | [Native host results](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#native-host-results) | Historical native UI fixture observations/imports; no movie-app loading proof; doctor has no saved native record. |
+| GitHub Copilot | [Native host results](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#native-host-results) | Partial skill/instruction discovery; saved fixture blocked; project installation loading unverified. |
+| Eight roles and skill ownership | [Role catalog](../.ai/bundles/1.2.0/agents/catalog.json), [Appendix A](#appendix-a-complete-pinned-skill-inventory) | Profiles installed; role-specific native execution remains bounded by host evidence. |
+| Hooks and gate dispatch | [Host guide](../.ai/bundles/1.2.0/docs/HOSTS.md), [gate guide](../.ai/bundles/1.2.0/docs/GATES.md) | Post-edit feedback configured; explicit completion checks required; no installed CI/pre-commit chain claimed. |
+| Claims, worktrees, receipts, integration | [Coordination](../.ai/bundles/1.2.0/docs/COORDINATION.md) | Helpers available; no application task execution follows from installation. |
 | Product/design/engineering/acceptance sources | [Lifecycle map](#7-development-lifecycle-and-source-traceability), [plan](06-PLAN.md) | Authored artifacts; 46 planned tasks across 20 groups in the retained package. |
-| Code, coverage, architecture, security gates | [Profile](../.ai/bundles/1.1.0/profiles/movie-app.json), [gate implementation](../.ai/bundles/1.1.0/agent_workflow/gates.py), [receipt implementation](../.ai/bundles/1.1.0/agent_workflow/coordination_evidence.py) | Registry precedence, applicability, and gate/receipt skip handling inspected; application wiring remains planned. |
-| Playwright CLI and browser recordings | [Managed tool records](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#managed-tools-and-context7), [browser fixture](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#browser-fixture-evidence) | Historical installation, browser launch, fixture capture, and independent sample inspection; fresh tool status unavailable. |
+| Code, coverage, architecture, security gates | [Profile](../.ai/bundles/1.2.0/profiles/movie-app.json), [gate implementation](../.ai/bundles/1.2.0/agent_workflow/gates.py), [receipt implementation](../.ai/bundles/1.2.0/agent_workflow/coordination_evidence.py) | Registry precedence, applicability, and gate/receipt skip handling inspected; application wiring remains planned. |
+| Playwright CLI and browser recordings | [Managed tool records](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#managed-tools-and-context7), [browser fixture](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#browser-fixture-evidence) | Historical installation, browser launch, fixture capture, and independent sample inspection; fresh tool status unavailable. |
 | SpoolIn mockup browser validation | [Branding verification](design-system/verification.md) | Historical static prototype checks; no application acceptance. |
-| Context7 MCP | [Repository map](#31-repository-configuration-map), [tool guide](../.ai/bundles/1.1.0/docs/TOOLS.md) | Four configured hosts; historical public retrieval; native OAuth unverified. |
-| Strix | [Tool guide](../.ai/bundles/1.1.0/docs/TOOLS.md#strix-stays-inactive-until-requested) | Historical installation/preflight; inactive; no assessment performed. |
-| Sonar | [Profile](../.ai/bundles/1.1.0/profiles/movie-app.json) | Optional, not configured. |
-| Computer-use observations | [Cursor UI record summary](../.ai/bundles/1.1.0/docs/VERIFICATION-1.1.md#native-host-results) | Retained observer-attested native fixture evidence with stated gaps. |
+| Context7 MCP | [Repository map](#31-repository-configuration-map), [tool guide](../.ai/bundles/1.2.0/docs/TOOLS.md) | Four configured hosts; historical public retrieval; native OAuth unverified. |
+| Strix | [Tool guide](../.ai/bundles/1.2.0/docs/TOOLS.md#strix-stays-inactive-until-requested) | Historical installation/preflight; inactive; no assessment performed. |
+| Sonar | [Profile](../.ai/bundles/1.2.0/profiles/movie-app.json) | Optional, not configured. |
+| Computer-use observations | [Cursor UI record summary](../.ai/bundles/1.2.0/docs/VERIFICATION-1.1.md#native-host-results) | Retained observer-attested native fixture evidence with stated gaps. |
 | Research support | [PRD comparison](research/prd-skills-comparison-2026-10-09.md), [design comparison](research/design-system-skills-comparison-2026-10-10.md) | Source-based research; evaluated alternatives are not adopted-tool claims. |
 | Image generation | [Artwork provenance](design-system/mockup/assets/artwork-provenance.json) | Four original AI-generated prototype assets; outside the workflow skill bundle. |
-| Personal observation, voice, wording | [Task observer](../.ai/bundles/1.1.0/skills/task-observer/SKILL.md), [humanizer](../.ai/bundles/1.1.0/skills/humanizer/SKILL.md), [wording policy](../.ai/bundles/1.1.0/resources/wording/output-wording.md) | Active-session observation proposals; conditional personal voice; required authored-output check. |
-| Maintenance and relocation | [Installation](../.ai/bundles/1.1.0/docs/INSTALLATION.md), [tool lifecycle](../.ai/bundles/1.1.0/docs/TOOLS.md) | Reviewed updates, ownership-preserving recovery, and separate external tool lifecycle. |
+| Personal observation, voice, wording | [Task observer](../.ai/bundles/1.2.0/skills/task-observer/SKILL.md), [humanizer](../.ai/bundles/1.2.0/skills/humanizer/SKILL.md), [wording policy](../.ai/bundles/1.2.0/resources/wording/output-wording.md) | Active-session observation proposals; conditional personal voice; required authored-output check. |
+| Maintenance and relocation | [Installation](../.ai/bundles/1.2.0/docs/INSTALLATION.md), [tool lifecycle](../.ai/bundles/1.2.0/docs/TOOLS.md) | Reviewed updates, ownership-preserving recovery, and separate external tool lifecycle. |
 | Planned ChatGPT/Claude product integration | [Assisted creation group](plan/13-assisted-movie-creation/group.md), [ATDD](05-atdd.md) | Future product behavior and real-client acceptance; separate from development harnesses. |
