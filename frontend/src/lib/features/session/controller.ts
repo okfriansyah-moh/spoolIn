@@ -34,6 +34,7 @@ export class SessionController {
     policy: null,
     message: 'Checking your session',
   });
+  private expiryTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
   private generation = 0;
   private active: AbortController | null = null;
   private hadSession = false;
@@ -431,6 +432,28 @@ export class SessionController {
     return this.generation;
   }
   private publish(state: SessionState): void {
+    globalThis.clearTimeout(this.expiryTimer);
+    this.expiryTimer = undefined;
+    if (state.kind === 'verified' && state.identity) {
+      const remaining = Date.parse(state.identity.expiresAt) - Date.now();
+      if (remaining <= 0) {
+        this.csrf = '';
+        state = {
+          ...state,
+          kind: 'expired',
+          identity: null,
+          message: 'Your session expired',
+        };
+      } else {
+        const generation = this.generation;
+        this.expiryTimer = globalThis.setTimeout(
+          () => {
+            if (generation === this.generation) this.publish(state);
+          },
+          Math.min(remaining, 2147483647),
+        );
+      }
+    }
     this.current = Object.freeze(state);
     this.listeners.forEach((listener) => listener(this.current));
   }

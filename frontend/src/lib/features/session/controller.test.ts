@@ -69,3 +69,31 @@ it('identity outage conceals the known account and stays distinct from confirmed
     identity: null,
   });
 });
+it('conceals an expired session and cancels an older account expiry', async () => {
+  vi.useFakeTimers();
+  try {
+    const initial = Date.now();
+    const first = response();
+    first.session.expiresAt = new Date(initial + 1000).toISOString();
+    const second = response(secondId);
+    second.session.expiresAt = new Date(initial + 3000).toISOString();
+    const bootstrap = vi
+      .fn<SessionSource['bootstrap']>()
+      .mockResolvedValueOnce(first)
+      .mockResolvedValueOnce(second);
+    const controller = new SessionController({ bootstrap });
+    await controller.check();
+    await vi.advanceTimersByTimeAsync(500);
+    await controller.check();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(controller.snapshot.identity?.accountId).toBe(secondId);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(controller.snapshot).toMatchObject({
+      kind: 'expired',
+      identity: null,
+    });
+    controller.dispose();
+  } finally {
+    vi.useRealTimers();
+  }
+});
