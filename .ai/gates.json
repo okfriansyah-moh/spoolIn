@@ -27,7 +27,11 @@
         "tests/contracts"
       ],
       "required": true,
-      "timeout_seconds": 300
+      "timeout_seconds": 300,
+      "reuse": {
+        "max_age_seconds": 900,
+        "toolchain_files": []
+      }
     },
     {
       "id": "contracts-script-lint",
@@ -719,7 +723,11 @@
         "build-tools/verification-tests"
       ],
       "required": true,
-      "timeout_seconds": 1800
+      "timeout_seconds": 1800,
+      "reuse": {
+        "max_age_seconds": 900,
+        "toolchain_files": []
+      }
     },
     {
       "id": "foundation-harness",
@@ -968,9 +976,81 @@
   "notes": [
     "Commands are required build contracts for application setup; missing wrappers/tasks/scripts block applicable checks.",
     "Do not run application tasks during workflow installation.",
-    "Documentation mockup scripts are source requirements, not application components; their content remains fingerprinted."
+    "Documentation mockup scripts are source requirements, not application components; their content remains fingerprinted.",
+    "Service changes conservatively select all checks because identity and data calls cross service boundaries in both directions; frontend-only changes can remain narrow."
   ],
   "source_exclude": [
     "docs/**"
+  ],
+  "component_inputs": {
+    "catalog": [
+      "services/catalog/**",
+      "tests/catalog/**"
+    ],
+    "contracts": [
+      "contracts/**",
+      "tests/contracts/**"
+    ],
+    "core": [
+      "services/core/**",
+      "tests/core/**"
+    ],
+    "foundation": [
+      "build-tools/verification-tests/**"
+    ],
+    "frontend": [
+      "frontend/**",
+      "tests/browser/**"
+    ],
+    "mcp": [
+      "mcp/**",
+      "tests/mcp/**"
+    ],
+    "media": [
+      "services/media/**",
+      "tests/media/**"
+    ]
+  },
+  "component_dependencies": {
+    "catalog": [
+      "contracts",
+      "media"
+    ],
+    "contracts": [],
+    "core": [
+      "contracts",
+      "catalog",
+      "media"
+    ],
+    "foundation": [],
+    "frontend": [
+      "contracts",
+      "core"
+    ],
+    "mcp": [
+      "contracts",
+      "core",
+      "catalog"
+    ],
+    "media": [
+      "contracts"
+    ]
+  },
+  "shared_input_patterns": [
+    ".ai/**",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "package.json",
+    "package-lock.json",
+    "gradle/**",
+    "gradlew*",
+    "*.gradle*",
+    "gradle.properties",
+    "gradle.lockfile",
+    "Makefile",
+    "ops/**",
+    "build-tools/**",
+    "services/shared/**",
+    "services/**"
   ]
 }

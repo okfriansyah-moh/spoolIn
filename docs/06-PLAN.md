@@ -214,6 +214,11 @@ On 15 October 2026, the release purpose and contributor guidance were rewritten 
 
 ## Shared execution rules
 
+### Selection delivery policy
+
+The pinned workflow docs/DELIVERY.md governs execution timing and evidence methods: implement the requested selection before one combined independent review; preserve blocking quality gates and real behavior checks. Tested predecessors can support dependent development within the selection. Task independent-review rows reference that same selection review; they are not separate review stages. Exhaustive visual/browser/assistive matrices and optional media provenance remain with T044/release owners unless a feature requires the exact observation. Missing success announcements remain real unresolved behavior; missing optional traces alone do not justify another repair work group. Preserve task IDs, source contracts and historical results.
+
+
 ### Source loading and ownership
 
 Keep sources read-only unless a later request explicitly authorizes their update. Verify fingerprints before starting and mark affected instructions Needs update/evidence Stale when source behavior changes. Preserve FR/NFR/AC/ATDD/decision identities. Plan-local `TD-C-*`, `TD-ROW-L*`, `TD-BLOCK-L*`, `PRD-*`, `COMP-*`, token keys and case suffixes locate independently inventoried clauses/rows, not invented source IDs. `TECH-G-*` distinguishes engineering gates from different PRD G IDs; full source ID remains in the linked line. JSON locators name a source value path in the row text and link the JSON file, not a nonexistent HTML anchor.
