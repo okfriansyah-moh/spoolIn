@@ -36,6 +36,15 @@ class PolicyGraphql(
         engine = GraphQL.newGraphQL(executable).build()
     }
 
+    private fun failureCode(errors: List<graphql.GraphQLError>): String {
+        val ambiguous =
+            errors.any { error ->
+                (error as? graphql.ExceptionWhileDataFetching)?.exception is
+                    com.spoolin.core.operations.receipts.AmbiguousOperation
+            }
+        return if (ambiguous) "AMBIGUOUS_OPERATION" else "FIELD_INVALID"
+    }
+
     fun execute(input: Map<String, Any?>): Map<String, Any?> {
         val result = runCatching { engine.execute(envelope.parse(input)) }.getOrNull()
         if (result == null || result.errors.isNotEmpty()) {
@@ -45,7 +54,7 @@ class PolicyGraphql(
                     listOf(
                         mapOf(
                             "message" to "The request could not be completed.",
-                            "extensions" to mapOf("code" to "FIELD_INVALID"),
+                            "extensions" to mapOf("code" to failureCode(result?.errors.orEmpty())),
                         ),
                     ),
             )

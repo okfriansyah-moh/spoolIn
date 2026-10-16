@@ -28,7 +28,7 @@ class OperationRouter(
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(LOOKUP_BUDGET_SECONDS)
         val owners = owner?.let { listOf(it) } ?: OperationOwner.entries
         val matches = owners.mapNotNull { selected -> lookup(id, actor, selected, deadline) }
-        check(matches.size <= 1) { "AMBIGUOUS_OPERATION" }
+        if (matches.size > 1) throw AmbiguousOperation()
         return matches.singleOrNull()?.let(::projection)
     }
 
@@ -43,7 +43,7 @@ class OperationRouter(
         val request = Id.newBuilder().setId(id.toString()).build()
         return try {
             when (owner) {
-                OperationOwner.CORE -> local(id, actor)?.let(::protobuf)
+                OperationOwner.CORE -> localBeforeDeadline(id, actor, remaining)?.let(::protobuf)
                 OperationOwner.CATALOG ->
                     catalog.withDeadlineAfter(remaining, TimeUnit.NANOSECONDS).getOperation(request)
                 OperationOwner.MEDIA -> media.withDeadlineAfter(remaining, TimeUnit.NANOSECONDS).getOperation(request)
@@ -52,6 +52,29 @@ class OperationRouter(
             if (failure.status.code == Status.Code.NOT_FOUND) null else throw failure
         }
     }
+
+    private fun localBeforeDeadline(
+        id: UUID,
+        actor: String,
+        remaining: Long,
+    ): ReceiptOutcome? {
+        val pending = java.util.concurrent.FutureTask { local(id, actor) }
+        Thread.ofVirtual().name("owner-receipt-read").start(pending)
+        return try {
+            pending.get(remaining, TimeUnit.NANOSECONDS)
+        } catch (_: java.util.concurrent.TimeoutException) {
+            fail(Status.DEADLINE_EXCEEDED)
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+            fail(Status.CANCELLED)
+        } catch (_: java.util.concurrent.ExecutionException) {
+            fail(Status.UNAVAILABLE)
+        } finally {
+            if (!pending.isDone) pending.cancel(true)
+        }
+    }
+
+    private fun fail(status: Status): Nothing = throw status.asRuntimeException()
 
     private fun protobuf(receipt: ReceiptOutcome): Outcome {
         val output =
@@ -93,3 +116,5 @@ class OperationRouter(
                 },
         )
 }
+
+class AmbiguousOperation : IllegalStateException("AMBIGUOUS_OPERATION")

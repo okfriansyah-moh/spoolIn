@@ -41,4 +41,19 @@ class IntentRulesTest {
             hashes.hash(OperationIntent(UUID.randomUUID(), "a", "k", "p", emptyList()), "old")
         }
     }
+
+    @Test
+    fun `registration binds only normalized identity and ephemeral submission nonce`() {
+        val id = UUID.fromString("404e89b2-dab6-4c38-a835-2ef4d54c336a")
+        val nonce = UUID.fromString("26a3fbad-c8cb-48ae-a39c-eed6e7cb456a")
+        val registration = RegistrationIntent.create(id, "anonymous:fixture", "p1", "synthetic@example.test", nonce)
+        assertEquals(
+            listOf("identity" to "synthetic@example.test", "submissionNonce" to nonce.toString()),
+            registration.fields,
+        )
+        val hashes = IntentHashes(mapOf("v1" to ByteArray(32) { 23 }), "v1")
+        val next = RegistrationIntent.create(id, "anonymous:fixture", "p1", "synthetic@example.test", UUID.randomUUID())
+        assertFalse(hashes.hash(registration, "v1").contentEquals(hashes.hash(next, "v1")))
+        assertFalse(hashes.hash(registration, "v1").contentEquals(hashes.hash(registration, null)))
+    }
 }

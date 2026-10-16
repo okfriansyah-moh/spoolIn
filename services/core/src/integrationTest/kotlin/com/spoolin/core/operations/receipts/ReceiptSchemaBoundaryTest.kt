@@ -4,12 +4,19 @@ import com.spoolin.core.MigrationRunner
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import java.sql.SQLException
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
+import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ReceiptSchemaBoundaryTest {
@@ -20,6 +27,7 @@ class ReceiptSchemaBoundaryTest {
         fixture = OwnerFixture("t010-core-schema.json").start()
         fixture.membership("core", "grant")
         fixture.pool("core", "migrator").use { MigrationRunner(it).migrate() }
+        fixture.grants("core")
     }
 
     @AfterAll
@@ -36,6 +44,61 @@ class ReceiptSchemaBoundaryTest {
         eventCases().map { item ->
             DynamicTest.dynamicTest(item.name) { probe(item) }
         }
+
+    @Test
+    fun `initializer evidence stays permanently hidden and cannot be replayed as a request`() {
+        val id = UUID.randomUUID()
+        val values =
+            receipt() +
+                mapOf(
+                    "id" to "'$id'",
+                    "receipt_type" to "'ACCOUNT_INITIALIZATION'",
+                    "actor_scope" to "'SERVICE_INITIALIZER'",
+                    "kind" to "'INITIALIZE_ACCOUNTS'",
+                    "state" to "'PENDING'",
+                    "result" to "NULL",
+                    "expires_at" to "NULL",
+                    "setup_version" to "'fixture-v1'",
+                    "setup_manifest_hash" to "decode(repeat('ab',32),'hex')",
+                )
+        fixture.connection("core", "migrator").use { connection ->
+            val sql = "INSERT INTO operation_receipt (${values.keys.joinToString()}) VALUES (${values.values.joinToString()})"
+            connection.createStatement().use { assertEquals(1, it.executeUpdate(sql)) }
+        }
+        fixture.pool("core").use { pool ->
+            val clock = Clock.fixed(Instant.parse("2100-01-01T00:00:00Z"), ZoneOffset.UTC)
+            assertNull(OwnerReceiptReads(pool, clock).find(id, "SERVICE_INITIALIZER"))
+            assertEquals(
+                0,
+                com.spoolin.core.operations.maintenance
+                    .ReceiptExpiry(pool, clock)
+                    .purgeBodies(),
+            )
+            val receipts =
+                OwnerReceipts(
+                    pool,
+                    com.spoolin.support.receipts
+                        .IntentHashes(mapOf("v1" to ByteArray(32) { 31 }), "v1"),
+                    clock,
+                )
+            val intent =
+                com.spoolin.support.receipts
+                    .OperationIntent(id, "account:A", "WriteMovie", "p1", emptyList())
+            assertThrows(com.spoolin.support.receipts.ReceiptHidden::class.java) {
+                receipts.execute(intent, UUID.randomUUID(), true) { error("Initializer became client operation") }
+            }
+        }
+        fixture.connection("core", "migrator").use { connection ->
+            connection.createStatement().use { statement ->
+                statement.executeQuery("SELECT state,expires_at,result FROM operation_receipt WHERE id='$id'").use { rows ->
+                    assertTrue(rows.next())
+                    assertEquals("PENDING", rows.getString(1))
+                    assertNull(rows.getTimestamp(2))
+                    assertNull(rows.getString(3))
+                }
+            }
+        }
+    }
 
     private fun receiptCases(): List<SqlCase> {
         val cases = mutableListOf<SqlCase>()
@@ -100,6 +163,18 @@ class ReceiptSchemaBoundaryTest {
         }
         cases += SqlCase("state unknown", "operation_receipt", receipt() + ("state" to "'UNKNOWN'"), "23514")
         cases += SqlCase("malformed UUID conversion", "operation_receipt", receipt() + ("id" to "'malformed'"), "22P02")
+        listOf("receipt_type" to 24, "state" to 16).forEach { (column, max) ->
+            listOf(max, max + 1).forEach { size ->
+                cases +=
+                    SqlCase(
+                        "$column allowlist capacity $size",
+                        "operation_receipt",
+                        receipt() +
+                            (column to "repeat('x',$size)"),
+                        if (size > max) "22001" else "23514",
+                    )
+            }
+        }
         return cases
     }
 
@@ -139,6 +214,99 @@ class ReceiptSchemaBoundaryTest {
         }
         cases += SqlCase("activity cannot claim attempt", "operational_event", event() + ("attempt_no" to "1"), "23514")
         cases += SqlCase("activity metadata wrong shape", "operational_event", event() + ("changes" to "'[]'::jsonb"), "23514")
+        listOf("actor_kind" to 16, "outcome" to 16, "event_type" to 24, "attempt_outcome" to 24).forEach { (column, max) ->
+            listOf(max, max + 1).forEach { size ->
+                cases +=
+                    SqlCase(
+                        "$column allowlist capacity $size",
+                        "operational_event",
+                        event() +
+                            (column to "repeat('x',$size)"),
+                        if (size > max) "22001" else "23514",
+                    )
+            }
+        }
+        listOf(65535, 65536, 65537).forEach { size ->
+            cases +=
+                SqlCase(
+                    "changes jsonb text bytes $size",
+                    "operational_event",
+                    event() +
+                        ("changes" to "jsonb_build_object('x',repeat('a',${size - 9}))"),
+                    if (size > 65536) "23514" else null,
+                )
+        }
+        cases += phaseCases()
+        return cases
+    }
+
+    private fun phaseCases(): List<SqlCase> {
+        val started =
+            event() +
+                mapOf(
+                    "event_type" to "'ATTEMPT_STARTED'",
+                    "outcome" to "NULL",
+                    "work_id" to "'69b45fcf-acad-4e59-9342-156d321b1c48'",
+                    "generation" to "0",
+                    "attempt_no" to "1",
+                    "lease_epoch" to "1",
+                )
+        val cases = mutableListOf(SqlCase("STARTED valid phase", "operational_event", started, null))
+        listOf("work_id", "generation", "attempt_no", "lease_epoch").forEach { column ->
+            cases += SqlCase("STARTED requires $column", "operational_event", started + (column to "NULL"), "23514")
+        }
+        listOf(
+            "generation" to listOf(-1, 0, 1),
+            "attempt_no" to listOf(0, 1, 10, 11),
+            "lease_epoch" to listOf(-1, 0, 1),
+        ).forEach { (column, values) ->
+            values.forEach { value ->
+                val valid =
+                    if (column == "generation") {
+                        value >= 0
+                    } else if (column == "attempt_no") {
+                        value in 1..10
+                    } else {
+                        value > 0
+                    }
+                cases +=
+                    SqlCase(
+                        "STARTED $column predicate $value",
+                        "operational_event",
+                        started + (column to "$value"),
+                        if (valid) null else "23514",
+                    )
+            }
+        }
+        listOf("SUCCEEDED", "TRANSIENT", "PERMANENT", "UNCERTAIN", "CANCELLED").forEach { outcome ->
+            val finished =
+                started +
+                    mapOf(
+                        "event_type" to "'ATTEMPT_FINISHED'",
+                        "attempt_outcome" to "'$outcome'",
+                        "outcome" to if (outcome == "SUCCEEDED") "'SUCCEEDED'" else "'FAILED'",
+                    )
+            cases += SqlCase("FINISHED $outcome", "operational_event", finished, null)
+            cases +=
+                SqlCase("FINISHED $outcome mismatched activity outcome", "operational_event", finished + ("outcome" to "'DENIED'"), "23514")
+        }
+        cases += SqlCase("STARTED no error", "operational_event", started + ("error_code" to "'UNAVAILABLE'"), "23514")
+        cases += SqlCase("STARTED no finished outcome", "operational_event", started + ("attempt_outcome" to "'SUCCEEDED'"), "23514")
+        val recovery =
+            started +
+                mapOf(
+                    "event_type" to "'RECOVERY'",
+                    "attempt_no" to "NULL",
+                    "lease_epoch" to "0",
+                    "outcome" to "'FAILED'",
+                    "operator_id" to "'fixture-operator'",
+                )
+        cases += SqlCase("RECOVERY valid phase", "operational_event", recovery, null)
+        cases += SqlCase("RECOVERY verified operator required", "operational_event", recovery + ("operator_id" to "NULL"), "23514")
+        cases += SqlCase("RECOVERY no attempt", "operational_event", recovery + ("attempt_no" to "1"), "23514")
+        cases +=
+            SqlCase("operation FK", "operational_event", event() + ("operation_id" to "'01d207d9-ece1-42f3-bb55-5609ef2772bd'"), "23503")
+        cases += SqlCase("work FK", "operational_event", started + ("work_id" to "'01d207d9-ece1-42f3-bb55-5609ef2772bd'"), "23503")
         return cases
     }
 
@@ -146,6 +314,14 @@ class ReceiptSchemaBoundaryTest {
         fixture.connection("core", "migrator").use { connection ->
             connection.autoCommit = false
             try {
+                connection.createStatement().use {
+                    it.executeUpdate(
+                        "INSERT INTO durable_work (id,kind,payload,max_attempts,deadline_at,correlation_id," +
+                            "base_delay_ms,cap_delay_ms,backoff_multiplier) VALUES " +
+                            "('69b45fcf-acad-4e59-9342-156d321b1c48','SYNC','{}',3,CURRENT_TIMESTAMP+interval '1 hour'," +
+                            "'b9569801-76f8-49f7-a2f9-358a0e97e2ef',500,5000,2)",
+                    )
+                }
                 val sql = "INSERT INTO ${item.table} (${item.values.keys.joinToString()}) VALUES (${item.values.values.joinToString()})"
                 if (item.sqlState == null) {
                     connection.createStatement().use { assertEquals(1, it.executeUpdate(sql)) }

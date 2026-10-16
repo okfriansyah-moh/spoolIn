@@ -26,6 +26,11 @@ class ReceiptCrashBoundaryTest {
     ) {
         OwnerFixture("t010-catalog-crash-$stage.json").start().use { fixture ->
             prepare(fixture)
+            listOf("v1", "v2").forEachIndexed { index, name ->
+                val key = fixture.root.resolve(name)
+                Files.write(key, ByteArray(32) { (index + 21).toByte() })
+                Files.setPosixFilePermissions(key, PosixFilePermissions.fromString("rw-------"))
+            }
             val config = fixture.root.resolve("receipt-process.json")
             Files.writeString(
                 config,
@@ -35,6 +40,8 @@ class ReceiptCrashBoundaryTest {
                         "user" to "spoolin_catalog_runtime",
                         "passwordFile" to fixture.passwords.getValue("catalog-runtime").toString(),
                         "operationId" to UUID.randomUUID().toString(),
+                        "v1File" to fixture.root.resolve("v1").toString(),
+                        "v2File" to fixture.root.resolve("v2").toString(),
                     ),
                 ),
             )

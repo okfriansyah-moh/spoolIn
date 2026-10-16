@@ -1,7 +1,7 @@
 package com.spoolin.media.operations.receipts
 
 import com.spoolin.media.DatabaseSettings
-import com.spoolin.support.receipts.IntentHashes
+import com.spoolin.support.receipts.ComparisonKeys
 import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
 import com.spoolin.support.receipts.WorkRequest
@@ -21,7 +21,9 @@ object ReceiptCrashProcess {
             Path.of(config.get("passwordFile").asString()),
             false,
         ).pool().use { pool ->
-            val receipts = OwnerReceipts(pool, IntentHashes(mapOf("v1" to ByteArray(32) { 21 }), "v1"))
+            val active = if (arguments[2].startsWith("inspect")) "v2" else "v1"
+            val paths = mapOf("v1" to config.get("v1File").asString(), "v2" to config.get("v2File").asString())
+            val receipts = OwnerReceipts(pool, ComparisonKeys.load(paths, active, paths.getValue(active)))
             val intent =
                 OperationIntent(
                     UUID.fromString(config.get("operationId").asString()),
