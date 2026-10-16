@@ -26,10 +26,14 @@ class BrowserRequests {
             ThreadPoolExecutor.AbortPolicy(),
         )
 
-    fun run(action: (Long) -> ResponseEntity<Map<String, Any?>>): DeferredResult<ResponseEntity<Map<String, Any?>>> {
-        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(IDENTITY_TIMEOUT_MS)
+    fun run(
+        timeoutMs: Long = IDENTITY_TIMEOUT_MS,
+        action: (Long) -> ResponseEntity<Map<String, Any?>>,
+    ): DeferredResult<ResponseEntity<Map<String, Any?>>> {
+        require(timeoutMs in 1..IDENTITY_TIMEOUT_MS)
+        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMs)
         val timeout = BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "DEADLINE_EXCEEDED")
-        val result = DeferredResult<ResponseEntity<Map<String, Any?>>>(IDENTITY_TIMEOUT_MS, timeout)
+        val result = DeferredResult<ResponseEntity<Map<String, Any?>>>(timeoutMs, timeout)
         try {
             val future =
                 executor.submit {

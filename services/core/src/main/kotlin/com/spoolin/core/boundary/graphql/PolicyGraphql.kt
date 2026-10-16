@@ -2,6 +2,7 @@ package com.spoolin.core.boundary.graphql
 
 import com.spoolin.core.boundary.http.BrowserContext
 import com.spoolin.core.features.policy.PolicyProvider
+import com.spoolin.support.receipts.OperationOwner
 import graphql.GraphQL
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
@@ -9,12 +10,16 @@ import graphql.schema.idl.SchemaParser
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
+import java.util.UUID
+
+typealias ScopedOperationQuery = (UUID, OperationOwner?, BrowserContext?) -> Map<String, Any?>?
 
 class PolicyGraphql(
     schema: String,
     private val provider: PolicyProvider,
     accounts: AccountGraphql? = null,
-    operation: (java.util.UUID, com.spoolin.support.receipts.OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
+    operations: ScopedOperationQuery? = null,
+    operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
     private val engine: GraphQL
@@ -25,13 +30,17 @@ class PolicyGraphql(
         wiring.type("Query") { it.dataFetcher("policy") { provider.projection() } }
         wiring.type("Query") { query ->
             query.dataFetcher("operation") { environment ->
-                val id = java.util.UUID.fromString(environment.getArgument<String>("id"))
+                val id = UUID.fromString(environment.getArgument<String>("id"))
                 val owner =
                     environment.getArgument<String>("owner")?.let {
-                        com.spoolin.support.receipts.OperationOwner
+                        OperationOwner
                             .valueOf(it)
                     }
-                operation(id, owner)
+                if (operations == null) {
+                    operation(id, owner)
+                } else {
+                    operations(id, owner, environment.graphQlContext.get("browser"))
+                }
             }
         }
         accounts?.bind(wiring)
@@ -112,6 +121,8 @@ class PolicyGraphqlConfiguration {
             ClassPathResource(
                 "graphql/schema.graphql",
             ).inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-        return PolicyGraphql(schema, provider, accounts = accounts.ifAvailable)
+        return PolicyGraphql(schema, provider, accounts = accounts.ifAvailable, operations = { id, owner, context ->
+            context?.operation(id, owner)
+        })
     }
 }

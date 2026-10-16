@@ -26,15 +26,49 @@ class BrowserGraphql(
     private val admission: org.springframework.beans.factory.ObjectProvider<BrowserAdmission>,
 ) {
     @RequestMapping("/graphql")
-    fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> =
-        requests.run { deadline -> dispatch(request, deadline) }
+    fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> {
+        val started = System.nanoTime()
+        return try {
+            submit(request, started)
+        } catch (failure: BrowserRejected) {
+            BrowserResponses.complete(failure(failure.status))
+        } catch (_: GraphqlSizeExceeded) {
+            BrowserResponses.complete(failure(BrowserBoundary.TOO_LARGE))
+        } catch (_: graphql.parser.InvalidSyntaxException) {
+            BrowserResponses.complete(failure(BrowserBoundary.BAD_REQUEST))
+        } catch (_: IllegalArgumentException) {
+            BrowserResponses.complete(failure(BrowserBoundary.BAD_REQUEST))
+        }
+    }
+
+    private fun submit(
+        request: HttpServletRequest,
+        started: Long,
+    ): DeferredResult<ResponseEntity<Map<String, Any?>>> {
+        boundary.check(request)
+        val body = body(request)
+        val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
+        val identity = parsed.roots.any { it in setOf("register", "signIn", "signOut", "session") }
+        val budget = if (identity) IDENTITY_BUDGET_MS else METADATA_BUDGET_MS
+        val elapsed =
+            java.util.concurrent.TimeUnit.NANOSECONDS
+                .toMillis(System.nanoTime() - started)
+        val remaining = budget - elapsed
+        return if (remaining <= 0) {
+            BrowserResponses.complete(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "DEADLINE_EXCEEDED"))
+        } else {
+            requests.run(remaining) { deadline -> dispatch(request, body, parsed, deadline) }
+        }
+    }
 
     private fun dispatch(
         request: HttpServletRequest,
+        body: GraphqlBody,
+        parsed: com.spoolin.core.boundary.graphql.PreparedGraphql,
         deadline: Long,
     ): ResponseEntity<Map<String, Any?>> =
         try {
-            perform(request, deadline)
+            perform(request, body, parsed, deadline)
         } catch (failure: com.spoolin.core.features.ratelimit.RateLimited) {
             BrowserResponses.limited(failure.retryAfterMs)
         } catch (_: com.spoolin.core.features.ratelimit.RateUnavailable) {
@@ -51,11 +85,10 @@ class BrowserGraphql(
 
     private fun perform(
         request: HttpServletRequest,
+        body: GraphqlBody,
+        parsed: com.spoolin.core.boundary.graphql.PreparedGraphql,
         deadline: Long,
     ): ResponseEntity<Map<String, Any?>> {
-        boundary.check(request)
-        val body = body(request)
-        val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
         val upload = parsed.roots.singleOrNull() == "uploadArtwork"
         val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
         if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
@@ -142,3 +175,6 @@ private class GraphqlBody(
 )
 
 private const val JSON_ENVELOPE_DEPTH = 4
+
+private const val IDENTITY_BUDGET_MS = 5000L
+private const val METADATA_BUDGET_MS = 3000L

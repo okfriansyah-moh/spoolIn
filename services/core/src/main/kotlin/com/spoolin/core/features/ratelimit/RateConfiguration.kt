@@ -2,10 +2,12 @@ package com.spoolin.core.features.ratelimit
 
 import com.spoolin.core.boundary.http.BrowserAdmission
 import com.spoolin.core.features.account.application.AuthenticationAdmission
+import com.spoolin.core.operations.receipts.OperationQueries
 import com.spoolin.core.requireProtectedFile
 import com.spoolin.support.identity.RateProfiles
 import com.spoolin.support.policy.ConfigurationSources
 import com.spoolin.support.policy.OperationalSettings
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -65,7 +67,10 @@ class RateConfiguration {
     fun admission(trusted: TrustedAdmission): AuthenticationAdmission = AuthenticationAdmission(trusted::check)
 
     @Bean
-    fun browserAdmission(trusted: TrustedAdmission): BrowserAdmission = BrowserAdmission(trusted)
+    fun browserAdmission(
+        trusted: TrustedAdmission,
+        operations: ObjectProvider<OperationQueries>,
+    ): BrowserAdmission = BrowserAdmission(trusted, operations.ifAvailable)
 
     @Bean
     fun trustedAdmission(limiter: RateAdmission): TrustedAdmission = TrustedAdmission(limiter)

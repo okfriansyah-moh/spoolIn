@@ -1,11 +1,15 @@
 package com.spoolin.core.boundary.http
 
 import org.springframework.http.ResponseEntity
+import org.springframework.web.context.request.async.DeferredResult
 
 private const val RATE_LIMITED_STATUS = 429
 private const val MILLISECONDS = 1000L
 
 object BrowserResponses {
+    fun complete(value: ResponseEntity<Map<String, Any?>>): DeferredResult<ResponseEntity<Map<String, Any?>>> =
+        DeferredResult<ResponseEntity<Map<String, Any?>>>().also { it.setResult(value) }
+
     fun retrySeconds(milliseconds: Long): String {
         val rounded = (milliseconds + MILLISECONDS - 1) / MILLISECONDS
         return rounded.coerceAtLeast(1).toString()

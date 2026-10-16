@@ -43,7 +43,7 @@ class GraphqlEnvelope(
                 .variables(variables)
                 .build()
         val mutation = operation.operation == OperationDefinition.Operation.MUTATION
-        return PreparedGraphql(execution, mutation, roots.map { it.name })
+        return PreparedGraphql(execution, mutation, roots.map { it.name }, roots)
     }
 
     private fun query(input: Map<String, Any?>): String {
@@ -137,6 +137,7 @@ data class PreparedGraphql(
     val execution: ExecutionInput,
     val mutation: Boolean,
     val roots: List<String>,
+    val fields: List<Field> = emptyList(),
 )
 
 class GraphqlSizeExceeded : IllegalArgumentException("GraphQL request is too large")

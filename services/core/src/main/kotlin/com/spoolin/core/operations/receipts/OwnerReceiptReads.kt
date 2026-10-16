@@ -10,6 +10,20 @@ class OwnerReceiptReads(
     private val dataSource: DataSource,
     private val clock: Clock = Clock.systemUTC(),
 ) {
+    fun anonymous(
+        id: UUID,
+        scope: String,
+    ): Boolean =
+        dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT 1 FROM operation_receipt WHERE id=? AND actor_scope=? AND receipt_type='REQUEST' " +
+                        "AND kind IN ('REGISTER','SignIn')",
+                    listOf(id, scope),
+                ) { true }
+                .singleOrNull() ?: false
+        }
+
     fun find(
         id: UUID,
         actorScope: String,

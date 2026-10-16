@@ -22,6 +22,7 @@ private val identityMutations = setOf("register", "signIn", "signOut")
 
 class BrowserAdmission(
     private val admission: TrustedAdmission,
+    private val operations: com.spoolin.core.operations.receipts.OperationQueries? = null,
 ) {
     fun context(
         request: HttpServletRequest,
@@ -42,15 +43,28 @@ class BrowserAdmission(
                     deadline,
                 )
             }
-        if (!parsed.mutation) {
-            admission.reads(
-                context.request,
-                parsed.roots.any { it in publicRoots },
-                parsed.roots.any { it !in publicRoots },
-            )
-        } else if (parsed.roots.any { it !in identityMutations }) {
-            admission.mutation(context.request)
+        if (parsed.mutation) {
+            if (parsed.roots.any { it !in identityMutations }) admission.mutation(context.request)
+        } else {
+            reads(parsed, context)
         }
         return context
+    }
+
+    private fun reads(
+        parsed: PreparedGraphql,
+        context: BrowserContext,
+    ) {
+        admission.reads(
+            context.request,
+            parsed.roots.any { it in publicRoots },
+            parsed.roots.any { it !in publicRoots && it != "operation" },
+        )
+        if ("operation" in parsed.roots) {
+            val queries =
+                operations ?: throw com.spoolin.core.features.ratelimit
+                    .RateUnavailable()
+            queries.prepare(parsed, context, admission)
+        }
     }
 }
