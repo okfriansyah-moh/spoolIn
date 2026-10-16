@@ -1,5 +1,7 @@
 package com.spoolin.core.features.account.persistence
 
+import com.spoolin.support.policy.TextBound
+import com.spoolin.support.policy.TextRules
 import java.util.Locale
 
 class AccountIdentity internal constructor(
@@ -8,7 +10,10 @@ class AccountIdentity internal constructor(
     val emailNormalized: String,
 )
 
-class IdentityRules {
+class IdentityRules(
+    private val minimumName: Int = MIN_ACCOUNT_NAME,
+    private val maximumName: Int = MAX_ACCOUNT_NAME,
+) {
     private val idna = Idna2008()
     private val localSyntax = Regex("[a-zA-Z0-9!#\$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#\$%&'*+/=?^_`{|}~-]+)*")
 
@@ -16,14 +21,8 @@ class IdentityRules {
         name: String,
         email: String,
     ): AccountIdentity {
-        val trimmed = name.trim()
-        require(Charsets.UTF_8.newEncoder().canEncode(trimmed)) { "Account name is invalid" }
-        require(
-            trimmed.codePointCount(0, trimmed.length) in MIN_ACCOUNT_NAME..MAX_ACCOUNT_NAME &&
-                trimmed.none { it.isISOControl() },
-        ) {
-            "Account name is invalid"
-        }
+        val trimmed = TextRules.ordinary(name, TextBound(minimumName, maximumName), "name")
+        require(trimmed.none { it.isISOControl() }) { "Account name is invalid" }
         return AccountIdentity(trimmed, email.trim(), normalizedEmail(email))
     }
 

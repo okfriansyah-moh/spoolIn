@@ -18,8 +18,10 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.security.SecureRandom
 import java.util.UUID
 
-class CryptoFixture : AutoCloseable {
-    val owner = OwnerFixture("t005-owner-observations.json").start()
+class CryptoFixture(
+    evidenceName: String = "t005-owner-observations.json",
+) : AutoCloseable {
+    val owner = OwnerFixture(evidenceName).start()
     val pool by lazy { owner.pool("core") }
     val alerts = mutableListOf<UUID>()
     val alert = ProtectionAlert { alerts.add(it) }

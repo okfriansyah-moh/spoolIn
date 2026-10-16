@@ -80,7 +80,7 @@ management:
 spoolin:
   schema:
     minimum: '1'
-    maximum: '2'
+    maximum: '3'
 
 # Operation comparison keys use exact IDs in the native Spring map. For example,
 # spoolin.operations.comparison-keys[Old_A]=/run/secrets/operation-old.

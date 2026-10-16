@@ -1,6 +1,7 @@
 package com.spoolin.core.operations.receipts
 
 import com.spoolin.core.operations.events.ReceiptActivity
+import com.spoolin.core.operations.events.ReceiptAudit
 import com.spoolin.support.receipts.Comparison
 import com.spoolin.support.receipts.IntentHashes
 import com.spoolin.support.receipts.OperationIntent
@@ -34,9 +35,23 @@ class OwnerReceipts(
         privateInput: Boolean,
         work: List<WorkRequest> = emptyList(),
         mutation: (Connection) -> SafeResult,
+    ): ReceiptOutcome = executeWith(intent, correlationId, ReceiptExecution(privateInput, work), mutation)
+
+    fun executeAudited(
+        intent: OperationIntent,
+        correlationId: UUID,
+        audit: ReceiptAudit,
+        mutation: (Connection) -> SafeResult,
+    ): ReceiptOutcome = executeWith(intent, correlationId, ReceiptExecution(true, audit = audit), mutation)
+
+    private fun executeWith(
+        intent: OperationIntent,
+        correlationId: UUID,
+        options: ReceiptExecution,
+        mutation: (Connection) -> SafeResult,
     ): ReceiptOutcome =
         dataSource.committed { connection ->
-            val inserted = reserve(connection, intent, correlationId, privateInput)
+            val inserted = reserve(connection, intent, correlationId, options.privateInput)
             val existing = locked(connection, intent.id)
             when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
                 Comparison.HIDDEN -> throw ReceiptHidden()
@@ -46,9 +61,25 @@ class OwnerReceipts(
             if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
             val result = mutation(connection)
             complete(connection, intent.id, result)
-            ReceiptActivity.append(connection, intent.id, correlationId, result.resultId)
-            work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
+            ReceiptActivity.append(connection, intent.id, correlationId, result.resultId, options.audit)
+            options.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
             locked(connection, intent.id).outcome
+        }
+
+    fun resolve(intent: OperationIntent): ReceiptOutcome? =
+        dataSource.connection.use { connection ->
+            val stored =
+                connection
+                    .queryBound(
+                        "SELECT * FROM operation_receipt WHERE id=? AND receipt_type='REQUEST'",
+                        listOf(intent.id),
+                    ) { decode(it) }
+                    .singleOrNull() ?: return@use null
+            when (hashes.compare(intent, stored.actor, stored.kind, stored.hash, stored.keyId)) {
+                Comparison.HIDDEN -> throw ReceiptHidden()
+                Comparison.CONFLICT -> throw ReceiptConflict()
+                Comparison.REPLAY -> stored.outcome
+            }
         }
 
     fun find(
@@ -142,3 +173,9 @@ internal object ReceiptRows {
         )
     }
 }
+
+private data class ReceiptExecution(
+    val privateInput: Boolean,
+    val work: List<WorkRequest> = emptyList(),
+    val audit: ReceiptAudit = ReceiptAudit(),
+)

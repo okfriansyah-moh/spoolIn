@@ -9,6 +9,16 @@ class IdentityRulesTest {
     private val rules = IdentityRules()
 
     @Test
+    fun effectiveNameBoundsUseSharedWhitespaceRules() {
+        val configured = IdentityRules(3, 120)
+        assertEquals("abc", configured.identity("\u00a0abc\u0085", "a@b.org").name)
+        assertEquals("x".repeat(120), configured.identity("x".repeat(120), "a@b.org").name)
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("ab", "a@b.org") }
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("x".repeat(121), "a@b.org") }
+        assertThrows(IllegalArgumentException::class.java) { configured.identity("a\nb", "a@b.org") }
+    }
+
+    @Test
     fun caseFoldingAndIdna2008PreserveIdentityDistinctions() {
         assertEquals("a@example.org", rules.normalizedEmail(" A@EXAMPLE.ORG "))
         assertEquals("a@xn--fa-hia.de", rules.normalizedEmail("A@faß.de"))
