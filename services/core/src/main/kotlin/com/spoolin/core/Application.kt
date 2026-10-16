@@ -1,5 +1,8 @@
 package com.spoolin.core
 
+import com.spoolin.core.features.policy.PolicyAccess
+import com.spoolin.core.features.policy.PolicyGateway
+import com.spoolin.core.features.policy.PolicyProvider
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -36,7 +39,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.filter.OncePerRequestFilter
 import spoolin.v1.IdentityServiceGrpc
-import spoolin.v1.McpGatewayServiceGrpc
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -118,7 +120,10 @@ class Application {
     fun identityService(): io.grpc.BindableService = object : IdentityServiceGrpc.IdentityServiceImplBase() {}
 
     @Bean
-    fun mcpGatewayService(): io.grpc.BindableService = object : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {}
+    fun mcpGatewayService(provider: PolicyProvider): io.grpc.BindableService {
+        val access = PolicyAccess { false }
+        return PolicyGateway(provider, access)
+    }
 }
 
 fun main(args: Array<String>) {
