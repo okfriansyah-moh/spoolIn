@@ -70,8 +70,8 @@ class PersonSearch(private val dataSource: DataSource) {
             validateSearchLength(text)
             val pattern = "%" + CatalogCursor.escapeWildcards(text) + "%"
             where.add(
-                "casefold(p.name, 'pg_unicode_fast') " +
-                    "LIKE casefold(?, 'pg_unicode_fast') ESCAPE '\\'",
+                "casefold(p.name) " +
+                    "LIKE casefold(?) ESCAPE '\\'",
             )
             params.add(pattern)
         }

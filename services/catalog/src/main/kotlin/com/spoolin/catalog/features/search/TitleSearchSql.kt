@@ -68,11 +68,11 @@ class TitleSearchSql(private val dataSource: DataSource) {
         if (!text.isNullOrEmpty()) {
             validateSearchLength(text)
             val pattern = "%" + CatalogCursor.escapeWildcards(text) + "%"
-            val condition = "(casefold(t.display_title, 'pg_unicode_fast') " +
-                "LIKE casefold(?, 'pg_unicode_fast') ESCAPE '\\' " +
+            val condition = "(casefold(t.display_title) " +
+                "LIKE casefold(?) ESCAPE '\\' " +
                 "OR (t.original_title IS NOT NULL AND " +
-                "casefold(t.original_title, 'pg_unicode_fast') " +
-                "LIKE casefold(?, 'pg_unicode_fast') ESCAPE '\\'))"
+                "casefold(t.original_title) " +
+                "LIKE casefold(?) ESCAPE '\\'))"
             where.add(condition)
             params.add(pattern)
             params.add(pattern)
@@ -146,11 +146,18 @@ class TitleSearchSql(private val dataSource: DataSource) {
     // ── keyset continuation ───────────────────────────────────────────────────
 
     /**
-     * Keyset predicate for descending date, ascending UUID ordering.
+     * Keyset predicate for DESC NULLS LAST date ordering, ASC UUID tie-break.
+     *
      * Ordering: (year DESC NULLS LAST, month DESC NULLS LAST, day DESC NULLS LAST, id ASC)
-     * To continue from last row (y0, m0, d0, id0):
-     *   - Rows where year < y0, OR year = y0 AND (month < m0 OR...)
-     *   - NULL year comes after all known years (NULLS LAST)
+     * NULL in any date field means "unknown" and sorts LAST in each DESC column.
+     *
+     * After cursor at (y0, m0, d0, id0), a row (y, m, d, id) is on a later page when:
+     *   - y < y0 (strictly earlier year → comes after y0 in DESC)
+     *   - y IS NULL (null year always comes last)
+     *   - y = y0 AND (m < m0 OR m IS NULL or [further keyset for same month])
+     *
+     * Key invariant: if a field is NULL in the cursor, all rows with that field NOT NULL
+     * within the same parent context have already appeared (they sort before NULL).
      */
     private fun keysetCondition(after: CatalogCursor.Keyset, params: MutableList<Any?>): String {
         val y = after.releaseYear
@@ -160,31 +167,37 @@ class TitleSearchSql(private val dataSource: DataSource) {
 
         return when {
             y != null && m != null && d != null -> {
-                // Has full date: continue after (y, m, d, id)
-                params.addAll(listOf(y, y, m, y, m, d, y, m, d, id))
+                // Full-date cursor: (y0, m0, d0, id0)
+                params.addAll(listOf(y, y, y, m, y, m, y, m, d, y, m, d, id))
                 """(t.release_year < ?
+                   OR t.release_year IS NULL
                    OR (t.release_year = ? AND t.release_month < ?)
+                   OR (t.release_year = ? AND t.release_month IS NULL)
                    OR (t.release_year = ? AND t.release_month = ? AND t.release_day < ?)
-                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day = ? AND t.id > ?)
-                   OR t.release_year IS NULL)"""
+                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day IS NULL)
+                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day = ? AND t.id > ?))"""
             }
             y != null && m != null -> {
-                // Year+month known, day unknown for last row
+                // Year+month cursor, unknown day: (y0, m0, null, id0)
+                // Rows with day IS NOT NULL at (y0, m0) came before this cursor; exclude them.
                 params.addAll(listOf(y, y, m, y, m, id))
                 """(t.release_year < ?
+                   OR t.release_year IS NULL
                    OR (t.release_year = ? AND t.release_month < ?)
-                   OR (t.release_year = ? AND t.release_month = ? AND t.id > ?)
-                   OR t.release_year IS NULL)"""
+                   OR (t.release_year = ? AND t.release_month IS NULL)
+                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day IS NULL AND t.id > ?))"""
             }
             y != null -> {
-                // Only year known
+                // Year-only cursor, unknown month: (y0, null, null, id0)
+                // Rows with month IS NOT NULL at y0 came before this cursor; exclude them.
                 params.addAll(listOf(y, y, id))
                 """(t.release_year < ?
-                   OR (t.release_year = ? AND t.id > ?)
-                   OR t.release_year IS NULL)"""
+                   OR t.release_year IS NULL
+                   OR (t.release_year = ? AND t.release_month IS NULL AND t.id > ?))"""
             }
             else -> {
-                // Unknown year (last section) — only rows with same null year, after uuid
+                // Unknown-year cursor: (null, null, null, id0)
+                // All rows with a known year came before; only null-year rows after UUID.
                 params.add(id)
                 "(t.release_year IS NULL AND t.id > ?)"
             }

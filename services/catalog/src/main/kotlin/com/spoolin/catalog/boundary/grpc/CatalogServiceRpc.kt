@@ -177,12 +177,13 @@ class CatalogServiceRpc(
         try {
             val titleId = parseId(request.targetId)
             val first = if (request.first > 0) request.first else DEFAULT_FIRST
+            val scope = creditScope(titleId)
             val afterKeyset = request.after.takeIf { it.isNotEmpty() }?.let { raw ->
-                decodeCreditCursor(raw)
+                decodeCreditCursor(raw, scope)
                     ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
             }
             val page = personSearch.titleCredits(titleId, first, afterKeyset)
-            response.onNext(creditPageProto(page))
+            response.onNext(creditPageProto(page, scope))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
@@ -195,12 +196,13 @@ class CatalogServiceRpc(
         try {
             val personId = parseId(request.targetId)
             val first = if (request.first > 0) request.first else DEFAULT_FIRST
+            val scope = creditScope(personId)
             val afterKeyset = request.after.takeIf { it.isNotEmpty() }?.let { raw ->
-                decodeCreditCursor(raw)
+                decodeCreditCursor(raw, scope)
                     ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
             }
             val page = personSearch.personCredits(personId, first, afterKeyset)
-            response.onNext(creditPageProto(page))
+            response.onNext(creditPageProto(page, scope))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
@@ -294,7 +296,7 @@ class CatalogServiceRpc(
             .setVersion(row.version)
             .build()
 
-    private fun creditPageProto(page: PersonSearch.CreditPage): CreditPage {
+    private fun creditPageProto(page: PersonSearch.CreditPage, scope: String): CreditPage {
         val builder = CreditPage.newBuilder()
         page.rows.forEach { r ->
             builder.addNodes(
@@ -318,7 +320,7 @@ class CatalogServiceRpc(
                     .build(),
             )
         }
-        page.keyset?.let { builder.endCursor = encodeCreditCursor(it) }
+        page.keyset?.let { builder.endCursor = encodeCreditCursor(it, scope) }
         builder.hasNextPage = page.hasNextPage
         return builder.build()
     }
@@ -362,13 +364,16 @@ class CatalogServiceRpc(
 
     // ── credit cursor ────────────────────────────────────────────────────────
 
-    private fun encodeCreditCursor(ks: PersonSearch.CreditKeyset): String {
+    /** Scope binds the cursor to a specific target (title or person) to prevent cross-use. */
+    private fun creditScope(targetId: UUID): String = "credit-scope-v1:$targetId"
+
+    private fun encodeCreditCursor(ks: PersonSearch.CreditKeyset, scope: String): String {
         val keyset = CatalogCursor.Keyset(null, null, null, ks.id)
-        return titleCursor.encode(keyset, CREDIT_SCOPE, clock.instant())
+        return titleCursor.encode(keyset, scope, clock.instant())
     }
 
-    private fun decodeCreditCursor(raw: String): PersonSearch.CreditKeyset? {
-        val ks = titleCursor.decode(raw, CREDIT_SCOPE, clock.instant()) ?: return null
+    private fun decodeCreditCursor(raw: String, scope: String): PersonSearch.CreditKeyset? {
+        val ks = titleCursor.decode(raw, scope, clock.instant()) ?: return null
         return PersonSearch.CreditKeyset(ks.id)
     }
 
@@ -378,7 +383,4 @@ class CatalogServiceRpc(
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
 
-    companion object {
-        private const val CREDIT_SCOPE = "credit-scope-v1"
-    }
 }
