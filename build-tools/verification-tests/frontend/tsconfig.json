@@ -1,18 +1,1 @@
-{
-  "extends": "$app/tsconfig",
-  "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": false,
-    "sourceMap": true,
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "moduleResolution": "bundler"
-  },
-  "include": ["src", "test", "*"],
-  "exclude": ["src/service-worker"]
-}
+{ "extends": "../../../frontend/tsconfig.json", "include": ["src"] }

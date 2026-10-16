@@ -336,6 +336,12 @@ Visual review is not applicable: this owned result has no new graphical presenta
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
 
+Execution update — 15 October 2026: Selected-only dependency check: unselected T009 (effective policy) and T010 (owner receipts/atomic evidence) are Not started. T005 is selected but not yet complete. No registration/session implementation or acceptance run was dispatched. Resume after T005, T009 and T010 are Done.
+
+Resume — 15 October 2026: The user requested every selected shell/account-access implementation delivered. Required T009/T010 are now included in this run; their accepted implementations are pending. T005 is accepted in draft PR4. The earlier selected-only exclusion is superseded by this explicit completion request.
+
+Execution scope update — 16 October 2026: T005 and T004 are accepted. T009 and T010 are included in the authorized sequential completion and are normal unfinished execution prerequisites. T006 waits for their accepted outputs; the earlier selected-only exclusion is historical and is no longer an external blocker.
+
 ## Completion and handoff
 
 - Finish the owned changes and all verification-role acceptance/row assertions; record actual changed files and source-contract dispositions.

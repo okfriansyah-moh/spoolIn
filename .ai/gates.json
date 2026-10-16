@@ -406,7 +406,8 @@
       "when": [
         "frontend/src/**/*.ts",
         "frontend/src/**/*.svelte",
-        "frontend/src/**/*.js"
+        "frontend/src/**/*.js",
+        "frontend/vitest.config.ts"
       ],
       "argv": [
         "npm",
@@ -424,7 +425,8 @@
       "when": [
         "frontend/src/**/*.ts",
         "frontend/src/**/*.svelte",
-        "frontend/src/**/*.js"
+        "frontend/src/**/*.js",
+        "frontend/vitest.config.ts"
       ],
       "argv": [
         "npm",
@@ -460,7 +462,8 @@
       "when": [
         "frontend/src/**/*.ts",
         "frontend/src/**/*.svelte",
-        "frontend/src/**/*.js"
+        "frontend/src/**/*.js",
+        "frontend/vitest.config.ts"
       ],
       "argv": [
         "npm",
@@ -592,7 +595,8 @@
       "component": "frontend",
       "stage": "delivery",
       "when": [
-        "frontend/src/**/*.svelte"
+        "frontend/src/**/*.svelte",
+        "tests/browser/flows/shell/**/*.ts"
       ],
       "argv": [
         "npm",
@@ -773,7 +777,9 @@
         "build-tools/verification-tests/frontend/src/**/*.svelte",
         "build-tools/verification-tests/mcp/**/*.ts",
         "frontend/vite.config.ts",
-        "tests/browser/playwright.config.ts"
+        "tests/browser/playwright.config.ts",
+        "frontend/vitest.config.ts",
+        "tests/browser/flows/shell/**/*.ts"
       ],
       "argv": [
         "npm",
@@ -806,7 +812,9 @@
       "stage": "fast",
       "when": [
         "frontend/vite.config.ts",
-        "tests/browser/playwright.config.ts"
+        "tests/browser/playwright.config.ts",
+        "frontend/vitest.config.ts",
+        "tests/browser/flows/shell/**/*.ts"
       ],
       "argv": [
         "node",
@@ -822,7 +830,10 @@
         "--types",
         "node",
         "frontend/vite.config.ts",
-        "tests/browser/playwright.config.ts"
+        "tests/browser/playwright.config.ts",
+        "frontend/vitest.config.ts",
+        "tests/browser/flows/shell/helpers.ts",
+        "tests/browser/flows/shell/shell.spec.ts"
       ],
       "required": true,
       "timeout_seconds": 1800
@@ -836,7 +847,9 @@
         "build-tools/verification-tests/frontend/src/**/*.svelte",
         "build-tools/verification-tests/mcp/**/*.ts",
         "frontend/vite.config.ts",
-        "tests/browser/playwright.config.ts"
+        "tests/browser/playwright.config.ts",
+        "frontend/vitest.config.ts",
+        "tests/browser/flows/shell/**/*.ts"
       ],
       "argv": [
         "npm",
@@ -862,6 +875,25 @@
       ],
       "required": true,
       "timeout_seconds": 1800
+    },
+    {
+      "id": "core-account-boundaries",
+      "component": "core",
+      "stage": "integration",
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:cryptoIntegrationTest",
+        "--rerun-tasks"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/core/build/test-results/cryptoIntegrationTest/TEST-*.xml"
+      }
     }
   ],
   "coverage": [

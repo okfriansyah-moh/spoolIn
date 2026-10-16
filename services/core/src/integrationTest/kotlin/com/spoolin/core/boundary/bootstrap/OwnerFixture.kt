@@ -23,7 +23,9 @@ private const val POSTGRES = "postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa
 
 class PrivatePostgres : GenericContainer<PrivatePostgres>(DockerImageName.parse(POSTGRES))
 
-class OwnerFixture : AutoCloseable {
+class OwnerFixture(
+    private val evidenceName: String = "t003-core-observations.json",
+) : AutoCloseable {
     val namespace: String
     val root: Path
     private val ownRoot: Boolean
@@ -166,7 +168,8 @@ class OwnerFixture : AutoCloseable {
     }
 
     override fun close() {
-        val evidence = repository.resolve(".ai/evidence/t003-core-observations.json")
+        require(evidenceName.matches(Regex("t00[35]-[a-z-]+\\.json")))
+        val evidence = repository.resolve(".ai/evidence/$evidenceName")
         Files.createDirectories(evidence.parent)
         if (::postgres.isInitialized && postgres.isRunning) {
             assertEquals(

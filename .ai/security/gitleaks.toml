@@ -29,3 +29,11 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''(^|/)build/contract-generation\.json$''']
 regexes = ['''^\s*"(?:build-tools/(?:generate-[^"/\r\n]+\.mjs|contracts(?:\.gradle\.kts|/[^"\r\n]+))|contracts/(?:graphql|grpc|json)/[^"\r\n]+|docs/design-system/tokens\.json|gradle/(?:libs\.versions\.toml|verification-metadata\.xml|wrapper/gradle-wrapper\.properties)|package-lock\.json|frontend/src/lib/generated/[^"\r\n]+|mcp/src/generated/[^"\r\n]+|services/core/build/generated/(?:resources/contracts/graphql|sources/graphql/com/spoolin/core/boundary/graphql/generated)/[^"\r\n]+)": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Independently verified Core source snapshot SHA-256 lines in workflow receipts"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''']
+regexes = ['''^\s*"(?:services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/CredentialIntegrationTest\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/KeyRegistry\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/MountedKeys\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHash\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordHasher\.kt|services/core/src/main/kotlin/com/spoolin/core/features/crypto/PasswordInput\.kt|services/core/src/test/kotlin/com/spoolin/core/features/crypto/PasswordRulesTest\.kt)": "[0-9a-f]{64}",?\s*$''']
