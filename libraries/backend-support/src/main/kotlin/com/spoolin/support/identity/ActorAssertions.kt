@@ -35,8 +35,10 @@ class ActorSigner(
 }
 
 class ActorVerifier(
-    private val keys: Map<String, PublicKey>,
+    keys: Map<String, PublicKey>,
 ) {
+    private val keys = keys.toMap()
+
     init {
         require(keys.size in 1..MAXIMUM_VERIFIERS)
         require(
@@ -50,6 +52,20 @@ class ActorVerifier(
         token: String,
         binding: ActorBinding,
         now: Instant,
+    ): ActorClaims {
+        val claims = verifyTarget(token, binding.audience, binding.method, now)
+        return checkedActor {
+            require(binding.accountId == null || claims.accountId == binding.accountId)
+            require(claims.operationId == binding.operationId)
+            claims
+        }
+    }
+
+    fun verifyTarget(
+        token: String,
+        audience: String,
+        method: String,
+        now: Instant,
     ): ActorClaims =
         checkedActor {
             require(token.length <= MAXIMUM_METADATA && token.all { it.code < ASCII_BOUND })
@@ -62,17 +78,16 @@ class ActorVerifier(
             signature.initVerify(key)
             signature.update("${parts[0]}.${parts[1]}".toByteArray(Charsets.US_ASCII))
             require(signature.verify(bytes))
-            ActorEncoding.claims(parts[1]).also { validate(it, binding, now.epochSecond) }
+            ActorEncoding.claims(parts[1]).also { validate(it, audience, method, now.epochSecond) }
         }
 
     private fun validate(
         claims: ActorClaims,
-        binding: ActorBinding,
+        audience: String,
+        method: String,
         now: Long,
     ) {
-        require(claims.audience == binding.audience && claims.method == binding.method)
-        require(binding.accountId == null || claims.accountId == binding.accountId)
-        require(claims.operationId == binding.operationId)
+        require(claims.audience == audience && claims.method == method)
         require(claims.authEpoch >= 0 && claims.role in setOf("VIEWER", "MAINTAINER"))
         require(claims.clientKind == null || claims.clientKind in setOf("CHATGPT", "CLAUDE"))
         require(claims.expiresAt > claims.issuedAt && claims.expiresAt - claims.issuedAt <= MAXIMUM_LIFETIME)

@@ -1,10 +1,27 @@
+val ownerProjects = listOf(":services:core", ":services:catalog", ":services:media").map(project::project)
+val coreProject = project(":services:core")
+val coreSources = coreProject.extensions.getByType<SourceSetContainer>()
+
 dependencies {
     testImplementation(platform(rootProject.libs.boot.bom))
-    testImplementation("org.testcontainers:testcontainers-postgresql")
-    testImplementation("io.grpc:grpc-netty-shaded")
+    testImplementation(project(":contracts:grpc"))
+    testImplementation(project(":libraries:backend-support"))
+    ownerProjects.forEach { owner ->
+        testImplementation(
+            files(
+                owner.extensions
+                    .getByType<SourceSetContainer>()["main"]
+                    .output.classesDirs,
+            ),
+        )
+    }
+    testImplementation(files(coreSources["integrationTest"].output.classesDirs))
+    testImplementation(files(coreProject.configurations["integrationTestRuntimeClasspath"]))
+    testRuntimeOnly(files(coreSources["main"].output.resourcesDir))
 }
 
 tasks.test {
+    dependsOn(":services:core:integrationTestClasses", ":services:catalog:classes", ":services:media:classes")
     doFirst {
         require(fileTree("src/test").files.isNotEmpty()) { "Cross-service suite is pending its owning tasks" }
     }

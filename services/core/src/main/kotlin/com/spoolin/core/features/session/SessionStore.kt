@@ -2,6 +2,7 @@ package com.spoolin.core.features.session
 
 import com.spoolin.core.identity.AccountAuthority
 import com.spoolin.core.identity.AccountRole
+import com.spoolin.core.identity.ActorAuthority
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -66,6 +67,37 @@ class SessionStore(
             val account = lockAccount(connection, accountId)
             verified(connection, credential, account)
         }
+
+    fun checkActor(
+        accountId: UUID,
+        credentialId: UUID,
+        epoch: Long,
+    ): ActorAuthority? {
+        val now = Timestamp.from(clock.instant())
+        return dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT a.role,a.auth_epoch," +
+                        "LEAST(s.expires_at,s.last_seen_at + INTERVAL '30 minutes') AS expires " +
+                        "FROM browser_session s JOIN user_account a ON a.id=s.account_id " +
+                        "WHERE s.id=? AND s.account_id=? AND s.auth_epoch=? AND a.auth_epoch=? " +
+                        "AND s.revoked_at IS NULL AND s.expires_at>? " +
+                        "AND s.last_seen_at>?::timestamptz - INTERVAL '30 minutes' " +
+                        "AND s.created_at>?::timestamptz - INTERVAL '12 hours'",
+                    listOf(credentialId, accountId, epoch, epoch, now, now, now),
+                ) { rows ->
+                    ActorAuthority(
+                        AccountAuthority(
+                            accountId,
+                            AccountRole.valueOf(rows.getString("role")),
+                            rows.getLong("auth_epoch"),
+                        ),
+                        credentialId,
+                        rows.getTimestamp("expires").toInstant(),
+                    )
+                }.singleOrNull()
+        }
+    }
 
     fun logoutIdentity(
         credential: SessionCredential,

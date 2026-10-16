@@ -96,7 +96,11 @@ class Application {
 
     @Bean
     @GlobalServerInterceptor
-    fun serviceIdentity(): ServiceIdentityInterceptor = ServiceIdentityInterceptor()
+    fun serviceIdentity(environment: Environment): ServiceIdentityInterceptor =
+        ServiceIdentityInterceptor(
+            com.spoolin.media.boundary.grpc.MediaActors
+                .interceptor(environment),
+        )
 
     @Bean
     fun httpSecurity(http: HttpSecurity): SecurityFilterChain {
@@ -114,7 +118,11 @@ class Application {
                 .OwnerReceiptReads(dataSource)
         return com.spoolin.media.operations.receipts.ReceiptRpc(
             com.spoolin.support.receipts
-                .ReceiptAuthority { null },
+                .ReceiptAuthority {
+                    com.spoolin.support.identity.ActorRpc
+                        .current()
+                        ?.let { "account:${it.accountId}" }
+                },
             reads::find,
         )
     }
@@ -348,7 +356,9 @@ fun certificateIdentity(certificate: X509Certificate): String? {
     return identities.singleOrNull()
 }
 
-class ServiceIdentityInterceptor : ServerInterceptor {
+class ServiceIdentityInterceptor(
+    private val actors: ServerInterceptor? = null,
+) : ServerInterceptor {
     val dispatched = AtomicLong()
 
     override fun <ReqT : Any, RespT : Any> interceptCall(
@@ -371,7 +381,7 @@ class ServiceIdentityInterceptor : ServerInterceptor {
             return object : ServerCall.Listener<ReqT>() {}
         }
         dispatched.incrementAndGet()
-        return next.startCall(call, headers)
+        return actors?.interceptCall(call, headers, next) ?: next.startCall(call, headers)
     }
 
     fun allowed(

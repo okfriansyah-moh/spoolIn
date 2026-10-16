@@ -118,7 +118,11 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun identityService(): io.grpc.BindableService = object : IdentityServiceGrpc.IdentityServiceImplBase() {}
+    fun identityService(
+        sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
+    ): io.grpc.BindableService =
+        com.spoolin.core.boundary.grpc
+            .IdentityRpc { sessions.ifAvailable }
 
     @Bean
     fun mcpGatewayService(provider: PolicyProvider): io.grpc.BindableService {
