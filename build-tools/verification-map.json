@@ -170,9 +170,28 @@
         "services/core/src/test/kotlin/com/spoolin/core/features/policy/",
         "services/core/src/test/kotlin/com/spoolin/core/boundary/graphql/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t009-policy-rules",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_policy.py",
+            "--task",
+            "T009",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t009-unit-results.json",
+          "required_paths": [
+            "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/*Test.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/boundary/graphql/*Test.kt",
+            "frontend/src/lib/policy/policy.test.ts"
+          ]
+        }
+      ],
       "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": "T009 has isolated unit and controlled browser checks; full transport integration belongs to its consuming tasks"
     },
     "T010": {
       "source": "docs/plan/05-reliable-work/tasks/T010-implement-owner-receipts-and-atomic-mutation-evidence.md",
