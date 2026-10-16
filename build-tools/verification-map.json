@@ -222,7 +222,10 @@
         "services/core/src/test/kotlin/com/spoolin/core/operations/events/",
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/events/",
         "services/media/src/test/kotlin/com/spoolin/media/operations/events/",
-        "libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/"
+        "libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/operations/receipts/",
+        "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts/",
+        "services/media/src/integrationTest/kotlin/com/spoolin/media/operations/receipts/"
       ],
       "unit": [
         {

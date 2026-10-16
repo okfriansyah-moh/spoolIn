@@ -36,7 +36,15 @@ class OwnerReceiptBoundaryTest {
                 try {
                     val first =
                         executor.submit<com.spoolin.support.receipts.ReceiptOutcome> {
-                            receipts.execute(intent, UUID.randomUUID(), true) { connection ->
+                            receipts.execute(
+                                intent,
+                                UUID.randomUUID(),
+                                true,
+                                listOf(
+                                    com.spoolin.support.receipts
+                                        .WorkRequest("followup", "SYNC", intent.id, now.plusSeconds(3600)),
+                                ),
+                            ) { connection ->
                                 entered.countDown()
                                 check(release.await(10, TimeUnit.SECONDS))
                                 connection.createStatement().use { it.executeUpdate("INSERT INTO receipt_domain VALUES (1)") }
@@ -53,6 +61,7 @@ class OwnerReceiptBoundaryTest {
                     assertEquals(1, count(fixture, "receipt_domain"))
                     assertEquals(1, count(fixture, "operation_receipt"))
                     assertEquals(1, count(fixture, "operational_event"))
+                    assertEquals(1, count(fixture, "durable_work"))
                     assertNull(receipts.find(intent.id, "account:B"))
                     assertThrows(ReceiptConflict::class.java) {
                         receipts.execute(intent.copy(policyRevision = "p2"), UUID.randomUUID(), true) { error("Conflict mutated") }

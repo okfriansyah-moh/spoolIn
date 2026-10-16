@@ -100,6 +100,29 @@ class ReceiptSchemaBoundaryTest {
         }
     }
 
+    @Test
+    fun `safe projection refuses private fields wrong types and unlisted problem codes`() {
+        val safeId = "5d9bcc0c-3235-4684-a196-1360f08b05d9"
+        val privateValue = "synthetic-private-canary"
+        val invalid =
+            listOf(
+                "{}",
+                "[]",
+                "{\"resultId\":1}",
+                "{\"resultId\":\"$safeId\",\"version\":1}",
+                "{\"resultId\":\"$safeId\",\"discarded\":\"true\"}",
+                "{\"resultId\":\"$safeId\",\"name\":\"$privateValue\"}",
+            )
+        invalid.forEach { body ->
+            val failure = assertThrows(IllegalStateException::class.java) { SafeReceiptProjection.read(body) }
+            org.junit.jupiter.api.Assertions
+                .assertFalse(failure.message.orEmpty().contains(privateValue))
+        }
+        assertEquals(safeId, SafeReceiptProjection.read("{\"resultId\":\"$safeId\",\"discarded\":false}")?.resultId.toString())
+        assertEquals("UNAVAILABLE", SafeReceiptProjection.errorCode("UNAVAILABLE"))
+        assertThrows(IllegalStateException::class.java) { SafeReceiptProjection.errorCode(privateValue) }
+    }
+
     private fun receiptCases(): List<SqlCase> {
         val cases = mutableListOf<SqlCase>()
         val required = setOf("id", "actor_scope", "kind", "request_hash", "state", "correlation_id")
@@ -307,6 +330,16 @@ class ReceiptSchemaBoundaryTest {
         cases +=
             SqlCase("operation FK", "operational_event", event() + ("operation_id" to "'01d207d9-ece1-42f3-bb55-5609ef2772bd'"), "23503")
         cases += SqlCase("work FK", "operational_event", started + ("work_id" to "'01d207d9-ece1-42f3-bb55-5609ef2772bd'"), "23503")
+        listOf(
+            Triple("generation", "2147483647", null),
+            Triple("generation", "2147483648", "22003"),
+            Triple("attempt_no", "2147483647", "23514"),
+            Triple("attempt_no", "2147483648", "22003"),
+            Triple("lease_epoch", "9223372036854775807", null),
+            Triple("lease_epoch", "9223372036854775808", "22003"),
+        ).forEach { (column, value, state) ->
+            cases += SqlCase("$column physical integer range $value", "operational_event", started + (column to value), state)
+        }
         return cases
     }
 

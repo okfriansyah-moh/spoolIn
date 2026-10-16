@@ -128,7 +128,7 @@ internal object ReceiptRows {
                 rows.getObject("id", UUID::class.java),
                 state,
                 if (expired) null else SafeReceiptProjection.read(rows.getString("result")),
-                if (expired) "RESULT_EXPIRED" else rows.getString("error_code"),
+                if (expired) "RESULT_EXPIRED" else SafeReceiptProjection.errorCode(rows.getString("error_code")),
                 rows.getObject("correlation_id", UUID::class.java),
                 rows.getTimestamp("created_at").toInstant(),
                 expired,
