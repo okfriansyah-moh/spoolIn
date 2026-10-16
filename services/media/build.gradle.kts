@@ -22,3 +22,20 @@ tasks.named("koverXmlReport") { dependsOn("integrationTest", "architectureTest")
 springBoot { mainClass.set("com.spoolin.media.ApplicationKt") }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") { archiveClassifier.set("boot") }
+
+val receiptIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath =
+        files(
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.media.operations.receipts.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("receipt.test.classpath", classpath.asPath)
+}
+
+tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }

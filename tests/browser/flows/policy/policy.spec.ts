@@ -70,7 +70,10 @@ async function clearing(page: Page) {
 }
 async function policyChanged(page: Page) {
   const field = page.locator('#policy-draft');
-  const initialContext = await page.getByRole('status').innerText();
+  const initialContext = await page
+    .getByRole('status')
+    .filter({ hasText: 'The synopsis limit has changed' })
+    .innerText();
   await expect(field).toHaveValue(draft);
   await expect(page.locator('#policy-draft-help')).toContainText(
     '100 Unicode code points',
