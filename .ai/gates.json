@@ -1228,6 +1228,78 @@
         ":tests:integration:detekt"
       ],
       "required": true
+    },
+    {
+      "id": "account-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "frontend/src/lib/features/session/**",
+        "frontend/src/lib/transport/**",
+        "frontend/src/routes/**",
+        "tests/browser/flows/account/**",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/run-account.mjs"
+      ],
+      "argv": [
+        "node",
+        "tests/browser/run-account.mjs"
+      ],
+      "required": true,
+      "timeout_seconds": 900,
+      "test_report": {
+        "format": "junit",
+        "glob": "test-results/account/junit.xml"
+      }
+    },
+    {
+      "id": "account-browser-static",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "tests/browser/flows/account/**",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/run-account.mjs"
+      ],
+      "argv": [
+        "npm",
+        "exec",
+        "--",
+        "eslint",
+        "--config",
+        "build-tools/verification-tests/eslint.config.mjs",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/flows/account",
+        "tests/browser/run-account.mjs",
+        "--max-warnings",
+        "0"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "account-browser-format",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "tests/browser/flows/account/**",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/run-account.mjs"
+      ],
+      "argv": [
+        "npm",
+        "exec",
+        "--",
+        "prettier",
+        "--config",
+        "build-tools/verification-tests/prettier.config.mjs",
+        "--check",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/flows/account",
+        "tests/browser/run-account.mjs"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
     }
   ],
   "coverage": [

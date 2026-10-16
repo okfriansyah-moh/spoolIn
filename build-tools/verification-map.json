@@ -210,11 +210,51 @@
     "T007": {
       "source": "docs/plan/03-account-access/tasks/T007-connect-account-and-session-browser-journeys.md",
       "test_paths": [
-        "tests/browser/flows/session/"
+        "frontend/src/lib/features/session/",
+        "frontend/src/lib/transport/",
+        "tests/browser/flows/account/",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/run-account.mjs",
+        "services/core/src/test/kotlin/com/spoolin/core/boundary/FrontendPolicyRulesTest.kt",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/features/session/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t007-account-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_policy.py",
+            "--task",
+            "T007",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t007-unit-results.json",
+          "required_paths": [
+            "frontend/src/lib/features/session/*test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t007-account-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_policy.py",
+            "--task",
+            "T007",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t007-integration-results.json",
+          "required_paths": [
+            "tests/browser/flows/account/account.spec.ts",
+            "services/core/src/integrationTest/kotlin/com/spoolin/core/features/session/*Test.kt"
+          ]
+        }
+      ]
     },
     "T009": {
       "source": "docs/plan/04-effective-input-policy/tasks/T009-implement-effective-policy-and-precise-input-semantics.md",
