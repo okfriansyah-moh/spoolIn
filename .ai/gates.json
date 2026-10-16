@@ -629,7 +629,12 @@
         "build-tools/contracts/**",
         "build-tools/contracts.gradle.kts",
         "contracts/**",
-        "tests/contracts/**"
+        "tests/contracts/**",
+        "libraries/backend-support/src/**/*.kt",
+        "tests/browser/flows/policy/**/*.ts",
+        "tests/browser/playwright.policy.config.ts",
+        ".ai/gates.json",
+        ".ai/bundles/1.1.1/profiles/security/semgrep.yml"
       ],
       "argv": [
         "semgrep",
@@ -670,7 +675,14 @@
         "build-tools/contracts/**",
         "build-tools/contracts.gradle.kts",
         "contracts/**",
-        "tests/contracts/**"
+        "tests/contracts/**",
+        "libraries/backend-support/src/**/*.kt",
+        "tests/browser/flows/policy/**/*.ts",
+        "tests/browser/playwright.policy.config.ts",
+        ".ai/gates.json",
+        ".ai/security/gitleaks.toml",
+        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.1.1/docs/verification-tools.json"
       ],
       "argv": [
         "gitleaks",
@@ -730,7 +742,11 @@
       "component": "foundation",
       "stage": "fast",
       "when": [
-        "build-tools/verification-tests/*.py"
+        "build-tools/verification-tests/*.py",
+        ".ai/gates.json",
+        ".ai/security/gitleaks.toml",
+        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.1.1/docs/verification-tools.json"
       ],
       "argv": [
         "python3",
@@ -779,7 +795,9 @@
         "frontend/vite.config.ts",
         "tests/browser/playwright.config.ts",
         "frontend/vitest.config.ts",
-        "tests/browser/flows/shell/**/*.ts"
+        "tests/browser/flows/shell/**/*.ts",
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/flows/policy/**/*.ts"
       ],
       "argv": [
         "npm",
@@ -814,7 +832,9 @@
         "frontend/vite.config.ts",
         "tests/browser/playwright.config.ts",
         "frontend/vitest.config.ts",
-        "tests/browser/flows/shell/**/*.ts"
+        "tests/browser/flows/shell/**/*.ts",
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/flows/policy/**/*.ts"
       ],
       "argv": [
         "node",
@@ -833,7 +853,10 @@
         "tests/browser/playwright.config.ts",
         "frontend/vitest.config.ts",
         "tests/browser/flows/shell/helpers.ts",
-        "tests/browser/flows/shell/shell.spec.ts"
+        "tests/browser/flows/shell/shell.spec.ts",
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/flows/policy/helpers.ts",
+        "tests/browser/flows/policy/policy.spec.ts"
       ],
       "required": true,
       "timeout_seconds": 1800
@@ -849,7 +872,9 @@
         "frontend/vite.config.ts",
         "tests/browser/playwright.config.ts",
         "frontend/vitest.config.ts",
-        "tests/browser/flows/shell/**/*.ts"
+        "tests/browser/flows/shell/**/*.ts",
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/flows/policy/**/*.ts"
       ],
       "argv": [
         "npm",
@@ -894,6 +919,168 @@
         "format": "junit",
         "glob": "services/core/build/test-results/cryptoIntegrationTest/TEST-*.xml"
       }
+    },
+    {
+      "id": "backend-support-ktlint",
+      "component": "backend-support",
+      "stage": "fast",
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:ktlintCheck"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "backend-support-detekt",
+      "component": "backend-support",
+      "stage": "fast",
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:detekt"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "backend-support-compile",
+      "component": "backend-support",
+      "stage": "fast",
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:compileKotlin"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "backend-support-tests",
+      "component": "backend-support",
+      "stage": "integration",
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:test",
+        "--rerun-tasks"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "libraries/backend-support/build/test-results/test/TEST-*.xml"
+      }
+    },
+    {
+      "id": "backend-support-coverage",
+      "component": "backend-support",
+      "stage": "integration",
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:koverXmlReport",
+        "--rerun-tasks"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "policy-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "frontend/src/lib/policy/**",
+        "tests/browser/flows/policy/**",
+        "tests/browser/playwright.policy.config.ts"
+      ],
+      "argv": [
+        "npm",
+        "exec",
+        "--workspace",
+        "tests/browser",
+        "--",
+        "playwright",
+        "test",
+        "--config",
+        "playwright.policy.config.ts",
+        "flows/policy"
+      ],
+      "required": true,
+      "test_report": {
+        "format": "junit",
+        "glob": "test-results/policy/junit.xml"
+      }
+    },
+    {
+      "id": "policy-browser-static",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/flows/policy/**/*.ts"
+      ],
+      "argv": [
+        "npm",
+        "exec",
+        "--",
+        "eslint",
+        "--config",
+        "build-tools/verification-tests/eslint.config.mjs",
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/flows/policy",
+        "--max-warnings",
+        "0"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "policy-browser-format",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "tests/browser/flows/policy/**/*.ts"
+      ],
+      "argv": [
+        "npm",
+        "exec",
+        "--",
+        "prettier",
+        "--config",
+        "build-tools/verification-tests/prettier.config.mjs",
+        "--check",
+        "tests/browser/flows/policy"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "backend-support-boundaries",
+      "component": "backend-support",
+      "stage": "fast",
+      "when": [
+        "libraries/backend-support/src/main/**/*.kt",
+        "libraries/backend-support/build.gradle.kts",
+        "tests/contracts/policy/boundaries.py"
+      ],
+      "argv": [
+        "python3",
+        "tests/contracts/policy/boundaries.py"
+      ],
+      "required": true,
+      "timeout_seconds": 1800
     }
   ],
   "coverage": [
@@ -984,6 +1171,23 @@
         "**/generated/**",
         "**/*.test.*",
         "**/*.spec.*"
+      ]
+    },
+    {
+      "component": "backend-support",
+      "when": [
+        "libraries/backend-support/src/main/**/*.kt"
+      ],
+      "roots": [
+        "libraries/backend-support/src/main"
+      ],
+      "reports": [
+        "libraries/backend-support/build/reports/kover/report.xml"
+      ],
+      "format": "jacoco",
+      "source_prefix": "libraries/backend-support/src/main/kotlin",
+      "exclude": [
+        "**/generated/**"
       ]
     }
   ],

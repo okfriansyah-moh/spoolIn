@@ -43,6 +43,39 @@ it('buttons describe pending and unavailable actions', () => {
     'Fixture content',
   );
 });
+it('button default omits an explicit tab index', () => {
+  const body = render(Button, { props: { children } }).body;
+  const tag = body.match(/<button\b[^>]*>/)?.[0] ?? '';
+  expect(tag).toContain('type="button"');
+  expect(tag).not.toContain('tabindex=');
+  expect(tag).not.toMatch(/\sdisabled(?:[=\s>])/);
+});
+it('button forwards explicit zero to an enabled native submit control', () => {
+  const body = render(Button, {
+    props: { children, type: 'submit', tabindex: 0 },
+  }).body;
+  const tag = body.match(/<button\b[^>]*>/)?.[0] ?? '';
+  expect(tag).toContain('type="submit"');
+  expect(tag).toContain('tabindex="0"');
+  expect(tag).not.toMatch(/\sdisabled(?:[=\s>])/);
+});
+it('explicit zero preserves pending and unavailable native disabled state', () => {
+  for (const state of [{ pending: true }, { disabledReason: 'Review first' }]) {
+    const body = render(Button, {
+      props: { children, type: 'submit', tabindex: 0, ...state },
+    }).body;
+    const tag = body.match(/<button\b[^>]*>/)?.[0] ?? '';
+    expect(tag).toContain('tabindex="0"');
+    expect(tag).toMatch(/\sdisabled(?:[=\s>])/);
+    if (state.pending) {
+      expect(tag).toContain('aria-busy="true"');
+      expect(body).toContain('Saving…');
+    } else {
+      expect(tag).toContain('aria-describedby=');
+      expect(body).toContain('Review first');
+    }
+  }
+});
 it('fields associate exact help and errors with native controls', () => {
   const body = render(Field, {
     props: {
