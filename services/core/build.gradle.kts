@@ -177,6 +177,23 @@ val accountBrowserFixture by tasks.registering(Test::class) {
     outputs.upToDateWhen { false }
 }
 
+val draftIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath =
+        files(
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.core.recovery.drafts.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("draft.test.classpath", classpath.asPath)
+}
+
+tasks.named("koverXmlReport") { dependsOn(draftIntegrationTest) }
+
 val accountIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(
         files(

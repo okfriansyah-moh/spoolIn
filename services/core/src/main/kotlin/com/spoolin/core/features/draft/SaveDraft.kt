@@ -1,0 +1,85 @@
+package com.spoolin.core.features.draft
+
+import com.spoolin.core.features.account.application.CredentialRejected
+import com.spoolin.core.operations.events.ReceiptAction
+import com.spoolin.core.operations.events.ReceiptAudit
+import com.spoolin.core.operations.receipts.OwnerReceipts
+import com.spoolin.support.receipts.OperationIntent
+import com.spoolin.support.receipts.ReceiptOutcome
+import com.spoolin.support.receipts.SafeResult
+import java.util.UUID
+
+private const val DRAFT_SAVE_KIND = "DRAFT_SAVE"
+
+/**
+ * Application service for [saveDraft] mutations.
+ *
+ * Implements §7.3.1 receipt-first idempotency: the operation fingerprint is checked before any
+ * business mutation.  Nonce reservation is committed in its own separate transaction before
+ * domain locks are acquired.
+ */
+class SaveDraft(
+    private val drafts: ProtectedDrafts,
+    private val crypto: DraftCryptography,
+    private val payload: DraftPayload,
+    private val receipts: OwnerReceipts,
+) {
+    /**
+     * Saves a draft owned by [accountId].
+     *
+     * - Null [expectedVersion] = create (new draft, version 0).
+     * - Non-null [expectedVersion] = update with CAS.
+     *
+     * @throws CredentialRejected if not authenticated.
+     * @throws DraftStaleVersion if the expected version does not match.
+     * @throws DraftQuotaExceeded if the account already has 20 live drafts.
+     */
+    fun save(
+        operationId: UUID,
+        accountId: UUID,
+        draftId: UUID,
+        expectedVersion: Long?,
+        input: DraftInput,
+        correlationId: UUID,
+    ): ReceiptOutcome {
+        require(expectedVersion == null || expectedVersion >= 0) { "expectedVersion must be non-negative" }
+        val plaintext = payload.encode(input.targetKind, input.values)
+        // Reserve nonce in a separately committed transaction BEFORE domain locks (§7.3.1).
+        val envelope =
+            try {
+                crypto.encrypt(draftId, plaintext)
+            } finally {
+                plaintext.fill(0)
+            }
+        val intent =
+            OperationIntent(
+                id = operationId,
+                actorScope = "account:$accountId",
+                kind = DRAFT_SAVE_KIND,
+                policyRevision = input.policyRevision,
+                fields =
+                    buildList {
+                        add("draftId" to draftId.toString())
+                        add("targetKind" to input.targetKind)
+                        add("targetId" to input.targetId?.toString())
+                        add("baseVersion" to input.baseVersion?.toString())
+                        add("operationId" to input.operationId?.toString())
+                        add("expectedVersion" to expectedVersion?.toString())
+                        add("values" to input.values)
+                    },
+            )
+        val audit = ReceiptAudit(ReceiptAction.DRAFT_SAVED, actorId = accountId, subjectId = draftId)
+        return receipts.executeAudited(intent, correlationId, audit) { connection ->
+            val newVersion =
+                drafts.saveInTransaction(
+                    connection = connection,
+                    accountId = accountId,
+                    draftId = draftId,
+                    expectedVersion = expectedVersion,
+                    input = input,
+                    envelope = envelope,
+                )
+            SafeResult(resultId = draftId, version = newVersion)
+        }
+    }
+}

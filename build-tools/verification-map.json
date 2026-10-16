@@ -478,11 +478,44 @@
     "T013": {
       "source": "docs/plan/10-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
       "test_paths": [
+        "frontend/src/routes/+page.svelte",
+        "frontend/src/routes/titles/",
+        "frontend/src/routes/people/",
+        "frontend/src/lib/features/catalog/",
+        "frontend/src/lib/features/person/read/",
         "tests/browser/flows/discovery/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t013-catalog-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t013-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t013-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/catalog/filter.test.ts",
+            "frontend/src/lib/features/catalog/controller.test.ts",
+            "frontend/src/lib/features/person/read/read.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t013-discovery-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-discovery.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t013-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/discovery/discovery.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": "Real Catalog/People service fixture required for full integration boundary"
     },
     "T014": {
       "source": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
@@ -490,9 +523,42 @@
         "services/core/src/test/kotlin/com/spoolin/core/features/draft/",
         "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/drafts/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t014-draft-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_drafts.py",
+            "--task",
+            "T014",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t014-unit-results.json",
+          "required_paths": [
+            "services/core/src/test/kotlin/com/spoolin/core/features/draft/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t014-draft-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_drafts.py",
+            "--task",
+            "T014",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t014-integration-results.json",
+          "required_paths": [
+            "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/drafts/*Test.kt"
+          ]
+        }
+      ]
     },
     "T015": {
       "source": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T015-build-account-isolated-browser-draft-controllers.md",
