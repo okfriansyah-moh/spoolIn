@@ -3,11 +3,13 @@ package com.spoolin.support.identity
 import tools.jackson.core.StreamReadFeature
 import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.DeserializationFeature
 import java.util.Base64
 import java.util.UUID
 
 internal object ActorEncoding {
-    private val mapper = JsonMapper.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build()
+    private val mapper = JsonMapper.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+        .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build()
     private val encoder = Base64.getUrlEncoder().withoutPadding()
     private val decoder = Base64.getUrlDecoder()
     private val fields =
