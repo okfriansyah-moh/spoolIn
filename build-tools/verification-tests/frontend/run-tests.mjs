@@ -9,9 +9,9 @@ const run = spawnSync(
 const report = JSON.parse(
   readFileSync('frontend/coverage/test-results.json', 'utf8'),
 );
-mkdirSync('.ai/evidence', { recursive: true });
+mkdirSync('.ai/evidence/numbering-v1', { recursive: true });
 writeFileSync(
-  '.ai/evidence/t004-unit.json',
+  '.ai/evidence/numbering-v1/t004-unit.json',
   JSON.stringify(
     {
       selected: report.numTotalTests,

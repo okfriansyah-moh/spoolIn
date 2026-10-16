@@ -34,7 +34,7 @@ class PolicyProviderRulesTest {
     }
 
     @Test
-    fun `T009 gateway unavailable authority fails closed without positive connector claim`() {
+    fun `T006 gateway unavailable authority fails closed without positive connector claim`() {
         var failure: Throwable? = null
         var response: PolicySnapshot? = null
         var completed = false
@@ -60,7 +60,7 @@ class PolicyProviderRulesTest {
     }
 
     @Test
-    fun `T009 controlled verified connector projector returns same snapshot`() {
+    fun `T006 controlled verified connector projector returns same snapshot`() {
         var response: PolicySnapshot? = null
         var completed = false
         PolicyGateway(provider, PolicyAccess { true }).getPolicy(

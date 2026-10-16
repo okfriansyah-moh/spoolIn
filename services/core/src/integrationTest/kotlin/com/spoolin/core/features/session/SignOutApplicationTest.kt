@@ -19,7 +19,7 @@ import java.util.UUID
 class SignOutApplicationTest {
     @Test
     fun `lost logout reconciles only original session intent and never restores protected authority`() {
-        CryptoFixture("t006-signout-application.json").use { fixture ->
+        CryptoFixture("t008-signout-application.json").use { fixture ->
             val id = UUID.randomUUID()
             fixture.accounts.insert(
                 id,

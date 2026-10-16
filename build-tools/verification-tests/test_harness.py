@@ -333,7 +333,7 @@ class LockMaintenanceTests(unittest.TestCase):
             with patch.object(lock_dependencies, "ROOT", root), patch.object(lock_dependencies.subprocess, "run", return_value=subprocess.CompletedProcess([], 1)):
                 self.assertEqual(lock_dependencies.main(), 1)
             self.assertEqual(metadata.read_bytes(), previous)
-            archives = list(root.glob(".ai/evidence/lock-maintenance/*.xml"))
+            archives = list(root.glob(".ai/evidence/numbering-v1/lock-maintenance/*.xml"))
             self.assertEqual(len(archives), 1)
             self.assertEqual(archives[0].read_bytes(), previous)
 
@@ -381,7 +381,7 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.output = ROOT / ".ai/evidence/t009-policy/scanner" / ("run-" + uuid4().hex)
+        cls.output = ROOT / ".ai/evidence/numbering-v1/t006-policy/scanner" / ("run-" + uuid4().hex)
         cls.output.mkdir(parents=True)
         cls.records = []
         cls.binary = shutil.which("gitleaks")
@@ -396,7 +396,7 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
         cls.baseline = cls.candidate.split(cls.marker)[0].rstrip() + "\n"
         if hashlib.sha256(cls.baseline.encode()).hexdigest() != cls.baseline_sha256:
             raise SetupError("Existing reviewed scanner policy changed outside the selected three-path block")
-        cls.policy_inputs = Path(tempfile.gettempdir()) / "spoolin-t009-scanner-policy-inputs" / cls.output.name
+        cls.policy_inputs = Path(tempfile.gettempdir()) / "spoolin-t006-scanner-policy-inputs" / cls.output.name
         cls.policy_inputs.mkdir(parents=True)
         for name, text in (("baseline", cls.baseline), ("candidate", cls.candidate)):
             target = cls.policy_inputs / f"{name}.toml"
@@ -428,7 +428,7 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
     def scan(self, policy, relative, content, label):
         number = len(self.records) + 1
         report = self.output / f"scan-{number:03d}.json"
-        with tempfile.TemporaryDirectory(prefix="spoolin-t009-scanner-") as directory:
+        with tempfile.TemporaryDirectory(prefix="spoolin-t006-scanner-") as directory:
             fixture = Path(directory) / "marked-test-fragments"
             path = fixture / relative
             path.parent.mkdir(parents=True)
@@ -495,8 +495,8 @@ if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
     tests = test_list(suite)
     result = unittest.TextTestRunner(verbosity=2, resultclass=ObservedResult).run(suite)
-    counts = write_junit(ROOT / ".ai/evidence/t001-harness.xml", tests, result)
-    report = ROOT / ".ai/evidence/t001-harness.json"
+    counts = write_junit(ROOT / ".ai/evidence/numbering-v1/t001-harness.xml", tests, result)
+    report = ROOT / ".ai/evidence/numbering-v1/t001-harness.json"
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(json.dumps({**counts, "cases": ["T001-A2", "T001-A3"]}, indent=2) + "\n")
     sys.exit(2 if counts["selected"] != counts["executed"] else 1 if counts["failed"] else 0)

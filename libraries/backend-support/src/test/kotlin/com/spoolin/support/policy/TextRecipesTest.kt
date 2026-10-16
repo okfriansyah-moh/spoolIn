@@ -97,10 +97,10 @@ class TextRecipesTest {
             dynamicTest(
                 "ATDD-278 genres are set like",
             ) { assertEquals(setOf("a", "b"), TextRules.genres(listOf("b", "a"))) },
-            dynamicTest("T009-A2 tightening retains unchanged stored value") {
+            dynamicTest("T006-A2 tightening retains unchanged stored value") {
                 assertEquals("Cahaya", TextRules.changed("Cahaya", "Cahaya", TextBound(1, 3), "title"))
             },
-            dynamicTest("T009-A2 changed overlimit rejects") {
+            dynamicTest("T006-A2 changed overlimit rejects") {
                 assertThrows(
                     InputViolation::class.java,
                 ) { TextRules.changed("Cahaya", "Cahayax", TextBound(1, 3), "title") }

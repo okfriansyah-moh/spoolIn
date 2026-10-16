@@ -94,7 +94,7 @@ The following assigned source clauses are a checklist, not new contracts. Read t
 1. Create three Boot applications and service-owned PostgreSQL databases/appdata schemas, private TCP gRPC/management listeners and loopback browser exposure. Configure authenticated TLS DB connections, mTLS service certificates and exact health boundaries.
 2. Prepare non-login owner plus migrator/runtime/maintenance/backup roles per database. Bootstrap Catalog pg_trgm only with privileged preparation; apply grants after owner migrations. No service runtime performs bootstrap, another owner's SQL or schema repair.
 3. Implement serialized Flyway runner and source-set wiring, with migration history/checksum/schema-range readiness and the 120-second lock bound. Feature tasks add their own immutable migration files and JPA mappings.
-4. Wire Core packaging and source SDL plus the static-resource/SPA fallback boundary using a clearly labeled representative static test fixture. Test fallback only for frontend navigation, excluding GraphQL, artwork, health, private and missing API paths. T004 creates the production shell; T039 packages it and T044 proves actual routes/focus/session redirects. The fixture is no production UI evidence.
+4. Wire Core packaging and source SDL plus the static-resource/SPA fallback boundary using a clearly labeled representative static test fixture. Test fallback only for frontend navigation, excluding GraphQL, artwork, health, private and missing API paths. T004 creates the production shell; T037 packages it and T044 proves actual routes/focus/session redirects. The fixture is no production UI evidence.
 5. Exercise real network/credential denial and a disposable schema to prove the migration runner, without inventing deployed historical schema conversion.
 
 ## Development guidance
@@ -107,7 +107,7 @@ Use parameter binding, fixed identifiers/allowlisted projections and safe text s
 
 - **T003-A1:** Ownership: each runtime can reach only its own DB with required grants; it cannot mutate audit/history, create roles/extensions or connect across owners.
 - **T003-A2:** Transport: real Core→Catalog gRPC succeeds under allowed certificates and a wrong service identity fails before handler execution; no public DB/exporter listener.
-- **T003-A3:** Navigation boundary: a representative static fixture is served for a frontend navigation while a missing API route remains an API error; startup reports truthful migration/readiness failure. Production SPA behavior remains with T039/T044.
+- **T003-A3:** Navigation boundary: a representative static fixture is served for a frontend navigation while a missing API route remains an API error; startup reports truthful migration/readiness failure. Production SPA behavior remains with T037/T044.
 
 Verification ownership is scoped: the exact cases and case rows in Tests require their full stated boundary. Shared requirement/AC/contract clauses require this task’s owned contribution and local assertions; their combined outcome is reconciled by the case, feature and release owners. An implementation-only contribution stops at its owned change and local tests; a downstream full-case result is not a condition for this task to finish.
 

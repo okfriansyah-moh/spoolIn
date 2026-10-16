@@ -21,7 +21,7 @@ class SessionSchemaTest {
 
     @BeforeAll
     fun prepare() {
-        fixture = CryptoFixture("t006-session-schema.json")
+        fixture = CryptoFixture("t008-session-schema.json")
         fixture.accounts.insert(
             account,
             IdentityRules().identity("A Person", "a@example.test"),

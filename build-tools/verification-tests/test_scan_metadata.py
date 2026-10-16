@@ -9,6 +9,8 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+# Fixed bytes avoid stopword and alphabetic-only scanner exclusions.
+BLOCKED_SAMPLE = "A1" + hashlib.sha256(b"synthetic scanner credential fixture").hexdigest() + "Z9"
 
 
 class ScanMetadataTests(unittest.TestCase):
@@ -67,8 +69,8 @@ class ScanMetadataTests(unittest.TestCase):
         samples = [
             (path.replace('8b199ad', 'other'), {field: digest}),
             ('frontend/src/keys.json', {field: digest}),
-            (path, {'api_key': secrets.token_urlsafe(40)}),
-            (path, {field: secrets.token_urlsafe(40)}),
+            (path, {'api_key': BLOCKED_SAMPLE}),
+            (path, {field: BLOCKED_SAMPLE}),
             (path, {'services/core/private-key.json': digest}),
         ]
         for name, fields in samples:
@@ -78,13 +80,13 @@ class ScanMetadataTests(unittest.TestCase):
     def test_provenance_shapes_in_application_source_still_block(self):
         digest = hashlib.sha256(b'independent source bytes').hexdigest()
         self.assertEqual(self.scan({'frontend/src/keys.json': json.dumps({
-            'services/core/KeyRegistry.kt': digest, 'apiCallId': secrets.token_urlsafe(80),
+            'services/core/KeyRegistry.kt': digest, 'apiCallId': BLOCKED_SAMPLE,
         }, indent=2)}), 1)
 
     def test_credential_in_known_provenance_record_still_blocks(self):
         self.assertEqual(self.scan({
             '.ai/evidence/release-1.1.0/native/repo/verification.json':
-                json.dumps({'api_key': secrets.token_urlsafe(40)}, indent=2),
+                json.dumps({'api_key': BLOCKED_SAMPLE}, indent=2),
         }), 1)
 
     def test_unrelated_state_key_is_not_a_provenance_exception(self):

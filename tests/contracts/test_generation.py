@@ -7,7 +7,7 @@ import unittest
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
-EVIDENCE = ROOT / '.ai/evidence/t002-generation'
+EVIDENCE = ROOT / '.ai/evidence/numbering-v1/t002-generation'
 
 
 class GeneratedCompatibility(unittest.TestCase):

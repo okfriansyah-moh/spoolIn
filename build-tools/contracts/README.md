@@ -61,7 +61,7 @@ imported protobuf range from year0001 through year9999 before nanos truncate to 
 
 `bash ops/bin/test-unit.sh --task T002` runs the actual `tests/contracts/run.py` suites. JSON/JUnit
 reports contain real unittest outcomes, with generation/compile subprocess logs and hashes under
-`.ai/evidence/t002-generation/`. Java and TypeScript consumers exercise exact int64 values,
+`.ai/evidence/numbering-v1/t002-generation/`. Java and TypeScript consumers exercise exact int64 values,
 presence, unknown protobuf fields, field numbers and streaming signatures. The Core plain JAR
 must contain the source SDL byte for byte. Repeated generation compares every generated output
 hash and repairs a removed output. These are isolated contract/compile checks. They do not prove

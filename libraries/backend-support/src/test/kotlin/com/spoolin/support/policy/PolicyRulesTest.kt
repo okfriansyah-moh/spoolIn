@@ -11,7 +11,7 @@ import org.junit.jupiter.api.TestFactory
 
 class PolicyRulesTest {
     @Test
-    fun `T009 public policy has exact recipient shape and stable revision`() {
+    fun `T006 public policy has exact recipient shape and stable revision`() {
         val policy = PolicySettings.resolve(ConfigurationSources())
         assertEquals(setOf("revision", "textBounds", "artwork", "requestLimits"), policy.projection().keys)
         assertEquals(
@@ -154,7 +154,7 @@ class PolicyRulesTest {
         )
 
     @Test
-    fun `T009 stable deterministic policy serialization`() {
+    fun `T006 stable deterministic policy serialization`() {
         assertEquals(
             "{\"a\":1,\"b\":[true,null,\"x\"]}",
             PolicyJson.encode(

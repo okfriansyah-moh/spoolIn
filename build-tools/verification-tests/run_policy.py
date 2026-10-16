@@ -1,4 +1,4 @@
-"""Run T009 isolated policy rules and retain fresh machine-readable reports."""
+"""Run T006 isolated policy rules and retain fresh machine-readable reports."""
 
 import argparse
 from datetime import datetime, timezone
@@ -13,7 +13,7 @@ import uuid
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
-OUTPUT = ROOT / ".ai/evidence/t009-policy/unit" / ("run-" + uuid.uuid4().hex)
+OUTPUT = ROOT / ".ai/evidence/numbering-v1/t006-policy/unit" / ("run-" + uuid.uuid4().hex)
 
 
 def artifact(path):
@@ -89,14 +89,14 @@ def browser():
 def main():
     global OUTPUT
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", choices=["T009", "T007"], required=True)
+    parser.add_argument("--task", choices=["T006", "T010"], required=True)
     parser.add_argument("--level", choices=["unit", "integration"], required=True)
     arguments = parser.parse_args()
-    if arguments.task == "T009" and arguments.level != "unit":
-        parser.error("T009 integration is assigned to its existing boundary runner")
-    OUTPUT = ROOT / f".ai/evidence/{arguments.task.lower()}-checks/{arguments.level}" / ("run-" + uuid.uuid4().hex)
+    if arguments.task == "T006" and arguments.level != "unit":
+        parser.error("T006 integration is assigned to its existing boundary runner")
+    OUTPUT = ROOT / f".ai/evidence/numbering-v1/{arguments.task.lower()}-checks/{arguments.level}" / ("run-" + uuid.uuid4().hex)
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    report = ROOT / f".ai/evidence/{arguments.task.lower()}-{arguments.level}-results.json"
+    report = ROOT / f".ai/evidence/numbering-v1/{arguments.task.lower()}-{arguments.level}-results.json"
     report.unlink(missing_ok=True)
     for old in OUTPUT.glob("*-command.json"):
         old.unlink()
@@ -106,7 +106,7 @@ def main():
         suites = [lambda: backend("libraries/backend-support", ["com.spoolin.support.*"], "shared"),
                   lambda: backend("services/core", ["com.spoolin.core.features.policy.*", "com.spoolin.core.boundary.graphql.*"], "core"),
                   frontend]
-        if arguments.task == "T007":
+        if arguments.task == "T010":
             suites = [lambda: backend("services/core", ["*FrontendPolicyRulesTest"], "core"),
                       lambda: frontend(["src/lib/features/session", "src/lib/transport"])]
             if arguments.level == "integration":

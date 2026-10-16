@@ -1,5 +1,5 @@
 {
-  "task": "T009",
+  "task": "T006",
   "status": "Selected local policy mapping; execution results are retained separately with actual JUnit reports",
   "source": "TECH11.1 plus referenced clauses and F-CONFIG; existing keys also from accepted T003/T005 code",
   "important": "Source-explicit names are preserved; selected names and local descriptor boundaries are frozen here before subsequent execution. Fixed compatibility facts have no invented operator overrides. Private-reference fixtures use synthetic paths only.",
@@ -1960,7 +1960,7 @@
       "name": "MCP_RATE_LIMIT_MAX_BINDINGS",
       "name_authority": "Exact source or accepted implementation key",
       "units": "bindings",
-      "rule": "No live eviction decision; actual counter enforcement belongs to T008/adapter owners.",
+      "rule": "No live eviction decision; actual counter enforcement belongs to T009/adapter owners.",
       "recipe_families": ["NUMERIC", "PRESENCE", "REDACTION"],
       "selected_names": ["MCP_RATE_LIMIT_MAX_BINDINGS"],
       "execution": "Not run; source map frozen before expanded case execution",
@@ -2098,7 +2098,7 @@
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     }
   ],
-  "selected_mapping_revision": "T009 policy implementation, reviewed source-derived setting names",
+  "selected_mapping_revision": "T006 policy implementation, reviewed source-derived setting names",
   "capacity_examples": {
     "metadata_bytes": 131072,
     "max_escaped_scalar_bytes": 6,

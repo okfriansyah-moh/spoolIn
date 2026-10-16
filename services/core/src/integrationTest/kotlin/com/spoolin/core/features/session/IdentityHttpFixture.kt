@@ -23,7 +23,7 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.time.Duration
 
 @Configuration(proxyBeanMethods = false)
-@Profile("t006-identity-fixture")
+@Profile("t008-identity-fixture")
 class AdmittedIdentityFixture {
     @Bean
     @Primary
@@ -61,7 +61,7 @@ class IdentityHttpFixture(
     private val rateOverrides: Map<String, String> = emptyMap(),
     private val sharedCrypto: CryptoFixture? = null,
 ) : AutoCloseable {
-    val crypto = sharedCrypto ?: CryptoFixture("t006-identity-https.json")
+    val crypto = sharedCrypto ?: CryptoFixture("t008-identity-https.json")
     private val port = ServerSocket(0).use { it.localPort }
     val origin = "https://localhost:$port"
     val context: ConfigurableApplicationContext
@@ -75,7 +75,7 @@ class IdentityHttpFixture(
             } else {
                 SpringApplication(Application::class.java)
             }
-        if (admitted) app.setAdditionalProfiles("t006-identity-fixture")
+        if (admitted) app.setAdditionalProfiles("t008-identity-fixture")
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
         context =
             try {

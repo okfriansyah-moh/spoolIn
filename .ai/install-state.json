@@ -3,299 +3,299 @@
   "files": {
     ".agents/skills/acceptance-verification": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/acceptance-verification"
+      "target": "../../.ai/bundles/1.2.1/skills/acceptance-verification"
     },
     ".agents/skills/analyze-alert": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/analyze-alert"
+      "target": "../../.ai/bundles/1.2.1/skills/analyze-alert"
     },
     ".agents/skills/antislop": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop"
     },
     ".agents/skills/antislop-code": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-code"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-code"
     },
     ".agents/skills/antislop-copywriting": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-copywriting"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-copywriting"
     },
     ".agents/skills/antislop-human": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-human"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-human"
     },
     ".agents/skills/antislop-layoutmobile": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-layoutmobile"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-layoutmobile"
     },
     ".agents/skills/antislop-ui": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-ui"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-ui"
     },
     ".agents/skills/api-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/api-design"
+      "target": "../../.ai/bundles/1.2.1/skills/api-design"
     },
     ".agents/skills/architecture-decision-records": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-decision-records"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-decision-records"
     },
     ".agents/skills/architecture-designer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-designer"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-designer"
     },
     ".agents/skills/atdd-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/atdd-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/atdd-creation"
     },
     ".agents/skills/brainstorming": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/brainstorming"
+      "target": "../../.ai/bundles/1.2.1/skills/brainstorming"
     },
     ".agents/skills/code-quality": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-quality"
+      "target": "../../.ai/bundles/1.2.1/skills/code-quality"
     },
     ".agents/skills/code-review": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-review"
+      "target": "../../.ai/bundles/1.2.1/skills/code-review"
     },
     ".agents/skills/codebase-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/codebase-design"
+      "target": "../../.ai/bundles/1.2.1/skills/codebase-design"
     },
     ".agents/skills/coding-standards": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/coding-standards"
+      "target": "../../.ai/bundles/1.2.1/skills/coding-standards"
     },
     ".agents/skills/config-validation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/config-validation"
+      "target": "../../.ai/bundles/1.2.1/skills/config-validation"
     },
     ".agents/skills/conflict-resolution": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/conflict-resolution"
+      "target": "../../.ai/bundles/1.2.1/skills/conflict-resolution"
     },
     ".agents/skills/context7": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/context7"
+      "target": "../../.ai/bundles/1.2.1/skills/context7"
     },
     ".agents/skills/database-portability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/database-portability"
+      "target": "../../.ai/bundles/1.2.1/skills/database-portability"
     },
     ".agents/skills/deliver-prd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/deliver-prd"
+      "target": "../../.ai/bundles/1.2.1/skills/deliver-prd"
     },
     ".agents/skills/dependency-analysis": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dependency-analysis"
+      "target": "../../.ai/bundles/1.2.1/skills/dependency-analysis"
     },
     ".agents/skills/design-system": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system"
     },
     ".agents/skills/design-system-foundations": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system-foundations"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system-foundations"
     },
     ".agents/skills/determinism": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/determinism"
+      "target": "../../.ai/bundles/1.2.1/skills/determinism"
     },
     ".agents/skills/devops-ci": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/devops-ci"
+      "target": "../../.ai/bundles/1.2.1/skills/devops-ci"
     },
     ".agents/skills/diagnosing-bugs": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/diagnosing-bugs"
+      "target": "../../.ai/bundles/1.2.1/skills/diagnosing-bugs"
     },
     ".agents/skills/docs-sync": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/docs-sync"
+      "target": "../../.ai/bundles/1.2.1/skills/docs-sync"
     },
     ".agents/skills/domain-modeling": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/domain-modeling"
+      "target": "../../.ai/bundles/1.2.1/skills/domain-modeling"
     },
     ".agents/skills/dto": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dto"
+      "target": "../../.ai/bundles/1.2.1/skills/dto"
     },
     ".agents/skills/failure": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/failure"
+      "target": "../../.ai/bundles/1.2.1/skills/failure"
     },
     ".agents/skills/fixing-accessibility": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/fixing-accessibility"
+      "target": "../../.ai/bundles/1.2.1/skills/fixing-accessibility"
     },
     ".agents/skills/forge": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/forge"
+      "target": "../../.ai/bundles/1.2.1/skills/forge"
     },
     ".agents/skills/frontend-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/frontend-design"
+      "target": "../../.ai/bundles/1.2.1/skills/frontend-design"
     },
     ".agents/skills/humanizer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/humanizer"
+      "target": "../../.ai/bundles/1.2.1/skills/humanizer"
     },
     ".agents/skills/idempotency": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/idempotency"
+      "target": "../../.ai/bundles/1.2.1/skills/idempotency"
     },
     ".agents/skills/impeccable": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/impeccable"
+      "target": "../../.ai/bundles/1.2.1/skills/impeccable"
     },
     ".agents/skills/jpa-hibernate": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/jpa-hibernate"
+      "target": "../../.ai/bundles/1.2.1/skills/jpa-hibernate"
     },
     ".agents/skills/kotlin-spring": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/kotlin-spring"
+      "target": "../../.ai/bundles/1.2.1/skills/kotlin-spring"
     },
     ".agents/skills/migration-management": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/migration-management"
+      "target": "../../.ai/bundles/1.2.1/skills/migration-management"
     },
     ".agents/skills/modularity": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/modularity"
+      "target": "../../.ai/bundles/1.2.1/skills/modularity"
     },
     ".agents/skills/node-backend": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/node-backend"
+      "target": "../../.ai/bundles/1.2.1/skills/node-backend"
     },
     ".agents/skills/observability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/observability"
+      "target": "../../.ai/bundles/1.2.1/skills/observability"
     },
     ".agents/skills/performance-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/performance-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/performance-optimization"
     },
     ".agents/skills/pipeline": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pipeline"
+      "target": "../../.ai/bundles/1.2.1/skills/pipeline"
     },
     ".agents/skills/plan-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/plan-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/plan-creation"
     },
     ".agents/skills/playwright-cli": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/playwright-cli"
+      "target": "../../.ai/bundles/1.2.1/skills/playwright-cli"
     },
     ".agents/skills/pr": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pr"
+      "target": "../../.ai/bundles/1.2.1/skills/pr"
     },
     ".agents/skills/project-scaffold": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/project-scaffold"
+      "target": "../../.ai/bundles/1.2.1/skills/project-scaffold"
     },
     ".agents/skills/quality-gates": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/quality-gates"
+      "target": "../../.ai/bundles/1.2.1/skills/quality-gates"
     },
     ".agents/skills/record-test-video": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/record-test-video"
+      "target": "../../.ai/bundles/1.2.1/skills/record-test-video"
     },
     ".agents/skills/rtk": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/rtk"
+      "target": "../../.ai/bundles/1.2.1/skills/rtk"
     },
     ".agents/skills/security-audit": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-audit"
+      "target": "../../.ai/bundles/1.2.1/skills/security-audit"
     },
     ".agents/skills/security-requirement-extraction": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-requirement-extraction"
+      "target": "../../.ai/bundles/1.2.1/skills/security-requirement-extraction"
     },
     ".agents/skills/spring-dependency-injection": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/spring-dependency-injection"
+      "target": "../../.ai/bundles/1.2.1/skills/spring-dependency-injection"
     },
     ".agents/skills/stride-analysis-patterns": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/stride-analysis-patterns"
+      "target": "../../.ai/bundles/1.2.1/skills/stride-analysis-patterns"
     },
     ".agents/skills/strix-security": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/strix-security"
+      "target": "../../.ai/bundles/1.2.1/skills/strix-security"
     },
     ".agents/skills/svelte-typescript": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/svelte-typescript"
+      "target": "../../.ai/bundles/1.2.1/skills/svelte-typescript"
     },
     ".agents/skills/task-delivery": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-delivery"
+      "target": "../../.ai/bundles/1.2.1/skills/task-delivery"
     },
     ".agents/skills/task-full-workflow": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-full-workflow"
+      "target": "../../.ai/bundles/1.2.1/skills/task-full-workflow"
     },
     ".agents/skills/task-implement": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-implement"
+      "target": "../../.ai/bundles/1.2.1/skills/task-implement"
     },
     ".agents/skills/task-observer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-observer"
+      "target": "../../.ai/bundles/1.2.1/skills/task-observer"
     },
     ".agents/skills/tdd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/tdd"
+      "target": "../../.ai/bundles/1.2.1/skills/tdd"
     },
     ".agents/skills/techdoc-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/techdoc-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/techdoc-creation"
     },
     ".agents/skills/test-driven-development": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-driven-development"
+      "target": "../../.ai/bundles/1.2.1/skills/test-driven-development"
     },
     ".agents/skills/test-generation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-generation"
+      "target": "../../.ai/bundles/1.2.1/skills/test-generation"
     },
     ".agents/skills/token-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/token-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/token-optimization"
     },
     ".agents/skills/ui-ux-pro-max": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/ui-ux-pro-max"
+      "target": "../../.ai/bundles/1.2.1/skills/ui-ux-pro-max"
     },
     ".agents/skills/verify-test-evidence": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/verify-test-evidence"
+      "target": "../../.ai/bundles/1.2.1/skills/verify-test-evidence"
     },
     ".agents/skills/vertical-slice": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/vertical-slice"
+      "target": "../../.ai/bundles/1.2.1/skills/vertical-slice"
     },
     ".agents/skills/workflow-install": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/workflow-install"
+      "target": "../../.ai/bundles/1.2.1/skills/workflow-install"
     },
     ".agents/skills/worktree-integration": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/worktree-integration"
+      "target": "../../.ai/bundles/1.2.1/skills/worktree-integration"
     },
     ".agents/skills/writing-for-agents": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/writing-for-agents"
+      "target": "../../.ai/bundles/1.2.1/skills/writing-for-agents"
     },
     ".ai/.gitignore": {
       "kind": "file",
@@ -7661,41 +7661,1937 @@
       "kind": "file",
       "sha256": "163a5f2699be51593d8a33a0c121f75c54f150d399e8a04a1bea6e1dd35268c9"
     },
+    ".ai/bundles/1.2.1/README.md": {
+      "kind": "file",
+      "sha256": "3454ca2d2c144cc76f4755046f352ec05534a37709728b6cb672b24baf859f92"
+    },
+    ".ai/bundles/1.2.1/adapters/AGENTS.md": {
+      "kind": "file",
+      "sha256": "39b21930fd31da0d1357104559be23ceb91f356de15bdf453e7d2330bad3fbbd"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/__init__.py": {
+      "kind": "file",
+      "sha256": "25b531bccddbf1683153563628770cdcd7914a25b4997af636dc9f29e107926a"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/autonomy.py": {
+      "kind": "file",
+      "sha256": "9fdeaf16cddbbb2211f89f6ec8656a90fb2620de524d77e33287ab79388f1c67"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/cli.py": {
+      "kind": "file",
+      "sha256": "bb4f2cce86c59e69ee0c37b8456b0fa140cd0b511dddc22888a9726f2f125595"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/coordination.py": {
+      "kind": "file",
+      "sha256": "cfcf6397ab1cc2d5d4ede4340748d5db4d2bf0a25562c548cc81c0d0cf6f3f7f"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/coordination_evidence.py": {
+      "kind": "file",
+      "sha256": "328ba1b899ba442948ac57f60c83f9443d90392fe16c9ea9ec4e9382f9733f8e"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/coordination_plan.py": {
+      "kind": "file",
+      "sha256": "ac940e81371fbb30c9d05bd69f278433c8a092418b0dda575d0dc4811d4e2295"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/coordination_state.py": {
+      "kind": "file",
+      "sha256": "dd34148536ed19205ecdb6af51b52d550a1b200dfff0847001f9f6c429bb24b5"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/gate_reports.py": {
+      "kind": "file",
+      "sha256": "a57315d74ca5e3578195c19056c9b4a44b32aca8a0a3f11dc178e81e121ab637"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/gate_selection.py": {
+      "kind": "file",
+      "sha256": "08253ad2d71e84434ab4b93d8fb8272894ad2edb00181ca333780e70ec068cda"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/gates.py": {
+      "kind": "file",
+      "sha256": "0b04fe11f21ac1491bc7c6f17fdfcbc6d395c464b571e455deb747a77ae57d0f"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/host_probes.py": {
+      "kind": "file",
+      "sha256": "fbde84118adb41b30aadc4542b47725cca07e2cd69d4337391cda1921d5116ea"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/host_verification.py": {
+      "kind": "file",
+      "sha256": "314cd47e7a8122894198a37a223adb6a9efd4f876013d8fececec608f5934ce1"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/installer.py": {
+      "kind": "file",
+      "sha256": "02656dcb4bbf00b28a50210a01d091a5d9ad2c861b8ab2440c6b9cbcf5be8e6e"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/numbering_migration.py": {
+      "kind": "file",
+      "sha256": "5510dfbb2e2905ccc958fc853029df718dd2a423b1d11ce369f1d9e51b7eb79c"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/selection.py": {
+      "kind": "file",
+      "sha256": "2df57bb2b6938fceb86a87dd4043ba10df5f6f17af04280b4c24cb2704944cde"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/skill_resolution.py": {
+      "kind": "file",
+      "sha256": "885588ca29d8ea5008a59d00322e4aa7ed4eaa1e8a729f022f3d195c8ccfa063"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/tool_config.py": {
+      "kind": "file",
+      "sha256": "50ef8c485d17da8c75f05173298d63f9b1d7f523bf7a572e3e7ac96899e8de89"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/tool_runtime.py": {
+      "kind": "file",
+      "sha256": "0b171a3e1e311b507843ce9f056874aad4966290af8b7e60968483ad06b65d6a"
+    },
+    ".ai/bundles/1.2.1/agent_workflow/tools.py": {
+      "kind": "file",
+      "sha256": "309d330b47121214bfc441c0ddb607d1d4875919d2fe6b3e8976d302fe7d7a08"
+    },
+    ".ai/bundles/1.2.1/agents/catalog.json": {
+      "kind": "file",
+      "sha256": "a5d8e8f91c4b43d6df6c4ac7a8688db5d4df655ce1c3811130d9b71dfd47a137"
+    },
+    ".ai/bundles/1.2.1/docs/COORDINATION.md": {
+      "kind": "file",
+      "sha256": "c60d6b68e2b2e7c623486717cf03bdc9aa06144d370def4ca0c40d84fc1b8617"
+    },
+    ".ai/bundles/1.2.1/docs/DELIVERY.md": {
+      "kind": "file",
+      "sha256": "c17f8198f0f8a2bfa4d438fa1a299a6f954d96a5ac874cfaf5dc76800c99460f"
+    },
+    ".ai/bundles/1.2.1/docs/GATES.md": {
+      "kind": "file",
+      "sha256": "1091f2431635c5bcf5c8b6af9290772e88f6357c7100f359e0692c1411a927e4"
+    },
+    ".ai/bundles/1.2.1/docs/HOSTS.md": {
+      "kind": "file",
+      "sha256": "cb5d26657f5b83e9dd48f21ca0536fc8d510e3386940f9d42fa98d5d4273b2b2"
+    },
+    ".ai/bundles/1.2.1/docs/INSTALLATION.md": {
+      "kind": "file",
+      "sha256": "67a8718750ef47e4b691e6eb159b50507868a14f00b3afb76b66e332ba0b8b7e"
+    },
+    ".ai/bundles/1.2.1/docs/PROVENANCE.md": {
+      "kind": "file",
+      "sha256": "9e4e07e55b1d2f5f7e6a3d438777ee7ea2afb82b7deb7b86ed187405c6744ab9"
+    },
+    ".ai/bundles/1.2.1/docs/RELEASE-1.1.md": {
+      "kind": "file",
+      "sha256": "b983d3c272ee900c7c6bfc8b0038b76347eea3ee3adc30657d190984b8acc297"
+    },
+    ".ai/bundles/1.2.1/docs/SKILLS.md": {
+      "kind": "file",
+      "sha256": "cd1cb9a46e7b60bf08af0ef6f1bc41766e62d5bfa37cc0e14ebe8b048f04cecf"
+    },
+    ".ai/bundles/1.2.1/docs/TOOLS.md": {
+      "kind": "file",
+      "sha256": "5e02208de07f198fd864b17d55eef23698c115b650caf9f74d8ae636423c95a9"
+    },
+    ".ai/bundles/1.2.1/docs/VERIFICATION-1.1.md": {
+      "kind": "file",
+      "sha256": "aa28268af59912e882f512e484d206d06b59e0a5ff0b472ce5a8e773372c28cd"
+    },
+    ".ai/bundles/1.2.1/docs/VERIFICATION.md": {
+      "kind": "file",
+      "sha256": "a689a868e3c6b5f0f173687206db8c7a38300532b9082364583042cba3cc9671"
+    },
+    ".ai/bundles/1.2.1/docs/verification-fixtures.json": {
+      "kind": "file",
+      "sha256": "1d0c4636e49bb1ff7769aab7625b325eb3a7cdec7226fff1b80c720b14e5b086"
+    },
+    ".ai/bundles/1.2.1/docs/verification-relocation.json": {
+      "kind": "file",
+      "sha256": "8f1c1ec07c362900d9908963a65a1b130c28ba0d5f0cf49000d5dea88b7c3be9"
+    },
+    ".ai/bundles/1.2.1/docs/verification-security.json": {
+      "kind": "file",
+      "sha256": "fdd869419ae7ddb19cdd3e00f80db7ab6df17e1c3835a1a7a7fe510aacbea889"
+    },
+    ".ai/bundles/1.2.1/docs/verification-tools.json": {
+      "kind": "file",
+      "sha256": "a126b1325920b94a960bc88b2376d288465dde27eebd82d590ae16d7359a9051"
+    },
+    ".ai/bundles/1.2.1/docs/wording-scan-exceptions.json": {
+      "kind": "file",
+      "sha256": "1bae86031c7e839a05e327bfcc8f0788a87b7f02a57301784aff07cd71b78230"
+    },
+    ".ai/bundles/1.2.1/manifest.json": {
+      "kind": "file",
+      "sha256": "c4cbcc50a2d3073cd3997eb8d73fa4295853d2e038da26a9b2b76d9c2454137f"
+    },
+    ".ai/bundles/1.2.1/profiles/general.json": {
+      "kind": "file",
+      "sha256": "82c4cda7a4831e407e05b9466a3c0247ac054252c7ecada1a61d45124c66c373"
+    },
+    ".ai/bundles/1.2.1/profiles/kotlin/detekt.yml": {
+      "kind": "file",
+      "sha256": "d15db94bd6d4bc4d3fbf22f9e86763e7f911550f2e116fa399a49e49621b8610"
+    },
+    ".ai/bundles/1.2.1/profiles/movie-app.json": {
+      "kind": "file",
+      "sha256": "49cdd5420ead6224f8faca71e8a052e69caefd3cb319b8fd3d08560fceb7202e"
+    },
+    ".ai/bundles/1.2.1/profiles/security/gitleaks.toml": {
+      "kind": "file",
+      "sha256": "e214b4d0f7342589e30cfa1ff004f4d1d0d4e5ee4483e92d07856b684f930602"
+    },
+    ".ai/bundles/1.2.1/profiles/security/semgrep.yml": {
+      "kind": "file",
+      "sha256": "8e54055b0af069debff5eab2c5f7fe6b3b8d567c152538a9606c8db04a46563a"
+    },
+    ".ai/bundles/1.2.1/profiles/tools-lock.json": {
+      "kind": "file",
+      "sha256": "175971427725a97e90d274f5e923f42b6a3439d9a85d485cb63ca78126a2ca06"
+    },
+    ".ai/bundles/1.2.1/profiles/tools.json": {
+      "kind": "file",
+      "sha256": "4d28168f78e103d56380a29632778dfc74ba05b2c8a667b2136a0e06ccc92d60"
+    },
+    ".ai/bundles/1.2.1/profiles/web/dependency-cruiser.cjs": {
+      "kind": "file",
+      "sha256": "f31ede386a01984f3971774cd83476204d6a65003e555ea65f9c064361b70360"
+    },
+    ".ai/bundles/1.2.1/profiles/web/eslint.config.mjs": {
+      "kind": "file",
+      "sha256": "3e0237472570164752d3c0af6d4b998c241b2b8af1d4495686a7578979ed7be4"
+    },
+    ".ai/bundles/1.2.1/prompts/evidence.md": {
+      "kind": "file",
+      "sha256": "fbc26fa647efb5e1cabadfdcdfa25d66fffff786465925bff77985c33bee4f62"
+    },
+    ".ai/bundles/1.2.1/prompts/integrate.md": {
+      "kind": "file",
+      "sha256": "e14468e2a200d9aec52cde9c14dec5e9b903426865600c8b639e45984988e83d"
+    },
+    ".ai/bundles/1.2.1/prompts/resume.md": {
+      "kind": "file",
+      "sha256": "08b0db300120bc0424222debb615c6461dd1c33fd9d090eb687ef383fe92b384"
+    },
+    ".ai/bundles/1.2.1/prompts/review.md": {
+      "kind": "file",
+      "sha256": "ef932b03a3f51d337a066f9fd7b48a29973306284fe10475373df310b4aa77fe"
+    },
+    ".ai/bundles/1.2.1/prompts/start.md": {
+      "kind": "file",
+      "sha256": "5abcfa6513d6aad7e2258e5050b3275f2e7d2ef131a564e02d5b929e6033b589"
+    },
+    ".ai/bundles/1.2.1/prompts/worker.md": {
+      "kind": "file",
+      "sha256": "661308a1610d83c8cdeb303ac28abe4d1fab1bea8b1d552b58540654a7d952fe"
+    },
+    ".ai/bundles/1.2.1/resources/wording/check_output_wording.py": {
+      "kind": "file",
+      "sha256": "8c1801cc33b77969dd14c304d7c29448dae66f7bdd6a909db1e2c08b3fff4ba1"
+    },
+    ".ai/bundles/1.2.1/resources/wording/output-wording.md": {
+      "kind": "file",
+      "sha256": "9e9016477783ac038d3f7a28c1a0f279eb4b8a1c79fe83eae2f6b0f4ce244ac3"
+    },
+    ".ai/bundles/1.2.1/schemas/acceptance-requirements.schema.json": {
+      "kind": "file",
+      "sha256": "dfeea98463fb3b7fb9017b2764c97f14e60f49be4150a549e0dcdb1a5f3cb7be"
+    },
+    ".ai/bundles/1.2.1/schemas/gate-registry.schema.json": {
+      "kind": "file",
+      "sha256": "8c4ea3c63ec497c810604e8498287717ba7ac0e27940bbdd0f98e3c14f07f6c4"
+    },
+    ".ai/bundles/1.2.1/schemas/manifest.schema.json": {
+      "kind": "file",
+      "sha256": "b73fb81d8729c03a57d2966b113677cb2541286231aad83cf1eeeee93ebd246d"
+    },
+    ".ai/bundles/1.2.1/schemas/review.schema.json": {
+      "kind": "file",
+      "sha256": "4c2e885623411e2762d964410bb9b341f1009d29e0fcf30c018fcf856e097f0f"
+    },
+    ".ai/bundles/1.2.1/schemas/worker-brief.schema.json": {
+      "kind": "file",
+      "sha256": "a39d0ce529804f7be7ff550383a6778984ecc7327ec5f427aebaf0e34d85b292"
+    },
+    ".ai/bundles/1.2.1/scripts/agent-workflow": {
+      "kind": "file",
+      "sha256": "bbe2088c59335e71434bed972eab03938811485a41b738fc4d4dfda528768752"
+    },
+    ".ai/bundles/1.2.1/scripts/check-browser-fixtures.py": {
+      "kind": "file",
+      "sha256": "b1d474ee683c2590fd0888f75ecaa5a0a05ba3c67343792d5514823feb862ab2"
+    },
+    ".ai/bundles/1.2.1/scripts/check-fixtures.py": {
+      "kind": "file",
+      "sha256": "71cc8a4c4d96eb9c3ca37ec9f027e335381e098158b51fa73f7c700a19780daa"
+    },
+    ".ai/bundles/1.2.1/scripts/check-security-fixtures.py": {
+      "kind": "file",
+      "sha256": "86d3c4215a71797692fc031fdf26f7ee6e2b3d443225f78c82bb6a3c97d2c9dd"
+    },
+    ".ai/bundles/1.2.1/scripts/record-browser-fallback.mjs": {
+      "kind": "file",
+      "sha256": "7426b9d48afbce32c60ab54c2eb922d2e91f210bc238698fd6df036ad62bbad5"
+    },
+    ".ai/bundles/1.2.1/scripts/run-behavior-tests.py": {
+      "kind": "file",
+      "sha256": "7b09739b96e320af907b4554f7140b7f28e8862c911f85b513fc563fe1c52809"
+    },
+    ".ai/bundles/1.2.1/skills/acceptance-verification/SKILL.md": {
+      "kind": "file",
+      "sha256": "69b91ea2aeeac8dc5a152c03840807f063e61bccfa6a740df793d447e058f756"
+    },
+    ".ai/bundles/1.2.1/skills/analyze-alert/SKILL.md": {
+      "kind": "file",
+      "sha256": "c7e8779156b24e5011c2a1a24f8ccfded914b1691a34b7ca602563c495a4e7f7"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-code/LICENSE": {
+      "kind": "file",
+      "sha256": "9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-code/SKILL.md": {
+      "kind": "file",
+      "sha256": "4a6d90f327282f67d9171b64243f6c4f18426519f9c7ee5e9d9feae7b4bffc3a"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-code/provenance.json": {
+      "kind": "file",
+      "sha256": "9c33076683fcf69856b129bedf51bfb65843e7e786ee6d61f4a1fe1686137b62"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-copywriting/LICENSE": {
+      "kind": "file",
+      "sha256": "9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-copywriting/SKILL.md": {
+      "kind": "file",
+      "sha256": "30dc58e1a570e5031a161db4a07e0cbed2281f8c1a7ea9c6f49a29bc89166c00"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-copywriting/provenance.json": {
+      "kind": "file",
+      "sha256": "766ac0ad43095bc76287ee32f1fc3966e5ca728e779f6fcdc252c1a2cd8c5eb0"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-human/LICENSE": {
+      "kind": "file",
+      "sha256": "9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-human/SKILL.md": {
+      "kind": "file",
+      "sha256": "f5a1ec09d63fe37a86257177facea09ace14d62049f11920bd4fcbde0eceda96"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-human/contrast-check.py": {
+      "kind": "file",
+      "sha256": "306e4509e94c48caacc7f84966b38fd70d43831376abb81750c5474588883537"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-human/provenance.json": {
+      "kind": "file",
+      "sha256": "c7f41caabba6bbeec0b81f6806182f2087c00e2cd919234ca6b32b9f68077670"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-layoutmobile/LICENSE": {
+      "kind": "file",
+      "sha256": "9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-layoutmobile/SKILL.md": {
+      "kind": "file",
+      "sha256": "4ead93053b72499156e742123c8e3afa55cad1b71b63b675507082a3a5f84b1d"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-layoutmobile/provenance.json": {
+      "kind": "file",
+      "sha256": "b2c482dda2a68b6f2ecbaa4a8d34e86a460c73ce157d730f8492f616ebf2a09b"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-ui/LICENSE": {
+      "kind": "file",
+      "sha256": "9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-ui/SKILL.md": {
+      "kind": "file",
+      "sha256": "342f2a7264aa6a1e1b5f9866f7f0bf9f69285978b177412ded39ecce8aa1fd48"
+    },
+    ".ai/bundles/1.2.1/skills/antislop-ui/provenance.json": {
+      "kind": "file",
+      "sha256": "b01ca9a3408cb371fab67b5260da9f089af1b891b46bb5d14aee4dbf34c92458"
+    },
+    ".ai/bundles/1.2.1/skills/antislop/LICENSE": {
+      "kind": "file",
+      "sha256": "9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de"
+    },
+    ".ai/bundles/1.2.1/skills/antislop/SKILL.md": {
+      "kind": "file",
+      "sha256": "10ebe096c0983741a751c909ebbd24d24cc8275db0592f5ebc323d8c0db3d242"
+    },
+    ".ai/bundles/1.2.1/skills/antislop/provenance.json": {
+      "kind": "file",
+      "sha256": "67380bd7ecfd494cec38958c2c4702047047657c7d496b0caa41e364f55f8b37"
+    },
+    ".ai/bundles/1.2.1/skills/api-design/SKILL.md": {
+      "kind": "file",
+      "sha256": "bca14331e93f1c8c7c683067075473716c4350d6ef1e3479a4c47e6feb2656b4"
+    },
+    ".ai/bundles/1.2.1/skills/api-design/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-decision-records/LICENSE": {
+      "kind": "file",
+      "sha256": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-decision-records/SKILL.md": {
+      "kind": "file",
+      "sha256": "9e8058809161596376cf593854ba204c018608a3885693d8045d3c9e5e727c2d"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-decision-records/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "045c8dff2c786471da6e3c5e182cf9e954d797451ee2f9bbf777a809f87de7b8"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-decision-records/references/sources.md": {
+      "kind": "file",
+      "sha256": "db2a10d0343f0973b26d9a847aa2ce4c55ca881a0b864d3a5277d696c2fc2cb1"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/LICENSE": {
+      "kind": "file",
+      "sha256": "06dcddbb6908a0c6dd4a9e8ec822eea41d5a460a53089fecccc8a68049e99241"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/SKILL.md": {
+      "kind": "file",
+      "sha256": "fbcab430b680f354c87c2fd11ebf29a22395e1224c5d919aad1ef6a458139cff"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "d93e770e95e49bb4c3c2af1e9fb9e955c7c455620d9959c138d43363b7cfef2c"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/references/adr-template.md": {
+      "kind": "file",
+      "sha256": "3c05693f66433a1d6ef7f980025912bed82b8845fe0836817ee6c2d5d78912ca"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/references/architecture-patterns.md": {
+      "kind": "file",
+      "sha256": "d020862a76ebbbc3221f1b2d9be577c0566f7b2404682d6770b63ecbf5062719"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/references/database-selection.md": {
+      "kind": "file",
+      "sha256": "3e86002c5758501e137bbc732dea3e1f51eb012bafed5be5d557ceb1cef06909"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/references/nfr-checklist.md": {
+      "kind": "file",
+      "sha256": "6386cffe0cc7966ec17f53e33e5a1cd5e29e57017b27479545673766a4fd42ee"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/references/sources.md": {
+      "kind": "file",
+      "sha256": "04244b729e6f7dbd6dcedd2d5eebdc0d343cab9b5264f01205a52a1f2b525f3f"
+    },
+    ".ai/bundles/1.2.1/skills/architecture-designer/references/system-design.md": {
+      "kind": "file",
+      "sha256": "4ae2a6d1569baf99ed2b11c223e25227057aeb30dcb939e05abc5e4a2ef87c09"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/NOTICE": {
+      "kind": "file",
+      "sha256": "9a055fde9cb431e1e8888ea7ef73fdf6d36ef92622254583066aa14b09b0c5b3"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/SKILL.md": {
+      "kind": "file",
+      "sha256": "2c102a5aedabe1cba74d081c242761fdcd7076aca0a361eca81c6bb4a7e6e64e"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "dceba8626859b163d1b38f08ac8b566545657fdbe5b062e021af88ca42ab09d7"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/cli/cli.md": {
+      "kind": "file",
+      "sha256": "5b740fca7b395beefbf0219169ff5635d95c47d22dab22a94b2f79da4fed1712"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/cli/previous-atdd.md": {
+      "kind": "file",
+      "sha256": "d180ecee78440f83b8903d12f4c54a7021f5b73dcd2c2ce4194a46c08dccdb7a"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/cli/previous-cli.md": {
+      "kind": "file",
+      "sha256": "1dfa27baa8825a7450499e147d5b09da28fdf14d88134346de86c83122be6f40"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/cli/previous-run.txt": {
+      "kind": "file",
+      "sha256": "aa1b47f20ec43599d2bf0508df391f43669ab0577af67ba6282a5e351c5dfc6e"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/service/service.md": {
+      "kind": "file",
+      "sha256": "dcb0d0782f94bac43e44742e2e538e644d46de8e15ebfeb0143f5489b9973f56"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/web/design.md": {
+      "kind": "file",
+      "sha256": "26f976f82851f3fdec86837f6dd3ca63e7709c5a4bc43e3d26f0469602aa05e3"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/fixtures/web/requirements.md": {
+      "kind": "file",
+      "sha256": "5488bdb28211f41d2271265d46ab1251d244878b2bcbb61987f7c2b1e8b5c3aa"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/test_check_coverage.py": {
+      "kind": "file",
+      "sha256": "b3a7d94e6ace97d1f05a31809b8a4a6662bbb4df470e0ffdd0e567a8454d9f53"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/evals/workflow-scenarios.md": {
+      "kind": "file",
+      "sha256": "88ca6364bbc6ed5e5aac6fb95ad57d06757dd05c0c35bf3e79bd35974a9b3da0"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/coverage-design.md": {
+      "kind": "file",
+      "sha256": "18af7686c7f642ca78f1904eafc8b5cfe9ca3484695111fecc083ca2073742aa"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/output-contract.md": {
+      "kind": "file",
+      "sha256": "509701efd6d426abb44d7bf76faaa3158d832acf79018bcb7b9b51d32a0b6788"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/routing.md": {
+      "kind": "file",
+      "sha256": "8a91f7664539c7d7fc48371dbabfe8563a5536d18fc3fd7dba6c43340e1cdee1"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/sources.json": {
+      "kind": "file",
+      "sha256": "c1146a01d1290a7f367bbf23b01cf1c3ab8eb4a950a80a611f5e151fe185e8f4"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/sources.md": {
+      "kind": "file",
+      "sha256": "9f1c780feb4d9253a58548aaed1b553685f279f446387d29a3873e3166e89fca"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/validation.md": {
+      "kind": "file",
+      "sha256": "f8d1e4cfc8eea865106db09523b9e405fe36e237535284e3273f9885fc2e69bf"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/references/verification.md": {
+      "kind": "file",
+      "sha256": "bd05ede7c656554649dda00d703daf3367e3ed9af496f3c4dee0e36915ca553d"
+    },
+    ".ai/bundles/1.2.1/skills/atdd-creation/scripts/check_coverage.py": {
+      "kind": "file",
+      "sha256": "bd8126cf90d69a0f057e684a8c72bfee52db3f825a8906e234a0a992efe2bcb6"
+    },
+    ".ai/bundles/1.2.1/skills/brainstorming/SKILL.md": {
+      "kind": "file",
+      "sha256": "3033db7fb2579172821da1ec6eb6a8a84d737a0add7c4d769b23ec4ac1a07410"
+    },
+    ".ai/bundles/1.2.1/skills/brainstorming/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "032aa779cea2a81b354231cf2e12104c57dc34c91bafdfd8a5f3a5fe8ba9a955"
+    },
+    ".ai/bundles/1.2.1/skills/code-quality/SKILL.md": {
+      "kind": "file",
+      "sha256": "b229c8a42b1c094e339b10569f3134d745ea2f81384c405ffba8760a861384dd"
+    },
+    ".ai/bundles/1.2.1/skills/code-quality/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/code-review/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/code-review/SKILL.md": {
+      "kind": "file",
+      "sha256": "29f4cce553aab94682438cd8810c265ad8e97381317446577f93c4ffa64ca7a8"
+    },
+    ".ai/bundles/1.2.1/skills/code-review/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352"
+    },
+    ".ai/bundles/1.2.1/skills/codebase-design/DEEPENING.md": {
+      "kind": "file",
+      "sha256": "f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1"
+    },
+    ".ai/bundles/1.2.1/skills/codebase-design/DESIGN-IT-TWICE.md": {
+      "kind": "file",
+      "sha256": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010"
+    },
+    ".ai/bundles/1.2.1/skills/codebase-design/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/codebase-design/SKILL.md": {
+      "kind": "file",
+      "sha256": "0db7e2ddf04564f036ad5c0e81bb2583d493ac25644ace37237450d7d9db3d8c"
+    },
+    ".ai/bundles/1.2.1/skills/codebase-design/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f"
+    },
+    ".ai/bundles/1.2.1/skills/coding-standards/SKILL.md": {
+      "kind": "file",
+      "sha256": "66e94aba1a932961e6a2644b28407264c9842bf6cf96f939d2f904f1d59ef6dd"
+    },
+    ".ai/bundles/1.2.1/skills/coding-standards/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/coding-standards/references/project-context.md": {
+      "kind": "file",
+      "sha256": "7413e165b4818e016534ac101b564eddb03e3757a0caec242b396662c28f2025"
+    },
+    ".ai/bundles/1.2.1/skills/config-validation/SKILL.md": {
+      "kind": "file",
+      "sha256": "b451edde3fa469fc3bd28e2159680c4e773b4fd4af687d1e8b532a86dc25be56"
+    },
+    ".ai/bundles/1.2.1/skills/config-validation/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/conflict-resolution/SKILL.md": {
+      "kind": "file",
+      "sha256": "ec2a3dc4845512acbcf517ff640262884be5953df9ae7eb7946ebc322b3f20be"
+    },
+    ".ai/bundles/1.2.1/skills/conflict-resolution/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/context7/PROVENANCE.json": {
+      "kind": "file",
+      "sha256": "0f69e7f175a3fe8dc9549df6f61b0f7547ae2b31d04285617f401ec423fb7e6c"
+    },
+    ".ai/bundles/1.2.1/skills/context7/SKILL.md": {
+      "kind": "file",
+      "sha256": "58415e5e67c1f84ddbb36e5cd33f36987a915ab8c7c1e90b559dea8e53e9e38b"
+    },
+    ".ai/bundles/1.2.1/skills/context7/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "126d387f985789d78f00f587890a8808d1a1586147f8a979bac8cb0802b3d242"
+    },
+    ".ai/bundles/1.2.1/skills/database-portability/SKILL.md": {
+      "kind": "file",
+      "sha256": "d1d6741333f36380b2e672ef39eb1e77b90477ab9443a80ccb336063fadc7c1a"
+    },
+    ".ai/bundles/1.2.1/skills/database-portability/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/HISTORY.md": {
+      "kind": "file",
+      "sha256": "4f3b0d75e3bc68a8cc5272c6ba9cde4a7eacf3b4f3426a44b36eefa525954dde"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/LICENSE": {
+      "kind": "file",
+      "sha256": "61498a9f8578777393aed5975e994d1cd350930c93e1910cbe792a6fbf9336fa"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/NOTICE": {
+      "kind": "file",
+      "sha256": "99cdcda526386d5b1224cedec47cfc4f6aa3ee0b7791623768b7a43e786ad46d"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/SKILL.md": {
+      "kind": "file",
+      "sha256": "d711e8cba73cf52b5feac0fa454af1a6b7d15ab862fac06dba17561381b5bded"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/evals/behavior-fixtures.json": {
+      "kind": "file",
+      "sha256": "bd36b55823a5bfd8c2ac3c0c1be8387e1ce535982186776332d6c2e824fed26c"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/evals/trigger-fixtures.json": {
+      "kind": "file",
+      "sha256": "f457b8eb86b5d12a48115f83d5e18fd3ec96c0a1dcea6cb09a53ce3439847255"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/references/AI-BEHAVIOR.md": {
+      "kind": "file",
+      "sha256": "08f43300008c88cc8bfb8eed6303c1ec8ddd3303153a4146026bd817d3859c38"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/references/EXAMPLE.md": {
+      "kind": "file",
+      "sha256": "222e0dc71f39d4f9a98b6dd9df8378a1b06d16c0c2237eac8f3156ecd89ad083"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/references/TEMPLATE.md": {
+      "kind": "file",
+      "sha256": "4c220f664cc8f99a3700adac69e181cbfdee35db7ea223a24147c9273cf22bfe"
+    },
+    ".ai/bundles/1.2.1/skills/deliver-prd/references/movie-app-context.md": {
+      "kind": "file",
+      "sha256": "fdd05ef89ea6197b5c9be1f7565aa97f83a8b7c625ac5dd2d841c4702724fda4"
+    },
+    ".ai/bundles/1.2.1/skills/dependency-analysis/SKILL.md": {
+      "kind": "file",
+      "sha256": "8861da1ecc4f6537b8636e3c27f0dbe071e3a6c1df1e6cc4ab3e304e716bd95f"
+    },
+    ".ai/bundles/1.2.1/skills/dependency-analysis/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/NOTICE": {
+      "kind": "file",
+      "sha256": "b703dccb42f2dd01e48837c8ca3c83f3a1a897ccd338fb65f8fd1eddbe7e40ea"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/SKILL.md": {
+      "kind": "file",
+      "sha256": "eb7d8a8e272915b9c71c914f2cdb82d15e1e120de4528662330f0567c514fb2b"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "0013d693e1448d7b048f68dbae57fbe85d9fcf989873d9dfbdde7609c094c627"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-backgrounds.csv": {
+      "kind": "file",
+      "sha256": "d1bb701b87bef493d72974d6fac1087c8ba4e2df14185fe3e0c36a13fe35f3d1"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-charts.csv": {
+      "kind": "file",
+      "sha256": "12ef876cd76e67a6553444bfa2ebf1d5d4d6216289d34db052a6e87421135033"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-color-logic.csv": {
+      "kind": "file",
+      "sha256": "ea68c737075f1615b2a7e461e2878c06bfe8f803dcabfbcc2977ffe5f9ec9ded"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-copy.csv": {
+      "kind": "file",
+      "sha256": "43152937a0e598b3fbfdd418684311c105d44e3c5b333703ddb0b8cb28e40658"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-layout-logic.csv": {
+      "kind": "file",
+      "sha256": "26b5b75782d5aba89836c0479acd3111cc69b67853db9c2259b30ac1e966bc62"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-layouts.csv": {
+      "kind": "file",
+      "sha256": "95d558c1b7d2552d7a75402dc68facbd16125e574985851db5729d1145e14896"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-strategies.csv": {
+      "kind": "file",
+      "sha256": "f656be0ab0b3a85fa7fc74202e9701a7236220412d67d5f63eb6dbb100bb2639"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/data/slide-typography.csv": {
+      "kind": "file",
+      "sha256": "b96cd11dd4ff1dea8a9454b0b9e898e7f82f9243182f8f237af1f2c9b8824ce5"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/provenance.json": {
+      "kind": "file",
+      "sha256": "e700261040e89fff5d708c2516a9f65a43ec1c8c21c6f702673a48bd8ddbfce0"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/component-specs.md": {
+      "kind": "file",
+      "sha256": "b265d979a741dd748d4e595e6898ae430faeef4f6d13d7a634fa6241b91d2da4"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/component-tokens.md": {
+      "kind": "file",
+      "sha256": "e27f8f5999badee425c98235eabbd2cb3ebe2a1a364766d5c7a6b3134ceaaec8"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/primitive-tokens.md": {
+      "kind": "file",
+      "sha256": "91e6caa12646c08c8aadf8e09399aed65760a25c8d80595936d81a9131118fc3"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/semantic-tokens.md": {
+      "kind": "file",
+      "sha256": "97e16d8061bbc22e82b51966a7015e3fc990932902e4647843506669a1cdebcc"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/states-and-variants.md": {
+      "kind": "file",
+      "sha256": "8dacb95d57d4bb37d8a99cc55515ff26da272056f837d29abc74aedcaa3ba104"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/tailwind-integration.md": {
+      "kind": "file",
+      "sha256": "6d01092db1479dbd2060567b4232bb2b4bc16e89730ab07e1f87a3e7f5c406b9"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/references/token-architecture.md": {
+      "kind": "file",
+      "sha256": "925f4049c4c4313d9fd5df98cdfd52004112aca49fba1664ad85e76bc9dce4d3"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/embed-tokens.cjs": {
+      "kind": "file",
+      "sha256": "23a9ce214e3c0d2fb4c5442b3bf1222c66721f7988a181ab29dcb549a5e5f511"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/fetch-background.py": {
+      "kind": "file",
+      "sha256": "cecedad0a9054e6e65f31ab7ba7d07eb6af2179e237c5632bc962dad69fd6d66"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/generate-slide.py": {
+      "kind": "file",
+      "sha256": "0463c98efea54870816925015fe5819e42a29aaba57408c2c38bacb33e2605b9"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/generate-tokens.cjs": {
+      "kind": "file",
+      "sha256": "aac8a0f4ec4dccf0d371f9ee5a9111e44977bb0cad7e40a3754aba5571aa1231"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/html-token-validator.py": {
+      "kind": "file",
+      "sha256": "9556a65e7aacda23388478294ee9a5cb84b315d964fbbf754aa0dcdbcfee58e6"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/search-slides.py": {
+      "kind": "file",
+      "sha256": "fded9548bc1bbe1303da67fabe34006c6a7c57934c9d171ea3dc3eb5f6eee010"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/slide-token-validator.py": {
+      "kind": "file",
+      "sha256": "66da5da5e8e659d405a89b342e13dd1e469e79726c46002d9d2368c3c7aaf945"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/slide_search_core.py": {
+      "kind": "file",
+      "sha256": "2464050ae338eb50728086046b644845fa7ae943f32efead3908fdbe1473edbe"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/tests/test_validate_tokens.py": {
+      "kind": "file",
+      "sha256": "a32f34a9e89542a341b6ff3ee4392494b48dea622b22b99652d3cf0c1a1ee966"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/scripts/validate-tokens.cjs": {
+      "kind": "file",
+      "sha256": "65f03a29290b9029d8cc27537701f226de7bcffc303b3bc361648fadfa09b77d"
+    },
+    ".ai/bundles/1.2.1/skills/design-system-foundations/templates/design-tokens-starter.json": {
+      "kind": "file",
+      "sha256": "5444f477b06bab9c72e2cc289d4a9104efef653391c9639972bcb712d5f2d81e"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/SKILL.md": {
+      "kind": "file",
+      "sha256": "dbc5670574e259ccd333b0181c1fe89695538f7675ccf4c48c9dd63b59295e63"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "48de1c3c2e9dfb54f3eefabd43dca42f40b1fa09a50cba2a14e8694167250835"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/evals/test_artifact_checker.py": {
+      "kind": "file",
+      "sha256": "c0f72c6e5ac233d747ce33125e12c3240265e07ad27d73da5f60b06c1ec33eb6"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/evals/workflow-scenarios.md": {
+      "kind": "file",
+      "sha256": "566a3a5137fe9361efcea5bba1040a6fcc7e12d7c88d8b32579d99aee19b19f7"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/provenance.json": {
+      "kind": "file",
+      "sha256": "71d350058a9a46ce1f9985e269524ec4ca23c7a7b8b7dbf66ee1cdd904401a2d"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/references/output-contract.md": {
+      "kind": "file",
+      "sha256": "519813bb67abf92cd82c6186072ee0a9d82ebb39d3321a36d6d6f602fd341f5e"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/references/platform-guidance.md": {
+      "kind": "file",
+      "sha256": "f2142e93e2d91b19af6af29ed338cc7fbd66e64cd502b1c40ff576f90f94cf6f"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/references/routing.md": {
+      "kind": "file",
+      "sha256": "794b6643239e937fe4e6214d9e10aca98ba23dc0bb3631fb8c442ca2065d8b64"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/references/verification.md": {
+      "kind": "file",
+      "sha256": "d10a5754df7743d26286390a1bc5e983cdbd61c9bfa2b2b2c2b81590977c7a54"
+    },
+    ".ai/bundles/1.2.1/skills/design-system/scripts/check_artifacts.py": {
+      "kind": "file",
+      "sha256": "135e01ea6c8f4c4df63916528a828e8dcfa0481999f5bdbe7f05b8149d9f1315"
+    },
+    ".ai/bundles/1.2.1/skills/determinism/SKILL.md": {
+      "kind": "file",
+      "sha256": "89f5b71b43bd8dd1c6cbbf8d8e88931548787c21774d37d7d1f512f3cbae1b18"
+    },
+    ".ai/bundles/1.2.1/skills/determinism/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/devops-ci/SKILL.md": {
+      "kind": "file",
+      "sha256": "462c404b683f1726b9630a00bcfe84ee2e867f8b2f702618a157c8c943d7bed1"
+    },
+    ".ai/bundles/1.2.1/skills/diagnosing-bugs/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/diagnosing-bugs/SKILL.md": {
+      "kind": "file",
+      "sha256": "6182a4e188d7d9fe939a044758617a7b37dcc2a8646f260e9c8970d7ec5b2b5b"
+    },
+    ".ai/bundles/1.2.1/skills/diagnosing-bugs/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b"
+    },
+    ".ai/bundles/1.2.1/skills/diagnosing-bugs/scripts/hitl-loop.template.sh": {
+      "kind": "file",
+      "sha256": "35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503"
+    },
+    ".ai/bundles/1.2.1/skills/docs-sync/SKILL.md": {
+      "kind": "file",
+      "sha256": "fdac663518abc8190769fec42e65a1b981269d70fd6cff5f98d9ef9c8d8c25a8"
+    },
+    ".ai/bundles/1.2.1/skills/docs-sync/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/domain-modeling/ADR-FORMAT.md": {
+      "kind": "file",
+      "sha256": "944c92aa790e8fbdc9199640b170979abb8a34ba8d0fe18c2a01a63bce140ca0"
+    },
+    ".ai/bundles/1.2.1/skills/domain-modeling/GLOSSARY-FORMAT.md": {
+      "kind": "file",
+      "sha256": "21dcc40cdec8e151a829b98ab1517c1867bc444e3665134a98c6983411996801"
+    },
+    ".ai/bundles/1.2.1/skills/domain-modeling/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/domain-modeling/SKILL.md": {
+      "kind": "file",
+      "sha256": "7d3bab5576557ecf4d2751f5cdece9b6659f3348c36e91de1a5e6d4bbe8db2c4"
+    },
+    ".ai/bundles/1.2.1/skills/domain-modeling/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b"
+    },
+    ".ai/bundles/1.2.1/skills/dto/SKILL.md": {
+      "kind": "file",
+      "sha256": "826890ff358e25e05f97ab9f7344839deb2f68d05fac398d3867877d2516c9f1"
+    },
+    ".ai/bundles/1.2.1/skills/dto/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/failure/SKILL.md": {
+      "kind": "file",
+      "sha256": "0ff78475071ae00560460e4f6efc49d3b73e519aa03fb9924e603fc9111dfa8e"
+    },
+    ".ai/bundles/1.2.1/skills/failure/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/fixing-accessibility/LICENSE": {
+      "kind": "file",
+      "sha256": "c615621c4cc1676ccde194e7a01b6469ba477780251bd71e007fc473a49c2c2b"
+    },
+    ".ai/bundles/1.2.1/skills/fixing-accessibility/NOTICE": {
+      "kind": "file",
+      "sha256": "d92f3f4532f4021a5bd6c1a905da25f10f5126fe3a10efe76a66c46aad2f517b"
+    },
+    ".ai/bundles/1.2.1/skills/fixing-accessibility/SKILL.md": {
+      "kind": "file",
+      "sha256": "8a523b1febbc98183907dee51c8949700753e09222ccbcb742673c3ba099f5ca"
+    },
+    ".ai/bundles/1.2.1/skills/fixing-accessibility/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "24bc7a3aefd8f0715e00197ce9d15737a9c4607cb7cbb9f63361ba064ff01936"
+    },
+    ".ai/bundles/1.2.1/skills/fixing-accessibility/provenance.json": {
+      "kind": "file",
+      "sha256": "e66bfbe3fd1f72a58914d512d8e2dcb2c8a39628c302d700638b941a5598f82c"
+    },
+    ".ai/bundles/1.2.1/skills/forge/SKILL.md": {
+      "kind": "file",
+      "sha256": "9b34542c38f564d8c9d1186448c414ac80ecc876861c3d449ad1399043b3b126"
+    },
+    ".ai/bundles/1.2.1/skills/frontend-design/LICENSE.txt": {
+      "kind": "file",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    ".ai/bundles/1.2.1/skills/frontend-design/SKILL.md": {
+      "kind": "file",
+      "sha256": "7a18138dec3f7338004a96682f4d309b154a98f94ab8b7e76f432c1fc68b2e85"
+    },
+    ".ai/bundles/1.2.1/skills/frontend-design/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "3db9fe375386e8e3cf3e6741a0a7e0eb83ac7995b4181f5490f91a3780648c68"
+    },
+    ".ai/bundles/1.2.1/skills/frontend-design/provenance.json": {
+      "kind": "file",
+      "sha256": "4ec52dda8585f0dfe83cb726fac750e7c2bf31a78db357af7d9738922155a18a"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/LICENSE": {
+      "kind": "file",
+      "sha256": "4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/SKILL.md": {
+      "kind": "file",
+      "sha256": "7f884acc6d3b6e48a2772f0713a194a654d66d6f95c13c2f2779e215972c0c98"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "3214849946fb9e8f1f4bf06c7802dfe32de66e8ebe44de3e7dcc95a95455159f"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/evals/test_output_wording.py": {
+      "kind": "file",
+      "sha256": "acafc081f47b53d1725d31f06221449a7467da9e5df8a4a16019ecfa59887451"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/references/muhammad-okfriansyah.md": {
+      "kind": "file",
+      "sha256": "518a3f5854ffa4b0285f2b13c10f01a3695e41fdc1d61090b3d3f3c74e5afad0"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/references/output-wording.md": {
+      "kind": "file",
+      "sha256": "6a2cb5818f31784f5c70aef00654c218bd22f8c0f7979169158074a9f162b097"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/scripts/check_output_wording.py": {
+      "kind": "file",
+      "sha256": "8c1801cc33b77969dd14c304d7c29448dae66f7bdd6a909db1e2c08b3fff4ba1"
+    },
+    ".ai/bundles/1.2.1/skills/humanizer/scripts/validate-package.py": {
+      "kind": "file",
+      "sha256": "d1cf501e3b24f8bb3159c56e710a586c11f24de7dbf9ba706c3b421e0fc27d8e"
+    },
+    ".ai/bundles/1.2.1/skills/idempotency/SKILL.md": {
+      "kind": "file",
+      "sha256": "3443bc11e89c2d25d1bb6812621ea8eafcda60add9acc6cc83d4a290c165a226"
+    },
+    ".ai/bundles/1.2.1/skills/idempotency/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/LICENSE": {
+      "kind": "file",
+      "sha256": "02bb8c3b4e70190e3986c0404ad2fd8d639b4f534252d82379cc1b502b6d1812"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/NOTICE": {
+      "kind": "file",
+      "sha256": "db9953f4833d8680727ae27113d94d49a1feb7a88012d245e5a60a7d7558712e"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/SKILL.md": {
+      "kind": "file",
+      "sha256": "922da5537ef59901d02ab276c4e813048bc5b1200e0ec8a3e47e3275cf44fb50"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "57cbd42f9186a2b6776d57cad4d0e8306756db2f8f783cb8876a7731b3fe31c5"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/provenance.json": {
+      "kind": "file",
+      "sha256": "36133bafa2c7eea0aa7f396ae61ce6f56485cf78100f3c365abd9eb7abf68bae"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/adapt.md": {
+      "kind": "file",
+      "sha256": "871a8e4d749b807c693ebabd83defbd6c76e1bd2a0f53a28a460cb1308ba8634"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/adapt.native.md": {
+      "kind": "file",
+      "sha256": "6acc0bf221a4ddc6e5c6438348920b2ca2393b29c4314dbde2cdc23f2b1a9639"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/android.md": {
+      "kind": "file",
+      "sha256": "058f81f256134841875fd3183e06b37a023de0c877fd2b9eecd97011640791fe"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/animate.md": {
+      "kind": "file",
+      "sha256": "d658c48ffbe0031e8e3b318996cad6ceafe29e40aa50d5bb25e4bf1d6839dc7c"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/audit.md": {
+      "kind": "file",
+      "sha256": "41764be7bf974b95ee469f11c496714b4b3cf2ba594c0b8f838a0742680229a9"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/audit.native.md": {
+      "kind": "file",
+      "sha256": "960cb922bc934adbf9192e9428ff6bec1f382038166f02a785939c93b7391067"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/bolder.md": {
+      "kind": "file",
+      "sha256": "f964506c0fae87b3c2c1db7016ddc9be9ef970bbcf5548d684b997b5d5991586"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/clarify.md": {
+      "kind": "file",
+      "sha256": "173dd66abe65633910dcb04a51f40d6ff2a793f87088f022a02fc4cad24dd133"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/colorize.md": {
+      "kind": "file",
+      "sha256": "bc5f71f1129d0f2c310d913d07c8dc609a1d25644121bd78c308f42d52a0b9e9"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/component-review.md": {
+      "kind": "file",
+      "sha256": "10489e5265e49a4ef2737cd0e674c149ed41e1f703efe922e53ea3c91e833427"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/craft-floor.md": {
+      "kind": "file",
+      "sha256": "e802e4f7bdc89050a9c0f2ca506e1d493a2316e6e810c0336c57aa073717ef3e"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/craft.md": {
+      "kind": "file",
+      "sha256": "9205e222bc6565b37fb504ceec93233c2d2a456802b69d16e6b1c44723907c4c"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/critique.md": {
+      "kind": "file",
+      "sha256": "cb8caddbb3919e5bf7f252143b519fb16db28a244642d937b186cb89962d9201"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/degraded/asset-producer.md": {
+      "kind": "file",
+      "sha256": "877d274f41500c780bad25b2bca7fa95eff1a32a7b95397dd388c72848e86a6c"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/degraded/documenter.md": {
+      "kind": "file",
+      "sha256": "bcc05ea92faebb5c74037a9d4263a5ce9a56f5ab07c8ab3c59ee704d8cade745"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/degraded/finish-reviewer.md": {
+      "kind": "file",
+      "sha256": "275dd1b6e63bbd30d2713227c4f79b880a8bc4e01cc48d392068bb86939d3afa"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/degraded/manual-edit-applier.md": {
+      "kind": "file",
+      "sha256": "a0e78d1da16c72ab6bce1a7901fd1f12af56983983afd89b3b3418dd2cf079e1"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/delight.md": {
+      "kind": "file",
+      "sha256": "098a891028ce59c212b747d3c70468dd750aff7053a703d1336045ed31e0da7c"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/distill.md": {
+      "kind": "file",
+      "sha256": "ea8432c90c30ecb0426662a681ead5c0941113079704e1a766cda09e85b15b4f"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/doctor.md": {
+      "kind": "file",
+      "sha256": "3dbef3fe606de4de0f1b5cab5f19902799e05cf566eb8223e9aa1632eeb04698"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/document.md": {
+      "kind": "file",
+      "sha256": "2bdefe3c53c5247ae50299f6c2b7961fd7e9148366cf186677838faee350f3a0"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/extract.md": {
+      "kind": "file",
+      "sha256": "31b90048c0b540daec46762a10c2b6b6434737a89af005054d8b848d829d003b"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/generate.md": {
+      "kind": "file",
+      "sha256": "677152158bffd67f0fa64c2664dd2be99b3782cc4552b7fbd6f4d9ba79489347"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/harden.md": {
+      "kind": "file",
+      "sha256": "16ba7fca1973c5faf53dd2ca523559129c0fe9e5f8d50b645f527afa78186cd2"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/hooks.md": {
+      "kind": "file",
+      "sha256": "3e3209e6b45497c7aee8234f5be880399ed6d99db442dcf3e024f061cd2027ba"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/init.md": {
+      "kind": "file",
+      "sha256": "da813ff325f84cefa1d01698caa093c78bca804d7e9746af14db925351266110"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/ios.md": {
+      "kind": "file",
+      "sha256": "40c87038b5f75147a5952a96237acf312a327bf70c1bcd8e0a5f064625ae9668"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/layout.md": {
+      "kind": "file",
+      "sha256": "0bc7d7971b3edf2acd0580e847458dc6d84129d90715b452799ace3bed815c7c"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/live-setup.md": {
+      "kind": "file",
+      "sha256": "2b5b2fbf5f658f34ea1997fb1aeebe01604d05187f75c6a4f1f55a5bc78520a4"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/live.md": {
+      "kind": "file",
+      "sha256": "040100ad4f604356cd6a7f6d6e13347790cb90bd170a5a17b99759c3e8a540b0"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/mode-operate.md": {
+      "kind": "file",
+      "sha256": "7a52dd7a94ee75f6ae89542c86a1b6e1d306812b16e0d9dbf12d4acad44d148b"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/mode-persuade.md": {
+      "kind": "file",
+      "sha256": "21e78c8a77badb3f83290cd4577ed3b24bd4dd3b57136d7da75733d4f3ee9ac0"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/mode-read.md": {
+      "kind": "file",
+      "sha256": "a569989e6a3d6453b4c45e9474e162a15cc54e11732ac6baa7990a6e7cccc0b5"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/new-work.md": {
+      "kind": "file",
+      "sha256": "73f06ccc5ba8d1cd5324ed98f51d24273e5795170dc92332fe2b68c6a10ce50b"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/onboard.md": {
+      "kind": "file",
+      "sha256": "ef2dde00030580ed2765cbf7be9b2ea4a6f64cb915b804fd6f6abcf38051c7b9"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/operate.md": {
+      "kind": "file",
+      "sha256": "a9d2203acd45ca33a13d5c68b02b23ed512425ac15f0e8438318ed124b43729d"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/optimize.md": {
+      "kind": "file",
+      "sha256": "f672ef8251a3ed4051a053d30819664951b17540b2899acd27d20e500c234abc"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/overdrive.md": {
+      "kind": "file",
+      "sha256": "fce6688138d2ceb1e3d2cde5231f54b1d8dc8748b4c95a7919aa83b6f924cf96"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/polish.md": {
+      "kind": "file",
+      "sha256": "81666fc7f783b4e3514db6554e713dc0479bd9cdedb06e93d15f8b579aae869a"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/quieter.md": {
+      "kind": "file",
+      "sha256": "190a4e642ca362d7499f3c3ab123e21f18f75457d11f072b545a183f296e6495"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/region-map.md": {
+      "kind": "file",
+      "sha256": "778cedc9199b407d3e23fa1041e38d548b00b1101a33517aa2a2eb299f9d0edc"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/routing.md": {
+      "kind": "file",
+      "sha256": "77ae09542fbc10aa4e8b119d6fd19359908a47c13c30068d6a150bfdb50e3e10"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/shape.md": {
+      "kind": "file",
+      "sha256": "a55f016c046cb6a27c55bd7f346375aeb506a755c4fbca19a5f92dbd42309c23"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/typeset.md": {
+      "kind": "file",
+      "sha256": "442749aed338f51c1a3ccfb182c6ade9b74b90590b67984062ac94a5b100e914"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/upstream-evidence/design-format.md": {
+      "kind": "file",
+      "sha256": "3673248740bcdd1122ccc610093ba2fe52f3943a61ce0b7170b74dc49e5b6098"
+    },
+    ".ai/bundles/1.2.1/skills/impeccable/reference/visualize.md": {
+      "kind": "file",
+      "sha256": "2bcec5b8d22e9f87799529a41b984d27b4379ab1b70e1dd4f63b6d6390275730"
+    },
+    ".ai/bundles/1.2.1/skills/jpa-hibernate/SKILL.md": {
+      "kind": "file",
+      "sha256": "25ff62e1b5d3a4c73cc836286b0dfec4544270d4b0808260399baa9ae55cb0ad"
+    },
+    ".ai/bundles/1.2.1/skills/kotlin-spring/SKILL.md": {
+      "kind": "file",
+      "sha256": "d12bc03a4a5cd674d1bbd49ae5694a1fde235e0242cb7c2e8928293a6b3291aa"
+    },
+    ".ai/bundles/1.2.1/skills/migration-management/SKILL.md": {
+      "kind": "file",
+      "sha256": "1ece6da864b3020fa96dba3cf06a6e949c1b95c3ce0e2202cc4de3974468c0ba"
+    },
+    ".ai/bundles/1.2.1/skills/migration-management/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/modularity/SKILL.md": {
+      "kind": "file",
+      "sha256": "728160c93f26f192c83a00d7b0eae2d6d343a72ee32465da0f128219e0efac18"
+    },
+    ".ai/bundles/1.2.1/skills/modularity/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/node-backend/SKILL.md": {
+      "kind": "file",
+      "sha256": "65fea4749eb32686551c9577dbd87e0277cb3e1717e38b3d9e0dd21f970e636a"
+    },
+    ".ai/bundles/1.2.1/skills/observability/SKILL.md": {
+      "kind": "file",
+      "sha256": "b469113ad0aa8794ab7481c0d599ecd04b71c942c7a3680b4d711709eb7be07e"
+    },
+    ".ai/bundles/1.2.1/skills/performance-optimization/SKILL.md": {
+      "kind": "file",
+      "sha256": "43a12f975f05f3647947d1790302f2675a45f5db892d378e6af6043d08dbf33b"
+    },
+    ".ai/bundles/1.2.1/skills/performance-optimization/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/pipeline/SKILL.md": {
+      "kind": "file",
+      "sha256": "143a140ff0f4f56a52c2246bc1c41ee6fc51296e181ac0ad5b905db063509b92"
+    },
+    ".ai/bundles/1.2.1/skills/pipeline/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/NOTICE": {
+      "kind": "file",
+      "sha256": "076819f01fec527e1f24d222177d3f79e37ad1c1e598e7458074db47c83a18d0"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/SKILL.md": {
+      "kind": "file",
+      "sha256": "d5138e8d803eaf1362a14817d0e6d2fcb8668e40daa29af4c4fe2d247ab60fc6"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "cb0f9527a6d4358f5d67ad9ce8c7b95c1f25979a69972e2efaf197d22fc8152a"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/assets/group-template.md": {
+      "kind": "file",
+      "sha256": "001dc0965a6840b50eb82caacd1a45f8ed94da934c8f3d5b561e7c1ec2a2dbbc"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/assets/plan-template.md": {
+      "kind": "file",
+      "sha256": "e5c01533e50f847ee6829021fc5bbf2aa7734b196cdf5b9086b3981fb5f94117"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/assets/task-template.md": {
+      "kind": "file",
+      "sha256": "4b4905efe992a101b896fa316e8ba9d8e360076dc9c0aa3acb07be5891720344"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/evals/behavior-fixtures.json": {
+      "kind": "file",
+      "sha256": "a4d03affaf09dcb207b6805784d7cb3fef4fc2a400b350c03e9bd95e71c1a04f"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/evals/fixture_helpers.py": {
+      "kind": "file",
+      "sha256": "3d9546bffe2012c09cb05ae85716b3f40143f759adc9c327df6d3f6087ad8edf"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/references/decomposition.md": {
+      "kind": "file",
+      "sha256": "3679fe0733ba007349f4524c0917e503574fcdb4baa699a67ee3965479528296"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/references/output-contract.md": {
+      "kind": "file",
+      "sha256": "57b4989f5d2b5be5499fb12b4e7635f1c2edbf84627c5a68e17fdc71fb745b76"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/references/sources.md": {
+      "kind": "file",
+      "sha256": "9772d90bde6bf2a011faf24a6b3c28a318563d1e3371b83a6826377f4cc42683"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/references/updates.md": {
+      "kind": "file",
+      "sha256": "eb82785214deb2242e9e3a55fca543c3debadb2bdb637babbf10c3e1c028c5e0"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/references/validation.md": {
+      "kind": "file",
+      "sha256": "a8fba30fa973e5d4c42b2a9ec3c0c688d1e9c2f4464c8443657289ea6af64992"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/references/verification.md": {
+      "kind": "file",
+      "sha256": "d5ec9c18dbabbbb57e71992c48c779e4a1bf86bcc697d3ccc9a487d2ecfe42bc"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/scripts/check_plan.py": {
+      "kind": "file",
+      "sha256": "2a2bb95df76620b2b973dcf9fdb83074e493d8c86ae1b3944bae7285c944c12b"
+    },
+    ".ai/bundles/1.2.1/skills/plan-creation/tests/test_check_plan.py": {
+      "kind": "file",
+      "sha256": "e2cbb899083a1806f986e7385cfc35d14ac56d9f0a789a13539606acea77682a"
+    },
+    ".ai/bundles/1.2.1/skills/playwright-cli/PROVENANCE.json": {
+      "kind": "file",
+      "sha256": "01de11f261836aba1a612b3a2213f7f722bf6dea8834c2768eaf6bbfff7e1041"
+    },
+    ".ai/bundles/1.2.1/skills/playwright-cli/SKILL.md": {
+      "kind": "file",
+      "sha256": "39f44f70fba4bf399e5a1b4dd098ee0f09b9c6efe830bcdc38f5da7f3debff48"
+    },
+    ".ai/bundles/1.2.1/skills/playwright-cli/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "da9af47141542dc2d99808bcb5d77a1434a83df32ac565212b46b607a2a56f2d"
+    },
+    ".ai/bundles/1.2.1/skills/pr/CREDITS.md": {
+      "kind": "file",
+      "sha256": "a7a087127665d7298a72280ef6e19c41ad8404523712a788c8dc3ab414bc2497"
+    },
+    ".ai/bundles/1.2.1/skills/pr/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/pr/SKILL.md": {
+      "kind": "file",
+      "sha256": "618aba70787ad3ec55c572851f8e1c75cec19d828572cf1dab34cd3ed86d44ce"
+    },
+    ".ai/bundles/1.2.1/skills/pr/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "2295b586624db4ef546f3fd4695492f039d941a46d8a1593a702ce3ca511b8ad"
+    },
+    ".ai/bundles/1.2.1/skills/project-scaffold/SKILL.md": {
+      "kind": "file",
+      "sha256": "56358069412add980af6ffdb3c0c5457c7ffe076432195f10b66ed29c06ff4ee"
+    },
+    ".ai/bundles/1.2.1/skills/project-scaffold/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/quality-gates/SKILL.md": {
+      "kind": "file",
+      "sha256": "b4e46ef5710a38f55fd7bc57ea2fb6623261bc72a37839499a2922a2b283f233"
+    },
+    ".ai/bundles/1.2.1/skills/record-test-video/SKILL.md": {
+      "kind": "file",
+      "sha256": "59a4a40ec764365461d446411074b3d1600721412d29facaa2276d799ea7e9ab"
+    },
+    ".ai/bundles/1.2.1/skills/rtk/SKILL.md": {
+      "kind": "file",
+      "sha256": "734b898d09ae9db3a2a94918fe08ca25a37b9b5352314029c4688f86f6c99d7e"
+    },
+    ".ai/bundles/1.2.1/skills/rtk/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/security-audit/SKILL.md": {
+      "kind": "file",
+      "sha256": "dd668ca62b94543cf980108741c92d94d1bdbacb56ed560296fa33eb315f68ec"
+    },
+    ".ai/bundles/1.2.1/skills/security-audit/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/security-requirement-extraction/LICENSE": {
+      "kind": "file",
+      "sha256": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1"
+    },
+    ".ai/bundles/1.2.1/skills/security-requirement-extraction/SKILL.md": {
+      "kind": "file",
+      "sha256": "2ef2a70a983098ed3979805cf92498aa595692215d37dc7d053aaebcbfd74029"
+    },
+    ".ai/bundles/1.2.1/skills/security-requirement-extraction/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "46fc22518bfbc5e8c5fc28f7cb7d8e285ef4ccc48d656869c10b6b3382f5ff91"
+    },
+    ".ai/bundles/1.2.1/skills/security-requirement-extraction/references/details.md": {
+      "kind": "file",
+      "sha256": "76409ef12f8734bbbbe6d002791e91f4eb9af709357da76aab9dbf86979f3ef3"
+    },
+    ".ai/bundles/1.2.1/skills/security-requirement-extraction/references/sources.md": {
+      "kind": "file",
+      "sha256": "5262444e5a1313502ffb9265d3051cbd46c8a7640e43f8231a2a9e5a7763c6f9"
+    },
+    ".ai/bundles/1.2.1/skills/spring-dependency-injection/SKILL.md": {
+      "kind": "file",
+      "sha256": "a7c904bd4cf152b85df76c99f044fde8403ed1bf434867f4005e1bb38e301d05"
+    },
+    ".ai/bundles/1.2.1/skills/stride-analysis-patterns/LICENSE": {
+      "kind": "file",
+      "sha256": "8ceaab71b527eb5db43810b74afc618ee36556197d2d51c45fd00aac483988c1"
+    },
+    ".ai/bundles/1.2.1/skills/stride-analysis-patterns/SKILL.md": {
+      "kind": "file",
+      "sha256": "c103266d987b70cb7c9a372f51e2311a0c064671851d6697759abb15051d6cbf"
+    },
+    ".ai/bundles/1.2.1/skills/stride-analysis-patterns/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8a63a3df2b89ab40bd7c304fdc23a307ce296966c1ee6cef7325a43d592278bf"
+    },
+    ".ai/bundles/1.2.1/skills/stride-analysis-patterns/references/details.md": {
+      "kind": "file",
+      "sha256": "e2c17c96619fda0305e61ee1f10e71d28dcd0d8a890570a447f3a1193497ec08"
+    },
+    ".ai/bundles/1.2.1/skills/stride-analysis-patterns/references/sources.md": {
+      "kind": "file",
+      "sha256": "81dbb8df50d83b42fe373baa194121fb46f7636ad201e899111722908f697752"
+    },
+    ".ai/bundles/1.2.1/skills/strix-security/PROVENANCE.json": {
+      "kind": "file",
+      "sha256": "a4c5a71ec8068da33cd317dd1478ea41b60d39fbcde6c46618a7a3cc090de5c3"
+    },
+    ".ai/bundles/1.2.1/skills/strix-security/SKILL.md": {
+      "kind": "file",
+      "sha256": "79401ce1d9a3a96c24c54a57cca6f399ca803f40312b11b5a8ff592a04e07a44"
+    },
+    ".ai/bundles/1.2.1/skills/strix-security/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "56e2152fb0fbb7e6e333031714b54870efefd35530d51e94c65bf3f9013dfba8"
+    },
+    ".ai/bundles/1.2.1/skills/svelte-typescript/SKILL.md": {
+      "kind": "file",
+      "sha256": "ce7e16f00cf2714eac783f31d59fd81aad5f5b2eb9d86dae393c2c96ff0e4a31"
+    },
+    ".ai/bundles/1.2.1/skills/task-delivery/SKILL.md": {
+      "kind": "file",
+      "sha256": "fac8da6f9ae05b05926b148a3dfab09e643084921b91a4da27fdf750aec3d739"
+    },
+    ".ai/bundles/1.2.1/skills/task-full-workflow/SKILL.md": {
+      "kind": "file",
+      "sha256": "1e6900ea9de19cfb13645d25b7c0240f47f254b4101f213c0537853fca5b9faf"
+    },
+    ".ai/bundles/1.2.1/skills/task-implement/SKILL.md": {
+      "kind": "file",
+      "sha256": "24227676d14711f51d1e657ef179999147031b497dd63fd5f022652beb3e4617"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/LICENSE.txt": {
+      "kind": "file",
+      "sha256": "50bfbf25300f4b6c06f5c286bc9f63b2fe43a548233d633a6798a78a785bdb98"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/SKILL.md": {
+      "kind": "file",
+      "sha256": "af76986ddb79067ed5dfbdc7599e937c07c8f563ac9c11f58d1db395795f002f"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "f3b90a7feeb0bef7208c4de9d74ae10670522971278a5f5a7462a40e7cadc883"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/environments.md": {
+      "kind": "file",
+      "sha256": "df70bb156eb0f0d7aa1fe9d863b459f6d99754ea45ed8c200cd88a018c8131d9"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/migration.md": {
+      "kind": "file",
+      "sha256": "6ce31beaae1e5561fee25fb27f3ac9bfc40288285998528a5a786dafca0bf51b"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/observation-log.md": {
+      "kind": "file",
+      "sha256": "1816e436953c9c6ea76de5515e4d24fb82491c5882b3a9db0422ac5d8dd63de2"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/signals.md": {
+      "kind": "file",
+      "sha256": "2d5ce3a036f44e413dcf34ddfad7c76876dff9c89bb7e3307c7bfe51bc318de6"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/skill-authoring.md": {
+      "kind": "file",
+      "sha256": "6bcbca2a7211888d64d3c21e482d7a9c78d313842f80855f8fc971d459344b35"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/starter-principles.md": {
+      "kind": "file",
+      "sha256": "065c71baf6ad846987d42ed5b2324d20df0c5e2072cfc5925f51193ac95e777b"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/references/weekly-review.md": {
+      "kind": "file",
+      "sha256": "d54cad2b9acc8946e7eddc0cbef72b0467b79d9489c3a0c262297577c371ad1c"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/scripts/migrate-log.py": {
+      "kind": "file",
+      "sha256": "d44f54acc4cb8cf6a7a1959dc4ae4cc499c8c94406a5c1e3b73b02ab395d391e"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/scripts/new-observation.sh": {
+      "kind": "file",
+      "sha256": "b2dded7735c531dc9a964d4c184b612d9897a1850b1bc3c439701c06bf633456"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/scripts/observer.py": {
+      "kind": "file",
+      "sha256": "ec85486132bd2f209b6601bccb2af79fcf55ef9709151043323898e8c4920d9b"
+    },
+    ".ai/bundles/1.2.1/skills/task-observer/scripts/validate-skill-bundle.py": {
+      "kind": "file",
+      "sha256": "13137422b017ce9787e9e5135649869a01aa258d62431018f31690826d626be1"
+    },
+    ".ai/bundles/1.2.1/skills/tdd/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/tdd/SKILL.md": {
+      "kind": "file",
+      "sha256": "474d0125e9622fca2c67585d06c4021a111db2db5463af07fb51f829776001c4"
+    },
+    ".ai/bundles/1.2.1/skills/tdd/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b"
+    },
+    ".ai/bundles/1.2.1/skills/tdd/mocking.md": {
+      "kind": "file",
+      "sha256": "3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef"
+    },
+    ".ai/bundles/1.2.1/skills/tdd/tests.md": {
+      "kind": "file",
+      "sha256": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/SKILL.md": {
+      "kind": "file",
+      "sha256": "4439100c393ae9ee784e0dcc48f008306f1b9ad504afbb429aad5299ae3ad769"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "e403dfba1ba184a7402fa97d57b4e696720fb75d4d0587f235ba59d1ca68ea54"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/assurance.md": {
+      "kind": "file",
+      "sha256": "5bd15c3746d8e00e7389e8cd6252426ac6fb99b721b04f3e7b49f3e82c2b2912"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/output-contract.md": {
+      "kind": "file",
+      "sha256": "c530fb3c23feb2c4efe4479a578072e086b31d4de4d2243fd53f5a20c62250c1"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/routing.md": {
+      "kind": "file",
+      "sha256": "9de8ee7ff6b1fecd63100fbca7a5a68a739dac940103f52a74c99d8fdc4190d7"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/sources.json": {
+      "kind": "file",
+      "sha256": "19f107cdacd781c6c0bb69985787525539f37b46ba677e51a43ab69677b25017"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/sources.md": {
+      "kind": "file",
+      "sha256": "046c7cbcc8e1b5612ec9cd8daa69152d5370d71fd6992092f8ecc1ad14f2e9d9"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/validation.md": {
+      "kind": "file",
+      "sha256": "c0ffb0a56eceaaf4bfdf9b3fe280aa63ee9aa054b1eab59093ceaccbacb0e4dd"
+    },
+    ".ai/bundles/1.2.1/skills/techdoc-creation/references/verification.md": {
+      "kind": "file",
+      "sha256": "d6cbc6ea704678fd9e6f5bfc401863d5e1738c3664f3c898c582272c4611eb2e"
+    },
+    ".ai/bundles/1.2.1/skills/test-driven-development/SKILL.md": {
+      "kind": "file",
+      "sha256": "c82849dc35f086a09c2b58e5edda8cf0ce1de902a9ec5016f5b3b2844d9f80b0"
+    },
+    ".ai/bundles/1.2.1/skills/test-driven-development/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/test-generation/SKILL.md": {
+      "kind": "file",
+      "sha256": "563876edeac056499f70c0c7491664721b5e730397e5901916a5e7274a8da64b"
+    },
+    ".ai/bundles/1.2.1/skills/test-generation/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/token-optimization/SKILL.md": {
+      "kind": "file",
+      "sha256": "70747ca53e13fb234c2fa0d503e32c97043e215e45d6cf5e84fac48459ed5787"
+    },
+    ".ai/bundles/1.2.1/skills/token-optimization/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/SKILL.md": {
+      "kind": "file",
+      "sha256": "f880326846965f2271d45eb5bb0c4f09e312fc0fa51cb7e6aec7b6a3c4a767ac"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/_sync_all.py": {
+      "kind": "file",
+      "sha256": "b540b3a4f87598ae29048b3cceae1fc17b39b629aee2cbe5c802ffc7b48abf6d"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/app-interface.csv": {
+      "kind": "file",
+      "sha256": "2a17ef810dab715ce1f339861817a8fbe3ccc38142b70517301e874803e838ac"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/charts.csv": {
+      "kind": "file",
+      "sha256": "a70ef7460b0eaaea8614f86a0d09a4bc38b467804179762464b5ca45b491baac"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/colors.csv": {
+      "kind": "file",
+      "sha256": "cb26759805217edaaa31b09836aec09eab0fe245c58f5884e9a16ef802c6e26a"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/design.csv": {
+      "kind": "file",
+      "sha256": "6f0ae42f16b3cbfa3f07050268387557859ff666e2651b1b82763f099d724b3f"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/draft.csv": {
+      "kind": "file",
+      "sha256": "e190c796b707858a5436dc4c27f9ee9bb6618014ca73f533e423abe5ce9e4d06"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/google-fonts.csv": {
+      "kind": "file",
+      "sha256": "3fd2898fb0fdd31ba758bf05cfcd2b58cd0f038a20cf08e417d09e5a8a4a509e"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/icons.csv": {
+      "kind": "file",
+      "sha256": "f376c29fb4df37b4bdb366a5aa70cb211ba3dd8b435390aaa03152a64b07d2e8"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/landing.csv": {
+      "kind": "file",
+      "sha256": "121a2cac7cf21050234b5f80e7b4e182f10123536032e0f9ad862ad3aec9677d"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/motion.csv": {
+      "kind": "file",
+      "sha256": "6452fbd8028ab71d52993775340e1bc40a150d92be8d4b4cb8710620fd1a7512"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/products.csv": {
+      "kind": "file",
+      "sha256": "e9749e4fd8f7d4c94919c25ebd347a4adaddb671e7b01d33fbc2c87d447e6667"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/react-performance.csv": {
+      "kind": "file",
+      "sha256": "904c8afcda229629545912dde0e8ac37503757131f0169f80b016f1f58c4fd3f"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/angular.csv": {
+      "kind": "file",
+      "sha256": "9de35bbda536ced9af7642d88b7675cefa3e18c370ab40c0875f75ab473f0fd6"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/astro.csv": {
+      "kind": "file",
+      "sha256": "58919c44c55d96cd9c1a304d8fc118d9927567850d5b01b647d1a1dc7cd3b756"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/avalonia.csv": {
+      "kind": "file",
+      "sha256": "6bfa40ec6609fcb59e52a38281edcc3a3e5b5e56341304fe5628b32cb9b1f875"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/flutter.csv": {
+      "kind": "file",
+      "sha256": "fe36d404c799781e8ba6e9a8179b45799ed5126a545528550cd2eb0f2346e8c5"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/html-tailwind.csv": {
+      "kind": "file",
+      "sha256": "7aef38e75c53559470afcfa91580a9917ca8b7dbf8b92110389e23e93703ac52"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/javafx.csv": {
+      "kind": "file",
+      "sha256": "5545e331b2479eb431ca45203799ce1b0ab1e369045ab7735d5a9f85ec78f956"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/jetpack-compose.csv": {
+      "kind": "file",
+      "sha256": "6c8fd4b0391c342c12b0af15610cd5becbeccaef0bbe8dcfc01d928c3195d93e"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/laravel.csv": {
+      "kind": "file",
+      "sha256": "3e9f551b5232136f7b5ce1304c5e1bf5a83bd63c0dc02afb37502b238772d145"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/nextjs.csv": {
+      "kind": "file",
+      "sha256": "e828ccc04843742f52f545a068e8a9ab0d2b97c0e771f7e93bf0cef74da05554"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/nuxt-ui.csv": {
+      "kind": "file",
+      "sha256": "b9972b31e721faabc667ee2b4e93ba2af29e1df86f186c2ff608b68370f0e3a5"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/nuxtjs.csv": {
+      "kind": "file",
+      "sha256": "f7a3f2d9542856d00199f85c6c023b7c284cc698e2e6e12d61afce2edacb24d6"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/react-native.csv": {
+      "kind": "file",
+      "sha256": "077aefc81d194895ecf7936b3ed298b978e36961f183e3a275f8acda19b5f621"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/react.csv": {
+      "kind": "file",
+      "sha256": "e5624ab41d33427d88e41d07581ce4eca59b37b36ab72a6ad43a9c8e2d0a1c72"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/shadcn.csv": {
+      "kind": "file",
+      "sha256": "395c2e415ef6f48a474acccdc8eb2c7258a6ed751a5037ba171a2d8823e02ded"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/svelte.csv": {
+      "kind": "file",
+      "sha256": "71af52d64f266c88070b91dbbaa900c2f8074b6baae9f35eaea6ba9cec6fd803"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/swiftui.csv": {
+      "kind": "file",
+      "sha256": "c9c2d2510f8e66281a2514e8dd0125a6b653b9ef53a71281b5e7dfe003d5b569"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/threejs.csv": {
+      "kind": "file",
+      "sha256": "f1c05f8f269fc4784170c837f4ff43b50042f00bbd6ba7dbef2896081a052544"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/uno.csv": {
+      "kind": "file",
+      "sha256": "5d2e0f396bb9dc5a2661204264cc0eda7cc4fa3d78152dec89d668704a41b8fc"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/uwp.csv": {
+      "kind": "file",
+      "sha256": "debf669928871261ced9333788d5afd5784377ea1fa1b4f53993dd8f1574c0fc"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/vue.csv": {
+      "kind": "file",
+      "sha256": "c2724915d3c11cd67263f25896cff721f787a0fdd8326002d31e9f5806dfd8f8"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/winui.csv": {
+      "kind": "file",
+      "sha256": "2d970b08e44509d7afa53ce7feb446930b2d5e0667fa637df9aeeed65c42bbbe"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/stacks/wpf.csv": {
+      "kind": "file",
+      "sha256": "ca78b5f28dc50d66900548d602d74856400097284c73e076fcfbb5a38ae5083c"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/styles.csv": {
+      "kind": "file",
+      "sha256": "1bf9c1d8484a0a7a54fb67555902380446865b604c8449e47a449cb3d9c1ef88"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/typography.csv": {
+      "kind": "file",
+      "sha256": "7abead73de0e43e09544f164cb60cd431674e411f1e063e555a8b44d51273328"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/ui-reasoning.csv": {
+      "kind": "file",
+      "sha256": "06e4369445388ba9b7a57347510b125b7a2145bbf8546a327ba50292503b204a"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/data/ux-guidelines.csv": {
+      "kind": "file",
+      "sha256": "e01943c433b2cad3040f19389b3b0455673758a569b7a927b5bedf65c989cb96"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/references/upstream-evidence/astro-seo.csv": {
+      "kind": "file",
+      "sha256": "6b587e32df201b6e5e7b2ed187b65eee8e6d55dcd6cc16bde29fc25e0f911dae"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/scripts/core.py": {
+      "kind": "file",
+      "sha256": "ab9f398b493e34404448cefc766239ee86119c7a21d8581ba965cabdc698b0a8"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/scripts/design_system.py": {
+      "kind": "file",
+      "sha256": "9de2d4547e1e336d50939fe6ff0910f327d50dc069f1c30e929d64e3a47e87bf"
+    },
+    ".ai/bundles/1.2.1/skills/ui-ux-pro-max/scripts/search.py": {
+      "kind": "file",
+      "sha256": "ab74fd08a652f78e3e431eb246c8c32c2bfb3eeda72af89f2f74b0c532b519a6"
+    },
+    ".ai/bundles/1.2.1/skills/verify-test-evidence/SKILL.md": {
+      "kind": "file",
+      "sha256": "a8c7c102bc13be95b2fd1b604a0083f0d74aee54f53f8e5810bfa06219ba4bd8"
+    },
+    ".ai/bundles/1.2.1/skills/vertical-slice/SKILL.md": {
+      "kind": "file",
+      "sha256": "c07693d946be1e39ef2789f5aa22d3ef0c70106c5d520a117db69aaf10ef6ebc"
+    },
+    ".ai/bundles/1.2.1/skills/vertical-slice/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935"
+    },
+    ".ai/bundles/1.2.1/skills/workflow-install/SKILL.md": {
+      "kind": "file",
+      "sha256": "7a93b3899f47d608ce9ffd81e8a719e043128ac76b11482cbef9aa34b7f40bdd"
+    },
+    ".ai/bundles/1.2.1/skills/worktree-integration/SKILL.md": {
+      "kind": "file",
+      "sha256": "f086544b634c4488c5aad31fdd1eb416f6e8077ecfef0b0bacfb46757ded5b7c"
+    },
+    ".ai/bundles/1.2.1/skills/writing-for-agents/LICENSE": {
+      "kind": "file",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    },
+    ".ai/bundles/1.2.1/skills/writing-for-agents/SKILL-MECHANICS.md": {
+      "kind": "file",
+      "sha256": "7d7060b8c9901c50b7dd6e2690fc48dbfac49baad02a8762d69bcae662a72c54"
+    },
+    ".ai/bundles/1.2.1/skills/writing-for-agents/SKILL.md": {
+      "kind": "file",
+      "sha256": "38221b996b05adbcd3bdea0e9658c4b4e3250735e0fd94f02d891c984989226a"
+    },
+    ".ai/bundles/1.2.1/skills/writing-for-agents/agents/openai.yaml": {
+      "kind": "file",
+      "sha256": "eacb24b2a618cfb81dacb0416f4fdd75ddf3a8060f8ddb99aae1b1e301907e4b"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/browser/cli.config.json": {
+      "kind": "file",
+      "sha256": "587d38996c48c941a0b94b528540a0f397591f692fa2cf4efe16279932d23ba6"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/browser/design.json": {
+      "kind": "file",
+      "sha256": "f87d29d9e038bb05bc177eba875d976ab9d15b6dd3beb0ab99153c78420bd1ac"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/browser/index.html": {
+      "kind": "file",
+      "sha256": "de218173ab846360527213aff9c82837c7c8e10af89a5108439e89c6d3759cde"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/Bad.kt": {
+      "kind": "file",
+      "sha256": "a922643b60598b8d1e0efed5282c18f9ad179311f410ac00e47c183576369a30"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/Good.kt": {
+      "kind": "file",
+      "sha256": "dc315c6e7fc02fc84ec36992370f54217c147e745689c2a520283feb143766b1"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/BoundaryCheck.java": {
+      "kind": "file",
+      "sha256": "68ef04b2a31fc1239977ce0da9bede2d63939da83e1efb96a35422d35bebaa4c"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/fixture/bad/FieldInjection.java": {
+      "kind": "file",
+      "sha256": "b4b4a7bfa2880f009168284b073c0c2b1c231bb5c616c544080122b8d852687f"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/fixture/bad/a/First.java": {
+      "kind": "file",
+      "sha256": "78806c92139eedc9435677a6d14bdf458ed84bc07ba55950e608e51ac838f339"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/fixture/bad/b/Second.java": {
+      "kind": "file",
+      "sha256": "4d54f1116633bc593b3a0920ea556d1b330eb46570e5992d7f1253590146d717"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/fixture/good/Service.java": {
+      "kind": "file",
+      "sha256": "cf1650cc3e90d36f7fb50214f83c8638a5dccc46b4f5c9cc8f36a8c3e485d4cd"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/fixture/good/Store.java": {
+      "kind": "file",
+      "sha256": "968b0f16e10767e2ea28db4ea8e252b3c6ac02d63d7f60eaaf404bfea5d9e238"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/jvm/src/org/springframework/beans/factory/annotation/Autowired.java": {
+      "kind": "file",
+      "sha256": "ad893348f4bd4b9fa5c35e9ddeb719befdd2cfbc549be3db9f48a6786beddf8f"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/bad/Wiring.kt": {
+      "kind": "file",
+      "sha256": "647aa3cfbeb43fc5a1ae0d5d51a1c688da7170d048503ba3003aa92888cd2083"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/bad/credential.txt": {
+      "kind": "file",
+      "sha256": "ca04945ddfd008452370fa70f04971a42e42666db5650e797434425aa013ce84"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/bad/evaluate.ts": {
+      "kind": "file",
+      "sha256": "84308a1fe32186594860b72fb3da20396b5b876e6b144ef9ce9da0426b050b30"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/bad/package-lock.json": {
+      "kind": "file",
+      "sha256": "b3ac823281a5a1e127dd1c5b5c9d1f18d074e893fa4f5ef4ee4cf877f5f6b766"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/good/package-lock.json": {
+      "kind": "file",
+      "sha256": "63b80474ef5db6d003a46a1e7e47e6e9c14c5b8d52dd0cef1ed0ad6406a47338"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/good/safe.ts": {
+      "kind": "file",
+      "sha256": "4686f7a996b3dc6e4c3a9f1f5961d8e889b73738b2c7b7dd45cf8e714fffdca3"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/security/invalid/package-lock.json": {
+      "kind": "file",
+      "sha256": "572554e8177473da82d2d64cc00d5a4b043b58d0d803e1536dad9f87f282ef61"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/eslint.config.mjs": {
+      "kind": "file",
+      "sha256": "eff723939e9f2025083606a344203a597c920fee75b53985625f7d8c7d77c6d2"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/package-lock.json": {
+      "kind": "file",
+      "sha256": "3464d1cf704217dd3b12f7e2065397dab8c62c8b2f9a97ddbcd28709ec347179"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/package.json": {
+      "kind": "file",
+      "sha256": "9afd2e0d47a0cdbb3233896fcd39b70f40a58c4086f96694e50eadc7d069ffcf"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/src/Counter.svelte": {
+      "kind": "file",
+      "sha256": "6db8f6b457e0dc9e5aed9eaa316cba133be6a1ad59fea53c7c3571d7be69a8b6"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/src/counter.test.ts": {
+      "kind": "file",
+      "sha256": "06680f589762aad6f3d343f8c04008aed33a4fa09d03c7bb3613ac7e1bd6a349"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/src/counter.ts": {
+      "kind": "file",
+      "sha256": "dd7e060086586d4162d5c1182be1aaabc327639fda20bcec866e3240a5d59d5a"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/tsconfig.json": {
+      "kind": "file",
+      "sha256": "700859d26a6229078878f120f3d4a10dc0a6ae3820196e037dee90b208b6f447"
+    },
+    ".ai/bundles/1.2.1/tests/fixtures/web/vitest.config.mjs": {
+      "kind": "file",
+      "sha256": "fdc8abfe58d5830fa86954bef2ce07dafb181eff9ffd63bf9e2f3d189e9e2c10"
+    },
+    ".ai/bundles/1.2.1/tests/test_autonomy.py": {
+      "kind": "file",
+      "sha256": "a7390454f0ebf8aaaed24a74f2de075f8767c48e477dcca5770e3c76b747467d"
+    },
+    ".ai/bundles/1.2.1/tests/test_coordination.py": {
+      "kind": "file",
+      "sha256": "97e90dd87b808a2215a1214ba5a526ecfd4d3062c7a12cc73c95af178ad0624c"
+    },
+    ".ai/bundles/1.2.1/tests/test_gate_selection.py": {
+      "kind": "file",
+      "sha256": "fe88a671c3ff546dd9db3f5f485c824125f75e685176ca7e2b68c7eee660a79b"
+    },
+    ".ai/bundles/1.2.1/tests/test_gates.py": {
+      "kind": "file",
+      "sha256": "301bb51232daeef7f93c6ed508b513edf6f51fac283835caeaddc9701ac2958a"
+    },
+    ".ai/bundles/1.2.1/tests/test_host_verification.py": {
+      "kind": "file",
+      "sha256": "230eb4051cd0f686f2f13ce072d73ec9ddc0d74a1ad71b6f691ed97131f92271"
+    },
+    ".ai/bundles/1.2.1/tests/test_installer.py": {
+      "kind": "file",
+      "sha256": "910ad0cf43e931957a608d11d856f13249706ff22e2b8036988c007af469d2a1"
+    },
+    ".ai/bundles/1.2.1/tests/test_manifest.py": {
+      "kind": "file",
+      "sha256": "8453f82998b6f0e452c3ba4bae2788bb761e6794921e53ccd9e596a1309de327"
+    },
+    ".ai/bundles/1.2.1/tests/test_numbering_migration.py": {
+      "kind": "file",
+      "sha256": "cb919dfc96a07830fcfe4654790a24b8e9ab2053e55e55d98ac6a56070566177"
+    },
+    ".ai/bundles/1.2.1/tests/test_selection.py": {
+      "kind": "file",
+      "sha256": "2e40f2ec4e4b42b9dc0518d0ebee045d83783763d5369cc18f46a851dca0dde1"
+    },
+    ".ai/bundles/1.2.1/tests/test_skill_resolution.py": {
+      "kind": "file",
+      "sha256": "4801042ef8feb83edca54ae598226b24f7ea470c0dea75c86e6d798f8bc7ce90"
+    },
+    ".ai/bundles/1.2.1/tests/test_skills.py": {
+      "kind": "file",
+      "sha256": "5543ae3c4ddb4075bcc94a95de7915a02e979a9d4c20d2b0f321071f03cf871a"
+    },
+    ".ai/bundles/1.2.1/tests/test_tools.py": {
+      "kind": "file",
+      "sha256": "163a5f2699be51593d8a33a0c121f75c54f150d399e8a04a1bea6e1dd35268c9"
+    },
     ".ai/config.json": {
       "kind": "file",
-      "sha256": "8f84375f30038053d9479056040bfa6e054ae42aec6a6f3e9a027b759a8759fd"
+      "sha256": "3427137227700b76b22c517de4283a78da0f0c1353ac66e7ba3697ed61c5d5dc"
     },
     ".claude/agents/aw-backend.md": {
       "kind": "file",
-      "sha256": "b5582fb4c8fbb632079181bc839f489387f10b711a739f062985b2145f74d3f4"
+      "sha256": "55eb1e6e40f37329f91e07804d293e4da5dd9e969b113096b6bc303536a83a7d"
     },
     ".claude/agents/aw-forge.md": {
       "kind": "file",
-      "sha256": "df352cd7764dd52f40aa82e2a4ba50fab819e8ae5dad48fcf3e3f4838dc071ef"
+      "sha256": "a221296c87da837a7dc6bc53b37515b0c0b7571bcd09dae8f20f203a005eb3a9"
     },
     ".claude/agents/aw-frontend.md": {
       "kind": "file",
-      "sha256": "d923816517e1799b7b34883fb1f3e33e76f2acf2bbd72a7e8efe10a5cbf2ed9e"
+      "sha256": "f5bfe5909b3aa92c73530a0917ed2bb31aeaf6d25b56191fc2c001afd4519ed1"
     },
     ".claude/agents/aw-integrator.md": {
       "kind": "file",
-      "sha256": "9f10ce894e38eb30eb556d84d10a0a73ad49abbb07d3f3025962f320e21a2fd5"
+      "sha256": "efefbe808823d0e888ca68bd656f5ff04e3bd05cef057b207df0aeeb6906020d"
     },
     ".claude/agents/aw-operations.md": {
       "kind": "file",
-      "sha256": "b0e4fa5d6a0168eb340cea9f89f220623ff62637f5320eca5cc3fc1b106aeced"
+      "sha256": "399ba73f0d60f8002b6dfa20eadaf54130b29a5332cbbceb6b0b25cea266f50c"
     },
     ".claude/agents/aw-qa-evidence.md": {
       "kind": "file",
-      "sha256": "81147722c8a2e8d69b80e1e7e7d7424961de633116929767099153e0a0b57a26"
+      "sha256": "917788f4106cd3ede75c7472643e20ba2d3e4d3a2d79d5d937018b8a6177fa7b"
     },
     ".claude/agents/aw-review-verify.md": {
       "kind": "file",
-      "sha256": "2dbdb7df2bf44414a6beb415fc555050e7de0856aaaa69c6bdaf66d6b6c27b62"
+      "sha256": "c3d8aec04833d2ee28eb63952adfb49ccebf502838bd6b5c1ca7ac5086595659"
     },
     ".claude/agents/aw-security.md": {
       "kind": "file",
-      "sha256": "4f2f24f6e59bf83b4afe27c59caaba9f9360f316c35c2dbb493c1a2201ce8c98"
+      "sha256": "7824f1b98d4f92f207691970dea2b6735916a02417994b2e1aedf0e2af76e226"
     },
     ".claude/settings.json": {
       "entry": {
@@ -7714,331 +9610,331 @@
     },
     ".claude/skills/acceptance-verification": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/acceptance-verification"
+      "target": "../../.ai/bundles/1.2.1/skills/acceptance-verification"
     },
     ".claude/skills/analyze-alert": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/analyze-alert"
+      "target": "../../.ai/bundles/1.2.1/skills/analyze-alert"
     },
     ".claude/skills/antislop": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop"
     },
     ".claude/skills/antislop-code": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-code"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-code"
     },
     ".claude/skills/antislop-copywriting": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-copywriting"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-copywriting"
     },
     ".claude/skills/antislop-human": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-human"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-human"
     },
     ".claude/skills/antislop-layoutmobile": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-layoutmobile"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-layoutmobile"
     },
     ".claude/skills/antislop-ui": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-ui"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-ui"
     },
     ".claude/skills/api-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/api-design"
+      "target": "../../.ai/bundles/1.2.1/skills/api-design"
     },
     ".claude/skills/architecture-decision-records": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-decision-records"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-decision-records"
     },
     ".claude/skills/architecture-designer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-designer"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-designer"
     },
     ".claude/skills/atdd-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/atdd-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/atdd-creation"
     },
     ".claude/skills/brainstorming": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/brainstorming"
+      "target": "../../.ai/bundles/1.2.1/skills/brainstorming"
     },
     ".claude/skills/code-quality": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-quality"
+      "target": "../../.ai/bundles/1.2.1/skills/code-quality"
     },
     ".claude/skills/code-review": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-review"
+      "target": "../../.ai/bundles/1.2.1/skills/code-review"
     },
     ".claude/skills/codebase-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/codebase-design"
+      "target": "../../.ai/bundles/1.2.1/skills/codebase-design"
     },
     ".claude/skills/coding-standards": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/coding-standards"
+      "target": "../../.ai/bundles/1.2.1/skills/coding-standards"
     },
     ".claude/skills/config-validation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/config-validation"
+      "target": "../../.ai/bundles/1.2.1/skills/config-validation"
     },
     ".claude/skills/conflict-resolution": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/conflict-resolution"
+      "target": "../../.ai/bundles/1.2.1/skills/conflict-resolution"
     },
     ".claude/skills/context7": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/context7"
+      "target": "../../.ai/bundles/1.2.1/skills/context7"
     },
     ".claude/skills/database-portability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/database-portability"
+      "target": "../../.ai/bundles/1.2.1/skills/database-portability"
     },
     ".claude/skills/deliver-prd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/deliver-prd"
+      "target": "../../.ai/bundles/1.2.1/skills/deliver-prd"
     },
     ".claude/skills/dependency-analysis": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dependency-analysis"
+      "target": "../../.ai/bundles/1.2.1/skills/dependency-analysis"
     },
     ".claude/skills/design-system": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system"
     },
     ".claude/skills/design-system-foundations": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system-foundations"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system-foundations"
     },
     ".claude/skills/determinism": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/determinism"
+      "target": "../../.ai/bundles/1.2.1/skills/determinism"
     },
     ".claude/skills/devops-ci": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/devops-ci"
+      "target": "../../.ai/bundles/1.2.1/skills/devops-ci"
     },
     ".claude/skills/diagnosing-bugs": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/diagnosing-bugs"
+      "target": "../../.ai/bundles/1.2.1/skills/diagnosing-bugs"
     },
     ".claude/skills/docs-sync": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/docs-sync"
+      "target": "../../.ai/bundles/1.2.1/skills/docs-sync"
     },
     ".claude/skills/domain-modeling": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/domain-modeling"
+      "target": "../../.ai/bundles/1.2.1/skills/domain-modeling"
     },
     ".claude/skills/dto": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dto"
+      "target": "../../.ai/bundles/1.2.1/skills/dto"
     },
     ".claude/skills/failure": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/failure"
+      "target": "../../.ai/bundles/1.2.1/skills/failure"
     },
     ".claude/skills/fixing-accessibility": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/fixing-accessibility"
+      "target": "../../.ai/bundles/1.2.1/skills/fixing-accessibility"
     },
     ".claude/skills/forge": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/forge"
+      "target": "../../.ai/bundles/1.2.1/skills/forge"
     },
     ".claude/skills/frontend-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/frontend-design"
+      "target": "../../.ai/bundles/1.2.1/skills/frontend-design"
     },
     ".claude/skills/humanizer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/humanizer"
+      "target": "../../.ai/bundles/1.2.1/skills/humanizer"
     },
     ".claude/skills/idempotency": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/idempotency"
+      "target": "../../.ai/bundles/1.2.1/skills/idempotency"
     },
     ".claude/skills/impeccable": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/impeccable"
+      "target": "../../.ai/bundles/1.2.1/skills/impeccable"
     },
     ".claude/skills/jpa-hibernate": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/jpa-hibernate"
+      "target": "../../.ai/bundles/1.2.1/skills/jpa-hibernate"
     },
     ".claude/skills/kotlin-spring": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/kotlin-spring"
+      "target": "../../.ai/bundles/1.2.1/skills/kotlin-spring"
     },
     ".claude/skills/migration-management": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/migration-management"
+      "target": "../../.ai/bundles/1.2.1/skills/migration-management"
     },
     ".claude/skills/modularity": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/modularity"
+      "target": "../../.ai/bundles/1.2.1/skills/modularity"
     },
     ".claude/skills/node-backend": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/node-backend"
+      "target": "../../.ai/bundles/1.2.1/skills/node-backend"
     },
     ".claude/skills/observability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/observability"
+      "target": "../../.ai/bundles/1.2.1/skills/observability"
     },
     ".claude/skills/performance-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/performance-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/performance-optimization"
     },
     ".claude/skills/pipeline": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pipeline"
+      "target": "../../.ai/bundles/1.2.1/skills/pipeline"
     },
     ".claude/skills/plan-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/plan-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/plan-creation"
     },
     ".claude/skills/playwright-cli": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/playwright-cli"
+      "target": "../../.ai/bundles/1.2.1/skills/playwright-cli"
     },
     ".claude/skills/pr": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pr"
+      "target": "../../.ai/bundles/1.2.1/skills/pr"
     },
     ".claude/skills/project-scaffold": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/project-scaffold"
+      "target": "../../.ai/bundles/1.2.1/skills/project-scaffold"
     },
     ".claude/skills/quality-gates": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/quality-gates"
+      "target": "../../.ai/bundles/1.2.1/skills/quality-gates"
     },
     ".claude/skills/record-test-video": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/record-test-video"
+      "target": "../../.ai/bundles/1.2.1/skills/record-test-video"
     },
     ".claude/skills/rtk": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/rtk"
+      "target": "../../.ai/bundles/1.2.1/skills/rtk"
     },
     ".claude/skills/security-audit": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-audit"
+      "target": "../../.ai/bundles/1.2.1/skills/security-audit"
     },
     ".claude/skills/security-requirement-extraction": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-requirement-extraction"
+      "target": "../../.ai/bundles/1.2.1/skills/security-requirement-extraction"
     },
     ".claude/skills/spring-dependency-injection": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/spring-dependency-injection"
+      "target": "../../.ai/bundles/1.2.1/skills/spring-dependency-injection"
     },
     ".claude/skills/stride-analysis-patterns": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/stride-analysis-patterns"
+      "target": "../../.ai/bundles/1.2.1/skills/stride-analysis-patterns"
     },
     ".claude/skills/strix-security": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/strix-security"
+      "target": "../../.ai/bundles/1.2.1/skills/strix-security"
     },
     ".claude/skills/svelte-typescript": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/svelte-typescript"
+      "target": "../../.ai/bundles/1.2.1/skills/svelte-typescript"
     },
     ".claude/skills/task-delivery": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-delivery"
+      "target": "../../.ai/bundles/1.2.1/skills/task-delivery"
     },
     ".claude/skills/task-full-workflow": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-full-workflow"
+      "target": "../../.ai/bundles/1.2.1/skills/task-full-workflow"
     },
     ".claude/skills/task-implement": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-implement"
+      "target": "../../.ai/bundles/1.2.1/skills/task-implement"
     },
     ".claude/skills/task-observer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-observer"
+      "target": "../../.ai/bundles/1.2.1/skills/task-observer"
     },
     ".claude/skills/tdd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/tdd"
+      "target": "../../.ai/bundles/1.2.1/skills/tdd"
     },
     ".claude/skills/techdoc-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/techdoc-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/techdoc-creation"
     },
     ".claude/skills/test-driven-development": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-driven-development"
+      "target": "../../.ai/bundles/1.2.1/skills/test-driven-development"
     },
     ".claude/skills/test-generation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-generation"
+      "target": "../../.ai/bundles/1.2.1/skills/test-generation"
     },
     ".claude/skills/token-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/token-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/token-optimization"
     },
     ".claude/skills/ui-ux-pro-max": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/ui-ux-pro-max"
+      "target": "../../.ai/bundles/1.2.1/skills/ui-ux-pro-max"
     },
     ".claude/skills/verify-test-evidence": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/verify-test-evidence"
+      "target": "../../.ai/bundles/1.2.1/skills/verify-test-evidence"
     },
     ".claude/skills/vertical-slice": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/vertical-slice"
+      "target": "../../.ai/bundles/1.2.1/skills/vertical-slice"
     },
     ".claude/skills/workflow-install": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/workflow-install"
+      "target": "../../.ai/bundles/1.2.1/skills/workflow-install"
     },
     ".claude/skills/worktree-integration": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/worktree-integration"
+      "target": "../../.ai/bundles/1.2.1/skills/worktree-integration"
     },
     ".claude/skills/writing-for-agents": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/writing-for-agents"
+      "target": "../../.ai/bundles/1.2.1/skills/writing-for-agents"
     },
     ".codex/agents/aw-backend.toml": {
       "kind": "file",
-      "sha256": "fbde98c9aad52fa24e941adc0f9cf6f335b01cc319a5248dca41e9ee4c9bac2f"
+      "sha256": "91b02176c565c86a8c676a69ca68bde19d22791d58387f3ff811518cdca99afd"
     },
     ".codex/agents/aw-forge.toml": {
       "kind": "file",
-      "sha256": "97c6acecd939e2d150295e09a49b7e8a263778d4fb290bef229b304791295c9b"
+      "sha256": "57d7c2c47194e962415cb334b200c8df1da0136162370fe9251ad810501a6106"
     },
     ".codex/agents/aw-frontend.toml": {
       "kind": "file",
-      "sha256": "cbc90384b7242ed99eb809ccc5692e98eff3240a37ac5710e549b9c2acafb0c4"
+      "sha256": "c7c17afbceb6eb0fdd6b7f46150cf2dff3954514f963d696cf000e9adeae23f0"
     },
     ".codex/agents/aw-integrator.toml": {
       "kind": "file",
-      "sha256": "6e4e2c889c1dea819efc15b84b680618592528d88596b86eab53ff6ef02a8d68"
+      "sha256": "5d5e9f464a09b3eae29a2cedb7db556245b4df1619ec4f025f331023693a2f3f"
     },
     ".codex/agents/aw-operations.toml": {
       "kind": "file",
-      "sha256": "2bb48884245f8a086ffae5e592b42b5caf0a77675912315511e5a5e9fef800ac"
+      "sha256": "c492e7f39831152a50a89d9e006723be27123f1583fbb3246bb7b272e5927a63"
     },
     ".codex/agents/aw-qa-evidence.toml": {
       "kind": "file",
-      "sha256": "e76254998085fd8445b28eaee1d44ee46e64e10f1269c20cf63857526b8d7d6b"
+      "sha256": "edd37ac398565016e09c00bb77e16b8cfdb35285187588119efa9fc7d367b491"
     },
     ".codex/agents/aw-review-verify.toml": {
       "kind": "file",
-      "sha256": "a51d186372ef75519138d3946b3c07bc9fd5a362577862778b2020e112bb0490"
+      "sha256": "1d531c7a1b5ed9150f4c75b6f4511b778a353baf7ae7b6850838b9b3b28fbcf3"
     },
     ".codex/agents/aw-security.toml": {
       "kind": "file",
-      "sha256": "569b7860ad852d17a9bfb939de937429d198fdfb9a01cdf9aa642dbcccca848a"
+      "sha256": "280b42e4603705a8109f980a1b5b204d22caf9c6f4a2632f97207fc02f138c31"
     },
     ".codex/hooks.json": {
       "entry": {
@@ -8057,35 +9953,35 @@
     },
     ".cursor/agents/aw-backend.md": {
       "kind": "file",
-      "sha256": "b5582fb4c8fbb632079181bc839f489387f10b711a739f062985b2145f74d3f4"
+      "sha256": "55eb1e6e40f37329f91e07804d293e4da5dd9e969b113096b6bc303536a83a7d"
     },
     ".cursor/agents/aw-forge.md": {
       "kind": "file",
-      "sha256": "df352cd7764dd52f40aa82e2a4ba50fab819e8ae5dad48fcf3e3f4838dc071ef"
+      "sha256": "a221296c87da837a7dc6bc53b37515b0c0b7571bcd09dae8f20f203a005eb3a9"
     },
     ".cursor/agents/aw-frontend.md": {
       "kind": "file",
-      "sha256": "d923816517e1799b7b34883fb1f3e33e76f2acf2bbd72a7e8efe10a5cbf2ed9e"
+      "sha256": "f5bfe5909b3aa92c73530a0917ed2bb31aeaf6d25b56191fc2c001afd4519ed1"
     },
     ".cursor/agents/aw-integrator.md": {
       "kind": "file",
-      "sha256": "9f10ce894e38eb30eb556d84d10a0a73ad49abbb07d3f3025962f320e21a2fd5"
+      "sha256": "efefbe808823d0e888ca68bd656f5ff04e3bd05cef057b207df0aeeb6906020d"
     },
     ".cursor/agents/aw-operations.md": {
       "kind": "file",
-      "sha256": "b0e4fa5d6a0168eb340cea9f89f220623ff62637f5320eca5cc3fc1b106aeced"
+      "sha256": "399ba73f0d60f8002b6dfa20eadaf54130b29a5332cbbceb6b0b25cea266f50c"
     },
     ".cursor/agents/aw-qa-evidence.md": {
       "kind": "file",
-      "sha256": "81147722c8a2e8d69b80e1e7e7d7424961de633116929767099153e0a0b57a26"
+      "sha256": "917788f4106cd3ede75c7472643e20ba2d3e4d3a2d79d5d937018b8a6177fa7b"
     },
     ".cursor/agents/aw-review-verify.md": {
       "kind": "file",
-      "sha256": "2dbdb7df2bf44414a6beb415fc555050e7de0856aaaa69c6bdaf66d6b6c27b62"
+      "sha256": "c3d8aec04833d2ee28eb63952adfb49ccebf502838bd6b5c1ca7ac5086595659"
     },
     ".cursor/agents/aw-security.md": {
       "kind": "file",
-      "sha256": "4f2f24f6e59bf83b4afe27c59caaba9f9360f316c35c2dbb493c1a2201ce8c98"
+      "sha256": "7824f1b98d4f92f207691970dea2b6735916a02417994b2e1aedf0e2af76e226"
     },
     ".cursor/hooks.json": {
       "entry": {
@@ -8103,335 +9999,335 @@
     },
     ".cursor/skills/acceptance-verification": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/acceptance-verification"
+      "target": "../../.ai/bundles/1.2.1/skills/acceptance-verification"
     },
     ".cursor/skills/analyze-alert": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/analyze-alert"
+      "target": "../../.ai/bundles/1.2.1/skills/analyze-alert"
     },
     ".cursor/skills/antislop": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop"
     },
     ".cursor/skills/antislop-code": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-code"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-code"
     },
     ".cursor/skills/antislop-copywriting": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-copywriting"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-copywriting"
     },
     ".cursor/skills/antislop-human": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-human"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-human"
     },
     ".cursor/skills/antislop-layoutmobile": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-layoutmobile"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-layoutmobile"
     },
     ".cursor/skills/antislop-ui": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-ui"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-ui"
     },
     ".cursor/skills/api-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/api-design"
+      "target": "../../.ai/bundles/1.2.1/skills/api-design"
     },
     ".cursor/skills/architecture-decision-records": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-decision-records"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-decision-records"
     },
     ".cursor/skills/architecture-designer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-designer"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-designer"
     },
     ".cursor/skills/atdd-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/atdd-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/atdd-creation"
     },
     ".cursor/skills/brainstorming": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/brainstorming"
+      "target": "../../.ai/bundles/1.2.1/skills/brainstorming"
     },
     ".cursor/skills/code-quality": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-quality"
+      "target": "../../.ai/bundles/1.2.1/skills/code-quality"
     },
     ".cursor/skills/code-review": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-review"
+      "target": "../../.ai/bundles/1.2.1/skills/code-review"
     },
     ".cursor/skills/codebase-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/codebase-design"
+      "target": "../../.ai/bundles/1.2.1/skills/codebase-design"
     },
     ".cursor/skills/coding-standards": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/coding-standards"
+      "target": "../../.ai/bundles/1.2.1/skills/coding-standards"
     },
     ".cursor/skills/config-validation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/config-validation"
+      "target": "../../.ai/bundles/1.2.1/skills/config-validation"
     },
     ".cursor/skills/conflict-resolution": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/conflict-resolution"
+      "target": "../../.ai/bundles/1.2.1/skills/conflict-resolution"
     },
     ".cursor/skills/context7": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/context7"
+      "target": "../../.ai/bundles/1.2.1/skills/context7"
     },
     ".cursor/skills/database-portability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/database-portability"
+      "target": "../../.ai/bundles/1.2.1/skills/database-portability"
     },
     ".cursor/skills/deliver-prd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/deliver-prd"
+      "target": "../../.ai/bundles/1.2.1/skills/deliver-prd"
     },
     ".cursor/skills/dependency-analysis": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dependency-analysis"
+      "target": "../../.ai/bundles/1.2.1/skills/dependency-analysis"
     },
     ".cursor/skills/design-system": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system"
     },
     ".cursor/skills/design-system-foundations": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system-foundations"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system-foundations"
     },
     ".cursor/skills/determinism": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/determinism"
+      "target": "../../.ai/bundles/1.2.1/skills/determinism"
     },
     ".cursor/skills/devops-ci": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/devops-ci"
+      "target": "../../.ai/bundles/1.2.1/skills/devops-ci"
     },
     ".cursor/skills/diagnosing-bugs": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/diagnosing-bugs"
+      "target": "../../.ai/bundles/1.2.1/skills/diagnosing-bugs"
     },
     ".cursor/skills/docs-sync": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/docs-sync"
+      "target": "../../.ai/bundles/1.2.1/skills/docs-sync"
     },
     ".cursor/skills/domain-modeling": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/domain-modeling"
+      "target": "../../.ai/bundles/1.2.1/skills/domain-modeling"
     },
     ".cursor/skills/dto": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dto"
+      "target": "../../.ai/bundles/1.2.1/skills/dto"
     },
     ".cursor/skills/failure": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/failure"
+      "target": "../../.ai/bundles/1.2.1/skills/failure"
     },
     ".cursor/skills/fixing-accessibility": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/fixing-accessibility"
+      "target": "../../.ai/bundles/1.2.1/skills/fixing-accessibility"
     },
     ".cursor/skills/forge": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/forge"
+      "target": "../../.ai/bundles/1.2.1/skills/forge"
     },
     ".cursor/skills/frontend-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/frontend-design"
+      "target": "../../.ai/bundles/1.2.1/skills/frontend-design"
     },
     ".cursor/skills/humanizer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/humanizer"
+      "target": "../../.ai/bundles/1.2.1/skills/humanizer"
     },
     ".cursor/skills/idempotency": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/idempotency"
+      "target": "../../.ai/bundles/1.2.1/skills/idempotency"
     },
     ".cursor/skills/impeccable": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/impeccable"
+      "target": "../../.ai/bundles/1.2.1/skills/impeccable"
     },
     ".cursor/skills/jpa-hibernate": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/jpa-hibernate"
+      "target": "../../.ai/bundles/1.2.1/skills/jpa-hibernate"
     },
     ".cursor/skills/kotlin-spring": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/kotlin-spring"
+      "target": "../../.ai/bundles/1.2.1/skills/kotlin-spring"
     },
     ".cursor/skills/migration-management": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/migration-management"
+      "target": "../../.ai/bundles/1.2.1/skills/migration-management"
     },
     ".cursor/skills/modularity": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/modularity"
+      "target": "../../.ai/bundles/1.2.1/skills/modularity"
     },
     ".cursor/skills/node-backend": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/node-backend"
+      "target": "../../.ai/bundles/1.2.1/skills/node-backend"
     },
     ".cursor/skills/observability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/observability"
+      "target": "../../.ai/bundles/1.2.1/skills/observability"
     },
     ".cursor/skills/performance-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/performance-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/performance-optimization"
     },
     ".cursor/skills/pipeline": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pipeline"
+      "target": "../../.ai/bundles/1.2.1/skills/pipeline"
     },
     ".cursor/skills/plan-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/plan-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/plan-creation"
     },
     ".cursor/skills/playwright-cli": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/playwright-cli"
+      "target": "../../.ai/bundles/1.2.1/skills/playwright-cli"
     },
     ".cursor/skills/pr": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pr"
+      "target": "../../.ai/bundles/1.2.1/skills/pr"
     },
     ".cursor/skills/project-scaffold": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/project-scaffold"
+      "target": "../../.ai/bundles/1.2.1/skills/project-scaffold"
     },
     ".cursor/skills/quality-gates": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/quality-gates"
+      "target": "../../.ai/bundles/1.2.1/skills/quality-gates"
     },
     ".cursor/skills/record-test-video": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/record-test-video"
+      "target": "../../.ai/bundles/1.2.1/skills/record-test-video"
     },
     ".cursor/skills/rtk": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/rtk"
+      "target": "../../.ai/bundles/1.2.1/skills/rtk"
     },
     ".cursor/skills/security-audit": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-audit"
+      "target": "../../.ai/bundles/1.2.1/skills/security-audit"
     },
     ".cursor/skills/security-requirement-extraction": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-requirement-extraction"
+      "target": "../../.ai/bundles/1.2.1/skills/security-requirement-extraction"
     },
     ".cursor/skills/spring-dependency-injection": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/spring-dependency-injection"
+      "target": "../../.ai/bundles/1.2.1/skills/spring-dependency-injection"
     },
     ".cursor/skills/stride-analysis-patterns": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/stride-analysis-patterns"
+      "target": "../../.ai/bundles/1.2.1/skills/stride-analysis-patterns"
     },
     ".cursor/skills/strix-security": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/strix-security"
+      "target": "../../.ai/bundles/1.2.1/skills/strix-security"
     },
     ".cursor/skills/svelte-typescript": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/svelte-typescript"
+      "target": "../../.ai/bundles/1.2.1/skills/svelte-typescript"
     },
     ".cursor/skills/task-delivery": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-delivery"
+      "target": "../../.ai/bundles/1.2.1/skills/task-delivery"
     },
     ".cursor/skills/task-full-workflow": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-full-workflow"
+      "target": "../../.ai/bundles/1.2.1/skills/task-full-workflow"
     },
     ".cursor/skills/task-implement": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-implement"
+      "target": "../../.ai/bundles/1.2.1/skills/task-implement"
     },
     ".cursor/skills/task-observer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-observer"
+      "target": "../../.ai/bundles/1.2.1/skills/task-observer"
     },
     ".cursor/skills/tdd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/tdd"
+      "target": "../../.ai/bundles/1.2.1/skills/tdd"
     },
     ".cursor/skills/techdoc-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/techdoc-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/techdoc-creation"
     },
     ".cursor/skills/test-driven-development": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-driven-development"
+      "target": "../../.ai/bundles/1.2.1/skills/test-driven-development"
     },
     ".cursor/skills/test-generation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-generation"
+      "target": "../../.ai/bundles/1.2.1/skills/test-generation"
     },
     ".cursor/skills/token-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/token-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/token-optimization"
     },
     ".cursor/skills/ui-ux-pro-max": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/ui-ux-pro-max"
+      "target": "../../.ai/bundles/1.2.1/skills/ui-ux-pro-max"
     },
     ".cursor/skills/verify-test-evidence": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/verify-test-evidence"
+      "target": "../../.ai/bundles/1.2.1/skills/verify-test-evidence"
     },
     ".cursor/skills/vertical-slice": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/vertical-slice"
+      "target": "../../.ai/bundles/1.2.1/skills/vertical-slice"
     },
     ".cursor/skills/workflow-install": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/workflow-install"
+      "target": "../../.ai/bundles/1.2.1/skills/workflow-install"
     },
     ".cursor/skills/worktree-integration": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/worktree-integration"
+      "target": "../../.ai/bundles/1.2.1/skills/worktree-integration"
     },
     ".cursor/skills/writing-for-agents": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/writing-for-agents"
+      "target": "../../.ai/bundles/1.2.1/skills/writing-for-agents"
     },
     ".github/agents/aw-backend.agent.md": {
       "kind": "file",
-      "sha256": "39b50c800f36033daded8e4348e82fe321772e3b4593cac5ffe9929dbec5f474"
+      "sha256": "62ecd3cd06b88ed11a90645122ee5ffe102095069cadaa01854a1a4a1dd69074"
     },
     ".github/agents/aw-forge.agent.md": {
       "kind": "file",
-      "sha256": "04b66084d49bf7e3bae07f274284aa6eb6ad19ba2dab21aa8321a6fa70981031"
+      "sha256": "7b4a8d78f7ea269cbd85b5a9044ab39566bcc21b50b4a8341f771afd9508acb5"
     },
     ".github/agents/aw-frontend.agent.md": {
       "kind": "file",
-      "sha256": "c13efa1b8128d6423dc7b33b824f54922626d549e3f885abd12445eba107a9f1"
+      "sha256": "bde75988ab87a994f735767a400615ba222115da674e212e18afc58c81c5e418"
     },
     ".github/agents/aw-integrator.agent.md": {
       "kind": "file",
-      "sha256": "3aebda6405c3f5042d7e973616d2db8dcba31d84e8da45aa10be76d27c27e26b"
+      "sha256": "0237e6fd056553546459a173e133594d3a725b694a46850a39700dfeb41e5b10"
     },
     ".github/agents/aw-operations.agent.md": {
       "kind": "file",
-      "sha256": "bd2121e297a6e8999d56d3ccdd0b7ba0fe463373830ffb1c2e27ddb01557932d"
+      "sha256": "3b5bd893eb28e304e22df80a24a91a645e78b13baeac9dcfe87ba9295fb5f069"
     },
     ".github/agents/aw-qa-evidence.agent.md": {
       "kind": "file",
-      "sha256": "20b684a000c5d5227b3ad82b8b30f103e8bf7d707d5cd2e16be2f4aa0517136e"
+      "sha256": "a02fd05b214502732207ea99766a564c077030e869778dbc346284417b7c0cf2"
     },
     ".github/agents/aw-review-verify.agent.md": {
       "kind": "file",
-      "sha256": "e4d6dba689122d71ec0f139664140d51bfb9347011c32f3414ec0e5ad58ee624"
+      "sha256": "065a9e0f94af3e620e7096f9e3f1978a0f0ddda061cf2844494308647f4ab4f7"
     },
     ".github/agents/aw-security.agent.md": {
       "kind": "file",
-      "sha256": "32ceb3fa8598255ad764f571d29fca2551601c9a0bff3c1ded70b2fa34be4e25"
+      "sha256": "1d0eb2817d9550c544dd5c618b5a26aea8bc0dec85d1a3ae6663b931ee136645"
     },
     ".github/copilot-instructions.md": {
       "kind": "block",
-      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.0/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.\n\nImplement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.\n\nPreserve configured quality/security gates, 80% changed coverage, 50 function lines, complexity 10, nesting 3 and actual proof boundaries. Missing tools, empty selections, stale reports and unresolved required findings do not pass. Routine UI proof uses assertions/direct inspection; necessary reader observations remain required. Defer only explicit release-owned matrices/media.\n\nTrack one selection in Git-shared state. Commit product changes at natural milestones; check actual product progress every 45 minutes. Optional evidence-tool repair shares two attempts or 20 minutes across the selection, including resumes and renamed phases. Keep the configured required-correction limit. Continue independent work or report exact blockers; never replace failures with invented success.\n\nReport local implementation, actual checks, accepted review and published source separately, including local/PR heads and metadata-only PR edits. \u201cFinish and wrap up\u201d retains the goal; an explicit stop stops work. Honor standing authorization within scope without repeat approval loops. Installation does not resume application tasks.\n\nPreserve task/requirement IDs and unrelated work. Only the coordinator updates task execution fields after selection acceptance. Run the bundled wording checker before delivery. Task observations remain user-level proposals. Read docs/COORDINATION.md and docs/GATES.md only when using their helpers.\n<!-- agent-workflow:end -->\n"
+      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.1/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.\n\nImplement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.\n\nPreserve configured quality/security gates, 80% changed coverage, 50 function lines, complexity 10, nesting 3 and actual proof boundaries. Missing tools, empty selections, stale reports and unresolved required findings do not pass. Routine UI proof uses assertions/direct inspection; necessary reader observations remain required. Defer only explicit release-owned matrices/media.\n\nTrack one selection in Git-shared state. Commit product changes at natural milestones; check actual product progress every 45 minutes. Optional evidence-tool repair shares two attempts or 20 minutes across the selection, including resumes and renamed phases. Keep the configured required-correction limit. Continue independent work or report exact blockers; never replace failures with invented success.\n\nReport local implementation, actual checks, accepted review and published source separately, including local/PR heads and metadata-only PR edits. \u201cFinish and wrap up\u201d retains the goal; an explicit stop stops work. Honor standing authorization within scope without repeat approval loops. Installation does not resume application tasks.\n\nPreserve task/requirement IDs and unrelated work. Only the coordinator updates task execution fields after selection acceptance. Run the bundled wording checker before delivery. Task observations remain user-level proposals. Read docs/COORDINATION.md and docs/GATES.md only when using their helpers.\n<!-- agent-workflow:end -->\n"
     },
     ".github/hooks/agent-workflow.json": {
       "entry": {
@@ -8445,310 +10341,310 @@
     },
     ".github/skills/acceptance-verification": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/acceptance-verification"
+      "target": "../../.ai/bundles/1.2.1/skills/acceptance-verification"
     },
     ".github/skills/analyze-alert": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/analyze-alert"
+      "target": "../../.ai/bundles/1.2.1/skills/analyze-alert"
     },
     ".github/skills/antislop": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop"
     },
     ".github/skills/antislop-code": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-code"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-code"
     },
     ".github/skills/antislop-copywriting": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-copywriting"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-copywriting"
     },
     ".github/skills/antislop-human": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-human"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-human"
     },
     ".github/skills/antislop-layoutmobile": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-layoutmobile"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-layoutmobile"
     },
     ".github/skills/antislop-ui": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/antislop-ui"
+      "target": "../../.ai/bundles/1.2.1/skills/antislop-ui"
     },
     ".github/skills/api-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/api-design"
+      "target": "../../.ai/bundles/1.2.1/skills/api-design"
     },
     ".github/skills/architecture-decision-records": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-decision-records"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-decision-records"
     },
     ".github/skills/architecture-designer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/architecture-designer"
+      "target": "../../.ai/bundles/1.2.1/skills/architecture-designer"
     },
     ".github/skills/atdd-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/atdd-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/atdd-creation"
     },
     ".github/skills/brainstorming": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/brainstorming"
+      "target": "../../.ai/bundles/1.2.1/skills/brainstorming"
     },
     ".github/skills/code-quality": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-quality"
+      "target": "../../.ai/bundles/1.2.1/skills/code-quality"
     },
     ".github/skills/code-review": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/code-review"
+      "target": "../../.ai/bundles/1.2.1/skills/code-review"
     },
     ".github/skills/codebase-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/codebase-design"
+      "target": "../../.ai/bundles/1.2.1/skills/codebase-design"
     },
     ".github/skills/coding-standards": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/coding-standards"
+      "target": "../../.ai/bundles/1.2.1/skills/coding-standards"
     },
     ".github/skills/config-validation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/config-validation"
+      "target": "../../.ai/bundles/1.2.1/skills/config-validation"
     },
     ".github/skills/conflict-resolution": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/conflict-resolution"
+      "target": "../../.ai/bundles/1.2.1/skills/conflict-resolution"
     },
     ".github/skills/context7": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/context7"
+      "target": "../../.ai/bundles/1.2.1/skills/context7"
     },
     ".github/skills/database-portability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/database-portability"
+      "target": "../../.ai/bundles/1.2.1/skills/database-portability"
     },
     ".github/skills/deliver-prd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/deliver-prd"
+      "target": "../../.ai/bundles/1.2.1/skills/deliver-prd"
     },
     ".github/skills/dependency-analysis": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dependency-analysis"
+      "target": "../../.ai/bundles/1.2.1/skills/dependency-analysis"
     },
     ".github/skills/design-system": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system"
     },
     ".github/skills/design-system-foundations": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/design-system-foundations"
+      "target": "../../.ai/bundles/1.2.1/skills/design-system-foundations"
     },
     ".github/skills/determinism": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/determinism"
+      "target": "../../.ai/bundles/1.2.1/skills/determinism"
     },
     ".github/skills/devops-ci": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/devops-ci"
+      "target": "../../.ai/bundles/1.2.1/skills/devops-ci"
     },
     ".github/skills/diagnosing-bugs": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/diagnosing-bugs"
+      "target": "../../.ai/bundles/1.2.1/skills/diagnosing-bugs"
     },
     ".github/skills/docs-sync": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/docs-sync"
+      "target": "../../.ai/bundles/1.2.1/skills/docs-sync"
     },
     ".github/skills/domain-modeling": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/domain-modeling"
+      "target": "../../.ai/bundles/1.2.1/skills/domain-modeling"
     },
     ".github/skills/dto": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/dto"
+      "target": "../../.ai/bundles/1.2.1/skills/dto"
     },
     ".github/skills/failure": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/failure"
+      "target": "../../.ai/bundles/1.2.1/skills/failure"
     },
     ".github/skills/fixing-accessibility": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/fixing-accessibility"
+      "target": "../../.ai/bundles/1.2.1/skills/fixing-accessibility"
     },
     ".github/skills/forge": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/forge"
+      "target": "../../.ai/bundles/1.2.1/skills/forge"
     },
     ".github/skills/frontend-design": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/frontend-design"
+      "target": "../../.ai/bundles/1.2.1/skills/frontend-design"
     },
     ".github/skills/humanizer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/humanizer"
+      "target": "../../.ai/bundles/1.2.1/skills/humanizer"
     },
     ".github/skills/idempotency": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/idempotency"
+      "target": "../../.ai/bundles/1.2.1/skills/idempotency"
     },
     ".github/skills/impeccable": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/impeccable"
+      "target": "../../.ai/bundles/1.2.1/skills/impeccable"
     },
     ".github/skills/jpa-hibernate": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/jpa-hibernate"
+      "target": "../../.ai/bundles/1.2.1/skills/jpa-hibernate"
     },
     ".github/skills/kotlin-spring": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/kotlin-spring"
+      "target": "../../.ai/bundles/1.2.1/skills/kotlin-spring"
     },
     ".github/skills/migration-management": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/migration-management"
+      "target": "../../.ai/bundles/1.2.1/skills/migration-management"
     },
     ".github/skills/modularity": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/modularity"
+      "target": "../../.ai/bundles/1.2.1/skills/modularity"
     },
     ".github/skills/node-backend": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/node-backend"
+      "target": "../../.ai/bundles/1.2.1/skills/node-backend"
     },
     ".github/skills/observability": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/observability"
+      "target": "../../.ai/bundles/1.2.1/skills/observability"
     },
     ".github/skills/performance-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/performance-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/performance-optimization"
     },
     ".github/skills/pipeline": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pipeline"
+      "target": "../../.ai/bundles/1.2.1/skills/pipeline"
     },
     ".github/skills/plan-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/plan-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/plan-creation"
     },
     ".github/skills/playwright-cli": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/playwright-cli"
+      "target": "../../.ai/bundles/1.2.1/skills/playwright-cli"
     },
     ".github/skills/pr": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/pr"
+      "target": "../../.ai/bundles/1.2.1/skills/pr"
     },
     ".github/skills/project-scaffold": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/project-scaffold"
+      "target": "../../.ai/bundles/1.2.1/skills/project-scaffold"
     },
     ".github/skills/quality-gates": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/quality-gates"
+      "target": "../../.ai/bundles/1.2.1/skills/quality-gates"
     },
     ".github/skills/record-test-video": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/record-test-video"
+      "target": "../../.ai/bundles/1.2.1/skills/record-test-video"
     },
     ".github/skills/rtk": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/rtk"
+      "target": "../../.ai/bundles/1.2.1/skills/rtk"
     },
     ".github/skills/security-audit": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-audit"
+      "target": "../../.ai/bundles/1.2.1/skills/security-audit"
     },
     ".github/skills/security-requirement-extraction": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/security-requirement-extraction"
+      "target": "../../.ai/bundles/1.2.1/skills/security-requirement-extraction"
     },
     ".github/skills/spring-dependency-injection": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/spring-dependency-injection"
+      "target": "../../.ai/bundles/1.2.1/skills/spring-dependency-injection"
     },
     ".github/skills/stride-analysis-patterns": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/stride-analysis-patterns"
+      "target": "../../.ai/bundles/1.2.1/skills/stride-analysis-patterns"
     },
     ".github/skills/strix-security": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/strix-security"
+      "target": "../../.ai/bundles/1.2.1/skills/strix-security"
     },
     ".github/skills/svelte-typescript": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/svelte-typescript"
+      "target": "../../.ai/bundles/1.2.1/skills/svelte-typescript"
     },
     ".github/skills/task-delivery": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-delivery"
+      "target": "../../.ai/bundles/1.2.1/skills/task-delivery"
     },
     ".github/skills/task-full-workflow": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-full-workflow"
+      "target": "../../.ai/bundles/1.2.1/skills/task-full-workflow"
     },
     ".github/skills/task-implement": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-implement"
+      "target": "../../.ai/bundles/1.2.1/skills/task-implement"
     },
     ".github/skills/task-observer": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/task-observer"
+      "target": "../../.ai/bundles/1.2.1/skills/task-observer"
     },
     ".github/skills/tdd": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/tdd"
+      "target": "../../.ai/bundles/1.2.1/skills/tdd"
     },
     ".github/skills/techdoc-creation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/techdoc-creation"
+      "target": "../../.ai/bundles/1.2.1/skills/techdoc-creation"
     },
     ".github/skills/test-driven-development": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-driven-development"
+      "target": "../../.ai/bundles/1.2.1/skills/test-driven-development"
     },
     ".github/skills/test-generation": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/test-generation"
+      "target": "../../.ai/bundles/1.2.1/skills/test-generation"
     },
     ".github/skills/token-optimization": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/token-optimization"
+      "target": "../../.ai/bundles/1.2.1/skills/token-optimization"
     },
     ".github/skills/ui-ux-pro-max": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/ui-ux-pro-max"
+      "target": "../../.ai/bundles/1.2.1/skills/ui-ux-pro-max"
     },
     ".github/skills/verify-test-evidence": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/verify-test-evidence"
+      "target": "../../.ai/bundles/1.2.1/skills/verify-test-evidence"
     },
     ".github/skills/vertical-slice": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/vertical-slice"
+      "target": "../../.ai/bundles/1.2.1/skills/vertical-slice"
     },
     ".github/skills/workflow-install": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/workflow-install"
+      "target": "../../.ai/bundles/1.2.1/skills/workflow-install"
     },
     ".github/skills/worktree-integration": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/worktree-integration"
+      "target": "../../.ai/bundles/1.2.1/skills/worktree-integration"
     },
     ".github/skills/writing-for-agents": {
       "kind": "link",
-      "target": "../../.ai/bundles/1.2.0/skills/writing-for-agents"
+      "target": "../../.ai/bundles/1.2.1/skills/writing-for-agents"
     },
     "AGENTS.md": {
       "kind": "block",
-      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.0/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.\n\nImplement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.\n\nPreserve configured quality/security gates, 80% changed coverage, 50 function lines, complexity 10, nesting 3 and actual proof boundaries. Missing tools, empty selections, stale reports and unresolved required findings do not pass. Routine UI proof uses assertions/direct inspection; necessary reader observations remain required. Defer only explicit release-owned matrices/media.\n\nTrack one selection in Git-shared state. Commit product changes at natural milestones; check actual product progress every 45 minutes. Optional evidence-tool repair shares two attempts or 20 minutes across the selection, including resumes and renamed phases. Keep the configured required-correction limit. Continue independent work or report exact blockers; never replace failures with invented success.\n\nReport local implementation, actual checks, accepted review and published source separately, including local/PR heads and metadata-only PR edits. \u201cFinish and wrap up\u201d retains the goal; an explicit stop stops work. Honor standing authorization within scope without repeat approval loops. Installation does not resume application tasks.\n\nPreserve task/requirement IDs and unrelated work. Only the coordinator updates task execution fields after selection acceptance. Run the bundled wording checker before delivery. Task observations remain user-level proposals. Read docs/COORDINATION.md and docs/GATES.md only when using their helpers.\n<!-- agent-workflow:end -->\n"
+      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.1/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.\n\nImplement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.\n\nPreserve configured quality/security gates, 80% changed coverage, 50 function lines, complexity 10, nesting 3 and actual proof boundaries. Missing tools, empty selections, stale reports and unresolved required findings do not pass. Routine UI proof uses assertions/direct inspection; necessary reader observations remain required. Defer only explicit release-owned matrices/media.\n\nTrack one selection in Git-shared state. Commit product changes at natural milestones; check actual product progress every 45 minutes. Optional evidence-tool repair shares two attempts or 20 minutes across the selection, including resumes and renamed phases. Keep the configured required-correction limit. Continue independent work or report exact blockers; never replace failures with invented success.\n\nReport local implementation, actual checks, accepted review and published source separately, including local/PR heads and metadata-only PR edits. \u201cFinish and wrap up\u201d retains the goal; an explicit stop stops work. Honor standing authorization within scope without repeat approval loops. Installation does not resume application tasks.\n\nPreserve task/requirement IDs and unrelated work. Only the coordinator updates task execution fields after selection acceptance. Run the bundled wording checker before delivery. Task observations remain user-level proposals. Read docs/COORDINATION.md and docs/GATES.md only when using their helpers.\n<!-- agent-workflow:end -->\n"
     },
     "CLAUDE.md": {
       "kind": "block",
-      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.0/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.\n\nImplement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.\n\nPreserve configured quality/security gates, 80% changed coverage, 50 function lines, complexity 10, nesting 3 and actual proof boundaries. Missing tools, empty selections, stale reports and unresolved required findings do not pass. Routine UI proof uses assertions/direct inspection; necessary reader observations remain required. Defer only explicit release-owned matrices/media.\n\nTrack one selection in Git-shared state. Commit product changes at natural milestones; check actual product progress every 45 minutes. Optional evidence-tool repair shares two attempts or 20 minutes across the selection, including resumes and renamed phases. Keep the configured required-correction limit. Continue independent work or report exact blockers; never replace failures with invented success.\n\nReport local implementation, actual checks, accepted review and published source separately, including local/PR heads and metadata-only PR edits. \u201cFinish and wrap up\u201d retains the goal; an explicit stop stops work. Honor standing authorization within scope without repeat approval loops. Installation does not resume application tasks.\n\nPreserve task/requirement IDs and unrelated work. Only the coordinator updates task execution fields after selection acceptance. Run the bundled wording checker before delivery. Task observations remain user-level proposals. Read docs/COORDINATION.md and docs/GATES.md only when using their helpers.\n<!-- agent-workflow:end -->\n"
+      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.1/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.\n\nImplement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.\n\nPreserve configured quality/security gates, 80% changed coverage, 50 function lines, complexity 10, nesting 3 and actual proof boundaries. Missing tools, empty selections, stale reports and unresolved required findings do not pass. Routine UI proof uses assertions/direct inspection; necessary reader observations remain required. Defer only explicit release-owned matrices/media.\n\nTrack one selection in Git-shared state. Commit product changes at natural milestones; check actual product progress every 45 minutes. Optional evidence-tool repair shares two attempts or 20 minutes across the selection, including resumes and renamed phases. Keep the configured required-correction limit. Continue independent work or report exact blockers; never replace failures with invented success.\n\nReport local implementation, actual checks, accepted review and published source separately, including local/PR heads and metadata-only PR edits. \u201cFinish and wrap up\u201d retains the goal; an explicit stop stops work. Honor standing authorization within scope without repeat approval loops. Installation does not resume application tasks.\n\nPreserve task/requirement IDs and unrelated work. Only the coordinator updates task execution fields after selection acceptance. Run the bundled wording checker before delivery. Task observations remain user-level proposals. Read docs/COORDINATION.md and docs/GATES.md only when using their helpers.\n<!-- agent-workflow:end -->\n"
     }
   },
   "schema_version": 1,
   "scope": "repository",
-  "version": "1.2.0"
+  "version": "1.2.1"
 }

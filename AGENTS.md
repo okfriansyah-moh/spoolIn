@@ -1,7 +1,7 @@
 <!-- agent-workflow:begin -->
 ## Portable implementation workflow
 
-Use the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.0/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.
+Use the bundle pinned by `.ai/config.json`; read `.ai/bundles/1.2.1/docs/DELIVERY.md` for the selection delivery policy. Run doctor once before substantial execution and load only relevant skills/contracts.
 
 Implement the complete requested selection, run affected checks, obtain one independent combined review, fix findings, then publish within existing authorization. Serial work reuses one suitable checkout; concurrent writers claim isolated paths/resources. Tested predecessors can support dependent development before final acceptance. No task or intermediate-group review is required.
 

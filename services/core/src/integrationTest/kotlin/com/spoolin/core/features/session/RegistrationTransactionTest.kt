@@ -21,7 +21,7 @@ import java.util.UUID
 class RegistrationTransactionTest {
     @Test
     fun `prepared registration shares receipt transaction and rollback consumes nonce without partial account`() {
-        CryptoFixture("t006-registration-transaction.json").use { fixture ->
+        CryptoFixture("t008-registration-transaction.json").use { fixture ->
             val receipts = OwnerReceipts(fixture.pool, IntentHashes(mapOf("v1" to ByteArray(32) { 11 }), "v1"))
             val id = UUID.randomUUID()
             val identity = IdentityRules().identity("Example Person", "A@Example.org")

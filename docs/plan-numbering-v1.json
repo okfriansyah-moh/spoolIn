@@ -1,0 +1,1453 @@
+{
+  "schema_version": 1,
+  "target_numbering": "sequential",
+  "source_revision": "ffcaae535b55d75b94256946c4c340e30c509048",
+  "source_plan": "docs/06-PLAN.md",
+  "tasks": [
+    {
+      "old_id": "T001",
+      "new_id": "T001",
+      "old_group": "G01",
+      "new_group": "G01",
+      "old_path": "docs/plan/01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md",
+      "new_path": "docs/plan/01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md",
+      "depends_on_before": [],
+      "depends_on_after": [],
+      "status_before": "Done",
+      "evidence_sha256": "09ef0a1a2e56348b50e2addf822ac0fc771304c6567f4f5e6143dc2792dbf6db"
+    },
+    {
+      "old_id": "T002",
+      "new_id": "T002",
+      "old_group": "G01",
+      "new_group": "G01",
+      "old_path": "docs/plan/01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md",
+      "new_path": "docs/plan/01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md",
+      "depends_on_before": [
+        "T001"
+      ],
+      "depends_on_after": [
+        "T001"
+      ],
+      "status_before": "Done",
+      "evidence_sha256": "f512b66a9fb61e375af1e9fb66c355a55338b2ff64351ebba6aa4fee4bc401a3"
+    },
+    {
+      "old_id": "T003",
+      "new_id": "T003",
+      "old_group": "G01",
+      "new_group": "G01",
+      "old_path": "docs/plan/01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md",
+      "new_path": "docs/plan/01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md",
+      "depends_on_before": [
+        "T001",
+        "T002"
+      ],
+      "depends_on_after": [
+        "T001",
+        "T002"
+      ],
+      "status_before": "Done",
+      "evidence_sha256": "f02b9c88f8523fced3bea1ce6a8eb8b48bfe05ddb06dcf7989516c5c67fd0413"
+    },
+    {
+      "old_id": "T004",
+      "new_id": "T004",
+      "old_group": "G02",
+      "new_group": "G02",
+      "old_path": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
+      "new_path": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
+      "depends_on_before": [
+        "T001",
+        "T002",
+        "T003"
+      ],
+      "depends_on_after": [
+        "T001",
+        "T002",
+        "T003"
+      ],
+      "status_before": "Done",
+      "evidence_sha256": "41dfe9fc8d0d23845cca8ea1f3c370b41a80c427e01a128790c10765ae3ec1cf"
+    },
+    {
+      "old_id": "T005",
+      "new_id": "T005",
+      "old_group": "G03",
+      "new_group": "G03",
+      "old_path": "docs/plan/03-account-access/tasks/T005-protect-account-identities-and-credential-storage.md",
+      "new_path": "docs/plan/03-account-access-credential-storage/tasks/T005-protect-account-identities-and-credential-storage.md",
+      "depends_on_before": [
+        "T002",
+        "T003"
+      ],
+      "depends_on_after": [
+        "T002",
+        "T003"
+      ],
+      "status_before": "Done",
+      "evidence_sha256": "c22b7ced94bcc8430b3091da357d2781bf4faee23386a8ec04f85da9d5841e03"
+    },
+    {
+      "old_id": "T009",
+      "new_id": "T006",
+      "old_group": "G05",
+      "new_group": "G04",
+      "old_path": "docs/plan/04-effective-input-policy/tasks/T009-implement-effective-policy-and-precise-input-semantics.md",
+      "new_path": "docs/plan/04-effective-input-policy/tasks/T006-implement-effective-policy-and-precise-input-semantics.md",
+      "depends_on_before": [
+        "T002",
+        "T003",
+        "T004"
+      ],
+      "depends_on_after": [
+        "T002",
+        "T003",
+        "T004"
+      ],
+      "status_before": "In progress",
+      "evidence_sha256": "a68c80d3fdd65d997803ac6be6131b97a1b452457ccb7d3d30e2666b0bc2541b"
+    },
+    {
+      "old_id": "T010",
+      "new_id": "T007",
+      "old_group": "G06",
+      "new_group": "G05",
+      "old_path": "docs/plan/05-reliable-work/tasks/T010-implement-owner-receipts-and-atomic-mutation-evidence.md",
+      "new_path": "docs/plan/05-reliable-work-mutation-receipts/tasks/T007-implement-owner-receipts-and-atomic-mutation-evidence.md",
+      "depends_on_before": [
+        "T002",
+        "T003",
+        "T009"
+      ],
+      "depends_on_after": [
+        "T002",
+        "T003",
+        "T006"
+      ],
+      "status_before": "In progress",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T006",
+      "new_id": "T008",
+      "old_group": "G03",
+      "new_group": "G06",
+      "old_path": "docs/plan/03-account-access/tasks/T006-implement-registration-and-authoritative-sessions.md",
+      "new_path": "docs/plan/06-account-access-registration-and-sessions/tasks/T008-implement-registration-and-authoritative-sessions.md",
+      "depends_on_before": [
+        "T005",
+        "T009",
+        "T010"
+      ],
+      "depends_on_after": [
+        "T005",
+        "T006",
+        "T007"
+      ],
+      "status_before": "In progress",
+      "evidence_sha256": "72cea18d39beb1e5963a0867cf4e15e43b54d973775176694f3add71156fdee6"
+    },
+    {
+      "old_id": "T008",
+      "new_id": "T009",
+      "old_group": "G04",
+      "new_group": "G07",
+      "old_path": "docs/plan/06-guarded-access/tasks/T008-enforce-scoped-service-identity-and-shared-admission.md",
+      "new_path": "docs/plan/07-guarded-access/tasks/T009-enforce-scoped-service-identity-and-shared-admission.md",
+      "depends_on_before": [
+        "T003",
+        "T005",
+        "T009",
+        "T010",
+        "T006"
+      ],
+      "depends_on_after": [
+        "T003",
+        "T005",
+        "T006",
+        "T007",
+        "T008"
+      ],
+      "status_before": "In progress",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T007",
+      "new_id": "T010",
+      "old_group": "G03",
+      "new_group": "G08",
+      "old_path": "docs/plan/03-account-access/tasks/T007-connect-account-and-session-browser-journeys.md",
+      "new_path": "docs/plan/08-account-access-browser-journeys/tasks/T010-connect-account-and-session-browser-journeys.md",
+      "depends_on_before": [
+        "T004",
+        "T006",
+        "T008"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T008",
+        "T009"
+      ],
+      "status_before": "In progress",
+      "evidence_sha256": "46e1007c3b34c0353d49980124df2d3115f2d262c42c675f251de77688ab12e8"
+    },
+    {
+      "old_id": "T011",
+      "new_id": "T011",
+      "old_group": "G06",
+      "new_group": "G09",
+      "old_path": "docs/plan/05-reliable-work/tasks/T011-run-fenced-recovery-and-bounded-retries.md",
+      "new_path": "docs/plan/09-reliable-work-recovery-and-retries/tasks/T011-run-fenced-recovery-and-bounded-retries.md",
+      "depends_on_before": [
+        "T010",
+        "T008"
+      ],
+      "depends_on_after": [
+        "T007",
+        "T009"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T012",
+      "new_id": "T012",
+      "old_group": "G07",
+      "new_group": "G10",
+      "old_path": "docs/plan/07-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",
+      "new_path": "docs/plan/10-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",
+      "depends_on_before": [
+        "T002",
+        "T003",
+        "T008",
+        "T009",
+        "T010"
+      ],
+      "depends_on_after": [
+        "T002",
+        "T003",
+        "T009",
+        "T006",
+        "T007"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T013",
+      "new_id": "T013",
+      "old_group": "G07",
+      "new_group": "G10",
+      "old_path": "docs/plan/07-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
+      "new_path": "docs/plan/10-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T012"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T012"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T014",
+      "new_id": "T014",
+      "old_group": "G08",
+      "new_group": "G11",
+      "old_path": "docs/plan/08-draft-recovery/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
+      "new_path": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
+      "depends_on_before": [
+        "T005",
+        "T006",
+        "T008",
+        "T009",
+        "T010"
+      ],
+      "depends_on_after": [
+        "T005",
+        "T008",
+        "T009",
+        "T006",
+        "T007"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T015",
+      "new_id": "T015",
+      "old_group": "G08",
+      "new_group": "G11",
+      "old_path": "docs/plan/08-draft-recovery/tasks/T015-build-account-isolated-browser-draft-controllers.md",
+      "new_path": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T015-build-account-isolated-browser-draft-controllers.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T014"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T014"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "588358103ce6c3a256d11d122dcbd15cd327930e91985987f45c3ab2f19490eb"
+    },
+    {
+      "old_id": "T017",
+      "new_id": "T016",
+      "old_group": "G09",
+      "new_group": "G12",
+      "old_path": "docs/plan/09-movie-management/tasks/T017-implement-authoritative-movie-creation-and-edits.md",
+      "new_path": "docs/plan/12-movie-management/tasks/T016-implement-authoritative-movie-creation-and-edits.md",
+      "depends_on_before": [
+        "T008",
+        "T009",
+        "T010",
+        "T012"
+      ],
+      "depends_on_after": [
+        "T009",
+        "T006",
+        "T007",
+        "T012"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T018",
+      "new_id": "T017",
+      "old_group": "G09",
+      "new_group": "G12",
+      "old_path": "docs/plan/09-movie-management/tasks/T018-connect-movie-editors-and-confirmed-outcomes.md",
+      "new_path": "docs/plan/12-movie-management/tasks/T017-connect-movie-editors-and-confirmed-outcomes.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T013",
+        "T015",
+        "T017"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T013",
+        "T015",
+        "T016"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T019",
+      "new_id": "T018",
+      "old_group": "G10",
+      "new_group": "G13",
+      "old_path": "docs/plan/10-people-and-credits/tasks/T019-implement-shared-person-writes-and-identity.md",
+      "new_path": "docs/plan/13-people-and-credits/tasks/T018-implement-shared-person-writes-and-identity.md",
+      "depends_on_before": [
+        "T008",
+        "T009",
+        "T010",
+        "T012",
+        "T017"
+      ],
+      "depends_on_after": [
+        "T009",
+        "T006",
+        "T007",
+        "T012",
+        "T016"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T020",
+      "new_id": "T019",
+      "old_group": "G10",
+      "new_group": "G13",
+      "old_path": "docs/plan/10-people-and-credits/tasks/T020-connect-people-management-and-retained-edits.md",
+      "new_path": "docs/plan/13-people-and-credits/tasks/T019-connect-people-management-and-retained-edits.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T013",
+        "T015",
+        "T019"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T013",
+        "T015",
+        "T018"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T021",
+      "new_id": "T020",
+      "old_group": "G10",
+      "new_group": "G13",
+      "old_path": "docs/plan/10-people-and-credits/tasks/T021-implement-ordered-credits-and-custom-contribution-roles.md",
+      "new_path": "docs/plan/13-people-and-credits/tasks/T020-implement-ordered-credits-and-custom-contribution-roles.md",
+      "depends_on_before": [
+        "T008",
+        "T009",
+        "T010",
+        "T012",
+        "T017",
+        "T019"
+      ],
+      "depends_on_after": [
+        "T009",
+        "T006",
+        "T007",
+        "T012",
+        "T016",
+        "T018"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T022",
+      "new_id": "T021",
+      "old_group": "G10",
+      "new_group": "G13",
+      "old_path": "docs/plan/10-people-and-credits/tasks/T022-connect-credit-editing-and-verify-the-people-outcome.md",
+      "new_path": "docs/plan/13-people-and-credits/tasks/T021-connect-credit-editing-and-verify-the-people-outcome.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T015",
+        "T018",
+        "T020",
+        "T021"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T015",
+        "T017",
+        "T019",
+        "T020"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T025",
+      "new_id": "T022",
+      "old_group": "G12",
+      "new_group": "G14",
+      "old_path": "docs/plan/11-artwork-management/tasks/T025-accept-and-process-bounded-artwork-streams.md",
+      "new_path": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T022-accept-and-process-bounded-artwork-streams.md",
+      "depends_on_before": [
+        "T003",
+        "T008",
+        "T009",
+        "T010",
+        "T011"
+      ],
+      "depends_on_after": [
+        "T003",
+        "T009",
+        "T006",
+        "T007",
+        "T011"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T026",
+      "new_id": "T023",
+      "old_group": "G12",
+      "new_group": "G14",
+      "old_path": "docs/plan/11-artwork-management/tasks/T026-coordinate-protective-holds-attachment-and-cleanup.md",
+      "new_path": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T023-coordinate-protective-holds-attachment-and-cleanup.md",
+      "depends_on_before": [
+        "T008",
+        "T010",
+        "T011",
+        "T017",
+        "T025"
+      ],
+      "depends_on_after": [
+        "T009",
+        "T007",
+        "T011",
+        "T016",
+        "T022"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T023",
+      "new_id": "T024",
+      "old_group": "G11",
+      "new_group": "G15",
+      "old_path": "docs/plan/12-archive-management/tasks/T023-implement-current-impact-archive-restore-and-deletion.md",
+      "new_path": "docs/plan/15-archive-management/tasks/T024-implement-current-impact-archive-restore-and-deletion.md",
+      "depends_on_before": [
+        "T008",
+        "T010",
+        "T012",
+        "T017",
+        "T019",
+        "T021",
+        "T026"
+      ],
+      "depends_on_after": [
+        "T009",
+        "T007",
+        "T012",
+        "T016",
+        "T018",
+        "T020",
+        "T023"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T024",
+      "new_id": "T025",
+      "old_group": "G11",
+      "new_group": "G15",
+      "old_path": "docs/plan/12-archive-management/tasks/T024-connect-private-archives-and-irreversible-confirmations.md",
+      "new_path": "docs/plan/15-archive-management/tasks/T025-connect-private-archives-and-irreversible-confirmations.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T013",
+        "T018",
+        "T020",
+        "T022",
+        "T023"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T013",
+        "T017",
+        "T019",
+        "T021",
+        "T024"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T027",
+      "new_id": "T026",
+      "old_group": "G12",
+      "new_group": "G16",
+      "old_path": "docs/plan/11-artwork-management/tasks/T027-connect-measured-progress-and-recover-attachment-outcomes.md",
+      "new_path": "docs/plan/16-artwork-management-browser-journeys/tasks/T026-connect-measured-progress-and-recover-attachment-outcomes.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T018",
+        "T025",
+        "T026",
+        "T023"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T017",
+        "T022",
+        "T023",
+        "T024"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T016",
+      "new_id": "T027",
+      "old_group": "G08",
+      "new_group": "G17",
+      "old_path": "docs/plan/08-draft-recovery/tasks/T016-prove-recovery-through-real-movie-person-and-credit-editors.md",
+      "new_path": "docs/plan/17-draft-recovery-editor-integration/tasks/T027-prove-recovery-through-real-movie-person-and-credit-editors.md",
+      "depends_on_before": [
+        "T015",
+        "T018",
+        "T020",
+        "T022",
+        "T024",
+        "T027"
+      ],
+      "depends_on_after": [
+        "T015",
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T026"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "20dabd783664ba26bc8f6c997d48c06ddb2beba0a34dc4935be1af746fa60297"
+    },
+    {
+      "old_id": "T029",
+      "new_id": "T028",
+      "old_group": "G14",
+      "new_group": "G18",
+      "old_path": "docs/plan/13-assisted-movie-creation/tasks/T029-implement-isolated-mcp-transport-and-connector-identity.md",
+      "new_path": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T028-implement-isolated-mcp-transport-and-connector-identity.md",
+      "depends_on_before": [
+        "T001",
+        "T002",
+        "T006",
+        "T008",
+        "T009",
+        "T010"
+      ],
+      "depends_on_after": [
+        "T001",
+        "T002",
+        "T008",
+        "T009",
+        "T006",
+        "T007"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T030",
+      "new_id": "T029",
+      "old_group": "G14",
+      "new_group": "G18",
+      "old_path": "docs/plan/13-assisted-movie-creation/tasks/T030-commit-immutable-proposals-and-exact-approval-once.md",
+      "new_path": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T029-commit-immutable-proposals-and-exact-approval-once.md",
+      "depends_on_before": [
+        "T008",
+        "T009",
+        "T010",
+        "T012",
+        "T017",
+        "T029"
+      ],
+      "depends_on_after": [
+        "T009",
+        "T006",
+        "T007",
+        "T012",
+        "T016",
+        "T028"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T031",
+      "new_id": "T030",
+      "old_group": "G14",
+      "new_group": "G18",
+      "old_path": "docs/plan/13-assisted-movie-creation/tasks/T031-build-the-trusted-in-chat-review-resource.md",
+      "new_path": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T030-build-the-trusted-in-chat-review-resource.md",
+      "depends_on_before": [
+        "T004",
+        "T029",
+        "T030"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T028",
+        "T029"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T028",
+      "new_id": "T031",
+      "old_group": "G13",
+      "new_group": "G19",
+      "old_path": "docs/plan/14-accountable-history/tasks/T028-expose-complete-read-only-audit-outcomes.md",
+      "new_path": "docs/plan/19-accountable-history/tasks/T031-expose-complete-read-only-audit-outcomes.md",
+      "depends_on_before": [
+        "T004",
+        "T007",
+        "T017",
+        "T020",
+        "T022",
+        "T024",
+        "T026",
+        "T030"
+      ],
+      "depends_on_after": [
+        "T004",
+        "T010",
+        "T016",
+        "T019",
+        "T021",
+        "T025",
+        "T023",
+        "T029"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "b4488fe5605dd04fca4c4678bb55ab3950965469af50eed0dc31cff33d2951ff"
+    },
+    {
+      "old_id": "T034",
+      "new_id": "T032",
+      "old_group": "G15",
+      "new_group": "G20",
+      "old_path": "docs/plan/15-reproducible-seed/tasks/T034-assemble-the-permitted-frozen-100-movie-and-100-series-dataset.md",
+      "new_path": "docs/plan/20-reproducible-seed/tasks/T032-assemble-the-permitted-frozen-100-movie-and-100-series-dataset.md",
+      "depends_on_before": [
+        "T001",
+        "T009"
+      ],
+      "depends_on_after": [
+        "T001",
+        "T006"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "df8db9ebfe6ccd52005e10242dc22d7d7fd190c62863b867724649671818a5be"
+    },
+    {
+      "old_id": "T035",
+      "new_id": "T033",
+      "old_group": "G15",
+      "new_group": "G20",
+      "old_path": "docs/plan/15-reproducible-seed/tasks/T035-initialize-and-replay-seed-and-prepared-accounts-safely.md",
+      "new_path": "docs/plan/20-reproducible-seed/tasks/T033-initialize-and-replay-seed-and-prepared-accounts-safely.md",
+      "depends_on_before": [
+        "T006",
+        "T010",
+        "T012",
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T026",
+        "T034",
+        "T023",
+        "T007",
+        "T013"
+      ],
+      "depends_on_after": [
+        "T008",
+        "T007",
+        "T012",
+        "T016",
+        "T018",
+        "T020",
+        "T022",
+        "T023",
+        "T032",
+        "T024",
+        "T010",
+        "T013"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T036",
+      "new_id": "T034",
+      "old_group": "G16",
+      "new_group": "G21",
+      "old_path": "docs/plan/16-operational-notifications/tasks/T036-record-actionable-alerts-through-one-selected-mode.md",
+      "new_path": "docs/plan/21-operational-notifications/tasks/T034-record-actionable-alerts-through-one-selected-mode.md",
+      "depends_on_before": [
+        "T003",
+        "T009",
+        "T010",
+        "T011"
+      ],
+      "depends_on_after": [
+        "T003",
+        "T006",
+        "T007",
+        "T011"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T037",
+      "new_id": "T035",
+      "old_group": "G17",
+      "new_group": "G22",
+      "old_path": "docs/plan/17-operational-evidence/tasks/T037-emit-bounded-private-safe-json-diagnostics.md",
+      "new_path": "docs/plan/22-operational-evidence/tasks/T035-emit-bounded-private-safe-json-diagnostics.md",
+      "depends_on_before": [
+        "T002",
+        "T003",
+        "T008",
+        "T011",
+        "T029",
+        "T026"
+      ],
+      "depends_on_after": [
+        "T002",
+        "T003",
+        "T009",
+        "T011",
+        "T028",
+        "T023"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T038",
+      "new_id": "T036",
+      "old_group": "G17",
+      "new_group": "G22",
+      "old_path": "docs/plan/17-operational-evidence/tasks/T038-expose-logical-metrics-dashboards-and-alert-episodes.md",
+      "new_path": "docs/plan/22-operational-evidence/tasks/T036-expose-logical-metrics-dashboards-and-alert-episodes.md",
+      "depends_on_before": [
+        "T011",
+        "T025",
+        "T026",
+        "T029",
+        "T036",
+        "T037"
+      ],
+      "depends_on_after": [
+        "T011",
+        "T022",
+        "T023",
+        "T028",
+        "T034",
+        "T035"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T039",
+      "new_id": "T037",
+      "old_group": "G18",
+      "new_group": "G23",
+      "old_path": "docs/plan/18-local-operations/tasks/T039-implement-the-seven-reproducible-lifecycle-commands.md",
+      "new_path": "docs/plan/23-local-operations/tasks/T037-implement-the-seven-reproducible-lifecycle-commands.md",
+      "depends_on_before": [
+        "T001",
+        "T003",
+        "T007",
+        "T011",
+        "T013",
+        "T018",
+        "T020",
+        "T022",
+        "T024",
+        "T027",
+        "T028",
+        "T029",
+        "T031",
+        "T035",
+        "T036",
+        "T038"
+      ],
+      "depends_on_after": [
+        "T001",
+        "T003",
+        "T010",
+        "T011",
+        "T013",
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T026",
+        "T031",
+        "T028",
+        "T030",
+        "T033",
+        "T034",
+        "T036"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "a833e7a71fb53e77b009ebd1a0e73eaeae08854112041de1d56e08fe8ef60402"
+    },
+    {
+      "old_id": "T032",
+      "new_id": "T038",
+      "old_group": "G14",
+      "new_group": "G24",
+      "old_path": "docs/plan/13-assisted-movie-creation/tasks/T032-verify-trusted-approval-in-claude-desktop.md",
+      "new_path": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T038-verify-trusted-approval-in-claude-desktop.md",
+      "depends_on_before": [
+        "T029",
+        "T030",
+        "T031",
+        "T039"
+      ],
+      "depends_on_after": [
+        "T028",
+        "T029",
+        "T030",
+        "T037"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "20dabd783664ba26bc8f6c997d48c06ddb2beba0a34dc4935be1af746fa60297"
+    },
+    {
+      "old_id": "T033",
+      "new_id": "T039",
+      "old_group": "G14",
+      "new_group": "G24",
+      "old_path": "docs/plan/13-assisted-movie-creation/tasks/T033-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
+      "new_path": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T039-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
+      "depends_on_before": [
+        "T029",
+        "T030",
+        "T031",
+        "T032",
+        "T039"
+      ],
+      "depends_on_after": [
+        "T028",
+        "T029",
+        "T030",
+        "T038",
+        "T037"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "20dabd783664ba26bc8f6c997d48c06ddb2beba0a34dc4935be1af746fa60297"
+    },
+    {
+      "old_id": "T040",
+      "new_id": "T040",
+      "old_group": "G19",
+      "new_group": "G25",
+      "old_path": "docs/plan/19-protected-recovery/tasks/T040-rotate-keys-and-aliases-without-losing-access.md",
+      "new_path": "docs/plan/25-protected-recovery/tasks/T040-rotate-keys-and-aliases-without-losing-access.md",
+      "depends_on_before": [
+        "T005",
+        "T006",
+        "T014",
+        "T035"
+      ],
+      "depends_on_after": [
+        "T005",
+        "T008",
+        "T014",
+        "T033"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "2ea74545ad4c94a9966ea685031c5c2a647f04f78e30afddc108226fdf86c151"
+    },
+    {
+      "old_id": "T041",
+      "new_id": "T041",
+      "old_group": "G19",
+      "new_group": "G25",
+      "old_path": "docs/plan/19-protected-recovery/tasks/T041-verify-migrations-purge-and-coordinated-restore.md",
+      "new_path": "docs/plan/25-protected-recovery/tasks/T041-verify-migrations-purge-and-coordinated-restore.md",
+      "depends_on_before": [
+        "T003",
+        "T011",
+        "T023",
+        "T026",
+        "T035",
+        "T039",
+        "T040"
+      ],
+      "depends_on_after": [
+        "T003",
+        "T011",
+        "T024",
+        "T023",
+        "T033",
+        "T037",
+        "T040"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "a833e7a71fb53e77b009ebd1a0e73eaeae08854112041de1d56e08fe8ef60402"
+    },
+    {
+      "old_id": "T042",
+      "new_id": "T042",
+      "old_group": "G20",
+      "new_group": "G26",
+      "old_path": "docs/plan/20-release-assurance/tasks/T042-reconcile-every-real-api-and-rpc-boundary-row.md",
+      "new_path": "docs/plan/26-release-assurance/tasks/T042-reconcile-every-real-api-and-rpc-boundary-row.md",
+      "depends_on_before": [
+        "T007",
+        "T008",
+        "T013",
+        "T016",
+        "T018",
+        "T020",
+        "T022",
+        "T024",
+        "T027",
+        "T028",
+        "T033",
+        "T035",
+        "T036",
+        "T039",
+        "T040",
+        "T041"
+      ],
+      "depends_on_after": [
+        "T010",
+        "T009",
+        "T013",
+        "T027",
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T026",
+        "T031",
+        "T039",
+        "T033",
+        "T034",
+        "T037",
+        "T040",
+        "T041"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "a833e7a71fb53e77b009ebd1a0e73eaeae08854112041de1d56e08fe8ef60402"
+    },
+    {
+      "old_id": "T043",
+      "new_id": "T043",
+      "old_group": "G20",
+      "new_group": "G26",
+      "old_path": "docs/plan/20-release-assurance/tasks/T043-verify-policy-authorization-and-injection-across-complete-flows.md",
+      "new_path": "docs/plan/26-release-assurance/tasks/T043-verify-policy-authorization-and-injection-across-complete-flows.md",
+      "depends_on_before": [
+        "T042"
+      ],
+      "depends_on_after": [
+        "T042"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "20dabd783664ba26bc8f6c997d48c06ddb2beba0a34dc4935be1af746fa60297"
+    },
+    {
+      "old_id": "T044",
+      "new_id": "T044",
+      "old_group": "G20",
+      "new_group": "G26",
+      "old_path": "docs/plan/20-release-assurance/tasks/T044-complete-visual-interaction-and-accessibility-evidence.md",
+      "new_path": "docs/plan/26-release-assurance/tasks/T044-complete-visual-interaction-and-accessibility-evidence.md",
+      "depends_on_before": [
+        "T013",
+        "T016",
+        "T018",
+        "T020",
+        "T022",
+        "T024",
+        "T027",
+        "T028",
+        "T031",
+        "T033",
+        "T043"
+      ],
+      "depends_on_after": [
+        "T013",
+        "T027",
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T026",
+        "T031",
+        "T030",
+        "T039",
+        "T043"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "20dabd783664ba26bc8f6c997d48c06ddb2beba0a34dc4935be1af746fa60297"
+    },
+    {
+      "old_id": "T045",
+      "new_id": "T045",
+      "old_group": "G20",
+      "new_group": "G26",
+      "old_path": "docs/plan/20-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
+      "new_path": "docs/plan/26-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
+      "depends_on_before": [
+        "T038",
+        "T039",
+        "T041",
+        "T042",
+        "T043"
+      ],
+      "depends_on_after": [
+        "T036",
+        "T037",
+        "T041",
+        "T042",
+        "T043"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "a833e7a71fb53e77b009ebd1a0e73eaeae08854112041de1d56e08fe8ef60402"
+    },
+    {
+      "old_id": "T046",
+      "new_id": "T046",
+      "old_group": "G20",
+      "new_group": "G26",
+      "old_path": "docs/plan/20-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md",
+      "new_path": "docs/plan/26-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md",
+      "depends_on_before": [
+        "T032",
+        "T033",
+        "T035",
+        "T036",
+        "T037",
+        "T038",
+        "T039",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T044",
+        "T045"
+      ],
+      "depends_on_after": [
+        "T038",
+        "T039",
+        "T033",
+        "T034",
+        "T035",
+        "T036",
+        "T037",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T044",
+        "T045"
+      ],
+      "status_before": "Not started",
+      "evidence_sha256": "cddd99900675e9e437537169c5b6e2493aabda7f932a0d1ef1e211ab720e47cf"
+    }
+  ],
+  "groups": [
+    {
+      "old_id": "G03",
+      "old_path": "docs/plan/03-account-access/group.md",
+      "new_ids": [
+        "G03",
+        "G06",
+        "G08"
+      ],
+      "new_paths": [
+        "docs/plan/03-account-access-credential-storage/group.md",
+        "docs/plan/06-account-access-registration-and-sessions/group.md",
+        "docs/plan/08-account-access-browser-journeys/group.md"
+      ]
+    },
+    {
+      "old_id": "G06",
+      "old_path": "docs/plan/05-reliable-work/group.md",
+      "new_ids": [
+        "G05",
+        "G09"
+      ],
+      "new_paths": [
+        "docs/plan/05-reliable-work-mutation-receipts/group.md",
+        "docs/plan/09-reliable-work-recovery-and-retries/group.md"
+      ]
+    },
+    {
+      "old_id": "G04",
+      "old_path": "docs/plan/06-guarded-access/group.md",
+      "new_ids": [
+        "G07"
+      ],
+      "new_paths": [
+        "docs/plan/07-guarded-access/group.md"
+      ]
+    },
+    {
+      "old_id": "G05",
+      "old_path": "docs/plan/04-effective-input-policy/group.md",
+      "new_ids": [
+        "G04"
+      ],
+      "new_paths": [
+        "docs/plan/04-effective-input-policy/group.md"
+      ]
+    },
+    {
+      "old_id": "G01",
+      "old_path": "docs/plan/01-reproducible-foundation/group.md",
+      "new_ids": [
+        "G01"
+      ],
+      "new_paths": [
+        "docs/plan/01-reproducible-foundation/group.md"
+      ]
+    },
+    {
+      "old_id": "G11",
+      "old_path": "docs/plan/12-archive-management/group.md",
+      "new_ids": [
+        "G15"
+      ],
+      "new_paths": [
+        "docs/plan/15-archive-management/group.md"
+      ]
+    },
+    {
+      "old_id": "G20",
+      "old_path": "docs/plan/20-release-assurance/group.md",
+      "new_ids": [
+        "G26"
+      ],
+      "new_paths": [
+        "docs/plan/26-release-assurance/group.md"
+      ]
+    },
+    {
+      "old_id": "G08",
+      "old_path": "docs/plan/08-draft-recovery/group.md",
+      "new_ids": [
+        "G11",
+        "G17"
+      ],
+      "new_paths": [
+        "docs/plan/11-draft-recovery-storage-and-controllers/group.md",
+        "docs/plan/17-draft-recovery-editor-integration/group.md"
+      ]
+    },
+    {
+      "old_id": "G02",
+      "old_path": "docs/plan/02-application-shell/group.md",
+      "new_ids": [
+        "G02"
+      ],
+      "new_paths": [
+        "docs/plan/02-application-shell/group.md"
+      ]
+    },
+    {
+      "old_id": "G15",
+      "old_path": "docs/plan/15-reproducible-seed/group.md",
+      "new_ids": [
+        "G20"
+      ],
+      "new_paths": [
+        "docs/plan/20-reproducible-seed/group.md"
+      ]
+    },
+    {
+      "old_id": "G09",
+      "old_path": "docs/plan/09-movie-management/group.md",
+      "new_ids": [
+        "G12"
+      ],
+      "new_paths": [
+        "docs/plan/12-movie-management/group.md"
+      ]
+    },
+    {
+      "old_id": "G18",
+      "old_path": "docs/plan/18-local-operations/group.md",
+      "new_ids": [
+        "G23"
+      ],
+      "new_paths": [
+        "docs/plan/23-local-operations/group.md"
+      ]
+    },
+    {
+      "old_id": "G17",
+      "old_path": "docs/plan/17-operational-evidence/group.md",
+      "new_ids": [
+        "G22"
+      ],
+      "new_paths": [
+        "docs/plan/22-operational-evidence/group.md"
+      ]
+    },
+    {
+      "old_id": "G10",
+      "old_path": "docs/plan/10-people-and-credits/group.md",
+      "new_ids": [
+        "G13"
+      ],
+      "new_paths": [
+        "docs/plan/13-people-and-credits/group.md"
+      ]
+    },
+    {
+      "old_id": "G13",
+      "old_path": "docs/plan/14-accountable-history/group.md",
+      "new_ids": [
+        "G19"
+      ],
+      "new_paths": [
+        "docs/plan/19-accountable-history/group.md"
+      ]
+    },
+    {
+      "old_id": "G07",
+      "old_path": "docs/plan/07-catalog-discovery/group.md",
+      "new_ids": [
+        "G10"
+      ],
+      "new_paths": [
+        "docs/plan/10-catalog-discovery/group.md"
+      ]
+    },
+    {
+      "old_id": "G16",
+      "old_path": "docs/plan/16-operational-notifications/group.md",
+      "new_ids": [
+        "G21"
+      ],
+      "new_paths": [
+        "docs/plan/21-operational-notifications/group.md"
+      ]
+    },
+    {
+      "old_id": "G14",
+      "old_path": "docs/plan/13-assisted-movie-creation/group.md",
+      "new_ids": [
+        "G18",
+        "G24"
+      ],
+      "new_paths": [
+        "docs/plan/18-assisted-movie-creation-transport-and-review/group.md",
+        "docs/plan/24-assisted-movie-creation-client-acceptance/group.md"
+      ]
+    },
+    {
+      "old_id": "G19",
+      "old_path": "docs/plan/19-protected-recovery/group.md",
+      "new_ids": [
+        "G25"
+      ],
+      "new_paths": [
+        "docs/plan/25-protected-recovery/group.md"
+      ]
+    },
+    {
+      "old_id": "G12",
+      "old_path": "docs/plan/11-artwork-management/group.md",
+      "new_ids": [
+        "G14",
+        "G16"
+      ],
+      "new_paths": [
+        "docs/plan/14-artwork-management-processing-and-attachment/group.md",
+        "docs/plan/16-artwork-management-browser-journeys/group.md"
+      ]
+    }
+  ],
+  "evidence_namespace": ".ai/evidence/numbering-v1",
+  "reports": [
+    {
+      "old_path": ".ai/evidence/t001-harness.json",
+      "new_path": ".ai/evidence/numbering-v1/t001-harness.json",
+      "old_task": "T001",
+      "new_task": "T001"
+    },
+    {
+      "old_path": ".ai/evidence/t001-build.json",
+      "new_path": ".ai/evidence/numbering-v1/t001-build.json",
+      "old_task": "T001",
+      "new_task": "T001"
+    },
+    {
+      "old_path": ".ai/evidence/t002-contract-tests.json",
+      "new_path": ".ai/evidence/numbering-v1/t002-contract-tests.json",
+      "old_task": "T002",
+      "new_task": "T002"
+    },
+    {
+      "old_path": ".ai/evidence/t003-owner-tests.json",
+      "new_path": ".ai/evidence/numbering-v1/t003-owner-tests.json",
+      "old_task": "T003",
+      "new_task": "T003"
+    },
+    {
+      "old_path": ".ai/evidence/t004-unit.json",
+      "new_path": ".ai/evidence/numbering-v1/t004-unit.json",
+      "old_task": "T004",
+      "new_task": "T004"
+    },
+    {
+      "old_path": ".ai/evidence/t005-unit-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t005-unit-results.json",
+      "old_task": "T005",
+      "new_task": "T005"
+    },
+    {
+      "old_path": ".ai/evidence/t005-integration-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t005-integration-results.json",
+      "old_task": "T005",
+      "new_task": "T005"
+    },
+    {
+      "old_path": ".ai/evidence/t006-unit-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t008-unit-results.json",
+      "old_task": "T006",
+      "new_task": "T008"
+    },
+    {
+      "old_path": ".ai/evidence/t006-integration-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t008-integration-results.json",
+      "old_task": "T006",
+      "new_task": "T008"
+    },
+    {
+      "old_path": ".ai/evidence/t007-unit-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t010-unit-results.json",
+      "old_task": "T007",
+      "new_task": "T010"
+    },
+    {
+      "old_path": ".ai/evidence/t007-integration-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t010-integration-results.json",
+      "old_task": "T007",
+      "new_task": "T010"
+    },
+    {
+      "old_path": ".ai/evidence/t009-unit-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t006-unit-results.json",
+      "old_task": "T009",
+      "new_task": "T006"
+    },
+    {
+      "old_path": ".ai/evidence/t010-unit-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t007-unit-results.json",
+      "old_task": "T010",
+      "new_task": "T007"
+    },
+    {
+      "old_path": ".ai/evidence/t010-integration-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t007-integration-results.json",
+      "old_task": "T010",
+      "new_task": "T007"
+    },
+    {
+      "old_path": ".ai/evidence/t008-unit-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t009-unit-results.json",
+      "old_task": "T008",
+      "new_task": "T009"
+    },
+    {
+      "old_path": ".ai/evidence/t008-integration-results.json",
+      "new_path": ".ai/evidence/numbering-v1/t009-integration-results.json",
+      "old_task": "T008",
+      "new_task": "T009"
+    }
+  ]
+}

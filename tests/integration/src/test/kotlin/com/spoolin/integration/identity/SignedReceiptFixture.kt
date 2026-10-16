@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class SignedReceiptFixture(
-    evidenceName: String = "t008-signed-receipt.json",
+    evidenceName: String = "t009-signed-receipt.json",
 ) : AutoCloseable {
     val fixture = CryptoFixture(evidenceName)
     val root = fixture.owner.root

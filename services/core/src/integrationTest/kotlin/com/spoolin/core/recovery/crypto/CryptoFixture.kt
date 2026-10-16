@@ -95,7 +95,7 @@ class CryptoFixture(
         row: String,
         values: Map<String, Any>,
     ) {
-        val path = owner.repository.resolve(".ai/evidence/t005-$case-$row.json")
+        val path = owner.repository.resolve(".ai/evidence/numbering-v1/t005-$case-$row.json")
         Files.createDirectories(path.parent)
         Files.writeString(
             path,

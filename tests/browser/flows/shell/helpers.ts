@@ -1,7 +1,7 @@
 import { expect, type Page, type TestInfo } from '@playwright/test';
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
-export const evidence = resolve('../../.ai/evidence/g02-shell');
+export const evidence = resolve('../../.ai/evidence/numbering-v1/g02-shell');
 export async function setup(page: Page) {
   await page.route('https://example.test/**', (route) =>
     route.fulfill({

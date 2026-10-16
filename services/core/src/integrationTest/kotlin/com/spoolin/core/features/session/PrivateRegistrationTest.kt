@@ -27,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec
 class PrivateRegistrationTest {
     @Test
     fun `ATDD153 persisted receipt binds keyed identity and nonce without retaining private credential channels`() {
-        CryptoFixture("t006-private-registration.json").use { fixture ->
+        CryptoFixture("t008-private-registration.json").use { fixture ->
             PasswordHasher(Argon2Engine()).use { hasher ->
                 val key = ByteArray(32) { 17 }
                 val receipts = OwnerReceipts(fixture.pool, IntentHashes(mapOf("v1" to key), "v1"))

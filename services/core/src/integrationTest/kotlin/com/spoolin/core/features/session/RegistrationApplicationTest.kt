@@ -18,7 +18,7 @@ import java.util.UUID
 class RegistrationApplicationTest {
     @Test
     fun `admission is closed by default and generic private replay never revalidates changed password or name`() {
-        CryptoFixture("t006-registration-application.json").use { fixture ->
+        CryptoFixture("t008-registration-application.json").use { fixture ->
             PasswordHasher(Argon2Engine()).use { hasher ->
                 val receipts = OwnerReceipts(fixture.pool, IntentHashes(mapOf("v1" to ByteArray(32) { 11 }), "v1"))
                 val rules = IdentityRules()

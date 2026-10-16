@@ -47,7 +47,7 @@ class PolicyBoundaryRulesTest {
             Triple("Cursor", "x".repeat(1024), true),
             Triple("Cursor", "x".repeat(1025), false),
         ).mapIndexed { index, (name, value, accepted) ->
-            dynamicTest("T009 strict scalar recipe $index $name") {
+            dynamicTest("T006 strict scalar recipe $index $name") {
                 if (accepted) {
                     assertEquals(value, PolicyScalars.validate(name, value))
                 } else {
@@ -57,7 +57,7 @@ class PolicyBoundaryRulesTest {
         }
 
     @Test
-    fun `T009 envelope rejects unknown and excessive fields without leaking values`() {
+    fun `T006 envelope rejects unknown and excessive fields without leaking values`() {
         val policy = PolicySettings.resolve(ConfigurationSources())
         val envelope = GraphqlEnvelope(policy)
         assertEquals("{ policy { revision } }", envelope.parse(mapOf("query" to "{ policy { revision } }")).query)
@@ -85,7 +85,7 @@ class PolicyBoundaryRulesTest {
     }
 
     @Test
-    fun `T009 mutation root count includes named and inline fragments`() {
+    fun `T006 mutation root count includes named and inline fragments`() {
         val envelope = GraphqlEnvelope(PolicySettings.resolve(ConfigurationSources()))
         val named =
             "mutation { ...Actions } fragment Actions on Mutation { " +

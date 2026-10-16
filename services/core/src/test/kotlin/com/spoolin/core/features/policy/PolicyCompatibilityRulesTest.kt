@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 
 class PolicyCompatibilityRulesTest {
     @Test
-    fun `T009-A2 selected current minimum does not alter existing credential eligibility or bytes`() {
+    fun `T006-A2 selected current minimum does not alter existing credential eligibility or bytes`() {
         val old = " a\u00a0 ".repeat(2)
         val current = PolicySettings.resolve(ConfigurationSources(mapOf("PASSWORD_MIN_CODE_POINTS" to "30")))
         assertTrue(PasswordInput.verificationEligible(old))

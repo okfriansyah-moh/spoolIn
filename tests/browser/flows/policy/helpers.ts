@@ -4,7 +4,7 @@ import { resolve, extname } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 
 const evidence = resolve(
-  '../../.ai/evidence/t009-policy/visual',
+  '../../.ai/evidence/numbering-v1/t006-policy/visual',
   `run-${randomUUID().replaceAll('-', '')}`,
 );
 export const draft =

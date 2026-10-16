@@ -28,20 +28,20 @@ def owner(owner_name, task="receiptIntegrationTest", module=None):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", choices=["T010", "T008"], required=True)
+    parser.add_argument("--task", choices=["T007", "T009"], required=True)
     parser.add_argument("--level", choices=["unit", "integration"], required=True)
     arguments = parser.parse_args()
-    folder = "t010-receipts" if arguments.task == "T010" else "t008-boundaries"
-    runner.OUTPUT = ROOT / ".ai/evidence" / folder / arguments.level / ("run-" + uuid.uuid4().hex)
+    folder = "t007-receipts" if arguments.task == "T007" else "t009-boundaries"
+    runner.OUTPUT = ROOT / ".ai/evidence/numbering-v1" / folder / arguments.level / ("run-" + uuid.uuid4().hex)
     runner.OUTPUT.mkdir(parents=True)
-    report = ROOT / f".ai/evidence/{arguments.task.lower()}-{arguments.level}-results.json"
+    report = ROOT / f".ai/evidence/numbering-v1/{arguments.task.lower()}-{arguments.level}-results.json"
     report.unlink(missing_ok=True)
     suites = [lambda: runner.backend("libraries/backend-support", ["com.spoolin.support.receipts.*"], "shared")]
     if arguments.level == "unit":
         suites.append(lambda: runner.backend("services/core", ["com.spoolin.core.operations.receipts.*"], "core"))
     if arguments.level == "integration":
         suites = [lambda name=name: owner(name) for name in ["core", "catalog", "media"]]
-    if arguments.task == "T008":
+    if arguments.task == "T009":
         suites = [lambda: runner.backend("libraries/backend-support", ["com.spoolin.support.identity.*"], "shared")]
         if arguments.level == "unit":
             suites.append(lambda: runner.backend("services/core", ["*ActorIssuerRulesTest"], "issuer"))

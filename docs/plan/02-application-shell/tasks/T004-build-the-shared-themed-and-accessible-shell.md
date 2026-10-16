@@ -331,7 +331,7 @@ The following assigned source clauses are a checklist, not new contracts. Read t
 
 1. Implement shared semantic token adapters, exact SpoolIn wordmark/paired-frame asset and dark/light theme selection. Generate CSS from tokens.json; keep component geometry shared and only the approved color/display-font override.
 2. Create shared Field/ErrorSummary/Notice/OperationFeedback/Dialog/ArtworkSlot/layout components with typed props and escaped text. Dialog focus starts on Cancel, traps Tab, supports Escape and returns focus; route headings/title and live status announcements remain meaningful.
-3. Create the client-only layout and capability-aware navigation interface. Public shell may render before identity; protected projections wait for T007 SessionBoundary integration. No demo role/state selector becomes a production feature.
+3. Create the client-only layout and capability-aware navigation interface. Public shell may render before identity; protected projections wait for T010 SessionBoundary integration. No demo role/state selector becomes a production feature.
 4. Use production localStorage only for validated spoolin.theme dark/light. Follow OS preference when unset, remove invalid values, and survive storage exceptions in memory. Do not port prototype storage keys or fixture JavaScript.
 5. Verify component states, both themes, 1440/390/320 widths, long Unicode names, missing artwork and safe markup-looking text before downstream feature composition.
 
@@ -403,7 +403,7 @@ The implementer checks the diff and runs affected tests. One independent reviewe
 
 Use the linked adopted references and actual feature for relevant changed states. Browser assertions and direct inspection establish ordinary behavior; retain screenshots when visual inspection needs them. Record actual fixtures, environment and outcomes. Exhaustive theme/width/browser matrices below remain release coverage references owned by T044 unless the selected behavior needs that exact observation. Do not delete their case IDs or claim deferred proof passed.
 
-Check changed keyboard/focus/labels/errors/announcements and relevant zoom, motion, touch and browser behavior. Preserve known regressions and actual reader observations required to prove speech; exhaustive compatibility sweeps remain release-owned. For AI states include actual Claude/ChatGPT host context at T032/T033; standalone resource evidence cannot prove host isolation. Existing mockups are adopted references, not automatic pixel baselines or production test passes.
+Check changed keyboard/focus/labels/errors/announcements and relevant zoom, motion, touch and browser behavior. Preserve known regressions and actual reader observations required to prove speech; exhaustive compatibility sweeps remain release-owned. For AI states include actual Claude/ChatGPT host context at T038/T039; standalone resource evidence cannot prove host isolation. Existing mockups are adopted references, not automatic pixel baselines or production test passes.
 
 | Flow/state reference | Actor and fixture condition | Trigger and expected comparison |
 |---|---|---|

@@ -61,7 +61,7 @@ class NonceIntegrationTest {
         val rootExists = Files.exists(fixture.root)
         assertFalse(rootExists)
         Files.writeString(
-            fixture.repository.resolve(".ai/evidence/t009-runtime-fixture-cleanup.json"),
+            fixture.repository.resolve(".ai/evidence/numbering-v1/t006-runtime-fixture-cleanup.json"),
             ObjectMapper().writeValueAsString(
                 mapOf(
                     "containerId" to id,

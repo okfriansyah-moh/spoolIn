@@ -45,8 +45,8 @@ if __name__ == '__main__':
         result = ObservedResult(sys.stderr, True, 2)
     else:
         result = unittest.TextTestRunner(verbosity=2, resultclass=ObservedResult).run(suite)
-    counts = write_junit(ROOT / '.ai/evidence/t002-contract-tests.xml', tests, result, suite_name='T002 shared contracts')
-    path = ROOT / '.ai/evidence/t002-contract-tests.json'
+    counts = write_junit(ROOT / '.ai/evidence/numbering-v1/t002-contract-tests.xml', tests, result, suite_name='T002 shared contracts')
+    path = ROOT / '.ai/evidence/numbering-v1/t002-contract-tests.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({**counts, 'cases': ['T002-A1', 'T002-A2', 'T002-A3', 'ATDD-302']}, indent=2) + '\n')
     sys.exit(2 if counts['selected'] < 1 or counts['selected'] != counts['executed'] else 1 if counts['failed'] else 0)

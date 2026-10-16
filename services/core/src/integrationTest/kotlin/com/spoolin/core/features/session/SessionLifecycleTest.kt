@@ -17,7 +17,7 @@ import java.util.UUID
 class SessionLifecycleTest {
     @Test
     fun `signing in to another account revokes previous browser credential`() {
-        CryptoFixture("t006-session-account-switch.json").use { fixture ->
+        CryptoFixture("t008-session-account-switch.json").use { fixture ->
             val first = seed(fixture, "a@example.test")
             val second = seed(fixture, "b@example.test")
             val sessions = SessionStore(fixture.pool, SessionCsrf(ByteArray(32) { 11 }))
@@ -30,7 +30,7 @@ class SessionLifecycleTest {
 
     @Test
     fun `expired hashes remain seven days and purge at exact idle retention cutoff`() {
-        CryptoFixture("t006-session-expiry-retention.json").use { fixture ->
+        CryptoFixture("t008-session-expiry-retention.json").use { fixture ->
             val id = seed(fixture, "a@example.test")
             val now = Instant.parse("2026-10-20T00:00:00Z")
             val csrf = SessionCsrf(ByteArray(32) { 11 })
@@ -47,7 +47,7 @@ class SessionLifecycleTest {
 
     @Test
     fun `revoked hashes purge seven days after revocation without deleting a newer eligible retention row`() {
-        CryptoFixture("t006-session-revoked-retention.json").use { fixture ->
+        CryptoFixture("t008-session-revoked-retention.json").use { fixture ->
             val id = seed(fixture, "a@example.test")
             val now = Instant.parse("2026-10-20T00:00:00Z")
             val csrf = SessionCsrf(ByteArray(32) { 11 })
@@ -63,7 +63,7 @@ class SessionLifecycleTest {
 
     @Test
     fun `absolute eligibility ends before purge even after recent activity`() {
-        CryptoFixture("t006-session-absolute-expiry.json").use { fixture ->
+        CryptoFixture("t008-session-absolute-expiry.json").use { fixture ->
             val id = seed(fixture, "a@example.test")
             val now = Instant.parse("2026-10-20T00:00:00Z")
             val csrf = SessionCsrf(ByteArray(32) { 11 })

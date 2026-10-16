@@ -21,7 +21,7 @@ class SessionStoreTest {
 
     @Test
     fun `issued sessions rotate expire and retain only hashes with five active bound`() {
-        CryptoFixture("t006-session-storage.json").use { fixture ->
+        CryptoFixture("t008-session-storage.json").use { fixture ->
             val account = UUID.randomUUID()
             fixture.accounts.insert(
                 account,

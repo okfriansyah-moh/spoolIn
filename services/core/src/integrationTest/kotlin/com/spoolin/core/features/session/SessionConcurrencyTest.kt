@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 class SessionConcurrencyTest {
     @Test
     fun `concurrent owner issuances serialize account authority and retain exactly five active credentials`() {
-        CryptoFixture("t006-session-concurrent-issue.json").use { fixture ->
+        CryptoFixture("t008-session-concurrent-issue.json").use { fixture ->
             val id = UUID.randomUUID()
             fixture.accounts.insert(
                 id,

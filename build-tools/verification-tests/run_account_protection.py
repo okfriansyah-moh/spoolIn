@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def invoke(level, fixture, selection="T005"):
     task = "test" if level == "unit" else "cryptoIntegrationTest" if selection == "T005" else "accountIntegrationTest"
     argv = ["./gradlew", f":services:core:{task}", "--no-daemon", "--rerun-tasks", "--console", "plain"]
-    if selection == "T006":
+    if selection == "T008":
         argv = ["./gradlew", f":services:core:{task}", "--console", "plain"]
     if level == "unit":
         patterns = ["com.spoolin.core.features.*"] if selection == "T005" else [
@@ -41,7 +41,7 @@ def invoke(level, fixture, selection="T005"):
         old.unlink()
     started = time.time_ns()
     result = subprocess.run(argv, cwd=ROOT, env=environment, capture_output=True, timeout=1500)
-    log = ROOT / f".ai/evidence/{selection.lower()}-{level}-command.log"
+    log = ROOT / f".ai/evidence/numbering-v1/{selection.lower()}-{level}-command.log"
     log.write_bytes(result.stdout + result.stderr)
     return result.returncode, started, directory, {
         "argv": argv, "exit_code": result.returncode, "started_ns": started,
@@ -65,10 +65,10 @@ def results(directory, started):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", choices=["T005", "T006"], required=True)
+    parser.add_argument("--task", choices=["T005", "T008"], required=True)
     parser.add_argument("--level", choices=["unit", "integration"], required=True)
     arguments = parser.parse_args()
-    report = ROOT / f".ai/evidence/{arguments.task.lower()}-{arguments.level}-results.json"
+    report = ROOT / f".ai/evidence/numbering-v1/{arguments.task.lower()}-{arguments.level}-results.json"
     report.parent.mkdir(parents=True, exist_ok=True)
     report.unlink(missing_ok=True)
     counts = {"selected": 1, "executed": 0, "failed": 0}

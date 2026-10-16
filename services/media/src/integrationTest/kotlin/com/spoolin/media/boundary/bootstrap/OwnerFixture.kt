@@ -168,8 +168,8 @@ class OwnerFixture(
     }
 
     override fun close() {
-        require(evidenceName.matches(Regex("t(?:003|010)-[a-z-]+\\.json")))
-        val evidence = repository.resolve(".ai/evidence/$evidenceName")
+        require(evidenceName.matches(Regex("t(?:003|007)-[a-z-]+\\.json")))
+        val evidence = repository.resolve(".ai/evidence/numbering-v1/$evidenceName")
         Files.createDirectories(evidence.parent)
         if (::postgres.isInitialized && postgres.isRunning) {
             assertEquals(
