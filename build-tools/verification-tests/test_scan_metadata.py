@@ -49,6 +49,32 @@ class ScanMetadataTests(unittest.TestCase):
                 json.dumps({'message': json.dumps({'apiCallId': identifier})}),
         }), 0)
 
+    def test_t010_immutable_source_fingerprint_fields_are_not_credentials(self):
+        digest = hashlib.sha256(b'independent receipt implementation bytes').hexdigest()
+        fields = {
+            'libraries/backend-support/src/main/kotlin/com/spoolin/support/receipts/ComparisonKeys.kt': digest,
+            'libraries/backend-support/src/main/kotlin/com/spoolin/support/receipts/ReceiptAccess.kt': digest,
+            'libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/ComparisonKeyRulesTest.kt': digest,
+            'services/core/src/main/kotlin/com/spoolin/core/operations/receipts/ComparisonKeySettings.kt': digest,
+        }
+        path = '.ai/evidence/t010-receipts/development-8b199ad/summary.json'
+        self.assertEqual(self.scan({path: json.dumps({'source_hashes': fields}, indent=2)}), 0)
+
+    def test_t010_exception_keeps_other_paths_fields_shapes_and_credentials_blocking(self):
+        path = '.ai/evidence/t010-receipts/development-8b199ad/summary.json'
+        field = 'libraries/backend-support/src/main/kotlin/com/spoolin/support/receipts/ComparisonKeys.kt'
+        digest = hashlib.sha256(b'independent receipt implementation bytes').hexdigest()
+        samples = [
+            (path.replace('8b199ad', 'other'), {field: digest}),
+            ('frontend/src/keys.json', {field: digest}),
+            (path, {'api_key': secrets.token_urlsafe(40)}),
+            (path, {field: secrets.token_urlsafe(40)}),
+            (path, {'services/core/private-key.json': digest}),
+        ]
+        for name, fields in samples:
+            with self.subTest(path=name, field=next(iter(fields))):
+                self.assertEqual(self.scan({name: json.dumps(fields, indent=2)}), 1)
+
     def test_provenance_shapes_in_application_source_still_block(self):
         digest = hashlib.sha256(b'independent source bytes').hexdigest()
         self.assertEqual(self.scan({'frontend/src/keys.json': json.dumps({

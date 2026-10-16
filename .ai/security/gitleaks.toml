@@ -68,3 +68,11 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''']
 regexes = ['''^\s*"(?:libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ConfigurationKeyRulesTest\.kt)": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Verified T010 milestone source fingerprint lines in its immutable summary"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)\.ai/evidence/t010-receipts/development-8b199ad/summary\.json$''']
+regexes = ['''^\s*"(?:libraries/backend-support/src/main/kotlin/com/spoolin/support/receipts/(?:ComparisonKeys|ReceiptAccess)\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/ComparisonKeyRulesTest\.kt|services/core/src/main/kotlin/com/spoolin/core/operations/receipts/ComparisonKeySettings\.kt)": "[0-9a-f]{64}",?\s*$''']
