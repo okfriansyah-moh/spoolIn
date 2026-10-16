@@ -192,7 +192,7 @@
     <p>Character names remain separate and ordered: Maya · Maya / Echo.</p>
   {:else if view === 'policy-changed'}
     <h1>Review the current rule</h1>
-    <Notice title="Synopsis now exceeds the effective maximum" tone="warning"
+    <Notice title="The synopsis limit has changed"
       ><p>
         Your complete draft is retained. The new limit is displayed before
         another submission. Correct changed or new input; unchanged stored

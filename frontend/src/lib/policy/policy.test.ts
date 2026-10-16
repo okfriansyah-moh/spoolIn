@@ -81,6 +81,8 @@ describe('T009 retained content', () => {
       props: { view: 'policy-changed', policy, initialDraft: retainedDraft },
     }).body;
     expect(body).toContain(retainedDraft);
+    expect(body).toContain('The synopsis limit has changed');
+    expect(body).not.toContain('Synopsis now exceeds the effective maximum');
     expect(body).toContain('Current maximum: 100 Unicode code points.');
     expect(body.match(/<button\b[^>]*>/g)).toEqual([
       expect.not.stringContaining('tabindex='),

@@ -70,6 +70,7 @@ async function clearing(page: Page) {
 }
 async function policyChanged(page: Page) {
   const field = page.locator('#policy-draft');
+  const initialContext = await page.getByRole('status').innerText();
   await expect(field).toHaveValue(draft);
   await expect(page.locator('#policy-draft-help')).toContainText(
     '100 Unicode code points',
@@ -86,6 +87,22 @@ async function policyChanged(page: Page) {
       .filter({ hasText: 'The revised draft meets the current rule.' }),
   ).toBeVisible();
   await expect(field).toHaveValue('A first line.\nA second line · 李');
+  await expect(page.locator('main')).not.toContainText(
+    'Synopsis now exceeds the effective maximum',
+  );
+  expect(initialContext).toContain('The synopsis limit has changed');
+  await expect(
+    page
+      .getByRole('status')
+      .filter({ hasText: 'The synopsis limit has changed' }),
+  ).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.locator('#policy-draft-help')).toContainText(
+    '100 Unicode code points',
+  );
+  await expect(page.locator('main')).toContainText(
+    '31 Unicode code points retained.',
+  );
 }
 async function unavailable(page: Page) {
   await expect(page.locator('#policy-retained')).toHaveValue(draft);
