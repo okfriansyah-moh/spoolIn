@@ -369,9 +369,42 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/work/",
         "services/media/src/test/kotlin/com/spoolin/media/operations/work/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t011-work-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_work.py",
+            "--task",
+            "T011",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t011-unit-results.json",
+          "required_paths": [
+            "services/core/src/test/kotlin/com/spoolin/core/operations/work/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t011-work-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_work.py",
+            "--task",
+            "T011",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t011-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/work/leases/*Test.kt"
+          ]
+        }
+      ]
     },
     "T012": {
       "source": "docs/plan/10-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",

@@ -80,6 +80,23 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
 
 tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
 
+val workIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath =
+        files(
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.core.operations.work.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("work.test.classpath", classpath.asPath)
+}
+
+tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
+
 val accountIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
