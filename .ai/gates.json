@@ -1089,6 +1089,145 @@
       ],
       "required": true,
       "timeout_seconds": 1800
+    },
+    {
+      "id": "core-receipt-boundaries",
+      "component": "core",
+      "stage": "integration",
+      "when": [
+        "services/**/*.kt",
+        "libraries/backend-support/**/*.kt",
+        "contracts/grpc/**",
+        "tests/integration/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:receiptIntegrationTest"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/core/build/test-results/receiptIntegrationTest/TEST-*.xml"
+      }
+    },
+    {
+      "id": "core-session-boundaries",
+      "component": "core",
+      "stage": "integration",
+      "when": [
+        "services/**/*.kt",
+        "libraries/backend-support/**/*.kt",
+        "contracts/grpc/**",
+        "tests/integration/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:accountIntegrationTest"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/core/build/test-results/accountIntegrationTest/TEST-*.xml"
+      }
+    },
+    {
+      "id": "core-admission-boundaries",
+      "component": "core",
+      "stage": "integration",
+      "when": [
+        "services/**/*.kt",
+        "libraries/backend-support/**/*.kt",
+        "contracts/grpc/**",
+        "tests/integration/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:admissionIntegrationTest"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/core/build/test-results/admissionIntegrationTest/TEST-*.xml"
+      }
+    },
+    {
+      "id": "catalog-receipt-boundaries",
+      "component": "catalog",
+      "stage": "integration",
+      "when": [
+        "services/**/*.kt",
+        "libraries/backend-support/**/*.kt",
+        "contracts/grpc/**",
+        "tests/integration/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:receiptIntegrationTest"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/catalog/build/test-results/receiptIntegrationTest/TEST-*.xml"
+      }
+    },
+    {
+      "id": "media-receipt-boundaries",
+      "component": "media",
+      "stage": "integration",
+      "when": [
+        "services/**/*.kt",
+        "libraries/backend-support/**/*.kt",
+        "contracts/grpc/**",
+        "tests/integration/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:receiptIntegrationTest"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "services/media/build/test-results/receiptIntegrationTest/TEST-*.xml"
+      }
+    },
+    {
+      "id": "service-actor-boundaries",
+      "component": "core",
+      "stage": "integration",
+      "when": [
+        "services/**/*.kt",
+        "libraries/backend-support/**/*.kt",
+        "contracts/grpc/**",
+        "tests/integration/**"
+      ],
+      "argv": [
+        "./gradlew",
+        ":tests:integration:test"
+      ],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "tests/integration/build/test-results/test/TEST-*.xml"
+      }
+    },
+    {
+      "id": "service-actor-style",
+      "component": "core",
+      "stage": "fast",
+      "when": [
+        "tests/integration/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":tests:integration:detekt"
+      ],
+      "required": true
     }
   ],
   "coverage": [

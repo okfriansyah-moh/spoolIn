@@ -5,9 +5,13 @@ import com.spoolin.support.identity.ActorTrust
 import com.spoolin.support.identity.ActorVerifier
 import org.springframework.core.env.Environment
 import java.nio.file.Path
+import java.time.Clock
 
 object MediaActors {
-    fun interceptor(environment: Environment): ActorInterceptor {
+    fun interceptor(
+        environment: Environment,
+        clock: Clock = Clock.systemUTC(),
+    ): ActorInterceptor {
         val enabled = environment.getProperty("spoolin.actor.enabled", Boolean::class.java, false)
         val verifier =
             if (enabled) {
@@ -28,6 +32,6 @@ object MediaActors {
                 throw com.spoolin.support.identity
                     .ActorRejected()
             }
-        })
+        }, clock)
     }
 }

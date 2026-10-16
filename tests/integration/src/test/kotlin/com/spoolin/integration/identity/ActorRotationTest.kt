@@ -45,160 +45,191 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class ActorRotationTest {
-    private val transport = ScopedActorTest()
-
     @Test
     fun `actual receivers overlap public keys and retire after sixty seconds without private distribution`() {
-        CryptoFixture("t008-actor-rotation.json").use { fixture ->
-            val root = fixture.owner.root
-            val account = UUID.randomUUID()
-            fixture.accounts.insert(
-                account,
-                IdentityRules().identity("A Person", "rotation@example.test"),
-                StoredPasswordHash("unusable"),
-                AccountRole.MAINTAINER,
-            )
-            val sessions = SessionStore(fixture.pool, SessionCsrf(ByteArray(32) { 33 }))
-            val issued = fixture.pool.committed { sessions.issue(it, account, 0, null) }
-            val core = transport.server(root, "core", IdentityRpc { sessions }, com.spoolin.core.ServiceIdentityInterceptor())
-            val identity = transport.channel(root, "catalog", "core", core.port)
-            val now = Instant.now().epochSecond
-            val clock = ActorClock(Instant.ofEpochSecond(now))
-            val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(identity), clock)
-            val old = pair(root, "old")
-            val next = pair(root, "next")
-            try {
-                listOf("catalog", "media").forEach { owner ->
-                    migrate(fixture, owner)
-                    fixture.owner.pool(owner).use { pool ->
-                        val operation = UUID.randomUUID()
-                        val intent = OperationIntent(operation, "account:$account", "WriteMovie", "p1", emptyList())
-                        val hashes = IntentHashes(mapOf("v1" to ByteArray(32) { 34 }), "v1")
-                        val authority = ReceiptAuthority { ActorRpc.current()?.let { "account:${it.accountId}" } }
-                        val rpc: BindableService =
-                            if (owner == "catalog") {
-                                com.spoolin.catalog.operations.receipts
-                                    .OwnerReceipts(pool, hashes)
-                                    .execute(intent, UUID.randomUUID(), true) { SafeResult(operation) }
-                                com.spoolin.catalog.operations.receipts.ReceiptRpc(
-                                    authority,
-                                    com.spoolin.catalog.operations.receipts
-                                        .OwnerReceiptReads(pool)::find,
-                                )
-                            } else {
-                                com.spoolin.media.operations.receipts
-                                    .OwnerReceipts(pool, hashes)
-                                    .execute(intent, UUID.randomUUID(), true) { SafeResult(operation) }
-                                com.spoolin.media.operations.receipts.ReceiptRpc(
-                                    authority,
-                                    com.spoolin.media.operations.receipts
-                                        .OwnerReceiptReads(pool)::find,
-                                )
-                            }
-                        val method = "/spoolin.v1.${if (owner == "catalog") "Catalog" else "Media"}Service/GetOperation"
-                        val original =
-                            ActorClaims(
-                                owner,
-                                method,
-                                account,
-                                issued.principal.id,
-                                null,
-                                "MAINTAINER",
-                                0,
-                                now,
-                                now + 30,
-                                "AAAAAAAAAAAAAAAAAAAAAA",
-                                UUID.randomUUID(),
-                                operation,
-                            )
-                        val oldToken = old.second.sign(original)
-                        val newToken = next.second.sign(original.copy(issuedAt = now + 10, expiresAt = now + 40))
-                        verify(root, owner, rpc, public(root, owner, mapOf("old" to old.first)), live, clock) { call ->
-                            clock.time = Instant.ofEpochSecond(now + 10)
-                            assertEquals("SUCCEEDED", call(oldToken, operation))
-                            assertDenied { call(newToken, operation) }
-                        }
-                        verify(
-                            root,
-                            owner,
-                            rpc,
-                            public(root, owner, mapOf("old" to old.first, "next" to next.first)),
-                            live,
-                            clock,
-                        ) { call ->
-                            clock.time = Instant.ofEpochSecond(now + 10)
-                            assertEquals("SUCCEEDED", call(newToken, operation))
-                            clock.time = Instant.ofEpochSecond(now + 32)
-                            assertEquals("SUCCEEDED", call(oldToken, operation))
-                            clock.time = Instant.ofEpochSecond(now + 33)
-                            assertDenied { call(oldToken, operation) }
-                        }
-                        verify(root, owner, rpc, public(root, owner, mapOf("next" to next.first)), live, clock) { call ->
-                            clock.time = Instant.ofEpochSecond(now + 70)
-                            val fresh = original.copy(issuedAt = now + 70, expiresAt = now + 100)
-                            assertDenied { call(old.second.sign(fresh), operation) }
-                            assertEquals("SUCCEEDED", call(next.second.sign(fresh), operation))
-                            assertEquals(60L, clock.instant().epochSecond - (now + 10))
-                        }
-                    }
-                }
-            } finally {
-                identity.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                core.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-            }
+        SignedReceiptFixture("t008-actor-rotation.json").use { fixture ->
+            RotationProof(fixture).run()
+        }
+    }
+}
+
+private data class Receiver(
+    val owner: String,
+    val rpc: BindableService,
+)
+
+private class RotationProof(
+    private val base: SignedReceiptFixture,
+) {
+    private val transport = ScopedActorTest()
+    private val root = base.root
+    private val now = Instant.now().epochSecond
+    private val clock = ActorClock(Instant.ofEpochSecond(now))
+    private val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(base.identity), clock)
+    private val old = pair(root, "old")
+    private val next = pair(root, "next")
+
+    fun run() {
+        listOf("catalog", "media").forEach { owner ->
+            migrate(base.fixture, owner)
+            base.fixture.owner
+                .pool(owner)
+                .use { pool -> ownerProof(owner, pool) }
         }
     }
 
-    private fun verify(
-        root: Path,
+    private fun ownerProof(
         owner: String,
-        rpc: BindableService,
-        file: Path,
-        live: CatalogActors,
-        clock: Clock,
-        action: ((String, UUID) -> String) -> Unit,
+        pool: javax.sql.DataSource,
     ) {
-        val method = "spoolin.v1.${if (owner == "catalog") "Catalog" else "Media"}Service/GetOperation"
-        val actors =
-            ActorInterceptor(
+        val operation = UUID.randomUUID()
+        val intent = OperationIntent(operation, "account:${base.account}", "WriteMovie", "p1", emptyList())
+        val receiver = Receiver(owner, receipt(owner, pool, intent))
+        val service = if (owner == "catalog") "Catalog" else "Media"
+        val claims =
+            ActorClaims(
                 owner,
-                setOf(method),
+                "/spoolin.v1.$service" + "Service/GetOperation",
+                base.account,
+                base.issued.principal.id,
+                null,
+                "MAINTAINER",
+                0,
+                now,
+                now + 30,
+                "AAAAAAAAAAAAAAAAAAAAAA",
+                UUID.randomUUID(),
+                operation,
+            )
+        rotate(receiver, claims)
+    }
+
+    private fun receipt(
+        owner: String,
+        pool: javax.sql.DataSource,
+        intent: OperationIntent,
+    ): BindableService {
+        val hashes = IntentHashes(mapOf("v1" to ByteArray(32) { 34 }), "v1")
+        val authority = ReceiptAuthority { ActorRpc.current()?.let { "account:${it.accountId}" } }
+        return if (owner == "catalog") {
+            com.spoolin.catalog.operations.receipts
+                .OwnerReceipts(pool, hashes)
+                .execute(intent, UUID.randomUUID(), true) { SafeResult(intent.id) }
+            com.spoolin.catalog.operations.receipts.ReceiptRpc(
+                authority,
+                com.spoolin.catalog.operations.receipts
+                    .OwnerReceiptReads(pool)::find,
+            )
+        } else {
+            com.spoolin.media.operations.receipts
+                .OwnerReceipts(pool, hashes)
+                .execute(intent, UUID.randomUUID(), true) { SafeResult(intent.id) }
+            com.spoolin.media
+                .Application()
+                .mediaService(pool)
+        }
+    }
+
+    private fun rotate(
+        receiver: Receiver,
+        original: ActorClaims,
+    ) {
+        val operation = requireNotNull(original.operationId)
+        val oldToken = old.second.sign(original)
+        val newToken = next.second.sign(original.copy(issuedAt = now + 10, expiresAt = now + 40))
+        verify(receiver, public(root, receiver.owner, mapOf("old" to old.first))) { call ->
+            clock.time = Instant.ofEpochSecond(now + 10)
+            assertEquals("SUCCEEDED", call(oldToken, operation))
+            assertDenied { call(newToken, operation) }
+        }
+        verify(receiver, public(root, receiver.owner, mapOf("old" to old.first, "next" to next.first))) { call ->
+            clock.time = Instant.ofEpochSecond(now + 10)
+            assertEquals("SUCCEEDED", call(newToken, operation))
+            clock.time = Instant.ofEpochSecond(now + 32)
+            assertEquals("SUCCEEDED", call(oldToken, operation))
+            clock.time = Instant.ofEpochSecond(now + 33)
+            assertDenied { call(oldToken, operation) }
+        }
+        verify(receiver, public(root, receiver.owner, mapOf("next" to next.first))) { call ->
+            clock.time = Instant.ofEpochSecond(now + 70)
+            val fresh = original.copy(issuedAt = now + 70, expiresAt = now + 100)
+            assertDenied { call(old.second.sign(fresh), operation) }
+            assertEquals("SUCCEEDED", call(next.second.sign(fresh), operation))
+            assertEquals(60L, clock.instant().epochSecond - (now + 10))
+        }
+    }
+
+    private fun actors(
+        owner: String,
+        file: Path,
+    ): ActorInterceptor {
+        if (owner == "catalog") {
+            return ActorInterceptor(
+                owner,
+                CatalogActors.protectedMethods,
                 ActorVerifier(ActorTrust.verifiers(file)),
-                { if (owner == "catalog") live.check(it) },
+                live::check,
                 clock,
             )
+        }
+        val environment =
+            org.springframework.core.env
+                .StandardEnvironment()
+        environment.propertySources.addFirst(
+            org.springframework.core.env.MapPropertySource(
+                "receiver",
+                mapOf("spoolin.actor.enabled" to "true", "ACTOR_VERIFY_KEYS_FILE" to file.toString()),
+            ),
+        )
+        return com.spoolin.media.boundary.grpc.MediaActors
+            .interceptor(environment, clock)
+    }
+
+    private fun verify(
+        receiver: Receiver,
+        file: Path,
+        action: ((String, UUID) -> String) -> Unit,
+    ) {
+        val actors = actors(receiver.owner, file)
         val guard =
-            if (owner == "catalog") {
+            if (receiver.owner == "catalog") {
                 com.spoolin.catalog.ServiceIdentityInterceptor(actors)
             } else {
                 com.spoolin.media.ServiceIdentityInterceptor(actors)
             }
-        val server = transport.server(root, owner, rpc, guard)
-        val channel = transport.channel(root, "core", owner, server.port)
+        val server = transport.server(root, receiver.owner, receiver.rpc, guard)
+        val channel = transport.channel(root, "core", receiver.owner, server.port)
         try {
-            action { token, id ->
-                val headers = Metadata().apply { put(ActorRpc.metadata, token) }
-                val interceptor = MetadataUtils.newAttachHeadersInterceptor(headers)
-                val request = Id.newBuilder().setId(id.toString()).build()
-                if (owner == "catalog") {
-                    CatalogServiceGrpc
-                        .newBlockingStub(channel)
-                        .withInterceptors(interceptor)
-                        .withDeadlineAfter(3, TimeUnit.SECONDS)
-                        .getOperation(request)
-                        .state
-                } else {
-                    MediaServiceGrpc
-                        .newBlockingStub(channel)
-                        .withInterceptors(interceptor)
-                        .withDeadlineAfter(3, TimeUnit.SECONDS)
-                        .getOperation(request)
-                        .state
-                }
-            }
+            action { token, id -> call(channel, receiver.owner, token, id) }
         } finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
             server.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
+        }
+    }
+
+    private fun call(
+        channel: io.grpc.ManagedChannel,
+        owner: String,
+        token: String,
+        id: UUID,
+    ): String {
+        val headers = Metadata().apply { put(ActorRpc.metadata, token) }
+        val interceptor = MetadataUtils.newAttachHeadersInterceptor(headers)
+        val request = Id.newBuilder().setId(id.toString()).build()
+        return if (owner == "catalog") {
+            CatalogServiceGrpc
+                .newBlockingStub(channel)
+                .withInterceptors(interceptor)
+                .withDeadlineAfter(3, TimeUnit.SECONDS)
+                .getOperation(request)
+                .state
+        } else {
+            MediaServiceGrpc
+                .newBlockingStub(channel)
+                .withInterceptors(interceptor)
+                .withDeadlineAfter(3, TimeUnit.SECONDS)
+                .getOperation(request)
+                .state
         }
     }
 
@@ -250,7 +281,8 @@ class ActorRotationTest {
     }
 
     private fun assertDenied(action: () -> Unit) {
-        assertEquals(Status.Code.PERMISSION_DENIED, assertThrows(StatusRuntimeException::class.java, action).status.code)
+        val failure = assertThrows(StatusRuntimeException::class.java, action)
+        assertEquals(Status.Code.PERMISSION_DENIED, failure.status.code)
     }
 }
 

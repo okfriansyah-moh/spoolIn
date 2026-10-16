@@ -361,7 +361,8 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
     """Run the pinned detector on marked fragments, never a claimed workflow run."""
 
     marker = '[[allowlists]]\ndescription = "Independently verified shared policy source snapshot SHA-256 lines in workflow receipts"'
-    baseline_sha256 = "e39d961f1ee66f057fd33afb007bf2939f17ede936f8dc53e3e82e56fcfe7cca"
+    # cd55bc8 added two reviewed provenance blocks before this selected-policy marker.
+    baseline_sha256 = "aa3cf252a96dd98089c62d6f62b04010cd7fffaabc02b940c46c94e5c774e58b"
     shared_paths = (
         "libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules.kt",
         "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest.kt",

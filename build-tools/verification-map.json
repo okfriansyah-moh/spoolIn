@@ -316,17 +316,41 @@
     "T008": {
       "source": "docs/plan/06-guarded-access/tasks/T008-enforce-scoped-service-identity-and-shared-admission.md",
       "test_paths": [
-        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/admission/",
-        "tests/integration/src/test/kotlin/com/spoolin/integration/identity/",
         "libraries/backend-support/src/test/kotlin/com/spoolin/support/identity/",
-        "services/core/src/test/kotlin/com/spoolin/core/features/ratelimit/",
         "services/core/src/test/kotlin/com/spoolin/core/boundary/grpc/",
-        "services/catalog/src/test/kotlin/com/spoolin/catalog/boundary/",
-        "services/media/src/test/kotlin/com/spoolin/media/boundary/"
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/admission/",
+        "tests/integration/src/test/kotlin/com/spoolin/integration/identity/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t008-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_receipts.py",
+            "--task",
+            "T008",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t008-unit-results.json"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t008-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_receipts.py",
+            "--task",
+            "T008",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/t008-integration-results.json"
+        }
+      ]
     },
     "T012": {
       "source": "docs/plan/07-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",

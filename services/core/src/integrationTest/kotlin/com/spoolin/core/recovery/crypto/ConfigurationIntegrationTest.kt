@@ -4,6 +4,7 @@ import com.spoolin.core.features.account.persistence.AccountProtectionConfigurat
 import com.spoolin.core.features.account.persistence.IdentityRules
 import com.spoolin.core.features.account.persistence.ProtectedAccounts
 import com.spoolin.core.features.crypto.PasswordHasher
+import com.spoolin.core.features.policy.PolicyConfiguration
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -24,7 +25,7 @@ class ConfigurationIntegrationTest {
             AnnotationConfigApplicationContext().use { context ->
                 context.environment.propertySources.addFirst(MapPropertySource("fixture", settings))
                 context.registerBean("dataSource", DataSource::class.java, java.util.function.Supplier { fixture.pool })
-                context.register(AccountProtectionConfiguration::class.java)
+                context.register(AccountProtectionConfiguration::class.java, PolicyConfiguration::class.java)
                 context.refresh()
                 assertNotNull(context.getBean(ProtectedAccounts::class.java))
                 assertNotNull(context.getBean(PasswordHasher::class.java).hashNew("synthetic valid credential"))
@@ -35,7 +36,7 @@ class ConfigurationIntegrationTest {
     @Test
     fun disabledCapabilityHasNoCredentialBeansAndEnabledMissingKeysCannotStart() {
         AnnotationConfigApplicationContext().use { context ->
-            context.register(AccountProtectionConfiguration::class.java)
+            context.register(AccountProtectionConfiguration::class.java, PolicyConfiguration::class.java)
             context.refresh()
             assertFalse(context.containsBean("passwordHasher"))
         }
@@ -46,7 +47,7 @@ class ConfigurationIntegrationTest {
                     mapOf("spoolin.account-protection.enabled" to "true"),
                 ),
             )
-            context.register(AccountProtectionConfiguration::class.java)
+            context.register(AccountProtectionConfiguration::class.java, PolicyConfiguration::class.java)
             assertThrows(org.springframework.beans.factory.BeanCreationException::class.java) { context.refresh() }
         }
     }

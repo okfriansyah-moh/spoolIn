@@ -55,131 +55,49 @@ import java.util.concurrent.atomic.AtomicInteger
 class ScopedActorTest {
     @Test
     fun `real signed receipt call verifies mTLS and live Core revocation before owner lookup`() {
-        CryptoFixture("t008-signed-receipt.json").use { fixture ->
-            val owner = fixture.owner
-            owner.membership("catalog", "grant")
-            owner.pool("catalog", "migrator").use { pool ->
-                org.flywaydb.core.Flyway
-                    .configure()
-                    .dataSource(pool)
-                    .schemas("appdata")
-                    .defaultSchema("appdata")
-                    .locations("filesystem:${owner.repository}/services/catalog/src/main/resources/db/migration")
-                    .createSchemas(false)
-                    .failOnMissingLocations(true)
-                    .validateMigrationNaming(true)
-                    .load()
-                    .migrate()
-            }
-            owner.grants("catalog")
-            owner.membership("catalog", "revoke")
-            val account = UUID.randomUUID()
-            fixture.accounts.insert(
-                account,
-                IdentityRules().identity("A Person", "a@example.test"),
-                StoredPasswordHash("unusable"),
-                AccountRole.MAINTAINER,
-            )
-            val sessions = SessionStore(fixture.pool, SessionCsrf(ByteArray(32) { 29 }))
-            val issued = fixture.pool.committed { sessions.issue(it, account, 0, null) }
-            val core = server(owner.root, "core", IdentityRpc { sessions }, com.spoolin.core.ServiceIdentityInterceptor())
-            val identityChannel = channel(owner.root, "catalog", "core", core.port)
-            owner.pool("catalog").use { pool ->
-                val operation = UUID.randomUUID()
-                val intent = OperationIntent(operation, "account:$account", "WriteMovie", "p1", emptyList())
-                OwnerReceipts(pool, IntentHashes(mapOf("v1" to ByteArray(32) { 30 }), "v1"))
-                    .execute(intent, UUID.randomUUID(), true) { SafeResult(operation, version = 7) }
-                val pair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
-                val privateFile = owner.root.resolve("signer.der")
-                Files.write(privateFile, pair.private.encoded)
-                Files.setPosixFilePermissions(privateFile, PosixFilePermissions.fromString("rw-------"))
-                val publicFile = owner.root.resolve("verifiers.json")
-                Files.writeString(publicFile, """{"key_A":"${Base64.getEncoder().encodeToString(pair.public.encoded)}"}""")
-                Files.setPosixFilePermissions(publicFile, PosixFilePermissions.fromString("rw-------"))
-                val signer = ActorSigner("key_A", ActorTrust.signer(privateFile))
-                val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(identityChannel))
-                val actors =
-                    ActorInterceptor(
-                        "catalog",
-                        CatalogActors.protectedMethods,
-                        ActorVerifier(ActorTrust.verifiers(publicFile)),
-                        live::check,
-                    )
-                val lookups = AtomicInteger()
-                val rpc =
-                    ReceiptRpc(ReceiptAuthority { ActorRpc.current()?.let { "account:${it.accountId}" } }) { id, scope ->
-                        lookups.incrementAndGet()
-                        OwnerReceiptReads(pool).find(id, scope)
-                    }
-                val catalog = server(owner.root, "catalog", rpc, com.spoolin.catalog.ServiceIdentityInterceptor(actors))
-                val caller = channel(owner.root, "core", "catalog", catalog.port)
-                try {
-                    val now = Instant.now().epochSecond
-                    val claims =
-                        ActorClaims(
-                            "catalog",
-                            "/spoolin.v1.CatalogService/GetOperation",
-                            account,
-                            issued.principal.id,
-                            null,
-                            "MAINTAINER",
-                            0,
-                            now,
-                            now + 30,
-                            "AAAAAAAAAAAAAAAAAAAAAA",
-                            UUID.randomUUID(),
-                            operation,
-                        )
-                    val token = signer.sign(claims)
-                    assertEquals("SUCCEEDED", client(caller, token).getOperation(Id.newBuilder().setId(operation.toString()).build()).state)
-                    assertEquals(1, lookups.get())
-                    assertEquals(
-                        Status.Code.PERMISSION_DENIED,
-                        assertThrows(StatusRuntimeException::class.java) {
-                            client(caller, "$token-x").getOperation(Id.newBuilder().setId(operation.toString()).build())
-                        }.status.code,
-                    )
-                    hostile(signer, claims, pair.private).forEach { (name, hostile) ->
-                        val failure =
-                            assertThrows(StatusRuntimeException::class.java, {
-                                client(caller, hostile).getOperation(Id.newBuilder().setId(operation.toString()).build())
-                            }, name)
-                        assertEquals(Status.Code.PERMISSION_DENIED, failure.status.code, name)
-                        assertEquals(1, lookups.get(), name)
-                    }
-                    val wrongSan = channel(owner.root, "media", "catalog", catalog.port)
-                    try {
-                        assertEquals(
-                            Status.Code.PERMISSION_DENIED,
-                            assertThrows(StatusRuntimeException::class.java) {
-                                client(wrongSan, token).getOperation(Id.newBuilder().setId(operation.toString()).build())
-                            }.status.code,
-                        )
-                    } finally {
-                        wrongSan.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                    }
-                    assertEquals(
-                        Status.Code.PERMISSION_DENIED,
-                        assertThrows(StatusRuntimeException::class.java) {
-                            client(caller, token).getOperation(Id.newBuilder().setId(UUID.randomUUID().toString()).build())
-                        }.status.code,
-                    )
-                    fixture.pool.committed { sessions.revoke(it, issued.principal.id, account) }
-                    assertEquals(
-                        Status.Code.PERMISSION_DENIED,
-                        assertThrows(StatusRuntimeException::class.java) {
-                            client(caller, token).getOperation(Id.newBuilder().setId(operation.toString()).build())
-                        }.status.code,
-                    )
-                    assertEquals(1, lookups.get())
-                } finally {
-                    caller.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                    catalog.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                    identityChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                    core.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                }
-            }
+        SignedReceiptFixture().use { proof ->
+            verifyCalls(proof)
         }
+    }
+
+    private fun verifyCalls(proof: SignedReceiptFixture) {
+        val token = proof.signer.sign(proof.claims)
+        val request = Id.newBuilder().setId(proof.operation.toString()).build()
+        assertEquals("SUCCEEDED", client(proof.caller, token).getOperation(request).state)
+        assertEquals(1, proof.lookups.get())
+        assertDenied { client(proof.caller, "$token-x").getOperation(request) }
+        hostile(proof.signer, proof.claims, proof.pair.private).forEach { (name, value) ->
+            val failure =
+                assertThrows(StatusRuntimeException::class.java, {
+                    client(proof.caller, value).getOperation(request)
+                }, name)
+            assertEquals(Status.Code.PERMISSION_DENIED, failure.status.code, name)
+            assertEquals(1, proof.lookups.get(), name)
+        }
+        wrongSan(proof, token, request)
+        assertDenied {
+            client(proof.caller, token).getOperation(Id.newBuilder().setId(UUID.randomUUID().toString()).build())
+        }
+        proof.fixture.pool.committed { proof.sessions.revoke(it, proof.issued.principal.id, proof.account) }
+        assertDenied { client(proof.caller, token).getOperation(request) }
+        assertEquals(1, proof.lookups.get())
+    }
+
+    private fun wrongSan(
+        proof: SignedReceiptFixture,
+        token: String,
+        request: Id,
+    ) {
+        val wrong = channel(proof.root, "media", "catalog", proof.catalog.port)
+        try {
+            assertDenied { client(wrong, token).getOperation(request) }
+        } finally {
+            wrong.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
+        }
+    }
+
+    private fun assertDenied(call: () -> Unit) {
+        assertEquals(Status.Code.PERMISSION_DENIED, assertThrows(StatusRuntimeException::class.java, call).status.code)
     }
 
     private fun hostile(

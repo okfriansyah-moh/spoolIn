@@ -1,16 +1,32 @@
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.testing.Test
 
 val bootstrapTests = sourceSets["integrationTest"]
 bootstrapTests.resources.srcDir("src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/fixtures")
 
+val bootstrapRuntimeResources by tasks.registering(Sync::class) {
+    from(sourceSets["main"].resources) { exclude("db/migration/**") }
+    from(bootstrapTests.resources)
+    into(layout.buildDirectory.dir("bootstrap-runtime-resources"))
+}
+val foundationTestRuntime =
+    files(
+        bootstrapTests.output.classesDirs,
+        sourceSets["main"].output.classesDirs,
+        configurations["integrationTestRuntimeClasspath"],
+        bootstrapRuntimeResources,
+    )
+
 tasks.named<Test>("test") {
     testClassesDirs = bootstrapTests.output.classesDirs
-    classpath = bootstrapTests.runtimeClasspath
+    classpath = foundationTestRuntime
     filter { includeTestsMatching("*RulesTest") }
 }
 
 tasks.named<Test>("integrationTest") {
-    filter { includeTestsMatching("*BoundaryTest") }
+    classpath = foundationTestRuntime
+    dependsOn("integrationTestClasses")
+    filter { includeTestsMatching("com.spoolin.media.boundary.bootstrap.*BoundaryTest") }
 }
 
 kover {

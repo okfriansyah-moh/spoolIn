@@ -1,4 +1,4 @@
-"""Run owner receipt checks through the existing command and JUnit helpers."""
+"""Run selected owner boundary checks through existing command and JUnit helpers."""
 
 import argparse
 from datetime import datetime, timezone
@@ -15,30 +15,39 @@ import run_policy as runner
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def owner(owner_name):
-    directory = ROOT / f"services/{owner_name}/build/test-results/receiptIntegrationTest"
+def owner(owner_name, task="receiptIntegrationTest", module=None):
+    module = module or f"services/{owner_name}"
+    directory = ROOT / module / "build/test-results" / task
     for path in directory.glob("TEST-*.xml"):
         path.unlink()
     started, result = runner.command(
-        ["./gradlew", f":services:{owner_name}:receiptIntegrationTest", "--console", "plain"], owner_name)
+        ["./gradlew", ":" + module.replace("/", ":") + ":" + task, "--console", "plain"], owner_name)
     cases, reports = runner.junit(directory, started, runner.OUTPUT / "junit" / owner_name)
     return result, cases, reports
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", choices=["T010"], required=True)
+    parser.add_argument("--task", choices=["T010", "T008"], required=True)
     parser.add_argument("--level", choices=["unit", "integration"], required=True)
     arguments = parser.parse_args()
-    runner.OUTPUT = ROOT / ".ai/evidence/t010-receipts" / arguments.level / ("run-" + uuid.uuid4().hex)
+    folder = "t010-receipts" if arguments.task == "T010" else "t008-boundaries"
+    runner.OUTPUT = ROOT / ".ai/evidence" / folder / arguments.level / ("run-" + uuid.uuid4().hex)
     runner.OUTPUT.mkdir(parents=True)
-    report = ROOT / f".ai/evidence/t010-{arguments.level}-results.json"
+    report = ROOT / f".ai/evidence/{arguments.task.lower()}-{arguments.level}-results.json"
     report.unlink(missing_ok=True)
     suites = [lambda: runner.backend("libraries/backend-support", ["com.spoolin.support.receipts.*"], "shared")]
     if arguments.level == "unit":
         suites.append(lambda: runner.backend("services/core", ["com.spoolin.core.operations.receipts.*"], "core"))
     if arguments.level == "integration":
         suites = [lambda name=name: owner(name) for name in ["core", "catalog", "media"]]
+    if arguments.task == "T008":
+        suites = [lambda: runner.backend("libraries/backend-support", ["com.spoolin.support.identity.*"], "shared")]
+        if arguments.level == "unit":
+            suites.append(lambda: runner.backend("services/core", ["*ActorIssuerRulesTest"], "issuer"))
+        else:
+            suites = [lambda: owner("admission", "admissionIntegrationTest", "services/core"),
+                      lambda: owner("actors", "test", "tests/integration")]
     commands, cases, reports, error = [], [], [], None
     code = 2
     try:
@@ -58,7 +67,7 @@ def main():
         "selected": len(cases), "executed": sum(case["executed"] for case in cases),
         "failed": sum(case["failed"] for case in cases), "exit_code": code,
         "commands": commands, "reports": reports, "cases": cases, "setup_error": error,
-        "proof_boundary": "isolated receipt rules" if arguments.level == "unit" else "owner PostgreSQL transactions",
+        "proof_boundary": "isolated rules" if arguments.level == "unit" else "real owner PostgreSQL and service transport",
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
     }, indent=2) + "\n")
     shutil.copyfile(report, runner.OUTPUT / "results.json")
