@@ -13,6 +13,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 private const val SESSION_HOURS = 12L
+private const val SESSION_RETENTION_DAYS = 7L
 private const val SESSION_LIMIT_OFFSET = 4
 private const val SESSION_IDLE_MINUTES = 30L
 private val SESSION_IDLE = Duration.ofMinutes(SESSION_IDLE_MINUTES)
@@ -29,7 +30,7 @@ class SessionStore(
         previous: SessionCredential?,
         id: UUID = UUID.randomUUID(),
     ): IssuedSession {
-        val account = lockAccount(connection, accountId)
+        val account = issuanceAccount(connection, accountId, previous)
         check(account.second == expectedEpoch) { "Credential authority changed" }
         val now = clock.instant()
         retire(connection, accountId, previous, now)
@@ -93,6 +94,18 @@ class SessionStore(
         )
     }
 
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "PT1H")
+    fun purge(): Int =
+        dataSource.committed { connection ->
+            val cutoff = Timestamp.from(clock.instant().minus(Duration.ofDays(SESSION_RETENTION_DAYS)))
+            connection.executeBound(
+                "DELETE FROM browser_session WHERE revoked_at<=? OR " +
+                    "LEAST(expires_at,last_seen_at + INTERVAL '30 minutes')<=?",
+                cutoff,
+                cutoff,
+            )
+        }
+
     private fun verified(
         connection: Connection,
         credential: SessionCredential,
@@ -142,6 +155,24 @@ class SessionStore(
                 AccountRole.valueOf(it.getString("role")) to it.getLong("auth_epoch")
             }.single()
 
+    private fun issuanceAccount(
+        connection: Connection,
+        accountId: UUID,
+        previous: SessionCredential?,
+    ): Pair<AccountRole, Long> {
+        val prior =
+            previous?.let { credential ->
+                connection
+                    .queryBound(
+                        "SELECT account_id FROM browser_session WHERE token_hash=?",
+                        listOf(credential.digest()),
+                    ) { it.getObject("account_id", UUID::class.java) }
+                    .singleOrNull()
+            }
+        listOfNotNull(accountId, prior).distinct().sortedBy(UUID::toString).forEach { lockAccount(connection, it) }
+        return lockAccount(connection, accountId)
+    }
+
     private fun retire(
         connection: Connection,
         account: UUID,
@@ -150,17 +181,18 @@ class SessionStore(
     ) {
         if (previous != null) {
             connection.executeBound(
-                "UPDATE browser_session SET revoked_at=? WHERE account_id=? AND token_hash=? AND revoked_at IS NULL",
+                "UPDATE browser_session SET revoked_at=? WHERE token_hash=? AND revoked_at IS NULL",
                 Timestamp.from(now),
-                account,
                 previous.digest(),
             )
         }
         connection.executeBound(
             "UPDATE browser_session SET revoked_at=? WHERE id IN (SELECT id FROM browser_session " +
-                "WHERE account_id=? AND revoked_at IS NULL AND expires_at>? AND last_seen_at>? " +
+                "WHERE account_id=? AND auth_epoch=(SELECT auth_epoch FROM user_account WHERE id=?) " +
+                "AND revoked_at IS NULL AND expires_at>? AND last_seen_at>? " +
                 "ORDER BY created_at DESC,id DESC OFFSET ?)",
             Timestamp.from(now),
+            account,
             account,
             Timestamp.from(now),
             Timestamp.from(now.minus(SESSION_IDLE)),

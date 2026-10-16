@@ -86,7 +86,10 @@ val accountIntegrationTest by tasks.registering(Test::class) {
             sourceSets["main"].output,
             configurations["integrationTestRuntimeClasspath"],
         )
-    filter { includeTestsMatching("com.spoolin.core.features.session.*") }
+    filter {
+        includeTestsMatching("com.spoolin.core.features.session.*")
+        includeTestsMatching("com.spoolin.core.recovery.crypto.CredentialIntegrationTest")
+    }
     useJUnitPlatform()
     maxHeapSize = "768m"
 }

@@ -1,4 +1,4 @@
-"""Execute T005 suites and record only fresh JUnit results at their actual boundary."""
+"""Execute account suites and record only fresh JUnit results at their actual boundary."""
 
 import argparse
 from datetime import datetime, timezone
@@ -16,11 +16,17 @@ from fixture import SetupError, TestInstallation, preserve_failure
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def invoke(level, fixture):
-    task = "test" if level == "unit" else "cryptoIntegrationTest"
+def invoke(level, fixture, selection="T005"):
+    task = "test" if level == "unit" else "cryptoIntegrationTest" if selection == "T005" else "accountIntegrationTest"
     argv = ["./gradlew", f":services:core:{task}", "--no-daemon", "--rerun-tasks", "--console", "plain"]
+    if selection == "T006":
+        argv = ["./gradlew", f":services:core:{task}", "--console", "plain"]
     if level == "unit":
-        argv.extend(["--tests", "com.spoolin.core.features.*"])
+        patterns = ["com.spoolin.core.features.*"] if selection == "T005" else [
+            "com.spoolin.core.features.session.*", "*IdentityRulesTest", "*PasswordRulesTest",
+            "*PolicyBoundaryRulesTest", "*OperationGraphqlRulesTest", "com.spoolin.core.boundary.http.*"]
+        for pattern in patterns:
+            argv.extend(["--tests", pattern])
     environment = {key: value for key, value in os.environ.items() if key in (
         "PATH", "JAVA_HOME", "GRADLE_USER_HOME", "HOME", "TMPDIR", "LANG", "LC_ALL",
         "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH")}
@@ -35,7 +41,7 @@ def invoke(level, fixture):
         old.unlink()
     started = time.time_ns()
     result = subprocess.run(argv, cwd=ROOT, env=environment, capture_output=True, timeout=1500)
-    log = ROOT / f".ai/evidence/t005-{level}-command.log"
+    log = ROOT / f".ai/evidence/{selection.lower()}-{level}-command.log"
     log.write_bytes(result.stdout + result.stderr)
     return result.returncode, started, directory, {
         "argv": argv, "exit_code": result.returncode, "started_ns": started,
@@ -59,10 +65,10 @@ def results(directory, started):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task", choices=["T005"], required=True)
+    parser.add_argument("--task", choices=["T005", "T006"], required=True)
     parser.add_argument("--level", choices=["unit", "integration"], required=True)
     arguments = parser.parse_args()
-    report = ROOT / f".ai/evidence/t005-{arguments.level}-results.json"
+    report = ROOT / f".ai/evidence/{arguments.task.lower()}-{arguments.level}-results.json"
     report.parent.mkdir(parents=True, exist_ok=True)
     report.unlink(missing_ok=True)
     counts = {"selected": 1, "executed": 0, "failed": 0}
@@ -70,9 +76,9 @@ def main():
     fixture = None
     code = 2
     try:
-        if arguments.level == "integration":
+        if arguments.level == "integration" and arguments.task == "T005":
             fixture = TestInstallation.create()
-        exit_code, started, directory, command = invoke(arguments.level, fixture)
+        exit_code, started, directory, command = invoke(arguments.level, fixture, arguments.task)
         evidence["command"] = command
         counts, reports, cases = results(directory, started)
         evidence.update({"reports": reports, "cases": cases,
