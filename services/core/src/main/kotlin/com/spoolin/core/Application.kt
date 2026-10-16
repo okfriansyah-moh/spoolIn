@@ -110,6 +110,7 @@ class Application {
     @Bean
     fun httpSecurity(http: HttpSecurity): SecurityFilterChain {
         http.authorizeHttpRequests { it.anyRequest().permitAll() }
+        http.csrf { it.ignoringRequestMatchers("/graphql") }
         return http.build()
     }
 

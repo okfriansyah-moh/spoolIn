@@ -1,5 +1,6 @@
 package com.spoolin.core.boundary.graphql
 
+import com.spoolin.core.boundary.http.BrowserContext
 import com.spoolin.core.features.policy.PolicyProvider
 import graphql.GraphQL
 import graphql.schema.idl.RuntimeWiring
@@ -12,6 +13,7 @@ import org.springframework.core.io.ClassPathResource
 class PolicyGraphql(
     schema: String,
     private val provider: PolicyProvider,
+    accounts: AccountGraphql? = null,
     operation: (java.util.UUID, com.spoolin.support.receipts.OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
@@ -32,21 +34,46 @@ class PolicyGraphql(
                 operation(id, owner)
             }
         }
+        accounts?.bind(wiring)
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }
 
     private fun failureCode(errors: List<graphql.GraphQLError>): String {
-        val ambiguous =
-            errors.any { error ->
-                (error as? graphql.ExceptionWhileDataFetching)?.exception is
-                    com.spoolin.core.operations.receipts.AmbiguousOperation
-            }
-        return if (ambiguous) "AMBIGUOUS_OPERATION" else "FIELD_INVALID"
+        val failure = errors.filterIsInstance<graphql.ExceptionWhileDataFetching>().firstOrNull()?.exception
+        return when (failure) {
+            null -> "FIELD_INVALID"
+            is com.spoolin.core.operations.receipts.AmbiguousOperation -> "AMBIGUOUS_OPERATION"
+            is com.spoolin.support.receipts.ReceiptConflict -> "IDEMPOTENCY_CONFLICT"
+            is com.spoolin.support.receipts.ReceiptHidden -> "NOT_FOUND"
+            else -> authenticationFailure(failure)
+        }
     }
 
-    fun execute(input: Map<String, Any?>): Map<String, Any?> {
-        val result = runCatching { engine.execute(envelope.parse(input)) }.getOrNull()
+    private fun authenticationFailure(failure: Throwable): String =
+        when (failure) {
+            is com.spoolin.core.features.account.application.CredentialRejected -> "UNAUTHENTICATED"
+            is com.spoolin.core.features.account.persistence.AccountIdentityConflict -> "FIELD_INVALID"
+            is IllegalArgumentException -> "FIELD_INVALID"
+            is com.spoolin.core.features.crypto.HashingBusy -> "RESOURCE_EXHAUSTED"
+            else -> "UNAVAILABLE"
+        }
+
+    fun execute(
+        input: Map<String, Any?>,
+        context: BrowserContext? = null,
+    ): Map<String, Any?> {
+        val result =
+            runCatching {
+                val parsed = envelope.parse(input)
+                val execution =
+                    if (context == null) {
+                        parsed
+                    } else {
+                        parsed.transform { it.graphQLContext(mapOf("browser" to context)) }
+                    }
+                engine.execute(execution)
+            }.getOrNull()
         if (result == null || result.errors.isNotEmpty()) {
             return mapOf(
                 "data" to null,
@@ -66,11 +93,14 @@ class PolicyGraphql(
 @Configuration
 class PolicyGraphqlConfiguration {
     @Bean
-    fun policyGraphql(provider: PolicyProvider): PolicyGraphql {
+    fun policyGraphql(
+        provider: PolicyProvider,
+        accounts: org.springframework.beans.factory.ObjectProvider<AccountGraphql>,
+    ): PolicyGraphql {
         val schema =
             ClassPathResource(
                 "graphql/schema.graphql",
             ).inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-        return PolicyGraphql(schema, provider)
+        return PolicyGraphql(schema, provider, accounts = accounts.ifAvailable)
     }
 }
