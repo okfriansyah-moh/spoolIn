@@ -5,6 +5,8 @@ import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 object SafeReceiptProjection {
+    private val mapper = ObjectMapper()
+
     fun errorCode(value: String?): String? {
         if (value == null) return null
         val allowed =
@@ -17,7 +19,7 @@ object SafeReceiptProjection {
     fun read(json: String?): SafeResult? {
         if (json == null) return null
         return runCatching {
-            val node = ObjectMapper().readTree(json)
+            val node = mapper.readTree(json)
             require(node.isObject && node.propertyNames().all { it in setOf("resultId", "version", "discarded") })
             val id = node.get("resultId")
             require(id != null && id.isString)
