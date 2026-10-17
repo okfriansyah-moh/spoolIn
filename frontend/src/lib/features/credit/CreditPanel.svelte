@@ -163,6 +163,11 @@
   {#if loading}
     <p role="status">Loading credits…</p>
   {:else}
+    {#if draftSync?.snapshot.unbacked}
+      <Notice title="Draft not backed up" tone="info">
+        <p>Recent credit edits could not be saved to a draft yet.</p>
+      </Notice>
+    {/if}
     {#if message}
       <Notice
         title={message.includes('duplicate') ? 'Review the credit' : 'Credits'}

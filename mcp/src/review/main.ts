@@ -1,5 +1,5 @@
 import { buildApprovalBody, assertManualApproval } from './approval-binding.js';
-import { parseReviewQuery, renderReview, wireTrustedApproval } from './review-state.js';
+import { isTrustedReviewOrigin, parseReviewQuery, renderReview, wireTrustedApproval } from './review-state.js';
 
 const root = document.querySelector('#app');
 const query = parseReviewQuery(globalThis.location.search);
@@ -14,7 +14,7 @@ if (root && query) {
     challenge: '',
   };
   renderReview(root, model);
-  wireTrustedApproval(root, model, async (action, binding) => {
+  wireTrustedApproval(root, () => model, async (action, binding) => {
     assertManualApproval(binding.challenge ?? '');
     const body = buildApprovalBody({
       proposalId: binding.proposalId,
@@ -26,10 +26,15 @@ if (root && query) {
     await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   });
   globalThis.addEventListener('message', (event) => {
+    if (!isTrustedReviewOrigin(event.origin)) return;
     const data = event.data;
     if (typeof data !== 'object' || data === null) return;
     if ('values' in data && typeof data.values === 'object' && data.values) {
       model = { ...model, values: data.values as Record<string, unknown> };
+      renderReview(root, model);
+    }
+    if ('sources' in data && Array.isArray(data.sources)) {
+      model = { ...model, sources: data.sources as readonly unknown[] };
       renderReview(root, model);
     }
     if ('challenge' in data && typeof data.challenge === 'string') {

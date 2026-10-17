@@ -14,6 +14,8 @@ export class CreditDraftSync {
   private expectedVersion: string | null = null;
   private catalogOperationId: string | null = null;
   private timer: ReturnType<typeof globalThis.setTimeout> | undefined;
+  private backed = false;
+  private unbacked = false;
 
   constructor(
     private readonly source: DraftSource,
@@ -24,7 +26,13 @@ export class CreditDraftSync {
     this.draftId = globalThis.crypto.randomUUID();
     this.catalogOperationId = catalogOperationId;
     this.expectedVersion = null;
+    this.backed = false;
+    this.unbacked = false;
     globalThis.clearTimeout(this.timer);
+  }
+
+  get snapshot(): Readonly<{ backed: boolean; unbacked: boolean }> {
+    return Object.freeze({ backed: this.backed, unbacked: this.unbacked });
   }
 
   schedule(values: CreditDraftValues, context: WriteContext, baseVersion: string | null): void {
@@ -41,7 +49,7 @@ export class CreditDraftSync {
   ): Promise<void> {
     const operationId = globalThis.crypto.randomUUID();
     try {
-      await this.source.saveDraft(
+      const outcome = await this.source.saveDraft(
         operationId,
         this.draftId,
         this.expectedVersion,
@@ -56,8 +64,18 @@ export class CreditDraftSync {
         context.csrf,
         new AbortController().signal,
       );
+      if (outcome.receipt.state === 'SUCCEEDED' && outcome.receipt.resultId) {
+        this.draftId = outcome.receipt.resultId;
+        this.expectedVersion = outcome.receipt.version;
+        this.backed = true;
+        this.unbacked = false;
+        return;
+      }
+      this.unbacked = true;
+      this.backed = false;
     } catch {
-      /* autosave is best-effort until explicit submit */
+      this.unbacked = true;
+      this.backed = false;
     }
   }
 

@@ -285,25 +285,31 @@ class CatalogWriteConfiguration {
         receipts: OwnerReceipts,
         movieWrites: MovieWrites,
         proposalMetrics: com.spoolin.catalog.operations.metrics.ProposalMetrics?,
+        environment: Environment,
     ): com.spoolin.catalog.features.proposal.ProposalWrites =
         com.spoolin.catalog.features.proposal.ProposalWrites(
             dataSource,
             receipts,
             movieWrites,
             proposalMetrics,
+            livePolicyRevision = { environment.getProperty("POLICY_REVISION", "default") ?: "default" },
         )
 }
 
 fun main(args: Array<String>) {
-    if (args.contentEquals(arrayOf("--migrate"))) {
-        val environment =
-            org.springframework.core.env
-                .StandardEnvironment()
-        DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
-    } else {
-        check(args.isEmpty()) { "Use environment configuration; only --migrate is an accepted argument" }
-        org.springframework.boot.SpringApplication
-            .run(Application::class.java)
+    when {
+        args.contentEquals(arrayOf("--migrate")) -> {
+            val environment =
+                org.springframework.core.env
+                    .StandardEnvironment()
+            DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
+        }
+        args.any { it.startsWith("--seed-manifest=") } ->
+            com.spoolin.catalog.seed.runSeedCli(args)
+        args.isEmpty() ->
+            org.springframework.boot.SpringApplication
+                .run(Application::class.java)
+        else -> error("Use environment configuration; accepted args: --migrate, --seed-manifest=PATH")
     }
 }
 

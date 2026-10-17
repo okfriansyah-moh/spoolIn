@@ -135,6 +135,19 @@ class Application {
     @Bean
     fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService =
         gateway
+
+    @Bean
+    fun workPendingMetrics(
+        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+    ): com.spoolin.core.operations.metrics.WorkPendingMetrics? =
+        registry.ifAvailable?.let { com.spoolin.core.operations.metrics.WorkPendingMetrics(it) }
+
+    @Bean
+    fun alertRecorder(
+        dataSource: DataSource,
+        workPendingMetrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.operations.metrics.WorkPendingMetrics>,
+    ): com.spoolin.core.features.alerts.AlertRecorder =
+        com.spoolin.core.features.alerts.AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
 }
 
 fun main(args: Array<String>) {

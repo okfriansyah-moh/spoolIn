@@ -20,8 +20,9 @@ class ConnectorStore(
         dataSource.connection.use { connection ->
             connection
                 .queryBound(
-                    "SELECT id, account_id, client_kind, auth_epoch, scope, expires_at, revoked_at " +
-                        "FROM mcp_credential WHERE id = ? AND account_id = ? AND auth_epoch = ?",
+                    "SELECT c.id, c.account_id, c.client_kind, c.auth_epoch, c.scope, c.expires_at, c.revoked_at " +
+                        "FROM mcp_credential c JOIN user_account a ON a.id = c.account_id " +
+                        "WHERE c.id = ? AND c.account_id = ? AND c.auth_epoch = ? AND a.auth_epoch = c.auth_epoch",
                     listOf(credentialId, accountId, authEpoch),
                 ) { row ->
                     ConnectorRecord(
@@ -41,8 +42,9 @@ class ConnectorStore(
         return dataSource.connection.use { connection ->
             connection
                 .queryBound(
-                    "SELECT id, account_id, client_kind, auth_epoch, scope, expires_at, revoked_at " +
-                        "FROM mcp_credential WHERE token_hash = ?",
+                    "SELECT c.id, c.account_id, c.client_kind, c.auth_epoch, c.scope, c.expires_at, c.revoked_at " +
+                        "FROM mcp_credential c JOIN user_account a ON a.id = c.account_id " +
+                        "WHERE c.token_hash = ? AND a.auth_epoch = c.auth_epoch",
                     listOf(tokenHash),
                 ) { row ->
                     ConnectorRecord(

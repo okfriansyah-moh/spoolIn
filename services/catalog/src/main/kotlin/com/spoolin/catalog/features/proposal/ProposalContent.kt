@@ -11,9 +11,13 @@ object ProposalContent {
 
     fun fromProposal(request: Proposal): Map<String, Any?> =
         mapOf(
+            "policy_revision" to request.context.policyRevision,
             "values" to valuesMap(request.values),
-            "sources" to request.sourcesList.map(::sourceMap),
+            "sources" to request.sourcesList.map(::sourceMap).sortedBy { it["field"] as String },
         )
+
+    fun policyRevision(content: Map<String, Any?>): String =
+        content["policy_revision"] as? String ?: ""
 
     fun parseJson(raw: String): Map<String, Any?> {
         @Suppress("UNCHECKED_CAST")
@@ -48,8 +52,18 @@ object ProposalContent {
         return builder.build()
     }
 
-    private fun valuesMap(values: MovieValues): Map<String, Any?> =
-        buildMap {
+    private fun valuesMap(values: MovieValues): Map<String, Any?> {
+        val release =
+            if (values.hasRelease()) {
+                buildMap {
+                    put("year", values.release.year)
+                    if (values.release.hasMonth()) put("month", values.release.month)
+                    if (values.release.hasDay()) put("day", values.release.day)
+                }
+            } else {
+                null
+            }
+        return buildMap {
             put("title", values.title)
             if (values.hasOriginalTitle()) put("original_title", values.originalTitle)
             put("synopsis", values.synopsis)
@@ -58,17 +72,9 @@ object ProposalContent {
             if (values.hasRuntimeMinutes()) put("runtime_minutes", values.runtimeMinutes)
             if (values.genreIdsCount > 0) put("genre_ids", values.genreIdsList.sorted())
             if (values.countriesCount > 0) put("countries", values.countriesList.sorted())
-            if (values.hasRelease()) {
-                put(
-                    "release",
-                    buildMap {
-                        put("year", values.release.year)
-                        if (values.release.hasMonth()) put("month", values.release.month)
-                        if (values.release.hasDay()) put("day", values.release.day)
-                    },
-                )
-            }
-        }
+            if (release != null) put("release", release)
+        }.entries.sortedBy { it.key }.associate { it.key to it.value }
+    }
 
     private fun sourceMap(source: FieldSource): Map<String, Any?> =
         buildMap {

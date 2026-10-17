@@ -1,5 +1,6 @@
 package com.spoolin.core.features.alerts
 
+import com.spoolin.core.operations.metrics.WorkPendingMetrics
 import com.spoolin.support.receipts.executeBound
 import tools.jackson.databind.json.JsonMapper
 import java.util.UUID
@@ -15,6 +16,7 @@ enum class AlertMode {
 /** Records sanitized operational alerts (T034). */
 class AlertRecorder(
     private val dataSource: DataSource,
+    private val workPendingMetrics: WorkPendingMetrics? = null,
 ) {
     private val mapper = JsonMapper.builder().build()
 
@@ -34,6 +36,7 @@ class AlertRecorder(
                 json,
             )
         }
+        workPendingMetrics?.markAlertEpisode()
         return id
     }
 }

@@ -24,6 +24,7 @@ data class ExactApprovalBinding(
             revision: Int,
             contentHash: ByteArray,
             challenge: String,
+            policyRevision: String,
             now: Instant,
         ): ExactApprovalBinding =
             ExactApprovalBinding(
@@ -34,7 +35,7 @@ data class ExactApprovalBinding(
                 clientKind = claims.clientKind ?: "",
                 contentHash = contentHash,
                 challenge = challenge,
-                policyRevision = claims.method,
+                policyRevision = policyRevision,
                 now = now,
             )
     }
@@ -58,6 +59,10 @@ data class ExactApprovalBinding(
         val digest = MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray(Charsets.UTF_8))
         if (!digest.contentEquals(storedChallengeHash)) {
             return Status.FAILED_PRECONDITION.withDescription("CHALLENGE_MISMATCH")
+        }
+        val boundPolicy = ProposalContent.policyRevision(ProposalContent.parseJson(row.contentJson))
+        if (policyRevision != boundPolicy) {
+            return Status.FAILED_PRECONDITION.withDescription("POLICY_REVISION_MISMATCH")
         }
         if (!now.isBefore(row.expiresAt)) {
             return Status.FAILED_PRECONDITION.withDescription("PROPOSAL_EXPIRED")

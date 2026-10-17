@@ -27,6 +27,14 @@ export function parseReviewQuery(search: string): ReviewQuery | null {
   return Object.freeze({ proposalId, revision, contentHash });
 }
 
+function sourceLabel(source: unknown): string {
+  if (typeof source !== 'object' || source === null) return String(source ?? '');
+  const record = source as Record<string, unknown>;
+  const field = typeof record.field === 'string' ? record.field : 'field';
+  const url = typeof record.url === 'string' ? record.url : '';
+  return url ? `${field}: ${url}` : field;
+}
+
 export function renderReview(root: HTMLElement, model: ReviewModel): void {
   root.replaceChildren();
   const heading = document.createElement('h1');
@@ -41,6 +49,18 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
     list.append(term, detail);
   }
   root.append(list);
+  if (model.sources.length > 0) {
+    const sourcesHeading = document.createElement('h2');
+    sourcesHeading.textContent = 'Source references';
+    root.append(sourcesHeading);
+    const sourcesList = document.createElement('ul');
+    for (const source of model.sources) {
+      const li = document.createElement('li');
+      li.append(escapeText(sourceLabel(source)));
+      sourcesList.append(li);
+    }
+    root.append(sourcesList);
+  }
   if (model.unknowns.length > 0) {
     const unknownHeading = document.createElement('h2');
     unknownHeading.textContent = 'Explicit unknowns';
@@ -67,9 +87,17 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
   root.append(actions);
 }
 
+export function isTrustedReviewOrigin(origin: string): boolean {
+  const allowlist = globalThis.document?.documentElement?.dataset?.trustedOrigins;
+  if (allowlist) {
+    return allowlist.split(',').map((entry) => entry.trim()).filter(Boolean).includes(origin);
+  }
+  return origin === globalThis.location.origin;
+}
+
 export function wireTrustedApproval(
   root: HTMLElement,
-  model: ReviewModel,
+  readModel: () => ReviewModel,
   submit: (action: 'approve' | 'reject', binding: ReviewModel) => Promise<void>,
 ): void {
   root.addEventListener('click', (event) => {
@@ -77,6 +105,7 @@ export function wireTrustedApproval(
     if (!(target instanceof HTMLButtonElement)) return;
     const action = target.dataset.action;
     if (action !== 'approve' && action !== 'reject') return;
+    const model = readModel();
     if (!model.challenge?.trim()) {
       globalThis.alert('Approval challenge unavailable in this review context.');
       return;

@@ -3,6 +3,7 @@
 package com.spoolin.catalog.features.proposal
 
 import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.metrics.ProposalMetrics
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.ActorRejected
@@ -36,6 +37,7 @@ class ProposalWrites(
     private val movieWrites: MovieWrites,
     private val metrics: ProposalMetrics? = null,
     private val clock: Clock = Clock.systemUTC(),
+    private val livePolicyRevision: () -> String = { "default" },
 ) {
     private val random = SecureRandom()
 
@@ -128,15 +130,7 @@ class ProposalWrites(
         approve: Boolean,
     ) {
         try {
-            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            if (!Permissions.management(claims.role)) throw ActorRejected()
-            if (claims.clientKind == null) {
-                throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_REQUIRED").asRuntimeException()
-            }
-            val expectedMethod = if (approve) APPROVE_METHOD else REJECT_METHOD
-            if (claims.method != expectedMethod) {
-                throw Status.PERMISSION_DENIED.withDescription("MODEL_CONSENT_DENIED").asRuntimeException()
-            }
+            val claims = assertApprovalClaims(approve)
             val proposalId = parseId(request.proposalId)
             val revision = request.revision
             val wireHash = decodeContentHash(request.contentHash)
@@ -147,64 +141,21 @@ class ProposalWrites(
                     revision,
                     wireHash,
                     request.challenge,
+                    livePolicyRevision(),
                     clock.instant(),
                 )
             val operationId = approvalOperationId(proposalId, revision, approve)
             val correlationId = UUID.randomUUID()
-            val actorScope = "account:${claims.accountId}"
-            val kind = if (approve) "ApproveAndCreate" else "RejectProposal"
-            val intent =
-                OperationIntent(
-                    operationId,
-                    actorScope,
-                    kind,
-                    "",
-                    mapOf("proposalId" to proposalId.toString(), "revision" to revision.toString()),
-                )
             val outcome =
-                receipts.execute(intent, correlationId, true) { conn ->
-                    val row =
-                        ProposalStore.loadForUpdate(conn, proposalId, revision)
-                            ?: throw Status.NOT_FOUND.withDescription("PROPOSAL_NOT_FOUND").asRuntimeException()
-                    if (row.state == "CREATED" && row.movieId != null) {
-                        return@execute SafeResult(row.movieId, 0)
-                    }
-                    binding.verify(row, row.challengeHash)?.let { throw it.asRuntimeException() }
-                    val content = ProposalContent.parseJson(row.contentJson)
-                    val storedDigest = DeterministicContentSerializer.digest(content)
-                    if (!storedDigest.contentEquals(row.contentHash)) {
-                        throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
-                    }
-                    if (approve) {
-                        val values = ProposalContent.movieValues(content)
-                        val approvedAt = clock.instant()
-                        val approvalExpires = minOf(approvedAt.plus(APPROVAL_TTL), row.expiresAt)
-                        val movieOutcome =
-                            movieWrites.publishFromProposal(
-                                conn,
-                                values,
-                                claims.accountId,
-                                row.operationId,
-                                correlationId,
-                            )
-                        ProposalStore.markCreated(
-                            conn,
-                            proposalId,
-                            revision,
-                            movieOutcome.resultId,
-                            approvedAt,
-                            approvalExpires,
-                            claims.accountId,
-                            claims.credentialId,
-                            row.contentHash,
-                            clock.instant(),
-                        )
-                        movieOutcome
-                    } else {
-                        ProposalStore.markRejected(conn, proposalId, revision)
-                        SafeResult(proposalId, revision.toLong())
-                    }
-                }
+                executeApprovalReceipt(
+                    claims,
+                    binding,
+                    proposalId,
+                    revision,
+                    approve,
+                    operationId,
+                    correlationId,
+                )
             if (approve) {
                 metrics?.markApproved()
             } else {
@@ -219,6 +170,150 @@ class ProposalWrites(
         } catch (_: IllegalArgumentException) {
             response.onError(Status.INVALID_ARGUMENT.asRuntimeException())
         }
+    }
+
+    private fun assertApprovalClaims(approve: Boolean): com.spoolin.support.identity.ActorClaims {
+        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (!Permissions.management(claims.role)) throw ActorRejected()
+        if (claims.clientKind == null) {
+            throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_REQUIRED").asRuntimeException()
+        }
+        val expectedMethod = if (approve) APPROVE_METHOD else REJECT_METHOD
+        if (claims.method != expectedMethod) {
+            throw Status.PERMISSION_DENIED.withDescription("MODEL_CONSENT_DENIED").asRuntimeException()
+        }
+        return claims
+    }
+
+    private fun executeApprovalReceipt(
+        claims: com.spoolin.support.identity.ActorClaims,
+        binding: ExactApprovalBinding,
+        proposalId: UUID,
+        revision: Int,
+        approve: Boolean,
+        operationId: UUID,
+        correlationId: UUID,
+    ): com.spoolin.support.receipts.ReceiptOutcome {
+        val actorScope = "account:${claims.accountId}"
+        val kind = if (approve) "ApproveAndCreate" else "RejectProposal"
+        val intent =
+            OperationIntent(
+                operationId,
+                actorScope,
+                kind,
+                binding.policyRevision,
+                mapOf("proposalId" to proposalId.toString(), "revision" to revision.toString()),
+            )
+        return receipts.execute(intent, correlationId, true) { conn ->
+            applyApprovalMutation(conn, claims, binding, proposalId, revision, approve, operationId, correlationId)
+        }
+    }
+
+    private fun applyApprovalMutation(
+        conn: java.sql.Connection,
+        claims: com.spoolin.support.identity.ActorClaims,
+        binding: ExactApprovalBinding,
+        proposalId: UUID,
+        revision: Int,
+        approve: Boolean,
+        operationId: UUID,
+        correlationId: UUID,
+    ): SafeResult {
+        val row =
+            ProposalStore.loadForUpdate(conn, proposalId, revision)
+                ?: throw Status.NOT_FOUND.withDescription("PROPOSAL_NOT_FOUND").asRuntimeException()
+        if (row.state == "CREATED" && row.movieId != null) {
+            return SafeResult(row.movieId, 0)
+        }
+        binding.verify(row, row.challengeHash)?.let { throw it.asRuntimeException() }
+        val content = ProposalContent.parseJson(row.contentJson)
+        val storedDigest = DeterministicContentSerializer.digest(content)
+        if (!storedDigest.contentEquals(row.contentHash)) {
+            throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
+        }
+        val actorKind = claims.clientKind ?: "CONNECTOR"
+        if (approve) {
+            recordProposalAudit(
+                conn,
+                "APPROVE_PROPOSAL",
+                proposalId,
+                claims.accountId,
+                operationId,
+                correlationId,
+                actorKind,
+            )
+            return publishApprovedProposal(conn, claims, row, content, proposalId, revision, correlationId)
+        }
+        recordProposalAudit(
+            conn,
+            "REJECT_PROPOSAL",
+            proposalId,
+            claims.accountId,
+            operationId,
+            correlationId,
+            actorKind,
+        )
+        ProposalStore.markRejected(conn, proposalId, revision)
+        return SafeResult(proposalId, revision.toLong())
+    }
+
+    private fun publishApprovedProposal(
+        conn: java.sql.Connection,
+        claims: com.spoolin.support.identity.ActorClaims,
+        row: ProposalRow,
+        content: Map<String, Any?>,
+        proposalId: UUID,
+        revision: Int,
+        correlationId: UUID,
+    ): SafeResult {
+        val values = ProposalContent.movieValues(content)
+        val approvedAt = clock.instant()
+        val approvalExpires = minOf(approvedAt.plus(APPROVAL_TTL), row.expiresAt)
+        val movieOutcome =
+            movieWrites.publishFromProposal(
+                conn,
+                values,
+                claims.accountId,
+                row.operationId,
+                correlationId,
+            )
+        ProposalStore.markCreated(
+            conn,
+            proposalId,
+            revision,
+            movieOutcome.resultId,
+            approvedAt,
+            approvalExpires,
+            claims.accountId,
+            claims.credentialId,
+            row.contentHash,
+            clock.instant(),
+        )
+        return movieOutcome
+    }
+
+    private fun recordProposalAudit(
+        conn: java.sql.Connection,
+        action: String,
+        proposalId: UUID,
+        actorId: UUID,
+        operationId: UUID,
+        correlationId: UUID,
+        actorKind: String,
+    ) {
+        AuditInsert.record(
+            conn,
+            operationId,
+            actorId,
+            actorKind,
+            action,
+            "PROPOSAL",
+            proposalId,
+            "SUCCEEDED",
+            "{}",
+            correlationId,
+            clock.instant(),
+        )
     }
 
     private fun approvalOperationId(

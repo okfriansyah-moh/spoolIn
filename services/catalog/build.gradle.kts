@@ -39,6 +39,13 @@ springBoot { mainClass.set("com.spoolin.catalog.ApplicationKt") }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") { archiveClassifier.set("boot") }
 
+tasks.register<JavaExec>("seedCli") {
+    group = "application"
+    description = "Load manifest titles via CatalogSeedLoader (ops/bin/seed.sh --apply)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.spoolin.catalog.ApplicationKt")
+}
+
 val receiptIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")

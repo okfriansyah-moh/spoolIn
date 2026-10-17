@@ -23,7 +23,7 @@ class ExactApprovalBindingRulesTest {
                 actorId = actor,
                 connectorId = connector,
                 clientKind = "CLAUDE",
-                contentJson = "{}",
+                contentJson = """{"policy_revision":"policy-v1"}""",
                 contentHash = contentHash,
                 challengeHash = challengeHash,
                 state = "REVIEW",
@@ -40,10 +40,42 @@ class ExactApprovalBindingRulesTest {
                 clientKind = "CLAUDE",
                 contentHash = contentHash,
                 challenge = challenge,
-                policyRevision = "",
+                policyRevision = "policy-v1",
                 now = Instant.parse("2029-01-01T00:00:00Z"),
             )
         assertNull(binding.verify(row, challengeHash))
+    }
+
+    @Test
+    fun verify_rejects_policy_revision_mismatch() {
+        val binding =
+            ExactApprovalBinding(
+                proposalId = UUID.randomUUID(),
+                revision = 1,
+                actorId = UUID.randomUUID(),
+                connectorId = UUID.randomUUID(),
+                clientKind = "CLAUDE",
+                contentHash = ByteArray(32),
+                challenge = "x",
+                policyRevision = "policy-v2",
+                now = Instant.parse("2029-01-01T00:00:00Z"),
+            )
+        val row =
+            ProposalRow(
+                id = binding.proposalId,
+                revision = 1,
+                actorId = binding.actorId,
+                connectorId = binding.connectorId,
+                clientKind = "CLAUDE",
+                contentJson = """{"policy_revision":"policy-v1"}""",
+                contentHash = binding.contentHash,
+                challengeHash = ByteArray(32),
+                state = "REVIEW",
+                operationId = UUID.randomUUID(),
+                movieId = null,
+                expiresAt = Instant.parse("2030-01-01T00:00:00Z"),
+            )
+        assertEquals("POLICY_REVISION_MISMATCH", binding.verify(row, row.challengeHash)?.description)
     }
 
     @Test

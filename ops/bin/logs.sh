@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
-: "${SPOOLIN_INSTALLATION:?Set SPOOLIN_INSTALLATION}"
 service="${1:-}"
-compose=(docker compose --project-name "$SPOOLIN_INSTALLATION" -f "$root_dir/ops/compose.yaml")
+# shellcheck source=_compose_common.sh
+source "$root_dir/ops/bin/_compose_common.sh"
+set +e
 if [[ -n "$service" ]]; then
-  printf '%s\n' "logs: ${compose[*]} logs -f --tail=200 $service (wrapper only)"
+  compose_common_run "$root_dir" logs -f --tail=200 "$service"
 else
-  printf '%s\n' "logs: ${compose[*]} logs -f --tail=200 (wrapper only)"
+  compose_common_run "$root_dir" logs -f --tail=200
 fi
-exit 0
+status=$?
+set -e
+exit "$status"

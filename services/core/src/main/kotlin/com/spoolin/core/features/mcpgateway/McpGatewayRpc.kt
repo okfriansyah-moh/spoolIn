@@ -78,7 +78,8 @@ class McpGatewayRpc(
             catalogMethod = "/spoolin.v1.CatalogService/ProposeMovie",
             response = response,
         ) { token ->
-            catalogStub(token).proposeMovie(request)
+            val revision = catalogStub(token).proposeMovie(request)
+            revision.toBuilder().clearUiChallenge().build()
         }
     }
 
