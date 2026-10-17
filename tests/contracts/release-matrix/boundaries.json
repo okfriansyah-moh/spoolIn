@@ -1,0 +1,26 @@
+[
+  {
+    "id": "grpc.catalog.ApproveAndCreate",
+    "service": "spoolin.v1.CatalogService",
+    "method": "ApproveAndCreate",
+    "contract": "contracts/grpc/src/main/proto/spoolin/v1/spoolin.proto"
+  },
+  {
+    "id": "grpc.catalog.RejectProposal",
+    "service": "spoolin.v1.CatalogService",
+    "method": "RejectProposal",
+    "contract": "contracts/grpc/src/main/proto/spoolin/v1/spoolin.proto"
+  },
+  {
+    "id": "grpc.mcp.ProposeMovie",
+    "service": "spoolin.v1.McpGatewayService",
+    "method": "ProposeMovie",
+    "contract": "contracts/grpc/src/main/proto/spoolin/v1/spoolin.proto"
+  },
+  {
+    "id": "graphql.audit",
+    "service": "catalog-graphql",
+    "method": "audit",
+    "contract": "services/catalog/src/main/resources/graphql/schema.graphqls"
+  }
+]

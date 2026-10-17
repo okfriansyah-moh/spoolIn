@@ -17,6 +17,7 @@ import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import spoolin.v1.Spoolin.MovieValues
 import spoolin.v1.Spoolin.MovieWrite
 import spoolin.v1.Spoolin.Outcome
 import java.sql.Connection
@@ -43,6 +44,18 @@ class MovieWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
 ) {
+    /** Authoritative movie insert used by trusted proposal approval (same path as WriteMovie create). */
+    fun publishFromProposal(
+        conn: Connection,
+        values: MovieValues,
+        actorId: UUID,
+        operationId: UUID,
+        correlationId: UUID,
+    ): SafeResult {
+        val request = MovieWrite.newBuilder().setValues(values).build()
+        return create(conn, request, actorId, operationId, correlationId)
+    }
+
     fun writeMovie(
         request: MovieWrite,
         response: StreamObserver<Outcome>,

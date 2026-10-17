@@ -4,6 +4,7 @@
   import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
+  import { createDraftSource } from '../../../../lib/features/draft/api';
   import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import PersonEditorForm from '../../../../lib/features/person/write/PersonEditorForm.svelte';
@@ -22,7 +23,12 @@
       return;
     }
     const transport = createTransport();
-    controller = createPersonEditorController(transport, 'edit', personId);
+    controller = createPersonEditorController(
+      transport,
+      createDraftSource(transport),
+      'edit',
+      personId,
+    );
     const unsubscribe = controller.subscribe((next) => {
       editorState = next;
     });
