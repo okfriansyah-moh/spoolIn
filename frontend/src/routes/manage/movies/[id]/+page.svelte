@@ -13,7 +13,6 @@
   import { isRecordId } from '../../../../lib/components/safe-url';
   import CreditPanel from '../../../../lib/features/credit/CreditPanel.svelte';
   import ArtworkUploadField from '../../../../lib/features/artwork/ArtworkUploadField.svelte';
-  import { createTransport } from '../../../../lib/transport/graphql';
 
   const sessionCtl = sessionController();
   let editorState = $state<EditorState | null>(null);

@@ -17,7 +17,7 @@ const run = spawnSync(
     '--reporter=default',
     '--reporter=json',
     '--outputFile.json=coverage/test-results.json',
-    'src/lib/features/artwork/progress.test.ts',
+    'src/lib/features/artwork/',
   ],
   { stdio: 'inherit', cwd: process.cwd() },
 );

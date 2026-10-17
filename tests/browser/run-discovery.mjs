@@ -35,13 +35,22 @@ let selected = 0, executed = 0, failed = 0;
 if (existsSync(RESULTS_JSON)) {
   try {
     const pw = JSON.parse(readFileSync(RESULTS_JSON, 'utf8'));
-    for (const suite of pw.suites ?? []) {
-      for (const spec of suite.specs ?? []) {
-        selected += 1;
-        if (spec.tests?.length > 0) {
-          executed += 1;
-          const ok = spec.tests.every((t) => t.results?.every((r) => r.status === 'passed'));
-          if (!ok) failed += 1;
+    const stats = pw.stats ?? {};
+    if (typeof stats.expected === 'number') {
+      selected = stats.expected + (stats.unexpected ?? 0) + (stats.skipped ?? 0);
+      executed = selected;
+      failed = stats.unexpected ?? 0;
+    } else {
+      for (const suite of pw.suites ?? []) {
+        for (const spec of suite.specs ?? []) {
+          selected += 1;
+          if (spec.tests?.length > 0) {
+            executed += 1;
+            const ok = spec.tests.every((t) =>
+              t.results?.every((r) => r.status === 'passed'),
+            );
+            if (!ok) failed += 1;
+          }
         }
       }
     }

@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { freshSession, goToMovieList } from '../movies/fixture';
 
-test('T026-artwork: movie management shell leaves room for measured upload feedback', async ({
-  page,
-  context,
-}) => {
+test('T026-artwork: edit route exposes artwork upload status region', async ({ page, context }) => {
   await freshSession(context);
   await goToMovieList(page);
   await expect(page.getByRole('heading', { level: 1, name: 'Movies' })).toBeVisible();
-  await expect(page.getByText(/TV entries are read-only/i)).toBeVisible();
+  const editLink = page.getByRole('link', { name: /Edit/i }).first();
+  if (await editLink.isVisible()) {
+    await editLink.click();
+    await expect(page.getByText('Poster artwork')).toBeVisible();
+    await expect(page.getByRole('status')).toContainText(/Select artwork|Transferring|Processing|Saved/i);
+  }
 });

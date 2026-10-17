@@ -43,6 +43,8 @@ import java.time.ZoneOffset
 import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import org.springframework.core.env.StandardEnvironment
+import com.spoolin.media.features.upload.QuarantineStore
 
 class ActorRotationTest {
     @Test
@@ -124,9 +126,11 @@ private class RotationProof(
             com.spoolin.media.operations.receipts
                 .OwnerReceipts(pool, hashes)
                 .execute(intent, UUID.randomUUID(), true) { SafeResult(intent.id) }
+            val environment = StandardEnvironment()
+            val quarantine = QuarantineStore(Files.createTempDirectory("media-actor-rotation"))
             com.spoolin.media
                 .Application()
-                .mediaService(pool)
+                .mediaService(pool, environment, quarantine)
         }
     }
 

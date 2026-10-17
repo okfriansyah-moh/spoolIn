@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { stageLabel, type ArtworkStage } from './progress';
-  import { fileToBase64, uploadArtwork } from './api';
+  import { onMount } from 'svelte';
+  import { stageLabel } from './progress';
+  import { ArtworkUploadController, INITIAL_ARTWORK_UPLOAD_VIEW } from './upload-controller';
   import type { GraphqlRequest } from '../../transport/graphql';
 
   let {
@@ -19,42 +20,56 @@
     disabled?: boolean;
   } = $props();
 
-  let stage = $state<ArtworkStage>('idle');
-  let message = $state('');
+  let view = $state(INITIAL_ARTWORK_UPLOAD_VIEW);
+  let controller: ArtworkUploadController | null = null;
+
+  onMount(() => {
+    controller = new ArtworkUploadController(request, csrf);
+    const unsubscribe = controller.subscribe((next) => {
+      view = next;
+    });
+    return () => {
+      unsubscribe();
+      controller?.dispose();
+    };
+  });
 
   async function onFileChange(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file || disabled) return;
-    stage = 'transferring';
-    message = stageLabel(stage);
-    try {
-      const contentBase64 = await fileToBase64(file);
-      stage = 'processing';
-      message = stageLabel(stage);
-      const operationId = crypto.randomUUID();
-      const result = await uploadArtwork(request, csrf, {
-        operationId,
-        titleId,
-        expectedVersion,
-        policyRevision,
-        contentBase64,
-      });
-      stage = result.state === 'SUCCEEDED' || result.state === 'PENDING' ? 'saved' : 'failed';
-      message = stageLabel(stage);
-    } catch {
-      stage = 'failed';
-      message = stageLabel(stage);
-    } finally {
-      input.value = '';
-    }
+    if (!file || disabled || !controller) return;
+    await controller.uploadFile(file, titleId, expectedVersion, policyRevision);
+    input.value = '';
+  }
+
+  function onCancel() {
+    void controller?.cancelActive(view.operationId);
+  }
+
+  function onResume() {
+    if (!view.operationId) return;
+    void controller?.resumeCheck(view.operationId, titleId, expectedVersion);
   }
 </script>
 
 <label class="artwork-upload">
   <span>Poster artwork</span>
-  <input type="file" accept="image/png,image/jpeg,image/webp" {disabled} onchange={onFileChange} />
-  <p role="status">{message || stageLabel(stage)}</p>
+  <input
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    {disabled}
+    onchange={onFileChange}
+  />
+  {#if view.stage === 'transferring'}
+    <progress max="100" value={view.transferPercent} aria-label="Transfer progress"></progress>
+  {/if}
+  <p role="status">{view.message || stageLabel(view.stage)}</p>
+  {#if view.canCancel}
+    <button type="button" class="secondary" onclick={onCancel}>Cancel upload</button>
+  {/if}
+  {#if view.canResumeCheck}
+    <button type="button" class="secondary" onclick={onResume}>Check original result</button>
+  {/if}
 </label>
 
 <style>
@@ -62,5 +77,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+  progress {
+    width: 100%;
   }
 </style>
