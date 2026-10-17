@@ -612,9 +612,28 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/audit/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/movie/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t016-movie-writes-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_movie_writes.py",
+            "--task",
+            "T016",
+            "--level",
+            "unit"
+          ],
+          "report": ".ai/evidence/numbering-v1/t016-unit-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/movie/*RulesTest.kt",
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/audit/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/movie/*RulesTest.kt"
+          ]
+        }
+      ],
       "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": null
     },
     "T017": {
       "source": "docs/plan/12-movie-management/tasks/T017-connect-movie-editors-and-confirmed-outcomes.md",

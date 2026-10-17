@@ -1,6 +1,8 @@
 package com.spoolin.catalog.boundary.grpc
 
 import com.google.protobuf.Timestamp
+import com.spoolin.catalog.features.movie.ManagedMovieReads
+import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.features.person.read.PersonSearch
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.CatalogCursor
@@ -14,9 +16,11 @@ import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.Spoolin
+import spoolin.v1.Spoolin.AuditPage
 import spoolin.v1.Spoolin.CreditPage
 import spoolin.v1.Spoolin.Genres
 import spoolin.v1.Spoolin.Id
+import spoolin.v1.Spoolin.MovieWrite
 import spoolin.v1.Spoolin.Outcome
 import spoolin.v1.Spoolin.PageRequest
 import spoolin.v1.Spoolin.PartialDate
@@ -34,11 +38,14 @@ import java.util.UUID
 private const val DEFAULT_FIRST = 24
 
 /**
- * Catalog gRPC service — public read methods and operation receipt lookup.
+ * Catalog gRPC service — public read methods, write methods, and receipt lookup.
  *
  * Public reads (no actor required, mTLS "core" identity only):
  *   SearchTitles, GetTitle, SearchPeople, GetPerson,
  *   PersonCredits, TitleCredits, ListGenres, ListRoles.
+ * Protected writes (MAINTAINER actor required): WriteMovie.
+ * Protected managed reads (MAINTAINER actor required):
+ *   ManagedTitle, ManagedTitles, Audit.
  * Protected: GetOperation (actor-scoped receipt lookup).
  */
 class CatalogServiceRpc(
@@ -51,6 +58,8 @@ class CatalogServiceRpc(
     private val titleCursor: CatalogCursor,
     private val peopleCursor: PeopleCursor,
     private val clock: Clock = Clock.systemUTC(),
+    private val movieWrites: MovieWrites? = null,
+    private val managedReads: ManagedMovieReads? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
 
     // ── GetOperation ─────────────────────────────────────────────────────────
@@ -246,6 +255,50 @@ class CatalogServiceRpc(
         }
     }
 
+    // ── WriteMovie ────────────────────────────────────────────────────────────
+
+    override fun writeMovie(request: MovieWrite, response: StreamObserver<Outcome>) {
+        val handler = movieWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
+            return
+        }
+        handler.writeMovie(request, response)
+    }
+
+    // ── ManagedTitle ─────────────────────────────────────────────────────────
+
+    override fun managedTitle(request: Id, response: StreamObserver<Title>) {
+        val handler = managedReads
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
+            return
+        }
+        handler.managedTitle(request, response)
+    }
+
+    // ── ManagedTitles ─────────────────────────────────────────────────────────
+
+    override fun managedTitles(request: PageRequest, response: StreamObserver<TitlePage>) {
+        val handler = managedReads
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
+            return
+        }
+        handler.managedTitles(request, response)
+    }
+
+    // ── Audit ─────────────────────────────────────────────────────────────────
+
+    override fun audit(request: PageRequest, response: StreamObserver<AuditPage>) {
+        val handler = managedReads
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Audit reads unavailable").asRuntimeException())
+            return
+        }
+        handler.audit(request, response)
+    }
+
     // ── protobuf mappers ─────────────────────────────────────────────────────
 
     private fun titleProto(
@@ -326,28 +379,10 @@ class CatalogServiceRpc(
     }
 
     private fun partialDateProto(year: Int?, month: Int?, day: Int?): PartialDate =
-        PartialDate.newBuilder()
-            .also { b ->
-                year?.let { b.year = it }
-                month?.let { b.month = it }
-                day?.let { b.day = it }
-            }
-            .build()
+        ProtoHelpers.partialDate(year, month, day)
 
-    private fun provenanceProto(row: ProvenanceReads.ProvenanceRow): Provenance {
-        val ts = Timestamp.newBuilder()
-            .setSeconds(row.retrievedAt.epochSecond)
-            .setNanos(row.retrievedAt.nano)
-            .build()
-        return Provenance.newBuilder()
-            .setSource(row.source)
-            .setExternalId(row.externalId)
-            .setRetrievedAt(ts)
-            .setReuseNote(row.reuseNote)
-            .addAllLocallyChanged(row.locallyChanged)
-            .also { b -> row.recordUrl?.let { b.recordUrl = it } }
-            .build()
-    }
+    private fun provenanceProto(row: ProvenanceReads.ProvenanceRow): Provenance =
+        ProtoHelpers.provenance(row)
 
     private fun outcomeProto(receipt: ReceiptOutcome): Outcome {
         val b = Outcome.newBuilder()

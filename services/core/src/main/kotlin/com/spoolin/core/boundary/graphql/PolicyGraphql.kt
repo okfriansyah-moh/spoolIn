@@ -21,6 +21,7 @@ class PolicyGraphql(
     operations: ScopedOperationQuery? = null,
     catalog: com.spoolin.core.features.catalogview.read.CatalogViewGraphql? = null,
     drafts: com.spoolin.core.features.draft.DraftGraphql? = null,
+    managedCatalog: com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
@@ -47,6 +48,7 @@ class PolicyGraphql(
         }
         accounts?.bind(wiring)
         catalog?.bind(wiring)
+        managedCatalog?.bind(wiring)
         drafts?.bind(wiring)
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
@@ -122,13 +124,19 @@ class PolicyGraphqlConfiguration {
         accounts: org.springframework.beans.factory.ObjectProvider<AccountGraphql>,
         catalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.read.CatalogViewGraphql>,
         draftView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.draft.DraftGraphql>,
+        managedCatalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql>,
     ): PolicyGraphql {
         val schema =
             ClassPathResource(
                 "graphql/schema.graphql",
             ).inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-        return PolicyGraphql(schema, provider, accounts = accounts.ifAvailable, operations = { id, owner, context ->
-            context?.operation(id, owner)
-        }, catalog = catalogView.ifAvailable, drafts = draftView.ifAvailable)
+        return PolicyGraphql(
+            schema, provider,
+            accounts = accounts.ifAvailable,
+            operations = { id, owner, context -> context?.operation(id, owner) },
+            catalog = catalogView.ifAvailable,
+            drafts = draftView.ifAvailable,
+            managedCatalog = managedCatalogView.ifAvailable,
+        )
     }
 }

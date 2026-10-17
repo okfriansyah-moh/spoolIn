@@ -1,5 +1,12 @@
 package com.spoolin.catalog
 
+import com.spoolin.catalog.features.movie.ManagedMovieReads
+import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.features.provenance.ProvenanceReads
+import com.spoolin.catalog.features.search.TitleSearchSql
+import com.spoolin.catalog.operations.audit.AuditReads
+import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.support.receipts.ComparisonKeys
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -21,6 +28,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import org.springframework.grpc.server.GlobalServerInterceptor
@@ -118,7 +126,12 @@ class Application {
     fun catalogCursorKey(): ByteArray = com.spoolin.catalog.features.search.CatalogCursor.newRandomKey()
 
     @Bean
-    fun catalogService(dataSource: DataSource, cursorKey: ByteArray): io.grpc.BindableService {
+    fun catalogService(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        movieWritesProvider: ObjectProvider<MovieWrites>,
+        managedReadsProvider: ObjectProvider<ManagedMovieReads>,
+    ): io.grpc.BindableService {
         val reads = com.spoolin.catalog.operations.receipts.OwnerReceiptReads(dataSource)
         val authority = com.spoolin.support.receipts.ReceiptAuthority {
             com.spoolin.support.identity.ActorRpc.current()?.let { "account:${it.accountId}" }
@@ -134,7 +147,37 @@ class Application {
             receiptAuthority = authority,
             titleCursor = titleCursor,
             peopleCursor = peopleCursor,
+            movieWrites = movieWritesProvider.ifAvailable,
+            managedReads = managedReadsProvider.ifAvailable,
         )
+    }
+}
+
+/** Wires movie write and managed-read handlers when catalog write keys are configured. */
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+    name = ["spoolin.catalog.write.enabled"], havingValue = "true", matchIfMissing = false,
+)
+class CatalogWriteConfiguration {
+
+    @Bean
+    fun catalogOwnerReceipts(dataSource: DataSource, environment: Environment): OwnerReceipts {
+        val keyId = environment.getRequiredProperty("CATALOG_HMAC_KEY_ID")
+        val keyFile = environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")
+        val hashes = ComparisonKeys.load(mapOf(keyId to keyFile), keyId, keyFile)
+        return OwnerReceipts(dataSource, hashes)
+    }
+
+    @Bean
+    fun movieWrites(dataSource: DataSource, receipts: OwnerReceipts): MovieWrites =
+        MovieWrites(dataSource, receipts)
+
+    @Bean
+    fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
+        val provenance = ProvenanceReads(dataSource)
+        val titleSearch = TitleSearchSql(dataSource)
+        val auditReads = AuditReads(dataSource)
+        return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads)
     }
 }
 
