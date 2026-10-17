@@ -12,17 +12,16 @@
 import type { Criteria, TextValidity } from './types';
 import { MAX_SEARCH_CODE_POINTS } from './types';
 
+type QueryParams = Pick<URLSearchParams, 'get' | 'getAll'>;
+
 /** Parse URL search params into Criteria. */
-export function parseCriteria(
-  params: URLSearchParams | ReadonlyURLSearchParams,
-): Criteria {
+export function parseCriteria(params: QueryParams): Criteria {
   const text = params.get('q') ?? '';
   const kind = params.get('kind') ?? '';
   const year = params.get('year') ?? '';
   // Clearing year must also clear month – enforce on read so Back restores correctly.
   const month = year ? (params.get('month') ?? '') : '';
-  const genres = params.getAll('genre');
-  const deduped = [...new Set(genres)].sort();
+  const deduped = [...new Set(params.getAll('genre').map(String))].sort();
   return Object.freeze({
     text,
     kind,

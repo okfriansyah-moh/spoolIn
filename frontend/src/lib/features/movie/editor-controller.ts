@@ -213,7 +213,7 @@ export class MovieEditorController {
     const draft = movieToDraft(movie);
     this.draftSync.reset({
       catalogOperationId: null,
-      baseVersion: movie.version,
+      expectedVersion: movie.version,
     });
     this.publish({
       ...this.current,
