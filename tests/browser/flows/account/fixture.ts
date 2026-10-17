@@ -41,8 +41,6 @@ function trustFixtureCa(profile: string, ca: string) {
 function accountEngine(): 'chromium' | 'firefox' {
   const raw = process.env.ACCOUNT_BROWSER_ENGINE?.toLowerCase();
   if (raw === 'firefox') return 'firefox';
-  if (raw === 'chromium' || raw === 'chrome') return 'chromium';
-  if (process.env.ACCOUNT_BROWSER_HEADED === '1') return 'firefox';
   return 'chromium';
 }
 
@@ -88,6 +86,7 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
       const profile = mkdtempSync(join(tmpdir(), 'spoolin-account-profile-'));
       const engine = accountEngine();
       const headed = process.env.ACCOUNT_BROWSER_HEADED === '1';
+      const headless = !headed;
       const shared = {
         ignoreHTTPSErrors: false,
         baseURL: origin,
@@ -104,7 +103,7 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
           trustFixtureCa(profile, ca);
           const context = await playwright.chromium.launchPersistentContext(
             profile,
-            { ...shared, headless: true },
+            { ...shared, headless },
           );
           await observeStorage(context);
           try {
@@ -113,15 +112,16 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
             await context.close();
           }
         } else {
+          // Bootstrap headless so macOS does not open a broken Firefox profile dialog.
           const bootstrap = await playwright.firefox.launchPersistentContext(
             profile,
-            { ...shared, headless: false },
+            { ...shared, headless: true },
           );
           await bootstrap.close();
           trustFixtureCa(profile, ca);
           const context = await playwright.firefox.launchPersistentContext(
             profile,
-            { ...shared, headless: !headed },
+            { ...shared, headless },
           );
           await observeStorage(context);
           try {

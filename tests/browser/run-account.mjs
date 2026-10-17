@@ -84,8 +84,8 @@ function run() {
     NODE_EXTRA_CA_CERTS: handoff.ca,
     ACCOUNT_CREDENTIALS_FILE: handoff.credentialsFile,
     ACCOUNT_JUNIT: report,
-    ACCOUNT_BROWSER_ENGINE:
-      process.env.ACCOUNT_BROWSER_ENGINE || 'chromium',
+    ACCOUNT_BROWSER_ENGINE: process.env.ACCOUNT_BROWSER_ENGINE || 'chromium',
+    ACCOUNT_BROWSER_HEADED: process.env.ACCOUNT_BROWSER_HEADED || '0',
   };
   const code = container ? runContainer(container, handoff) : execute(cli, env);
   if (code === 0) releaseFixture(handoff);
