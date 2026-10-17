@@ -369,15 +369,14 @@ class DraftStorageBoundaryTest {
         purpose: KeyPurpose,
         state: String,
     ) {
-        fixture.pool("core", "migrator").use { pool ->
-            pool.connection.use { connection ->
-                connection.executeBound(
-                    "INSERT INTO appdata.crypto_key_version(id,purpose,state) VALUES (?,?,?) ON CONFLICT DO NOTHING",
-                    id,
-                    purpose.name,
-                    state,
-                )
-                connection.commit()
+        fixture.pool("core").connection.use { connection ->
+            connection.prepareStatement(
+                "INSERT INTO appdata.crypto_key_version(id,purpose,state) VALUES (?,?,?) ON CONFLICT DO NOTHING",
+            ).use { statement ->
+                statement.setString(1, id)
+                statement.setString(2, purpose.name)
+                statement.setString(3, state)
+                statement.executeUpdate()
             }
         }
     }

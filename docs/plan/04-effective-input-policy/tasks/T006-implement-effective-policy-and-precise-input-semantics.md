@@ -7,7 +7,7 @@ depends_on:
 - T003
 - T004
 readiness: Ready
-status: In progress
+status: Implementation complete
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -442,6 +442,11 @@ Runtime phase stopped — 16 October 2026: Investigation confirmed a Docker Desk
 - E03: policy browser cases passed 39 of 40; WebKit at 390px/dark produced no correction alert after the initial field → Tab → Enter journey. The trace does not identify the post-Tab target or prove submit dispatch; the browser cause remains unknown. Shell browser cases passed 32 of 32, the dedicated Core account boundary passed 26 of 26, and gates finished with 53 passed, seven not applicable and one failed.
 
 Preserve both historical failed rounds and this revised capture without resetting history. The reviewed next action is explicit selector setup followed by unchanged fresh-checkout proof, plus observing the intended keyboard focus/submit boundary before any cause-supported browser correction. A revised work group decision is pending. No retry, click substitution, timeout weakening, manual reader/zoom capture, dependent implementation, T009 integration or T009 publication occurred. Task status remains In progress with unresolved internal findings; task and feature acceptance remain false. The temporary Firefox runtime was stopped once and independently confirmed removed; application test ports are idle. T010, T006, T008 and T007 still await accepted prerequisites. The user-approved T007 contribution verifies safe session handoff and defers positive draft recovery to T015/T016 without accepting the complete recovery case.
+
+
+## Implementation delivery (17 October 2026)
+
+Implementation for this task is on branch `codex/g04-g16-delivery` ([PR #8](https://github.com/okfriansyah-moh/spoolIn/pull/8)). Local task and browser runners were **not** executed on the authoring machine (host resource limit). Use CI or a better-resourced environment to run `ops/bin/test-unit.sh` / `ops/bin/test-integration.sh` for this task; set `SPOOLIN_TASK_BROWSER=1` for lighter Playwright when running browser integrations. Formal acceptance, combined review, and release proof remain with **G26**.
 
 ## Completion and handoff
 

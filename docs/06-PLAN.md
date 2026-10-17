@@ -202,7 +202,7 @@ This package is the execution handoff for the complete committed local SpoolIn i
 
 ### Development status
 
-**Tasks: 5 Done · 5 In progress · 36 Not started. Stages: 3 Done · 5 In progress · 18 Not started.** Completed: T001–T005. In progress: T006–T010, covering policy, receipts, registration/sessions, guarded access and account browser journeys. Remaining: T011–T046.
+**Tasks: 5 Done · 21 Implementation complete · 20 Not started. Stages: 3 Done · 13 Implementation complete · 10 Not started.** Completed (accepted): T001–T005. **Implementation complete (acceptance → G26):** T006–T026 on [PR #8](https://github.com/okfriansyah-moh/spoolIn/pull/8) branch `codex/g04-g16-delivery` — product code landed; local task/browser runners were not re-run on the authoring machine (host resource limit); formal acceptance, combined review, and delivery gates defer to **G26**. Remaining product work: T027–T046.
 
 The account-selection source is merged, but its latest verified revision was `9c55eb41704338515693fa439a310ffa50f069b8`: 66 checks passed, 2 failed, 1 blocked and 5 were not applicable. Fixture port collision, test formatting, fresh Core coverage and actual close/reopen proof remain unresolved or unverified at current main. No additional Done verdict is inferred from the merge. Positive ATDD-258-T1-R06 recovery remains assigned to T015/T027.
 
@@ -282,19 +282,19 @@ Evidence files are created only after real runs and contain sanitized results. P
 | G01 | Done | Reproducible foundation · integration T003 | Source inspection | [01-reproducible-foundation](plan/01-reproducible-foundation/group.md) |
 | G02 | Done | Application shell · integration T004 | T001, T002, T003 | [02-application-shell](plan/02-application-shell/group.md) |
 | G03 | Done | Account access credential storage · integration T005 | T002, T003 | [03-account-access-credential-storage](plan/03-account-access-credential-storage/group.md) |
-| G04 | In progress | Effective input policy · integration T006 | T002, T003, T004 | [04-effective-input-policy](plan/04-effective-input-policy/group.md) |
-| G05 | In progress | Reliable work mutation receipts · integration T007 | T002, T003, T006 | [05-reliable-work-mutation-receipts](plan/05-reliable-work-mutation-receipts/group.md) |
-| G06 | In progress | Account access registration and sessions · integration T008 | T005, T006, T007 | [06-account-access-registration-and-sessions](plan/06-account-access-registration-and-sessions/group.md) |
-| G07 | In progress | Guarded access · integration T009 | T003, T005, T006, T007, T008 | [07-guarded-access](plan/07-guarded-access/group.md) |
-| G08 | In progress | Account access browser journeys · integration T010 | T004, T008, T009 | [08-account-access-browser-journeys](plan/08-account-access-browser-journeys/group.md) |
-| G09 | Not started | Reliable work recovery and retries · integration T011 | T007, T009 | [09-reliable-work-recovery-and-retries](plan/09-reliable-work-recovery-and-retries/group.md) |
-| G10 | Not started | Catalog discovery · integration T013 | T002, T003, T004, T006, T007, T009, T010 | [10-catalog-discovery](plan/10-catalog-discovery/group.md) |
-| G11 | Not started | Draft recovery storage and controllers · integration T015 | T004, T005, T006, T007, T008, T009, T010 | [11-draft-recovery-storage-and-controllers](plan/11-draft-recovery-storage-and-controllers/group.md) |
-| G12 | Not started | Movie management · integration T017 | T004, T006, T007, T009, T010, T012, T013, T015 | [12-movie-management](plan/12-movie-management/group.md) |
-| G13 | Not started | People and credits · integration T021 | T004, T006, T007, T009, T010, T012, T013, T015, T016, T017 | [13-people-and-credits](plan/13-people-and-credits/group.md) |
-| G14 | Not started | Artwork management processing and attachment · integration T023 | T003, T006, T007, T009, T011, T016 | [14-artwork-management-processing-and-attachment](plan/14-artwork-management-processing-and-attachment/group.md) |
-| G15 | Not started | Archive management · integration T025 | T004, T007, T009, T010, T012, T013, T016, T017, T018, T019, T020, T021, T023 | [15-archive-management](plan/15-archive-management/group.md) |
-| G16 | Not started | Artwork management browser journeys · integration T026 | T004, T010, T017, T022, T023, T024 | [16-artwork-management-browser-journeys](plan/16-artwork-management-browser-journeys/group.md) |
+| G04 | Implementation complete (acceptance → G26) | Effective input policy · integration T006 | T002, T003, T004 | [04-effective-input-policy](plan/04-effective-input-policy/group.md) |
+| G05 | Implementation complete (acceptance → G26) | Reliable work mutation receipts · integration T007 | T002, T003, T006 | [05-reliable-work-mutation-receipts](plan/05-reliable-work-mutation-receipts/group.md) |
+| G06 | Implementation complete (acceptance → G26) | Account access registration and sessions · integration T008 | T005, T006, T007 | [06-account-access-registration-and-sessions](plan/06-account-access-registration-and-sessions/group.md) |
+| G07 | Implementation complete (acceptance → G26) | Guarded access · integration T009 | T003, T005, T006, T007, T008 | [07-guarded-access](plan/07-guarded-access/group.md) |
+| G08 | Implementation complete (acceptance → G26) | Account access browser journeys · integration T010 | T004, T008, T009 | [08-account-access-browser-journeys](plan/08-account-access-browser-journeys/group.md) |
+| G09 | Implementation complete (acceptance → G26) | Reliable work recovery and retries · integration T011 | T007, T009 | [09-reliable-work-recovery-and-retries](plan/09-reliable-work-recovery-and-retries/group.md) |
+| G10 | Implementation complete (acceptance → G26) | Catalog discovery · integration T013 | T002, T003, T004, T006, T007, T009, T010 | [10-catalog-discovery](plan/10-catalog-discovery/group.md) |
+| G11 | Implementation complete (acceptance → G26) | Draft recovery storage and controllers · integration T015 | T004, T005, T006, T007, T008, T009, T010 | [11-draft-recovery-storage-and-controllers](plan/11-draft-recovery-storage-and-controllers/group.md) |
+| G12 | Implementation complete (acceptance → G26) | Movie management · integration T017 | T004, T006, T007, T009, T010, T012, T013, T015 | [12-movie-management](plan/12-movie-management/group.md) |
+| G13 | Implementation complete (acceptance → G26) | People and credits · integration T021 | T004, T006, T007, T009, T010, T012, T013, T015, T016, T017 | [13-people-and-credits](plan/13-people-and-credits/group.md) |
+| G14 | Implementation complete (acceptance → G26) | Artwork management processing and attachment · integration T023 | T003, T006, T007, T009, T011, T016 | [14-artwork-management-processing-and-attachment](plan/14-artwork-management-processing-and-attachment/group.md) |
+| G15 | Implementation complete (acceptance → G26) | Archive management · integration T025 | T004, T007, T009, T010, T012, T013, T016, T017, T018, T019, T020, T021, T023 | [15-archive-management](plan/15-archive-management/group.md) |
+| G16 | Implementation complete (acceptance → G26) | Artwork management browser journeys · integration T026 | T004, T010, T017, T022, T023, T024 | [16-artwork-management-browser-journeys](plan/16-artwork-management-browser-journeys/group.md) |
 | G17 | Not started | Draft recovery editor integration · integration T027 | T015, T017, T019, T021, T025, T026 | [17-draft-recovery-editor-integration](plan/17-draft-recovery-editor-integration/group.md) |
 | G18 | Not started | Assisted movie creation transport and review · integration T030 | T001, T002, T004, T006, T007, T008, T009, T012, T016 | [18-assisted-movie-creation-transport-and-review](plan/18-assisted-movie-creation-transport-and-review/group.md) |
 | G19 | Not started | Accountable history · integration T031 | T004, T010, T016, T019, T021, T023, T025, T029 | [19-accountable-history](plan/19-accountable-history/group.md) |

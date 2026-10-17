@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -20,11 +21,18 @@ def artifact(path):
     return {"path": str(path.relative_to(ROOT)), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
-def command(argv, name):
+def command(argv, name, env=None):
     started = time.time_ns()
     log = OUTPUT / f"{name}.log"
     with log.open("wb") as stream:
-        result = subprocess.run(argv, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, timeout=1400)
+        result = subprocess.run(
+            argv,
+            cwd=ROOT,
+            env=env,
+            stdout=stream,
+            stderr=subprocess.STDOUT,
+            timeout=1400,
+        )
     observed = {"argv": argv, "exit_code": result.returncode, "started_ns": started, "log": artifact(log)}
     (OUTPUT / f"{name}-command.json").write_text(json.dumps(observed, indent=2) + "\n")
     return started, observed
@@ -81,7 +89,8 @@ def frontend(patterns=None):
 
 
 def browser():
-    started, result = command(["node", "tests/browser/run-account.mjs"], "browser")
+    gate_env = {**os.environ, "ACCOUNT_BROWSER_GATE": "1"}
+    started, result = command(["node", "tests/browser/run-account.mjs"], "browser", env=gate_env)
     cases, reports = junit(ROOT / "test-results/account", started, OUTPUT / "junit/browser", "junit.xml")
     return result, cases, reports
 

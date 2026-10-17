@@ -2,23 +2,47 @@ import { defineConfig } from '@playwright/test';
 
 const chromium = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
 const firefoxEndpoint = process.env.PLAYWRIGHT_FIREFOX_WS;
+/** Task integration runners: one Chromium project, no trace/video (local RAM/CPU). */
+const taskBrowser = process.env.SPOOLIN_TASK_BROWSER === '1';
+
+const taskProject = {
+  name: 'chromium-task-smoke',
+  use: {
+    browserName: 'chromium' as const,
+    viewport: { width: 390, height: 900 },
+    hasTouch: true,
+    colorScheme: 'dark' as const,
+    reducedMotion: 'reduce' as const,
+    trace: 'off' as const,
+    video: 'off' as const,
+    screenshot: 'off' as const,
+    launchOptions: chromium ? { executablePath: chromium } : {},
+  },
+};
+
 export default defineConfig({
   testDir: './flows',
   forbidOnly: true,
   retries: 0,
   workers: 1,
+  fullyParallel: false,
   timeout: 60000,
-  reporter: [
-    ['list'],
-    ['junit', { outputFile: '../../test-results/junit.xml' }],
-  ],
+  reporter: taskBrowser
+    ? [['list'], ['json']]
+    : [
+        ['list'],
+        ['junit', { outputFile: '../../test-results/junit.xml' }],
+      ],
   outputDir: '../../test-results/shell',
   use: {
     baseURL: 'http://127.0.0.1:43104',
-    trace: 'on',
-    screenshot: 'only-on-failure',
+    trace: taskBrowser ? 'off' : 'on',
+    screenshot: taskBrowser ? 'off' : 'only-on-failure',
+    video: taskBrowser ? 'off' : undefined,
   },
-  projects: [
+  projects: taskBrowser
+    ? [taskProject]
+    : [
     ...[1440, 390, 320].flatMap((width) =>
       (['dark', 'light'] as const).map((colorScheme) => ({
         name: `chromium-${width}-${colorScheme}`,

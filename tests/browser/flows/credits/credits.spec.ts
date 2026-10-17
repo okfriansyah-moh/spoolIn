@@ -16,6 +16,8 @@ test('T021-credits: movie edit route exposes credits section heading', async ({ 
   const editLink = page.getByRole('link', { name: /Edit/i }).first();
   if (await editLink.isVisible()) {
     await editLink.click();
-    await expect(page.getByRole('heading', { name: /Credits/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Cast and creators/i }),
+    ).toBeVisible();
   }
 });

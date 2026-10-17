@@ -7,7 +7,7 @@ depends_on:
 - T008
 - T009
 readiness: Ready
-status: In progress
+status: Implementation complete
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -395,6 +395,11 @@ Execution update — 15 October 2026: Selected-only dependency check: T006 is bl
 Resume — 15 October 2026: Required T008 is now included in the completion run. T007 still awaits accepted T004/T006/T008, with T009/T010 included upstream. The original sequential group outcome remains the target; prerequisites execute in dependency order. No browser account-journey acceptance is asserted yet.
 
 Execution scope update — 16 October 2026: T004/G02 is accepted. T006 and T008 are included in the authorized sequential completion and remain normal unfinished execution prerequisites. T007 will follow their accepted outputs; the earlier selected-only exclusion is historical and is no longer an external blocker.
+
+
+## Implementation delivery (17 October 2026)
+
+Implementation for this task is on branch `codex/g04-g16-delivery` ([PR #8](https://github.com/okfriansyah-moh/spoolIn/pull/8)). Local task and browser runners were **not** executed on the authoring machine (host resource limit). Use CI or a better-resourced environment to run `ops/bin/test-unit.sh` / `ops/bin/test-integration.sh` for this task; set `SPOOLIN_TASK_BROWSER=1` for lighter Playwright when running browser integrations. Formal acceptance, combined review, and release proof remain with **G26**.
 
 ## Completion and handoff
 

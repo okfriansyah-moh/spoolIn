@@ -8,6 +8,8 @@ cd "$root_dir"
 source "$root_dir/ops/bin/toolchain-env.sh"
 export ACCOUNT_BROWSER_ENGINE="${ACCOUNT_BROWSER_ENGINE:-chromium}"
 export ACCOUNT_BROWSER_HEADED=0
+export SPOOLIN_TASK_BROWSER=1
+export PLAYWRIGHT_WORKERS=1
 export ACCOUNT_CERTUTIL="${ACCOUNT_CERTUTIL:-$(command -v certutil || echo /opt/certutil)}"
 
 handoff="$root_dir/.ai/state/account-browser-public.json"
