@@ -566,9 +566,42 @@
         "frontend/src/lib/features/draft/draft-controller.test.ts",
         "tests/browser/flows/draft-component/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t015-draft-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_draft.py",
+            "--task",
+            "T015",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t015-unit-results.json",
+          "required_paths": [
+            "frontend/src/lib/features/draft/draft-controller.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t015-draft-component",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_draft.py",
+            "--task",
+            "T015",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t015-integration-results.json",
+          "required_paths": [
+            "tests/browser/flows/draft-component/draft-component.spec.ts"
+          ]
+        }
+      ]
     },
     "T016": {
       "source": "docs/plan/12-movie-management/tasks/T016-implement-authoritative-movie-creation-and-edits.md",

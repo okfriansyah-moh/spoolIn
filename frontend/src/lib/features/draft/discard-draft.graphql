@@ -1,0 +1,23 @@
+mutation DiscardPersonDraft(
+  $operationId: UUID!
+  $id: UUID!
+  $expectedVersion: Long!
+) {
+  discardDraft(
+    operationId: $operationId
+    id: $id
+    expectedVersion: $expectedVersion
+  ) {
+    discarded
+    operation {
+      id
+      state
+      resultId
+      version
+      resultExpired
+    }
+    problem {
+      code
+    }
+  }
+}

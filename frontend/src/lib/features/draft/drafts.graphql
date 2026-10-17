@@ -1,0 +1,12 @@
+query DraftList {
+  drafts {
+    id
+    targetKind
+    targetId
+    baseVersion
+    values
+    operationId
+    version
+    expiresAt
+  }
+}

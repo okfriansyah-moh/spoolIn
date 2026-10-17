@@ -1,0 +1,24 @@
+mutation SavePersonDraft(
+  $operationId: UUID!
+  $id: UUID!
+  $expectedVersion: Long
+  $input: DraftInput!
+) {
+  saveDraft(
+    operationId: $operationId
+    id: $id
+    expectedVersion: $expectedVersion
+    input: $input
+  ) {
+    operation {
+      id
+      state
+      resultId
+      version
+      resultExpired
+    }
+    problem {
+      code
+    }
+  }
+}
