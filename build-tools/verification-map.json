@@ -778,7 +778,7 @@
           ]
         }
       ],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": null
     },
     "T023": {
       "source": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T023-coordinate-protective-holds-attachment-and-cleanup.md",
