@@ -12,7 +12,6 @@ data class WorkRecoveryRequest(
     val correlationId: UUID = UUID.randomUUID(),
 ) {
     init {
-        require(workId != null) { "workId is required" }
         require(operatorId.isNotBlank() && operatorId.length <= MAX_OPERATOR_ID_LENGTH) {
             "operatorId must be non-blank and at most 96 characters"
         }

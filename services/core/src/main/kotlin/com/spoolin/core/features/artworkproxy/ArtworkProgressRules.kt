@@ -22,7 +22,6 @@ object ArtworkProgressRules {
         processing: Boolean,
     ): Stage =
         when {
-            processing && transferred >= declared -> Stage.PROCESSING
             transferred >= declared -> Stage.PROCESSING
             else -> Stage.IDLE
         }

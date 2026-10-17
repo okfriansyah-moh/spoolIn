@@ -10,9 +10,8 @@ import spoolin.v1.CatalogServiceGrpc
 /**
  * Wires the CatalogViewGraphql resolver into the Spring context.
  *
- * Enabled when spoolin.catalog-view.enabled=true (default: false to allow
- * incremental activation; T013 will activate for full integration).
- * The enabled condition mirrors the operations config pattern.
+ * Enabled when spoolin.catalog-view.enabled=true. The property is default-enabled
+ * because matchIfMissing=true, so the feature is active unless explicitly disabled.
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = ["spoolin.catalog-view.enabled"], havingValue = "true", matchIfMissing = true)
