@@ -82,58 +82,10 @@ export class MovieEditorController {
       const genres = await fetchMovieGenres(this.request, signal);
       if (signal.aborted) return;
       if (this.mode === 'create') {
-        this.publish({
-          ...this.current,
-          genres,
-          draft: EMPTY_MOVIE_DRAFT,
-          summaryTitle: 'Create movie',
-        });
+        this.publishCreateBootstrap(genres);
         return;
       }
-      if (!this.movieId) {
-        this.publish({
-          ...this.current,
-          phase: 'target-changed',
-          message: 'This movie is not available for editing.',
-          genres,
-        });
-        return;
-      }
-      const movie = await fetchManagedMovie(
-        this.request,
-        this.movieId,
-        context.csrf,
-        signal,
-      );
-      if (signal.aborted) return;
-      if (!movie || movie.state !== 'ACTIVE' || movie.kind === 'TV') {
-        this.publish({
-          ...this.current,
-          phase: 'target-changed',
-          message:
-            movie?.kind === 'TV'
-              ? 'TV entries are read-only in movie management.'
-              : 'This movie is now archived or unavailable.',
-          genres,
-          saved: movie,
-          current: movie,
-        });
-        return;
-      }
-      const draft = movieToDraft(movie);
-      this.draftSync.reset({
-        catalogOperationId: null,
-        baseVersion: movie.version,
-      });
-      this.publish({
-        ...this.current,
-        genres,
-        saved: movie,
-        current: movie,
-        draft,
-        summaryTitle: `Edit movie`,
-        mediaOutage: movie.artworkUnavailable,
-      });
+      await this.bootstrapExistingMovie(genres, context, signal);
     } catch {
       if (signal.aborted) return;
       this.publish({
@@ -212,14 +164,79 @@ export class MovieEditorController {
     });
   }
 
-  async submit(): Promise<void> {
+  private publishCreateBootstrap(
+    genres: EditorState['genres'],
+  ): void {
+    this.publish({
+      ...this.current,
+      genres,
+      draft: EMPTY_MOVIE_DRAFT,
+      summaryTitle: 'Create movie',
+    });
+  }
+
+  private async bootstrapExistingMovie(
+    genres: EditorState['genres'],
+    context: WriteContext,
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (!this.movieId) {
+      this.publish({
+        ...this.current,
+        phase: 'target-changed',
+        message: 'This movie is not available for editing.',
+        genres,
+      });
+      return;
+    }
+    const movie = await fetchManagedMovie(
+      this.request,
+      this.movieId,
+      context.csrf,
+      signal,
+    );
+    if (signal.aborted) return;
+    if (!movie || movie.state !== 'ACTIVE' || movie.kind === 'TV') {
+      this.publish({
+        ...this.current,
+        phase: 'target-changed',
+        message:
+          movie?.kind === 'TV'
+            ? 'TV entries are read-only in movie management.'
+            : 'This movie is now archived or unavailable.',
+        genres,
+        saved: movie,
+        current: movie,
+      });
+      return;
+    }
+    const draft = movieToDraft(movie);
+    this.draftSync.reset({
+      catalogOperationId: null,
+      baseVersion: movie.version,
+    });
+    this.publish({
+      ...this.current,
+      genres,
+      saved: movie,
+      current: movie,
+      draft,
+      summaryTitle: `Edit movie`,
+      mediaOutage: movie.artworkUnavailable,
+    });
+  }
+
+  private beginSubmit():
+    | { operationId: string; generation: number; signal: AbortSignal }
+    | null {
     if (
       this.pendingWriteId ||
       this.current.phase === 'submitting' ||
       this.current.phase === 'uncertain'
-    )
-      return;
-    if (!this.writeContext || !this.policy) return;
+    ) {
+      return null;
+    }
+    if (!this.writeContext || !this.policy) return null;
     const fieldErrors = validateMovieDraft(
       this.current.draft,
       this.policy,
@@ -232,13 +249,13 @@ export class MovieEditorController {
         fieldErrors: Object.freeze(fieldErrors),
         message: 'Changes were not saved.',
       });
-      return;
+      return null;
     }
     const operationId = globalThis.crypto.randomUUID();
     this.pendingWriteId = operationId;
     const generation = this.begin();
     const signal = this.active?.signal;
-    if (!signal) return;
+    if (!signal) return null;
     this.publish({
       ...this.current,
       phase: 'submitting',
@@ -246,87 +263,155 @@ export class MovieEditorController {
       fieldErrors: Object.freeze([]),
       message: '',
     });
+    return { operationId, generation, signal };
+  }
+
+  async submit(): Promise<void> {
+    const started = this.beginSubmit();
+    if (!started) return;
+    const { operationId, generation, signal } = started;
     try {
       if (this.mode === 'create') {
-        const input = draftToCreateInput(this.current.draft);
-        const outcome = await createMovie(
-          this.request,
-          operationId,
-          this.writeContext.policyRevision,
-          input,
-          this.writeContext.csrf,
-          signal,
-        );
-        if (generation !== this.writeGeneration) return;
-        await this.finishWrite(
-          outcome.receipt.state,
-          outcome.problemCode,
-          operationId,
-          outcome.resultMovieId,
-        );
+        await this.submitCreate(operationId, generation, signal);
         return;
       }
-      const saved = this.current.saved;
-      if (!saved || !this.movieId) return;
-      const patch = draftToUpdatePatch(
-        saved,
-        this.current.draft,
-        this.originalTitleTouched,
-      );
-      if (patchIsEmpty(patch)) {
-        this.pendingWriteId = null;
-        this.publish({
-          ...this.current,
-          phase: 'idle',
-          pendingOperationId: null,
-          message: 'No changes to save.',
-        });
-        return;
-      }
-      const outcome = await updateMovie(
-        this.request,
-        operationId,
-        this.movieId,
-        saved.version,
-        this.writeContext.policyRevision,
-        patch,
-        this.writeContext.csrf,
-        signal,
-      );
-      if (generation !== this.writeGeneration) return;
-      await this.finishWrite(
-        outcome.receipt.state,
-        outcome.problemCode,
-        operationId,
-        outcome.resultMovieId ?? this.movieId,
-        outcome.resultVersion,
-      );
+      await this.submitUpdate(operationId, generation, signal);
     } catch (error) {
-      if (generation !== this.writeGeneration) return;
-      if (error instanceof TransportFailure && error.kind === 'rejected') {
-        if (error.code === 'CONFLICT') {
-          this.pendingWriteId = null;
-          await this.enterStaleReview();
-          return;
-        }
+      await this.handleSubmitFailure(error, generation, operationId);
+    }
+  }
+
+  private async submitCreate(
+    operationId: string,
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (!this.writeContext) return;
+    const input = draftToCreateInput(this.current.draft);
+    const outcome = await createMovie(
+      this.request,
+      operationId,
+      this.writeContext.policyRevision,
+      input,
+      this.writeContext.csrf,
+      signal,
+    );
+    if (generation !== this.writeGeneration) return;
+    await this.finishWrite(
+      outcome.receipt.state,
+      outcome.problemCode,
+      operationId,
+      outcome.resultMovieId,
+    );
+  }
+
+  private async submitUpdate(
+    operationId: string,
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (!this.writeContext) return;
+    const saved = this.current.saved;
+    if (!saved || !this.movieId) return;
+    const patch = draftToUpdatePatch(
+      saved,
+      this.current.draft,
+      this.originalTitleTouched,
+    );
+    if (patchIsEmpty(patch)) {
+      this.pendingWriteId = null;
+      this.publish({
+        ...this.current,
+        phase: 'idle',
+        pendingOperationId: null,
+        message: 'No changes to save.',
+      });
+      return;
+    }
+    const outcome = await updateMovie(
+      this.request,
+      operationId,
+      this.movieId,
+      saved.version,
+      this.writeContext.policyRevision,
+      patch,
+      this.writeContext.csrf,
+      signal,
+    );
+    if (generation !== this.writeGeneration) return;
+    await this.finishWrite(
+      outcome.receipt.state,
+      outcome.problemCode,
+      operationId,
+      outcome.resultMovieId ?? this.movieId,
+      outcome.resultVersion,
+    );
+  }
+
+  private async handleSubmitFailure(
+    error: unknown,
+    generation: number,
+    operationId: string,
+  ): Promise<void> {
+    if (generation !== this.writeGeneration) return;
+    if (error instanceof TransportFailure && error.kind === 'rejected') {
+      if (error.code === 'CONFLICT') {
         this.pendingWriteId = null;
-        this.publish({
-          ...this.current,
-          phase: 'failed',
-          pendingOperationId: null,
-          message: problemMessage(error.code),
-        });
+        await this.enterStaleReview();
         return;
       }
       this.pendingWriteId = null;
       this.publish({
         ...this.current,
-        phase: 'uncertain',
+        phase: 'failed',
+        pendingOperationId: null,
+        message: problemMessage(error.code),
+      });
+      return;
+    }
+    this.pendingWriteId = null;
+    this.publish({
+      ...this.current,
+      phase: 'uncertain',
+      pendingOperationId: operationId,
+      message:
+        'Save result not confirmed. Check the original operation before repeating it.',
+    });
+  }
+
+  private async applyOriginalReceipt(
+    receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
+    operationId: string,
+  ): Promise<void> {
+    if (receipt?.state === 'SUCCEEDED') {
+      const movieId = receipt.resultId ?? this.movieId;
+      await this.refreshAfterSuccess(movieId, 'resolved', receipt.version);
+      this.publish({
+        ...this.current,
+        phase: 'resolved',
         pendingOperationId: operationId,
         message:
-          'Save result not confirmed. Check the original operation before repeating it.',
+          'Original save confirmed. The current record has been refreshed; no repeat submission is needed.',
       });
+      this.pendingWriteId = null;
+      return;
     }
+    if (receipt?.state === 'FAILED') {
+      this.pendingWriteId = null;
+      this.publish({
+        ...this.current,
+        phase: 'failed',
+        pendingOperationId: null,
+        message: problemMessage(receipt.problemCode),
+      });
+      return;
+    }
+    this.publish({
+      ...this.current,
+      phase: 'uncertain',
+      message:
+        'Save result not confirmed. Check the original operation before repeating it.',
+    });
   }
 
   async checkOriginalResult(): Promise<void> {
@@ -343,35 +428,7 @@ export class MovieEditorController {
         signal,
       );
       if (generation !== this.writeGeneration) return;
-      if (receipt?.state === 'SUCCEEDED') {
-        const movieId = receipt.resultId ?? this.movieId;
-        await this.refreshAfterSuccess(movieId, 'resolved', receipt.version);
-        this.publish({
-          ...this.current,
-          phase: 'resolved',
-          pendingOperationId: operationId,
-          message:
-            'Original save confirmed. The current record has been refreshed; no repeat submission is needed.',
-        });
-        this.pendingWriteId = null;
-        return;
-      }
-      if (receipt?.state === 'FAILED') {
-        this.pendingWriteId = null;
-        this.publish({
-          ...this.current,
-          phase: 'failed',
-          pendingOperationId: null,
-          message: problemMessage(receipt.problemCode),
-        });
-        return;
-      }
-      this.publish({
-        ...this.current,
-        phase: 'uncertain',
-        message:
-          'Save result not confirmed. Check the original operation before repeating it.',
-      });
+      await this.applyOriginalReceipt(receipt, operationId);
     } catch {
       this.publish({
         ...this.current,

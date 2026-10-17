@@ -62,6 +62,41 @@ function parseUploadResponse(
   });
 }
 
+function artworkUploadBody(input: UploadArtworkInput): string {
+  return JSON.stringify({
+    query: UPLOAD_ARTWORK,
+    variables: {
+      operationId: input.operationId,
+      titleId: input.titleId,
+      expectedVersion: Number(input.expectedVersion),
+      policyRevision: input.policyRevision,
+      content: input.contentBase64,
+    },
+  });
+}
+
+function handleArtworkUploadLoad(
+  xhr: XMLHttpRequest,
+  operationId: string,
+  resolve: (value: UploadArtworkMutationResult) => void,
+  reject: (reason?: unknown) => void,
+): void {
+  try {
+    const parsed = JSON.parse(xhr.responseText) as { data?: unknown; errors?: unknown };
+    if (parsed.errors) {
+      reject(new TransportFailure('rejected'));
+      return;
+    }
+    if (xhr.status < 200 || xhr.status >= 300 || !parsed.data) {
+      reject(new TransportFailure('uncertain'));
+      return;
+    }
+    resolve(parseUploadResponse(parsed.data, operationId));
+  } catch {
+    reject(new TransportFailure('uncertain'));
+  }
+}
+
 export function uploadArtworkWithProgress(
   csrf: string,
   input: UploadArtworkInput,
@@ -71,23 +106,10 @@ export function uploadArtworkWithProgress(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     onXhr?.(xhr);
-    const body = JSON.stringify({
-      query: UPLOAD_ARTWORK,
-      variables: {
-        operationId: input.operationId,
-        titleId: input.titleId,
-        expectedVersion: Number(input.expectedVersion),
-        policyRevision: input.policyRevision,
-        content: input.contentBase64,
-      },
-    });
     xhr.open('POST', '/graphql');
     xhr.withCredentials = true;
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader(
-      'Accept',
-      'application/graphql-response+json, application/json',
-    );
+    xhr.setRequestHeader('Accept', 'application/graphql-response+json, application/json');
     xhr.setRequestHeader('X-Spoolin-Client', 'web');
     xhr.setRequestHeader('X-CSRF-Token', csrf);
     xhr.upload.onprogress = (event) => {
@@ -95,24 +117,8 @@ export function uploadArtworkWithProgress(
     };
     xhr.onerror = () => reject(new TransportFailure('uncertain'));
     xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'));
-    xhr.onload = () => {
-      try {
-        const text = xhr.responseText;
-        const parsed = JSON.parse(text) as { data?: unknown; errors?: unknown };
-        if (parsed.errors) {
-          reject(new TransportFailure('rejected'));
-          return;
-        }
-        if (xhr.status < 200 || xhr.status >= 300 || !parsed.data) {
-          reject(new TransportFailure('uncertain'));
-          return;
-        }
-        resolve(parseUploadResponse(parsed.data, input.operationId));
-      } catch {
-        reject(new TransportFailure('uncertain'));
-      }
-    };
-    xhr.send(body);
+    xhr.onload = () => handleArtworkUploadLoad(xhr, input.operationId, resolve, reject);
+    xhr.send(artworkUploadBody(input));
   });
 }
 

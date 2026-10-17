@@ -4,6 +4,7 @@ import { DraftHandles } from './handles';
 import type {
   DraftEligibility,
   DraftLayers,
+  DraftReceipt,
   DraftRecord,
   DraftRequestKind,
   DraftSession,
@@ -19,6 +20,35 @@ type PendingCore = Readonly<{
   draftId: string;
   generation: number;
 }>;
+
+function beginEditLayers(options: {
+  base?: PersonDraft | null;
+  current?: PersonDraft | null;
+  initial?: PersonDraft;
+}): DraftLayers {
+  const draft = Object.freeze({
+    name: options.initial?.name ?? '',
+    biography: options.initial?.biography ?? null,
+  });
+  return Object.freeze({
+    base: options.base ?? null,
+    current: options.current ?? null,
+    draft,
+  });
+}
+
+function backupNoticeState(
+  backed: boolean,
+  unbacked: boolean,
+): Pick<DraftViewState, 'notice' | 'message'> {
+  if (unbacked) {
+    return { notice: 'unbacked', message: 'Changes are not backed up yet.' };
+  }
+  if (backed) {
+    return { notice: 'backed', message: 'Draft saved.' };
+  }
+  return { notice: 'idle', message: '' };
+}
 
 const concealedView = (): DraftViewState =>
   Object.freeze({
@@ -111,16 +141,8 @@ export class DraftController {
     this.draftId = options.draftId ?? globalThis.crypto.randomUUID();
     this.expectedVersion = null;
     this.catalogOperationId = options.catalogOperationId ?? null;
-    const draft = Object.freeze({
-      name: options.initial?.name ?? '',
-      biography: options.initial?.biography ?? null,
-    });
-    this.layers = Object.freeze({
-      base: options.base ?? null,
-      current: options.current ?? null,
-      draft,
-    });
-    this.editing = draft.name ?? '';
+    this.layers = beginEditLayers(options);
+    this.editing = this.layers.draft.name ?? '';
     this.backed = false;
     this.unbacked = false;
     this.notice = 'idle';
@@ -155,22 +177,7 @@ export class DraftController {
         signal,
       );
       if (generation !== this.session.generation) return;
-      if (receipt?.state === 'SUCCEEDED' && receipt.resultId) {
-        this.draftId = receipt.resultId;
-        this.expectedVersion = receipt.version;
-        this.pendingCore = null;
-        this.notice = 'recheck';
-        this.message = 'Check before continuing';
-        this.publish();
-        return;
-      }
-      if (receipt?.state === 'FAILED' || receipt?.state === 'EXPIRED') {
-        this.pendingCore = null;
-        this.unbacked = true;
-        this.notice = 'unbacked';
-        this.message = 'Changes are not backed up yet.';
-        this.publish();
-      }
+      this.applyRecoveryReceipt(receipt);
     } catch (error) {
       if (generation !== this.session.generation) return;
       if (error instanceof TransportFailure && error.kind === 'rejected') {
@@ -187,16 +194,7 @@ export class DraftController {
       this.concealForSessionLoss();
       return;
     }
-    if (this.pendingCore) {
-      await this.recoverPendingOperation();
-      if (this.pendingCore) {
-        this.notice = 'recheck';
-        this.message = 'Check before continuing';
-        this.concealed = true;
-        this.publish();
-        return;
-      }
-    }
+    if (await this.blockUntilPendingRecovered()) return;
     if (!eligibility.permitted) {
       this.concealForAccountChange();
       this.message = eligibility.message;
@@ -212,16 +210,9 @@ export class DraftController {
       const match = this.pickDraft(drafts);
       if (match) this.applyServerDraft(match);
       this.concealed = false;
-      this.notice = this.unbacked
-        ? 'unbacked'
-        : this.backed
-          ? 'backed'
-          : 'idle';
-      this.message = this.unbacked
-        ? 'Changes are not backed up yet.'
-        : this.backed
-          ? 'Draft saved.'
-          : '';
+      const notice = backupNoticeState(this.backed, this.unbacked);
+      this.notice = notice.notice;
+      this.message = notice.message;
       this.publish();
     } catch {
       if (generation !== this.session.generation) return;
@@ -258,18 +249,7 @@ export class DraftController {
         this.signal(),
       );
       if (generation !== this.session.generation) return;
-      if (outcome.receipt.state === 'SUCCEEDED' && outcome.discarded) {
-        this.backed = false;
-        this.unbacked = false;
-        this.notice = 'idle';
-        this.message = 'Draft discarded.';
-        this.expectedVersion = null;
-        this.publish();
-        return;
-      }
-      this.notice = 'discard-failed';
-      this.message = 'Discard did not complete.';
-      this.publish();
+      this.applyDiscardOutcome(outcome);
     } catch (error) {
       if (generation !== this.session.generation) return;
       this.notice =
@@ -323,39 +303,15 @@ export class DraftController {
       generation,
     });
     try {
-      this.requestLog.push('save-draft');
-      const outcome = await this.source.saveDraft(
+      await this.runAutosaveRequest({
         operationId,
         draftId,
         expectedVersion,
-        {
-          targetKind: this.target.kind,
-          targetId: this.target.id,
-          baseVersion: this.layers.base ? this.expectedVersion : null,
-          values,
-          operationId: this.catalogOperationId,
-          policyRevision,
-        },
+        values,
+        policyRevision,
         csrf,
-        this.signal(),
-      );
-      if (generation !== this.session.generation) return;
-      this.pendingCore = null;
-      if (outcome.receipt.state === 'SUCCEEDED' && outcome.receipt.resultId) {
-        this.draftId = outcome.receipt.resultId;
-        this.expectedVersion = outcome.receipt.version;
-        this.backed = true;
-        this.unbacked = false;
-        this.notice = 'backed';
-        this.message = 'Draft saved.';
-        this.publish();
-        return;
-      }
-      this.unbacked = true;
-      this.backed = false;
-      this.notice = 'unbacked';
-      this.message = 'Changes are not backed up yet.';
-      this.publish();
+        generation,
+      });
     } catch (error) {
       if (generation !== this.session.generation) return;
       this.unbacked = true;
@@ -371,6 +327,103 @@ export class DraftController {
           generation,
         });
     }
+  }
+
+  private async blockUntilPendingRecovered(): Promise<boolean> {
+    if (!this.pendingCore) return false;
+    await this.recoverPendingOperation();
+    if (!this.pendingCore) return false;
+    this.notice = 'recheck';
+    this.message = 'Check before continuing';
+    this.concealed = true;
+    this.publish();
+    return true;
+  }
+
+  private applyRecoveryReceipt(receipt: DraftReceipt | null): void {
+    if (receipt?.state === 'SUCCEEDED' && receipt.resultId) {
+      this.draftId = receipt.resultId;
+      this.expectedVersion = receipt.version;
+      this.pendingCore = null;
+      this.notice = 'recheck';
+      this.message = 'Check before continuing';
+      this.publish();
+      return;
+    }
+    if (receipt?.state === 'FAILED' || receipt?.state === 'EXPIRED') {
+      this.pendingCore = null;
+      this.unbacked = true;
+      this.notice = 'unbacked';
+      this.message = 'Changes are not backed up yet.';
+      this.publish();
+    }
+  }
+
+  private async runAutosaveRequest(args: {
+    operationId: string;
+    draftId: string;
+    expectedVersion: string | null;
+    values: PersonDraft;
+    policyRevision: string;
+    csrf: string;
+    generation: number;
+  }): Promise<void> {
+    this.requestLog.push('save-draft');
+    const outcome = await this.source.saveDraft(
+      args.operationId,
+      args.draftId,
+      args.expectedVersion,
+      {
+        targetKind: this.target.kind,
+        targetId: this.target.id,
+        baseVersion: this.layers.base ? this.expectedVersion : null,
+        values: args.values,
+        operationId: this.catalogOperationId,
+        policyRevision: args.policyRevision,
+      },
+      args.csrf,
+      this.signal(),
+    );
+    if (args.generation !== this.session.generation) return;
+    this.applyAutosaveOutcome(outcome);
+  }
+
+  private applyDiscardOutcome(
+    outcome: Awaited<ReturnType<DraftSource['discardDraft']>>,
+  ): void {
+    if (outcome.receipt.state === 'SUCCEEDED' && outcome.discarded) {
+      this.backed = false;
+      this.unbacked = false;
+      this.notice = 'idle';
+      this.message = 'Draft discarded.';
+      this.expectedVersion = null;
+      this.publish();
+      return;
+    }
+    this.notice = 'discard-failed';
+    this.message = 'Discard did not complete.';
+    this.publish();
+  }
+
+  private applyAutosaveOutcome(
+    outcome: Awaited<ReturnType<DraftSource['saveDraft']>>,
+  ): void {
+    this.pendingCore = null;
+    if (outcome.receipt.state === 'SUCCEEDED' && outcome.receipt.resultId) {
+      this.draftId = outcome.receipt.resultId;
+      this.expectedVersion = outcome.receipt.version;
+      this.backed = true;
+      this.unbacked = false;
+      this.notice = 'backed';
+      this.message = 'Draft saved.';
+      this.publish();
+      return;
+    }
+    this.unbacked = true;
+    this.backed = false;
+    this.notice = 'unbacked';
+    this.message = 'Changes are not backed up yet.';
+    this.publish();
   }
 
   private pickDraft(drafts: readonly DraftRecord[]): DraftRecord | null {

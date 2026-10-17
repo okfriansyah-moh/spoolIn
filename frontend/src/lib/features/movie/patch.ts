@@ -26,6 +26,14 @@ function releaseYear(draft: MovieDraft): number {
   return year;
 }
 
+function createRelease(draft: MovieDraft, year: number) {
+  return Object.freeze({
+    year,
+    month: draft.release?.month ?? null,
+    day: draft.release?.day ?? null,
+  });
+}
+
 export function draftToCreateInput(draft: MovieDraft): MovieInputPayload {
   const year = releaseYear(draft);
   return Object.freeze({
@@ -33,11 +41,7 @@ export function draftToCreateInput(draft: MovieDraft): MovieInputPayload {
     originalTitle: normalizedOriginalTitle(draft),
     synopsis: trimOrdinary(draft.synopsis ?? ''),
     genreIds: Object.freeze([...(draft.genreIds ?? [])]),
-    release: Object.freeze({
-      year,
-      month: draft.release?.month ?? null,
-      day: draft.release?.day ?? null,
-    }),
+    release: createRelease(draft, year),
     synopsisLanguage: draft.synopsisLanguage?.trim() || 'und',
     countries: Object.freeze([...(draft.countries ?? [])]),
   });

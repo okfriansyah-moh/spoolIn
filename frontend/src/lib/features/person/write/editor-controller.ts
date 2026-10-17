@@ -72,6 +72,13 @@ export class PersonEditorController {
       this.publish({ ...this.current, summaryTitle: 'Create person' });
       return;
     }
+    await this.bootstrapExistingPerson(context, signal);
+  }
+
+  private async bootstrapExistingPerson(
+    context: WriteContext,
+    signal: AbortSignal,
+  ): Promise<void> {
     if (!this.personId) {
       this.publish({
         ...this.current,
@@ -130,14 +137,17 @@ export class PersonEditorController {
     });
   }
 
-  async submit(): Promise<void> {
+  private beginSubmit():
+    | { operationId: string; generation: number; signal: AbortSignal }
+    | null {
     if (
       this.pendingWriteId ||
       this.current.phase === 'submitting' ||
       this.current.phase === 'uncertain'
-    )
-      return;
-    if (!this.writeContext || !this.policy) return;
+    ) {
+      return null;
+    }
+    if (!this.writeContext || !this.policy) return null;
     const fieldErrors = validatePersonDraft(this.current.draft, this.policy);
     if (fieldErrors.length) {
       this.publish({
@@ -146,7 +156,7 @@ export class PersonEditorController {
         fieldErrors: Object.freeze(fieldErrors),
         message: 'Changes were not saved.',
       });
-      return;
+      return null;
     }
     const operationId = globalThis.crypto.randomUUID();
     this.pendingWriteId = operationId;
@@ -161,86 +171,125 @@ export class PersonEditorController {
       fieldErrors: Object.freeze([]),
       message: '',
     });
-    try {
-      if (this.mode === 'create') {
-        const input = {
-          name: this.current.draft.name ?? '',
-          biography: this.current.draft.biography || undefined,
-        };
-        const outcome = await createPerson(
-          this.request,
-          operationId,
-          this.writeContext.policyRevision,
-          input,
-          this.writeContext.csrf,
-          signal,
-        );
-        if (generation !== this.writeGeneration) return;
-        await this.finishWrite(
-          outcome.receipt.state,
-          outcome.problemCode,
-          operationId,
-          outcome.resultPersonId,
-        );
-        return;
-      }
-      const saved = this.current.saved;
-      if (!saved || !this.personId) return;
-      const patch: { name?: string; biography?: string | null } = {};
-      if ((this.current.draft.name ?? '') !== saved.name)
-        patch.name = this.current.draft.name ?? '';
-      if ((this.current.draft.biography ?? '') !== (saved.biography ?? '')) {
-        patch.biography = this.current.draft.biography ?? null;
-      }
-      if (!Object.keys(patch).length) {
-        this.pendingWriteId = null;
-        this.publish({
-          ...this.current,
-          phase: 'idle',
-          pendingOperationId: null,
-          message: 'No changes to save.',
-        });
-        return;
-      }
-      const outcome = await updatePerson(
-        this.request,
-        operationId,
-        this.personId,
-        saved.version,
-        this.writeContext.policyRevision,
-        patch,
-        this.writeContext.csrf,
-        signal,
-      );
-      if (generation !== this.writeGeneration) return;
-      await this.finishWrite(
-        outcome.receipt.state,
-        outcome.problemCode,
-        operationId,
-        outcome.resultPersonId ?? this.personId,
-        outcome.resultVersion,
-      );
-    } catch (error) {
-      if (generation !== this.writeGeneration) return;
-      if (
-        error instanceof TransportFailure &&
-        error.kind === 'rejected' &&
-        error.code === 'CONFLICT'
-      ) {
-        this.pendingWriteId = null;
-        await this.enterStaleReview();
-        return;
-      }
+    return { operationId, generation, signal };
+  }
+
+  private async submitCreate(
+    operationId: string,
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (!this.writeContext) return;
+    const input = {
+      name: this.current.draft.name ?? '',
+      biography: this.current.draft.biography || undefined,
+    };
+    const outcome = await createPerson(
+      this.request,
+      operationId,
+      this.writeContext.policyRevision,
+      input,
+      this.writeContext.csrf,
+      signal,
+    );
+    if (generation !== this.writeGeneration) return;
+    await this.finishWrite(
+      outcome.receipt.state,
+      outcome.problemCode,
+      operationId,
+      outcome.resultPersonId,
+    );
+  }
+
+  private personUpdatePatch(): { name?: string; biography?: string | null } {
+    const saved = this.current.saved;
+    if (!saved) return {};
+    const patch: { name?: string; biography?: string | null } = {};
+    if ((this.current.draft.name ?? '') !== saved.name)
+      patch.name = this.current.draft.name ?? '';
+    if ((this.current.draft.biography ?? '') !== (saved.biography ?? '')) {
+      patch.biography = this.current.draft.biography ?? null;
+    }
+    return patch;
+  }
+
+  private async submitUpdate(
+    operationId: string,
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (!this.writeContext || !this.personId) return;
+    const patch = this.personUpdatePatch();
+    if (!Object.keys(patch).length) {
       this.pendingWriteId = null;
       this.publish({
         ...this.current,
-        phase: 'failed',
+        phase: 'idle',
         pendingOperationId: null,
-        message:
-          error instanceof TransportFailure
-            ? problemMessage(error.code)
-            : 'Changes were not saved.',
+        message: 'No changes to save.',
       });
+      return;
+    }
+    const saved = this.current.saved;
+    if (!saved) return;
+    const outcome = await updatePerson(
+      this.request,
+      operationId,
+      this.personId,
+      saved.version,
+      this.writeContext.policyRevision,
+      patch,
+      this.writeContext.csrf,
+      signal,
+    );
+    if (generation !== this.writeGeneration) return;
+    await this.finishWrite(
+      outcome.receipt.state,
+      outcome.problemCode,
+      operationId,
+      outcome.resultPersonId ?? this.personId,
+      outcome.resultVersion,
+    );
+  }
+
+  private async handleSubmitFailure(
+    error: unknown,
+    generation: number,
+  ): Promise<void> {
+    if (generation !== this.writeGeneration) return;
+    if (
+      error instanceof TransportFailure &&
+      error.kind === 'rejected' &&
+      error.code === 'CONFLICT'
+    ) {
+      this.pendingWriteId = null;
+      await this.enterStaleReview();
+      return;
+    }
+    this.pendingWriteId = null;
+    this.publish({
+      ...this.current,
+      phase: 'failed',
+      pendingOperationId: null,
+      message:
+        error instanceof TransportFailure
+          ? problemMessage(error.code)
+          : 'Changes were not saved.',
+    });
+  }
+
+  async submit(): Promise<void> {
+    const started = this.beginSubmit();
+    if (!started) return;
+    const { operationId, generation, signal } = started;
+    try {
+      if (this.mode === 'create') {
+        await this.submitCreate(operationId, generation, signal);
+        return;
+      }
+      await this.submitUpdate(operationId, generation, signal);
+    } catch (error) {
+      await this.handleSubmitFailure(error, generation);
     }
   }
 
@@ -277,27 +326,40 @@ export class PersonEditorController {
     problemCode: string | null,
     operationId: string,
     personId: string | null,
-    version?: string | null,
+    _version?: string | null,
   ): Promise<void> {
     this.pendingWriteId = null;
     if (state === 'SUCCEEDED' && personId && this.writeContext) {
-      const person = await fetchManagedPerson(
-        this.request,
-        personId,
-        this.writeContext.csrf,
-      );
-      this.publish({
-        ...this.current,
-        phase: 'saved',
-        pendingOperationId: null,
-        saved: person,
-        current: person,
-        draft: person ? personToDraft(person) : this.current.draft,
-        message: '',
-        summaryTitle: person?.name ?? this.current.summaryTitle,
-      });
+      await this.publishSavedPerson(personId);
       return;
     }
+    await this.publishFinishFailure(state, problemCode, operationId);
+  }
+
+  private async publishSavedPerson(personId: string): Promise<void> {
+    if (!this.writeContext) return;
+    const person = await fetchManagedPerson(
+      this.request,
+      personId,
+      this.writeContext.csrf,
+    );
+    this.publish({
+      ...this.current,
+      phase: 'saved',
+      pendingOperationId: null,
+      saved: person,
+      current: person,
+      draft: person ? personToDraft(person) : this.current.draft,
+      message: '',
+      summaryTitle: person?.name ?? this.current.summaryTitle,
+    });
+  }
+
+  private async publishFinishFailure(
+    state: string,
+    problemCode: string | null,
+    operationId: string,
+  ): Promise<void> {
     if (problemCode === 'VERSION_CONFLICT' || problemCode === 'STALE_VERSION') {
       await this.enterStaleReview();
       return;

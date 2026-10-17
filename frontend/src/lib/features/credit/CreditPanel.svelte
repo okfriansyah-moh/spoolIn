@@ -63,15 +63,20 @@
     return () => abort.abort();
   });
 
+  function parseCreditCharacters(
+    role: CreditRoleOption | undefined,
+    text: string,
+  ): string[] {
+    if (!role?.allowsCharacters || !text.trim()) return [];
+    return text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
   async function submitCredit(): Promise<void> {
     if (!personId || !roleId || submitting) return;
-    const characters =
-      selectedRole?.allowsCharacters && characterText.trim()
-        ? characterText
-            .split('\n')
-            .map((line) => line.trim())
-            .filter(Boolean)
-        : [];
+    const characters = parseCreditCharacters(selectedRole, characterText);
     const validation = validateCharacterNames(
       characters,
       policy,

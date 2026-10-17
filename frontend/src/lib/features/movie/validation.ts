@@ -18,41 +18,38 @@ function textField(
     : [];
 }
 
-export function validateMovieDraft(
+function originalTitleErrors(
   draft: MovieDraft,
   policy: Policy,
   mode: 'create' | 'edit',
 ): FieldError[] {
-  const errors: FieldError[] = [];
-  errors.push(
-    ...textField(draft.title ?? '', 'title', 'Title', policy, true),
-    ...textField(draft.synopsis ?? '', 'synopsis', 'Synopsis', policy, true),
-  );
   if (
     mode === 'edit' &&
     draft.originalTitle !== undefined &&
     draft.originalTitle !== null
   ) {
-    errors.push(
-      ...textField(
-        draft.originalTitle,
-        'originalTitle',
-        'Original title',
-        policy,
-        false,
-      ),
-    );
-  } else if (mode === 'create' && draft.originalTitle) {
-    errors.push(
-      ...textField(
-        draft.originalTitle,
-        'originalTitle',
-        'Original title',
-        policy,
-        false,
-      ),
+    return textField(
+      draft.originalTitle,
+      'originalTitle',
+      'Original title',
+      policy,
+      false,
     );
   }
+  if (mode === 'create' && draft.originalTitle) {
+    return textField(
+      draft.originalTitle,
+      'originalTitle',
+      'Original title',
+      policy,
+      false,
+    );
+  }
+  return [];
+}
+
+function releaseAndGenreErrors(draft: MovieDraft): FieldError[] {
+  const errors: FieldError[] = [];
   const year = draft.release?.year;
   if (
     year === null ||
@@ -66,13 +63,26 @@ export function validateMovieDraft(
       message: 'Release year: Enter a four-digit release year.',
     });
   }
-  const genreIds = draft.genreIds ?? [];
-  if (!genreIds.length) {
+  if (!(draft.genreIds ?? []).length) {
     errors.push({
       id: 'movie-genres',
       message: 'Genres: Choose at least one genre.',
     });
   }
+  return errors;
+}
+
+export function validateMovieDraft(
+  draft: MovieDraft,
+  policy: Policy,
+  mode: 'create' | 'edit',
+): FieldError[] {
+  const errors: FieldError[] = [
+    ...textField(draft.title ?? '', 'title', 'Title', policy, true),
+    ...textField(draft.synopsis ?? '', 'synopsis', 'Synopsis', policy, true),
+    ...originalTitleErrors(draft, policy, mode),
+    ...releaseAndGenreErrors(draft),
+  ];
   return [...new Map(errors.map((error) => [error.id, error])).values()];
 }
 

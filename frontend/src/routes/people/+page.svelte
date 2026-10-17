@@ -74,12 +74,14 @@
     searchText = value;
     globalThis.clearTimeout(debounceTimer);
     debounceTimer = globalThis.setTimeout(() => {
+      /* eslint-disable svelte/no-navigation-without-resolve -- preserve ?q= on the people route */
       void goto(
         value
           ? `${resolve('/people')}?q=${encodeURIComponent(value)}`
           : resolve('/people'),
         { replaceState: false, keepFocus: true },
       );
+      /* eslint-enable svelte/no-navigation-without-resolve */
       void load(value);
     }, 250);
   }
