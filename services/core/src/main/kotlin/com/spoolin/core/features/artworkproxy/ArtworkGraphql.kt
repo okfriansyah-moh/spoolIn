@@ -250,7 +250,8 @@ class ArtworkGraphql(
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
-    private fun browser(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
+    private fun browser(env: DataFetchingEnvironment): BrowserContext =
+        requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 

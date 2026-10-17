@@ -98,13 +98,13 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
         if (engine === 'chromium') {
           const bootstrap = await playwright.chromium.launchPersistentContext(
             profile,
-            { ...shared, channel: 'chrome', headless: true },
+            { ...shared, headless: true },
           );
           await bootstrap.close();
           trustFixtureCa(profile, ca);
           const context = await playwright.chromium.launchPersistentContext(
             profile,
-            { ...shared, channel: 'chrome', headless: true },
+            { ...shared, headless: true },
           );
           await observeStorage(context);
           try {

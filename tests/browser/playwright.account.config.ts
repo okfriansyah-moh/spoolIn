@@ -39,7 +39,6 @@ export default defineConfig({
             name: 'chromium-account',
             use: {
               browserName: 'chromium' as const,
-              channel: 'chrome',
               viewport: { width: 390, height: 900 },
               reducedMotion: 'reduce' as const,
             },
