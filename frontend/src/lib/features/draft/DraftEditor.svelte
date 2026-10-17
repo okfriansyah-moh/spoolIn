@@ -4,7 +4,8 @@
   import Button from '../../components/Button.svelte';
   import DraftNotice from './DraftNotice.svelte';
   import { DraftController } from './controller';
-  import type { DraftSession, DraftSource, DraftTarget } from './types';
+  import type { PersonDraft } from '../../generated/json-types';
+  import type { DraftSession, DraftSource, DraftTarget, DraftViewState } from './types';
   let {
     controller = new DraftController({} as DraftSource),
     session,
@@ -18,7 +19,7 @@
     catalogOperationId?: string | null;
     initialName?: string;
   } = $props();
-  let state = $state(controller.snapshot);
+  let draftView = $state<DraftViewState>(controller.snapshot);
   let localName = $state(initialName);
   $effect(() => {
     controller.bindSession(session);
@@ -32,9 +33,9 @@
       localName = initialName;
     });
     return controller.subscribe((next) => {
-      state = next;
+      draftView = next;
       if (document.activeElement?.id !== 'draft-name') {
-        localName = next.layers?.draft.name ?? '';
+        localName = (next.layers?.draft as PersonDraft | undefined)?.name ?? '';
       }
     });
   });
@@ -48,12 +49,12 @@
 
 <section aria-labelledby="draft-editor-heading">
   <h2 id="draft-editor-heading">Person draft</h2>
-  {#if state.concealed}
+  {#if draftView.concealed}
     <p id="draft-concealed">
-      {state.message || 'Protected draft is concealed.'}
+      {draftView.message || 'Protected draft is concealed.'}
     </p>
   {:else}
-    <DraftNotice {state} />
+    <DraftNotice state={draftView} />
     <form
       role="form"
       aria-label="Person draft"

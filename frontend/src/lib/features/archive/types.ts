@@ -1,5 +1,12 @@
 export type ArchiveTab = 'movies' | 'people';
 
+export type ArchiveListItem = Readonly<{
+  id: string;
+  label: string;
+  state: string;
+  version: string;
+}>;
+
 export type ArchiveListState =
   | { kind: 'loading' }
   | { kind: 'empty' }
@@ -8,5 +15,5 @@ export type ArchiveListState =
   | {
       kind: 'ready';
       tab: ArchiveTab;
-      items: Array<{ id: string; label: string; state: string }>;
+      items: readonly ArchiveListItem[];
     };

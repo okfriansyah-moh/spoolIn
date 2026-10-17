@@ -26,12 +26,12 @@
     | { kind: 'failure' }
     | { kind: 'movie' | 'tv'; title: CatalogTitleDetail };
 
-  let state = $state<State>({ kind: 'loading' });
+  let titleState = $state<State>({ kind: 'loading' });
 
   onMount(() => {
     const rawId = page.params.id;
     if (!isRecordId(rawId)) {
-      state = { kind: 'unavailable', id: rawId ?? '' };
+      titleState = { kind: 'unavailable', id: rawId ?? '' };
       return;
     }
     const id = rawId;
@@ -43,15 +43,15 @@
       .then((title) => {
         if (controller.signal.aborted) return;
         if (!title || title.state === 'ARCHIVED') {
-          state = { kind: 'unavailable', id };
+          titleState = { kind: 'unavailable', id };
           return;
         }
-        state = { kind: title.kind === 'TV' ? 'tv' : 'movie', title };
+        titleState = { kind: title.kind === 'TV' ? 'tv' : 'movie', title };
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
         void err;
-        state = { kind: 'failure' };
+        titleState = { kind: 'failure' };
       });
 
     return () => controller.abort();
@@ -79,10 +79,10 @@
   }
 
   const documentTitle = $derived(
-    state.kind === 'loading'
+    titleState.kind === 'loading'
       ? 'Loading… · SpoolIn'
-      : state.kind === 'movie' || state.kind === 'tv'
-        ? `${state.title.title} · SpoolIn`
+      : titleState.kind === 'movie' || titleState.kind === 'tv'
+        ? `${titleState.title.title} · SpoolIn`
         : 'Unavailable · SpoolIn',
   );
 </script>
@@ -95,70 +95,70 @@
   <a href={resolve('/')}>← Catalog</a>
 </nav>
 
-{#if state.kind === 'loading'}
+{#if titleState.kind === 'loading'}
   <div role="status" aria-live="polite">
     <h1 tabindex="-1">Loading…</h1>
   </div>
-{:else if state.kind === 'unavailable'}
+{:else if titleState.kind === 'unavailable'}
   <div class="unavailable">
     <h1 tabindex="-1">This title is unavailable</h1>
     <p>The title you requested is no longer available.</p>
     <a href={resolve('/')}>Return to catalog</a>
   </div>
-{:else if state.kind === 'failure'}
+{:else if titleState.kind === 'failure'}
   <div role="alert" class="failure">
     <h1 tabindex="-1">Could not load title</h1>
     <p>The title could not be loaded. Please try again.</p>
     <a href={resolve('/')}>Return to catalog</a>
   </div>
-{:else if state.kind === 'movie'}
-  <article id="title-detail" aria-label={state.title.title}>
+{:else if titleState.kind === 'movie'}
+  <article id="title-detail" aria-label={titleState.title.title}>
     <div id="artwork">
       <ArtworkSlot
-        src={state.title.artwork?.url ?? null}
-        alt={state.title.title}
+        src={titleState.title.artwork?.url ?? null}
+        alt={titleState.title.title}
       />
-      <h1 tabindex="-1">{state.title.title}</h1>
+      <h1 tabindex="-1">{titleState.title.title}</h1>
     </div>
 
     <section id="metadata" aria-label="Title metadata">
       <p class="title-kind">Movie</p>
 
-      {#if state.title.originalTitle}
-        <p><strong>Original title:</strong> {state.title.originalTitle}</p>
+      {#if titleState.title.originalTitle}
+        <p><strong>Original title:</strong> {titleState.title.originalTitle}</p>
       {/if}
 
       <p>
         <strong>Release:</strong>
-        {formatReleaseDate(state.title.release) ?? 'Release date unknown'}
+        {formatReleaseDate(titleState.title.release) ?? 'Release date unknown'}
       </p>
 
       <p>
         <strong>Runtime:</strong>
-        {formatRuntime(state.title.runtimeMinutes)}
+        {formatRuntime(titleState.title.runtimeMinutes)}
       </p>
 
-      {#if state.title.genres.length > 0}
+      {#if titleState.title.genres.length > 0}
         <p>
           <strong>Genres:</strong>
-          {state.title.genres.map((g) => g.label).join(', ')}
+          {titleState.title.genres.map((g) => g.label).join(', ')}
         </p>
       {/if}
 
-      {#if state.title.countries.length > 0}
+      {#if titleState.title.countries.length > 0}
         <p>
           <strong>Countries:</strong>
-          {state.title.countries.join(', ')}
+          {titleState.title.countries.join(', ')}
         </p>
       {/if}
 
-      <p class="synopsis" lang={state.title.synopsisLanguage || undefined}>
-        {state.title.synopsis || ''}
+      <p class="synopsis" lang={titleState.title.synopsisLanguage || undefined}>
+        {titleState.title.synopsis || ''}
       </p>
 
       <details>
         <summary>Source provenance</summary>
-        {#each state.title.provenance as prov (prov.source + prov.externalId)}
+        {#each titleState.title.provenance as prov (prov.source + prov.externalId)}
           <dl class="provenance">
             <dt>Source</dt>
             <dd>{prov.source}</dd>
@@ -182,12 +182,12 @@
       </details>
     </section>
 
-    {#if state.title.credits.nodes.length > 0}
+    {#if titleState.title.credits.nodes.length > 0}
       <!-- eslint-disable svelte/no-navigation-without-resolve -- dynamic person id segments in credits -->
       <section aria-label="Credits">
         <h2>Credits</h2>
         <ul>
-          {#each state.title.credits.nodes as credit (credit.id)}
+          {#each titleState.title.credits.nodes as credit (credit.id)}
             <li>
               <a
                 href={`${resolve('/')}people/${encodeURIComponent(credit.personId)}`}
@@ -209,56 +209,56 @@
       </section>
     {/if}
   </article>
-{:else if state.kind === 'tv'}
-  <article id="title-detail" aria-label={state.title.title}>
+{:else if titleState.kind === 'tv'}
+  <article id="title-detail" aria-label={titleState.title.title}>
     <div id="artwork">
       <ArtworkSlot
-        src={state.title.artwork?.url ?? null}
-        alt={state.title.title}
+        src={titleState.title.artwork?.url ?? null}
+        alt={titleState.title.title}
       />
-      <h1 tabindex="-1">{state.title.title}</h1>
+      <h1 tabindex="-1">{titleState.title.title}</h1>
     </div>
 
     <section id="metadata" aria-label="Title metadata">
       <p class="title-kind">TV Series</p>
 
-      {#if state.title.originalTitle}
-        <p><strong>Original title:</strong> {state.title.originalTitle}</p>
+      {#if titleState.title.originalTitle}
+        <p><strong>Original title:</strong> {titleState.title.originalTitle}</p>
       {/if}
 
-      <p>{tvReleaseLabel(state.title)}</p>
+      <p>{tvReleaseLabel(titleState.title)}</p>
 
-      {#if state.title.tvStatus}
-        <p><strong>Status:</strong> {state.title.tvStatus}</p>
+      {#if titleState.title.tvStatus}
+        <p><strong>Status:</strong> {titleState.title.tvStatus}</p>
       {/if}
 
-      {#if tvEndLabel(state.title)}
-        <p>{tvEndLabel(state.title)}</p>
+      {#if tvEndLabel(titleState.title)}
+        <p>{tvEndLabel(titleState.title)}</p>
       {/if}
 
-      {#if state.title.runtimeMinutes !== null}
+      {#if titleState.title.runtimeMinutes !== null}
         <p>
           <strong>Episode runtime:</strong>
-          {formatRuntime(state.title.runtimeMinutes)}
+          {formatRuntime(titleState.title.runtimeMinutes)}
         </p>
       {:else}
         <p><strong>Episode runtime:</strong> Unknown</p>
       {/if}
 
-      {#if state.title.genres.length > 0}
+      {#if titleState.title.genres.length > 0}
         <p>
           <strong>Genres:</strong>
-          {state.title.genres.map((g) => g.label).join(', ')}
+          {titleState.title.genres.map((g) => g.label).join(', ')}
         </p>
       {/if}
 
-      <p class="synopsis" lang={state.title.synopsisLanguage || undefined}>
-        {state.title.synopsis || ''}
+      <p class="synopsis" lang={titleState.title.synopsisLanguage || undefined}>
+        {titleState.title.synopsis || ''}
       </p>
 
       <details>
         <summary>Source provenance</summary>
-        {#each state.title.provenance as prov (prov.source + prov.externalId)}
+        {#each titleState.title.provenance as prov (prov.source + prov.externalId)}
           <dl class="provenance">
             <dt>Source</dt>
             <dd>{prov.source}</dd>
@@ -282,12 +282,12 @@
       </details>
     </section>
 
-    {#if state.title.credits.nodes.length > 0}
+    {#if titleState.title.credits.nodes.length > 0}
       <!-- eslint-disable svelte/no-navigation-without-resolve -- dynamic person id segments in credits -->
       <section aria-label="Credits">
         <h2>Credits</h2>
         <ul>
-          {#each state.title.credits.nodes as credit (credit.id)}
+          {#each titleState.title.credits.nodes as credit (credit.id)}
             <li>
               <a
                 href={`${resolve('/')}people/${encodeURIComponent(credit.personId)}`}

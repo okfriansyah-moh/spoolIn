@@ -14,7 +14,7 @@
   import type { PeopleState } from '../../lib/features/person/read/types';
   import { isRecordId } from '../../lib/components/safe-url';
 
-  let state = $state<PeopleState>({
+  let peopleState = $state<PeopleState>({
     kind: 'loading',
     text: '',
     people: [],
@@ -42,7 +42,7 @@
     activeController = new AbortController();
     const signal = activeController.signal;
 
-    state = { kind: 'loading', text, people: [], pageInfo: null };
+    peopleState = { kind: 'loading', text, people: [], pageInfo: null };
     try {
       const result = await fetchPeople(
         createTransport(),
@@ -56,7 +56,7 @@
         biography: p.biography,
       }));
       const isEmpty = people.length === 0;
-      state = {
+      peopleState = {
         kind: isEmpty ? (text ? 'no-match' : 'empty') : 'people',
         text,
         people,
@@ -65,7 +65,7 @@
     } catch (err) {
       if (gen !== generation) return;
       void err;
-      state = { kind: 'failure', text, people: [], pageInfo: null };
+      peopleState = { kind: 'failure', text, people: [], pageInfo: null };
     }
   }
 
@@ -79,7 +79,7 @@
         value
           ? `${resolve('/people')}?q=${encodeURIComponent(value)}`
           : resolve('/people'),
-        { replaceState: false, keepFocus: true },
+        { replaceState: false },
       );
       /* eslint-enable svelte/no-navigation-without-resolve */
       void load(value);
@@ -88,7 +88,7 @@
 
   function clearSearch() {
     searchText = '';
-    void goto(resolve('/people'), { replaceState: false, keepFocus: true });
+    void goto(resolve('/people'), { replaceState: false });
     void load('');
   }
 
@@ -110,26 +110,26 @@
   <button class="secondary" onclick={clearSearch}>Clear search text</button>
 </div>
 
-{#if state.kind === 'loading'}
+{#if peopleState.kind === 'loading'}
   <div role="status" aria-live="polite" class="catalog-status">
     <p>Finding people…</p>
   </div>
-{:else if state.kind === 'failure'}
+{:else if peopleState.kind === 'failure'}
   <div role="alert" class="catalog-status catalog-failure">
     <p>People could not be loaded.</p>
     <button onclick={() => void load(searchText)}>Try again</button>
   </div>
-{:else if state.kind === 'empty'}
+{:else if peopleState.kind === 'empty'}
   <div class="catalog-status catalog-empty">
     <p>No people have been added yet.</p>
   </div>
-{:else if state.kind === 'no-match'}
+{:else if peopleState.kind === 'no-match'}
   <div class="catalog-status catalog-no-match">
     <p>No people match your search.</p>
   </div>
-{:else if state.kind === 'people'}
+{:else if peopleState.kind === 'people'}
   <ul class="people-list" aria-label="People">
-    {#each state.people as person (person.id)}
+    {#each peopleState.people as person (person.id)}
       <li>
         <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic person id segment -->
         <a href={`${resolve('/')}people/${encodeURIComponent(person.id)}`}>

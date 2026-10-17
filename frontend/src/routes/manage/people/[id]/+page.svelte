@@ -47,7 +47,7 @@
 <p class="muted">
   <a href={resolve('/manage/people')}>People</a>
   {#if editorState?.saved}
-    · <a href={resolve(`/people/${editorState.saved.id}`)}
+    · <a href={resolve('/people/[id]', { id: editorState.saved.id })}
       >Review public record</a
     >
   {/if}

@@ -81,7 +81,13 @@
         {errorFor('person-biography')}
       </p>{/if}
   </div>
-  <Button type="submit" disabled={submitDisabled}>{submitLabel}</Button>
+  <Button
+    type="submit"
+    pending={state.phase === 'submitting'}
+    disabledReason={submitDisabled
+      ? 'Review current changes before saving again.'
+      : ''}>{submitLabel}</Button
+  >
 </form>
 
 <style>

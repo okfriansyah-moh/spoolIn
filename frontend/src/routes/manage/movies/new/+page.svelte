@@ -48,9 +48,10 @@
   ) {
     if (!controller || !editorState) return;
     const update = applyMovieDraftField(editorState.draft, field, value);
-    controller.updateDraft(update.draft, {
-      originalTitleTouched: update.originalTitleTouched,
-    });
+    controller.updateDraft(
+      update.draft,
+      update.originalTitleTouched ? { originalTitleTouched: true } : {},
+    );
   }
 </script>
 

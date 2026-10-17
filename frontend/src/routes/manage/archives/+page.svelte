@@ -128,7 +128,7 @@
           id: selected.id,
           expectedVersion: selected.version,
           action: 'DELETE',
-          impactToken: impactToken ?? undefined,
+          ...(impactToken ? { impactToken } : {}),
           confirmed: true,
         });
       }

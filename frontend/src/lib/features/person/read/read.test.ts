@@ -34,7 +34,7 @@ describe('fetchPeople', () => {
     const req = mockRequest(payload);
     const result = await fetchPeople(req, {});
     expect(result.nodes).toHaveLength(1);
-    expect(result.nodes[0].name).toBe('Alex');
+    expect(result.nodes[0]!.name).toBe('Alex');
     expect(result.pageInfo.hasNextPage).toBe(false);
   });
 
@@ -84,7 +84,7 @@ describe('fetchPerson', () => {
     };
     const req = mockRequest(payload) as ReturnType<typeof vi.fn>;
     await fetchPerson(req as unknown as GraphqlRequest, { id: 'uuid-p-c' });
-    const [, vars] = req.mock.calls[0];
+    const [, vars] = req.mock.calls[0]!;
     expect((vars as Record<string, unknown>).id).toBe('uuid-p-c');
   });
 });
@@ -116,8 +116,8 @@ describe('fetchPersonCredits', () => {
     const req = mockRequest(payload);
     const result = await fetchPersonCredits(req, { id: 'uuid-p-a' });
     expect(result.nodes).toHaveLength(1);
-    expect(result.nodes[0].titleName).toBe('Light');
-    expect(result.nodes[0].role.category).toBe('CAST');
+    expect(result.nodes[0]!.titleName).toBe('Light');
+    expect(result.nodes[0]!.role.category).toBe('CAST');
   });
 
   it('returns empty credits when person has none', async () => {

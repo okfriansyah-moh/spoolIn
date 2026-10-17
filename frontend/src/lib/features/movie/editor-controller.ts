@@ -524,7 +524,7 @@ export class MovieEditorController {
     this.originalTitleTouched = false;
     this.draftSync.reset({
       catalogOperationId: null,
-      baseVersion: saved.version,
+      expectedVersion: saved.version,
     });
     this.publish({
       ...this.current,

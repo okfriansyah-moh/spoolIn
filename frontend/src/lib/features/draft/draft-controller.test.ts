@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { PersonDraft } from '../../generated/json-types';
 import { DraftController } from './controller';
 import type {
   DraftDiscardOutcome,
@@ -102,7 +103,9 @@ describe('T015 draft autosave', () => {
     await vi.advanceTimersByTimeAsync(750);
     await Promise.resolve();
     expect(controller.snapshot.unbacked).toBe(true);
-    expect(controller.snapshot.layers?.draft.name).toBe('Retained name');
+    expect((controller.snapshot.layers?.draft as PersonDraft).name).toBe(
+      'Retained name',
+    );
     expect(controller.snapshot.message).toContain('not backed up');
     controller.dispose();
   });
@@ -205,7 +208,9 @@ describe('T015 recovery ordering', () => {
     const draftsIndex = controller.requestSequence.indexOf('list-drafts');
     expect(recoverIndex).toBeGreaterThanOrEqual(0);
     expect(draftsIndex).toBeGreaterThan(recoverIndex);
-    expect(controller.snapshot.layers?.draft.name).toBe('Current server name');
+    expect((controller.snapshot.layers?.draft as PersonDraft).name).toBe(
+      'Current server name',
+    );
     expect(controller.snapshot.catalogOperationId).toBe(catalogOp);
     held.resolve({
       receipt: coreReceipt,

@@ -30,12 +30,12 @@
         credits: PublicPersonCredit[];
       };
 
-  let state = $state<State>({ kind: 'loading' });
+  let pageState = $state<State>({ kind: 'loading' });
 
   onMount(() => {
     const id = page.params.id;
     if (!isRecordId(id)) {
-      state = { kind: 'unavailable', id };
+      pageState = { kind: 'unavailable', id: id ?? '' };
       return;
     }
 
@@ -50,10 +50,10 @@
         if (controller.signal.aborted) return;
         // Public API returns null for archived/unknown people
         if (!person || person.state === 'ARCHIVED') {
-          state = { kind: 'unavailable', id };
+          pageState = { kind: 'unavailable', id: id ?? '' };
           return;
         }
-        state = {
+        pageState = {
           kind: 'person',
           person,
           credits: [...creditsResult.nodes],
@@ -62,16 +62,16 @@
       .catch((err) => {
         if (controller.signal.aborted) return;
         void err;
-        state = { kind: 'failure' };
+        pageState = { kind: 'failure' };
       });
 
     return () => controller.abort();
   });
 
   const documentTitle = $derived(
-    state.kind === 'person'
-      ? `${state.person.name} · SpoolIn`
-      : state.kind === 'loading'
+    pageState.kind === 'person'
+      ? `${pageState.person.name} · SpoolIn`
+      : pageState.kind === 'loading'
         ? 'Loading… · SpoolIn'
         : 'Unavailable · SpoolIn',
   );
@@ -86,40 +86,40 @@
   <a href={resolve('/people')}>People</a>
 </nav>
 
-{#if state.kind === 'loading'}
+{#if pageState.kind === 'loading'}
   <div role="status" aria-live="polite">
     <h1 tabindex="-1">Loading…</h1>
   </div>
-{:else if state.kind === 'unavailable'}
+{:else if pageState.kind === 'unavailable'}
   <div class="unavailable">
     <h1 tabindex="-1">This person is unavailable</h1>
     <p>The person you requested is no longer available.</p>
     <a href={resolve('/people')}>Return to people</a>
   </div>
-{:else if state.kind === 'failure'}
+{:else if pageState.kind === 'failure'}
   <div role="alert" class="failure">
     <h1 tabindex="-1">Could not load person</h1>
     <p>The person could not be loaded. Please try again.</p>
     <a href={resolve('/people')}>Return to people</a>
   </div>
-{:else if state.kind === 'person'}
-  <article id="person-detail" aria-label={state.person.name}>
-    <h1 tabindex="-1">{state.person.name}</h1>
+{:else if pageState.kind === 'person'}
+  <article id="person-detail" aria-label={pageState.person.name}>
+    <h1 tabindex="-1">{pageState.person.name}</h1>
 
-    {#if state.person.biography}
+    {#if pageState.person.biography}
       <section aria-label="Biography">
         <h2>Biography</h2>
-        <p>{state.person.biography}</p>
+        <p>{pageState.person.biography}</p>
       </section>
     {/if}
 
     <section aria-label="Credits">
       <h2>Credits</h2>
-      {#if state.credits.length === 0}
+      {#if pageState.credits.length === 0}
         <p>No credits known.</p>
       {:else}
         <ul>
-          {#each state.credits as credit (credit.id)}
+          {#each pageState.credits as credit (credit.id)}
             <li>
               <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic title id segment -->
               <a href={`${resolve('/')}titles/${encodeURIComponent(credit.titleId)}`}>

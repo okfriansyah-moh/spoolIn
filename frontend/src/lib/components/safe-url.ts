@@ -17,9 +17,10 @@ export function safeUrl(value: unknown): string | undefined {
   }
 }
 
-export function isRecordId(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
-    value,
+export function isRecordId(value: string | undefined): value is string {
+  return (
+    typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value)
   );
 }
 export function safeArtwork(value: unknown): string | undefined {

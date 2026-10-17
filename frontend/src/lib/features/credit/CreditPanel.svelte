@@ -177,7 +177,8 @@
     {/if}
     <Button
       type="button"
-      disabled={submitting || !personId || !roleId}
+      pending={submitting}
+      disabledReason={!personId || !roleId ? 'Choose a person and role first.' : ''}
       onclick={() => void submitCredit()}>Add credit</Button
     >
   {/if}

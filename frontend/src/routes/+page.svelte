@@ -254,7 +254,7 @@
             <TitleCard
               id={t.id}
               title={t.title}
-              kind={t.kind}
+              kind={t.kind === 'TV' ? 'TV' : 'Movie'}
               date={t.releaseContext}
               artwork={t.artworkUrl}
             />

@@ -143,7 +143,7 @@ export class DraftController {
     this.expectedVersion = null;
     this.catalogOperationId = options.catalogOperationId ?? null;
     this.layers = beginEditLayers(options);
-    this.editing = this.layers.draft.name ?? '';
+    this.editing = (this.layers.draft as PersonDraft).name ?? '';
     this.backed = false;
     this.unbacked = false;
     this.notice = 'idle';
@@ -158,7 +158,10 @@ export class DraftController {
     this.editing = value;
     this.layers = Object.freeze({
       ...this.layers,
-      draft: Object.freeze({ ...this.layers.draft, name: value }),
+      draft: Object.freeze({
+        ...(this.layers.draft as PersonDraft),
+        name: value,
+      }) as DraftValues,
     });
     this.scheduleAutosave();
     this.publish();

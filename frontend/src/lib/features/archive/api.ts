@@ -1,6 +1,6 @@
 import type { GraphqlRequest, RequestOptions } from '../../transport/graphql';
 import { record } from '../session/parse';
-import type { ArchiveTab } from './types';
+import type { ArchiveListItem, ArchiveTab } from './types';
 
 const ARCHIVED_TITLES = `query ArchivedTitles($first: Int = 48) {
   managedTitles(state: ARCHIVED, first: $first) {
@@ -60,12 +60,7 @@ const PERSON_LIFECYCLE = `mutation PersonLifecycle(
   }
 }`;
 
-export type ArchiveRow = {
-  id: string;
-  label: string;
-  state: string;
-  version: string;
-};
+export type ArchiveRow = ArchiveListItem;
 
 export async function fetchArchived(
   request: GraphqlRequest,

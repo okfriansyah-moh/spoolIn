@@ -1,4 +1,5 @@
 import type { GraphqlRequest } from '../../../transport/graphql';
+import { withCsrfAndSignal } from '../../../transport/request-options';
 import { record } from '../../session/parse';
 import type { ManagedPerson, PersonListRow } from './types';
 import {
@@ -76,7 +77,11 @@ export async function fetchManagedPeople(
   signal?: AbortSignal,
 ): Promise<readonly PersonListRow[]> {
   const data = record(
-    await request(MANAGED_PEOPLE_QUERY, { state: 'ACTIVE' }, { csrf, signal }),
+    await request(
+      MANAGED_PEOPLE_QUERY,
+      { state: 'ACTIVE' },
+      withCsrfAndSignal(csrf, signal),
+    ),
   );
   const page = record(data.managedPeople);
   const nodes = page.nodes;
@@ -93,7 +98,7 @@ export async function fetchManagedPerson(
   signal?: AbortSignal,
 ): Promise<ManagedPerson | null> {
   const data = record(
-    await request(MANAGED_PERSON_QUERY, { id }, { csrf, signal }),
+    await request(MANAGED_PERSON_QUERY, { id }, withCsrfAndSignal(csrf, signal)),
   );
   const person = data.managedPerson;
   if (person === null) return null;

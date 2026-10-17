@@ -63,9 +63,10 @@
   ) {
     if (!controller || !editorState) return;
     const update = applyMovieDraftField(editorState.draft, field, value);
-    controller.updateDraft(update.draft, {
-      originalTitleTouched: update.originalTitleTouched,
-    });
+    controller.updateDraft(
+      update.draft,
+      update.originalTitleTouched ? { originalTitleTouched: true } : {},
+    );
   }
 </script>
 
@@ -74,7 +75,7 @@
 <p class="muted">
   <a href={resolve('/manage/movies')}>Movies</a>
   {#if editorState?.saved}
-    · <a href={resolve(`/titles/${editorState.saved.id}`)}
+    · <a href={resolve('/titles/[id]', { id: editorState.saved.id })}
       >Review public record</a
     >
   {/if}

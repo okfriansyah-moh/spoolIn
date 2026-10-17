@@ -34,7 +34,7 @@ function initialState(
 function personToDraft(person: ManagedPerson): PersonDraft {
   return Object.freeze({
     name: person.name,
-    biography: person.biography ?? undefined,
+    biography: person.biography,
   });
 }
 
@@ -180,10 +180,11 @@ export class PersonEditorController {
     signal: AbortSignal,
   ): Promise<void> {
     if (!this.writeContext) return;
-    const input = {
+    const input: { name: string; biography?: string } = {
       name: this.current.draft.name ?? '',
-      biography: this.current.draft.biography || undefined,
     };
+    const biography = this.current.draft.biography?.trim();
+    if (biography) input.biography = biography;
     const outcome = await createPerson(
       this.request,
       operationId,
@@ -370,7 +371,6 @@ export class PersonEditorController {
       pendingOperationId: state === 'UNCERTAIN' ? operationId : null,
       message: problemMessage(problemCode),
     });
-    void version;
   }
 
   private async enterStaleReview(): Promise<void> {

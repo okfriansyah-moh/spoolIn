@@ -95,7 +95,7 @@ describe('CatalogController', () => {
     expect(kinds).toContain('catalog');
     const catalog = states.find((s) => s.kind === 'catalog')!;
     expect(catalog.titles).toHaveLength(1);
-    expect(catalog.titles[0].title).toBe('Light');
+    expect(catalog.titles[0]!.title).toBe('Light');
     ctrl.dispose();
   });
 
@@ -220,7 +220,7 @@ describe('CatalogController', () => {
     resolveEarly(titlesResponse(oneTitle()));
     await vi.runAllTimersAsync();
 
-    const afterEarly = states[states.length - 1];
+    const afterEarly = states.at(-1)!;
     expect(afterEarly.kind).toBe('catalog');
     expect(afterEarly.criteria.text).toBe('Map');
 
@@ -229,7 +229,7 @@ describe('CatalogController', () => {
     await vi.runAllTimersAsync();
 
     // State must NOT change – stale response is suppressed
-    const afterLate = states[states.length - 1];
+    const afterLate = states.at(-1)!;
     expect(afterLate.kind).toBe('catalog');
     expect(afterLate.criteria.text).toBe('Map');
 
