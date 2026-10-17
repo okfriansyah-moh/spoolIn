@@ -7,10 +7,10 @@ export type ProposeMovieGatewayRevision = Readonly<{
   proposalId: string;
   revision: number;
   contentHash: string;
-  bindingToken: string;
+  challenge: string;
 }>;
 
-/** Server-side CallToolResult assembly: binding token only in _meta, never structured content. */
+/** Challenge is UI-only _meta. Model structured content omits it and any binding token. */
 export function composeProposeMovieToolResult(
   structured: Record<string, unknown>,
   gateway: ProposeMovieGatewayRevision,
@@ -21,7 +21,7 @@ export function composeProposeMovieToolResult(
       proposalId: gateway.proposalId,
       revision: gateway.revision,
       contentHash: gateway.contentHash,
-      bindingToken: gateway.bindingToken,
+      challenge: gateway.challenge,
     }),
   });
 }

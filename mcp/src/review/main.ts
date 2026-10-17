@@ -22,17 +22,6 @@ if (root && query) {
     return headers;
   };
   renderReview(root, model);
-  void fetch(
-    `/gateway/review_ui_binding?proposalId=${encodeURIComponent(query.proposalId)}&revision=${query.revision}&contentHash=${encodeURIComponent(query.contentHash)}&bindingToken=${encodeURIComponent(query.bindingToken)}`,
-  )
-    .then(async (response) => {
-      if (!response.ok) return;
-      const payload = (await response.json()) as { challenge?: string };
-      if (typeof payload.challenge === 'string' && payload.challenge.trim()) {
-        model = { ...model, challenge: payload.challenge };
-      }
-    })
-    .catch(() => undefined);
   wireTrustedApproval(root, () => model, async (action, binding) => {
     assertManualApproval(binding.challenge ?? '');
     const body = buildApprovalBody({
@@ -59,19 +48,9 @@ if (root && query) {
     if ('connectorToken' in data && typeof data.connectorToken === 'string' && data.connectorToken.trim()) {
       connectorBearer = data.connectorToken;
     }
-    if ('bindingToken' in data && typeof data.bindingToken === 'string' && data.bindingToken.trim()) {
-      void fetch(
-        `/gateway/review_ui_binding?proposalId=${encodeURIComponent(model.proposalId)}&revision=${model.revision}&contentHash=${encodeURIComponent(model.contentHash)}&bindingToken=${encodeURIComponent(data.bindingToken)}`,
-      )
-        .then(async (response) => {
-          if (!response.ok) return;
-          const payload = (await response.json()) as { challenge?: string };
-          if (typeof payload.challenge === 'string' && payload.challenge.trim()) {
-            model = { ...model, challenge: payload.challenge };
-            renderReview(root, model);
-          }
-        })
-        .catch(() => undefined);
+    if ('challenge' in data && typeof data.challenge === 'string' && data.challenge.trim()) {
+      model = { ...model, challenge: data.challenge };
+      renderReview(root, model);
     }
   });
 }

@@ -80,21 +80,16 @@ class McpGatewayRpc(
             response = response,
         ) { token ->
             val revision = catalogStub(token).proposeMovie(request)
-            val builder = revision.toBuilder().clearUiChallenge()
             if (revision.hasUiChallenge()) {
-                val challenge = revision.uiChallenge.toStringUtf8()
-                val bindingToken =
-                    uiChallenges.put(
-                        revision.proposalId,
-                        revision.revision,
-                        revision.contentHash,
-                        challenge,
-                    )
-                if (bindingToken.isNotBlank()) {
-                    builder.uiBindingToken = bindingToken
-                }
+                uiChallenges.put(
+                    revision.proposalId,
+                    revision.revision,
+                    revision.contentHash,
+                    revision.uiChallenge.toStringUtf8(),
+                )
             }
-            builder.build()
+            // Adapter relocates ui_challenge into MCP _meta.ui and omits it from model content.
+            revision.toBuilder().clearUiBindingToken().build()
         }
     }
 

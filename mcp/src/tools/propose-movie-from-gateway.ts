@@ -1,16 +1,5 @@
 import { composeProposeMovieToolResult } from './propose-movie-result.js';
 
-type GatewayRevisionWire = Readonly<{
-  proposalId?: string;
-  proposal_id?: string;
-  revision?: number;
-  contentHash?: string;
-  content_hash?: string;
-  uiBindingToken?: string;
-  ui_binding_token?: string;
-  bindingToken?: string;
-}>;
-
 function readString(record: Record<string, unknown>, ...keys: readonly string[]): string {
   for (const key of keys) {
     const value = record[key];
@@ -24,23 +13,18 @@ function readRevision(record: Record<string, unknown>): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
-/** Strip gateway-only secrets before model structured content; binding token lives in _meta only. */
+/** Place the raw challenge only in UI _meta. Never return a redeemable binding token. */
 export function composeProposeMovieFromGatewayPayload(
   gatewayPayload: Record<string, unknown>,
 ): Readonly<{ structuredContent: Record<string, unknown>; _meta: Record<string, unknown> }> {
-  const wire = gatewayPayload as GatewayRevisionWire & Record<string, unknown>;
-  const proposalId = wire.proposalId ?? wire.proposal_id ?? readString(gatewayPayload, 'proposalId', 'proposal_id');
-  const revision = wire.revision ?? readRevision(gatewayPayload);
-  const contentHash = wire.contentHash ?? wire.content_hash ?? readString(gatewayPayload, 'contentHash', 'content_hash');
-  const bindingToken =
-    wire.uiBindingToken ??
-    wire.ui_binding_token ??
-    wire.bindingToken ??
-    readString(gatewayPayload, 'uiBindingToken', 'ui_binding_token', 'bindingToken');
+  const proposalId = readString(gatewayPayload, 'proposalId', 'proposal_id');
+  const revision = readRevision(gatewayPayload);
+  const contentHash = readString(gatewayPayload, 'contentHash', 'content_hash');
+  const challenge = readString(gatewayPayload, 'ui_challenge', 'uiChallenge', 'challenge');
   return composeProposeMovieToolResult(gatewayPayload, {
     proposalId,
     revision,
     contentHash,
-    bindingToken,
+    challenge,
   });
 }
