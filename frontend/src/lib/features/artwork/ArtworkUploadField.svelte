@@ -35,7 +35,8 @@
   });
 
   async function onFileChange(event: Event) {
-    const input = event.currentTarget as HTMLInputElement;
+    const input = event.currentTarget;
+    if (!(input instanceof HTMLInputElement)) return;
     const file = input.files?.[0];
     if (!file || disabled || !controller) return;
     await controller.uploadFile(file, titleId, expectedVersion, policyRevision);

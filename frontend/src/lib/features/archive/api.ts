@@ -1,4 +1,4 @@
-import type { GraphqlRequest } from '../../transport/graphql';
+import type { GraphqlRequest, RequestOptions } from '../../transport/graphql';
 import { record } from '../session/parse';
 import type { ArchiveTab } from './types';
 
@@ -69,7 +69,9 @@ export async function fetchArchived(
   signal?: AbortSignal,
 ): Promise<readonly ArchiveRow[]> {
   const query = tab === 'movies' ? ARCHIVED_TITLES : ARCHIVED_PEOPLE;
-  const data = record(await request(query, { first: 48 }, { csrf, signal }));
+  const options: RequestOptions = { csrf };
+  if (signal) options.signal = signal;
+  const data = record(await request(query, { first: 48 }, options));
   const page = record(tab === 'movies' ? data.managedTitles : data.managedPeople);
   const nodes = page.nodes;
   if (!Array.isArray(nodes)) return Object.freeze([]);
