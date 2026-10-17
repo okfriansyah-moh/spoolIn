@@ -14,18 +14,23 @@ export type MovieInputPayload = Readonly<{
 
 export type MoviePatchPayload = Readonly<Record<string, unknown>>;
 
-export function draftToCreateInput(draft: MovieDraft): MovieInputPayload {
+function normalizedOriginalTitle(draft: MovieDraft): string | null {
+  if (draft.originalTitle === undefined || draft.originalTitle === null) return null;
+  const trimmed = trimOrdinary(draft.originalTitle);
+  return trimmed === '' ? null : trimmed;
+}
+
+function releaseYear(draft: MovieDraft): number {
   const year = draft.release?.year;
   if (year === null || year === undefined) throw new Error('Release year required.');
-  const original =
-    draft.originalTitle === undefined || draft.originalTitle === null
-      ? null
-      : trimOrdinary(draft.originalTitle) === ''
-        ? null
-        : trimOrdinary(draft.originalTitle);
+  return year;
+}
+
+export function draftToCreateInput(draft: MovieDraft): MovieInputPayload {
+  const year = releaseYear(draft);
   return Object.freeze({
     title: trimOrdinary(draft.title ?? ''),
-    originalTitle: original,
+    originalTitle: normalizedOriginalTitle(draft),
     synopsis: trimOrdinary(draft.synopsis ?? ''),
     genreIds: Object.freeze([...(draft.genreIds ?? [])]),
     release: Object.freeze({
@@ -44,6 +49,17 @@ export function draftToUpdatePatch(
   originalTitleTouched: boolean,
 ): MoviePatchPayload {
   const patch: Record<string, unknown> = {};
+  applyTextAndGenrePatch(patch, saved, draft);
+  applyReleasePatch(patch, saved, draft);
+  applyOriginalTitlePatch(patch, saved, draft, originalTitleTouched);
+  return Object.freeze(patch);
+}
+
+function applyTextAndGenrePatch(
+  patch: Record<string, unknown>,
+  saved: ManagedMovie,
+  draft: MovieDraft,
+): void {
   const title = trimOrdinary(draft.title ?? '');
   if (title !== saved.title) patch.title = title;
   const synopsis = trimOrdinary(draft.synopsis ?? '');
@@ -51,26 +67,44 @@ export function draftToUpdatePatch(
   const draftGenres = [...(draft.genreIds ?? [])].sort().join(',');
   const savedGenres = [...saved.genreIds].sort().join(',');
   if (draftGenres !== savedGenres) patch.genreIds = [...(draft.genreIds ?? [])];
+}
+
+function applyReleasePatch(
+  patch: Record<string, unknown>,
+  saved: ManagedMovie,
+  draft: MovieDraft,
+): void {
   const year = draft.release?.year;
-  if (year !== null && year !== undefined && String(year) !== saved.releaseYear) {
-    patch.release = {
-      year,
-      month: draft.release?.month ?? null,
-      day: draft.release?.day ?? null,
-    };
-  }
+  if (year === null || year === undefined || String(year) === saved.releaseYear) return;
+  patch.release = {
+    year,
+    month: draft.release?.month ?? null,
+    day: draft.release?.day ?? null,
+  };
+}
+
+function applyOriginalTitlePatch(
+  patch: Record<string, unknown>,
+  saved: ManagedMovie,
+  draft: MovieDraft,
+  originalTitleTouched: boolean,
+): void {
   if (originalTitleTouched) {
     const raw = draft.originalTitle;
-    if (raw === null || trimOrdinary(raw) === '') patch.originalTitle = null;
-    else patch.originalTitle = trimOrdinary(raw);
-  } else if (
-    draft.originalTitle !== undefined &&
-    draft.originalTitle !== null &&
-    trimOrdinary(draft.originalTitle) !== (saved.originalTitle ?? '')
-  ) {
-    patch.originalTitle = trimOrdinary(draft.originalTitle);
+    patch.originalTitle =
+      raw === null || raw === undefined || trimOrdinary(raw) === ''
+        ? null
+        : trimOrdinary(raw);
+    return;
   }
-  return Object.freeze(patch);
+  if (
+    draft.originalTitle === undefined ||
+    draft.originalTitle === null ||
+    trimOrdinary(draft.originalTitle) === (saved.originalTitle ?? '')
+  ) {
+    return;
+  }
+  patch.originalTitle = trimOrdinary(draft.originalTitle);
 }
 
 export function patchIsEmpty(patch: MoviePatchPayload): boolean {

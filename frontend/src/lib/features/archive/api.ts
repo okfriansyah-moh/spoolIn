@@ -60,7 +60,12 @@ const PERSON_LIFECYCLE = `mutation PersonLifecycle(
   }
 }`;
 
-export type ArchiveRow = { id: string; label: string; state: string; version: string };
+export type ArchiveRow = {
+  id: string;
+  label: string;
+  state: string;
+  version: string;
+};
 
 export async function fetchArchived(
   request: GraphqlRequest,
@@ -72,7 +77,9 @@ export async function fetchArchived(
   const options: RequestOptions = { csrf };
   if (signal) options.signal = signal;
   const data = record(await request(query, { first: 48 }, options));
-  const page = record(tab === 'movies' ? data.managedTitles : data.managedPeople);
+  const page = record(
+    tab === 'movies' ? data.managedTitles : data.managedPeople,
+  );
   const nodes = page.nodes;
   if (!Array.isArray(nodes)) return Object.freeze([]);
   return Object.freeze(
@@ -92,7 +99,11 @@ export async function fetchDeletionImpact(
   request: GraphqlRequest,
   personId: string,
   csrf: string,
-): Promise<{ token: string; affectedCreditCount: number; affectedTitles: readonly string[] }> {
+): Promise<{
+  token: string;
+  affectedCreditCount: number;
+  affectedTitles: readonly string[];
+}> {
   const data = record(await request(DELETION_IMPACT, { personId }, { csrf }));
   const impact = record(data.deletionImpact);
   return {
@@ -116,7 +127,11 @@ export async function runMovieLifecycle(
   },
 ): Promise<string> {
   const data = record(
-    await request(MOVIE_LIFECYCLE, { ...input, expectedVersion: Number(input.expectedVersion) }, { csrf }),
+    await request(
+      MOVIE_LIFECYCLE,
+      { ...input, expectedVersion: Number(input.expectedVersion) },
+      { csrf },
+    ),
   );
   const result = record(data.movieLifecycle);
   const op = record(result.operation);

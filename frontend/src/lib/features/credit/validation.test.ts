@@ -10,10 +10,14 @@ describe('validateCharacterNames', () => {
   });
 
   it('rejects duplicate trimmed names', () => {
-    expect(validateCharacterNames(['Maya', 'Maya'], policy, true)).toMatch(/duplicate/i);
+    expect(validateCharacterNames(['Maya', 'Maya'], policy, true)).toMatch(
+      /duplicate/i,
+    );
   });
 
   it('rejects characters on creator role', () => {
-    expect(validateCharacterNames(['Name'], policy, false)).toMatch(/does not accept/i);
+    expect(validateCharacterNames(['Name'], policy, false)).toMatch(
+      /does not accept/i,
+    );
   });
 });

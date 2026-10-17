@@ -1,4 +1,5 @@
-export type ArtworkStage = 'idle' | 'transferring' | 'processing' | 'saved' | 'failed' | 'uncertain';
+export type ArtworkStage =
+  'idle' | 'transferring' | 'processing' | 'saved' | 'failed' | 'uncertain';
 
 export function stageLabel(stage: ArtworkStage): string {
   switch (stage) {
@@ -17,6 +18,10 @@ export function stageLabel(stage: ArtworkStage): string {
   }
 }
 
-export function transferCompleteIsNotSaved(transferred: number, total: number, attached: boolean): boolean {
+export function transferCompleteIsNotSaved(
+  transferred: number,
+  total: number,
+  attached: boolean,
+): boolean {
   return total > 0 && transferred >= total && !attached;
 }

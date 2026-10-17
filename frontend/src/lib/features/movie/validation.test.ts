@@ -7,7 +7,12 @@ const policy = specimenPolicy();
 describe('T017 movie validation', () => {
   it('rejects whitespace-only title and missing genres', () => {
     const errors = validateMovieDraft(
-      { title: '   ', synopsis: 'Valid synopsis', genreIds: [], release: { year: 2024 } },
+      {
+        title: '   ',
+        synopsis: 'Valid synopsis',
+        genreIds: [],
+        release: { year: 2024 },
+      },
       policy,
       'create',
     );

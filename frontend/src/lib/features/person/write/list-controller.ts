@@ -38,6 +38,8 @@ export class PersonListController {
   }
 }
 
-export function createPersonListController(request: GraphqlRequest): PersonListController {
+export function createPersonListController(
+  request: GraphqlRequest,
+): PersonListController {
   return new PersonListController(request);
 }

@@ -87,7 +87,11 @@ export const EMPTY_MOVIE_DRAFT: MovieDraft = Object.freeze({
   countries: Object.freeze([]),
 });
 
-export function policyGuidance(policy: Policy, field: 'title' | 'synopsis'): string {
+export function policyGuidance(
+  policy: Policy,
+  field: 'title' | 'synopsis',
+): string {
   const bound = policy.textBounds[field];
+  if (!bound) return '';
   return `${bound.minCodePoints}–${bound.maxCodePoints} Unicode code points.`;
 }

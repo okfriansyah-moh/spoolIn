@@ -24,8 +24,11 @@
   } = $props();
 
   const nameBound = $derived(boundFor(policy, 'personName'));
-  const errorFor = (id: string) => state.fieldErrors.find((error) => error.id === id)?.message ?? '';
-  const submitLabel = $derived(state.mode === 'create' ? 'Save person' : 'Save person');
+  const errorFor = (id: string) =>
+    state.fieldErrors.find((error) => error.id === id)?.message ?? '';
+  const submitLabel = $derived(
+    state.mode === 'create' ? 'Save person' : 'Save person',
+  );
   const submitDisabled = $derived(
     disabled ||
       state.phase === 'submitting' ||
@@ -57,10 +60,12 @@
       oninput={(event) => onDraftChange('name', event.currentTarget.value)}
     />
     <small id="person-name-help"
-      >{nameBound.minCodePoints}–{nameBound.maxCodePoints} Unicode code points. Mononyms and punctuation stay
-      intact.</small
+      >{nameBound.minCodePoints}–{nameBound.maxCodePoints} Unicode code points. Mononyms
+      and punctuation stay intact.</small
     >
-    {#if errorFor('person-name')}<p class="field-error" id="person-name-error">{errorFor('person-name')}</p>{/if}
+    {#if errorFor('person-name')}<p class="field-error" id="person-name-error">
+        {errorFor('person-name')}
+      </p>{/if}
   </div>
   <div class="field">
     <label for="person-biography">Biography · Optional</label>
@@ -72,7 +77,9 @@
       value={state.draft.biography ?? ''}
       oninput={(event) => onDraftChange('biography', event.currentTarget.value)}
     ></textarea>
-    {#if errorFor('person-biography')}<p class="field-error">{errorFor('person-biography')}</p>{/if}
+    {#if errorFor('person-biography')}<p class="field-error">
+        {errorFor('person-biography')}
+      </p>{/if}
   </div>
   <Button type="submit" disabled={submitDisabled}>{submitLabel}</Button>
 </form>

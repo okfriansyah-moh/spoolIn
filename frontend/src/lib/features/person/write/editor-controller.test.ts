@@ -19,7 +19,11 @@ const context = Object.freeze({
 
 describe('PersonEditorController', () => {
   it('rejects empty name before submit', async () => {
-    const controller = new PersonEditorController(async () => ({}), 'create', null);
+    const controller = new PersonEditorController(
+      async () => ({}),
+      'create',
+      null,
+    );
     let phase = 'idle';
     controller.subscribe((state) => {
       phase = state.phase;

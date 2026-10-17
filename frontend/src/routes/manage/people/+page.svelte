@@ -56,8 +56,13 @@
           <tr>
             <td data-label="Name">{row.name}</td>
             <td data-label="Actions">
-              <a class="button secondary" href={resolve(`/manage/people/${row.id}`)}>Edit</a>
-              <a class="button secondary" href={resolve(`/people/${row.id}`)}>Review</a>
+              <a
+                class="button secondary"
+                href={resolve(`/manage/people/${row.id}`)}>Edit</a
+              >
+              <a class="button secondary" href={resolve(`/people/${row.id}`)}
+                >Review</a
+              >
             </td>
           </tr>
         {/each}

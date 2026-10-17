@@ -78,8 +78,6 @@
     return label ? `Ended: ${label}` : '';
   }
 
-  const catalogHref = `${resolve('/')}`;
-
   const documentTitle = $derived(
     state.kind === 'loading'
       ? 'Loading… · SpoolIn'
@@ -94,32 +92,32 @@
 </svelte:head>
 
 <nav aria-label="Breadcrumb">
-  <a href={catalogHref}>← Catalog</a>
+  <a href={resolve('/')}>← Catalog</a>
 </nav>
 
 {#if state.kind === 'loading'}
   <div role="status" aria-live="polite">
     <h1 tabindex="-1">Loading…</h1>
   </div>
-
 {:else if state.kind === 'unavailable'}
   <div class="unavailable">
     <h1 tabindex="-1">This title is unavailable</h1>
     <p>The title you requested is no longer available.</p>
-    <a href={catalogHref}>Return to catalog</a>
+    <a href={resolve('/')}>Return to catalog</a>
   </div>
-
 {:else if state.kind === 'failure'}
   <div role="alert" class="failure">
     <h1 tabindex="-1">Could not load title</h1>
     <p>The title could not be loaded. Please try again.</p>
-    <a href={catalogHref}>Return to catalog</a>
+    <a href={resolve('/')}>Return to catalog</a>
   </div>
-
 {:else if state.kind === 'movie'}
   <article id="title-detail" aria-label={state.title.title}>
     <div id="artwork">
-      <ArtworkSlot src={state.title.artwork?.url ?? null} alt={state.title.title} />
+      <ArtworkSlot
+        src={state.title.artwork?.url ?? null}
+        alt={state.title.title}
+      />
       <h1 tabindex="-1">{state.title.title}</h1>
     </div>
 
@@ -162,14 +160,22 @@
         <summary>Source provenance</summary>
         {#each state.title.provenance as prov (prov.source + prov.externalId)}
           <dl class="provenance">
-            <dt>Source</dt><dd>{prov.source}</dd>
-            <dt>External ID</dt><dd>{prov.externalId}</dd>
+            <dt>Source</dt>
+            <dd>{prov.source}</dd>
+            <dt>External ID</dt>
+            <dd>{prov.externalId}</dd>
             {#if prov.recordUrl}
-              <dt>Record</dt><dd><a href={prov.recordUrl}>{prov.recordUrl}</a></dd>
+              <dt>Record</dt>
+              <dd>
+                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- External provenance URL, not an app route. -->
+                <a href={prov.recordUrl}>{prov.recordUrl}</a>
+              </dd>
             {/if}
-            <dt>Retrieved</dt><dd>{prov.retrievedAt}</dd>
+            <dt>Retrieved</dt>
+            <dd>{prov.retrievedAt}</dd>
             {#if prov.reuseNote}
-              <dt>Reuse note</dt><dd>{prov.reuseNote}</dd>
+              <dt>Reuse note</dt>
+              <dd>{prov.reuseNote}</dd>
             {/if}
           </dl>
         {/each}
@@ -182,7 +188,9 @@
         <ul>
           {#each state.title.credits.nodes as credit (credit.id)}
             <li>
-              <a href={`${resolve('/')}people/${encodeURIComponent(credit.personId)}`}>
+              <a
+                href={resolve(`/people/${credit.personId}`)}
+              >
                 {credit.personName}
               </a>
               — {credit.role.label}
@@ -200,11 +208,13 @@
       </section>
     {/if}
   </article>
-
 {:else if state.kind === 'tv'}
   <article id="title-detail" aria-label={state.title.title}>
     <div id="artwork">
-      <ArtworkSlot src={state.title.artwork?.url ?? null} alt={state.title.title} />
+      <ArtworkSlot
+        src={state.title.artwork?.url ?? null}
+        alt={state.title.title}
+      />
       <h1 tabindex="-1">{state.title.title}</h1>
     </div>
 
@@ -249,14 +259,22 @@
         <summary>Source provenance</summary>
         {#each state.title.provenance as prov (prov.source + prov.externalId)}
           <dl class="provenance">
-            <dt>Source</dt><dd>{prov.source}</dd>
-            <dt>External ID</dt><dd>{prov.externalId}</dd>
+            <dt>Source</dt>
+            <dd>{prov.source}</dd>
+            <dt>External ID</dt>
+            <dd>{prov.externalId}</dd>
             {#if prov.recordUrl}
-              <dt>Record</dt><dd><a href={prov.recordUrl}>{prov.recordUrl}</a></dd>
+              <dt>Record</dt>
+              <dd>
+                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- External provenance URL, not an app route. -->
+                <a href={prov.recordUrl}>{prov.recordUrl}</a>
+              </dd>
             {/if}
-            <dt>Retrieved</dt><dd>{prov.retrievedAt}</dd>
+            <dt>Retrieved</dt>
+            <dd>{prov.retrievedAt}</dd>
             {#if prov.reuseNote}
-              <dt>Reuse note</dt><dd>{prov.reuseNote}</dd>
+              <dt>Reuse note</dt>
+              <dd>{prov.reuseNote}</dd>
             {/if}
           </dl>
         {/each}
@@ -269,7 +287,9 @@
         <ul>
           {#each state.title.credits.nodes as credit (credit.id)}
             <li>
-              <a href={`${resolve('/')}people/${encodeURIComponent(credit.personId)}`}>
+              <a
+                href={resolve(`/people/${credit.personId}`)}
+              >
                 {credit.personName}
               </a>
               — {credit.role.label}

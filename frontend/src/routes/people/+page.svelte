@@ -74,15 +74,19 @@
     searchText = value;
     globalThis.clearTimeout(debounceTimer);
     debounceTimer = globalThis.setTimeout(() => {
-      const params = value ? `?q=${encodeURIComponent(value)}` : '';
-      void goto(`/people${params}`, { replaceState: false, keepFocus: true });
+      void goto(
+        value
+          ? `${resolve('/people')}?q=${encodeURIComponent(value)}`
+          : resolve('/people'),
+        { replaceState: false, keepFocus: true },
+      );
       void load(value);
     }, 250);
   }
 
   function clearSearch() {
     searchText = '';
-    void goto('/people', { replaceState: false, keepFocus: true });
+    void goto(resolve('/people'), { replaceState: false, keepFocus: true });
     void load('');
   }
 
@@ -125,11 +129,15 @@
   <ul class="people-list" aria-label="People">
     {#each state.people as person (person.id)}
       <li>
-        <a href={`${resolve('/')}people/${encodeURIComponent(person.id)}`}>
+        <a href={resolve(`/people/${person.id}`)}>
           {person.name}
         </a>
         {#if person.biography}
-          <p class="bio-excerpt">{person.biography.slice(0, 120)}{person.biography.length > 120 ? '…' : ''}</p>
+          <p class="bio-excerpt">
+            {person.biography.slice(0, 120)}{person.biography.length > 120
+              ? '…'
+              : ''}
+          </p>
         {/if}
       </li>
     {/each}

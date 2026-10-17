@@ -29,8 +29,7 @@ export type TitleSummary = Readonly<{
 
 /** Text validation result. */
 export type TextValidity =
-  | { valid: true }
-  | { valid: false; reason: 'too-long'; codePoints: number };
+  { valid: true } | { valid: false; reason: 'too-long'; codePoints: number };
 
 /**
  * Catalog display states corresponding to ATDD-256 state rows.

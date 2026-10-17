@@ -22,6 +22,26 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
+type ArtworkPollStep = 'continue' | 'success' | 'failure' | 'stale';
+
+async function artworkPollStep(
+  request: GraphqlRequest,
+  operationId: string,
+  titleId: string,
+  csrf: string,
+  signal: AbortSignal,
+  isCurrent: () => boolean,
+): Promise<ArtworkPollStep> {
+  const receipt = await recoverCatalogOperation(request, operationId, csrf, signal);
+  if (!isCurrent()) return 'stale';
+  const terminal = receipt?.state;
+  if (terminal === 'FAILED' || terminal === 'EXPIRED') return 'failure';
+  if (terminal !== 'SUCCEEDED') return 'continue';
+  const movie = await fetchManagedMovie(request, titleId, csrf, signal);
+  if (!isCurrent()) return 'stale';
+  return movie?.artworkUrl ? 'success' : 'continue';
+}
+
 export async function pollUntilArtworkAttached(
   request: GraphqlRequest,
   csrf: string,
@@ -34,12 +54,17 @@ export async function pollUntilArtworkAttached(
   const started = Date.now();
   let attempt = 0;
   while (Date.now() - started < FOREGROUND_POLL_CAP_MS) {
-    if (!isCurrent()) return false;
-    const receipt = await recoverCatalogOperation(request, operationId, csrf, signal);
-    if (!isCurrent()) return false;
-    const movie = await fetchManagedMovie(request, titleId, csrf, signal);
-    if (receipt?.state === 'FAILED' || receipt?.state === 'EXPIRED') return false;
-    if (receipt?.state === 'SUCCEEDED' && movie?.artwork?.assetId) return true;
+    const step = await artworkPollStep(
+      request,
+      operationId,
+      titleId,
+      csrf,
+      signal,
+      isCurrent,
+    );
+    if (step === 'stale') return false;
+    if (step === 'failure') return false;
+    if (step === 'success') return true;
     onUpdate({
       stage: 'processing',
       transferPercent: 100,

@@ -1,5 +1,11 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+  existsSync,
+} from 'node:fs';
 
 const REPORT_OUT = '.ai/evidence/numbering-v1/t026-unit.json';
 const COVERAGE_JSON = 'frontend/coverage/test-results.json';
@@ -23,7 +29,10 @@ const run = spawnSync(
 );
 
 if (!existsSync(COVERAGE_JSON)) {
-  writeFileSync(COVERAGE_JSON, JSON.stringify({ numTotalTests: 0, numPassedTests: 0, numFailedTests: 1 }));
+  writeFileSync(
+    COVERAGE_JSON,
+    JSON.stringify({ numTotalTests: 0, numPassedTests: 0, numFailedTests: 1 }),
+  );
 }
 
 const summary = JSON.parse(readFileSync(COVERAGE_JSON, 'utf8'));

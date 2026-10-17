@@ -49,7 +49,12 @@ function oneTitle() {
       tvEnd: null,
       releaseContext: '2024',
       provenance: [],
-      artwork: { assetId: 'a', url: 'https://img/a.jpg', width: 500, height: 750 },
+      artwork: {
+        assetId: 'a',
+        url: 'https://img/a.jpg',
+        width: 500,
+        height: 750,
+      },
       credits: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
       version: '1',
     },
@@ -111,7 +116,13 @@ describe('CatalogController', () => {
     const ctrl = new CatalogController(req);
     const states = collect(ctrl);
 
-    ctrl.load({ text: 'ZZ-no-match', kind: '', genres: [], year: '', month: '' });
+    ctrl.load({
+      text: 'ZZ-no-match',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '',
+    });
     await vi.runAllTimersAsync();
 
     expect(states.some((s) => s.kind === 'no-match')).toBe(true);
@@ -161,7 +172,13 @@ describe('CatalogController', () => {
     const ctrl = new CatalogController(req);
     const states = collect(ctrl);
 
-    ctrl.load({ text: 'a'.repeat(201), kind: '', genres: [], year: '', month: '' });
+    ctrl.load({
+      text: 'a'.repeat(201),
+      kind: '',
+      genres: [],
+      year: '',
+      month: '',
+    });
     await vi.runAllTimersAsync();
 
     expect(req).not.toHaveBeenCalled();
@@ -176,8 +193,12 @@ describe('CatalogController', () => {
   it('does NOT replace current state with a stale reply from a prior generation', async () => {
     let resolveLate!: (v: unknown) => void;
     let resolveEarly!: (v: unknown) => void;
-    const latePromise = new Promise((r) => { resolveLate = r; });
-    const earlyPromise = new Promise((r) => { resolveEarly = r; });
+    const latePromise = new Promise((r) => {
+      resolveLate = r;
+    });
+    const earlyPromise = new Promise((r) => {
+      resolveEarly = r;
+    });
 
     let callCount = 0;
     const req = makeRequest(() => {
@@ -238,9 +259,18 @@ describe('CatalogController', () => {
     collect(ctrl);
 
     // Trigger text change with debounce
-    ctrl.setCriteria({ text: 'Li', kind: '', genres: [], year: '', month: '' }, { debounce: true });
-    ctrl.setCriteria({ text: 'Lig', kind: '', genres: [], year: '', month: '' }, { debounce: true });
-    ctrl.setCriteria({ text: 'Light', kind: '', genres: [], year: '', month: '' }, { debounce: true });
+    ctrl.setCriteria(
+      { text: 'Li', kind: '', genres: [], year: '', month: '' },
+      { debounce: true },
+    );
+    ctrl.setCriteria(
+      { text: 'Lig', kind: '', genres: [], year: '', month: '' },
+      { debounce: true },
+    );
+    ctrl.setCriteria(
+      { text: 'Light', kind: '', genres: [], year: '', month: '' },
+      { debounce: true },
+    );
 
     // Before debounce fires
     await vi.advanceTimersByTimeAsync(100);

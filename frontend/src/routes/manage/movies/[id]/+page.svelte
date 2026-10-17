@@ -8,11 +8,15 @@
   import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
-  import type { EditorState, WriteContext } from '../../../../lib/features/movie/types';
+  import type {
+    EditorState,
+    WriteContext,
+  } from '../../../../lib/features/movie/types';
   import ConfirmDialog from '../../../../lib/components/ConfirmDialog.svelte';
   import { isRecordId } from '../../../../lib/components/safe-url';
   import CreditPanel from '../../../../lib/features/credit/CreditPanel.svelte';
   import ArtworkUploadField from '../../../../lib/features/artwork/ArtworkUploadField.svelte';
+  import { applyMovieDraftField } from '../../../../lib/features/movie/draft-field-update';
 
   const sessionCtl = sessionController();
   let editorState = $state<EditorState | null>(null);
@@ -53,25 +57,15 @@
     };
   });
 
-  function draftChange(field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear', value: string) {
+  function draftChange(
+    field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear',
+    value: string,
+  ) {
     if (!controller || !editorState) return;
-    const draft = { ...editorState.draft };
-    if (field === 'releaseYear') {
-      const year = value.trim() === '' ? null : Number(value);
-      draft.release = Object.freeze({
-        ...(draft.release ?? {}),
-        year: Number.isInteger(year) ? year : null,
-        month: draft.release?.month ?? null,
-        day: draft.release?.day ?? null,
-      });
-    } else if (field === 'originalTitle') {
-      draft.originalTitle = value;
-      controller.updateDraft(draft, { originalTitleTouched: true });
-      return;
-    } else {
-      draft[field] = value;
-    }
-    controller.updateDraft(draft);
+    const update = applyMovieDraftField(editorState.draft, field, value);
+    controller.updateDraft(update.draft, {
+      originalTitleTouched: update.originalTitleTouched,
+    });
   }
 </script>
 
@@ -80,7 +74,9 @@
 <p class="muted">
   <a href={resolve('/manage/movies')}>Movies</a>
   {#if editorState?.saved}
-    · <a href={resolve(`/titles/${editorState.saved.id}`)}>Review public record</a>
+    · <a href={resolve(`/titles/${editorState.saved.id}`)}
+      >Review public record</a
+    >
   {/if}
 </p>
 
@@ -129,7 +125,10 @@
   oncancel={() => controller?.closeDiscardDialog()}
   onconfirm={() => void controller?.confirmDiscard()}
 >
-  <p>Leaving discards the current unsaved form values. Saved movie information stays unchanged.</p>
+  <p>
+    Leaving discards the current unsaved form values. Saved movie information
+    stays unchanged.
+  </p>
 </ConfirmDialog>
 
 <style>

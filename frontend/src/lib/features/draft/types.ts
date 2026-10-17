@@ -70,10 +70,7 @@ export type DraftEligibility = Readonly<{
 }>;
 
 export type DraftRequestKind =
-  | 'recover-operation'
-  | 'list-drafts'
-  | 'save-draft'
-  | 'discard-draft';
+  'recover-operation' | 'list-drafts' | 'save-draft' | 'discard-draft';
 
 export interface DraftSource {
   recoverOperation(
@@ -81,7 +78,10 @@ export interface DraftSource {
     csrf: string,
     signal: AbortSignal,
   ): Promise<DraftReceipt | null>;
-  listDrafts(csrf: string, signal: AbortSignal): Promise<readonly DraftRecord[]>;
+  listDrafts(
+    csrf: string,
+    signal: AbortSignal,
+  ): Promise<readonly DraftRecord[]>;
   saveDraft(
     operationId: string,
     draftId: string,

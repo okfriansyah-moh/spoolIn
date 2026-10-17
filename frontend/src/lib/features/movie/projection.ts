@@ -9,7 +9,11 @@ type WireTitle = Readonly<{
   originalTitle?: string | null;
   synopsis?: string;
   genres?: ReadonlyArray<{ id: string; label: string }>;
-  release?: { year?: number | null; month?: number | null; day?: number | null };
+  release?: {
+    year?: number | null;
+    month?: number | null;
+    day?: number | null;
+  };
   releaseContext?: string | null;
   version: string;
   artwork?: { url?: string | null } | null;
@@ -26,12 +30,23 @@ export function toManagedRow(node: WireTitle): ManagedTitleRow {
   });
 }
 
-export function toManagedMovie(node: WireTitle, artworkUnavailable = false): ManagedMovie {
+function recordKind(kind: string): 'MOVIE' | 'TV' {
+  return kind === 'TV' ? 'TV' : 'MOVIE';
+}
+
+function recordState(state: string): 'ACTIVE' | 'ARCHIVED' {
+  return state === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE';
+}
+
+export function toManagedMovie(
+  node: WireTitle,
+  artworkUnavailable = false,
+): ManagedMovie {
   const year = node.release?.year;
   return Object.freeze({
     id: node.id,
-    kind: node.kind === 'TV' ? 'TV' : 'MOVIE',
-    state: node.state === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE',
+    kind: recordKind(node.kind),
+    state: recordState(node.state),
     title: node.title,
     originalTitle: node.originalTitle ?? null,
     synopsis: node.synopsis ?? '',
@@ -61,6 +76,7 @@ export function movieToDraft(movie: ManagedMovie): MovieDraft {
 
 function formatRelease(release: WireTitle['release']): string {
   if (!release?.year) return 'Release unknown';
-  if (release.month) return `${release.year}-${String(release.month).padStart(2, '0')}`;
+  if (release.month)
+    return `${release.year}-${String(release.month).padStart(2, '0')}`;
   return String(release.year);
 }

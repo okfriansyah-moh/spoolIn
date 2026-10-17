@@ -3,19 +3,37 @@ import type { PersonDraft } from '../../../generated/json-types';
 import type { Policy } from '../../../policy/types';
 import type { FieldError } from './types';
 
-export function validatePersonDraft(draft: PersonDraft, policy: Policy): FieldError[] {
+export function validatePersonDraft(
+  draft: PersonDraft,
+  policy: Policy,
+): FieldError[] {
   const errors: FieldError[] = [];
   const bound = boundFor(policy, 'personName');
   const name = draft.name ?? '';
   if (trimOrdinary(name) === '') {
-    errors.push({ id: 'person-name', message: 'Professional name: Enter a name.' });
+    errors.push({
+      id: 'person-name',
+      message: 'Professional name: Enter a name.',
+    });
   } else {
     const result = checkText(name, bound);
-    if (result.error) errors.push({ id: 'person-name', message: `Professional name: ${result.error}` });
+    if (result.error)
+      errors.push({
+        id: 'person-name',
+        message: `Professional name: ${result.error}`,
+      });
   }
-  if (draft.biography !== undefined && draft.biography !== null && draft.biography !== '') {
+  if (
+    draft.biography !== undefined &&
+    draft.biography !== null &&
+    draft.biography !== ''
+  ) {
     const bio = checkText(draft.biography, boundFor(policy, 'synopsis'));
-    if (bio.error) errors.push({ id: 'person-biography', message: `Biography: ${bio.error}` });
+    if (bio.error)
+      errors.push({
+        id: 'person-biography',
+        message: `Biography: ${bio.error}`,
+      });
   }
   return errors;
 }

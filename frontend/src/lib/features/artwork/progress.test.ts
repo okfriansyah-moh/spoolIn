@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { FOREGROUND_POLL_CAP_MS, pollDelayMs, transferPercent } from './polling';
+import {
+  FOREGROUND_POLL_CAP_MS,
+  pollDelayMs,
+  transferPercent,
+} from './polling';
 import { stageLabel, transferCompleteIsNotSaved } from './progress';
 
 describe('T026 artwork progress', () => {

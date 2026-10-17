@@ -54,7 +54,12 @@ internal object ArtworkUpload {
         val meta = Metadata().apply { put(com.spoolin.support.identity.ActorRpc.metadata, request.actorToken) }
         val stub = request.media.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
         val stream = stub.upload(response)
-        stream.onNext(Spoolin.UploadChunk.newBuilder().setHeader(header).build())
+        stream.onNext(
+            Spoolin.UploadChunk
+                .newBuilder()
+                .setHeader(header)
+                .build(),
+        )
         var offset = 0
         while (offset < request.content.size) {
             val end = minOf(offset + UPLOAD_CHUNK_BYTES, request.content.size)
@@ -78,11 +83,15 @@ internal object ArtworkUpload {
     ): Spoolin.Outcome {
         if (!latch.await(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
             throw StatusRuntimeException(
-                io.grpc.Status.DEADLINE_EXCEEDED.withDescription("UPLOAD_TIMEOUT"),
+                io.grpc.Status.DEADLINE_EXCEEDED
+                    .withDescription("UPLOAD_TIMEOUT"),
             )
         }
         error.get()?.let { throw it }
         return outcome.get()
-            ?: throw StatusRuntimeException(io.grpc.Status.INTERNAL.withDescription("UPLOAD_EMPTY"))
+            ?: throw StatusRuntimeException(
+                io.grpc.Status.INTERNAL
+                    .withDescription("UPLOAD_EMPTY"),
+            )
     }
 }

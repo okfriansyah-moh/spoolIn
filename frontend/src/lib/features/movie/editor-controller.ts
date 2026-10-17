@@ -12,12 +12,15 @@ import {
 import { MovieDraftSync } from './draft-sync';
 import { draftToCreateInput, draftToUpdatePatch, patchIsEmpty } from './patch';
 import { movieToDraft } from './projection';
-import type { EditorState, ManagedMovie, WriteContext } from './types';
+import type { EditorState, WriteContext } from './types';
 import { EMPTY_MOVIE_DRAFT } from './types';
 import { problemMessage, validateMovieDraft } from './validation';
 import type { DraftSource } from '../draft/types';
 
-function initialState(mode: 'create' | 'edit', movieId: string | null): EditorState {
+function initialState(
+  mode: 'create' | 'edit',
+  movieId: string | null,
+): EditorState {
   return Object.freeze({
     phase: 'idle',
     mode,
@@ -67,7 +70,11 @@ export class MovieEditorController {
     return () => this.listeners.delete(listener);
   }
 
-  async bootstrap(policy: Policy, context: WriteContext, signal: AbortSignal): Promise<void> {
+  async bootstrap(
+    policy: Policy,
+    context: WriteContext,
+    signal: AbortSignal,
+  ): Promise<void> {
     this.policy = policy;
     this.writeContext = context;
     this.draftSync.reset({ catalogOperationId: null });
@@ -92,7 +99,12 @@ export class MovieEditorController {
         });
         return;
       }
-      const movie = await fetchManagedMovie(this.request, this.movieId, context.csrf, signal);
+      const movie = await fetchManagedMovie(
+        this.request,
+        this.movieId,
+        context.csrf,
+        signal,
+      );
       if (signal.aborted) return;
       if (!movie || movie.state !== 'ACTIVE' || movie.kind === 'TV') {
         this.publish({
@@ -109,7 +121,10 @@ export class MovieEditorController {
         return;
       }
       const draft = movieToDraft(movie);
-      this.draftSync.reset({ catalogOperationId: null, baseVersion: movie.version });
+      this.draftSync.reset({
+        catalogOperationId: null,
+        baseVersion: movie.version,
+      });
       this.publish({
         ...this.current,
         genres,
@@ -129,12 +144,19 @@ export class MovieEditorController {
     }
   }
 
-  updateDraft(next: MovieDraft, options: { originalTitleTouched?: boolean } = {}): void {
+  updateDraft(
+    next: MovieDraft,
+    options: { originalTitleTouched?: boolean } = {},
+  ): void {
     if (this.current.phase === 'submitting') return;
     if (options.originalTitleTouched) this.originalTitleTouched = true;
     this.publish({ ...this.current, draft: Object.freeze({ ...next }) });
     if (this.writeContext && this.current.saved) {
-      this.draftSync.schedule(next, this.writeContext, this.current.saved.version);
+      this.draftSync.schedule(
+        next,
+        this.writeContext,
+        this.current.saved.version,
+      );
     } else if (this.writeContext && this.mode === 'create') {
       this.draftSync.schedule(next, this.writeContext, null);
     }
@@ -151,7 +173,10 @@ export class MovieEditorController {
   }
 
   toggleStaleReview(): void {
-    this.publish({ ...this.current, staleReviewOpen: !this.current.staleReviewOpen });
+    this.publish({
+      ...this.current,
+      staleReviewOpen: !this.current.staleReviewOpen,
+    });
   }
 
   openDiscardDialog(): void {
@@ -195,7 +220,11 @@ export class MovieEditorController {
     )
       return;
     if (!this.writeContext || !this.policy) return;
-    const fieldErrors = validateMovieDraft(this.current.draft, this.policy, this.mode);
+    const fieldErrors = validateMovieDraft(
+      this.current.draft,
+      this.policy,
+      this.mode,
+    );
     if (fieldErrors.length) {
       this.publish({
         ...this.current,
@@ -229,12 +258,21 @@ export class MovieEditorController {
           signal,
         );
         if (generation !== this.writeGeneration) return;
-        await this.finishWrite(outcome.receipt.state, outcome.problemCode, operationId, outcome.resultMovieId);
+        await this.finishWrite(
+          outcome.receipt.state,
+          outcome.problemCode,
+          operationId,
+          outcome.resultMovieId,
+        );
         return;
       }
       const saved = this.current.saved;
       if (!saved || !this.movieId) return;
-      const patch = draftToUpdatePatch(saved, this.current.draft, this.originalTitleTouched);
+      const patch = draftToUpdatePatch(
+        saved,
+        this.current.draft,
+        this.originalTitleTouched,
+      );
       if (patchIsEmpty(patch)) {
         this.pendingWriteId = null;
         this.publish({
@@ -427,7 +465,10 @@ export class MovieEditorController {
     if (!movie) return;
     const saved = version ? { ...movie, version } : movie;
     this.originalTitleTouched = false;
-    this.draftSync.reset({ catalogOperationId: null, baseVersion: saved.version });
+    this.draftSync.reset({
+      catalogOperationId: null,
+      baseVersion: saved.version,
+    });
     this.publish({
       ...this.current,
       phase,

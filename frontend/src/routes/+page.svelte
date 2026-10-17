@@ -11,11 +11,19 @@
    */
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { createTransport } from '../lib/transport/graphql';
   import { CatalogController } from '../lib/features/catalog/controller';
-  import { parseCriteria, criteriaToParams, validateText } from '../lib/features/catalog/filter';
-  import { EMPTY_CRITERIA, MAX_SEARCH_CODE_POINTS } from '../lib/features/catalog/types';
+  import {
+    parseCriteria,
+    criteriaToParams,
+    validateText,
+  } from '../lib/features/catalog/filter';
+  import {
+    EMPTY_CRITERIA,
+    MAX_SEARCH_CODE_POINTS,
+  } from '../lib/features/catalog/types';
   import type { Criteria, CatalogState } from '../lib/features/catalog/types';
   import { fetchGenres } from '../lib/features/catalog/api';
   import CatalogFilters from '../lib/components/CatalogFilters.svelte';
@@ -58,11 +66,13 @@
     });
 
     // Load genres (non-blocking)
-    fetchGenres(transport).then((gs) => {
-      genres = gs.map((g) => ({ id: g.id, name: g.label }));
-    }).catch(() => {
-      // Genre list unavailable; filters still usable
-    });
+    fetchGenres(transport)
+      .then((gs) => {
+        genres = gs.map((g) => ({ id: g.id, name: g.label }));
+      })
+      .catch(() => {
+        // Genre list unavailable; filters still usable
+      });
 
     // Bootstrap from URL
     const initial = parseCriteria(page.url.searchParams);
@@ -83,7 +93,7 @@
     const params = criteriaToParams(c);
     const qs = params.toString();
     const path = qs ? `/?${qs}` : '/';
-    void goto(path, { replaceState: true, keepFocus: true });
+    void goto(resolve(path), { replaceState: true, keepFocus: true });
   }
 
   // Dispatch criteria to the controller, with optional debounce for text.
@@ -127,7 +137,8 @@
       safe.kind === lastDispatched.kind &&
       safe.year === lastDispatched.year &&
       safe.month === lastDispatched.month &&
-      [...safe.genres].sort().join(',') === [...lastDispatched.genres].sort().join(',')
+      [...safe.genres].sort().join(',') ===
+        [...lastDispatched.genres].sort().join(',')
     ) {
       return;
     }
@@ -162,8 +173,8 @@
 
   const textInvalid = $derived(
     mounted &&
-    criteria.text.length > 0 &&
-    !validateText(criteria.text, MAX_SEARCH_CODE_POINTS).valid,
+      criteria.text.length > 0 &&
+      !validateText(criteria.text, MAX_SEARCH_CODE_POINTS).valid,
   );
 </script>
 
@@ -171,31 +182,41 @@
 
 <div class="hero">
   <h1 tabindex="-1">Every reel holds a story.</h1>
-  <p class="lead">Unspooling stories and discovering what&#x2019;s behind them.</p>
+  <p class="lead">
+    Unspooling stories and discovering what&#x2019;s behind them.
+  </p>
 </div>
 
 {#if mounted}
   <section aria-label="Catalog filters" class="stack">
     {#if textInvalid}
       <p id={filterTextErrorId} role="alert" class="field-error">
-        <a href={`#${filterTextErrorId.replace('error', 'text')}`}>Search text is too long</a>
+        <a href={`#${filterTextErrorId.replace('error', 'text')}`}
+          >Search text is too long</a
+        >
         — up to {MAX_SEARCH_CODE_POINTS} characters are accepted.
       </p>
     {/if}
 
-    <CatalogFilters
-      bind:criteria={criteria}
-      {genres}
-      {years}
-    />
+    <CatalogFilters bind:criteria {genres} {years} />
   </section>
 
   {#if catalogState.kind === 'loading'}
-    <div role="status" aria-live="polite" aria-label="Finding titles" class="catalog-status">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Finding titles"
+      class="catalog-status"
+    >
       <p>Finding titles for the current criteria…</p>
     </div>
   {:else if catalogState.kind === 'outdated'}
-    <div role="status" aria-live="polite" aria-label="Refreshing" class="catalog-status">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Refreshing"
+      class="catalog-status"
+    >
       <p>Finding titles for the current criteria…</p>
     </div>
   {:else if catalogState.kind === 'failure'}
@@ -206,7 +227,7 @@
   {:else if catalogState.kind === 'empty'}
     <div class="catalog-status catalog-empty">
       <p>The catalog is empty.</p>
-      <a href="/">Browse again</a>
+      <a href={resolve('/')}>Browse again</a>
     </div>
   {:else if catalogState.kind === 'no-match'}
     <div class="catalog-status catalog-no-match">
@@ -222,7 +243,9 @@
   {:else if catalogState.kind === 'catalog'}
     <section aria-label="Title results">
       <p class="result-count">
-        {catalogState.titles.length} title{catalogState.titles.length === 1 ? '' : 's'} found
+        {catalogState.titles.length} title{catalogState.titles.length === 1
+          ? ''
+          : 's'} found
       </p>
       <ul class="title-grid" aria-label="Titles">
         {#each catalogState.titles as t (t.id)}

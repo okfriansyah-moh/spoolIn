@@ -17,11 +17,13 @@ export class MovieDraftSync {
     private readonly targetId: string | null,
   ) {}
 
-  reset(options: {
-    draftId?: string;
-    catalogOperationId?: string | null;
-    expectedVersion?: string | null;
-  } = {}): void {
+  reset(
+    options: {
+      draftId?: string;
+      catalogOperationId?: string | null;
+      expectedVersion?: string | null;
+    } = {},
+  ): void {
     this.draftId = options.draftId ?? globalThis.crypto.randomUUID();
     this.catalogOperationId = options.catalogOperationId ?? null;
     this.expectedVersion = options.expectedVersion ?? null;
@@ -31,7 +33,11 @@ export class MovieDraftSync {
     globalThis.clearTimeout(this.timer);
   }
 
-  get snapshot(): Readonly<{ backed: boolean; unbacked: boolean; pendingOperationId: string | null }> {
+  get snapshot(): Readonly<{
+    backed: boolean;
+    unbacked: boolean;
+    pendingOperationId: string | null;
+  }> {
     return Object.freeze({
       backed: this.backed,
       unbacked: this.unbacked,
@@ -39,7 +45,11 @@ export class MovieDraftSync {
     });
   }
 
-  schedule(values: MovieDraft, context: WriteContext, baseVersion: string | null): void {
+  schedule(
+    values: MovieDraft,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): void {
     globalThis.clearTimeout(this.timer);
     this.timer = globalThis.setTimeout(() => {
       void this.save(values, context, baseVersion);

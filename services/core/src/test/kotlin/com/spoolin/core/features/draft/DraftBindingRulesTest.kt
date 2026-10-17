@@ -39,21 +39,21 @@ class DraftBindingRulesTest {
 
     private fun intent(case: BindingCase) =
         OperationIntent(
-        id = case.operationId,
-        actorScope = "account:${case.accountId}",
-        kind = "DRAFT_SAVE",
-        policyRevision = "abc123",
-        fields =
-            buildList {
-                add("draftId" to case.draftId.toString())
-                add("targetKind" to case.targetKind)
-                add("targetId" to null)
-                add("baseVersion" to null)
-                add("operationId" to case.catalogSubmission?.toString())
-                add("expectedVersion" to case.expectedVersion?.toString())
-                add("values" to values)
-            },
-    )
+            id = case.operationId,
+            actorScope = "account:${case.accountId}",
+            kind = "DRAFT_SAVE",
+            policyRevision = "abc123",
+            fields =
+                buildList {
+                    add("draftId" to case.draftId.toString())
+                    add("targetKind" to case.targetKind)
+                    add("targetId" to null)
+                    add("baseVersion" to null)
+                    add("operationId" to case.catalogSubmission?.toString())
+                    add("expectedVersion" to case.expectedVersion?.toString())
+                    add("values" to values)
+                },
+        )
 
     // ── Core vs Catalog identity separation ──────────────────────────────────
 

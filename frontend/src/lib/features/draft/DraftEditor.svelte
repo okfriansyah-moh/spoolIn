@@ -49,7 +49,9 @@
 <section aria-labelledby="draft-editor-heading">
   <h2 id="draft-editor-heading">Person draft</h2>
   {#if state.concealed}
-    <p id="draft-concealed">{state.message || 'Protected draft is concealed.'}</p>
+    <p id="draft-concealed">
+      {state.message || 'Protected draft is concealed.'}
+    </p>
   {:else}
     <DraftNotice {state} />
     <form

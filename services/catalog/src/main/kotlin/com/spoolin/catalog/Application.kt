@@ -236,9 +236,7 @@ class CatalogWriteConfiguration {
             .ArtworkRpc(dataSource, receipts)
 
     @Bean
-    fun movieLifecycle(
-        receipts: OwnerReceipts,
-    ): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+    fun movieLifecycle(receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
         com.spoolin.catalog.features.lifecycle
             .MovieLifecycle(receipts)
 
@@ -259,16 +257,12 @@ class CatalogWriteConfiguration {
     fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
 
     @Bean
-    fun roleWrites(
-        receipts: OwnerReceipts,
-    ): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+    fun roleWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
         com.spoolin.catalog.features.taxonomy.roles
             .RoleWrites(receipts)
 
     @Bean
-    fun creditWrites(
-        receipts: OwnerReceipts,
-    ): com.spoolin.catalog.features.credit.CreditWrites =
+    fun creditWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.credit.CreditWrites =
         com.spoolin.catalog.features.credit
             .CreditWrites(receipts)
 

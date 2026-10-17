@@ -1,4 +1,5 @@
 import type { GraphqlRequest } from '../../transport/graphql';
+import { withCsrfAndSignal, withSignal } from '../../transport/request-options';
 import { record } from '../session/parse';
 import type { CreditRoleOption, ManagedCredit, PersonOption } from './types';
 
@@ -45,7 +46,9 @@ function mapCredit(node: Record<string, unknown>): ManagedCredit {
     personId: String(node.personId),
     personName: String(node.personName),
     version: String(node.version),
-    characters: Array.isArray(node.characters) ? node.characters.map(String) : [],
+    characters: Array.isArray(node.characters)
+      ? node.characters.map(String)
+      : [],
     role: Object.freeze({
       id: String(role.id),
       label: String(role.label),
@@ -61,18 +64,26 @@ export async function fetchTitleCredits(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<readonly ManagedCredit[]> {
-  const data = record(await request(MANAGED_CREDITS, { titleId }, { csrf, signal }));
+  const data = record(
+    await request(
+      MANAGED_CREDITS,
+      { titleId },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   const page = record(data.managedCredits);
   const nodes = page.nodes;
   if (!Array.isArray(nodes)) return Object.freeze([]);
-  return Object.freeze(nodes.map((node) => mapCredit(node as Record<string, unknown>)));
+  return Object.freeze(
+    nodes.map((node) => mapCredit(node as Record<string, unknown>)),
+  );
 }
 
 export async function fetchCreditRoles(
   request: GraphqlRequest,
   signal?: AbortSignal,
 ): Promise<readonly CreditRoleOption[]> {
-  const data = record(await request(CREDIT_ROLES, {}, { signal }));
+  const data = record(await request(CREDIT_ROLES, {}, withSignal(signal)));
   const roles = data.creditRoles;
   if (!Array.isArray(roles)) return Object.freeze([]);
   return Object.freeze(
@@ -93,7 +104,13 @@ export async function fetchActivePeople(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<readonly PersonOption[]> {
-  const data = record(await request(MANAGED_PEOPLE, { state: 'ACTIVE' }, { csrf, signal }));
+  const data = record(
+    await request(
+      MANAGED_PEOPLE,
+      { state: 'ACTIVE' },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   const page = record(data.managedPeople);
   const nodes = page.nodes;
   if (!Array.isArray(nodes)) return Object.freeze([]);
@@ -132,7 +149,8 @@ export async function addCredit(
   const problem = result.problem;
   if (problem && typeof problem === 'object') {
     const code = (problem as Record<string, unknown>).code;
-    if (code === 'CREDIT_DUPLICATE' || code === 'ALREADY_EXISTS') return 'Review the credit — no duplicate added.';
+    if (code === 'CREDIT_DUPLICATE' || code === 'ALREADY_EXISTS')
+      return 'Review the credit — no duplicate added.';
   }
   const operation = record(result.operation);
   if (operation.state === 'FAILED') return 'Changes were not saved.';

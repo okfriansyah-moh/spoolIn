@@ -23,11 +23,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "Valid Movie",
-                synopsis = "A valid synopsis.",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "Valid Movie",
+                    synopsis = "A valid synopsis.",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         val result = MovieValidation.validateCreate(values)
@@ -42,11 +42,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "   ",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "   ",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         assertViolation("title") { MovieValidation.validateCreate(values) }
@@ -57,11 +57,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "A".repeat(256),
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "A".repeat(256),
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         assertViolation("title") { MovieValidation.validateCreate(values) }
@@ -72,11 +72,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "A".repeat(255),
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "A".repeat(255),
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         val result = MovieValidation.validateCreate(values)
@@ -88,11 +88,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "X".repeat(5001),
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "T",
+                    synopsis = "X".repeat(5001),
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         assertViolation("synopsis") { MovieValidation.validateCreate(values) }
@@ -103,11 +103,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "X".repeat(5000),
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "T",
+                    synopsis = "X".repeat(5000),
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         val result = MovieValidation.validateCreate(values)
@@ -119,11 +119,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = emptyList(),
-                year = 2024,
+                    title = "T",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = emptyList(),
+                    year = 2024,
                 ),
             )
         assertViolation("genreIds") { MovieValidation.validateCreate(values) }
@@ -134,11 +134,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 0,
+                    title = "T",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 0,
                 ),
             )
         assertViolation("release.year") { MovieValidation.validateCreate(values) }
@@ -149,11 +149,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2020,
+                    title = "T",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2020,
                 ),
             )
         val result = MovieValidation.validateCreate(values)
@@ -167,12 +167,12 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
-                originalTitle = " Orig ",
+                    title = "T",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
+                    originalTitle = " Orig ",
                 ),
             )
         val result = MovieValidation.validateCreate(values)
@@ -184,12 +184,12 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
-                runtimeMinutes = 0,
+                    title = "T",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
+                    runtimeMinutes = 0,
                 ),
             )
         assertViolation("runtimeMinutes") { MovieValidation.validateCreate(values) }
@@ -200,12 +200,12 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "T",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
-                runtimeMinutes = 100001,
+                    title = "T",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
+                    runtimeMinutes = 100001,
                 ),
             )
         assertViolation("runtimeMinutes") { MovieValidation.validateCreate(values) }
@@ -216,11 +216,11 @@ class MovieValidationRulesTest {
         val values =
             movieValues(
                 MovieValuesFixture(
-                title = "<script>alert('x')</script>",
-                synopsis = "desc",
-                synopsisLanguage = "en",
-                genres = listOf("00000000-0000-0000-0000-000000000001"),
-                year = 2024,
+                    title = "<script>alert('x')</script>",
+                    synopsis = "desc",
+                    synopsisLanguage = "en",
+                    genres = listOf("00000000-0000-0000-0000-000000000001"),
+                    year = 2024,
                 ),
             )
         val result = MovieValidation.validateCreate(values)

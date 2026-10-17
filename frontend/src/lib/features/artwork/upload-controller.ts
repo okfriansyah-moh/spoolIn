@@ -1,5 +1,9 @@
 import type { GraphqlRequest } from '../../transport/graphql';
-import { cancelArtwork, uploadArtworkWithProgress, type UploadArtworkInput } from './api';
+import {
+  cancelArtwork,
+  uploadArtworkWithProgress,
+  type UploadArtworkInput,
+} from './api';
 import { transferPercent } from './polling';
 import { stageLabel, type ArtworkStage } from './progress';
 import { pollUntilArtworkAttached } from './upload-poll';
@@ -68,7 +72,13 @@ export class ArtworkUploadController {
       const contentBase64 = await this.readFileBase64(file, generation);
       if (generation !== this.generation) return;
       const mutation = await this.sendUpload(
-        { operationId, titleId, expectedVersion, policyRevision, contentBase64 },
+        {
+          operationId,
+          titleId,
+          expectedVersion,
+          policyRevision,
+          contentBase64,
+        },
         generation,
         operationId,
       );
@@ -79,7 +89,12 @@ export class ArtworkUploadController {
         return;
       }
       this.publishProcessing(operationId);
-      const attached = await this.pollAttachment(generation, operationId, titleId, signal);
+      const attached = await this.pollAttachment(
+        generation,
+        operationId,
+        titleId,
+        signal,
+      );
       if (generation !== this.generation) return;
       if (attached) this.publishSaved(operationId);
       else if (this.view.stage !== 'uncertain') this.publishFailed(operationId);
@@ -122,7 +137,12 @@ export class ArtworkUploadController {
       operationId,
       canResumeCheck: false,
     });
-    const attached = await this.pollAttachment(generation, operationId, titleId, signal);
+    const attached = await this.pollAttachment(
+      generation,
+      operationId,
+      titleId,
+      signal,
+    );
     if (generation !== this.generation) return;
     if (attached) this.publishSaved(operationId);
     else {
@@ -179,7 +199,11 @@ export class ArtworkUploadController {
     );
   }
 
-  private handleUploadError(error: unknown, generation: number, operationId: string): void {
+  private handleUploadError(
+    error: unknown,
+    generation: number,
+    operationId: string,
+  ): void {
     if (generation !== this.generation) return;
     if (error instanceof DOMException && error.name === 'AbortError') {
       this.publish({
@@ -255,7 +279,8 @@ export class ArtworkUploadController {
         const comma = value.indexOf(',');
         resolve(comma >= 0 ? value.slice(comma + 1) : value);
       };
-      reader.onerror = () => reject(reader.error ?? new Error('Artwork read failed.'));
+      reader.onerror = () =>
+        reject(reader.error ?? new Error('Artwork read failed.'));
       reader.readAsDataURL(file);
     });
   }

@@ -1,5 +1,4 @@
 import type { GraphqlRequest } from '../../transport/graphql';
-import { TransportFailure } from '../../transport/graphql';
 import { fetchManagedTitles } from './api';
 import type { ListState } from './types';
 
@@ -25,9 +24,8 @@ export class MovieListController {
       const titles = await fetchManagedTitles(this.request, csrf, signal);
       if (signal.aborted) return;
       this.publish({ kind: 'ready', titles });
-    } catch (error) {
+    } catch (_error) {
       if (signal.aborted) return;
-      void error instanceof TransportFailure;
       this.publish({ kind: 'failure' });
     }
   }
@@ -42,6 +40,8 @@ export class MovieListController {
   }
 }
 
-export function createMovieListController(request: GraphqlRequest): MovieListController {
+export function createMovieListController(
+  request: GraphqlRequest,
+): MovieListController {
   return new MovieListController(request);
 }

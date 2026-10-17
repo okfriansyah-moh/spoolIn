@@ -25,27 +25,15 @@ function trustFixtureCa(profile: string, ca: string) {
   const importCa = () =>
     execFileSync(
       certutil,
-      [
-        '-A',
-        '-d',
-        nss,
-        '-n',
-        'Account fixture CA',
-        '-t',
-        'CT,C,C',
-        '-i',
-        ca,
-      ],
+      ['-A', '-d', nss, '-n', 'Account fixture CA', '-t', 'CT,C,C', '-i', ca],
       { stdio: 'pipe' },
     );
   try {
     importCa();
   } catch {
-    execFileSync(
-      certutil,
-      ['-N', '--empty-password', '-d', nss],
-      { stdio: 'pipe' },
-    );
+    execFileSync(certutil, ['-N', '--empty-password', '-d', nss], {
+      stdio: 'pipe',
+    });
     importCa();
   }
 }

@@ -3,6 +3,7 @@
  * Wraps the typed document nodes so callers never see raw query strings.
  */
 import type { GraphqlRequest } from '../../transport/graphql';
+import { withSignal } from '../../transport/request-options';
 import type {
   TitlesQuery,
   TitlesQueryVariables,
@@ -95,7 +96,13 @@ export async function fetchTitles(
   variables: TitlesQueryVariables,
   signal?: AbortSignal,
 ): Promise<TitlesQuery['titles']> {
-  const data = record(await request(TITLES_QUERY, variables as Record<string, unknown>, { signal }));
+  const data = record(
+    await request(
+      TITLES_QUERY,
+      variables as Record<string, unknown>,
+      withSignal(signal),
+    ),
+  );
   return (data as { titles: TitlesQuery['titles'] }).titles;
 }
 
@@ -104,7 +111,13 @@ export async function fetchTitle(
   variables: TitleQueryVariables,
   signal?: AbortSignal,
 ): Promise<CatalogTitleDetail | null> {
-  const data = record(await request(TITLE_QUERY, variables as Record<string, unknown>, { signal }));
+  const data = record(
+    await request(
+      TITLE_QUERY,
+      variables as Record<string, unknown>,
+      withSignal(signal),
+    ),
+  );
   return (data as { title: CatalogTitleDetail | null }).title;
 }
 
@@ -112,7 +125,7 @@ export async function fetchGenres(
   request: GraphqlRequest,
   signal?: AbortSignal,
 ): Promise<GenresQuery['genres']> {
-  const data = record(await request(GENRES_QUERY, {}, { signal }));
+  const data = record(await request(GENRES_QUERY, {}, withSignal(signal)));
   return (data as { genres: GenresQuery['genres'] }).genres;
 }
 

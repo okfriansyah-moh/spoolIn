@@ -51,4 +51,7 @@ export type EditorState = Readonly<{
   staleReviewOpen: boolean;
 }>;
 
-export const EMPTY_PERSON_DRAFT: PersonDraft = Object.freeze({ name: '', biography: undefined });
+export const EMPTY_PERSON_DRAFT: PersonDraft = Object.freeze({
+  name: '',
+  biography: undefined,
+});

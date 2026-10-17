@@ -3,6 +3,7 @@
  * Wraps the People, Person and PersonCredits queries.
  */
 import type { GraphqlRequest } from '../../../transport/graphql';
+import { withSignal } from '../../../transport/request-options';
 import type {
   PeopleQuery,
   PeopleQueryVariables,
@@ -38,7 +39,8 @@ const PERSON_CREDITS_QUERY = `query PersonCredits($id: UUID!, $first: Int = 24, 
 
 export type PublicPerson = PeopleQuery['people']['nodes'][number];
 export type PublicPersonDetail = NonNullable<PersonQuery['person']>;
-export type PublicPersonCredit = PersonCreditsQuery['personCredits']['nodes'][number];
+export type PublicPersonCredit =
+  PersonCreditsQuery['personCredits']['nodes'][number];
 
 function record(value: unknown): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value))
@@ -52,7 +54,11 @@ export async function fetchPeople(
   signal?: AbortSignal,
 ): Promise<PeopleQuery['people']> {
   const data = record(
-    await request(PEOPLE_QUERY, variables as Record<string, unknown>, { signal }),
+    await request(
+      PEOPLE_QUERY,
+      variables as Record<string, unknown>,
+      withSignal(signal),
+    ),
   );
   return (data as { people: PeopleQuery['people'] }).people;
 }
@@ -63,7 +69,11 @@ export async function fetchPerson(
   signal?: AbortSignal,
 ): Promise<PublicPersonDetail | null> {
   const data = record(
-    await request(PERSON_QUERY, variables as Record<string, unknown>, { signal }),
+    await request(
+      PERSON_QUERY,
+      variables as Record<string, unknown>,
+      withSignal(signal),
+    ),
   );
   return (data as { person: PublicPersonDetail | null }).person;
 }
@@ -74,7 +84,12 @@ export async function fetchPersonCredits(
   signal?: AbortSignal,
 ): Promise<PersonCreditsQuery['personCredits']> {
   const data = record(
-    await request(PERSON_CREDITS_QUERY, variables as Record<string, unknown>, { signal }),
+    await request(
+      PERSON_CREDITS_QUERY,
+      variables as Record<string, unknown>,
+      withSignal(signal),
+    ),
   );
-  return (data as { personCredits: PersonCreditsQuery['personCredits'] }).personCredits;
+  return (data as { personCredits: PersonCreditsQuery['personCredits'] })
+    .personCredits;
 }

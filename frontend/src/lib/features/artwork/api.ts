@@ -43,12 +43,17 @@ export type UploadArtworkMutationResult = Readonly<{
   problemCode: string | null;
 }>;
 
-function parseUploadResponse(data: unknown, operationId: string): UploadArtworkMutationResult {
+function parseUploadResponse(
+  data: unknown,
+  operationId: string,
+): UploadArtworkMutationResult {
   const root = record(data);
   const result = record(root.uploadArtwork);
   const problem = result.problem;
   const problemCode =
-    problem && typeof record(problem).code === 'string' ? String(record(problem).code) : null;
+    problem && typeof record(problem).code === 'string'
+      ? String(record(problem).code)
+      : null;
   const op = record(result.operation);
   return Object.freeze({
     state: String(op.state),
@@ -79,7 +84,10 @@ export function uploadArtworkWithProgress(
     xhr.open('POST', '/graphql');
     xhr.withCredentials = true;
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Accept', 'application/graphql-response+json, application/json');
+    xhr.setRequestHeader(
+      'Accept',
+      'application/graphql-response+json, application/json',
+    );
     xhr.setRequestHeader('X-Spoolin-Client', 'web');
     xhr.setRequestHeader('X-CSRF-Token', csrf);
     xhr.upload.onprogress = (event) => {
@@ -114,7 +122,8 @@ export async function uploadArtwork(
   input: UploadArtworkInput,
 ): Promise<{ state: string; operationId: string }> {
   const result = await uploadArtworkWithProgress(csrf, input, () => {});
-  if (result.problemCode) throw new TransportFailure('rejected', result.problemCode);
+  if (result.problemCode)
+    throw new TransportFailure('rejected', result.problemCode);
   return { state: result.state, operationId: result.operationId };
 }
 
@@ -147,7 +156,8 @@ export function fileToBase64(file: File): Promise<string> {
       const comma = value.indexOf(',');
       resolve(comma >= 0 ? value.slice(comma + 1) : value);
     };
-    reader.onerror = () => reject(reader.error ?? new Error('Artwork read failed.'));
+    reader.onerror = () =>
+      reject(reader.error ?? new Error('Artwork read failed.'));
     reader.readAsDataURL(file);
   });
 }

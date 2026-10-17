@@ -16,8 +16,8 @@
 {#if state.phase === 'saved'}
   <Notice title="Person saved" tone="success">
     <p>
-      {state.saved?.name ?? 'This person'} keeps the same shared identity. Visible credits update through
-      that identity without merging same-named people.
+      {state.saved?.name ?? 'This person'} keeps the same shared identity. Visible
+      credits update through that identity without merging same-named people.
     </p>
   </Notice>
 {:else if state.phase === 'failed'}
@@ -27,13 +27,17 @@
 {:else if state.phase === 'uncertain'}
   <Notice title="Save result not confirmed" tone="warning" urgent>
     <p>{state.message}</p>
-    <Button type="button" variant="secondary" onclick={onCheckOriginal}>Check original result</Button>
+    <Button type="button" variant="secondary" onclick={onCheckOriginal}
+      >Check original result</Button
+    >
   </Notice>
 {:else if state.phase === 'stale'}
   <Notice title="This person changed" tone="warning" urgent>
     <p>{state.message}</p>
     <Button type="button" variant="secondary" onclick={onReviewStale}
-      >{state.staleReviewOpen ? 'Hide current record' : 'Review current record'}</Button
+      >{state.staleReviewOpen
+        ? 'Hide current record'
+        : 'Review current record'}</Button
     >
   </Notice>
 {:else if state.phase === 'target-changed'}

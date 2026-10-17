@@ -2,9 +2,9 @@ package com.spoolin.core.operations.work
 
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.work.AttemptOutcome
+import com.spoolin.support.work.WorkAttemptCompletion
 import com.spoolin.support.work.WorkClaim
 import com.spoolin.support.work.WorkSchedule
-import com.spoolin.support.work.WorkAttemptCompletion
 import com.spoolin.support.work.WorkSql
 import java.security.SecureRandom
 import java.time.Clock

@@ -6,36 +6,38 @@ import type {
   DraftReceipt,
 } from './types';
 
+export function receiptState(value: unknown): DraftReceipt['state'] {
+  if (
+    value === 'PENDING' ||
+    value === 'SUCCEEDED' ||
+    value === 'FAILED' ||
+    value === 'EXPIRED'
+  ) {
+    return value;
+  }
+  throw new TransportFailure('unavailable');
+}
+
+function optionalUuid(value: unknown): string | null {
+  if (value === null) return null;
+  return typeof value === 'string' ? uuid(value) : null;
+}
+
+function optionalVersion(value: unknown): string | null {
+  if (value === null) return null;
+  return typeof value === 'string' ? value : null;
+}
+
 function receipt(value: unknown, expected: string): DraftReceipt {
   const input = record(value);
   const operationId = uuid(input.id);
   if (operationId !== expected || typeof input.resultExpired !== 'boolean')
     throw new TransportFailure('unavailable');
-  const state = input.state;
-  if (
-    state !== 'PENDING' &&
-    state !== 'SUCCEEDED' &&
-    state !== 'FAILED' &&
-    state !== 'EXPIRED'
-  )
-    throw new TransportFailure('unavailable');
-  const resultId =
-    input.resultId === null
-      ? null
-      : typeof input.resultId === 'string'
-        ? uuid(input.resultId)
-        : null;
-  const version =
-    input.version === null
-      ? null
-      : typeof input.version === 'string'
-        ? input.version
-        : null;
   return Object.freeze({
     operationId,
-    state,
-    resultId,
-    version,
+    state: receiptState(input.state),
+    resultId: optionalUuid(input.resultId),
+    version: optionalVersion(input.version),
     resultExpired: input.resultExpired,
   });
 }
@@ -46,7 +48,10 @@ function problemCode(value: unknown): string | null {
   return typeof input.code === 'string' ? input.code : null;
 }
 
-export function saveOutcome(value: unknown, expected: string): DraftMutationOutcome {
+export function saveOutcome(
+  value: unknown,
+  expected: string,
+): DraftMutationOutcome {
   const input = record(value);
   return Object.freeze({
     receipt: receipt(input.operation, expected),

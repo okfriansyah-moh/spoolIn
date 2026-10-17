@@ -143,7 +143,8 @@ export class DraftController {
 
   async recoverPendingOperation(): Promise<void> {
     const pending = this.pendingCore;
-    if (!pending || this.session.accountId === null || !this.session.csrf) return;
+    if (!pending || this.session.accountId === null || !this.session.csrf)
+      return;
     const generation = this.begin();
     const signal = this.signal();
     try {
@@ -181,9 +182,7 @@ export class DraftController {
     }
   }
 
-  async resumeAfterEligibility(
-    eligibility: DraftEligibility,
-  ): Promise<void> {
+  async resumeAfterEligibility(eligibility: DraftEligibility): Promise<void> {
     if (this.session.accountId === null || !this.session.csrf) {
       this.concealForSessionLoss();
       return;
@@ -213,7 +212,11 @@ export class DraftController {
       const match = this.pickDraft(drafts);
       if (match) this.applyServerDraft(match);
       this.concealed = false;
-      this.notice = this.unbacked ? 'unbacked' : this.backed ? 'backed' : 'idle';
+      this.notice = this.unbacked
+        ? 'unbacked'
+        : this.backed
+          ? 'backed'
+          : 'idle';
       this.message = this.unbacked
         ? 'Changes are not backed up yet.'
         : this.backed

@@ -1,7 +1,11 @@
 import type { GraphqlRequest } from '../../../transport/graphql';
 import { record } from '../../session/parse';
 import type { ManagedPerson, PersonListRow } from './types';
-import { personMutationOutcome, recoverPersonOperation, type PersonMutationOutcome } from './outcome';
+import {
+  personMutationOutcome,
+  recoverPersonOperation,
+  type PersonMutationOutcome,
+} from './outcome';
 
 const MANAGED_PEOPLE_QUERY = `query ManagedPeople($state: RecordState!, $first: Int = 24) {
   managedPeople(state: $state, first: $first) {
@@ -71,11 +75,15 @@ export async function fetchManagedPeople(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<readonly PersonListRow[]> {
-  const data = record(await request(MANAGED_PEOPLE_QUERY, { state: 'ACTIVE' }, { csrf, signal }));
+  const data = record(
+    await request(MANAGED_PEOPLE_QUERY, { state: 'ACTIVE' }, { csrf, signal }),
+  );
   const page = record(data.managedPeople);
   const nodes = page.nodes;
   if (!Array.isArray(nodes)) throw new Error('Managed people unavailable.');
-  return Object.freeze(nodes.map((node) => toRow(node as Record<string, unknown>)));
+  return Object.freeze(
+    nodes.map((node) => toRow(node as Record<string, unknown>)),
+  );
 }
 
 export async function fetchManagedPerson(
@@ -84,7 +92,9 @@ export async function fetchManagedPerson(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<ManagedPerson | null> {
-  const data = record(await request(MANAGED_PERSON_QUERY, { id }, { csrf, signal }));
+  const data = record(
+    await request(MANAGED_PERSON_QUERY, { id }, { csrf, signal }),
+  );
   const person = data.managedPerson;
   if (person === null) return null;
   return toManaged(person as Record<string, unknown>);
@@ -99,7 +109,11 @@ export async function createPerson(
   signal: AbortSignal,
 ): Promise<PersonMutationOutcome> {
   const data = record(
-    await request(CREATE_PERSON, { operationId, policyRevision, input }, { mutation: true, csrf, signal }),
+    await request(
+      CREATE_PERSON,
+      { operationId, policyRevision, input },
+      { mutation: true, csrf, signal },
+    ),
   );
   return personMutationOutcome(data.createPerson, operationId);
 }
@@ -117,7 +131,13 @@ export async function updatePerson(
   const data = record(
     await request(
       UPDATE_PERSON,
-      { operationId, id, expectedVersion: Number(expectedVersion), policyRevision, patch },
+      {
+        operationId,
+        id,
+        expectedVersion: Number(expectedVersion),
+        policyRevision,
+        patch,
+      },
       { mutation: true, csrf, signal },
     ),
   );
@@ -130,6 +150,12 @@ export async function recoverCatalogOperation(
   csrf: string,
   signal: AbortSignal,
 ) {
-  const data = record(await request(CATALOG_OPERATION_QUERY, { id: operationId }, { csrf, signal }));
+  const data = record(
+    await request(
+      CATALOG_OPERATION_QUERY,
+      { id: operationId },
+      { csrf, signal },
+    ),
+  );
   return recoverPersonOperation(data.operation, operationId);
 }

@@ -35,7 +35,9 @@ describe('parseCriteria', () => {
   });
 
   it('reads q, kind, year, month from params', () => {
-    const c = parseCriteria(new URLSearchParams('q=light&kind=MOVIE&year=2024&month=10'));
+    const c = parseCriteria(
+      new URLSearchParams('q=light&kind=MOVIE&year=2024&month=10'),
+    );
     expect(c.text).toBe('light');
     expect(c.kind).toBe('MOVIE');
     expect(c.year).toBe('2024');
@@ -67,38 +69,80 @@ describe('parseCriteria', () => {
 // ---------------------------------------------------------------------------
 describe('criteriaToParams', () => {
   it('produces empty params for empty criteria', () => {
-    const p = criteriaToParams({ text: '', kind: '', genres: [], year: '', month: '' });
+    const p = criteriaToParams({
+      text: '',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '',
+    });
     expect(p.toString()).toBe('');
   });
 
   it('includes q when text is set', () => {
-    const p = criteriaToParams({ text: 'Light', kind: '', genres: [], year: '', month: '' });
+    const p = criteriaToParams({
+      text: 'Light',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '',
+    });
     expect(p.get('q')).toBe('Light');
   });
 
   it('includes kind when set', () => {
-    const p = criteriaToParams({ text: '', kind: 'TV', genres: [], year: '', month: '' });
+    const p = criteriaToParams({
+      text: '',
+      kind: 'TV',
+      genres: [],
+      year: '',
+      month: '',
+    });
     expect(p.get('kind')).toBe('TV');
   });
 
   it('includes year and month when both set', () => {
-    const p = criteriaToParams({ text: '', kind: '', genres: [], year: '2024', month: '10' });
+    const p = criteriaToParams({
+      text: '',
+      kind: '',
+      genres: [],
+      year: '2024',
+      month: '10',
+    });
     expect(p.get('year')).toBe('2024');
     expect(p.get('month')).toBe('10');
   });
 
   it('omits month when year is absent', () => {
-    const p = criteriaToParams({ text: '', kind: '', genres: [], year: '', month: '10' });
+    const p = criteriaToParams({
+      text: '',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '10',
+    });
     expect(p.has('month')).toBe(false);
   });
 
   it('deduplicates and sorts genres in output', () => {
-    const p = criteriaToParams({ text: '', kind: '', genres: ['Z', 'A', 'Z'], year: '', month: '' });
+    const p = criteriaToParams({
+      text: '',
+      kind: '',
+      genres: ['Z', 'A', 'Z'],
+      year: '',
+      month: '',
+    });
     expect(p.getAll('genre')).toEqual(['A', 'Z']);
   });
 
   it('round-trips criteria correctly', () => {
-    const original = { text: 'hello', kind: 'MOVIE', genres: ['g2', 'g1'], year: '2023', month: '5' };
+    const original = {
+      text: 'hello',
+      kind: 'MOVIE',
+      genres: ['g2', 'g1'],
+      year: '2023',
+      month: '5',
+    };
     const parsed = parseCriteria(criteriaToParams(original));
     expect(parsed.text).toBe('hello');
     expect(parsed.kind).toBe('MOVIE');
@@ -168,23 +212,57 @@ describe('isValidMonth', () => {
 // ---------------------------------------------------------------------------
 describe('hasActiveFilters', () => {
   it('returns false for completely empty criteria', () => {
-    expect(hasActiveFilters({ text: '', kind: '', genres: [], year: '', month: '' })).toBe(false);
+    expect(
+      hasActiveFilters({ text: '', kind: '', genres: [], year: '', month: '' }),
+    ).toBe(false);
   });
 
   it('returns true when text is set', () => {
-    expect(hasActiveFilters({ text: 'x', kind: '', genres: [], year: '', month: '' })).toBe(true);
+    expect(
+      hasActiveFilters({
+        text: 'x',
+        kind: '',
+        genres: [],
+        year: '',
+        month: '',
+      }),
+    ).toBe(true);
   });
 
   it('returns true when kind is set', () => {
-    expect(hasActiveFilters({ text: '', kind: 'MOVIE', genres: [], year: '', month: '' })).toBe(true);
+    expect(
+      hasActiveFilters({
+        text: '',
+        kind: 'MOVIE',
+        genres: [],
+        year: '',
+        month: '',
+      }),
+    ).toBe(true);
   });
 
   it('returns true when a genre is selected', () => {
-    expect(hasActiveFilters({ text: '', kind: '', genres: ['g1'], year: '', month: '' })).toBe(true);
+    expect(
+      hasActiveFilters({
+        text: '',
+        kind: '',
+        genres: ['g1'],
+        year: '',
+        month: '',
+      }),
+    ).toBe(true);
   });
 
   it('returns true when year is set', () => {
-    expect(hasActiveFilters({ text: '', kind: '', genres: [], year: '2024', month: '' })).toBe(true);
+    expect(
+      hasActiveFilters({
+        text: '',
+        kind: '',
+        genres: [],
+        year: '2024',
+        month: '',
+      }),
+    ).toBe(true);
   });
 });
 
@@ -204,29 +282,59 @@ describe('buildSearchInput', () => {
   });
 
   it('omits text when empty', () => {
-    const result = buildSearchInput({ text: '', kind: '', genres: [], year: '', month: '' });
+    const result = buildSearchInput({
+      text: '',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '',
+    });
     expect(result).not.toBeNull();
     expect(result?.text).toBeUndefined();
   });
 
   it('includes text when valid and non-empty', () => {
-    const result = buildSearchInput({ text: 'Light', kind: '', genres: [], year: '', month: '' });
+    const result = buildSearchInput({
+      text: 'Light',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '',
+    });
     expect(result?.text).toBe('Light');
   });
 
   it('maps year and month to integers', () => {
-    const result = buildSearchInput({ text: '', kind: '', genres: [], year: '2024', month: '10' });
+    const result = buildSearchInput({
+      text: '',
+      kind: '',
+      genres: [],
+      year: '2024',
+      month: '10',
+    });
     expect(result?.year).toBe(2024);
     expect(result?.month).toBe(10);
   });
 
   it('omits month when year is absent', () => {
-    const result = buildSearchInput({ text: '', kind: '', genres: [], year: '', month: '10' });
+    const result = buildSearchInput({
+      text: '',
+      kind: '',
+      genres: [],
+      year: '',
+      month: '10',
+    });
     expect(result?.month).toBeUndefined();
   });
 
   it('passes genre IDs as genreIds', () => {
-    const result = buildSearchInput({ text: '', kind: '', genres: ['g1', 'g2'], year: '', month: '' });
+    const result = buildSearchInput({
+      text: '',
+      kind: '',
+      genres: ['g1', 'g2'],
+      year: '',
+      month: '',
+    });
     expect(result?.genreIds).toEqual(['g1', 'g2']);
   });
 });
@@ -240,21 +348,45 @@ describe('formatReleaseDate', () => {
   });
 
   it('returns null when year is null', () => {
-    expect(formatReleaseDate({ year: null, month: null, day: null, precision: 'YEAR' })).toBeNull();
+    expect(
+      formatReleaseDate({
+        year: null,
+        month: null,
+        day: null,
+        precision: 'YEAR',
+      }),
+    ).toBeNull();
   });
 
   it('returns year string for YEAR precision', () => {
-    expect(formatReleaseDate({ year: 2024, month: null, day: null, precision: 'YEAR' })).toBe('2024');
+    expect(
+      formatReleaseDate({
+        year: 2024,
+        month: null,
+        day: null,
+        precision: 'YEAR',
+      }),
+    ).toBe('2024');
   });
 
   it('returns month-year for MONTH precision', () => {
-    const label = formatReleaseDate({ year: 2024, month: 10, day: null, precision: 'MONTH' });
+    const label = formatReleaseDate({
+      year: 2024,
+      month: 10,
+      day: null,
+      precision: 'MONTH',
+    });
     expect(label).toContain('2024');
     expect(label).toContain('October');
   });
 
   it('returns full date for DAY precision', () => {
-    const label = formatReleaseDate({ year: 2024, month: 10, day: 9, precision: 'DAY' });
+    const label = formatReleaseDate({
+      year: 2024,
+      month: 10,
+      day: 9,
+      precision: 'DAY',
+    });
     expect(label).toContain('2024');
     expect(label).toContain('October');
     expect(label).toContain('9');

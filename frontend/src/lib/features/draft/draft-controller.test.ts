@@ -94,7 +94,10 @@ describe('T015 draft autosave', () => {
       .mockRejectedValue(new Error('network'));
     const controller = new DraftController(source({ saveDraft }));
     controller.bindSession(session(accountA));
-    controller.beginEdit({ kind: 'PERSON', id: null }, { catalogOperationId: catalogOp });
+    controller.beginEdit(
+      { kind: 'PERSON', id: null },
+      { catalogOperationId: catalogOp },
+    );
     controller.setName('Retained name');
     await vi.advanceTimersByTimeAsync(750);
     await Promise.resolve();
@@ -197,7 +200,8 @@ describe('T015 recovery ordering', () => {
       permitted: true,
       message: '',
     });
-    const recoverIndex = controller.requestSequence.indexOf('recover-operation');
+    const recoverIndex =
+      controller.requestSequence.indexOf('recover-operation');
     const draftsIndex = controller.requestSequence.indexOf('list-drafts');
     expect(recoverIndex).toBeGreaterThanOrEqual(0);
     expect(draftsIndex).toBeGreaterThan(recoverIndex);
@@ -236,9 +240,7 @@ describe('T015 recovery ordering', () => {
       },
       problemCode: null,
     });
-    const controller = new DraftController(
-      source({ saveDraft, discardDraft }),
-    );
+    const controller = new DraftController(source({ saveDraft, discardDraft }));
     controller.bindSession(session(accountA));
     controller.beginEdit({ kind: 'PERSON', id: null });
     controller.setName('Discard me');

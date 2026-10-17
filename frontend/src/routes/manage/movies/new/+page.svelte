@@ -9,6 +9,7 @@
   import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
   import type { EditorState } from '../../../../lib/features/movie/types';
   import ConfirmDialog from '../../../../lib/components/ConfirmDialog.svelte';
+  import { applyMovieDraftField } from '../../../../lib/features/movie/draft-field-update';
 
   const sessionCtl = sessionController();
   let editorState = $state<EditorState | null>(null);
@@ -17,7 +18,12 @@
 
   onMount(() => {
     const transport = createTransport();
-    controller = createMovieEditorController(transport, createDraftSource(transport), 'create', null);
+    controller = createMovieEditorController(
+      transport,
+      createDraftSource(transport),
+      'create',
+      null,
+    );
     const unsubscribe = controller.subscribe((next) => {
       editorState = next;
     });
@@ -36,25 +42,15 @@
     };
   });
 
-  function draftChange(field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear', value: string) {
+  function draftChange(
+    field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear',
+    value: string,
+  ) {
     if (!controller || !editorState) return;
-    const draft = { ...editorState.draft };
-    if (field === 'releaseYear') {
-      const year = value.trim() === '' ? null : Number(value);
-      draft.release = Object.freeze({
-        ...(draft.release ?? {}),
-        year: Number.isInteger(year) ? year : null,
-        month: draft.release?.month ?? null,
-        day: draft.release?.day ?? null,
-      });
-    } else if (field === 'originalTitle') {
-      draft.originalTitle = value;
-      controller.updateDraft(draft, { originalTitleTouched: true });
-      return;
-    } else {
-      draft[field] = value;
-    }
-    controller.updateDraft(draft);
+    const update = applyMovieDraftField(editorState.draft, field, value);
+    controller.updateDraft(update.draft, {
+      originalTitleTouched: update.originalTitleTouched,
+    });
   }
 </script>
 
@@ -84,7 +80,10 @@
   oncancel={() => controller?.closeDiscardDialog()}
   onconfirm={() => void controller?.confirmDiscard()}
 >
-  <p>Leaving discards the current unsaved form values. Saved movie information stays unchanged.</p>
+  <p>
+    Leaving discards the current unsaved form values. Saved movie information
+    stays unchanged.
+  </p>
 </ConfirmDialog>
 
 <style>

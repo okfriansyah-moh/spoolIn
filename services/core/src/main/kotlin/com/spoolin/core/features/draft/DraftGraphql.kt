@@ -99,8 +99,7 @@ class DraftGraphql(
         return projection
     }
 
-    private fun context(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun context(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
 
     private fun uuid(
         env: DataFetchingEnvironment,

@@ -5,7 +5,12 @@ import { specimenPolicy } from '../../../../../build-tools/verification-tests/fr
 
 vi.mock('./api', () => ({
   fetchMovieGenres: vi.fn(async () =>
-    Object.freeze([Object.freeze({ id: '10000000-0000-4000-8000-000000000010', label: 'Drama' })]),
+    Object.freeze([
+      Object.freeze({
+        id: '10000000-0000-4000-8000-000000000010',
+        label: 'Drama',
+      }),
+    ]),
   ),
   fetchManagedMovie: vi.fn(async () => null),
   createMovie: vi.fn(),
@@ -59,7 +64,12 @@ afterEach(() => {
 describe('T017 movie editor controller', () => {
   it('keeps the same pending operation id while submit is uncertain', async () => {
     const request = vi.fn();
-    const controller = new MovieEditorController(request, draftSource(), 'create', null);
+    const controller = new MovieEditorController(
+      request,
+      draftSource(),
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     controller.updateDraft({
       title: 'Harbor Story',
@@ -67,7 +77,9 @@ describe('T017 movie editor controller', () => {
       genreIds: ['10000000-0000-4000-8000-000000000010'],
       release: { year: 2024, month: null, day: null },
     });
-    vi.mocked(api.createMovie).mockRejectedValueOnce(new TransportFailure('uncertain'));
+    vi.mocked(api.createMovie).mockRejectedValueOnce(
+      new TransportFailure('uncertain'),
+    );
     await controller.submit();
     const first = controller.snapshot.pendingOperationId;
     expect(first).toBeTruthy();
@@ -104,7 +116,12 @@ describe('T017 movie editor controller', () => {
       resultMovieId: movieId,
       resultVersion: null,
     });
-    const controller = new MovieEditorController(request, draftSource(), 'edit', movieId);
+    const controller = new MovieEditorController(
+      request,
+      draftSource(),
+      'edit',
+      movieId,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     controller.updateDraft({
       title: 'Harbor Story',
@@ -114,7 +131,9 @@ describe('T017 movie editor controller', () => {
     });
     await controller.submit();
     expect(controller.snapshot.phase).toBe('stale');
-    expect(controller.snapshot.message).toMatch(/changed while you were editing/i);
+    expect(controller.snapshot.message).toMatch(
+      /changed while you were editing/i,
+    );
     controller.dispose();
   });
 });

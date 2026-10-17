@@ -5,4 +5,8 @@ export type ArchiveListState =
   | { kind: 'empty' }
   | { kind: 'denied' }
   | { kind: 'error'; message: string }
-  | { kind: 'ready'; tab: ArchiveTab; items: Array<{ id: string; label: string; state: string }> };
+  | {
+      kind: 'ready';
+      tab: ArchiveTab;
+      items: Array<{ id: string; label: string; state: string }>;
+    };

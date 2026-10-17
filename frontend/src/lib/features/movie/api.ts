@@ -1,4 +1,5 @@
 import type { GraphqlRequest } from '../../transport/graphql';
+import { withCsrfAndSignal } from '../../transport/request-options';
 import { record } from '../session/parse';
 import { fetchGenres } from '../catalog/api';
 import type { GenreOption, ManagedMovie, ManagedTitleRow } from './types';
@@ -71,13 +72,17 @@ export async function fetchManagedTitles(
     await request(
       MANAGED_TITLES_QUERY,
       { state: 'ACTIVE' },
-      { csrf, signal },
+      withCsrfAndSignal(csrf, signal),
     ),
   );
   const page = record(data.managedTitles);
   const nodes = page.nodes;
   if (!Array.isArray(nodes)) throw new Error('Managed titles unavailable.');
-  return Object.freeze(nodes.map((node) => toManagedRow(node as Parameters<typeof toManagedRow>[0])));
+  return Object.freeze(
+    nodes.map((node) =>
+      toManagedRow(node as Parameters<typeof toManagedRow>[0]),
+    ),
+  );
 }
 
 export async function fetchManagedMovie(
@@ -87,7 +92,7 @@ export async function fetchManagedMovie(
   signal?: AbortSignal,
 ): Promise<ManagedMovie | null> {
   const data = record(
-    await request(MANAGED_TITLE_QUERY, { id }, { csrf, signal }),
+    await request(MANAGED_TITLE_QUERY, { id }, withCsrfAndSignal(csrf, signal)),
   );
   const title = data.managedTitle;
   if (title === null) return null;
@@ -99,7 +104,9 @@ export async function fetchMovieGenres(
   signal?: AbortSignal,
 ): Promise<readonly GenreOption[]> {
   const genres = await fetchGenres(request, signal);
-  return Object.freeze(genres.map((genre) => Object.freeze({ id: genre.id, label: genre.label })));
+  return Object.freeze(
+    genres.map((genre) => Object.freeze({ id: genre.id, label: genre.label })),
+  );
 }
 
 export async function createMovie(
@@ -161,7 +168,11 @@ export async function recoverCatalogOperation(
   signal: AbortSignal,
 ): Promise<RecoveredCatalogOperation | null> {
   const data = record(
-    await request(CATALOG_OPERATION_QUERY, { id: operationId }, { csrf, signal }),
+    await request(
+      CATALOG_OPERATION_QUERY,
+      { id: operationId },
+      { csrf, signal },
+    ),
   );
   const node = data.operation;
   if (node === null) return null;

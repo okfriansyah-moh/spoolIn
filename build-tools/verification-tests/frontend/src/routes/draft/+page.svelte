@@ -9,7 +9,12 @@
     DraftRecord,
     DraftSource,
   } from '../../../../../../frontend/src/lib/features/draft/types';
-  import { accountA, accountB, catalogSubmission, draftSession } from './fixture';
+  import {
+    accountA,
+    accountB,
+    catalogSubmission,
+    draftSession,
+  } from './fixture';
 
   type Mode = 'default' | 'save-fail' | 'account-switch' | 'pending-recover';
 
@@ -107,9 +112,7 @@
     (globalThis as { __draftReleaseSave?: () => void }).__draftReleaseSave =
       () => releaseSave?.();
   });
-  const session = $derived(
-    draftSession(account === 'B' ? accountB : accountA),
-  );
+  const session = $derived(draftSession(account === 'B' ? accountB : accountA));
 </script>
 
 <DraftEditor

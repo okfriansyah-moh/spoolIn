@@ -10,15 +10,49 @@
  *   - Criteria are preserved across all states so they stay editable.
  */
 import type { GraphqlRequest } from '../../transport/graphql';
-import { TransportFailure } from '../../transport/graphql';
 import type { Criteria, CatalogState, TitleSummary } from './types';
 import { EMPTY_CRITERIA, MAX_SEARCH_CODE_POINTS } from './types';
-import { buildSearchInput, validateText, hasActiveFilters, formatReleaseDate } from './filter';
+import {
+  buildSearchInput,
+  validateText,
+  hasActiveFilters,
+  formatReleaseDate,
+} from './filter';
 import { fetchTitles } from './api';
 
 export type CatalogListener = (state: CatalogState) => void;
 
 const DEBOUNCE_MS = 250;
+
+function invalidCatalogState(criteria: Criteria): CatalogState {
+  return {
+    kind: 'invalid',
+    criteria,
+    titles: [],
+    pageInfo: null,
+    invalidField: 'text',
+  };
+}
+
+function mapTitleNodes(
+  nodes: Awaited<ReturnType<typeof fetchTitles>>['nodes'],
+): TitleSummary[] {
+  return nodes.map((n) => ({
+    id: n.id,
+    kind: n.kind as 'MOVIE' | 'TV',
+    title: n.title,
+    releaseContext: n.releaseContext ?? formatReleaseDate(n.release),
+    artworkUrl: n.artwork?.url ?? null,
+  }));
+}
+
+function catalogResultKind(
+  criteria: Criteria,
+  titles: TitleSummary[],
+): CatalogState['kind'] {
+  if (titles.length > 0) return 'catalog';
+  return hasActiveFilters(criteria) ? 'no-match' : 'empty';
+}
 
 export class CatalogController {
   private generation = 0;
@@ -51,9 +85,7 @@ export class CatalogController {
   /** Apply new criteria. Text changes are debounced; others fire immediately. */
   setCriteria(next: Criteria, options: { debounce?: boolean } = {}): void {
     // Enforce year→month dependency
-    const safe: Criteria = next.year
-      ? next
-      : { ...next, month: '' };
+    const safe: Criteria = next.year ? next : { ...next, month: '' };
 
     const textChanged = safe.text !== this.current.criteria.text;
     this.current = { ...this.current, criteria: safe };
@@ -92,25 +124,13 @@ export class CatalogController {
     // Validate text before issuing a query
     const textCheck = validateText(criteria.text, MAX_SEARCH_CODE_POINTS);
     if (!textCheck.valid) {
-      this.publish({
-        kind: 'invalid',
-        criteria,
-        titles: [],
-        pageInfo: null,
-        invalidField: 'text',
-      });
+      this.publish(invalidCatalogState(criteria));
       return;
     }
 
     const input = buildSearchInput(criteria);
     if (input === null) {
-      this.publish({
-        kind: 'invalid',
-        criteria,
-        titles: [],
-        pageInfo: null,
-        invalidField: 'text',
-      });
+      this.publish(invalidCatalogState(criteria));
       return;
     }
 
@@ -118,7 +138,13 @@ export class CatalogController {
     const signal = this.active?.signal;
     if (!signal) return;
 
-    this.publish({ kind: 'loading', criteria, titles: [], pageInfo: null, invalidField: null });
+    this.publish({
+      kind: 'loading',
+      criteria,
+      titles: [],
+      pageInfo: null,
+      invalidField: null,
+    });
 
     try {
       const result = await fetchTitles(
@@ -129,23 +155,10 @@ export class CatalogController {
 
       if (generation !== this.generation) return; // stale
 
-      const titles: TitleSummary[] = result.nodes.map((n) => ({
-        id: n.id,
-        kind: n.kind as 'MOVIE' | 'TV',
-        title: n.title,
-        releaseContext: n.releaseContext ?? formatReleaseDate(n.release),
-        artworkUrl: n.artwork?.url ?? null,
-      }));
-
-      const isEmpty = titles.length === 0;
-      const kind = isEmpty
-        ? hasActiveFilters(criteria)
-          ? 'no-match'
-          : 'empty'
-        : 'catalog';
+      const titles = mapTitleNodes(result.nodes);
 
       this.publish({
-        kind,
+        kind: catalogResultKind(criteria, titles),
         criteria,
         titles,
         pageInfo: result.pageInfo,
@@ -154,8 +167,6 @@ export class CatalogController {
     } catch (err) {
       if (generation !== this.generation) return; // stale
       if (err instanceof Error && err.name === 'AbortError') return;
-      // TransportFailure → failure state; criteria preserved for retry
-      void err instanceof TransportFailure;
       this.publish({
         kind: 'failure',
         criteria,
@@ -179,6 +190,8 @@ export class CatalogController {
   }
 }
 
-export function createCatalogController(request: GraphqlRequest): CatalogController {
+export function createCatalogController(
+  request: GraphqlRequest,
+): CatalogController {
   return new CatalogController(request);
 }

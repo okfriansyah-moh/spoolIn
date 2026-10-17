@@ -12,7 +12,10 @@ import type { EditorState, ManagedPerson, WriteContext } from './types';
 import { EMPTY_PERSON_DRAFT } from './types';
 import { problemMessage, validatePersonDraft } from './validation';
 
-function initialState(mode: 'create' | 'edit', personId: string | null): EditorState {
+function initialState(
+  mode: 'create' | 'edit',
+  personId: string | null,
+): EditorState {
   return Object.freeze({
     phase: 'idle',
     mode,
@@ -58,7 +61,11 @@ export class PersonEditorController {
     return () => this.listeners.delete(listener);
   }
 
-  async bootstrap(policy: Policy, context: WriteContext, signal: AbortSignal): Promise<void> {
+  async bootstrap(
+    policy: Policy,
+    context: WriteContext,
+    signal: AbortSignal,
+  ): Promise<void> {
     this.policy = policy;
     this.writeContext = context;
     if (this.mode === 'create') {
@@ -74,7 +81,12 @@ export class PersonEditorController {
       return;
     }
     try {
-      const person = await fetchManagedPerson(this.request, this.personId, context.csrf, signal);
+      const person = await fetchManagedPerson(
+        this.request,
+        this.personId,
+        context.csrf,
+        signal,
+      );
       if (signal.aborted) return;
       if (!person || person.state !== 'ACTIVE') {
         this.publish({
@@ -98,7 +110,11 @@ export class PersonEditorController {
       });
     } catch {
       if (signal.aborted) return;
-      this.publish({ ...this.current, phase: 'failed', message: 'Person details could not be loaded.' });
+      this.publish({
+        ...this.current,
+        phase: 'failed',
+        message: 'Person details could not be loaded.',
+      });
     }
   }
 
@@ -108,11 +124,19 @@ export class PersonEditorController {
   }
 
   toggleStaleReview(): void {
-    this.publish({ ...this.current, staleReviewOpen: !this.current.staleReviewOpen });
+    this.publish({
+      ...this.current,
+      staleReviewOpen: !this.current.staleReviewOpen,
+    });
   }
 
   async submit(): Promise<void> {
-    if (this.pendingWriteId || this.current.phase === 'submitting' || this.current.phase === 'uncertain') return;
+    if (
+      this.pendingWriteId ||
+      this.current.phase === 'submitting' ||
+      this.current.phase === 'uncertain'
+    )
+      return;
     if (!this.writeContext || !this.policy) return;
     const fieldErrors = validatePersonDraft(this.current.draft, this.policy);
     if (fieldErrors.length) {
@@ -152,19 +176,30 @@ export class PersonEditorController {
           signal,
         );
         if (generation !== this.writeGeneration) return;
-        await this.finishWrite(outcome.receipt.state, outcome.problemCode, operationId, outcome.resultPersonId);
+        await this.finishWrite(
+          outcome.receipt.state,
+          outcome.problemCode,
+          operationId,
+          outcome.resultPersonId,
+        );
         return;
       }
       const saved = this.current.saved;
       if (!saved || !this.personId) return;
       const patch: { name?: string; biography?: string | null } = {};
-      if ((this.current.draft.name ?? '') !== saved.name) patch.name = this.current.draft.name ?? '';
+      if ((this.current.draft.name ?? '') !== saved.name)
+        patch.name = this.current.draft.name ?? '';
       if ((this.current.draft.biography ?? '') !== (saved.biography ?? '')) {
         patch.biography = this.current.draft.biography ?? null;
       }
       if (!Object.keys(patch).length) {
         this.pendingWriteId = null;
-        this.publish({ ...this.current, phase: 'idle', pendingOperationId: null, message: 'No changes to save.' });
+        this.publish({
+          ...this.current,
+          phase: 'idle',
+          pendingOperationId: null,
+          message: 'No changes to save.',
+        });
         return;
       }
       const outcome = await updatePerson(
@@ -187,7 +222,11 @@ export class PersonEditorController {
       );
     } catch (error) {
       if (generation !== this.writeGeneration) return;
-      if (error instanceof TransportFailure && error.kind === 'rejected' && error.code === 'CONFLICT') {
+      if (
+        error instanceof TransportFailure &&
+        error.kind === 'rejected' &&
+        error.code === 'CONFLICT'
+      ) {
         this.pendingWriteId = null;
         await this.enterStaleReview();
         return;
@@ -197,7 +236,10 @@ export class PersonEditorController {
         ...this.current,
         phase: 'failed',
         pendingOperationId: null,
-        message: error instanceof TransportFailure ? problemMessage(error.code) : 'Changes were not saved.',
+        message:
+          error instanceof TransportFailure
+            ? problemMessage(error.code)
+            : 'Changes were not saved.',
       });
     }
   }
@@ -206,12 +248,18 @@ export class PersonEditorController {
     if (!this.writeContext || !this.pendingWriteId) return;
     const operationId = this.pendingWriteId;
     const signal = this.active?.signal ?? new AbortController().signal;
-    const receipt = await recoverCatalogOperation(this.request, operationId, this.writeContext.csrf, signal);
+    const receipt = await recoverCatalogOperation(
+      this.request,
+      operationId,
+      this.writeContext.csrf,
+      signal,
+    );
     if (!receipt) {
       this.publish({
         ...this.current,
         phase: 'uncertain',
-        message: 'Save result not confirmed. Check again before submitting another save.',
+        message:
+          'Save result not confirmed. Check again before submitting another save.',
       });
       return;
     }
@@ -233,7 +281,11 @@ export class PersonEditorController {
   ): Promise<void> {
     this.pendingWriteId = null;
     if (state === 'SUCCEEDED' && personId && this.writeContext) {
-      const person = await fetchManagedPerson(this.request, personId, this.writeContext.csrf);
+      const person = await fetchManagedPerson(
+        this.request,
+        personId,
+        this.writeContext.csrf,
+      );
       this.publish({
         ...this.current,
         phase: 'saved',
@@ -261,7 +313,11 @@ export class PersonEditorController {
 
   private async enterStaleReview(): Promise<void> {
     if (!this.writeContext || !this.personId) return;
-    const current = await fetchManagedPerson(this.request, this.personId, this.writeContext.csrf);
+    const current = await fetchManagedPerson(
+      this.request,
+      this.personId,
+      this.writeContext.csrf,
+    );
     this.publish({
       ...this.current,
       phase: 'stale',

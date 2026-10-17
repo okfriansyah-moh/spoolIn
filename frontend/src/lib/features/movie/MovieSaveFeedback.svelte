@@ -16,8 +16,8 @@
 {#if state.phase === 'saved'}
   <Notice title="Movie saved" tone="success">
     <p>
-      {state.saved?.title ?? 'This movie'} has been saved under the same identity. Unchanged
-      credits and metadata remain.
+      {state.saved?.title ?? 'This movie'} has been saved under the same identity.
+      Unchanged credits and metadata remain.
     </p>
   </Notice>
 {:else if state.phase === 'failed'}
@@ -36,10 +36,16 @@
     <p>{state.message}</p>
   </Notice>
 {:else if state.phase === 'stale'}
-  <Notice title="This movie changed while you were editing" tone="warning" urgent>
+  <Notice
+    title="This movie changed while you were editing"
+    tone="warning"
+    urgent
+  >
     <p>{state.message}</p>
     <Button type="button" variant="secondary" onclick={onReviewStale}
-      >{state.staleReviewOpen ? 'Hide current version' : 'Review current version'}</Button
+      >{state.staleReviewOpen
+        ? 'Hide current version'
+        : 'Review current version'}</Button
     >
   </Notice>
 {:else if state.phase === 'target-changed'}
@@ -49,8 +55,8 @@
 {:else if state.mediaOutage}
   <Notice title="Artwork is temporarily unavailable" tone="warning">
     <p>
-      Movie metadata remains readable and editable. Existing artwork is retained; placeholder
-      rendering does not mean deletion.
+      Movie metadata remains readable and editable. Existing artwork is
+      retained; placeholder rendering does not mean deletion.
     </p>
   </Notice>
 {/if}

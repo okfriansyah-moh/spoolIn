@@ -21,7 +21,13 @@ export function parseCriteria(params: URLSearchParams): Criteria {
   const month = year ? (params.get('month') ?? '') : '';
   const genres = params.getAll('genre');
   const deduped = [...new Set(genres)].sort();
-  return Object.freeze({ text, kind, genres: Object.freeze(deduped), year, month });
+  return Object.freeze({
+    text,
+    kind,
+    genres: Object.freeze(deduped),
+    year,
+    month,
+  });
 }
 
 /** Serialise Criteria to URLSearchParams (stable, sorted). */
@@ -94,29 +100,38 @@ export function buildSearchInput(criteria: Criteria): {
   } = {};
 
   if (criteria.text) input.text = criteria.text;
-  if (criteria.kind === 'MOVIE' || criteria.kind === 'TV') input.kind = criteria.kind;
+  if (criteria.kind === 'MOVIE' || criteria.kind === 'TV')
+    input.kind = criteria.kind;
   if (criteria.genres.length > 0) input.genreIds = [...criteria.genres];
-  if (criteria.year) {
-    const y = Number(criteria.year);
-    if (Number.isInteger(y) && y > 0) {
-      input.year = y;
-      if (criteria.month) {
-        const m = Number(criteria.month);
-        if (Number.isInteger(m) && m >= 1 && m <= 12) input.month = m;
-      }
-    }
-  }
-
+  applyYearMonthFilters(input, criteria);
   return input;
 }
 
+function applyYearMonthFilters(
+  input: { year?: number; month?: number },
+  criteria: Criteria,
+): void {
+  if (!criteria.year) return;
+  const y = Number(criteria.year);
+  if (!Number.isInteger(y) || y <= 0) return;
+  input.year = y;
+  if (!criteria.month) return;
+  const m = Number(criteria.month);
+  if (Number.isInteger(m) && m >= 1 && m <= 12) input.month = m;
+}
+
 /** Format a partial release date label from year/month/day/precision. */
-export function formatReleaseDate(release: {
-  year: number | null;
-  month: number | null;
-  day: number | null;
-  precision: string;
-} | null | undefined): string | null {
+export function formatReleaseDate(
+  release:
+    | {
+        year: number | null;
+        month: number | null;
+        day: number | null;
+        precision: string;
+      }
+    | null
+    | undefined,
+): string | null {
   if (!release || release.year === null) return null;
   if (release.precision === 'YEAR') return String(release.year);
   if (release.precision === 'MONTH' && release.month !== null) {

@@ -13,43 +13,25 @@ import type {
   DraftReceipt,
   DraftSource,
 } from './types';
+import { optionalString, optionalUuid, requiredString } from './parse-helpers';
+import { receiptState } from './outcome';
 
 function draftRecord(value: unknown): DraftRecord {
   const input = record(value);
   const id = uuid(input.id);
-  const targetKind =
-    typeof input.targetKind === 'string' ? input.targetKind : '';
-  const targetId =
-    input.targetId === null
-      ? null
-      : typeof input.targetId === 'string'
-        ? uuid(input.targetId)
-        : null;
-  const baseVersion =
-    input.baseVersion === null
-      ? null
-      : typeof input.baseVersion === 'string'
-        ? input.baseVersion
-        : null;
+  const targetKind = requiredString(input.targetKind);
   const values = input.values as DraftValues;
-  const operationId =
-    input.operationId === null
-      ? null
-      : typeof input.operationId === 'string'
-        ? uuid(input.operationId)
-        : null;
-  const version = typeof input.version === 'string' ? input.version : '';
-  const expiresAt =
-    typeof input.expiresAt === 'string' ? input.expiresAt : '';
+  const version = requiredString(input.version);
+  const expiresAt = requiredString(input.expiresAt);
   if (!targetKind || !version || !expiresAt || !values)
     throw new Error('Draft list unavailable.');
   return Object.freeze({
     id,
     targetKind,
-    targetId,
-    baseVersion,
+    targetId: optionalUuid(input.targetId),
+    baseVersion: optionalString(input.baseVersion),
     values,
-    operationId,
+    operationId: optionalUuid(input.operationId),
     version,
     expiresAt,
   });
@@ -61,29 +43,11 @@ function recoverReceipt(value: unknown, expected: string): DraftReceipt | null {
   const operationId = uuid(input.id);
   if (operationId !== expected || typeof input.resultExpired !== 'boolean')
     throw new Error('Draft recovery unavailable.');
-  const state = input.state;
-  if (
-    state !== 'PENDING' &&
-    state !== 'SUCCEEDED' &&
-    state !== 'FAILED' &&
-    state !== 'EXPIRED'
-  )
-    throw new Error('Draft recovery unavailable.');
-  const resultId =
-    input.resultId === null
-      ? null
-      : typeof input.resultId === 'string'
-        ? uuid(input.resultId)
-        : null;
-  const version =
-    input.version === null
-      ? null
-      : typeof input.version === 'string'
-        ? input.version
-        : null;
+  const resultId = optionalUuid(input.resultId);
+  const version = optionalString(input.version);
   return Object.freeze({
     operationId,
-    state,
+    state: receiptState(input.state),
     resultId,
     version,
     resultExpired: input.resultExpired,
@@ -99,7 +63,11 @@ class DraftApi implements DraftSource {
     signal: AbortSignal,
   ): Promise<DraftReceipt | null> {
     const data = record(
-      await this.request(recoverDocument, { id: operationId }, { csrf, signal }),
+      await this.request(
+        recoverDocument,
+        { id: operationId },
+        { csrf, signal },
+      ),
     );
     return recoverReceipt(data.operation, operationId);
   }
@@ -108,7 +76,9 @@ class DraftApi implements DraftSource {
     csrf: string,
     signal: AbortSignal,
   ): Promise<readonly DraftRecord[]> {
-    const data = record(await this.request(draftsDocument, {}, { csrf, signal }));
+    const data = record(
+      await this.request(draftsDocument, {}, { csrf, signal }),
+    );
     const drafts = data.drafts;
     if (!Array.isArray(drafts)) throw new Error('Draft list unavailable.');
     return Object.freeze(drafts.map(draftRecord));

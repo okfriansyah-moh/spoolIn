@@ -2,7 +2,13 @@
  * T021 – Frontend unit/component test runner.
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+  existsSync,
+} from 'node:fs';
 
 const REPORT_OUT = '.ai/evidence/numbering-v1/t021-unit.json';
 const COVERAGE_JSON = 'frontend/coverage/test-results.json';

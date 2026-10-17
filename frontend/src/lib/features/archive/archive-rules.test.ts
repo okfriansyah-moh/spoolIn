@@ -22,9 +22,12 @@ describe('T025 archive rules', () => {
     expect(formatDeletionImpactSummary(0, [])).toBe(
       'No active credits reference this person.',
     );
-    expect(formatDeletionImpactSummary(2, ['The Last Light', 'Letters from Tomorrow'])).toBe(
-      'Affects 2 credit(s): The Last Light, Letters from Tomorrow',
-    );
+    expect(
+      formatDeletionImpactSummary(2, [
+        'The Last Light',
+        'Letters from Tomorrow',
+      ]),
+    ).toBe('Affects 2 credit(s): The Last Light, Letters from Tomorrow');
   });
 
   it('keeps person delete disabled while impact token is missing or busy', () => {

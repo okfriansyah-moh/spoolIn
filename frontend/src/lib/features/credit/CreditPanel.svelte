@@ -38,7 +38,9 @@
   let characterText = $state('');
   let submitting = $state(false);
 
-  const selectedRole = $derived(roles.find((role) => role.id === roleId) ?? null);
+  const selectedRole = $derived(
+    roles.find((role) => role.id === roleId) ?? null,
+  );
 
   onMount(() => {
     const transport = createTransport();
@@ -65,9 +67,16 @@
     if (!personId || !roleId || submitting) return;
     const characters =
       selectedRole?.allowsCharacters && characterText.trim()
-        ? characterText.split('\n').map((line) => line.trim()).filter(Boolean)
+        ? characterText
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean)
         : [];
-    const validation = validateCharacterNames(characters, policy, selectedRole?.allowsCharacters ?? false);
+    const validation = validateCharacterNames(
+      characters,
+      policy,
+      selectedRole?.allowsCharacters ?? false,
+    );
     if (validation) {
       message = validation;
       return;
@@ -104,22 +113,26 @@
 <section aria-labelledby="credits-heading">
   <h2 id="credits-heading">Cast and creators</h2>
   <p class="muted">
-    Shared person picker, Cast/Creator roles, and optional complete character names. A slash inside a
-    name is data, not a splitter.
+    Shared person picker, Cast/Creator roles, and optional complete character
+    names. A slash inside a name is data, not a splitter.
   </p>
 
   {#if loading}
     <p role="status">Loading credits…</p>
   {:else}
     {#if message}
-      <Notice title={message.includes('duplicate') ? 'Review the credit' : 'Credits'} tone="info">
+      <Notice
+        title={message.includes('duplicate') ? 'Review the credit' : 'Credits'}
+        tone="info"
+      >
         <p>{message}</p>
       </Notice>
     {/if}
     <ul class="credit-list">
       {#each credits as credit (credit.id)}
         <li>
-          <strong>{credit.personName}</strong> · {credit.role.label} ({credit.role.category})
+          <strong>{credit.personName}</strong> · {credit.role.label} ({credit
+            .role.category})
           {#if credit.characters.length}
             — {credit.characters.join(', ')}
           {/if}
@@ -150,12 +163,17 @@
     {#if selectedRole?.allowsCharacters}
       <div class="field">
         <label for="credit-characters">Character names · one per line</label>
-        <textarea id="credit-characters" rows="3" bind:value={characterText} disabled={submitting}
-        ></textarea>
+        <textarea
+          id="credit-characters"
+          rows="3"
+          bind:value={characterText}
+          disabled={submitting}></textarea>
       </div>
     {/if}
-    <Button type="button" disabled={submitting || !personId || !roleId} onclick={() => void submitCredit()}
-      >Add credit</Button
+    <Button
+      type="button"
+      disabled={submitting || !personId || !roleId}
+      onclick={() => void submitCredit()}>Add credit</Button
     >
   {/if}
 </section>

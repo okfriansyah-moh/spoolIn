@@ -196,7 +196,10 @@ object WorkSql {
         return true
     }
 
-    private data class LeaseFields(val owner: Any?, val until: Any?)
+    private data class LeaseFields(
+        val owner: Any?,
+        val until: Any?,
+    )
 
     private fun leaseFieldsForCompletion(
         nextState: String,

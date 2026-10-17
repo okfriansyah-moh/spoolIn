@@ -24,7 +24,8 @@ export type CreditItem = Readonly<{
   characters: readonly string[];
 }>;
 
-export type PeopleKind = 'loading' | 'people' | 'empty' | 'no-match' | 'failure';
+export type PeopleKind =
+  'loading' | 'people' | 'empty' | 'no-match' | 'failure';
 
 export type PeopleState = Readonly<{
   kind: PeopleKind;

@@ -3,12 +3,10 @@
   import { resolve } from '$app/paths';
   import Notice from '../../../lib/components/Notice.svelte';
   import { createTransport } from '../../../lib/transport/graphql';
-  import { sessionController } from '../../../lib/features/session/context';
   import { createMovieListController } from '../../../lib/features/movie/list-controller';
   import { loadWriteContext } from '../../../lib/features/movie/write-context';
   import type { ListState } from '../../../lib/features/movie/types';
 
-  const session = sessionController();
   let listState = $state<ListState>({ kind: 'loading' });
 
   onMount(() => {
@@ -54,11 +52,21 @@
         {#each listState.titles as row (row.id)}
           <tr>
             <td data-label="Title">{row.title}</td>
-            <td data-label="Release / state">{row.releaseContext} · {row.state === 'ACTIVE' ? 'Active' : 'Archived'}</td>
+            <td data-label="Release / state"
+              >{row.releaseContext} · {row.state === 'ACTIVE'
+                ? 'Active'
+                : 'Archived'}</td
+            >
             <td data-label="Actions">
               {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
-                <a class="button secondary" href={resolve('/manage/movies/[id]', { id: row.id })}>Edit</a>
-                <a class="button secondary" href={resolve('/titles/[id]', { id: row.id })}>Review</a>
+                <a
+                  class="button secondary"
+                  href={resolve('/manage/movies/[id]', { id: row.id })}>Edit</a
+                >
+                <a
+                  class="button secondary"
+                  href={resolve('/titles/[id]', { id: row.id })}>Review</a
+                >
               {:else}
                 <span class="muted">Read-only TV</span>
               {/if}
@@ -72,8 +80,8 @@
 
 <Notice title="TV entries are read-only" tone="info">
   <p>
-    Shared-person corrections can change displayed TV credits; no direct TV edit, artwork, archive, or
-    episode controls are provided here.
+    Shared-person corrections can change displayed TV credits; no direct TV
+    edit, artwork, archive, or episode controls are provided here.
   </p>
 </Notice>
 

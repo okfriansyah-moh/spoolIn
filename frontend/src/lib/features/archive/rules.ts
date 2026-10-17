@@ -1,8 +1,12 @@
 import type { ArchiveTab } from './types';
 
 /** Permanent person deletion requires a fresh impact token from deletionImpact. */
-export function permanentDeleteReady(tab: ArchiveTab, impactToken: string | null): boolean {
-  if (tab === 'people') return impactToken !== null && impactToken.trim() !== '';
+export function permanentDeleteReady(
+  tab: ArchiveTab,
+  impactToken: string | null,
+): boolean {
+  if (tab === 'people')
+    return impactToken !== null && impactToken.trim() !== '';
   return true;
 }
 
@@ -11,7 +15,8 @@ export function formatDeletionImpactSummary(
   affectedCreditCount: number,
   affectedTitles: readonly string[],
 ): string {
-  if (affectedCreditCount === 0) return 'No active credits reference this person.';
+  if (affectedCreditCount === 0)
+    return 'No active credits reference this person.';
   return `Affects ${affectedCreditCount} credit(s): ${affectedTitles.join(', ')}`;
 }
 

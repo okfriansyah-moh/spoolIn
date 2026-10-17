@@ -10,8 +10,14 @@
     runPersonLifecycle,
     type ArchiveRow,
   } from '../../../lib/features/archive/api';
-  import { formatDeletionImpactSummary, permanentDeleteReady } from '../../../lib/features/archive/rules';
-  import type { ArchiveListState, ArchiveTab } from '../../../lib/features/archive/types';
+  import {
+    formatDeletionImpactSummary,
+    permanentDeleteReady,
+  } from '../../../lib/features/archive/rules';
+  import type {
+    ArchiveListState,
+    ArchiveTab,
+  } from '../../../lib/features/archive/types';
 
   const sessionCtl = sessionController();
   let tab = $state<ArchiveTab>('movies');
@@ -38,7 +44,10 @@
           ? { kind: 'empty' }
           : { kind: 'ready', tab, items: [...items] };
     } catch {
-      listState = { kind: 'error', message: 'Archives could not be loaded. Try again.' };
+      listState = {
+        kind: 'error',
+        message: 'Archives could not be loaded. Try again.',
+      };
     }
   }
 
@@ -134,13 +143,26 @@
 
 <main class="stack">
   <h1>Archives</h1>
-  <p>Maintainer-only retained movies and people. Restore or confirm permanent deletion separately.</p>
+  <p>
+    Maintainer-only retained movies and people. Restore or confirm permanent
+    deletion separately.
+  </p>
 
   <div role="tablist" aria-label="Archive kind">
-    <button type="button" role="tab" aria-selected={tab === 'movies'} onclick={() => switchTab('movies')}>
+    <button
+      type="button"
+      role="tab"
+      aria-selected={tab === 'movies'}
+      onclick={() => switchTab('movies')}
+    >
       Movies
     </button>
-    <button type="button" role="tab" aria-selected={tab === 'people'} onclick={() => switchTab('people')}>
+    <button
+      type="button"
+      role="tab"
+      aria-selected={tab === 'people'}
+      onclick={() => switchTab('people')}
+    >
       People
     </button>
   </div>
@@ -158,8 +180,14 @@
       {#each listState.items as item (item.id)}
         <li>
           <span>{item.label} · {item.state}</span>
-          <button type="button" disabled={busy} onclick={() => restoreRow(item)}>Restore</button>
-          <button type="button" disabled={busy} onclick={() => openConfirm(item)}>Delete permanently</button>
+          <button type="button" disabled={busy} onclick={() => restoreRow(item)}
+            >Restore</button
+          >
+          <button
+            type="button"
+            disabled={busy}
+            onclick={() => openConfirm(item)}>Delete permanently</button
+          >
         </li>
       {/each}
     </ul>
@@ -173,7 +201,9 @@
         <p>{impactSummary}</p>
       {/if}
       <div class="actions">
-        <button type="button" onclick={() => (confirmOpen = false)}>Cancel</button>
+        <button type="button" onclick={() => (confirmOpen = false)}
+          >Cancel</button
+        >
         <button
           type="button"
           disabled={busy || !permanentDeleteReady(tab, impactToken)}

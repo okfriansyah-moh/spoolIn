@@ -20,7 +20,13 @@ describe('fetchPeople', () => {
     const payload = {
       people: {
         nodes: [
-          { id: 'uuid-p-a', name: 'Alex', biography: 'Bio', state: 'ACTIVE', version: '1' },
+          {
+            id: 'uuid-p-a',
+            name: 'Alex',
+            biography: 'Bio',
+            state: 'ACTIVE',
+            version: '1',
+          },
         ],
         pageInfo: { endCursor: null, hasNextPage: false },
       },
@@ -45,7 +51,13 @@ describe('fetchPeople', () => {
 describe('fetchPerson', () => {
   it('returns person detail when found', async () => {
     const payload = {
-      person: { id: 'uuid-p-a', name: 'Alex', biography: null, state: 'ACTIVE', version: '1' },
+      person: {
+        id: 'uuid-p-a',
+        name: 'Alex',
+        biography: null,
+        state: 'ACTIVE',
+        version: '1',
+      },
     };
     const req = mockRequest(payload);
     const result = await fetchPerson(req, { id: 'uuid-p-a' });
@@ -62,7 +74,13 @@ describe('fetchPerson', () => {
 
   it('passes id correctly to request', async () => {
     const payload = {
-      person: { id: 'uuid-p-c', name: 'Chris', biography: null, state: 'ACTIVE', version: '1' },
+      person: {
+        id: 'uuid-p-c',
+        name: 'Chris',
+        biography: null,
+        state: 'ACTIVE',
+        version: '1',
+      },
     };
     const req = mockRequest(payload) as ReturnType<typeof vi.fn>;
     await fetchPerson(req as unknown as GraphqlRequest, { id: 'uuid-p-c' });
@@ -82,7 +100,12 @@ describe('fetchPersonCredits', () => {
             personName: 'Alex',
             titleId: 'uuid-m-a',
             titleName: 'Light',
-            role: { id: 'role-1', label: 'Actor', category: 'CAST', allowsCharacters: true },
+            role: {
+              id: 'role-1',
+              label: 'Actor',
+              category: 'CAST',
+              allowsCharacters: true,
+            },
             characters: ['Hero'],
             version: '1',
           },

@@ -31,7 +31,10 @@ function problemCode(value: unknown): string | null {
   return typeof node.code === 'string' ? node.code : null;
 }
 
-export function personMutationOutcome(value: unknown, expected: string): PersonMutationOutcome {
+export function personMutationOutcome(
+  value: unknown,
+  expected: string,
+): PersonMutationOutcome {
   const receipt = mutation(value, expected);
   return Object.freeze({
     receipt,
@@ -41,7 +44,10 @@ export function personMutationOutcome(value: unknown, expected: string): PersonM
   });
 }
 
-export function recoverPersonOperation(value: unknown, expected: string): IdentityOutcome | null {
+export function recoverPersonOperation(
+  value: unknown,
+  expected: string,
+): IdentityOutcome | null {
   if (value === null) return null;
   return operation(value, expected);
 }

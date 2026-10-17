@@ -10,15 +10,25 @@
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   import { createTransport } from '../../../lib/transport/graphql';
-  import { fetchPerson, fetchPersonCredits } from '../../../lib/features/person/read/api';
+  import {
+    fetchPerson,
+    fetchPersonCredits,
+  } from '../../../lib/features/person/read/api';
   import { isRecordId } from '../../../lib/components/safe-url';
-  import type { PublicPersonDetail, PublicPersonCredit } from '../../../lib/features/person/read/api';
+  import type {
+    PublicPersonDetail,
+    PublicPersonCredit,
+  } from '../../../lib/features/person/read/api';
 
   type State =
     | { kind: 'loading' }
     | { kind: 'unavailable'; id: string }
     | { kind: 'failure' }
-    | { kind: 'person'; person: PublicPersonDetail; credits: PublicPersonCredit[] };
+    | {
+        kind: 'person';
+        person: PublicPersonDetail;
+        credits: PublicPersonCredit[];
+      };
 
   let state = $state<State>({ kind: 'loading' });
 
@@ -58,9 +68,6 @@
     return () => controller.abort();
   });
 
-  const catalogHref = `${resolve('/')}`;
-  const peopleHref = `${resolve('/')}people`;
-
   const documentTitle = $derived(
     state.kind === 'person'
       ? `${state.person.name} · SpoolIn`
@@ -75,29 +82,26 @@
 </svelte:head>
 
 <nav aria-label="Breadcrumb">
-  <a href={catalogHref}>Catalog</a> /
-  <a href={peopleHref}>People</a>
+  <a href={resolve('/')}>Catalog</a> /
+  <a href={resolve('/people')}>People</a>
 </nav>
 
 {#if state.kind === 'loading'}
   <div role="status" aria-live="polite">
     <h1 tabindex="-1">Loading…</h1>
   </div>
-
 {:else if state.kind === 'unavailable'}
   <div class="unavailable">
     <h1 tabindex="-1">This person is unavailable</h1>
     <p>The person you requested is no longer available.</p>
-    <a href={peopleHref}>Return to people</a>
+    <a href={resolve('/people')}>Return to people</a>
   </div>
-
 {:else if state.kind === 'failure'}
   <div role="alert" class="failure">
     <h1 tabindex="-1">Could not load person</h1>
     <p>The person could not be loaded. Please try again.</p>
-    <a href={peopleHref}>Return to people</a>
+    <a href={resolve('/people')}>Return to people</a>
   </div>
-
 {:else if state.kind === 'person'}
   <article id="person-detail" aria-label={state.person.name}>
     <h1 tabindex="-1">{state.person.name}</h1>
@@ -117,7 +121,7 @@
         <ul>
           {#each state.credits as credit (credit.id)}
             <li>
-              <a href={`${resolve('/')}titles/${encodeURIComponent(credit.titleId)}`}>
+              <a href={resolve(`/titles/${credit.titleId}`)}>
                 {credit.titleName}
               </a>
               — {credit.role.label}

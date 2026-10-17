@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { stageLabel } from './progress';
-  import { ArtworkUploadController, INITIAL_ARTWORK_UPLOAD_VIEW } from './upload-controller';
+  import {
+    ArtworkUploadController,
+    INITIAL_ARTWORK_UPLOAD_VIEW,
+  } from './upload-controller';
   import type { GraphqlRequest } from '../../transport/graphql';
 
   let {
@@ -62,14 +65,22 @@
     onchange={onFileChange}
   />
   {#if view.stage === 'transferring'}
-    <progress max="100" value={view.transferPercent} aria-label="Transfer progress"></progress>
+    <progress
+      max="100"
+      value={view.transferPercent}
+      aria-label="Transfer progress"
+    ></progress>
   {/if}
   <p role="status">{view.message || stageLabel(view.stage)}</p>
   {#if view.canCancel}
-    <button type="button" class="secondary" onclick={onCancel}>Cancel upload</button>
+    <button type="button" class="secondary" onclick={onCancel}
+      >Cancel upload</button
+    >
   {/if}
   {#if view.canResumeCheck}
-    <button type="button" class="secondary" onclick={onResume}>Check original result</button>
+    <button type="button" class="secondary" onclick={onResume}
+      >Check original result</button
+    >
   {/if}
 </label>
 
