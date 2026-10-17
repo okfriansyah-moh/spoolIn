@@ -88,4 +88,4 @@ paths = [
   '''(^|/)\.ai/state/numbering-[^/]+\.json$''',
   '''(^|/)\.ai/state/host-verifications/[^/]+/.*\.json$'''
 ]
-regexes = ['''^\s*"(?:\.agents|\.ai|\.claude|\.cursor|\.github|docs|build-tools|frontend|services|libraries|tests|contracts|mcp|plan|gradle|package-lock\.json|node_modules)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
+regexes = ['''^\s*"(?:\.agents|\.ai|\.claude|\.cursor|\.github|docs|build-tools|frontend|services|tests|contracts|mcp|plan|gradle|package-lock\.json|node_modules)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']

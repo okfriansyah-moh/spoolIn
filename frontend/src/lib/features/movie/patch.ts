@@ -15,14 +15,16 @@ export type MovieInputPayload = Readonly<{
 export type MoviePatchPayload = Readonly<Record<string, unknown>>;
 
 function normalizedOriginalTitle(draft: MovieDraft): string | null {
-  if (draft.originalTitle === undefined || draft.originalTitle === null) return null;
+  if (draft.originalTitle === undefined || draft.originalTitle === null)
+    return null;
   const trimmed = trimOrdinary(draft.originalTitle);
   return trimmed === '' ? null : trimmed;
 }
 
 function releaseYear(draft: MovieDraft): number {
   const year = draft.release?.year;
-  if (year === null || year === undefined) throw new Error('Release year required.');
+  if (year === null || year === undefined)
+    throw new Error('Release year required.');
   return year;
 }
 
@@ -79,7 +81,8 @@ function applyReleasePatch(
   draft: MovieDraft,
 ): void {
   const year = draft.release?.year;
-  if (year === null || year === undefined || String(year) === saved.releaseYear) return;
+  if (year === null || year === undefined || String(year) === saved.releaseYear)
+    return;
   patch.release = {
     year,
     month: draft.release?.month ?? null,

@@ -82,7 +82,10 @@ function handleArtworkUploadLoad(
   reject: (reason?: unknown) => void,
 ): void {
   try {
-    const parsed = JSON.parse(xhr.responseText) as { data?: unknown; errors?: unknown };
+    const parsed = JSON.parse(xhr.responseText) as {
+      data?: unknown;
+      errors?: unknown;
+    };
     if (parsed.errors) {
       reject(new TransportFailure('rejected'));
       return;
@@ -109,7 +112,10 @@ export function uploadArtworkWithProgress(
     xhr.open('POST', '/graphql');
     xhr.withCredentials = true;
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Accept', 'application/graphql-response+json, application/json');
+    xhr.setRequestHeader(
+      'Accept',
+      'application/graphql-response+json, application/json',
+    );
     xhr.setRequestHeader('X-Spoolin-Client', 'web');
     xhr.setRequestHeader('X-CSRF-Token', csrf);
     xhr.upload.onprogress = (event) => {
@@ -117,7 +123,8 @@ export function uploadArtworkWithProgress(
     };
     xhr.onerror = () => reject(new TransportFailure('uncertain'));
     xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'));
-    xhr.onload = () => handleArtworkUploadLoad(xhr, input.operationId, resolve, reject);
+    xhr.onload = () =>
+      handleArtworkUploadLoad(xhr, input.operationId, resolve, reject);
     xhr.send(artworkUploadBody(input));
   });
 }

@@ -76,7 +76,10 @@
 
   async function submitCredit(): Promise<void> {
     if (!personId || !roleId || submitting) return;
-    const characters = parseCreditCharacters(selectedRole ?? undefined, characterText);
+    const characters = parseCreditCharacters(
+      selectedRole ?? undefined,
+      characterText,
+    );
     const validation = validateCharacterNames(
       characters,
       policy,
@@ -178,7 +181,9 @@
     <Button
       type="button"
       pending={submitting}
-      disabledReason={!personId || !roleId ? 'Choose a person and role first.' : ''}
+      disabledReason={!personId || !roleId
+        ? 'Choose a person and role first.'
+        : ''}
       onclick={() => void submitCredit()}>Add credit</Button
     >
   {/if}

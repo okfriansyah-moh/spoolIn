@@ -3,13 +3,19 @@
  * Structural shell assertions for management list/create/edit states.
  */
 import { test, expect } from '@playwright/test';
-import { freshSession, goToCreateMovie, goToMovieList } from './fixture';
+import {
+  freshSession,
+  goToCreateMovie,
+  goToMovieList,
+  seedMaintainerSession,
+} from './fixture';
 
 test('T017-movies: management list shows create action and TV read-only notice', async ({
   page,
   context,
 }) => {
   await freshSession(context);
+  await seedMaintainerSession(page, 'movies-active');
   await goToMovieList(page);
   await expect(page.getByRole('heading', { level: 1, name: 'Movies' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Create movie' })).toBeVisible();
@@ -21,12 +27,13 @@ test('T017-create: create form exposes required movie fields and honest optional
   context,
 }) => {
   await freshSession(context);
+  await seedMaintainerSession(page, 'movies-active');
   await goToCreateMovie(page);
   await expect(page.getByRole('heading', { level: 1, name: 'Create movie' })).toBeVisible();
-  await expect(page.getByLabel(/Title/i)).toBeVisible();
-  await expect(page.getByLabel(/Synopsis/i)).toBeVisible();
-  await expect(page.getByLabel(/Release year/i)).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Title · Required' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Synopsis · Required' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Release year · Required' })).toBeVisible();
   await expect(page.getByText(/Genres · at least one required/i)).toBeVisible();
-  await expect(page.getByLabel(/Original title/i)).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Original title · Optional' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create movie' })).toBeVisible();
 });

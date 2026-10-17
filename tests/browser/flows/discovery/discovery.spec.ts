@@ -24,7 +24,12 @@ import {
   goToPerson,
   expectDiscoveryHeadline,
   assertSearchInput,
+  seedCatalogGraphql,
 } from './fixture';
+
+test.beforeEach(async ({ page }) => {
+  await seedCatalogGraphql(page);
+});
 
 // ---------------------------------------------------------------------------
 // ATDD-256-T1-R01 · catalog state: discovery headline and filter controls visible
@@ -73,7 +78,9 @@ test('T013-invalid: 201-code-point text retains full input and shows correction 
   await searchInput.fill(over200);
 
   // Correction feedback must appear (AC-159-C02)
-  await expect(page.locator('[role="alert"]').filter({ hasText: /too long/i })).toBeVisible({ timeout: 3000 });
+  await expect(
+    page.locator('[role="alert"]').filter({ hasText: /too long/i }).first(),
+  ).toBeVisible({ timeout: 3000 });
 
   // Full input retained in the field (AC-159-C02)
   const value = await searchInput.inputValue();

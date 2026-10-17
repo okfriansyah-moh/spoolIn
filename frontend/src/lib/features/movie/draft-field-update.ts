@@ -1,10 +1,7 @@
 import type { MovieDraft } from '../../generated/json-types';
 
 export type MovieDraftField =
-  | 'title'
-  | 'synopsis'
-  | 'originalTitle'
-  | 'releaseYear';
+  'title' | 'synopsis' | 'originalTitle' | 'releaseYear';
 
 export type MovieDraftFieldUpdate = Readonly<{
   draft: MovieDraft;

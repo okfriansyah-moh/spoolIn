@@ -32,7 +32,12 @@ async function artworkPollStep(
   signal: AbortSignal,
   isCurrent: () => boolean,
 ): Promise<ArtworkPollStep> {
-  const receipt = await recoverCatalogOperation(request, operationId, csrf, signal);
+  const receipt = await recoverCatalogOperation(
+    request,
+    operationId,
+    csrf,
+    signal,
+  );
   if (!isCurrent()) return 'stale';
   const terminal = receipt?.state;
   if (terminal === 'FAILED' || terminal === 'EXPIRED') return 'failure';

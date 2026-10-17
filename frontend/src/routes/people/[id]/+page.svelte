@@ -122,7 +122,9 @@
           {#each pageState.credits as credit (credit.id)}
             <li>
               <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic title id segment -->
-              <a href={`${resolve('/')}titles/${encodeURIComponent(credit.titleId)}`}>
+              <a
+                href={`${resolve('/')}titles/${encodeURIComponent(credit.titleId)}`}
+              >
                 {credit.titleName}
               </a>
               — {credit.role.label}

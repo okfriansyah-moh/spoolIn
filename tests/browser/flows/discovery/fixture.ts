@@ -3,6 +3,112 @@
  * Shared setup and assertion utilities for discovery, detail and people flows.
  */
 import type { Page, BrowserContext } from '@playwright/test';
+import { specimenPolicy } from '../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';
+
+const ANONYMOUS_CSRF = 'B'.repeat(43);
+
+function graphqlOk(data: Record<string, unknown>) {
+  return {
+    status: 200,
+    contentType: 'application/graphql-response+json',
+    body: JSON.stringify({ data }),
+  };
+}
+
+function anonymousBootstrap() {
+  const policy = specimenPolicy();
+  return graphqlOk({
+    session: {
+      authenticated: false,
+      role: null,
+      accountId: null,
+      displayName: null,
+      expiresAt: null,
+      csrfToken: ANONYMOUS_CSRF,
+    },
+    policy: {
+      revision: policy.revision,
+      textBounds: policy.textBounds,
+      artwork: policy.artwork,
+      requestLimits: policy.requestLimits,
+    },
+  });
+}
+
+function emptyTitles() {
+  return graphqlOk({
+    titles: {
+      nodes: [],
+      pageInfo: { endCursor: null, hasNextPage: false },
+    },
+  });
+}
+
+function emptyPeople() {
+  return graphqlOk({
+    people: {
+      nodes: [],
+      pageInfo: { endCursor: null, hasNextPage: false },
+    },
+  });
+}
+
+function sampleGenres() {
+  return graphqlOk({
+    genres: [{ id: '10000000-0000-4000-8000-000000000010', label: 'Drama' }],
+  });
+}
+
+/** Controlled public catalog GraphQL for shell journeys without a live stack. */
+export async function seedCatalogGraphql(page: Page): Promise<void> {
+  await page.route('**/graphql', async (route) => {
+    const body = route.request().postDataJSON() as {
+      query?: string;
+      variables?: Record<string, unknown>;
+    };
+    const query = body?.query ?? '';
+    if (query.includes('AccountBootstrap')) {
+      await route.fulfill(anonymousBootstrap());
+      return;
+    }
+    if (query.includes('query Genres')) {
+      await route.fulfill(sampleGenres());
+      return;
+    }
+    if (query.includes('query Titles')) {
+      await route.fulfill(emptyTitles());
+      return;
+    }
+    if (query.includes('query Title')) {
+      await route.fulfill(graphqlOk({ title: null }));
+      return;
+    }
+    if (query.includes('query People')) {
+      await route.fulfill(emptyPeople());
+      return;
+    }
+    if (query.includes('query Person')) {
+      await route.fulfill(graphqlOk({ person: null }));
+      return;
+    }
+    if (query.includes('query PersonCredits')) {
+      await route.fulfill(
+        graphqlOk({
+          personCredits: {
+            nodes: [],
+            pageInfo: { endCursor: null, hasNextPage: false },
+          },
+        }),
+      );
+      return;
+    }
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/graphql-response+json',
+      body: '{"errors":[{"message":"Unhandled fixture query","extensions":{"code":"UNAVAILABLE"}}]}',
+    });
+  });
+}
 
 /** Clear cookies for a fresh anonymous session. */
 export async function freshSession(context: BrowserContext): Promise<void> {

@@ -164,9 +164,7 @@ export class MovieEditorController {
     });
   }
 
-  private publishCreateBootstrap(
-    genres: EditorState['genres'],
-  ): void {
+  private publishCreateBootstrap(genres: EditorState['genres']): void {
     this.publish({
       ...this.current,
       genres,
@@ -226,9 +224,11 @@ export class MovieEditorController {
     });
   }
 
-  private beginSubmit():
-    | { operationId: string; generation: number; signal: AbortSignal }
-    | null {
+  private beginSubmit(): {
+    operationId: string;
+    generation: number;
+    signal: AbortSignal;
+  } | null {
     if (
       this.pendingWriteId ||
       this.current.phase === 'submitting' ||

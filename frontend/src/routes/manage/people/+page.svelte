@@ -62,8 +62,7 @@
               >
               <a
                 class="button secondary"
-                href={resolve('/people/[id]', { id: row.id })}
-                >Review</a
+                href={resolve('/people/[id]', { id: row.id })}>Review</a
               >
             </td>
           </tr>

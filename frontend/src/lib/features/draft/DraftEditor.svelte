@@ -5,7 +5,12 @@
   import DraftNotice from './DraftNotice.svelte';
   import { DraftController } from './controller';
   import type { PersonDraft } from '../../generated/json-types';
-  import type { DraftSession, DraftSource, DraftTarget, DraftViewState } from './types';
+  import type {
+    DraftSession,
+    DraftSource,
+    DraftTarget,
+    DraftViewState,
+  } from './types';
   let {
     controller = new DraftController({} as DraftSource),
     session,

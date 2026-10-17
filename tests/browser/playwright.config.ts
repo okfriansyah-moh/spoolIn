@@ -33,23 +33,23 @@ export default defineConfig({
         },
       })),
     ),
-    {
-      name: 'firefox-390-dark',
-      use: {
-        browserName: 'firefox',
-        ...(firefoxEndpoint
-          ? {
+    ...(firefoxEndpoint
+      ? [
+          {
+            name: 'firefox-390-dark',
+            use: {
+              browserName: 'firefox' as const,
               connectOptions: {
                 wsEndpoint: firefoxEndpoint,
                 exposeNetwork: '<loopback>',
               },
-            }
-          : {}),
-        viewport: { width: 390, height: 900 },
-        colorScheme: 'dark',
-        video: { mode: 'on', size: { width: 390, height: 900 } },
-      },
-    },
+              viewport: { width: 390, height: 900 },
+              colorScheme: 'dark' as const,
+              video: { mode: 'on' as const, size: { width: 390, height: 900 } },
+            },
+          },
+        ]
+      : []),
     {
       name: 'webkit-390-dark',
       use: {

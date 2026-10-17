@@ -98,7 +98,11 @@ export async function fetchManagedPerson(
   signal?: AbortSignal,
 ): Promise<ManagedPerson | null> {
   const data = record(
-    await request(MANAGED_PERSON_QUERY, { id }, withCsrfAndSignal(csrf, signal)),
+    await request(
+      MANAGED_PERSON_QUERY,
+      { id },
+      withCsrfAndSignal(csrf, signal),
+    ),
   );
   const person = data.managedPerson;
   if (person === null) return null;

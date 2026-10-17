@@ -137,9 +137,11 @@ export class PersonEditorController {
     });
   }
 
-  private beginSubmit():
-    | { operationId: string; generation: number; signal: AbortSignal }
-    | null {
+  private beginSubmit(): {
+    operationId: string;
+    generation: number;
+    signal: AbortSignal;
+  } | null {
     if (
       this.pendingWriteId ||
       this.current.phase === 'submitting' ||
