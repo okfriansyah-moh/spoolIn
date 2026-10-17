@@ -1,0 +1,10 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 1rem;
+  background: #0b0d12;
+  color: #f5f7fb;
+}
+
+dd {
+  margin: 0 0 0.75rem;
+}

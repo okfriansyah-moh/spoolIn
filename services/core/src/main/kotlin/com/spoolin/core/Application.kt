@@ -1,7 +1,5 @@
 package com.spoolin.core
 
-import com.spoolin.core.features.policy.PolicyAccess
-import com.spoolin.core.features.policy.PolicyGateway
 import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.core.features.ratelimit.RateMaintenance
 import com.zaxxer.hikari.HikariConfig
@@ -129,10 +127,8 @@ class Application {
             .IdentityRpc { sessions.ifAvailable }
 
     @Bean
-    fun mcpGatewayService(provider: PolicyProvider): io.grpc.BindableService {
-        val access = PolicyAccess { false }
-        return PolicyGateway(provider, access)
-    }
+    fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService =
+        gateway
 }
 
 fun main(args: Array<String>) {

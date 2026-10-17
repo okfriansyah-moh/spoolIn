@@ -1,10 +1,14 @@
-.PHONY: test-unit test-integration
-export TASK
+.PHONY: start stop restart status logs seed
 
-# T037 owns start, stop, restart, status and logs (§11.3).
-# TASK=T001 selects a task; omitted TASK selects the entire declared unit map.
-test-unit:
-	@if [ -n "$$TASK" ]; then bash ops/bin/test-unit.sh --task "$$TASK"; else bash ops/bin/test-unit.sh; fi
-
-test-integration:
-	@if [ -n "$$TASK" ]; then bash ops/bin/test-integration.sh --task "$$TASK"; else bash ops/bin/test-integration.sh; fi
+start:
+	@bash ops/bin/start.sh
+stop:
+	@bash ops/bin/stop.sh
+restart:
+	@bash ops/bin/restart.sh
+status:
+	@bash ops/bin/status.sh
+logs:
+	@bash ops/bin/logs.sh $(SERVICE)
+seed:
+	@bash ops/bin/seed.sh

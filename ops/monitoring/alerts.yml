@@ -1,0 +1,11 @@
+# Logical alert episodes (T036) — config source only; stacks not started in lane.
+groups:
+  - name: spoolin-core
+    rules:
+      - alert: WorkQueueBacklog
+        expr: spoolin_work_pending > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Durable work backlog elevated

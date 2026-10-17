@@ -1,0 +1,8 @@
+# Example prepared demo accounts — replace secrets before any real deployment.
+accounts:
+  - email: maintainer.demo@example.invalid
+    role: MAINTAINER
+    password: "change-me-before-use"
+  - email: viewer.demo@example.invalid
+    role: VIEWER
+    password: "change-me-before-use"

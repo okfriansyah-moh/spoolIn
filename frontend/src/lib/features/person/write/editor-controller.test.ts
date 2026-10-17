@@ -19,8 +19,15 @@ const context = Object.freeze({
 
 describe('PersonEditorController', () => {
   it('rejects empty name before submit', async () => {
+    const draftSource = {
+      recoverOperation: vi.fn(),
+      listDrafts: vi.fn(),
+      saveDraft: vi.fn(),
+      discardDraft: vi.fn(),
+    };
     const controller = new PersonEditorController(
       async () => ({}),
+      draftSource,
       'create',
       null,
     );

@@ -8,7 +8,7 @@ depends_on:
 - T030
 - T037
 readiness: Ready
-status: Not started
+status: In progress
 risk: high
 test_strategy: alongside
 visual_review: required

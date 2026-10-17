@@ -145,6 +145,7 @@ class Application {
         movieLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.MovieLifecycle>,
         personLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.PersonLifecycle>,
         deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
+        proposalWritesProvider: ObjectProvider<com.spoolin.catalog.features.proposal.ProposalWrites>,
     ): io.grpc.BindableService {
         val reads =
             com.spoolin.catalog.operations.receipts
@@ -189,6 +190,7 @@ class Application {
             movieLifecycle = movieLifecycleProvider.ifAvailable,
             personLifecycle = personLifecycleProvider.ifAvailable,
             deletionImpact = deletionImpactProvider.ifAvailable,
+            proposalWrites = proposalWritesProvider.ifAvailable,
         )
     }
 }
@@ -270,6 +272,13 @@ class CatalogWriteConfiguration {
     fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
             .ManagedCreditReads(dataSource)
+
+    @Bean
+    fun proposalWrites(
+        dataSource: DataSource,
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.proposal.ProposalWrites =
+        com.spoolin.catalog.features.proposal.ProposalWrites(dataSource, receipts)
 }
 
 fun main(args: Array<String>) {

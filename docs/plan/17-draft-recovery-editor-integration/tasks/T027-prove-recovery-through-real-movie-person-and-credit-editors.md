@@ -10,7 +10,7 @@ depends_on:
 - T025
 - T026
 readiness: Ready
-status: Not started
+status: In progress
 risk: high
 test_strategy: alongside
 visual_review: required

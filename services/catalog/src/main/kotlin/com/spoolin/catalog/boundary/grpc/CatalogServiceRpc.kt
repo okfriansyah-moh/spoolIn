@@ -80,6 +80,7 @@ class CatalogServiceRpc(
     private val movieLifecycle: com.spoolin.catalog.features.lifecycle.MovieLifecycle? = null,
     private val personLifecycle: com.spoolin.catalog.features.lifecycle.PersonLifecycle? = null,
     private val deletionImpact: com.spoolin.catalog.features.lifecycle.DeletionImpact? = null,
+    private val proposalWrites: com.spoolin.catalog.features.proposal.ProposalWrites? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
     // ── GetOperation ─────────────────────────────────────────────────────────
 
@@ -525,6 +526,42 @@ class CatalogServiceRpc(
             return
         }
         handler.audit(request, response)
+    }
+
+    override fun proposeMovie(
+        request: spoolin.v1.Spoolin.Proposal,
+        response: StreamObserver<spoolin.v1.Spoolin.ProposalRevision>,
+    ) {
+        val handler = proposalWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.asRuntimeException())
+            return
+        }
+        handler.propose(request, response)
+    }
+
+    override fun approveAndCreate(
+        request: spoolin.v1.Spoolin.ApprovalInput,
+        response: StreamObserver<Outcome>,
+    ) {
+        val handler = proposalWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.asRuntimeException())
+            return
+        }
+        handler.approve(request, response)
+    }
+
+    override fun rejectProposal(
+        request: spoolin.v1.Spoolin.ApprovalInput,
+        response: StreamObserver<Outcome>,
+    ) {
+        val handler = proposalWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.asRuntimeException())
+            return
+        }
+        handler.reject(request, response)
     }
 
     // ── protobuf mappers ─────────────────────────────────────────────────────
