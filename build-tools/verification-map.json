@@ -682,9 +682,44 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/write/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/person/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t018-person-writes-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_person_writes.py",
+            "--task",
+            "T018",
+            "--level",
+            "unit"
+          ],
+          "report": ".ai/evidence/numbering-v1/t018-unit-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/write/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/person/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t018-people-writes-boundary",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_person_writes.py",
+            "--task",
+            "T018",
+            "--level",
+            "integration"
+          ],
+          "report": ".ai/evidence/numbering-v1/t018-integration-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/people/PeopleWritesBoundaryTest.kt"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T019": {
       "source": "docs/plan/13-people-and-credits/tasks/T019-connect-people-management-and-retained-edits.md",

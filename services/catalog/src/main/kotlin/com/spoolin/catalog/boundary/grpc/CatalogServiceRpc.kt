@@ -3,7 +3,9 @@ package com.spoolin.catalog.boundary.grpc
 import com.google.protobuf.Timestamp
 import com.spoolin.catalog.features.movie.ManagedMovieReads
 import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.features.person.read.ManagedPersonReads
 import com.spoolin.catalog.features.person.read.PersonSearch
+import com.spoolin.catalog.features.person.write.PersonWrites
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.CatalogCursor
 import com.spoolin.catalog.features.search.PeopleCursor
@@ -27,6 +29,7 @@ import spoolin.v1.Spoolin.PartialDate
 import spoolin.v1.Spoolin.Person
 import spoolin.v1.Spoolin.PersonPage
 import spoolin.v1.Spoolin.PersonValues
+import spoolin.v1.Spoolin.PersonWrite
 import spoolin.v1.Spoolin.Provenance
 import spoolin.v1.Spoolin.Roles
 import spoolin.v1.Spoolin.Search
@@ -60,6 +63,8 @@ class CatalogServiceRpc(
     private val clock: Clock = Clock.systemUTC(),
     private val movieWrites: MovieWrites? = null,
     private val managedReads: ManagedMovieReads? = null,
+    private val personWrites: PersonWrites? = null,
+    private val managedPersonReads: ManagedPersonReads? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
 
     // ── GetOperation ─────────────────────────────────────────────────────────
@@ -264,6 +269,39 @@ class CatalogServiceRpc(
             return
         }
         handler.writeMovie(request, response)
+    }
+
+    // ── WritePerson ───────────────────────────────────────────────────────────
+
+    override fun writePerson(request: PersonWrite, response: StreamObserver<Outcome>) {
+        val handler = personWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
+            return
+        }
+        handler.writePerson(request, response)
+    }
+
+    // ── ManagedPerson ─────────────────────────────────────────────────────────
+
+    override fun managedPerson(request: Id, response: StreamObserver<Person>) {
+        val handler = managedPersonReads
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
+            return
+        }
+        handler.managedPerson(request, response)
+    }
+
+    // ── ManagedPeople ─────────────────────────────────────────────────────────
+
+    override fun managedPeople(request: PageRequest, response: StreamObserver<PersonPage>) {
+        val handler = managedPersonReads
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
+            return
+        }
+        handler.managedPeople(request, response)
     }
 
     // ── ManagedTitle ─────────────────────────────────────────────────────────

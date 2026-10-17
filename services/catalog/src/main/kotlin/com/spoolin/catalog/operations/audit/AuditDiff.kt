@@ -23,6 +23,11 @@ object AuditDiff {
         "releaseDay", "releaseContext", "runtimeMinutes", "genreIds", "status", "version",
     )
 
+    // Safe domain fields for person change records (no credentials, tokens or private state).
+    val PERSON_PATHS: Set<String> = setOf(
+        "name", "biography", "status", "version",
+    )
+
     data class Change(val path: String, val before: String?, val after: String?)
 
     /** Produces a changes JSON string for [before] → [after] restricted to [allowed] paths. */
@@ -34,6 +39,10 @@ object AuditDiff {
     /** Convenience wrapper for movie domain snapshots. */
     fun movie(before: Map<String, Any?>, after: Map<String, Any?>): String =
         compute(before, after, MOVIE_PATHS)
+
+    /** Convenience wrapper for person domain snapshots. */
+    fun person(before: Map<String, Any?>, after: Map<String, Any?>): String =
+        compute(before, after, PERSON_PATHS)
 
     internal fun buildList(
         before: Map<String, Any?>,

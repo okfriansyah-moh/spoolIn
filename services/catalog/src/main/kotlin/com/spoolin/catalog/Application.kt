@@ -2,6 +2,8 @@ package com.spoolin.catalog
 
 import com.spoolin.catalog.features.movie.ManagedMovieReads
 import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.features.person.read.ManagedPersonReads
+import com.spoolin.catalog.features.person.write.PersonWrites
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
@@ -131,6 +133,8 @@ class Application {
         cursorKey: ByteArray,
         movieWritesProvider: ObjectProvider<MovieWrites>,
         managedReadsProvider: ObjectProvider<ManagedMovieReads>,
+        personWritesProvider: ObjectProvider<PersonWrites>,
+        managedPersonReadsProvider: ObjectProvider<ManagedPersonReads>,
     ): io.grpc.BindableService {
         val reads = com.spoolin.catalog.operations.receipts.OwnerReceiptReads(dataSource)
         val authority = com.spoolin.support.receipts.ReceiptAuthority {
@@ -149,6 +153,8 @@ class Application {
             peopleCursor = peopleCursor,
             movieWrites = movieWritesProvider.ifAvailable,
             managedReads = managedReadsProvider.ifAvailable,
+            personWrites = personWritesProvider.ifAvailable,
+            managedPersonReads = managedPersonReadsProvider.ifAvailable,
         )
     }
 }
@@ -179,6 +185,14 @@ class CatalogWriteConfiguration {
         val auditReads = AuditReads(dataSource)
         return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads)
     }
+
+    @Bean
+    fun personWrites(dataSource: DataSource, receipts: OwnerReceipts): PersonWrites =
+        PersonWrites(dataSource, receipts)
+
+    @Bean
+    fun managedPersonReads(dataSource: DataSource): ManagedPersonReads =
+        ManagedPersonReads(dataSource)
 }
 
 fun main(args: Array<String>) {

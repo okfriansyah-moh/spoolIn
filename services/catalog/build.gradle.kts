@@ -111,6 +111,22 @@ val catalogMovieWriteUnitTest by tasks.registering(Test::class) {
 
 tasks.named("koverXmlReport") { dependsOn(catalogMovieWriteUnitTest) }
 
+val catalogPersonWriteUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = files(
+        sourceSets["test"].output.classesDirs,
+        sourceSets["main"].output,
+        configurations["testRuntimeClasspath"],
+    )
+    filter {
+        includeTestsMatching("com.spoolin.catalog.features.person.write.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogPersonWriteUnitTest) }
+
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts"))
     config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
