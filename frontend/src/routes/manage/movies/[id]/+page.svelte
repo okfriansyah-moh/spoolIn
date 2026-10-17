@@ -12,6 +12,8 @@
   import ConfirmDialog from '../../../../lib/components/ConfirmDialog.svelte';
   import { isRecordId } from '../../../../lib/components/safe-url';
   import CreditPanel from '../../../../lib/features/credit/CreditPanel.svelte';
+  import ArtworkUploadField from '../../../../lib/features/artwork/ArtworkUploadField.svelte';
+  import { createTransport } from '../../../../lib/transport/graphql';
 
   const sessionCtl = sessionController();
   let editorState = $state<EditorState | null>(null);
@@ -98,6 +100,14 @@
     onDiscardOpen={() => controller?.openDiscardDialog()}
   />
   {#if editorState.saved && writeContext && sessionCtl.snapshot.policy}
+    <ArtworkUploadField
+      request={createTransport()}
+      csrf={writeContext.csrf}
+      titleId={editorState.saved.id}
+      expectedVersion={editorState.saved.version}
+      policyRevision={sessionCtl.snapshot.policy.revision}
+      disabled={editorState.phase === 'target-changed'}
+    />
     {@const version = creditTitleVersion ?? editorState.saved.version}
     <CreditPanel
       titleId={editorState.saved.id}

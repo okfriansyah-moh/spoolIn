@@ -1,19 +1,33 @@
 package com.spoolin.core.features.artworkproxy
 
 import com.spoolin.core.boundary.grpc.ActorIssuer
+import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
 import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.features.ratelimit.RateUnavailable
+import com.spoolin.support.identity.ActorRpc
+import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.receipts.OperationOwner
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
+import io.grpc.Metadata
+import io.grpc.stub.MetadataUtils
+import spoolin.v1.CatalogServiceGrpc
+import spoolin.v1.MediaServiceGrpc
+import spoolin.v1.Spoolin
 import java.util.Base64
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
-/** GraphQL uploadArtwork / cancelArtwork authoritative boundary (T023 / ATDD-251-T1-R33). */
-class ArtworkGraphql {
-    private val maxBytes = 5_242_880L
+private const val DEADLINE_SECONDS = 30L
+private const val MAX_BYTES = 5_242_880L
 
+/** GraphQL uploadArtwork / cancelArtwork through Media upload and Catalog attachment (T023). */
+class ArtworkGraphql(
+    private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
+    private val media: MediaServiceGrpc.MediaServiceStub,
+    private val issuer: ActorIssuer?,
+) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Mutation") { m ->
             m.dataFetcher("uploadArtwork") { env -> uploadArtwork(env) }
@@ -23,54 +37,146 @@ class ArtworkGraphql {
 
     private fun uploadArtwork(env: DataFetchingEnvironment): Map<String, Any?> {
         val context = browser(env)
-        if (context.principal == null) throw CredentialRejected()
-        val content = env.getArgument<String>("content") ?: throw IllegalArgumentException("content required")
-        val decoded = Base64.getDecoder().decode(content)
-        if (decoded.isEmpty() || decoded.size.toLong() > maxBytes) {
+        val principal = context.principal ?: throw CredentialRejected()
+        val uploadOperationId = id(env)
+        val titleId = requireNotNull(env.getArgument<String>("titleId"))
+        validateUuid(titleId)
+        val expectedVersion = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
+        val content = Base64.getDecoder().decode(env.getArgument<String>("content") ?: "")
+        if (content.isEmpty() || content.size.toLong() > MAX_BYTES) {
+            return fileInvalid(uploadOperationId)
+        }
+        val assetId = UUID.randomUUID()
+        val uploadToken =
+            issueToken(principal, "/spoolin.v1.MediaService/Upload", uploadOperationId, context.correlation)
+        val uploadOutcome =
+            ArtworkUpload.upload(
+                media,
+                uploadToken,
+                principal,
+                uploadOperationId,
+                context.correlation,
+                policyRevision,
+                assetId,
+                content,
+            )
+        if (uploadOutcome.state == "FAILED") {
             return mapOf(
-                "operation" to
-                    mapOf(
-                        "id" to env.getArgument<String>("operationId"),
-                        "state" to "FAILED",
-                        "resultExpired" to false,
-                        "problem" to mapOf("code" to "FILE_INVALID", "message" to "Artwork could not be accepted."),
-                    ),
-                "problem" to mapOf("code" to "FILE_INVALID", "message" to "Artwork could not be accepted."),
+                "operation" to outcomeMap(uploadOutcome),
+                "problem" to if (uploadOutcome.hasProblem()) problemMap(uploadOutcome.problem) else fileInvalidProblem(),
             )
         }
-        val operationId = UUID.fromString(env.getArgument<String>("operationId"))
-        context.rememberOperation(operationId, OperationOwner.CATALOG, mapOf("state" to "PENDING"))
-        return mapOf(
-            "operation" to
-                mapOf(
-                    "id" to operationId.toString(),
-                    "state" to "PENDING",
-                    "resultExpired" to false,
-                ),
-            "problem" to null,
-        )
+        val attachOperationId = UUID.randomUUID()
+        val hold =
+            Spoolin.Hold.newBuilder()
+                .setContext(
+                    Spoolin.Context.newBuilder()
+                        .setOperationId(attachOperationId.toString())
+                        .setCorrelationId(context.correlation.toString())
+                        .setPolicyRevision(policyRevision)
+                        .build(),
+                )
+                .setHoldId(assetId.toString())
+                .setAssetId(assetId.toString())
+                .setTitleId(titleId)
+                .setExpectedVersion(expectedVersion)
+                .build()
+        val catalogToken =
+            issueToken(principal, "/spoolin.v1.CatalogService/BeginArtwork", attachOperationId, context.correlation)
+        val attachOutcome = catalogStub(catalogToken).beginArtwork(hold)
+        context.rememberOperation(uploadOperationId, OperationOwner.MEDIA, outcomeMap(uploadOutcome))
+        context.rememberOperation(attachOperationId, OperationOwner.CATALOG, outcomeMap(attachOutcome))
+        return mutationResult(attachOutcome)
     }
 
     private fun cancelArtwork(env: DataFetchingEnvironment): Map<String, Any?> {
         val context = browser(env)
-        if (context.principal == null) throw CredentialRejected()
+        val principal = context.principal ?: throw CredentialRejected()
+        val operationId = id(env)
+        val uploadOperationId = UUID.fromString(env.getArgument<String>("uploadOperationId"))
+        val request =
+            Spoolin.CancelArtworkRequest.newBuilder()
+                .setContext(
+                    Spoolin.Context.newBuilder()
+                        .setOperationId(operationId.toString())
+                        .setCorrelationId(context.correlation.toString())
+                        .setPolicyRevision("")
+                        .build(),
+                )
+                .setUploadOperationId(uploadOperationId.toString())
+                .build()
+        val token = issueToken(principal, "/spoolin.v1.CatalogService/CancelArtwork", operationId, context.correlation)
+        val outcome = catalogStub(token).cancelArtwork(request)
         return mapOf(
+            "operation" to outcomeMap(outcome.operation),
+            "uploadOperation" to outcomeMap(outcome.uploadOperation),
+            "cancelled" to outcome.cancelled,
+        )
+    }
+
+    private fun fileInvalid(operationId: UUID): Map<String, Any?> =
+        mapOf(
             "operation" to
                 mapOf(
-                    "id" to env.getArgument<String>("operationId"),
-                    "state" to "SUCCEEDED",
+                    "id" to operationId.toString(),
+                    "state" to "FAILED",
                     "resultExpired" to false,
+                    "problem" to fileInvalidProblem(),
                 ),
-            "uploadOperation" to
-                mapOf(
-                    "id" to env.getArgument<String>("uploadOperationId"),
-                    "state" to "CANCELLED",
-                    "resultExpired" to false,
-                ),
-            "cancelled" to true,
+            "problem" to fileInvalidProblem(),
         )
+
+    private fun fileInvalidProblem(): Map<String, Any?> =
+        mapOf("code" to "FILE_INVALID", "message" to "Artwork could not be accepted.")
+
+    private fun mutationResult(outcome: Spoolin.Outcome): Map<String, Any?> = mapOf(
+        "operation" to outcomeMap(outcome),
+        "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
+    )
+
+    private fun outcomeMap(outcome: Spoolin.Outcome): Map<String, Any?> = mapOf(
+        "id" to outcome.operationId,
+        "state" to outcome.state,
+        "resultId" to if (outcome.hasResultId()) outcome.resultId else null,
+        "version" to if (outcome.hasVersion()) outcome.version.toString() else null,
+        "resultExpired" to outcome.resultExpired,
+        "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
+    )
+
+    private fun problemMap(p: Spoolin.Problem): Map<String, Any?> = mapOf(
+        "code" to p.code,
+        "message" to "The operation could not be completed.",
+        "fields" to p.fieldsList.map { mapOf("path" to it.path, "code" to it.code, "message" to it.message) },
+    )
+
+    private fun issueToken(
+        principal: com.spoolin.core.features.session.SessionPrincipal,
+        method: String,
+        operationId: UUID,
+        correlation: UUID,
+    ): String {
+        val signer = issuer ?: throw RateUnavailable()
+        return signer.issue(principal, ActorTarget(channelFor(method), method, operationId, correlation))
+    }
+
+    private fun channelFor(method: String): String =
+        if (method.contains("MediaService")) "media" else "catalog"
+
+    private fun catalogStub(token: String): CatalogServiceGrpc.CatalogServiceBlockingStub {
+        val meta = Metadata().apply { put(ActorRpc.metadata, token) }
+        return catalog.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
+            .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
     private fun browser(env: DataFetchingEnvironment): BrowserContext =
         requireNotNull(env.graphQlContext.get("browser"))
+
+    private fun id(env: DataFetchingEnvironment): UUID =
+        UUID.fromString(env.getArgument<String>("operationId"))
+
+    private fun validateUuid(id: String) {
+        runCatching { UUID.fromString(id).also { require(it.toString() == id) } }
+            .onFailure { throw InputViolation("titleId", "Supply a lowercase, hyphenated UUID.") }
+    }
 }
