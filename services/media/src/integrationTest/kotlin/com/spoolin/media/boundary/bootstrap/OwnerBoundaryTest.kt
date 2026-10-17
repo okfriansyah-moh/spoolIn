@@ -514,7 +514,9 @@ class OwnerBoundaryTest {
     private fun application(): ConfigurableApplicationContext {
         val app = SpringApplication(Application::class.java)
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
+        val mediaVolume = Files.createDirectories(fixture.root.resolve("media-volume"))
         return app.run(
+            "--spoolin.media.volume=$mediaVolume",
             "--${owner.uppercase()}_DB_URL=${fixture.url(owner)}",
             "--${owner.uppercase()}_DB_USER=spoolin_${owner}_runtime",
             "--${owner.uppercase()}_DB_PASSWORD_FILE=${fixture.passwords.getValue("$owner-runtime")}",

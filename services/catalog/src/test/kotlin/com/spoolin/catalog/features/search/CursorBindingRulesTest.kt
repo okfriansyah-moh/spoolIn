@@ -28,7 +28,7 @@ class CursorBindingRulesTest {
     private val idA = UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001")
     private val scopeA = "abc123scope"
     private val baseInstant = Instant.parse("2026-10-17T06:00:00Z")
-    private val T = baseInstant.plusSeconds(900L) // expiry point
+    private val expiryAt = baseInstant.plusSeconds(900L)
 
     private fun clockAt(instant: Instant) = Clock.fixed(instant, ZoneOffset.UTC)
 
@@ -41,7 +41,7 @@ class CursorBindingRulesTest {
             scopeA,
             baseInstant,
         )
-        val clockBeforeT = clockAt(T.minusNanos(1000)) // T - 1 microsecond
+        val clockBeforeT = clockAt(expiryAt.minusNanos(1000)) // T - 1 microsecond
         assertNotNull(cursor.decode(encoded, scopeA, clockBeforeT.instant()), "Must be valid before T")
     }
 
@@ -55,7 +55,7 @@ class CursorBindingRulesTest {
             baseInstant,
         )
         // At T: now.epochSecond >= expiresAt.epochSecond (>= check)
-        val result = cursor.decode(encoded, scopeA, T)
+        val result = cursor.decode(encoded, scopeA, expiryAt)
         assertNull(result, "Cursor must be invalid at exactly T")
     }
 
@@ -66,7 +66,7 @@ class CursorBindingRulesTest {
             scopeA,
             baseInstant,
         )
-        val result = cursor.decode(encoded, scopeA, T.plusNanos(1000))
+        val result = cursor.decode(encoded, scopeA, expiryAt.plusNanos(1000))
         assertNull(result, "Cursor must be invalid after T")
     }
 
@@ -80,7 +80,7 @@ class CursorBindingRulesTest {
             baseInstant,
         )
         val differentScope = "different-scope"
-        val result = cursor.decode(encoded, differentScope, T.minusNanos(1000))
+        val result = cursor.decode(encoded, differentScope, expiryAt.minusNanos(1000))
         assertNull(result, "Changed scope must return invalid cursor")
     }
 
@@ -105,7 +105,7 @@ class CursorBindingRulesTest {
         bytes[bytes.size - 1] = (bytes[bytes.size - 1].toInt() xor 0x01).toByte()
         val tampered = java.util.Base64.getUrlEncoder().withoutPadding()
             .encodeToString(bytes.toByteArray())
-        val result = cursor.decode(tampered, scopeA, T.minusNanos(1000))
+        val result = cursor.decode(tampered, scopeA, expiryAt.minusNanos(1000))
         assertNull(result, "Tampered signature must produce invalid cursor")
     }
 
@@ -117,7 +117,7 @@ class CursorBindingRulesTest {
             baseInstant,
         )
         val truncated = encoded.dropLast(10)
-        val result = cursor.decode(truncated, scopeA, T.minusNanos(1000))
+        val result = cursor.decode(truncated, scopeA, expiryAt.minusNanos(1000))
         assertNull(result, "Truncated cursor must return invalid")
     }
 
@@ -127,7 +127,7 @@ class CursorBindingRulesTest {
     fun `full keyset roundtrip preserves year, month, day, uuid`() {
         val original = CatalogCursor.Keyset(2024, 10, 9, idA)
         val encoded = cursor.encode(original, scopeA, baseInstant)
-        val decoded = cursor.decode(encoded, scopeA, T.minusNanos(1000))
+        val decoded = cursor.decode(encoded, scopeA, expiryAt.minusNanos(1000))
         assertNotNull(decoded)
         assertEquals(original.releaseYear, decoded!!.releaseYear)
         assertEquals(original.releaseMonth, decoded.releaseMonth)
@@ -139,7 +139,7 @@ class CursorBindingRulesTest {
     fun `unknown-year keyset roundtrip`() {
         val original = CatalogCursor.Keyset(null, null, null, idA)
         val encoded = cursor.encode(original, scopeA, baseInstant)
-        val decoded = cursor.decode(encoded, scopeA, T.minusNanos(1000))
+        val decoded = cursor.decode(encoded, scopeA, expiryAt.minusNanos(1000))
         assertNotNull(decoded)
         assertNull(decoded!!.releaseYear)
         assertNull(decoded.releaseMonth)

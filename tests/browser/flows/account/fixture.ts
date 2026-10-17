@@ -1,5 +1,5 @@
 import { test as base, type BrowserContext } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,6 +9,16 @@ export type Credentials = {
   maintainerEmail: string;
   registrationEmail: string;
 };
+function certutilPath(): string {
+  const explicit = process.env.ACCOUNT_CERTUTIL;
+  if (explicit) return explicit;
+  try {
+    return execSync('which certutil', { encoding: 'utf8' }).trim();
+  } catch {
+    return '/opt/certutil';
+  }
+}
+
 export function credentials(): Credentials {
   const file = process.env.ACCOUNT_CREDENTIALS_FILE;
   if (!file) throw new Error('Protected browser input is required');
@@ -50,13 +60,14 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
         throw new Error('Actual HTTPS origin and public CA are required');
       const profile = mkdtempSync(join(tmpdir(), 'spoolin-account-profile-'));
       try {
+        const certutil = certutilPath();
         execFileSync(
-          '/opt/certutil',
+          certutil,
           ['-N', '--empty-password', '-d', `sql:${profile}`],
           { stdio: 'pipe' },
         );
         execFileSync(
-          '/opt/certutil',
+          certutil,
           [
             '-A',
             '-d',

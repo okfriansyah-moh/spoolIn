@@ -13,12 +13,12 @@
   import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
-  import { createTransport } from '../../lib/transport/graphql';
-  import { fetchTitle } from '../../lib/features/catalog/api';
-  import { formatReleaseDate } from '../../lib/features/catalog/filter';
-  import ArtworkSlot from '../../lib/components/ArtworkSlot.svelte';
-  import type { CatalogTitleDetail } from '../../lib/features/catalog/api';
-  import { isRecordId } from '../../lib/components/safe-url';
+  import { createTransport } from '../../../lib/transport/graphql';
+  import { fetchTitle } from '../../../lib/features/catalog/api';
+  import { formatReleaseDate } from '../../../lib/features/catalog/filter';
+  import ArtworkSlot from '../../../lib/components/ArtworkSlot.svelte';
+  import type { CatalogTitleDetail } from '../../../lib/features/catalog/api';
+  import { isRecordId } from '../../../lib/components/safe-url';
 
   type State =
     | { kind: 'loading' }
@@ -29,11 +29,12 @@
   let state = $state<State>({ kind: 'loading' });
 
   onMount(() => {
-    const id = page.params.id;
-    if (!isRecordId(id)) {
-      state = { kind: 'unavailable', id };
+    const rawId = page.params.id;
+    if (!isRecordId(rawId)) {
+      state = { kind: 'unavailable', id: rawId ?? '' };
       return;
     }
+    const id = rawId;
 
     const transport = createTransport();
     const controller = new AbortController();
@@ -78,15 +79,18 @@
   }
 
   const catalogHref = `${resolve('/')}`;
+
+  const documentTitle = $derived(
+    state.kind === 'loading'
+      ? 'Loading… · SpoolIn'
+      : state.kind === 'movie' || state.kind === 'tv'
+        ? `${state.title.title} · SpoolIn`
+        : 'Unavailable · SpoolIn',
+  );
 </script>
 
 <svelte:head>
-  <title>
-    {#if state.kind === 'loading'}Loading… · SpoolIn
-    {:else if state.kind === 'movie' || state.kind === 'tv'}{state.title.title} · SpoolIn
-    {:else}Unavailable · SpoolIn
-    {/if}
-  </title>
+  <title>{documentTitle}</title>
 </svelte:head>
 
 <nav aria-label="Breadcrumb">

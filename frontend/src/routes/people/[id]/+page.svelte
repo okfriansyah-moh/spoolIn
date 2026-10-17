@@ -60,15 +60,18 @@
 
   const catalogHref = `${resolve('/')}`;
   const peopleHref = `${resolve('/')}people`;
+
+  const documentTitle = $derived(
+    state.kind === 'person'
+      ? `${state.person.name} · SpoolIn`
+      : state.kind === 'loading'
+        ? 'Loading… · SpoolIn'
+        : 'Unavailable · SpoolIn',
+  );
 </script>
 
 <svelte:head>
-  <title>
-    {#if state.kind === 'person'}{state.person.name} · SpoolIn
-    {:else if state.kind === 'loading'}Loading… · SpoolIn
-    {:else}Unavailable · SpoolIn
-    {/if}
-  </title>
+  <title>{documentTitle}</title>
 </svelte:head>
 
 <nav aria-label="Breadcrumb">
