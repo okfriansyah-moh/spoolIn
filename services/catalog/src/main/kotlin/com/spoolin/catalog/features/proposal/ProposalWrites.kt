@@ -231,10 +231,11 @@ class ProposalWrites(
         if (!storedDigest.contentEquals(row.contentHash)) {
             throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
         }
-        val actorKind = claims.clientKind ?: "CONNECTOR"
+        val actorKind = auditActorKind(claims)
         if (approve) {
-            recordProposalAudit(
-                conn,
+            val outcome =
+                publishApprovedProposal(conn, claims, row, content, proposalId, revision, correlationId)
+            recordProposalAuditAfterCommit(
                 "APPROVE_PROPOSAL",
                 proposalId,
                 claims.accountId,
@@ -242,10 +243,10 @@ class ProposalWrites(
                 correlationId,
                 actorKind,
             )
-            return publishApprovedProposal(conn, claims, row, content, proposalId, revision, correlationId)
+            return outcome
         }
-        recordProposalAudit(
-            conn,
+        ProposalStore.markRejected(conn, proposalId, revision)
+        recordProposalAuditAfterCommit(
             "REJECT_PROPOSAL",
             proposalId,
             claims.accountId,
@@ -253,7 +254,6 @@ class ProposalWrites(
             correlationId,
             actorKind,
         )
-        ProposalStore.markRejected(conn, proposalId, revision)
         return SafeResult(proposalId, revision.toLong())
     }
 
@@ -292,8 +292,14 @@ class ProposalWrites(
         return movieOutcome
     }
 
-    private fun recordProposalAudit(
-        conn: java.sql.Connection,
+    private fun auditActorKind(claims: com.spoolin.support.identity.ActorClaims): String =
+        when (claims.clientKind) {
+            null -> "ANONYMOUS"
+            "CLAUDE", "CHATGPT" -> "SERVICE"
+            else -> "SERVICE"
+        }
+
+    private fun recordProposalAuditAfterCommit(
         action: String,
         proposalId: UUID,
         actorId: UUID,
@@ -301,19 +307,22 @@ class ProposalWrites(
         correlationId: UUID,
         actorKind: String,
     ) {
-        AuditInsert.record(
-            conn,
-            operationId,
-            actorId,
-            actorKind,
-            action,
-            "PROPOSAL",
-            proposalId,
-            "SUCCEEDED",
-            "{}",
-            correlationId,
-            clock.instant(),
-        )
+        dataSource.connection.use { conn ->
+            conn.autoCommit = true
+            AuditInsert.record(
+                conn,
+                operationId,
+                actorId,
+                actorKind,
+                action,
+                "PROPOSAL",
+                proposalId,
+                "SUCCEEDED",
+                "{}",
+                correlationId,
+                clock.instant(),
+            )
+        }
     }
 
     private fun approvalOperationId(

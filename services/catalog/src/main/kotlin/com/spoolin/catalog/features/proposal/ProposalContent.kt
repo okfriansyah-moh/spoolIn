@@ -13,7 +13,7 @@ object ProposalContent {
         mapOf(
             "policy_revision" to request.context.policyRevision,
             "values" to valuesMap(request.values),
-            "sources" to request.sourcesList.map(::sourceMap).sortedBy { it["field"] as String },
+            "sources" to request.sourcesList.map(::sourceMap),
         )
 
     fun policyRevision(content: Map<String, Any?>): String =

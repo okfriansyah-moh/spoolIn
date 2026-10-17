@@ -9,16 +9,24 @@ import java.security.MessageDigest
 object DeterministicContentSerializer {
     private val mapper = JsonMapper.builder().build()
 
-    fun canonicalize(value: Any?): Any? =
+    private val unorderedStringSetKeys =
+        setOf("genres", "genre_ids", "countries")
+
+    fun canonicalize(
+        value: Any?,
+        keyHint: String? = null,
+    ): Any? =
         when (value) {
             null -> null
             is Map<*, *> ->
                 value.entries
                     .sortedBy { it.key.toString() }
-                    .associate { entry -> entry.key.toString() to canonicalize(entry.value) }
+                    .associate { entry ->
+                        entry.key.toString() to canonicalize(entry.value, entry.key.toString())
+                    }
             is List<*> -> {
                 val items = value.map { canonicalize(it) }
-                if (items.isNotEmpty() && items.all { it is String }) {
+                if (keyHint in unorderedStringSetKeys && items.isNotEmpty() && items.all { it is String }) {
                     @Suppress("UNCHECKED_CAST")
                     (items as List<String>).sorted()
                 } else {

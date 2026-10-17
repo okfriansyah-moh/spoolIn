@@ -1,29 +1,24 @@
 package com.spoolin.catalog.seed
 
 import com.spoolin.catalog.DatabaseSettings
-import com.spoolin.support.receipts.queryBound
+import com.spoolin.support.logging.applyNormalizedLogLevel
 import org.springframework.core.env.StandardEnvironment
 import java.nio.file.Path
-import java.util.UUID
 
 /** CLI entry for ops/bin/seed.sh --apply (T033). */
 fun runSeedCli(args: Array<String>) {
+    applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     val manifestArg = args.firstOrNull { it.startsWith("--seed-manifest=") } ?: usage()
     val manifest = Path.of(manifestArg.removePrefix("--seed-manifest="))
-    val seedId = System.getenv("SPOOLIN_SEED_ID") ?: "manifest-v1"
+    val seedVersion =
+        System.getenv("SPOOLIN_SEED_ID")
+            ?: System.getenv("SPOOLIN_SEED_VERSION")
+            ?: "manifest-v1"
     val dataSource = DatabaseSettings.load(StandardEnvironment(), "catalog", false).pool()
     dataSource.use { pool ->
         val loader = CatalogSeedLoader(pool)
-        val inserted =
-            loader.loadFromManifest(manifest, seedId) { label ->
-                pool.connection.use { connection ->
-                    connection
-                        .queryBound("SELECT id FROM genre WHERE label = ?", listOf(label)) {
-                            it.getObject("id", UUID::class.java)
-                        }.singleOrNull() ?: error("missing genre label: $label")
-                }
-            }
-        println("CatalogSeedLoader inserted $inserted titles for seed_id=$seedId")
+        val inserted = loader.loadFromManifest(manifest, seedVersion)
+        println("CatalogSeedLoader inserted $inserted titles for seed_version=$seedVersion")
     }
 }
 

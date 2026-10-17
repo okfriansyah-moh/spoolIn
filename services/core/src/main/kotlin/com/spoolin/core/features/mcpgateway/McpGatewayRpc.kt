@@ -20,6 +20,7 @@ class McpGatewayRpc(
     private val policy: PolicyProvider,
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: McpActorIssuer?,
+    private val uiChallenges: ProposalUiChallengeStore,
 ) : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {
     override fun getPolicy(
         request: Empty,
@@ -79,6 +80,15 @@ class McpGatewayRpc(
             response = response,
         ) { token ->
             val revision = catalogStub(token).proposeMovie(request)
+            if (revision.hasUiChallenge()) {
+                val challenge = revision.uiChallenge.toStringUtf8()
+                uiChallenges.put(
+                    revision.proposalId,
+                    revision.revision,
+                    revision.contentHash,
+                    challenge,
+                )
+            }
             revision.toBuilder().clearUiChallenge().build()
         }
     }

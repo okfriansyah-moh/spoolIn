@@ -1,0 +1,180 @@
+{
+  "selection_id": "selection-24a6332c4dab45ea",
+  "owner": "g17-g26-selection",
+  "reviewed_revision": "9331c4574919f6d6042be3639754f80bade45b86",
+  "previous_reviewed_revision": "989aeadd2f1db332169c62fd12b4ce701c420890",
+  "reviewer_model_requested": "grok-4.7-medium",
+  "reviewer_model_actual": "Grok 4.7 (xAI)",
+  "cycle": 2,
+  "max_correction_rounds": 2,
+  "verdict": "changes_required",
+  "findings": [
+    {
+      "id": "F-001",
+      "required": true,
+      "status": "resolved",
+      "area": "MCP approval boundary",
+      "summary": "Resolved in correction round 2. Core stores UI challenges in ProposalUiChallengeStore when McpGatewayRpc strips ui_challenge from model-visible ProposalRevision. GET /gateway/review_ui_binding delivers challenge to trusted review; mcp propose-movie-ui-meta attaches UI-only _meta; review main fetches binding.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/McpGatewayRpc.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/ProposalUiChallengeStore.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/boundary/http/McpReviewUiGateway.kt",
+        "mcp/src/tools/propose-movie-ui-meta.ts",
+        "mcp/src/review/main.ts"
+      ],
+      "requirement_ids": ["AC-119", "TD-C-022", "TD-C-053", "T029-A1", "T030"]
+    },
+    {
+      "id": "F-002",
+      "required": true,
+      "status": "resolved",
+      "area": "Exact approval binding",
+      "summary": "Resolved at 9331c45. fromInput takes the live policy revision instead of the RPC method. verify compares that value with policy_revision stored in the proposal content and returns POLICY_REVISION_MISMATCH when they differ. Catalog wires the live value from POLICY_REVISION.",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBinding.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalContent.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/Application.kt",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBindingRulesTest.kt"
+      ],
+      "requirement_ids": ["ATDD-294", "T029-A1", "PRD-POLICY-33", "FR-016"]
+    },
+    {
+      "id": "F-003",
+      "required": true,
+      "status": "resolved",
+      "area": "Deterministic proposal serialization",
+      "summary": "Resolved in correction round 2. Serializer sorts object keys and only unordered set fields (genres, genre_ids, countries). Character and source sequences preserve order; ProposalContent no longer sorts sources by field.",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/DeterministicContentSerializer.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalContent.kt",
+        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/proposal/DeterministicContentRulesTest.kt"
+      ],
+      "requirement_ids": ["ATDD-283", "F-DETERMINISTIC-CONTENT", "T029-A2"]
+    },
+    {
+      "id": "F-004",
+      "required": true,
+      "status": "resolved",
+      "area": "Trusted review resource",
+      "summary": "Resolved at 9331c45. The click handler reads the current model through a getter, so a later challenge is visible. Messages from other origins are ignored unless listed in data-trusted-origins. renderReview shows source references.",
+      "evidence_paths": [
+        "mcp/src/review/main.ts",
+        "mcp/src/review/review-state.ts"
+      ],
+      "requirement_ids": ["AC-116", "AC-116-C01", "T030", "TD-C-053", "J-10"]
+    },
+    {
+      "id": "F-005",
+      "required": true,
+      "status": "resolved",
+      "area": "Connector revocation",
+      "summary": "Resolved at 9331c45. findByTokenHash and findByCredential join user_account and require account auth_epoch to equal the connector epoch. CheckActor uses findByCredential, so an epoch bump no longer leaves the connector live.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/connector/ConnectorStore.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/boundary/grpc/IdentityRpc.kt"
+      ],
+      "requirement_ids": ["T028", "AC-119", "TD-C-053"]
+    },
+    {
+      "id": "F-006",
+      "required": true,
+      "status": "resolved",
+      "area": "Seed integrity",
+      "summary": "Resolved in correction round 2. Loader maps SERIES to TV, ensures CATALOG_INITIALIZATION operation_receipt with seed_version FK, inserts missing taxonomy genres, and uses seed_version for seed_member.seed_id.",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedLoader.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedCli.kt",
+        "data/seed/manifest.json"
+      ],
+      "requirement_ids": ["T032", "T033-A1"]
+    },
+    {
+      "id": "F-007",
+      "required": true,
+      "status": "resolved",
+      "area": "Operations command honesty",
+      "summary": "Resolved in correction round 2. logs.sh tails by default and follows only with -f/--follow. start.sh runs migrate (when installation env set), seed validate+apply, then compose up -d.",
+      "evidence_paths": [
+        "Makefile",
+        "ops/bin/start.sh",
+        "ops/bin/logs.sh"
+      ],
+      "requirement_ids": ["T037-A1", "TD-C-058", "TD-ROW-L6075", "TD-ROW-L6079"]
+    },
+    {
+      "id": "F-008",
+      "required": true,
+      "status": "resolved",
+      "area": "Approval audit",
+      "summary": "Resolved in correction round 2. Approval audit actor_kind maps connector clients to SERVICE; audit inserts run in autoCommit after publication/rejection so CHECK failures cannot roll back committed work.",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalWrites.kt"
+      ],
+      "requirement_ids": ["PRD-POLICY-15", "AC-117", "AC-117-C01", "T031", "T029-A3"]
+    },
+    {
+      "id": "F-009",
+      "required": true,
+      "status": "resolved",
+      "area": "Credit draft recovery",
+      "summary": "Resolved at 9331c45. CreditDraftSync stores the returned draft id and version after success, and sets unbacked when the save fails. CreditPanel reads that snapshot.",
+      "evidence_paths": [
+        "frontend/src/lib/features/credit/draft-sync.ts",
+        "frontend/src/lib/features/credit/CreditPanel.svelte"
+      ],
+      "requirement_ids": ["T027"]
+    },
+    {
+      "id": "F-010",
+      "required": true,
+      "status": "resolved",
+      "area": "Diagnostic logging",
+      "summary": "Resolved in correction round 2. JsonLogMessageConverter emits quoted JSON message values; LOG_LEVEL normalized to INFO/DEBUG at startup via applyNormalizedLogLevel.",
+      "evidence_paths": [
+        "services/core/src/main/resources/logback-spring.xml",
+        "services/catalog/src/main/resources/logback-spring.xml",
+        "services/media/src/main/resources/logback-spring.xml",
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/logging/JsonLogMessageConverter.kt",
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/logging/LogLevelNormalization.kt"
+      ],
+      "requirement_ids": ["T035", "TD-LOG-JSON", "TD-LOG-CONFIG", "ATDD-340"]
+    },
+    {
+      "id": "F-011",
+      "required": true,
+      "status": "resolved",
+      "area": "Alert episodes",
+      "summary": "Resolved in correction round 2. spoolin.work.pending gauges read durable depth (core durable_work + pending receipts; catalog REVIEW proposals). Alert episodes use spoolin.alert.episodes counter; backlog alert sums work pending series.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/operations/metrics/WorkPendingMetrics.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/operations/metrics/ProposalMetrics.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/alerts/AlertRecorder.kt",
+        "ops/monitoring/alerts.yml"
+      ],
+      "requirement_ids": ["T034", "T036"]
+    }
+  ],
+  "pending_acceptance": [
+    "All browser/Playwright/UI rendered compliance",
+    "Integration/DB/gRPC boundary proof",
+    "MCP client host acceptance (Claude Desktop, ChatGPT)",
+    "Compose lifecycle execution proof",
+    "Key rotation/restore operational proof",
+    "Release matrices/media/perf/security sweeps",
+    "G04-G16 remaining required findings from prior selection"
+  ],
+  "permitted_checks_executed": [
+    {"id": "git-diff-check", "result": "pass"},
+    {"id": "validate_manifest.py", "result": "pass", "detail": "100 movies, 100 series"},
+    {"id": "correction-round-2", "result": "implementer-claimed", "detail": "All F-001,F-003,F-006,F-007,F-008,F-010,F-011 addressed"}
+  ],
+  "skipped_checks": [
+    "Gradle builds/tests",
+    "npm/svelte full check",
+    "Playwright/browser",
+    "Docker/Compose",
+    "integration selectors",
+    "client hosts",
+    "delivery gate stage"
+  ]
+}

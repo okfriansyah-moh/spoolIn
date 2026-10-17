@@ -14,6 +14,17 @@ if (root && query) {
     challenge: '',
   };
   renderReview(root, model);
+  void fetch(
+    `/gateway/review_ui_binding?proposalId=${encodeURIComponent(query.proposalId)}&revision=${query.revision}&contentHash=${encodeURIComponent(query.contentHash)}`,
+  )
+    .then(async (response) => {
+      if (!response.ok) return;
+      const payload = (await response.json()) as { challenge?: string };
+      if (typeof payload.challenge === 'string' && payload.challenge.trim()) {
+        model = { ...model, challenge: payload.challenge };
+      }
+    })
+    .catch(() => undefined);
   wireTrustedApproval(root, () => model, async (action, binding) => {
     assertManualApproval(binding.challenge ?? '');
     const body = buildApprovalBody({

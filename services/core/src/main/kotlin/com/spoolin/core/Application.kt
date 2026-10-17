@@ -139,8 +139,9 @@ class Application {
     @Bean
     fun workPendingMetrics(
         registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        dataSource: DataSource,
     ): com.spoolin.core.operations.metrics.WorkPendingMetrics? =
-        registry.ifAvailable?.let { com.spoolin.core.operations.metrics.WorkPendingMetrics(it) }
+        registry.ifAvailable?.let { com.spoolin.core.operations.metrics.WorkPendingMetrics(it, dataSource) }
 
     @Bean
     fun alertRecorder(
@@ -151,6 +152,7 @@ class Application {
 }
 
 fun main(args: Array<String>) {
+    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env

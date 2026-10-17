@@ -29,4 +29,5 @@ dependencies {
     implementation("io.grpc:grpc-api:${rootProject.libs.versions.grpc.get()}")
     implementation(rootProject.libs.protobuf)
     implementation("tools.jackson.core:jackson-databind:${rootProject.libs.versions.jackson.get()}")
+    compileOnly("ch.qos.logback:logback-classic:1.5.38")
 }

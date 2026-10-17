@@ -15,6 +15,9 @@ import java.nio.file.Path
 @Configuration(proxyBeanMethods = false)
 class McpGatewayConfiguration {
     @Bean
+    fun proposalUiChallengeStore(): ProposalUiChallengeStore = ProposalUiChallengeStore()
+
+    @Bean
     fun mcpActorIssuer(environment: Environment): McpActorIssuer? {
         if (!environment.getProperty("spoolin.actor.enabled", Boolean::class.java, false)) return null
         return McpActorIssuer(
@@ -31,11 +34,13 @@ class McpGatewayConfiguration {
         policy: PolicyProvider,
         channels: GrpcChannelFactory,
         issuer: McpActorIssuer?,
+        uiChallenges: ProposalUiChallengeStore,
     ): McpGatewayRpc =
         McpGatewayRpc(
             connectors,
             policy,
             CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
             issuer,
+            uiChallenges,
         )
 }

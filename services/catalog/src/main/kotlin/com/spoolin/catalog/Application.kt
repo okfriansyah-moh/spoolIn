@@ -276,8 +276,9 @@ class CatalogWriteConfiguration {
     @Bean
     fun proposalMetrics(
         registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        dataSource: DataSource,
     ): com.spoolin.catalog.operations.metrics.ProposalMetrics? =
-        registry.ifAvailable?.let { com.spoolin.catalog.operations.metrics.ProposalMetrics(it) }
+        registry.ifAvailable?.let { com.spoolin.catalog.operations.metrics.ProposalMetrics(it, dataSource) }
 
     @Bean
     fun proposalWrites(
@@ -297,6 +298,7 @@ class CatalogWriteConfiguration {
 }
 
 fun main(args: Array<String>) {
+    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     when {
         args.contentEquals(arrayOf("--migrate")) -> {
             val environment =
