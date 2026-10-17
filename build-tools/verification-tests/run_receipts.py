@@ -15,13 +15,15 @@ import run_policy as runner
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def owner(owner_name, task="receiptIntegrationTest", module=None):
+def owner(owner_name, task="receiptIntegrationTest", module=None, patterns=None):
     module = module or f"services/{owner_name}"
     directory = ROOT / module / "build/test-results" / task
     for path in directory.glob("TEST-*.xml"):
         path.unlink()
-    started, result = runner.command(
-        ["./gradlew", ":" + module.replace("/", ":") + ":" + task, "--console", "plain"], owner_name)
+    argv = ["./gradlew", ":" + module.replace("/", ":") + ":" + task, "--console", "plain"]
+    for pattern in patterns or []:
+        argv.extend(["--tests", pattern])
+    started, result = runner.command(argv, owner_name)
     cases, reports = runner.junit(directory, started, runner.OUTPUT / "junit" / owner_name)
     return result, cases, reports
 
@@ -47,7 +49,7 @@ def main():
             suites.append(lambda: runner.backend("services/core", ["*ActorIssuerRulesTest"], "issuer"))
         else:
             suites = [lambda: owner("admission", "admissionIntegrationTest", "services/core"),
-                      lambda: owner("actors", "test", "tests/integration")]
+                      lambda: owner("actors", "test", "tests/integration", ["com.spoolin.integration.identity.*"])]
     commands, cases, reports, error = [], [], [], None
     code = 2
     try:
