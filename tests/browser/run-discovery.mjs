@@ -19,7 +19,7 @@ const run = spawnSync(
     'playwright',
     'test',
     '--config',
-    'playwright.config.ts',
+    'playwright.app.config.ts',
     'flows/discovery/',
     '--reporter=json',
     `--output=${RESULTS_JSON}`,

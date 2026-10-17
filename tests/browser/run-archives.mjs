@@ -11,7 +11,7 @@ mkdirSync(resolve(ROOT, '.ai/evidence/numbering-v1'), { recursive: true });
 
 const run = spawnSync(
   'npx',
-  ['playwright', 'test', '--config', 'playwright.config.ts', 'flows/archives/', '--reporter=json', `--output=${RESULTS_JSON}`],
+  ['playwright', 'test', '--config', 'playwright.app.config.ts', 'flows/archives/', '--reporter=json', `--output=${RESULTS_JSON}`],
   { stdio: 'inherit', cwd: resolve(ROOT, 'tests/browser') },
 );
 

@@ -81,13 +81,13 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
 
 val workIntegrationTest by tasks.registering(Test::class) {
-    testClassesDirs = bootstrapTests.output.classesDirs
-    dependsOn("integrationTestClasses")
+    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    dependsOn("testClasses")
     classpath =
         files(
-            bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
-            configurations["integrationTestRuntimeClasspath"],
+            sourceSets["test"].output.classesDirs,
+            configurations["testRuntimeClasspath"],
+            foundationTestRuntime,
         )
     filter { includeTestsMatching("com.spoolin.core.operations.work.*") }
     useJUnitPlatform()

@@ -290,7 +290,7 @@ test('T013-back-restores-criteria: browser Back restores filter state', async ({
 
   // Go back
   await page.goBack();
-  await page.waitForURL(/^\//);
+  await page.waitForURL((url) => new URL(url).pathname === '/');
   await page.waitForLoadState('networkidle');
 
   // Kind filter should be restored from URL

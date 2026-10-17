@@ -1,9 +1,23 @@
 """Run nonempty migration regressions and retain actual JUnit outcomes."""
 from pathlib import Path
+import subprocess
 import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def ensure_pyyaml() -> None:
+    try:
+        import yaml  # noqa: F401
+    except ImportError:
+        subprocess.check_call(
+            [sys.executable, '-m', 'pip', 'install', 'PyYAML==6.0.2', '-q'],
+            cwd=ROOT,
+        )
+
+
+ensure_pyyaml()
 sys.path.insert(0, str(ROOT / 'build-tools/verification-tests'))
 from unittest_reports import ObservedResult, test_list, write_junit
 
