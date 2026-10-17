@@ -8,12 +8,15 @@
   import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
-  import type { EditorState } from '../../../../lib/features/movie/types';
+  import type { EditorState, WriteContext } from '../../../../lib/features/movie/types';
   import ConfirmDialog from '../../../../lib/components/ConfirmDialog.svelte';
   import { isRecordId } from '../../../../lib/components/safe-url';
+  import CreditPanel from '../../../../lib/features/credit/CreditPanel.svelte';
 
   const sessionCtl = sessionController();
   let editorState = $state<EditorState | null>(null);
+  let writeContext = $state<WriteContext | null>(null);
+  let creditTitleVersion = $state<string | null>(null);
   let ready = $state(false);
   let controller: ReturnType<typeof createMovieEditorController> | null = null;
   const movieId = $derived(page.params.id ?? '');
@@ -38,6 +41,7 @@
       const context = await loadWriteContext(abort.signal);
       const policy = sessionCtl.snapshot.policy;
       if (!context || !policy || abort.signal.aborted) return;
+      writeContext = context;
       await controller?.bootstrap(policy, context, abort.signal);
       ready = true;
     })();
@@ -93,6 +97,18 @@
     onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
     onDiscardOpen={() => controller?.openDiscardDialog()}
   />
+  {#if editorState.saved && writeContext && sessionCtl.snapshot.policy}
+    {@const version = creditTitleVersion ?? editorState.saved.version}
+    <CreditPanel
+      titleId={editorState.saved.id}
+      titleVersion={version}
+      policy={sessionCtl.snapshot.policy}
+      context={writeContext}
+      onTitleVersionChange={(next) => {
+        creditTitleVersion = next;
+      }}
+    />
+  {/if}
 {:else}
   <p role="status">Loading movie editor…</p>
 {/if}
