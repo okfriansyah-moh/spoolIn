@@ -1,6 +1,6 @@
 # G01–G26 source closure matrix (T001–T046)
 
-Revision: branch `codex/g17-g26-delivery` source audit (lane-d4af7e87281e44c4). Review column pending Grok. Runtime column pending unless noted.
+Revision: `1c0f196` on `codex/g17-g26-delivery`. Grok 4.7 re-checked F-001–F-011; required findings are resolved in source. Per-task review cells below stay “pending Grok” for the full 46-task pass except where a row names a finding. Runtime stays pending.
 
 | Task | Required outcome | Source locations | FE / API / BE integration | Tests / evidence + revision | Source gaps | Review | Runtime |
 | --- | --- | --- | --- | --- | --- | --- | --- |
