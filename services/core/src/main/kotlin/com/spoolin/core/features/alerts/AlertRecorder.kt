@@ -1,11 +1,39 @@
 package com.spoolin.core.features.alerts
 
+import com.spoolin.support.receipts.executeBound
+import tools.jackson.databind.json.JsonMapper
 import java.util.UUID
+import javax.sql.DataSource
 
-/** Records sanitized operational alerts in database mode (T034). */
-class AlertRecorder {
+enum class AlertMode {
+    DATABASE,
+    SMTP,
+    SLACK,
+    GOOGLE_CHAT,
+}
+
+/** Records sanitized operational alerts (T034). */
+class AlertRecorder(
+    private val dataSource: DataSource,
+) {
+    private val mapper = JsonMapper.builder().build()
+
     fun record(
         kind: String,
         summary: Map<String, String>,
-    ): UUID = UUID.randomUUID()
+        mode: AlertMode = AlertMode.DATABASE,
+    ): UUID {
+        val id = UUID.randomUUID()
+        val json = mapper.writeValueAsString(summary)
+        dataSource.connection.use { connection ->
+            connection.executeBound(
+                "INSERT INTO actionable_alert (id, kind, mode, summary) VALUES (?, ?, ?, ?::jsonb)",
+                id,
+                kind,
+                mode.name.lowercase(),
+                json,
+            )
+        }
+        return id
+    }
 }

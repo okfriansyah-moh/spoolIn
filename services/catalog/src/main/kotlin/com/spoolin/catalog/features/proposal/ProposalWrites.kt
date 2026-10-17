@@ -2,6 +2,7 @@
 
 package com.spoolin.catalog.features.proposal
 
+import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
@@ -25,10 +26,13 @@ import javax.sql.DataSource
 private const val PROPOSAL_TTL = Duration.ofMinutes(10)
 private const val APPROVAL_TTL = Duration.ofMinutes(2)
 private const val MAX_PENDING = 20
+private const val APPROVE_METHOD = "/spoolin.v1.CatalogService/ApproveAndCreate"
+private const val REJECT_METHOD = "/spoolin.v1.CatalogService/RejectProposal"
 
 class ProposalWrites(
     private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
+    private val movieWrites: MovieWrites,
     private val clock: Clock = Clock.systemUTC(),
 ) {
     private val random = SecureRandom()
@@ -53,7 +57,7 @@ class ProposalWrites(
                     mapOf("proposal" to "v1"),
                 )
             val challenge = randomChallenge()
-            val content = proposalContent(request)
+            val content = ProposalContent.fromProposal(request)
             val contentHash = DeterministicContentSerializer.digest(content)
             val outcome =
                 receipts.execute(intent, correlationId, true) { conn ->
@@ -106,22 +110,145 @@ class ProposalWrites(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
-        response.onError(
-            Status.FAILED_PRECONDITION
-                .withDescription("Trusted UI approval route required")
-                .asRuntimeException(),
-        )
+        handleApproval(request, response, approve = true)
     }
 
     fun reject(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
-        response.onError(
-            Status.FAILED_PRECONDITION
-                .withDescription("Trusted UI rejection route required")
-                .asRuntimeException(),
-        )
+        handleApproval(request, response, approve = false)
+    }
+
+    private fun handleApproval(
+        request: Spoolin.ApprovalInput,
+        response: StreamObserver<Spoolin.Outcome>,
+        approve: Boolean,
+    ) {
+        try {
+            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+            if (!Permissions.management(claims.role)) throw ActorRejected()
+            if (claims.clientKind == null) {
+                throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_REQUIRED").asRuntimeException()
+            }
+            val expectedMethod = if (approve) APPROVE_METHOD else REJECT_METHOD
+            if (claims.method != expectedMethod) {
+                throw Status.PERMISSION_DENIED.withDescription("MODEL_CONSENT_DENIED").asRuntimeException()
+            }
+            val proposalId = parseId(request.proposalId)
+            val revision = request.revision
+            val wireHash = decodeContentHash(request.contentHash)
+            val binding =
+                ExactApprovalBinding.fromInput(
+                    claims,
+                    proposalId,
+                    revision,
+                    wireHash,
+                    request.challenge,
+                    clock.instant(),
+                )
+            val operationId = approvalOperationId(proposalId, revision, approve)
+            val correlationId = UUID.randomUUID()
+            val actorScope = "account:${claims.accountId}"
+            val kind = if (approve) "ApproveAndCreate" else "RejectProposal"
+            val intent =
+                OperationIntent(
+                    operationId,
+                    actorScope,
+                    kind,
+                    "",
+                    mapOf("proposalId" to proposalId.toString(), "revision" to revision.toString()),
+                )
+            val outcome =
+                receipts.execute(intent, correlationId, true) { conn ->
+                    val row =
+                        ProposalStore.loadForUpdate(conn, proposalId, revision)
+                            ?: throw Status.NOT_FOUND.withDescription("PROPOSAL_NOT_FOUND").asRuntimeException()
+                    if (row.state == "CREATED" && row.movieId != null) {
+                        return@execute SafeResult(row.movieId, 0)
+                    }
+                    binding.verify(row, row.challengeHash)?.let { throw it.asRuntimeException() }
+                    val content = ProposalContent.parseJson(row.contentJson)
+                    val storedDigest = DeterministicContentSerializer.digest(content)
+                    if (!storedDigest.contentEquals(row.contentHash)) {
+                        throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
+                    }
+                    if (approve) {
+                        val values = ProposalContent.movieValues(content)
+                        val approvedAt = clock.instant()
+                        val approvalExpires = minOf(approvedAt.plus(APPROVAL_TTL), row.expiresAt)
+                        val movieOutcome =
+                            movieWrites.publishFromProposal(
+                                conn,
+                                values,
+                                claims.accountId,
+                                row.operationId,
+                                correlationId,
+                            )
+                        ProposalStore.markCreated(
+                            conn,
+                            proposalId,
+                            revision,
+                            movieOutcome.resultId,
+                            approvedAt,
+                            approvalExpires,
+                            claims.accountId,
+                            claims.credentialId,
+                            row.contentHash,
+                            clock.instant(),
+                        )
+                        movieOutcome
+                    } else {
+                        ProposalStore.markRejected(conn, proposalId, revision)
+                        SafeResult(proposalId, revision.toLong())
+                    }
+                }
+            response.onNext(outcomeProto(outcome, operationId))
+            response.onCompleted()
+        } catch (e: io.grpc.StatusRuntimeException) {
+            response.onError(e)
+        } catch (_: ActorRejected) {
+            response.onError(Status.PERMISSION_DENIED.asRuntimeException())
+        } catch (_: IllegalArgumentException) {
+            response.onError(Status.INVALID_ARGUMENT.asRuntimeException())
+        }
+    }
+
+    private fun approvalOperationId(
+        proposalId: UUID,
+        revision: Int,
+        approve: Boolean,
+    ): UUID {
+        val label = if (approve) "approve" else "reject"
+        return UUID.nameUUIDFromBytes("$label:$proposalId:$revision".toByteArray(Charsets.UTF_8))
+    }
+
+    private fun decodeContentHash(value: String): ByteArray {
+        val decoded =
+            runCatching { Base64.getDecoder().decode(value) }
+                .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException() }
+        if (decoded.size != 32) throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException()
+        return decoded
+    }
+
+    private fun outcomeProto(
+        outcome: com.spoolin.support.receipts.ReceiptOutcome,
+        operationId: UUID,
+    ): Spoolin.Outcome {
+        val builder =
+            Spoolin.Outcome
+                .newBuilder()
+                .setOperationId(operationId.toString())
+                .setState(outcome.state.name)
+                .setResultExpired(outcome.resultExpired)
+        outcome.result?.let { result ->
+            builder.resultId = result.resultId.toString()
+            result.version?.let { builder.version = it }
+        }
+        outcome.errorCode?.let {
+            builder.problem = Spoolin.Problem.newBuilder().setCode(it).build()
+        }
+        return builder.build()
     }
 
     private fun enforcePendingQuota(
@@ -145,12 +272,6 @@ class ProposalWrites(
             proposalId,
         )
     }
-
-    private fun proposalContent(request: Spoolin.Proposal): Map<String, Any?> =
-        mapOf(
-            "values" to request.values,
-            "sources" to request.sourcesList,
-        )
 
     private fun randomChallenge(): String {
         val bytes = ByteArray(32).also(random::nextBytes)

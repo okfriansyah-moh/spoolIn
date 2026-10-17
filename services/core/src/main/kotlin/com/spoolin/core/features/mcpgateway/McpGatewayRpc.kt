@@ -73,7 +73,11 @@ class McpGatewayRpc(
         request: Spoolin.Proposal,
         response: StreamObserver<Spoolin.ProposalRevision>,
     ) {
-        forwardCatalog(connector = currentConnector(), response) { token ->
+        forwardCatalog(
+            connector = currentConnector(),
+            catalogMethod = "/spoolin.v1.CatalogService/ProposeMovie",
+            response = response,
+        ) { token ->
             catalogStub(token).proposeMovie(request)
         }
     }
@@ -82,7 +86,11 @@ class McpGatewayRpc(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
-        forwardCatalog(connector = currentConnector(), response) { token ->
+        forwardCatalog(
+            connector = currentConnector(),
+            catalogMethod = "/spoolin.v1.CatalogService/ApproveAndCreate",
+            response = response,
+        ) { token ->
             catalogStub(token).approveAndCreate(request)
         }
     }
@@ -91,7 +99,11 @@ class McpGatewayRpc(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
-        forwardCatalog(connector = currentConnector(), response) { token ->
+        forwardCatalog(
+            connector = currentConnector(),
+            catalogMethod = "/spoolin.v1.CatalogService/RejectProposal",
+            response = response,
+        ) { token ->
             catalogStub(token).rejectProposal(request)
         }
     }
@@ -100,13 +112,18 @@ class McpGatewayRpc(
         request: Spoolin.Id,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
-        forwardCatalog(connector = currentConnector(), response) { token ->
+        forwardCatalog(
+            connector = currentConnector(),
+            catalogMethod = "/spoolin.v1.CatalogService/GetOperation",
+            response = response,
+        ) { token ->
             catalogStub(token).getOperation(request)
         }
     }
 
     private fun <T> forwardCatalog(
         connector: com.spoolin.core.features.connector.ConnectorRecord?,
+        catalogMethod: String,
         response: StreamObserver<T>,
         call: (String) -> T,
     ) {
@@ -117,7 +134,7 @@ class McpGatewayRpc(
             issuer.issue(
                 connector,
                 roleFor(connector),
-                "/spoolin.v1.CatalogService/ProposeMovie",
+                catalogMethod,
                 operationId,
                 UUID.randomUUID(),
             )

@@ -12,6 +12,30 @@ class ConnectorStore(
     private val dataSource: DataSource,
     private val clock: Clock = Clock.systemUTC(),
 ) {
+    fun findByCredential(
+        credentialId: UUID,
+        accountId: UUID,
+        authEpoch: Long,
+    ): ConnectorRecord? =
+        dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT id, account_id, client_kind, auth_epoch, scope, expires_at, revoked_at " +
+                        "FROM mcp_credential WHERE id = ? AND account_id = ? AND auth_epoch = ?",
+                    listOf(credentialId, accountId, authEpoch),
+                ) { row ->
+                    ConnectorRecord(
+                        id = row.getObject("id", UUID::class.java),
+                        accountId = row.getObject("account_id", UUID::class.java),
+                        clientKind = row.getString("client_kind"),
+                        authEpoch = row.getLong("auth_epoch"),
+                        scope = row.getString("scope"),
+                        expiresAt = row.getTimestamp("expires_at").toInstant(),
+                        revokedAt = row.getTimestamp("revoked_at")?.toInstant(),
+                    )
+                }.singleOrNull()
+        }
+
     fun findByTokenHash(tokenHash: ByteArray): ConnectorRecord? {
         require(tokenHash.size == 32)
         return dataSource.connection.use { connection ->

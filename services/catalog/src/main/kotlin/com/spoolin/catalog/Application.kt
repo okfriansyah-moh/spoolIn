@@ -277,8 +277,9 @@ class CatalogWriteConfiguration {
     fun proposalWrites(
         dataSource: DataSource,
         receipts: OwnerReceipts,
+        movieWrites: MovieWrites,
     ): com.spoolin.catalog.features.proposal.ProposalWrites =
-        com.spoolin.catalog.features.proposal.ProposalWrites(dataSource, receipts)
+        com.spoolin.catalog.features.proposal.ProposalWrites(dataSource, receipts, movieWrites)
 }
 
 fun main(args: Array<String>) {

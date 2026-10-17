@@ -4,9 +4,11 @@ import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.operations.events.ReceiptAction
 import com.spoolin.core.operations.events.ReceiptAudit
 import com.spoolin.core.operations.receipts.OwnerReceipts
+import com.spoolin.support.logging.SafeJsonDiagnostics
 import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.ReceiptOutcome
 import com.spoolin.support.receipts.SafeResult
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 private const val DRAFT_SAVE_KIND = "DRAFT_SAVE"
@@ -24,6 +26,7 @@ class SaveDraft(
     private val payload: DraftPayload,
     private val receipts: OwnerReceipts,
 ) {
+    private val logger = LoggerFactory.getLogger(SaveDraft::class.java)
     /**
      * Saves a draft owned by [accountId].
      *
@@ -42,7 +45,20 @@ class SaveDraft(
         // Reserve nonce in a separately committed transaction BEFORE domain locks (§7.3.1).
         val envelope =
             try {
-                crypto.encrypt(command.draftId, plaintext)
+                try {
+                    crypto.encrypt(command.draftId, plaintext)
+                } catch (failure: Exception) {
+                    logger.warn(
+                        SafeJsonDiagnostics.emit(
+                            mapOf(
+                                "event" to "draft_encrypt_failed",
+                                "draftId" to command.draftId.toString(),
+                                "targetKind" to command.input.targetKind,
+                            ),
+                        ),
+                    )
+                    throw failure
+                }
             } finally {
                 plaintext.fill(0)
             }

@@ -122,9 +122,15 @@ class Application {
     @Bean
     fun identityService(
         sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
+        connectors: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.connector.ConnectorStore>,
     ): io.grpc.BindableService =
         com.spoolin.core.boundary.grpc
-            .IdentityRpc { sessions.ifAvailable }
+            .IdentityRpc({ sessions.ifAvailable }, { connectors.ifAvailable })
+
+    @Bean
+    @GlobalServerInterceptor
+    fun connectorAuth(): com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor =
+        com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor()
 
     @Bean
     fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService =
