@@ -1013,6 +1013,94 @@
       "timeout_seconds": 1800
     },
     {
+      "id": "discovery-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/discovery/**",
+        "tests/browser/run-discovery.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-discovery.mjs"],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "archives-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/archives/**",
+        "tests/browser/run-archives.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-archives.mjs"],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "artwork-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/artwork/**",
+        "tests/browser/run-artwork.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-artwork.mjs"],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "movies-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/movies/**",
+        "tests/browser/run-movies.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-movies.mjs"],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "people-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/people/**",
+        "tests/browser/run-people.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-people.mjs"],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "credits-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/credits/**",
+        "tests/browser/run-credits.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-credits.mjs"],
+      "required": true,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "draft-component-browser-acceptance",
+      "component": "frontend",
+      "stage": "delivery",
+      "when": [
+        "tests/browser/flows/draft-component/**",
+        "tests/browser/run-draft-component.mjs"
+      ],
+      "argv": ["node", "tests/browser/run-draft-component.mjs"],
+      "required": true,
+      "timeout_seconds": 1800,
+      "test_report": {
+        "format": "junit",
+        "glob": "test-results/draft-component/junit.xml"
+      }
+    },
+    {
       "id": "policy-browser-acceptance",
       "component": "frontend",
       "stage": "delivery",
@@ -1256,11 +1344,11 @@
         "tests/browser/run-account.mjs"
       ],
       "argv": [
-        "node",
-        "tests/browser/run-account.mjs"
+        "bash",
+        "ops/bin/account-browser-gate.sh"
       ],
       "required": true,
-      "timeout_seconds": 900,
+      "timeout_seconds": 3600,
       "test_report": {
         "format": "junit",
         "glob": "test-results/account/junit.xml"

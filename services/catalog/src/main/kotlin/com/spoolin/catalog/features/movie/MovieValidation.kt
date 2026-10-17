@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions", "MagicNumber", "MaxLineLength")
+
 package com.spoolin.catalog.features.movie
 
 import com.spoolin.support.policy.InputViolation
@@ -51,17 +53,18 @@ data class ValidatedMoviePatch(
  * PRD-POLICY-26: Plain text only; no markup execution.
  */
 object MovieValidation {
-
     fun validateCreate(values: MovieValues): ValidatedMovieCreate {
         val title = TextRules.ordinary(values.title, TITLE_BOUND, "title")
-        val originalTitle = values.originalTitle.takeIf { it.isNotEmpty() }?.let {
-            TextRules.ordinary(it, OPTIONAL_TITLE_BOUND, "originalTitle")
-        }
+        val originalTitle =
+            values.originalTitle.takeIf { it.isNotEmpty() }?.let {
+                TextRules.ordinary(it, OPTIONAL_TITLE_BOUND, "originalTitle")
+            }
         val synopsis = TextRules.ordinary(values.synopsis, SYNOPSIS_BOUND, "synopsis")
         val synopsisLang = TextRules.ordinary(values.synopsisLanguage, BCP47_BOUND, "synopsisLanguage")
-        val originalLang = values.originalLanguage.takeIf { it.isNotEmpty() }?.let {
-            TextRules.ordinary(it, BCP47_BOUND, "originalLanguage")
-        }
+        val originalLang =
+            values.originalLanguage.takeIf { it.isNotEmpty() }?.let {
+                TextRules.ordinary(it, BCP47_BOUND, "originalLanguage")
+            }
         val countries = values.countriesList.map { TextRules.ordinary(it, BCP47_BOUND, "countries") }
         TextRules.genres(values.genreIdsList)
         val release = parseRelease(values, requireYear = true)
@@ -99,43 +102,106 @@ object MovieValidation {
         )
     }
 
-    private fun patchText(path: String, mask: Set<String>, raw: String, bound: TextBound, field: String) =
-        if (path in mask) PatchValue.Value(TextRules.ordinary(raw, bound, field)) else PatchValue.Omitted
+    private fun patchText(
+        path: String,
+        mask: Set<String>,
+        raw: String,
+        bound: TextBound,
+        field: String,
+    ) = if (path in mask) PatchValue.Value(TextRules.ordinary(raw, bound, field)) else PatchValue.Omitted
 
-    private fun patchOptText(path: String, mask: Set<String>, raw: String, bound: TextBound, field: String) =
-        if (path !in mask) PatchValue.Omitted
-        else if (raw.isEmpty()) PatchValue.Clear
-        else PatchValue.Value(TextRules.ordinary(raw, bound, field))
+    private fun patchOptText(
+        path: String,
+        mask: Set<String>,
+        raw: String,
+        bound: TextBound,
+        field: String,
+    ) = if (path !in mask) {
+        PatchValue.Omitted
+    } else if (raw.isEmpty()) {
+        PatchValue.Clear
+    } else {
+        PatchValue.Value(TextRules.ordinary(raw, bound, field))
+    }
 
-    private fun patchCountries(path: String, mask: Set<String>, v: MovieValues): PatchValue<List<String>> =
-        if (path !in mask) PatchValue.Omitted
-        else PatchValue.Value(v.countriesList.map { TextRules.ordinary(it, BCP47_BOUND, "countries") })
+    private fun patchCountries(
+        path: String,
+        mask: Set<String>,
+        v: MovieValues,
+    ): PatchValue<List<String>> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else {
+            PatchValue.Value(v.countriesList.map { TextRules.ordinary(it, BCP47_BOUND, "countries") })
+        }
 
-    private fun patchGenres(path: String, mask: Set<String>, v: MovieValues): PatchValue<Set<String>> =
-        if (path !in mask) PatchValue.Omitted
-        else PatchValue.Value(TextRules.genres(v.genreIdsList))
+    private fun patchGenres(
+        path: String,
+        mask: Set<String>,
+        v: MovieValues,
+    ): PatchValue<Set<String>> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else {
+            PatchValue.Value(TextRules.genres(v.genreIdsList))
+        }
 
-    private fun patchReleaseYear(path: String, mask: Set<String>, v: MovieValues): PatchValue<Int?> =
-        if (path !in mask) PatchValue.Omitted
-        else if (v.release.hasYear()) PatchValue.Value(v.release.year)
-        else PatchValue.Clear
+    private fun patchReleaseYear(
+        path: String,
+        mask: Set<String>,
+        v: MovieValues,
+    ): PatchValue<Int?> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else if (v.release.hasYear()) {
+            PatchValue.Value(v.release.year)
+        } else {
+            PatchValue.Clear
+        }
 
-    private fun patchReleaseMonth(path: String, mask: Set<String>, v: MovieValues): PatchValue<Int?> =
-        if (path !in mask) PatchValue.Omitted
-        else if (v.release.hasMonth()) PatchValue.Value(v.release.month)
-        else PatchValue.Clear
+    private fun patchReleaseMonth(
+        path: String,
+        mask: Set<String>,
+        v: MovieValues,
+    ): PatchValue<Int?> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else if (v.release.hasMonth()) {
+            PatchValue.Value(v.release.month)
+        } else {
+            PatchValue.Clear
+        }
 
-    private fun patchReleaseDay(path: String, mask: Set<String>, v: MovieValues): PatchValue<Int?> =
-        if (path !in mask) PatchValue.Omitted
-        else if (v.release.hasDay()) PatchValue.Value(v.release.day)
-        else PatchValue.Clear
+    private fun patchReleaseDay(
+        path: String,
+        mask: Set<String>,
+        v: MovieValues,
+    ): PatchValue<Int?> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else if (v.release.hasDay()) {
+            PatchValue.Value(v.release.day)
+        } else {
+            PatchValue.Clear
+        }
 
-    private fun patchRuntime(path: String, mask: Set<String>, v: MovieValues): PatchValue<Int?> =
-        if (path !in mask) PatchValue.Omitted
-        else if (v.hasRuntimeMinutes()) PatchValue.Value(validRuntime(v.runtimeMinutes))
-        else PatchValue.Clear
+    private fun patchRuntime(
+        path: String,
+        mask: Set<String>,
+        v: MovieValues,
+    ): PatchValue<Int?> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else if (v.hasRuntimeMinutes()) {
+            PatchValue.Value(validRuntime(v.runtimeMinutes))
+        } else {
+            PatchValue.Clear
+        }
 
-    private fun parseRelease(values: MovieValues, requireYear: Boolean): PartialDate =
+    private fun parseRelease(
+        values: MovieValues,
+        requireYear: Boolean,
+    ): PartialDate =
         PartialDate.of(
             year = if (values.release.hasYear()) values.release.year else null,
             month = if (values.release.hasMonth()) values.release.month else null,

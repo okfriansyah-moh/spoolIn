@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber", "ReturnCount")
+
 package com.spoolin.media.features.processing
 
 import java.io.InputStream
@@ -23,8 +25,14 @@ object ImageValidator {
     private const val WEBP_ANIM_CHUNK = "ANIM"
 
     sealed class ValidationResult {
-        data class Valid(val format: ImageFormat, val inputHash: ByteArray) : ValidationResult()
-        data class Invalid(val errorCode: String) : ValidationResult()
+        data class Valid(
+            val format: ImageFormat,
+            val inputHash: ByteArray,
+        ) : ValidationResult()
+
+        data class Invalid(
+            val errorCode: String,
+        ) : ValidationResult()
     }
 
     /**
@@ -71,11 +79,15 @@ object ImageValidator {
      * Animated WebP: contains an `ANIM` chunk in the VP8X/ANMF structure.
      * GIF: always rejected (not a supported static format).
      */
-    private fun detectAnimation(content: ByteArray, format: ImageFormat): String? = when (format) {
-        ImageFormat.PNG -> if (hasPngAnimChunk(content)) "ANIMATED_IMAGE" else null
-        ImageFormat.WEBP -> if (hasWebpAnimChunk(content)) "ANIMATED_IMAGE" else null
-        ImageFormat.JPEG -> null // JPEG is always static
-    }
+    private fun detectAnimation(
+        content: ByteArray,
+        format: ImageFormat,
+    ): String? =
+        when (format) {
+            ImageFormat.PNG -> if (hasPngAnimChunk(content)) "ANIMATED_IMAGE" else null
+            ImageFormat.WEBP -> if (hasWebpAnimChunk(content)) "ANIMATED_IMAGE" else null
+            ImageFormat.JPEG -> null // JPEG is always static
+        }
 
     /** Scan PNG chunks for acTL (animation control) before IDAT (first image data). */
     private fun hasPngAnimChunk(bytes: ByteArray): Boolean {

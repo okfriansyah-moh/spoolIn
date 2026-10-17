@@ -32,19 +32,18 @@ data class LeaseStatus(
  * eligibility logic explicit for unit testing and pre-send checks.
  */
 object WorkFence {
-
     fun isEligible(
         status: LeaseStatus,
         workerId: UUID,
         claimedEpoch: Long,
         now: Instant,
     ): Boolean {
-        if (status.state != "LEASED") return false
-        if (status.leaseOwner != workerId) return false
-        if (status.leaseEpoch != claimedEpoch) return false
-        val until = status.leaseUntil ?: return false
-        if (!until.isAfter(now)) return false
-        if (!status.deadlineAt.isAfter(now)) return false
-        return true
+        val until = status.leaseUntil
+        return status.state == "LEASED" &&
+            status.leaseOwner == workerId &&
+            status.leaseEpoch == claimedEpoch &&
+            until != null &&
+            until.isAfter(now) &&
+            status.deadlineAt.isAfter(now)
     }
 }

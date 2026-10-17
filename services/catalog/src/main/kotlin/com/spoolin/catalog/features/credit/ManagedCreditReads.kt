@@ -1,3 +1,5 @@
+@file:Suppress("CyclomaticComplexMethod", "ThrowsCount")
+
 package com.spoolin.catalog.features.credit
 
 import com.spoolin.support.identity.ActorRejected
@@ -23,14 +25,18 @@ private const val MAX_PAGE = 100
 class ManagedCreditReads(
     private val dataSource: DataSource,
 ) {
-
-    fun managedCredits(request: PageRequest, response: StreamObserver<CreditPage>) {
+    fun managedCredits(
+        request: PageRequest,
+        response: StreamObserver<CreditPage>,
+    ) {
         try {
             requireMaintainer()
-            val kind = request.targetKind.takeIf { it.isNotEmpty() }
-                ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_SELECTOR").asRuntimeException()
-            val targetId = request.targetId.takeIf { it.isNotEmpty() }?.let { parseId(it) }
-                ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_SELECTOR").asRuntimeException()
+            val kind =
+                request.targetKind.takeIf { it.isNotEmpty() }
+                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_SELECTOR").asRuntimeException()
+            val targetId =
+                request.targetId.takeIf { it.isNotEmpty() }?.let { parseId(it) }
+                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_SELECTOR").asRuntimeException()
             val titleId = if (kind == "TITLE") targetId else null
             val personId = if (kind == "PERSON") targetId else null
             if (titleId == null && personId == null) {
@@ -91,7 +97,8 @@ class ManagedCreditReads(
             where.add("c.id > ?")
             params.add(after)
         }
-        val sql = """
+        val sql =
+            """
             SELECT c.id, c.title_id, c.person_id, c.role_id, c.characters, c.version,
                    p.name AS person_name, p.status AS person_status, t.display_title AS title_name,
                    r.category AS role_category, r.label AS role_label, r.allows_characters AS role_allows_characters
@@ -102,10 +109,11 @@ class ManagedCreditReads(
             WHERE ${where.joinToString(" AND ")}
             ORDER BY c.id ASC
             LIMIT ${first + 1}
-        """.trimIndent()
-        val rows = dataSource.connection.use { conn ->
-            conn.queryBound(sql, params) { rs -> mapRow(rs) }
-        }
+            """.trimIndent()
+        val rows =
+            dataSource.connection.use { conn ->
+                conn.queryBound(sql, params) { rs -> mapRow(rs) }
+            }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
         return CreditPageResult(page, page.lastOrNull()?.id, hasNext)
@@ -131,7 +139,8 @@ class ManagedCreditReads(
     }
 
     private fun creditProto(row: CreditRow): Credit =
-        Credit.newBuilder()
+        Credit
+            .newBuilder()
             .setId(row.id.toString())
             .setTitleId(row.titleId.toString())
             .setPersonId(row.personId.toString())
@@ -141,14 +150,14 @@ class ManagedCreditReads(
             .setPersonName(row.personName)
             .setTitleName(row.titleName)
             .setRole(
-                CreditRole.newBuilder()
+                CreditRole
+                    .newBuilder()
                     .setId(row.roleId.toString())
                     .setCategory(row.roleCategory)
                     .setLabel(row.roleLabel)
                     .setAllowsCharacters(row.roleAllowsCharacters)
                     .build(),
-            )
-            .build()
+            ).build()
 
     private fun requireMaintainer() {
         val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()

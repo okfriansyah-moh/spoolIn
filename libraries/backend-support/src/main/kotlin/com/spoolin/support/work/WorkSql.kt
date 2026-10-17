@@ -31,7 +31,6 @@ private const val MAX_BATCH = 10
  *   max_effect_duration = 15 s
  */
 object WorkSql {
-
     val leaseDuration: Long get() = LEASE_DURATION_SECONDS
     val heartbeatInterval: Long get() = HEARTBEAT_INTERVAL_SECONDS
     val maxEffectDuration: Long get() = MAX_EFFECT_SECONDS
@@ -47,7 +46,8 @@ object WorkSql {
         batchSize: Int = MAX_BATCH,
     ): List<WorkClaim> {
         require(batchSize in 1..MAX_BATCH) { "Batch size must be between 1 and $MAX_BATCH" }
-        val sql = """
+        val sql =
+            """
             SELECT id, operation_id, kind, payload::text, attempt_count, max_attempts,
                    deadline_at, lease_epoch, correlation_id,
                    base_delay_ms, cap_delay_ms, backoff_multiplier, generation
@@ -56,7 +56,7 @@ object WorkSql {
             ORDER BY next_attempt_at, id
             LIMIT ?
             FOR UPDATE SKIP LOCKED
-        """.trimIndent()
+            """.trimIndent()
         val ts = Timestamp.from(now)
         return connection.queryBound(sql, listOf(ts, ts, batchSize)) { rs ->
             WorkClaim(
@@ -95,8 +95,9 @@ object WorkSql {
         val leaseUntil = now.plusSeconds(LEASE_DURATION_SECONDS)
         val newEpoch = candidate.leaseEpoch + 1
         val newAttemptCount = candidate.attemptCount + 1
-        val updated = connection.executeBound(
-            """UPDATE durable_work
+        val updated =
+            connection.executeBound(
+                """UPDATE durable_work
                SET state = 'LEASED',
                    lease_owner = ?,
                    lease_until = ?,
@@ -104,12 +105,12 @@ object WorkSql {
                    attempt_count = attempt_count + 1,
                    updated_at = ?
                WHERE id = ? AND state = 'READY' AND lease_epoch = ?""",
-            workerId,
-            Timestamp.from(leaseUntil),
-            Timestamp.from(now),
-            candidate.workId,
-            candidate.leaseEpoch,
-        )
+                workerId,
+                Timestamp.from(leaseUntil),
+                Timestamp.from(now),
+                candidate.workId,
+                candidate.leaseEpoch,
+            )
         if (updated == 0) return null
         connection.executeBound(
             """INSERT INTO operational_event
@@ -164,18 +165,15 @@ object WorkSql {
     fun completeAttempt(
         connection: Connection,
         claim: WorkClaim,
-        outcome: AttemptOutcome,
-        errorCode: String?,
-        nextState: String,
-        nextAttemptAt: Instant?,
+        completion: WorkAttemptCompletion,
         now: Instant,
-        eventId: UUID = UUID.randomUUID(),
     ): Boolean {
-        val leaseOwnerValue: Any? = if (nextState == "LEASED") claim.leaseOwner else null
-        val leaseUntilValue: Any? = if (nextState == "LEASED") Timestamp.from(now.plusSeconds(LEASE_DURATION_SECONDS)) else null
-        val nextAttemptTs = nextAttemptAt?.let { Timestamp.from(it) } ?: Timestamp.from(now)
-        val updated = connection.executeBound(
-            """UPDATE durable_work
+        val lease = leaseFieldsForCompletion(completion.nextState, claim, now)
+        val nextAttemptTs =
+            completion.nextAttemptAt?.let { Timestamp.from(it) } ?: Timestamp.from(now)
+        val updated =
+            connection.executeBound(
+                """UPDATE durable_work
                SET state = ?,
                    lease_owner = ?,
                    lease_until = ?,
@@ -183,18 +181,44 @@ object WorkSql {
                    next_attempt_at = ?,
                    updated_at = ?
                WHERE id = ? AND state = 'LEASED' AND lease_owner = ? AND lease_epoch = ?""",
-            nextState,
-            leaseOwnerValue,
-            leaseUntilValue,
-            errorCode,
-            nextAttemptTs,
-            Timestamp.from(now),
-            claim.workId,
-            claim.leaseOwner,
-            claim.leaseEpoch,
-        )
+                completion.nextState,
+                lease.owner,
+                lease.until,
+                completion.errorCode,
+                nextAttemptTs,
+                Timestamp.from(now),
+                claim.workId,
+                claim.leaseOwner,
+                claim.leaseEpoch,
+            )
         if (updated == 0) return false
-        val eventOutcome = if (outcome == AttemptOutcome.SUCCEEDED) "SUCCEEDED" else "FAILED"
+        insertAttemptFinished(connection, claim, completion)
+        return true
+    }
+
+    private data class LeaseFields(val owner: Any?, val until: Any?)
+
+    private fun leaseFieldsForCompletion(
+        nextState: String,
+        claim: WorkClaim,
+        now: Instant,
+    ): LeaseFields {
+        if (nextState != "LEASED") {
+            return LeaseFields(null, null)
+        }
+        return LeaseFields(
+            claim.leaseOwner,
+            Timestamp.from(now.plusSeconds(LEASE_DURATION_SECONDS)),
+        )
+    }
+
+    private fun insertAttemptFinished(
+        connection: Connection,
+        claim: WorkClaim,
+        completion: WorkAttemptCompletion,
+    ) {
+        val eventOutcome =
+            if (completion.outcome == AttemptOutcome.SUCCEEDED) "SUCCEEDED" else "FAILED"
         connection.executeBound(
             """INSERT INTO operational_event
                (id, operation_id, actor_kind, action, subject_kind, subject_id,
@@ -202,7 +226,7 @@ object WorkSql {
                 lease_epoch, attempt_outcome, error_code)
                VALUES (?, ?, 'SERVICE', 'WORK_ATTEMPT', 'WORK', ?, ?, ?, 'ATTEMPT_FINISHED',
                        ?, ?, ?, ?, ?, ?)""",
-            eventId,
+            completion.eventId,
             claim.operationId,
             claim.workId,
             eventOutcome,
@@ -211,10 +235,9 @@ object WorkSql {
             claim.generation,
             claim.attemptCount,
             claim.leaseEpoch,
-            outcome.code,
-            errorCode,
+            completion.outcome.code,
+            completion.errorCode,
         )
-        return true
     }
 
     /**
@@ -227,15 +250,12 @@ object WorkSql {
     fun recoverWork(
         connection: Connection,
         workId: UUID,
-        operatorId: String,
-        reason: String,
-        correlationId: UUID,
-        newLeaseEpoch: Long,
-        eventId: UUID = UUID.randomUUID(),
+        commit: WorkRecoveryCommit,
         now: Instant,
     ): Boolean {
-        val updated = connection.executeBound(
-            """UPDATE durable_work
+        val updated =
+            connection.executeBound(
+                """UPDATE durable_work
                SET state = 'READY',
                    generation = generation + 1,
                    attempt_count = 0,
@@ -245,21 +265,23 @@ object WorkSql {
                    next_attempt_at = ?,
                    updated_at = ?
                WHERE id = ? AND state = 'EXHAUSTED'""",
-            Timestamp.from(now),
-            Timestamp.from(now),
-            workId,
-        )
-        if (updated == 0) return false
-        val row = connection.queryBound(
-            "SELECT generation, lease_epoch, operation_id, correlation_id FROM durable_work WHERE id = ?",
-            listOf(workId),
-        ) { rs ->
-            Triple(
-                rs.getInt("generation"),
-                rs.getLong("lease_epoch"),
-                rs.getObject("operation_id", UUID::class.java),
+                Timestamp.from(now),
+                Timestamp.from(now),
+                workId,
             )
-        }.single()
+        if (updated == 0) return false
+        val row =
+            connection
+                .queryBound(
+                    "SELECT generation, lease_epoch, operation_id, correlation_id FROM durable_work WHERE id = ?",
+                    listOf(workId),
+                ) { rs ->
+                    Triple(
+                        rs.getInt("generation"),
+                        rs.getLong("lease_epoch"),
+                        rs.getObject("operation_id", UUID::class.java),
+                    )
+                }.single()
         val (newGeneration, currentEpoch, operationId) = row
         connection.executeBound(
             """INSERT INTO operational_event
@@ -268,15 +290,15 @@ object WorkSql {
                 lease_epoch, operator_id, changes)
                VALUES (?, ?, 'SERVICE', 'WORK_RECOVERY', 'WORK', ?, 'SUCCEEDED',
                        ?, 'RECOVERY', ?, ?, ?, ?, ?::jsonb)""",
-            eventId,
+            commit.eventId,
             operationId,
             workId,
-            correlationId,
+            commit.correlationId,
             workId,
             newGeneration,
             currentEpoch,
-            operatorId,
-            """{"reason":${escapeJson(reason)}}""",
+            commit.operatorId,
+            """{"reason":${escapeJson(commit.reason)}}""",
         )
         return true
     }
@@ -288,19 +310,20 @@ object WorkSql {
         connection: Connection,
         workId: UUID,
     ): LeaseStatus? =
-        connection.queryBound(
-            "SELECT id, state, lease_owner, lease_epoch, lease_until, deadline_at FROM durable_work WHERE id = ?",
-            listOf(workId),
-        ) { rs ->
-            LeaseStatus(
-                workId = rs.getObject("id", UUID::class.java),
-                state = rs.getString("state"),
-                leaseOwner = rs.getObject("lease_owner", UUID::class.java),
-                leaseEpoch = rs.getLong("lease_epoch"),
-                leaseUntil = rs.getTimestamp("lease_until")?.toInstant(),
-                deadlineAt = rs.getTimestamp("deadline_at").toInstant(),
-            )
-        }.singleOrNull()
+        connection
+            .queryBound(
+                "SELECT id, state, lease_owner, lease_epoch, lease_until, deadline_at FROM durable_work WHERE id = ?",
+                listOf(workId),
+            ) { rs ->
+                LeaseStatus(
+                    workId = rs.getObject("id", UUID::class.java),
+                    state = rs.getString("state"),
+                    leaseOwner = rs.getObject("lease_owner", UUID::class.java),
+                    leaseEpoch = rs.getLong("lease_epoch"),
+                    leaseUntil = rs.getTimestamp("lease_until")?.toInstant(),
+                    deadlineAt = rs.getTimestamp("deadline_at").toInstant(),
+                )
+            }.singleOrNull()
 
     private fun escapeJson(value: String): String {
         val sb = StringBuilder("\"")

@@ -17,7 +17,6 @@ import java.time.Instant
  * - A past deadline prevents a further attempt regardless of attempt budget.
  */
 class WorkScheduleRulesTest {
-
     // D22-like defaults: base=500ms, factor=2, cap=5000ms
     private val base = 500
     private val cap = 5000

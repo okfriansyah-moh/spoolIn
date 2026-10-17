@@ -18,7 +18,6 @@ import spoolin.v1.Spoolin.PersonWrite
  * PRD-CONCEPT-09: Catalog person name defaults differ from account registration name defaults.
  */
 class PersonValidationRulesTest {
-
     // ── create validation ──────────────────────────────────────────────────────
 
     @Test
@@ -175,7 +174,10 @@ class PersonValidationRulesTest {
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private fun personValues(name: String, biography: String? = null): PersonValues {
+    private fun personValues(
+        name: String,
+        biography: String? = null,
+    ): PersonValues {
         val builder = PersonValues.newBuilder().setName(name)
         biography?.let { builder.biography = it }
         return builder.build()
@@ -186,27 +188,41 @@ class PersonValidationRulesTest {
         biography: String = "",
         maskPaths: List<String>,
     ): PersonWrite {
-        val values = PersonValues.newBuilder().setName(name).setBiography(biography).build()
-        val mask = com.google.protobuf.FieldMask.newBuilder().addAllPaths(maskPaths).build()
-        return PersonWrite.newBuilder()
+        val values =
+            PersonValues
+                .newBuilder()
+                .setName(name)
+                .setBiography(biography)
+                .build()
+        val mask =
+            com.google.protobuf.FieldMask
+                .newBuilder()
+                .addAllPaths(maskPaths)
+                .build()
+        return PersonWrite
+            .newBuilder()
             .setContext(
-                spoolin.v1.Spoolin.Context.newBuilder()
+                spoolin.v1.Spoolin.Context
+                    .newBuilder()
                     .setOperationId("00000000-0000-0000-0000-000000000001")
                     .setCorrelationId("00000000-0000-0000-0000-000000000002")
                     .setPolicyRevision("v1")
                     .build(),
-            )
-            .setId("00000000-0000-0000-0000-000000000003")
+            ).setId("00000000-0000-0000-0000-000000000003")
             .setExpectedVersion(0L)
             .setValues(values)
             .setUpdateMask(mask)
             .build()
     }
 
-    private fun assertViolation(expectedPath: String, block: () -> Unit) {
+    private fun assertViolation(
+        expectedPath: String,
+        block: () -> Unit,
+    ) {
         val e = assertThrows(InputViolation::class.java, block)
         assertEquals(
-            expectedPath, e.path,
+            expectedPath,
+            e.path,
             "Expected violation on path '$expectedPath' but got '${e.path}'",
         )
     }

@@ -1,8 +1,8 @@
 package com.spoolin.media.features.upload
 
 import com.spoolin.media.operations.receipts.OwnerReceiptReads
-import com.spoolin.support.receipts.ReceiptAuthority
 import com.spoolin.support.identity.ActorRpc
+import com.spoolin.support.receipts.ReceiptAuthority
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.MediaServiceGrpc
@@ -23,17 +23,22 @@ class MediaServiceImpl(
     private val holds: com.spoolin.media.features.hold.HoldRpc,
     private val receiptReads: OwnerReceiptReads,
 ) : MediaServiceGrpc.MediaServiceImplBase() {
-    override fun upload(response: StreamObserver<Outcome>): StreamObserver<UploadChunk> =
-        upload.upload(response)
+    override fun upload(response: StreamObserver<Outcome>): StreamObserver<UploadChunk> = upload.upload(response)
 
-    override fun reserve(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) =
-        holds.reserve(request, response)
+    override fun reserve(
+        request: spoolin.v1.Spoolin.Hold,
+        response: StreamObserver<spoolin.v1.Spoolin.Attachment>,
+    ) = holds.reserve(request, response)
 
-    override fun confirm(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) =
-        holds.confirm(request, response)
+    override fun confirm(
+        request: spoolin.v1.Spoolin.Hold,
+        response: StreamObserver<spoolin.v1.Spoolin.Attachment>,
+    ) = holds.confirm(request, response)
 
-    override fun release(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) =
-        holds.release(request, response)
+    override fun release(
+        request: spoolin.v1.Spoolin.Hold,
+        response: StreamObserver<spoolin.v1.Spoolin.Attachment>,
+    ) = holds.release(request, response)
 
     override fun getOperation(
         request: Id,
@@ -42,8 +47,9 @@ class MediaServiceImpl(
         try {
             val actor = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             val id = parseUuid(request.id)
-            val receipt = receiptReads.find(id, "account:${actor.accountId}")
-                ?: throw Status.NOT_FOUND.asRuntimeException()
+            val receipt =
+                receiptReads.find(id, "account:${actor.accountId}")
+                    ?: throw Status.NOT_FOUND.asRuntimeException()
             response.onNext(operationOutcome(receipt))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {

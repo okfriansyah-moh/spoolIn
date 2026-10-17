@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
  * validated on the catalog service boundary before attachment state advances.
  */
 class ArtworkReceiptIntegrationTest {
-
     @Test
     fun `artwork attachment path shares catalog receipt admission with media coordination`() {
         SignedReceiptFixture("t009-artwork-receipt-boundary.json").use { proof ->

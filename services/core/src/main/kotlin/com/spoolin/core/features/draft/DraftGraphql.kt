@@ -2,11 +2,8 @@ package com.spoolin.core.features.draft
 
 import com.spoolin.core.boundary.http.BrowserContext
 import com.spoolin.core.features.account.application.CredentialRejected
-import com.spoolin.support.receipts.ReceiptOutcome
-import com.spoolin.support.receipts.ReceiptState
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 /**
@@ -38,7 +35,7 @@ class DraftGraphql(
 
     private fun drafts(context: BrowserContext): List<Map<String, Any?>> {
         val principal = context.principal ?: throw CredentialRejected()
-        return drafts.list(principal.accountId).map { draftProjection(it) }
+        return drafts.list(principal.accountId).map { draftGraphqlProjection(it) }
     }
 
     // ── Mutation ───────────────────────────────────────────────────────────
@@ -49,22 +46,31 @@ class DraftGraphql(
         val operationId = uuid(env, "operationId")
         val draftId = uuid(env, "id")
         val expectedVersion = env.getArgument<Long>("expectedVersion")
-        require(expectedVersion != null || env.getField().arguments.none { it.name == "expectedVersion" && it.value != null }) {
+        val omittedOrValid =
+            env.getField().arguments.none { it.name == "expectedVersion" && it.value != null }
+        require(expectedVersion != null || omittedOrValid) {
             "Explicit null for expectedVersion is not permitted; omit the argument for create"
         }
         val rawInput = requireNotNull(env.getArgument<Map<String, Any?>>("input"))
-        val input = parseInput(rawInput)
+        val input = parseDraftGraphqlInput(rawInput)
         val outcome =
             save.save(
-                operationId = operationId,
-                accountId = principal.accountId,
-                draftId = draftId,
-                expectedVersion = expectedVersion,
-                input = input,
-                correlationId = context.correlation,
+                DraftSaveCommand(
+                    operationId = operationId,
+                    accountId = principal.accountId,
+                    draftId = draftId,
+                    expectedVersion = expectedVersion,
+                    input = input,
+                    correlationId = context.correlation,
+                ),
             )
-        context.rememberOperation(operationId, com.spoolin.support.receipts.OperationOwner.CORE, saveMutationProjection(outcome))
-        return saveMutationProjection(outcome)
+        val projection = saveDraftMutationProjection(outcome)
+        context.rememberOperation(
+            operationId,
+            com.spoolin.support.receipts.OperationOwner.CORE,
+            projection,
+        )
+        return projection
     }
 
     private fun discardDraft(env: DataFetchingEnvironment): Map<String, Any?> {
@@ -84,80 +90,14 @@ class DraftGraphql(
                 expectedVersion = expectedVersion,
                 correlationId = context.correlation,
             )
-        context.rememberOperation(operationId, com.spoolin.support.receipts.OperationOwner.CORE, discardMutationProjection(outcome))
-        return discardMutationProjection(outcome)
+        val projection = discardDraftMutationProjection(outcome)
+        context.rememberOperation(
+            operationId,
+            com.spoolin.support.receipts.OperationOwner.CORE,
+            projection,
+        )
+        return projection
     }
-
-    // ── projections ────────────────────────────────────────────────────────
-
-    private fun draftProjection(draft: DraftProjection): Map<String, Any?> =
-        mapOf(
-            "id" to draft.id.toString(),
-            "targetKind" to draft.targetKind,
-            "targetId" to draft.targetId?.toString(),
-            "baseVersion" to draft.baseVersion?.toString(),
-            "values" to draft.values,
-            "operationId" to draft.operationId?.toString(),
-            "version" to draft.version.toString(),
-            "expiresAt" to draft.expiresAt.toString(),
-        )
-
-    private fun saveMutationProjection(outcome: ReceiptOutcome): Map<String, Any?> =
-        mapOf(
-            "operation" to
-                mapOf(
-                    "id" to outcome.id.toString(),
-                    "state" to outcome.state.name,
-                    "resultId" to outcome.result?.resultId?.toString(),
-                    "version" to outcome.result?.version?.toString(),
-                    "resultExpired" to outcome.resultExpired,
-                    "problem" to null,
-                ),
-            "problem" to problemProjection(outcome),
-        )
-
-    private fun discardMutationProjection(outcome: ReceiptOutcome): Map<String, Any?> =
-        mapOf(
-            "operation" to
-                mapOf(
-                    "id" to outcome.id.toString(),
-                    "state" to outcome.state.name,
-                    "resultId" to outcome.result?.resultId?.toString(),
-                    "resultExpired" to outcome.resultExpired,
-                    "problem" to null,
-                ),
-            "discarded" to (outcome.result?.discarded ?: false),
-            "problem" to problemProjection(outcome),
-        )
-
-    private fun problemProjection(outcome: ReceiptOutcome): Map<String, Any?>? {
-        val code = outcome.errorCode ?: return null
-        return mapOf(
-            "code" to code,
-            "message" to "The draft operation could not be completed.",
-            "fields" to emptyList<Any>(),
-            "retryAfterMs" to null,
-        )
-    }
-
-    // ── helpers ────────────────────────────────────────────────────────────
-
-    private fun parseInput(raw: Map<String, Any?>): DraftInput =
-        DraftInput(
-            targetKind = requireNotNull(raw["targetKind"] as? String) { "targetKind is required" },
-            targetId = (raw["targetId"] as? String)?.let { UUID.fromString(it) },
-            baseVersion = raw["baseVersion"] as? Long,
-            values =
-                requireNotNull(
-                    when (val v = raw["values"]) {
-                        is String -> v
-        is Map<*, *> -> ObjectMapper().writeValueAsString(v)
-                        else -> null
-                    },
-                ) { "values is required" },
-            operationId = (raw["operationId"] as? String)?.let { UUID.fromString(it) },
-            policyRevision = requireNotNull(raw["policyRevision"] as? String) { "policyRevision is required" },
-        )
 
     private fun context(env: DataFetchingEnvironment): BrowserContext =
         requireNotNull(env.graphQlContext.get("browser"))

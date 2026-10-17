@@ -10,6 +10,7 @@
     runPersonLifecycle,
     type ArchiveRow,
   } from '../../../lib/features/archive/api';
+  import { formatDeletionImpactSummary, permanentDeleteReady } from '../../../lib/features/archive/rules';
   import type { ArchiveListState, ArchiveTab } from '../../../lib/features/archive/types';
 
   const sessionCtl = sessionController();
@@ -91,10 +92,10 @@
     if (tab === 'people' && csrf) {
       const impact = await fetchDeletionImpact(createTransport(), row.id, csrf);
       impactToken = impact.token;
-      impactSummary =
-        impact.affectedCreditCount === 0
-          ? 'No active credits reference this person.'
-          : `Affects ${impact.affectedCreditCount} credit(s): ${impact.affectedTitles.join(', ')}`;
+      impactSummary = formatDeletionImpactSummary(
+        impact.affectedCreditCount,
+        impact.affectedTitles,
+      );
     }
     confirmOpen = true;
   }
@@ -173,7 +174,11 @@
       {/if}
       <div class="actions">
         <button type="button" onclick={() => (confirmOpen = false)}>Cancel</button>
-        <button type="button" disabled={busy || (tab === 'people' && !impactToken)} onclick={confirmDelete}>
+        <button
+          type="button"
+          disabled={busy || !permanentDeleteReady(tab, impactToken)}
+          onclick={confirmDelete}
+        >
           Permanently delete
         </button>
       </div>

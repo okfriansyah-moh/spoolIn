@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
  *   4. Literal wildcard characters are escaped before use in LIKE patterns.
  */
 class QueryStructureRulesTest {
-
     // ── wildcard escaping ─────────────────────────────────────────────────────
 
     @Test
@@ -97,14 +96,15 @@ class QueryStructureRulesTest {
         // The SQL ORDER BY uses fixed column names from the implementation,
         // never user-supplied values. Verify the fixed ordering constant
         // does not allow injection.
-        val validSortColumns = setOf(
-            "t.release_year",
-            "t.release_month",
-            "t.release_day",
-            "t.id",
-            "p.name",
-            "c.id",
-        )
+        val validSortColumns =
+            setOf(
+                "t.release_year",
+                "t.release_month",
+                "t.release_day",
+                "t.id",
+                "p.name",
+                "c.id",
+            )
         // All structural column references must be from the fixed allowlist
         for (col in validSortColumns) {
             assertNotEquals("", col, "Sort column is a fixed identifier")

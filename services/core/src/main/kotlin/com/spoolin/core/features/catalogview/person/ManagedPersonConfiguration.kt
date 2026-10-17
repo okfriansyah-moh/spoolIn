@@ -17,7 +17,6 @@ import spoolin.v1.CatalogServiceGrpc
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = ["spoolin.catalog-view.enabled"], havingValue = "true", matchIfMissing = true)
 class ManagedPersonConfiguration {
-
     @Bean
     fun managedPersonGraphql(
         channels: GrpcChannelFactory,

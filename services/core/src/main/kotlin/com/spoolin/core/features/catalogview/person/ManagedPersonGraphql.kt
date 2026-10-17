@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.spoolin.core.features.catalogview.person
 
 import com.spoolin.core.boundary.grpc.ActorIssuer
@@ -38,15 +40,16 @@ class ManagedPersonGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
 ) {
-
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q ->
-            q.dataFetcher("managedPerson") { env -> managedPerson(env) }
-             .dataFetcher("managedPeople") { env -> managedPeople(env) }
+            q
+                .dataFetcher("managedPerson") { env -> managedPerson(env) }
+                .dataFetcher("managedPeople") { env -> managedPeople(env) }
         }
         wiring.type("Mutation") { m ->
-            m.dataFetcher("createPerson") { env -> createPerson(env) }
-             .dataFetcher("updatePerson") { env -> updatePerson(env) }
+            m
+                .dataFetcher("createPerson") { env -> createPerson(env) }
+                .dataFetcher("updatePerson") { env -> updatePerson(env) }
         }
     }
 
@@ -59,10 +62,12 @@ class ManagedPersonGraphql(
         val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
         val input = requireNotNull(env.getArgument<Map<String, Any?>>("input"))
         val values = personValues(input)
-        val request = Spoolin.PersonWrite.newBuilder()
-            .setContext(grpcContext(operationId, context.correlation, policyRevision))
-            .setValues(values)
-            .build()
+        val request =
+            Spoolin.PersonWrite
+                .newBuilder()
+                .setContext(grpcContext(operationId, context.correlation, policyRevision))
+                .setValues(values)
+                .build()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/WritePerson", operationId, context.correlation)
         val outcome = stub(token).writePerson(request)
         val result = outcomeMap(outcome)
@@ -82,13 +87,15 @@ class ManagedPersonGraphql(
         val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
         val patch = requireNotNull(env.getArgument<Map<String, Any?>>("patch"))
         val (values, mask) = personPatch(patch)
-        val request = Spoolin.PersonWrite.newBuilder()
-            .setContext(grpcContext(operationId, context.correlation, policyRevision))
-            .setId(personId)
-            .setExpectedVersion(expectedVersion)
-            .setValues(values)
-            .setUpdateMask(mask)
-            .build()
+        val request =
+            Spoolin.PersonWrite
+                .newBuilder()
+                .setContext(grpcContext(operationId, context.correlation, policyRevision))
+                .setId(personId)
+                .setExpectedVersion(expectedVersion)
+                .setValues(values)
+                .setUpdateMask(mask)
+                .build()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/WritePerson", operationId, context.correlation)
         val outcome = stub(token).writePerson(request)
         val result = outcomeMap(outcome)
@@ -105,7 +112,13 @@ class ManagedPersonGraphql(
         validateUuid(personId)
         val opId = UUID.randomUUID()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/ManagedPerson", opId, context.correlation)
-        val result = stub(token).managedPerson(Spoolin.Id.newBuilder().setId(personId).build())
+        val result =
+            stub(token).managedPerson(
+                Spoolin.Id
+                    .newBuilder()
+                    .setId(personId)
+                    .build(),
+            )
         if (result.id.isEmpty()) return null
         return personMap(result)
     }
@@ -120,49 +133,60 @@ class ManagedPersonGraphql(
         val after = env.getArgument<String>("after")
         val opId = UUID.randomUUID()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/ManagedPeople", opId, context.correlation)
-        val request = Spoolin.PageRequest.newBuilder().setState(state).setFirst(first)
-            .also { b -> after?.let { b.after = it } }.build()
+        val request =
+            Spoolin.PageRequest
+                .newBuilder()
+                .setState(state)
+                .setFirst(first)
+                .also { b -> after?.let { b.after = it } }
+                .build()
         val result = stub(token).managedPeople(request)
         return personPageMap(result)
     }
 
     // ── proto → GraphQL maps ──────────────────────────────────────────────────
 
-    private fun personPageMap(proto: Spoolin.PersonPage): Map<String, Any?> = mapOf(
-        "nodes" to proto.nodesList.map { personMap(it) },
-        "pageInfo" to mapOf(
-            "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-            "hasNextPage" to proto.hasNextPage,
-        ),
-    )
+    private fun personPageMap(proto: Spoolin.PersonPage): Map<String, Any?> =
+        mapOf(
+            "nodes" to proto.nodesList.map { personMap(it) },
+            "pageInfo" to
+                mapOf(
+                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
+                    "hasNextPage" to proto.hasNextPage,
+                ),
+        )
 
-    private fun personMap(p: Spoolin.Person): Map<String, Any?> = mapOf(
-        "id" to p.id,
-        "name" to p.values.name,
-        "biography" to p.values.biography.takeIf { it.isNotEmpty() },
-        "state" to p.state,
-        "version" to p.version.toString(),
-    )
+    private fun personMap(p: Spoolin.Person): Map<String, Any?> =
+        mapOf(
+            "id" to p.id,
+            "name" to p.values.name,
+            "biography" to p.values.biography.takeIf { it.isNotEmpty() },
+            "state" to p.state,
+            "version" to p.version.toString(),
+        )
 
-    private fun mutationResult(outcome: Spoolin.Outcome): Map<String, Any?> = mapOf(
-        "operation" to outcomeMap(outcome),
-        "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
-    )
+    private fun mutationResult(outcome: Spoolin.Outcome): Map<String, Any?> =
+        mapOf(
+            "operation" to outcomeMap(outcome),
+            "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
+        )
 
-    private fun outcomeMap(outcome: Spoolin.Outcome): Map<String, Any?> = mapOf(
-        "id" to outcome.operationId,
-        "state" to outcome.state,
-        "resultId" to if (outcome.hasResultId()) outcome.resultId else null,
-        "version" to if (outcome.hasVersion()) outcome.version.toString() else null,
-        "resultExpired" to outcome.resultExpired,
-        "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
-    )
+    private fun outcomeMap(outcome: Spoolin.Outcome): Map<String, Any?> =
+        mapOf(
+            "id" to outcome.operationId,
+            "state" to outcome.state,
+            "resultId" to if (outcome.hasResultId()) outcome.resultId else null,
+            "version" to if (outcome.hasVersion()) outcome.version.toString() else null,
+            "resultExpired" to outcome.resultExpired,
+            "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
+        )
 
-    private fun problemMap(p: Spoolin.Problem): Map<String, Any?> = mapOf(
-        "code" to p.code,
-        "message" to "The operation could not be completed.",
-        "fields" to p.fieldsList.map { mapOf("path" to it.path, "code" to it.code, "message" to it.message) },
-    )
+    private fun problemMap(p: Spoolin.Problem): Map<String, Any?> =
+        mapOf(
+            "code" to p.code,
+            "message" to "The operation could not be completed.",
+            "fields" to p.fieldsList.map { mapOf("path" to it.path, "code" to it.code, "message" to it.message) },
+        )
 
     // ── input mappers ─────────────────────────────────────────────────────────
 
@@ -184,7 +208,11 @@ class ManagedPersonGraphql(
             (patch["biography"] as? String)?.let { builder.biography = it }
             paths.add("values.biography")
         }
-        val mask = com.google.protobuf.FieldMask.newBuilder().addAllPaths(paths).build()
+        val mask =
+            com.google.protobuf.FieldMask
+                .newBuilder()
+                .addAllPaths(paths)
+                .build()
         return Pair(builder.build(), mask)
     }
 
@@ -202,12 +230,18 @@ class ManagedPersonGraphql(
 
     private fun stub(token: String): CatalogServiceGrpc.CatalogServiceBlockingStub {
         val meta = Metadata().apply { put(ActorRpc.metadata, token) }
-        return catalog.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
+        return catalog
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
-    private fun grpcContext(operationId: UUID, correlationId: UUID, policyRevision: String): Spoolin.Context =
-        Spoolin.Context.newBuilder()
+    private fun grpcContext(
+        operationId: UUID,
+        correlationId: UUID,
+        policyRevision: String,
+    ): Spoolin.Context =
+        Spoolin.Context
+            .newBuilder()
             .setOperationId(operationId.toString())
             .setCorrelationId(correlationId.toString())
             .setPolicyRevision(policyRevision)
@@ -216,8 +250,7 @@ class ManagedPersonGraphql(
     private fun context(env: DataFetchingEnvironment): BrowserContext =
         requireNotNull(env.graphQlContext.get("browser"))
 
-    private fun id(env: DataFetchingEnvironment): UUID =
-        UUID.fromString(env.getArgument<String>("operationId"))
+    private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 
     private fun validateUuid(id: String) {
         runCatching { UUID.fromString(id).also { require(it.toString() == id) } }

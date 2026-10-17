@@ -11,7 +11,6 @@ import java.time.Instant
  * D22 defaults: base=500 ms, factor=2, cap=5000 ms, max 3 total attempts.
  */
 object WorkSchedule {
-
     /**
      * Returns the sampled delay in milliseconds before the next attempt.
      *
@@ -20,7 +19,7 @@ object WorkSchedule {
      * @param backoffMultiplier  Persisted exponential multiplier (1..10).
      * @param attemptCount  Attempts started so far in this generation (after the current failure).
      * @param draw          Uniform sample in [0.0, 1.0] for full-jitter.
-     * @return              Sampled delay in milliseconds.
+     * @return Sampled delay in milliseconds.
      */
     fun sampleDelayMs(
         baseDelayMs: Int,

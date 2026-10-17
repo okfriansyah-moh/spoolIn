@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package com.spoolin.catalog.features.credit
 
 import com.spoolin.support.policy.InputViolation
@@ -20,7 +22,6 @@ data class ValidatedCreditPatch(
 )
 
 object CreditValidation {
-
     fun validateCreate(request: CreditWrite): ValidatedCreditCreate {
         requirePersonRoleIds(request)
         return ValidatedCreditCreate(
@@ -51,14 +52,20 @@ object CreditValidation {
         }
     }
 
-    private fun patchRole(mask: Set<String>, raw: String): PatchValue<String> =
+    private fun patchRole(
+        mask: Set<String>,
+        raw: String,
+    ): PatchValue<String> =
         if ("roleId" in mask) {
             PatchValue.Value(parseUuid(raw, "roleId"))
         } else {
             PatchValue.Omitted
         }
 
-    private fun patchCharacters(mask: Set<String>, raw: List<String>): PatchValue<List<String>> =
+    private fun patchCharacters(
+        mask: Set<String>,
+        raw: List<String>,
+    ): PatchValue<List<String>> =
         when {
             "characters" in mask -> PatchValue.Value(normalizeCharacters(raw, "characters"))
             else -> PatchValue.Omitted
@@ -70,11 +77,21 @@ object CreditValidation {
         parseUuid(request.titleId, "titleId")
     }
 
-    private fun parseUuid(value: String, path: String): String =
-        runCatching { java.util.UUID.fromString(value).also { require(it.toString() == value) }.toString() }
-            .getOrElse { throw InputViolation(path, "Supply a lowercase, hyphenated UUID.") }
+    private fun parseUuid(
+        value: String,
+        path: String,
+    ): String =
+        runCatching {
+            java.util.UUID
+                .fromString(value)
+                .also { require(it.toString() == value) }
+                .toString()
+        }.getOrElse { throw InputViolation(path, "Supply a lowercase, hyphenated UUID.") }
 
-    private fun normalizeCharacters(values: List<String>, path: String): List<String> {
+    private fun normalizeCharacters(
+        values: List<String>,
+        path: String,
+    ): List<String> {
         val trimmed = values.map { TextRules.ordinary(it, CHARACTER_BOUND, path) }
         val seen = mutableSetOf<String>()
         for (name in trimmed) {

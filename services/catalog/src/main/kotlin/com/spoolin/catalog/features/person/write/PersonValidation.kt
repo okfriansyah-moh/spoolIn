@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package com.spoolin.catalog.features.person.write
 
 import com.spoolin.support.policy.PatchValue
@@ -33,12 +35,12 @@ data class ValidatedPersonPatch(
  * AC-140-C01: Accept 1 and 100, reject 0 and 101 with a field-specific error and no partial change.
  */
 object PersonValidation {
-
     fun validateCreate(values: PersonValues): ValidatedPersonCreate {
         val name = TextRules.ordinary(values.name, NAME_BOUND, "name")
-        val biography = values.biography
-            .takeIf { it.isNotEmpty() }
-            ?.let { TextRules.ordinary(it, BIOGRAPHY_BOUND, "biography") }
+        val biography =
+            values.biography
+                .takeIf { it.isNotEmpty() }
+                ?.let { TextRules.ordinary(it, BIOGRAPHY_BOUND, "biography") }
         return ValidatedPersonCreate(name = name, biography = biography)
     }
 
@@ -51,12 +53,27 @@ object PersonValidation {
         )
     }
 
-    private fun patchName(path: String, mask: Set<String>, raw: String): PatchValue<String> =
-        if (path in mask) PatchValue.Value(TextRules.ordinary(raw, NAME_BOUND, "name"))
-        else PatchValue.Omitted
+    private fun patchName(
+        path: String,
+        mask: Set<String>,
+        raw: String,
+    ): PatchValue<String> =
+        if (path in mask) {
+            PatchValue.Value(TextRules.ordinary(raw, NAME_BOUND, "name"))
+        } else {
+            PatchValue.Omitted
+        }
 
-    private fun patchBiography(path: String, mask: Set<String>, raw: String): PatchValue<String> =
-        if (path !in mask) PatchValue.Omitted
-        else if (raw.isEmpty()) PatchValue.Clear
-        else PatchValue.Value(TextRules.ordinary(raw, BIOGRAPHY_BOUND, "biography"))
+    private fun patchBiography(
+        path: String,
+        mask: Set<String>,
+        raw: String,
+    ): PatchValue<String> =
+        if (path !in mask) {
+            PatchValue.Omitted
+        } else if (raw.isEmpty()) {
+            PatchValue.Clear
+        } else {
+            PatchValue.Value(TextRules.ordinary(raw, BIOGRAPHY_BOUND, "biography"))
+        }
 }

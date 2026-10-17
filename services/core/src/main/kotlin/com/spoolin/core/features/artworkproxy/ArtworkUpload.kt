@@ -1,43 +1,35 @@
 package com.spoolin.core.features.artworkproxy
 
 import com.google.protobuf.ByteString
-import com.spoolin.core.features.session.SessionPrincipal
 import io.grpc.Metadata
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.MetadataUtils
 import io.grpc.stub.StreamObserver
-import spoolin.v1.MediaServiceGrpc
 import spoolin.v1.Spoolin
 import java.security.MessageDigest
-import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
+private const val UPLOAD_CHUNK_BYTES = 64 * 1024
+private const val UPLOAD_TIMEOUT_SECONDS = 30L
+
 internal object ArtworkUpload {
-    fun upload(
-        media: MediaServiceGrpc.MediaServiceStub,
-        actorToken: String,
-        principal: SessionPrincipal,
-        uploadOperationId: UUID,
-        correlationId: UUID,
-        policyRevision: String,
-        assetId: UUID,
-        content: ByteArray,
-    ): Spoolin.Outcome {
-        val digest = MessageDigest.getInstance("SHA-256").digest(content)
+    fun upload(request: ArtworkUploadRequest): Spoolin.Outcome {
+        val digest = MessageDigest.getInstance("SHA-256").digest(request.content)
         val header =
-            Spoolin.UploadHeader.newBuilder()
+            Spoolin.UploadHeader
+                .newBuilder()
                 .setContext(
-                    Spoolin.Context.newBuilder()
-                        .setOperationId(uploadOperationId.toString())
-                        .setCorrelationId(correlationId.toString())
-                        .setPolicyRevision(policyRevision)
+                    Spoolin.Context
+                        .newBuilder()
+                        .setOperationId(request.uploadOperationId.toString())
+                        .setCorrelationId(request.correlationId.toString())
+                        .setPolicyRevision(request.policyRevision)
                         .build(),
-                )
-                .setActorId(principal.accountId.toString())
-                .setInputBytes(content.size.toLong())
-                .setAssetId(assetId.toString())
+                ).setActorId(request.principal.accountId.toString())
+                .setInputBytes(request.content.size.toLong())
+                .setAssetId(request.assetId.toString())
                 .setInputSha256(ByteString.copyFrom(digest))
                 .setIntentId("artwork")
                 .build()
@@ -59,26 +51,38 @@ internal object ArtworkUpload {
                     latch.countDown()
                 }
             }
-        val meta = Metadata().apply { put(com.spoolin.support.identity.ActorRpc.metadata, actorToken) }
-        val stub = media.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
-        val request = stub.upload(response)
-        request.onNext(Spoolin.UploadChunk.newBuilder().setHeader(header).build())
-        val chunkSize = 64 * 1024
+        val meta = Metadata().apply { put(com.spoolin.support.identity.ActorRpc.metadata, request.actorToken) }
+        val stub = request.media.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
+        val stream = stub.upload(response)
+        stream.onNext(Spoolin.UploadChunk.newBuilder().setHeader(header).build())
         var offset = 0
-        while (offset < content.size) {
-            val end = minOf(offset + chunkSize, content.size)
-            request.onNext(
-                Spoolin.UploadChunk.newBuilder()
-                    .setData(ByteString.copyFrom(content, offset, end - offset))
+        while (offset < request.content.size) {
+            val end = minOf(offset + UPLOAD_CHUNK_BYTES, request.content.size)
+            stream.onNext(
+                Spoolin.UploadChunk
+                    .newBuilder()
+                    .setData(ByteString.copyFrom(request.content, offset, end - offset))
                     .build(),
             )
             offset = end
         }
-        request.onCompleted()
-        if (!latch.await(30, TimeUnit.SECONDS)) {
-            throw StatusRuntimeException(io.grpc.Status.DEADLINE_EXCEEDED.withDescription("UPLOAD_TIMEOUT"))
+        stream.onCompleted()
+        return awaitUploadOutcome(latch, error, outcome)
+    }
+
+    @Suppress("ThrowsCount")
+    private fun awaitUploadOutcome(
+        latch: CountDownLatch,
+        error: AtomicReference<Throwable>,
+        outcome: AtomicReference<Spoolin.Outcome>,
+    ): Spoolin.Outcome {
+        if (!latch.await(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            throw StatusRuntimeException(
+                io.grpc.Status.DEADLINE_EXCEEDED.withDescription("UPLOAD_TIMEOUT"),
+            )
         }
         error.get()?.let { throw it }
-        return outcome.get() ?: throw StatusRuntimeException(io.grpc.Status.INTERNAL.withDescription("UPLOAD_EMPTY"))
+        return outcome.get()
+            ?: throw StatusRuntimeException(io.grpc.Status.INTERNAL.withDescription("UPLOAD_EMPTY"))
     }
 }

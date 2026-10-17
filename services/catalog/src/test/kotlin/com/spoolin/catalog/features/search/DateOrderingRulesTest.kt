@@ -24,7 +24,6 @@ import java.util.UUID
  * Ordering must NOT manufacture chronological precision.
  */
 class DateOrderingRulesTest {
-
     private data class DateRow(
         val year: Int?,
         val month: Int?,
@@ -36,25 +35,30 @@ class DateOrderingRulesTest {
      *  release_year DESC NULLS LAST, release_month DESC NULLS LAST,
      *  release_day DESC NULLS LAST, id ASC.
      */
-    private val dateOrder = Comparator<DateRow> { a, b ->
-        val yCmp = descNullsLast(a.year, b.year)
-        if (yCmp != 0) return@Comparator yCmp
-        val mCmp = descNullsLast(a.month, b.month)
-        if (mCmp != 0) return@Comparator mCmp
-        val dCmp = descNullsLast(a.day, b.day)
-        if (dCmp != 0) return@Comparator dCmp
-        // UUID ASC tie-break
-        a.id.compareTo(b.id)
-    }
+    private val dateOrder =
+        Comparator<DateRow> { a, b ->
+            val yCmp = descNullsLast(a.year, b.year)
+            if (yCmp != 0) return@Comparator yCmp
+            val mCmp = descNullsLast(a.month, b.month)
+            if (mCmp != 0) return@Comparator mCmp
+            val dCmp = descNullsLast(a.day, b.day)
+            if (dCmp != 0) return@Comparator dCmp
+            // UUID ASC tie-break
+            a.id.compareTo(b.id)
+        }
 
     /** DESC ordering with NULLS LAST:
      *  null comes after non-null; among non-nulls, larger value comes first. */
-    private fun descNullsLast(a: Int?, b: Int?): Int = when {
-        a == null && b == null -> 0
-        a == null -> 1   // null a comes after non-null b
-        b == null -> -1  // non-null a comes before null b
-        else -> b.compareTo(a)  // DESC: larger value first
-    }
+    private fun descNullsLast(
+        a: Int?,
+        b: Int?,
+    ): Int =
+        when {
+            a == null && b == null -> 0
+            a == null -> 1 // null a comes after non-null b
+            b == null -> -1 // non-null a comes before null b
+            else -> b.compareTo(a) // DESC: larger value first
+        }
 
     @Test
     fun `first five rows order a,b,c,d,e regardless of insertion order`() {
@@ -65,13 +69,14 @@ class DateOrderingRulesTest {
         val uuidD = UUID.fromString("00000000-0000-0000-0000-000000000004")
         val uuidE = UUID.fromString("00000000-0000-0000-0000-000000000005")
 
-        val rows = listOf(
-            DateRow(null, null, null, uuidE), // e: unknown year — last
-            DateRow(2023, null, null, uuidD), // d: 2023 — before 2024
-            DateRow(2024, null, null, uuidC), // c: year-only — after 2024-10
-            DateRow(2024, 10, null, uuidB),   // b: 2024-10 — after 2024-10-09
-            DateRow(2024, 10, 9, uuidA),      // a: 2024-10-09 — newest
-        )
+        val rows =
+            listOf(
+                DateRow(null, null, null, uuidE), // e: unknown year — last
+                DateRow(2023, null, null, uuidD), // d: 2023 — before 2024
+                DateRow(2024, null, null, uuidC), // c: year-only — after 2024-10
+                DateRow(2024, 10, null, uuidB), // b: 2024-10 — after 2024-10-09
+                DateRow(2024, 10, 9, uuidA), // a: 2024-10-09 — newest
+            )
 
         val sorted = rows.sortedWith(dateOrder)
 
@@ -83,10 +88,11 @@ class DateOrderingRulesTest {
         val uuidF = UUID.fromString("00000000-0000-0000-0000-000000000006")
         val uuidG = UUID.fromString("00000000-0000-0000-0000-000000000007")
 
-        val rows = listOf(
-            DateRow(2024, 10, 9, uuidG), // g: same date as f, UUID after f
-            DateRow(2024, 10, 9, uuidF), // f: same date as g, UUID before g
-        )
+        val rows =
+            listOf(
+                DateRow(2024, 10, 9, uuidG), // g: same date as f, UUID after f
+                DateRow(2024, 10, 9, uuidF), // f: same date as g, UUID before g
+            )
 
         val sorted = rows.sortedWith(dateOrder)
         assertEquals(listOf(uuidF, uuidG), sorted.map { it.id })
@@ -99,10 +105,11 @@ class DateOrderingRulesTest {
         val uuidB = UUID.fromString("00000000-0000-0000-0000-000000000002")
         val uuidC = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
-        val rows = listOf(
-            DateRow(2024, null, null, uuidC), // year-only
-            DateRow(2024, 10, null, uuidB),   // year+month
-        )
+        val rows =
+            listOf(
+                DateRow(2024, null, null, uuidC), // year-only
+                DateRow(2024, 10, null, uuidB), // year+month
+            )
         val sorted = rows.sortedWith(dateOrder)
         // year+month (b) comes before year-only (c) in DESC ordering
         assertEquals(uuidB, sorted[0].id, "year+month must precede year-only (DESC)")
@@ -114,10 +121,11 @@ class DateOrderingRulesTest {
         val knownId = UUID.fromString("00000000-0000-0000-0000-000000000001")
         val unknownId = UUID.fromString("00000000-0000-0000-0000-000000000002")
 
-        val rows = listOf(
-            DateRow(null, null, null, unknownId),
-            DateRow(1, null, null, knownId),
-        )
+        val rows =
+            listOf(
+                DateRow(null, null, null, unknownId),
+                DateRow(1, null, null, knownId),
+            )
         val sorted = rows.sortedWith(dateOrder)
         assertEquals(knownId, sorted[0].id, "Known year must precede unknown year")
         assertEquals(unknownId, sorted[1].id, "Unknown year must be last (NULLS LAST)")
@@ -133,15 +141,16 @@ class DateOrderingRulesTest {
         val uuidF = UUID.fromString("00000000-0000-0000-0000-000000000006")
         val uuidG = UUID.fromString("00000000-0000-0000-0000-000000000007")
 
-        val rows = listOf(
-            DateRow(null, null, null, uuidE),
-            DateRow(2024, 10, 9, uuidG),
-            DateRow(2023, null, null, uuidD),
-            DateRow(2024, null, null, uuidC),
-            DateRow(2024, 10, null, uuidB),
-            DateRow(2024, 10, 9, uuidF),
-            DateRow(2024, 10, 9, uuidA),
-        )
+        val rows =
+            listOf(
+                DateRow(null, null, null, uuidE),
+                DateRow(2024, 10, 9, uuidG),
+                DateRow(2023, null, null, uuidD),
+                DateRow(2024, null, null, uuidC),
+                DateRow(2024, 10, null, uuidB),
+                DateRow(2024, 10, 9, uuidF),
+                DateRow(2024, 10, 9, uuidA),
+            )
 
         val sorted = rows.sortedWith(dateOrder)
         // Expected: a, f, g (equal date, ascending UUID), b, c, d, e

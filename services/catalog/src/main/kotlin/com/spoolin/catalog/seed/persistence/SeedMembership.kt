@@ -17,8 +17,9 @@ import javax.sql.DataSource
  * This class owns the schema primitive and removal tombstone helper.
  * It does not initialize production seed data.
  */
-class SeedMembership(private val dataSource: DataSource) {
-
+class SeedMembership(
+    private val dataSource: DataSource,
+) {
     data class MemberRow(
         val seedId: String,
         val memberKey: String,
@@ -29,12 +30,17 @@ class SeedMembership(private val dataSource: DataSource) {
         val removedAt: Instant?,
     )
 
-    fun isMember(seedId: String, memberKey: String): Boolean =
+    fun isMember(
+        seedId: String,
+        memberKey: String,
+    ): Boolean =
         dataSource.connection.use { conn ->
-            conn.queryBound(
-                "SELECT 1 FROM seed_member WHERE seed_id = ? AND member_key = ? AND removed_at IS NULL",
-                listOf(seedId, memberKey),
-            ) { true }.isNotEmpty()
+            conn
+                .queryBound(
+                    "SELECT 1 FROM seed_member WHERE seed_id = ? AND member_key = ? AND removed_at IS NULL",
+                    listOf(seedId, memberKey),
+                ) { true }
+                .isNotEmpty()
         }
 
     fun findActive(seedId: String): List<MemberRow> =
@@ -60,7 +66,12 @@ class SeedMembership(private val dataSource: DataSource) {
      * Tombstone a seed member (removal marker for T020/T024 lifecycle operations).
      * Idempotent — no-op if already removed.
      */
-    fun markRemoved(seedId: String, memberKey: String, removedAt: Instant, conn: java.sql.Connection) {
+    fun markRemoved(
+        seedId: String,
+        memberKey: String,
+        removedAt: Instant,
+        conn: java.sql.Connection,
+    ) {
         conn.executeBound(
             "UPDATE seed_member SET removed_at = ? WHERE seed_id = ? AND member_key = ? AND removed_at IS NULL",
             Timestamp.from(removedAt),

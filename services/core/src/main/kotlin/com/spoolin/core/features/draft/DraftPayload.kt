@@ -25,9 +25,18 @@ private val ALLOWED_KEYS =
     mapOf(
         "MOVIE" to
             setOf(
-                "title", "originalTitle", "synopsis", "genreIds", "release",
-                "runtimeMinutes", "originalLanguage", "synopsisLanguage",
-                "countries", "tvStatus", "tvEnd", "releaseContext",
+                "title",
+                "originalTitle",
+                "synopsis",
+                "genreIds",
+                "release",
+                "runtimeMinutes",
+                "originalLanguage",
+                "synopsisLanguage",
+                "countries",
+                "tvStatus",
+                "tvEnd",
+                "releaseContext",
             ),
         "PERSON" to setOf("name", "biography"),
         "CREDIT" to setOf("titleId", "personId", "roleId", "characters"),
@@ -57,16 +66,23 @@ class DraftPayload {
         targetKind: String,
         json: String,
     ): ByteArray {
-        val allowed = ALLOWED_KEYS[targetKind] ?: throw IllegalArgumentException(
-            "Draft targetKind must be MOVIE, PERSON, or CREDIT",
-        )
+        val allowed =
+            ALLOWED_KEYS[targetKind] ?: throw IllegalArgumentException(
+                "Draft targetKind must be MOVIE, PERSON, or CREDIT",
+            )
         val bytes = json.toByteArray(Charsets.UTF_8)
         require(bytes.size <= MAX_PLAINTEXT_BYTES) { "Draft payload exceeds the 65 536-byte limit" }
-        val node = runCatching { mapper.readTree(json) }.getOrElse {
-            throw IllegalArgumentException("Draft values must be a valid JSON object")
-        }
+        val node =
+            runCatching { mapper.readTree(json) }.getOrElse {
+                throw IllegalArgumentException("Draft values must be a valid JSON object")
+            }
         require(node.isObject) { "Draft values must be a JSON object" }
-        val keys = node.properties().asSequence().map { it.key }.toSet()
+        val keys =
+            node
+                .properties()
+                .asSequence()
+                .map { it.key }
+                .toSet()
         require(keys.none { it in REJECTED_KEYS }) {
             "Draft values must not contain private or credential fields"
         }

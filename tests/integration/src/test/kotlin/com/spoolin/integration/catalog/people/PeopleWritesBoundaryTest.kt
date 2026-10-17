@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit
 
 /** Cross-service person write boundary: signed Core actor to catalog receipt RPC. */
 class PeopleWritesBoundaryTest {
-
     @Test
     fun `signed actor reaches catalog receipt owner for person writes`() {
         SignedReceiptFixture("t009-people-write-boundary.json").use { proof ->

@@ -34,52 +34,54 @@ class SaveDraft(
      * @throws DraftStaleVersion if the expected version does not match.
      * @throws DraftQuotaExceeded if the account already has 20 live drafts.
      */
-    fun save(
-        operationId: UUID,
-        accountId: UUID,
-        draftId: UUID,
-        expectedVersion: Long?,
-        input: DraftInput,
-        correlationId: UUID,
-    ): ReceiptOutcome {
-        require(expectedVersion == null || expectedVersion >= 0) { "expectedVersion must be non-negative" }
-        val plaintext = payload.encode(input.targetKind, input.values)
+    fun save(command: DraftSaveCommand): ReceiptOutcome {
+        require(command.expectedVersion == null || command.expectedVersion >= 0) {
+            "expectedVersion must be non-negative"
+        }
+        val plaintext = payload.encode(command.input.targetKind, command.input.values)
         // Reserve nonce in a separately committed transaction BEFORE domain locks (§7.3.1).
         val envelope =
             try {
-                crypto.encrypt(draftId, plaintext)
+                crypto.encrypt(command.draftId, plaintext)
             } finally {
                 plaintext.fill(0)
             }
         val intent =
             OperationIntent(
-                id = operationId,
-                actorScope = "account:$accountId",
+                id = command.operationId,
+                actorScope = "account:${command.accountId}",
                 kind = DRAFT_SAVE_KIND,
-                policyRevision = input.policyRevision,
+                policyRevision = command.input.policyRevision,
                 fields =
                     buildList {
-                        add("draftId" to draftId.toString())
-                        add("targetKind" to input.targetKind)
-                        add("targetId" to input.targetId?.toString())
-                        add("baseVersion" to input.baseVersion?.toString())
-                        add("operationId" to input.operationId?.toString())
-                        add("expectedVersion" to expectedVersion?.toString())
-                        add("values" to input.values)
+                        add("draftId" to command.draftId.toString())
+                        add("targetKind" to command.input.targetKind)
+                        add("targetId" to command.input.targetId?.toString())
+                        add("baseVersion" to command.input.baseVersion?.toString())
+                        add("operationId" to command.input.operationId?.toString())
+                        add("expectedVersion" to command.expectedVersion?.toString())
+                        add("values" to command.input.values)
                     },
             )
-        val audit = ReceiptAudit(ReceiptAction.DRAFT_SAVED, actorId = accountId, subjectId = draftId)
-        return receipts.executeAudited(intent, correlationId, audit) { connection ->
+        val audit =
+            ReceiptAudit(
+                ReceiptAction.DRAFT_SAVED,
+                actorId = command.accountId,
+                subjectId = command.draftId,
+            )
+        return receipts.executeAudited(intent, command.correlationId, audit) { connection ->
             val newVersion =
                 drafts.saveInTransaction(
-                    connection = connection,
-                    accountId = accountId,
-                    draftId = draftId,
-                    expectedVersion = expectedVersion,
-                    input = input,
-                    envelope = envelope,
+                    connection,
+                    DraftPersistCommand(
+                        accountId = command.accountId,
+                        draftId = command.draftId,
+                        expectedVersion = command.expectedVersion,
+                        input = command.input,
+                        envelope = envelope,
+                    ),
                 )
-            SafeResult(resultId = draftId, version = newVersion)
+            SafeResult(resultId = command.draftId, version = newVersion)
         }
     }
 }

@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions", "LongMethod", "ThrowsCount", "SwallowedException", "SpreadOperator")
+
 package com.spoolin.catalog.features.person.write
 
 import com.spoolin.catalog.operations.audit.AuditDiff
@@ -39,12 +41,13 @@ private const val WRITE_KIND = "WritePerson"
  * D09: Optimistic concurrency; version increments on each domain change.
  */
 class PersonWrites(
-    private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
 ) {
-
-    fun writePerson(request: PersonWrite, response: StreamObserver<Outcome>) {
+    fun writePerson(
+        request: PersonWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw ActorRejected()
@@ -53,14 +56,22 @@ class PersonWrites(
             val actorScope = "account:${claims.accountId}"
             val isCreate = !request.hasId()
             val intentFields = intentFields(request, isCreate)
-            val intent = OperationIntent(
-                operationId, actorScope, WRITE_KIND,
-                request.context.policyRevision, intentFields,
-            )
-            val outcome = receipts.execute(intent, correlationId, true) { conn ->
-                if (isCreate) create(conn, request, claims.accountId, operationId, correlationId)
-                else update(conn, request, claims.accountId, operationId, correlationId)
-            }
+            val intent =
+                OperationIntent(
+                    operationId,
+                    actorScope,
+                    WRITE_KIND,
+                    request.context.policyRevision,
+                    intentFields,
+                )
+            val outcome =
+                receipts.execute(intent, correlationId, true) { conn ->
+                    if (isCreate) {
+                        create(conn, request, claims.accountId, operationId, correlationId)
+                    } else {
+                        update(conn, request, claims.accountId, operationId, correlationId)
+                    }
+                }
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
@@ -70,15 +81,21 @@ class PersonWrites(
                 Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException(),
             )
         } catch (e: InputViolation) {
-            val problem = Problem.newBuilder()
-                .setCode("FIELD_INVALID")
-                .addFields(
-                    FieldIssue.newBuilder()
-                        .setPath(e.path).setCode("INVALID").setMessage(e.correction).build(),
-                )
-                .build()
+            val problem =
+                Problem
+                    .newBuilder()
+                    .setCode("FIELD_INVALID")
+                    .addFields(
+                        FieldIssue
+                            .newBuilder()
+                            .setPath(e.path)
+                            .setCode("INVALID")
+                            .setMessage(e.correction)
+                            .build(),
+                    ).build()
             response.onNext(
-                Outcome.newBuilder()
+                Outcome
+                    .newBuilder()
                     .setOperationId(request.context.operationId)
                     .setState("FAILED")
                     .setProblem(problem)
@@ -101,12 +118,25 @@ class PersonWrites(
         conn.executeBound(
             "INSERT INTO person (id, name, biography, status, impact_version, version, created_at, updated_at)" +
                 " VALUES (?, ?, ?, 'ACTIVE', 0, 0, ?, ?)",
-            personId, validated.name, validated.biography, now, now,
+            personId,
+            validated.name,
+            validated.biography,
+            now,
+            now,
         )
         val afterSnapshot = createSnapshot(validated)
         AuditInsert.record(
-            conn, operationId, actorId, "HUMAN", "CREATE_PERSON", "PERSON", personId,
-            "SUCCEEDED", AuditDiff.person(emptyMap(), afterSnapshot), correlationId, clock.instant(),
+            conn,
+            operationId,
+            actorId,
+            "HUMAN",
+            "CREATE_PERSON",
+            "PERSON",
+            personId,
+            "SUCCEEDED",
+            AuditDiff.person(emptyMap(), afterSnapshot),
+            correlationId,
+            clock.instant(),
         )
         return SafeResult(personId, version = 0)
     }
@@ -120,8 +150,9 @@ class PersonWrites(
     ): SafeResult {
         val personId = parseId(request.id)
         val expectedVersion = request.expectedVersion
-        val current = lockPerson(conn, personId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val current =
+            lockPerson(conn, personId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (current.status == STATUS_ARCHIVED) {
             throw Status.FAILED_PRECONDITION.withDescription("PERSON_ARCHIVED").asRuntimeException()
         }
@@ -138,8 +169,17 @@ class PersonWrites(
         val beforeSnapshot = currentSnapshot(current)
         val afterSnapshot = patchedSnapshot(current, patch)
         AuditInsert.record(
-            conn, operationId, actorId, "HUMAN", "UPDATE_PERSON", "PERSON", personId,
-            "SUCCEEDED", AuditDiff.person(beforeSnapshot, afterSnapshot), correlationId, clock.instant(),
+            conn,
+            operationId,
+            actorId,
+            "HUMAN",
+            "UPDATE_PERSON",
+            "PERSON",
+            personId,
+            "SUCCEEDED",
+            AuditDiff.person(beforeSnapshot, afterSnapshot),
+            correlationId,
+            clock.instant(),
         )
         return SafeResult(personId, version = newVersion)
     }
@@ -158,7 +198,10 @@ class PersonWrites(
             params.add(patch.name.value)
         }
         when (patch.biography) {
-            is PatchValue.Value -> { sets.add("biography = ?"); params.add(patch.biography.value) }
+            is PatchValue.Value -> {
+                sets.add("biography = ?")
+                params.add(patch.biography.value)
+            }
             is PatchValue.Clear -> sets.add("biography = NULL")
             else -> {}
         }
@@ -168,10 +211,11 @@ class PersonWrites(
         params.add(now)
         params.add(personId)
         params.add(newVersion - 1)
-        val updated = conn.executeBound(
-            "UPDATE person SET ${sets.joinToString(",")} WHERE id = ? AND version = ?",
-            *params.toTypedArray(),
-        )
+        val updated =
+            conn.executeBound(
+                "UPDATE person SET ${sets.joinToString(",")} WHERE id = ? AND version = ?",
+                *params.toTypedArray(),
+            )
         check(updated == 1) { "Stale write — person was modified concurrently" }
     }
 
@@ -184,53 +228,79 @@ class PersonWrites(
         val version: Long,
     )
 
-    private fun lockPerson(conn: Connection, personId: UUID): PersonRow? =
-        conn.queryBound(
-            "SELECT name, biography, status, version FROM person WHERE id = ? FOR UPDATE",
-            listOf(personId),
-        ) { rs -> mapPersonRow(rs) }.firstOrNull()
+    private fun lockPerson(
+        conn: Connection,
+        personId: UUID,
+    ): PersonRow? =
+        conn
+            .queryBound(
+                "SELECT name, biography, status, version FROM person WHERE id = ? FOR UPDATE",
+                listOf(personId),
+            ) { rs -> mapPersonRow(rs) }
+            .firstOrNull()
 
-    private fun mapPersonRow(rs: ResultSet) = PersonRow(
-        name = rs.getString("name"),
-        biography = rs.getString("biography"),
-        status = rs.getString("status"),
-        version = rs.getLong("version"),
-    )
+    private fun mapPersonRow(rs: ResultSet) =
+        PersonRow(
+            name = rs.getString("name"),
+            biography = rs.getString("biography"),
+            status = rs.getString("status"),
+            version = rs.getLong("version"),
+        )
 
-    private fun createSnapshot(validated: ValidatedPersonCreate): Map<String, Any?> = mapOf(
-        "name" to validated.name,
-        "biography" to validated.biography,
-        "status" to STATUS_ACTIVE,
-        "version" to 0L,
-    )
+    private fun createSnapshot(validated: ValidatedPersonCreate): Map<String, Any?> =
+        mapOf(
+            "name" to validated.name,
+            "biography" to validated.biography,
+            "status" to STATUS_ACTIVE,
+            "version" to 0L,
+        )
 
-    private fun currentSnapshot(row: PersonRow): Map<String, Any?> = mapOf(
-        "name" to row.name,
-        "biography" to row.biography,
-        "status" to row.status,
-        "version" to row.version,
-    )
+    private fun currentSnapshot(row: PersonRow): Map<String, Any?> =
+        mapOf(
+            "name" to row.name,
+            "biography" to row.biography,
+            "status" to row.status,
+            "version" to row.version,
+        )
 
-    private fun patchedSnapshot(row: PersonRow, patch: ValidatedPersonPatch): Map<String, Any?> = mapOf(
-        "name" to patchValue(patch.name, row.name),
-        "biography" to patchValue(patch.biography, row.biography),
-        "status" to row.status,
-        "version" to row.version + 1,
-    )
+    private fun patchedSnapshot(
+        row: PersonRow,
+        patch: ValidatedPersonPatch,
+    ): Map<String, Any?> =
+        mapOf(
+            "name" to patchValue(patch.name, row.name),
+            "biography" to patchValue(patch.biography, row.biography),
+            "status" to row.status,
+            "version" to row.version + 1,
+        )
 
-    private fun <T> patchValue(patch: PatchValue<T>, current: T): Any? = when (patch) {
-        is PatchValue.Value -> patch.value
-        is PatchValue.Clear -> null
-        else -> current
-    }
+    private fun <T> patchValue(
+        patch: PatchValue<T>,
+        current: T,
+    ): Any? =
+        when (patch) {
+            is PatchValue.Value -> patch.value
+            is PatchValue.Clear -> null
+            else -> current
+        }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private fun intentFields(request: PersonWrite, isCreate: Boolean): List<Pair<String, String?>> {
+    private fun intentFields(
+        request: PersonWrite,
+        isCreate: Boolean,
+    ): List<Pair<String, String?>> {
         val fields = mutableListOf<Pair<String, String?>>()
         if (!isCreate) fields.add(Pair("id", request.id))
         fields.add(Pair("name", request.values.name))
-        fields.add(Pair("updateMask", request.updateMask.pathsList.sorted().joinToString(",")))
+        fields.add(
+            Pair(
+                "updateMask",
+                request.updateMask.pathsList
+                    .sorted()
+                    .joinToString(","),
+            ),
+        )
         return fields
     }
 
@@ -239,10 +309,12 @@ class PersonWrites(
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
 
     private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b = Outcome.newBuilder()
-            .setOperationId(outcome.id.toString())
-            .setState(outcome.state.name)
-            .setResultExpired(outcome.resultExpired)
+        val b =
+            Outcome
+                .newBuilder()
+                .setOperationId(outcome.id.toString())
+                .setState(outcome.state.name)
+                .setResultExpired(outcome.resultExpired)
         outcome.result?.let { r ->
             b.resultId = r.resultId.toString()
             r.version?.let { b.version = it }

@@ -4,6 +4,7 @@ import com.spoolin.support.receipts.committed
 import com.spoolin.support.work.AttemptOutcome
 import com.spoolin.support.work.WorkClaim
 import com.spoolin.support.work.WorkSchedule
+import com.spoolin.support.work.WorkAttemptCompletion
 import com.spoolin.support.work.WorkSql
 import java.security.SecureRandom
 import java.time.Clock
@@ -59,10 +60,17 @@ class WorkLeaseGuard(
             WorkSql.completeAttempt(
                 connection,
                 claim,
-                outcome,
-                if (outcome == AttemptOutcome.SUCCEEDED) null else (errorCode ?: outcome.code),
-                nextState,
-                nextAttemptAt,
+                WorkAttemptCompletion(
+                    outcome = outcome,
+                    errorCode =
+                        if (outcome == AttemptOutcome.SUCCEEDED) {
+                            null
+                        } else {
+                            errorCode ?: outcome.code
+                        },
+                    nextState = nextState,
+                    nextAttemptAt = nextAttemptAt,
+                ),
                 now,
             )
         }
@@ -72,25 +80,27 @@ class WorkLeaseGuard(
         claim: WorkClaim,
         outcome: AttemptOutcome,
         now: Instant,
-    ): Pair<String, Instant?> = when (outcome) {
-        AttemptOutcome.SUCCEEDED -> "DONE" to null
-        AttemptOutcome.CANCELLED -> "CANCELLED" to null
-        AttemptOutcome.PERMANENT -> "EXHAUSTED" to null
-        AttemptOutcome.UNCERTAIN -> "EXHAUSTED" to null
-        AttemptOutcome.TRANSIENT -> {
-            val exhausted = !WorkSchedule.canAttempt(claim.attemptCount, claim.maxAttempts, now, claim.deadlineAt)
-            if (exhausted) {
-                "EXHAUSTED" to null
-            } else {
-                val delayMs = WorkSchedule.sampleDelayMs(
-                    claim.baseDelayMs,
-                    claim.capDelayMs,
-                    claim.backoffMultiplier,
-                    claim.attemptCount,
-                    random.nextDouble(),
-                )
-                "READY" to now.plusMillis(delayMs)
+    ): Pair<String, Instant?> =
+        when (outcome) {
+            AttemptOutcome.SUCCEEDED -> "DONE" to null
+            AttemptOutcome.CANCELLED -> "CANCELLED" to null
+            AttemptOutcome.PERMANENT -> "EXHAUSTED" to null
+            AttemptOutcome.UNCERTAIN -> "EXHAUSTED" to null
+            AttemptOutcome.TRANSIENT -> {
+                val exhausted = !WorkSchedule.canAttempt(claim.attemptCount, claim.maxAttempts, now, claim.deadlineAt)
+                if (exhausted) {
+                    "EXHAUSTED" to null
+                } else {
+                    val delayMs =
+                        WorkSchedule.sampleDelayMs(
+                            claim.baseDelayMs,
+                            claim.capDelayMs,
+                            claim.backoffMultiplier,
+                            claim.attemptCount,
+                            random.nextDouble(),
+                        )
+                    "READY" to now.plusMillis(delayMs)
+                }
             }
         }
-    }
 }

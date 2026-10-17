@@ -16,7 +16,9 @@ import java.util.UUID
  * - Paths resolve only under [root]/quarantine or [root]/output.
  * - fsync is called before returning the path, so a later commit/rename finds durable bytes.
  */
-class QuarantineStore(private val root: Path) {
+class QuarantineStore(
+    private val root: Path,
+) {
     private val quarantine: Path = root.resolve(ProcessingBounds.STAGING_SUBDIR)
     private val output: Path = root.resolve(ProcessingBounds.OUTPUT_SUBDIR)
 
@@ -30,15 +32,25 @@ class QuarantineStore(private val root: Path) {
 
     /** Open the staging file for writing. The caller is responsible for closing the stream. */
     fun openForWrite(path: Path): OutputStream =
-        FileChannel.open(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+        FileChannel
+            .open(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
             .let { channel ->
                 object : OutputStream() {
-                    override fun write(b: Int) = channel.write(java.nio.ByteBuffer.wrap(byteArrayOf(b.toByte())))
-                        .let {}
-                    override fun write(b: ByteArray, off: Int, len: Int) {
+                    override fun write(b: Int) =
+                        channel
+                            .write(java.nio.ByteBuffer.wrap(byteArrayOf(b.toByte())))
+                            .let {}
+
+                    override fun write(
+                        b: ByteArray,
+                        off: Int,
+                        len: Int,
+                    ) {
                         channel.write(java.nio.ByteBuffer.wrap(b, off, len))
                     }
+
                     override fun flush() = channel.force(true) // fsync (§7.6)
+
                     override fun close() {
                         channel.force(true)
                         channel.close()
@@ -50,7 +62,10 @@ class QuarantineStore(private val root: Path) {
     fun deleteQuarantine(path: Path) = Files.deleteIfExists(path)
 
     /** Move a committed quarantine file to the output area (atomic within the volume). */
-    fun promoteToOutput(stagingPath: Path, assetId: UUID): Path {
+    fun promoteToOutput(
+        stagingPath: Path,
+        assetId: UUID,
+    ): Path {
         val outputPath = output.resolve(assetId.toString())
         Files.move(stagingPath, outputPath, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
         return outputPath

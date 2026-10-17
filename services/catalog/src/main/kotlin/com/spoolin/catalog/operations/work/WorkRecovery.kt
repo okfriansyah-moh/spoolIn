@@ -1,10 +1,10 @@
 package com.spoolin.catalog.operations.work
 
 import com.spoolin.support.receipts.committed
+import com.spoolin.support.work.WorkRecoveryCommit
 import com.spoolin.support.work.WorkRecoveryRequest
 import com.spoolin.support.work.WorkSql
 import java.time.Clock
-import java.util.UUID
 import javax.sql.DataSource
 
 /**
@@ -22,12 +22,12 @@ class WorkRecovery(
             WorkSql.recoverWork(
                 connection,
                 request.workId,
-                request.operatorId,
-                request.reason,
-                request.correlationId,
-                newLeaseEpoch = 0L,
-                eventId = UUID.randomUUID(),
-                now = clock.instant(),
+                WorkRecoveryCommit(
+                    operatorId = request.operatorId,
+                    reason = request.reason,
+                    correlationId = request.correlationId,
+                ),
+                clock.instant(),
             )
         }
 }

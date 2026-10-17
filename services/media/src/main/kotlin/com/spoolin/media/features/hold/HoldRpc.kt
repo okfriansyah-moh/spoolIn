@@ -1,3 +1,5 @@
+@file:Suppress("ThrowsCount")
+
 package com.spoolin.media.features.hold
 
 import com.spoolin.media.features.asset.AssetSql
@@ -11,16 +13,22 @@ import spoolin.v1.Spoolin.Hold
 import java.util.UUID
 import javax.sql.DataSource
 
-class HoldRpc(private val dataSource: DataSource) {
-    fun reserve(request: Hold, response: StreamObserver<Attachment>) {
+class HoldRpc(
+    private val dataSource: DataSource,
+) {
+    fun reserve(
+        request: Hold,
+        response: StreamObserver<Attachment>,
+    ) {
         try {
             val holdId = parseUuid(request.holdId)
             val assetId = parseUuid(request.assetId)
             val titleId = parseUuid(request.titleId)
             ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             dataSource.committed { connection ->
-                val asset = AssetSql.findLocked(connection, assetId)
-                    ?: throw Status.NOT_FOUND.withDescription("ASSET_NOT_FOUND").asRuntimeException()
+                val asset =
+                    AssetSql.findLocked(connection, assetId)
+                        ?: throw Status.NOT_FOUND.withDescription("ASSET_NOT_FOUND").asRuntimeException()
                 if (asset.state != AssetState.READY) {
                     throw Status.FAILED_PRECONDITION.withDescription("ASSET_NOT_READY").asRuntimeException()
                 }
@@ -35,7 +43,10 @@ class HoldRpc(private val dataSource: DataSource) {
         }
     }
 
-    fun confirm(request: Hold, response: StreamObserver<Attachment>) {
+    fun confirm(
+        request: Hold,
+        response: StreamObserver<Attachment>,
+    ) {
         try {
             val holdId = parseUuid(request.holdId)
             val version = request.catalogVersion
@@ -52,7 +63,10 @@ class HoldRpc(private val dataSource: DataSource) {
         }
     }
 
-    fun release(request: Hold, response: StreamObserver<Attachment>) {
+    fun release(
+        request: Hold,
+        response: StreamObserver<Attachment>,
+    ) {
         try {
             val holdId = parseUuid(request.holdId)
             ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
@@ -64,16 +78,20 @@ class HoldRpc(private val dataSource: DataSource) {
         }
     }
 
-    private fun attachmentProto(holdId: UUID, state: String, request: Hold): Attachment =
-        Attachment.newBuilder()
+    private fun attachmentProto(
+        holdId: UUID,
+        state: String,
+        request: Hold,
+    ): Attachment =
+        Attachment
+            .newBuilder()
             .setHoldId(holdId.toString())
             .setState(state)
             .setAssetId(request.assetId)
             .setTitleId(request.titleId)
             .also { b ->
                 if (request.hasCatalogVersion()) b.catalogVersion = request.catalogVersion
-            }
-            .build()
+            }.build()
 
     private fun parseUuid(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }

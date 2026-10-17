@@ -10,10 +10,11 @@ enum class ReferenceState {
     fun canTransitionTo(to: ReferenceState): Boolean = to in ALLOWED[this].orEmpty()
 
     companion object {
-        private val ALLOWED: Map<ReferenceState, Set<ReferenceState>> = mapOf(
-            RESERVED to setOf(ACTIVE, RELEASED),
-            ACTIVE to setOf(RELEASED),
-            RELEASED to emptySet(),
-        )
+        private val ALLOWED: Map<ReferenceState, Set<ReferenceState>> =
+            mapOf(
+                RESERVED to setOf(ACTIVE, RELEASED),
+                ACTIVE to setOf(RELEASED),
+                RELEASED to emptySet(),
+            )
     }
 }

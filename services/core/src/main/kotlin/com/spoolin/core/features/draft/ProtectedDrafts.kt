@@ -90,19 +90,16 @@ class ProtectedDrafts(
      */
     fun saveInTransaction(
         connection: Connection,
-        accountId: UUID,
-        draftId: UUID,
-        expectedVersion: Long?,
-        input: DraftInput,
-        envelope: ProtectedEnvelope,
+        command: DraftPersistCommand,
     ): Long {
-        lockAccount(connection, accountId)
+        lockAccount(connection, command.accountId)
         val now = Timestamp.from(clock.instant())
         val expiresAt = Timestamp.from(clock.instant().plus(Duration.ofHours(DRAFT_TTL_HOURS)))
-        return if (expectedVersion == null) {
-            create(connection, accountId, draftId, input, envelope, now, expiresAt)
+        val stamps = DraftWriteTimestamps(now, expiresAt)
+        return if (command.expectedVersion == null) {
+            create(connection, command, stamps)
         } else {
-            update(connection, accountId, draftId, expectedVersion, input, envelope, now, expiresAt)
+            update(connection, command, command.expectedVersion, stamps)
         }
     }
 
@@ -142,19 +139,15 @@ class ProtectedDrafts(
 
     private fun create(
         connection: Connection,
-        accountId: UUID,
-        draftId: UUID,
-        input: DraftInput,
-        envelope: ProtectedEnvelope,
-        now: Timestamp,
-        expiresAt: Timestamp,
+        command: DraftPersistCommand,
+        stamps: DraftWriteTimestamps,
     ): Long {
         val count =
             connection
                 .queryBound(
                     "SELECT COUNT(*) FROM form_draft " +
                         "WHERE account_id=? AND expires_at > CURRENT_TIMESTAMP",
-                    listOf(accountId),
+                    listOf(command.accountId),
                 ) { it.getLong(1) }
                 .single()
         if (count >= MAX_DRAFTS_PER_ACCOUNT) throw DraftQuotaExceeded()
@@ -163,31 +156,27 @@ class ProtectedDrafts(
                 "(id,account_id,target_kind,target_id,base_version,operation_id," +
                 "policy_revision,body_key_id,body_nonce,body_cipher,version,updated_at,expires_at) " +
                 "VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?)",
-            draftId,
-            accountId,
-            input.targetKind,
-            input.targetId,
-            input.baseVersion,
-            input.operationId,
-            input.policyRevision,
-            envelope.keyId,
-            envelope.nonce(),
-            envelope.cipher(),
-            now,
-            expiresAt,
+            command.draftId,
+            command.accountId,
+            command.input.targetKind,
+            command.input.targetId,
+            command.input.baseVersion,
+            command.input.operationId,
+            command.input.policyRevision,
+            command.envelope.keyId,
+            command.envelope.nonce(),
+            command.envelope.cipher(),
+            stamps.now,
+            stamps.expiresAt,
         )
         return 0L
     }
 
     private fun update(
         connection: Connection,
-        accountId: UUID,
-        draftId: UUID,
+        command: DraftPersistCommand,
         expectedVersion: Long,
-        input: DraftInput,
-        envelope: ProtectedEnvelope,
-        now: Timestamp,
-        expiresAt: Timestamp,
+        stamps: DraftWriteTimestamps,
     ): Long {
         val newVersion = expectedVersion + 1
         val updated =
@@ -197,19 +186,19 @@ class ProtectedDrafts(
                     "policy_revision=?,body_key_id=?,body_nonce=?,body_cipher=?," +
                     "version=?,updated_at=?,expires_at=? " +
                     "WHERE id=? AND account_id=? AND version=?",
-                input.targetKind,
-                input.targetId,
-                input.baseVersion,
-                input.operationId,
-                input.policyRevision,
-                envelope.keyId,
-                envelope.nonce(),
-                envelope.cipher(),
+                command.input.targetKind,
+                command.input.targetId,
+                command.input.baseVersion,
+                command.input.operationId,
+                command.input.policyRevision,
+                command.envelope.keyId,
+                command.envelope.nonce(),
+                command.envelope.cipher(),
                 newVersion,
-                now,
-                expiresAt,
-                draftId,
-                accountId,
+                stamps.now,
+                stamps.expiresAt,
+                command.draftId,
+                command.accountId,
                 expectedVersion,
             )
         if (updated != 1) throw DraftStaleVersion()

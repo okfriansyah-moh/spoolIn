@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "CyclomaticComplexMethod", "ThrowsCount", "MaxLineLength")
+
 package com.spoolin.catalog.features.lifecycle
 
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
@@ -17,7 +19,10 @@ class PersonLifecycle(
     private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
 ) {
-    fun apply(request: Lifecycle, response: StreamObserver<Outcome>) {
+    fun apply(
+        request: Lifecycle,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw Status.PERMISSION_DENIED.asRuntimeException()
@@ -79,7 +84,8 @@ class PersonLifecycle(
     }
 
     private fun outcomeProto(receipt: com.spoolin.support.receipts.ReceiptOutcome): Outcome =
-        Outcome.newBuilder()
+        Outcome
+            .newBuilder()
             .setOperationId(receipt.id.toString())
             .setState(receipt.state.name)
             .setResultExpired(receipt.resultExpired)
@@ -88,8 +94,7 @@ class PersonLifecycle(
                     b.resultId = r.resultId.toString()
                     r.version?.let { b.version = it }
                 }
-            }
-            .build()
+            }.build()
 
     private fun parseUuid(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }

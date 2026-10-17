@@ -1,3 +1,5 @@
+@file:Suppress("LongParameterList", "CyclomaticComplexMethod")
+
 package com.spoolin.catalog.features.search
 
 import java.nio.ByteBuffer
@@ -25,8 +27,9 @@ private const val CURSOR_TTL_SECONDS = 900L // 15 minutes
  * The key is injected; tests use a fixed key for determinism.
  * Scope hash = SHA-256 of the canonical query parameters.
  */
-class CatalogCursor(private val key: ByteArray = newRandomKey()) {
-
+class CatalogCursor(
+    private val key: ByteArray = newRandomKey(),
+) {
     data class Keyset(
         val releaseYear: Int?,
         val releaseMonth: Int?,
@@ -37,7 +40,11 @@ class CatalogCursor(private val key: ByteArray = newRandomKey()) {
     /**
      * Encode a cursor from the last-page keyset plus a scope hash and current clock instant.
      */
-    fun encode(keyset: Keyset, scopeHash: String, now: Instant): String {
+    fun encode(
+        keyset: Keyset,
+        scopeHash: String,
+        now: Instant,
+    ): String {
         val expiresAt = now.plusSeconds(CURSOR_TTL_SECONDS).epochSecond
         val payload = buildPayload(keyset, scopeHash, expiresAt)
         val mac = mac(payload)
@@ -52,33 +59,42 @@ class CatalogCursor(private val key: ByteArray = newRandomKey()) {
      *
      * The return value is the keyset to use as the SQL continuation point.
      */
-    fun decode(encoded: String, scopeHash: String, now: Instant): Keyset? = runCatching {
-        val bytes = Base64.getUrlDecoder().decode(encoded)
-        if (bytes.size < HMAC_LEN + 1) return@runCatching null
-        val payload = bytes.copyOfRange(0, bytes.size - HMAC_LEN)
-        val expected = mac(payload)
-        val actual = bytes.copyOfRange(bytes.size - HMAC_LEN, bytes.size)
-        if (!constantTimeEquals(expected, actual)) return@runCatching null
-        val json = String(payload, Charsets.UTF_8)
-        val values = parseJson(json) ?: return@runCatching null
-        val expiresAt = values["e"] as? Long ?: return@runCatching null
-        if (now.epochSecond >= expiresAt) return@runCatching null
-        val scope = values["s"] as? String ?: return@runCatching null
-        if (scope != scopeHash) return@runCatching null
-        val u = values["u"] as? String ?: return@runCatching null
-        val id = UUID.fromString(u)
-        if (id.toString() != u) return@runCatching null
-        Keyset(
-            releaseYear = (values["y"] as? Long)?.toInt(),
-            releaseMonth = (values["m"] as? Long)?.toInt(),
-            releaseDay = (values["d"] as? Long)?.toInt(),
-            id = id,
-        )
-    }.getOrNull()
+    fun decode(
+        encoded: String,
+        scopeHash: String,
+        now: Instant,
+    ): Keyset? =
+        runCatching {
+            val bytes = Base64.getUrlDecoder().decode(encoded)
+            if (bytes.size < HMAC_LEN + 1) return@runCatching null
+            val payload = bytes.copyOfRange(0, bytes.size - HMAC_LEN)
+            val expected = mac(payload)
+            val actual = bytes.copyOfRange(bytes.size - HMAC_LEN, bytes.size)
+            if (!constantTimeEquals(expected, actual)) return@runCatching null
+            val json = String(payload, Charsets.UTF_8)
+            val values = parseJson(json) ?: return@runCatching null
+            val expiresAt = values["e"] as? Long ?: return@runCatching null
+            if (now.epochSecond >= expiresAt) return@runCatching null
+            val scope = values["s"] as? String ?: return@runCatching null
+            if (scope != scopeHash) return@runCatching null
+            val u = values["u"] as? String ?: return@runCatching null
+            val id = UUID.fromString(u)
+            if (id.toString() != u) return@runCatching null
+            Keyset(
+                releaseYear = (values["y"] as? Long)?.toInt(),
+                releaseMonth = (values["m"] as? Long)?.toInt(),
+                releaseDay = (values["d"] as? Long)?.toInt(),
+                id = id,
+            )
+        }.getOrNull()
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private fun buildPayload(keyset: Keyset, scopeHash: String, expiresAt: Long): ByteArray {
+    private fun buildPayload(
+        keyset: Keyset,
+        scopeHash: String,
+        expiresAt: Long,
+    ): ByteArray {
         val sb = StringBuilder("{")
         keyset.releaseYear?.let { sb.append("\"y\":$it,") }
         keyset.releaseMonth?.let { sb.append("\"m\":$it,") }
@@ -96,24 +112,26 @@ class CatalogCursor(private val key: ByteArray = newRandomKey()) {
     }
 
     /** Minimal JSON deserializer sufficient for cursor payloads (no external deps). */
-    private fun parseJson(json: String): Map<String, Any>? = runCatching {
-        val cleaned = json.trim().removePrefix("{").removeSuffix("}")
-        val result = mutableMapOf<String, Any>()
-        val entries = splitEntries(cleaned)
-        for (entry in entries) {
-            val colon = entry.indexOf(':')
-            if (colon < 0) return@runCatching null
-            val rawKey = entry.substring(0, colon).trim().trim('"')
-            val rawValue = entry.substring(colon + 1).trim()
-            val value: Any = when {
-                rawValue.startsWith("\"") -> rawValue.trim('"')
-                rawValue.toLongOrNull() != null -> rawValue.toLong()
-                else -> return@runCatching null
+    private fun parseJson(json: String): Map<String, Any>? =
+        runCatching {
+            val cleaned = json.trim().removePrefix("{").removeSuffix("}")
+            val result = mutableMapOf<String, Any>()
+            val entries = splitEntries(cleaned)
+            for (entry in entries) {
+                val colon = entry.indexOf(':')
+                if (colon < 0) return@runCatching null
+                val rawKey = entry.substring(0, colon).trim().trim('"')
+                val rawValue = entry.substring(colon + 1).trim()
+                val value: Any =
+                    when {
+                        rawValue.startsWith("\"") -> rawValue.trim('"')
+                        rawValue.toLongOrNull() != null -> rawValue.toLong()
+                        else -> return@runCatching null
+                    }
+                result[rawKey] = value
             }
-            result[rawKey] = value
-        }
-        result
-    }.getOrNull()
+            result
+        }.getOrNull()
 
     private fun splitEntries(s: String): List<String> {
         val parts = mutableListOf<String>()
@@ -141,7 +159,10 @@ class CatalogCursor(private val key: ByteArray = newRandomKey()) {
         fun newRandomKey(): ByteArray = ByteArray(KEY_BYTES).also { random.nextBytes(it) }
 
         /** Constant-time comparison to prevent timing attacks. */
-        fun constantTimeEquals(a: ByteArray, b: ByteArray): Boolean {
+        fun constantTimeEquals(
+            a: ByteArray,
+            b: ByteArray,
+        ): Boolean {
             if (a.size != b.size) return false
             var diff = 0
             for (i in a.indices) diff = diff or (a[i].toInt() xor b[i].toInt())
@@ -160,17 +181,19 @@ class CatalogCursor(private val key: ByteArray = newRandomKey()) {
             month: Int?,
             visibility: String,
         ): String {
-            val canonical = buildString {
-                append("v=").append(visibility).append(';')
-                append("t=").append(text.orEmpty()).append(';')
-                append("k=").append(kind.orEmpty()).append(';')
-                append("g=").append(genreIds.sorted().joinToString(",")).append(';')
-                append("y=").append(year ?: "").append(';')
-                append("m=").append(month ?: "")
-            }
-            val digest = java.security.MessageDigest.getInstance("SHA-256").digest(
-                canonical.toByteArray(Charsets.UTF_8),
-            )
+            val canonical =
+                buildString {
+                    append("v=").append(visibility).append(';')
+                    append("t=").append(text.orEmpty()).append(';')
+                    append("k=").append(kind.orEmpty()).append(';')
+                    append("g=").append(genreIds.sorted().joinToString(",")).append(';')
+                    append("y=").append(year ?: "").append(';')
+                    append("m=").append(month ?: "")
+                }
+            val digest =
+                java.security.MessageDigest.getInstance("SHA-256").digest(
+                    canonical.toByteArray(Charsets.UTF_8),
+                )
             return digest.joinToString("") { "%02x".format(it) }
         }
 
@@ -178,7 +201,6 @@ class CatalogCursor(private val key: ByteArray = newRandomKey()) {
          * Escape user text for pg_unicode_fast LIKE patterns.
          * Escapes \, %, _ so they are treated as literals.
          */
-        fun escapeWildcards(text: String): String =
-            text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        fun escapeWildcards(text: String): String = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     }
 }

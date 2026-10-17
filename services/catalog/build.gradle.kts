@@ -75,11 +75,12 @@ tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
 
 val catalogReadUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = files(
-        sourceSets["test"].output.classesDirs,
-        sourceSets["main"].output,
-        configurations["testRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
     filter {
         includeTestsMatching("com.spoolin.catalog.features.search.*RulesTest")
         includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.*RulesTest")
@@ -95,11 +96,12 @@ tasks.named("koverXmlReport") { dependsOn(catalogReadUnitTest) }
 
 val catalogMovieWriteUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = files(
-        sourceSets["test"].output.classesDirs,
-        sourceSets["main"].output,
-        configurations["testRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
     filter {
         includeTestsMatching("com.spoolin.catalog.features.movie.*RulesTest")
         includeTestsMatching("com.spoolin.catalog.features.taxonomy.write.*RulesTest")
@@ -113,11 +115,12 @@ tasks.named("koverXmlReport") { dependsOn(catalogMovieWriteUnitTest) }
 
 val catalogPersonWriteUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = files(
-        sourceSets["test"].output.classesDirs,
-        sourceSets["main"].output,
-        configurations["testRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
     filter {
         includeTestsMatching("com.spoolin.catalog.features.person.write.*RulesTest")
     }
@@ -129,11 +132,12 @@ tasks.named("koverXmlReport") { dependsOn(catalogPersonWriteUnitTest) }
 
 val catalogArtworkUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = files(
-        sourceSets["test"].output.classesDirs,
-        sourceSets["main"].output,
-        configurations["testRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
     filter { includeTestsMatching("com.spoolin.catalog.features.artwork.*RulesTest") }
     useJUnitPlatform()
     maxHeapSize = "512m"
@@ -143,11 +147,12 @@ tasks.named("koverXmlReport") { dependsOn(catalogArtworkUnitTest) }
 
 val catalogLifecycleUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = files(
-        sourceSets["test"].output.classesDirs,
-        sourceSets["main"].output,
-        configurations["testRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
     filter { includeTestsMatching("com.spoolin.catalog.features.lifecycle.*RulesTest") }
     useJUnitPlatform()
     maxHeapSize = "512m"
@@ -157,11 +162,12 @@ tasks.named("koverXmlReport") { dependsOn(catalogLifecycleUnitTest) }
 
 val catalogCreditWriteUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = files(
-        sourceSets["test"].output.classesDirs,
-        sourceSets["main"].output,
-        configurations["testRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
     filter {
         includeTestsMatching("com.spoolin.catalog.features.credit.*RulesTest")
         includeTestsMatching("com.spoolin.catalog.features.taxonomy.roles.*RulesTest")

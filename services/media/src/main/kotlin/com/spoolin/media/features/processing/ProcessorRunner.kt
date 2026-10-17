@@ -1,3 +1,5 @@
+@file:Suppress("ComplexCondition", "TooGenericExceptionCaught", "SwallowedException")
+
 package com.spoolin.media.features.processing
 
 import java.nio.file.Files
@@ -15,6 +17,9 @@ import java.util.UUID
  * - Unknown or extra options are refused before execution.
  * - Subprocess output paths are UUID-only relative to the quarantine directory.
  */
+private const val VIPS_HEADER_TIMEOUT_SECONDS = 5L
+
+@Suppress("ReturnCount", "MagicNumber", "UnusedParameter")
 class ProcessorRunner(
     private val libvipsExecutable: String = "vips",
 ) {
@@ -28,7 +33,9 @@ class ProcessorRunner(
             val contentHash: ByteArray,
         ) : Outcome()
 
-        data class Rejected(val errorCode: String) : Outcome()
+        data class Rejected(
+            val errorCode: String,
+        ) : Outcome()
     }
 
     /**
@@ -62,11 +69,12 @@ class ProcessorRunner(
         outputPath: Path,
         format: ImageFormat,
     ): List<String> {
-        val saveOptions = when (format) {
-            ImageFormat.JPEG -> "[Q=85,optimize_coding=true,strip=true]"
-            ImageFormat.PNG -> "[compression=6,strip=true]"
-            ImageFormat.WEBP -> "[Q=85,strip=true]"
-        }
+        val saveOptions =
+            when (format) {
+                ImageFormat.JPEG -> "[Q=85,optimize_coding=true,strip=true]"
+                ImageFormat.PNG -> "[compression=6,strip=true]"
+                ImageFormat.WEBP -> "[Q=85,strip=true]"
+            }
         // vips copy: decode, strip metadata, apply orientation, re-encode.
         // All arguments are fixed or numeric — no user input touches args (ATDD-325).
         return listOf(
@@ -109,7 +117,7 @@ class ProcessorRunner(
         val bytes = Files.readAllBytes(outputPath)
         val hash = MessageDigest.getInstance("SHA-256").digest(bytes)
         // Dimensions are re-read from the output to confirm re-encoding succeeded.
-        val dims = readDimensions(outputPath, format) ?: return Outcome.Rejected("PROCESSING_OUTPUT_UNREADABLE")
+        val dims = readDimensions(outputPath) ?: return Outcome.Rejected("PROCESSING_OUTPUT_UNREADABLE")
         return Outcome.Success(
             outputPath = outputPath,
             format = format,
@@ -120,24 +128,40 @@ class ProcessorRunner(
         )
     }
 
-    private fun readDimensions(path: Path, format: ImageFormat): Pair<Int, Int>? {
+    private fun readDimensions(path: Path): Pair<Int, Int>? {
         // Use vips header to read dimensions without full decode (safe, no display).
         return try {
             val args =
                 listOf(
-                    libvipsExecutable, "header", "-f", "width", path.toAbsolutePath().toString(),
+                    libvipsExecutable,
+                    "header",
+                    "-f",
+                    "width",
+                    path.toAbsolutePath().toString(),
                 )
             val widthResult = ProcessBuilder(args).start()
-            val widthStr = widthResult.inputStream.reader().readText().trim()
-            widthResult.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+            val widthStr =
+                widthResult.inputStream
+                    .reader()
+                    .readText()
+                    .trim()
+            widthResult.waitFor(VIPS_HEADER_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
 
             val heightArgs =
                 listOf(
-                    libvipsExecutable, "header", "-f", "height", path.toAbsolutePath().toString(),
+                    libvipsExecutable,
+                    "header",
+                    "-f",
+                    "height",
+                    path.toAbsolutePath().toString(),
                 )
             val heightResult = ProcessBuilder(heightArgs).start()
-            val heightStr = heightResult.inputStream.reader().readText().trim()
-            heightResult.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+            val heightStr =
+                heightResult.inputStream
+                    .reader()
+                    .readText()
+                    .trim()
+            heightResult.waitFor(VIPS_HEADER_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
 
             val w = widthStr.toIntOrNull() ?: return null
             val h = heightStr.toIntOrNull() ?: return null

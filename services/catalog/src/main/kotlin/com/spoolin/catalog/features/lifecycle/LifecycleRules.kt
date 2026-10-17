@@ -13,5 +13,5 @@ object LifecycleRules {
 
     fun requiresConfirmation(action: Action): Boolean = action == Action.DELETE
 
-    fun cancelChangesNothing(): Boolean = true
+    const val CANCEL_CHANGES_NOTHING: Boolean = true
 }

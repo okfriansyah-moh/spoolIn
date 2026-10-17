@@ -8,6 +8,7 @@ import com.spoolin.core.features.crypto.StoredPasswordHash
 import com.spoolin.core.features.session.SessionCsrf
 import com.spoolin.core.features.session.SessionStore
 import com.spoolin.core.recovery.crypto.CryptoFixture
+import com.spoolin.media.features.upload.QuarantineStore
 import com.spoolin.support.identity.ActorClaims
 import com.spoolin.support.identity.ActorInterceptor
 import com.spoolin.support.identity.ActorRpc
@@ -27,6 +28,7 @@ import io.grpc.stub.MetadataUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.springframework.core.env.StandardEnvironment
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.IdentityServiceGrpc
 import spoolin.v1.MediaServiceGrpc
@@ -43,8 +45,6 @@ import java.time.ZoneOffset
 import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import org.springframework.core.env.StandardEnvironment
-import com.spoolin.media.features.upload.QuarantineStore
 
 class ActorRotationTest {
     @Test

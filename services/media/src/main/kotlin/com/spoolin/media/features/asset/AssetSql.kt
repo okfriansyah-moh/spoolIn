@@ -1,3 +1,5 @@
+@file:Suppress("LongParameterList")
+
 package com.spoolin.media.features.asset
 
 import com.spoolin.support.receipts.executeBound
@@ -109,15 +111,22 @@ object AssetSql {
     /**
      * Read a single asset row by primary key, with a FOR UPDATE lock when inside a transaction.
      */
-    fun findLocked(connection: Connection, id: UUID): AssetRow? =
+    fun findLocked(
+        connection: Connection,
+        id: UUID,
+    ): AssetRow? =
         connection
             .queryBound("SELECT * FROM asset WHERE id = ? FOR UPDATE", listOf(id)) { AssetRow.decode(it) }
             .firstOrNull()
 
     /** Read-only lookup for projection and status queries. */
-    fun find(dataSource: DataSource, id: UUID): AssetRow? =
+    fun find(
+        dataSource: DataSource,
+        id: UUID,
+    ): AssetRow? =
         dataSource.connection.use { connection ->
-            connection.queryBound("SELECT * FROM asset WHERE id = ?", listOf(id)) { AssetRow.decode(it) }
+            connection
+                .queryBound("SELECT * FROM asset WHERE id = ?", listOf(id)) { AssetRow.decode(it) }
                 .firstOrNull()
         }
 

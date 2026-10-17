@@ -14,7 +14,6 @@ import java.util.UUID
  * AC-056: Credentials, tokens and emails never appear in the changes column.
  */
 object AuditInsert {
-
     @Suppress("LongParameterList")
     fun record(
         connection: Connection,
@@ -37,8 +36,18 @@ object AuditInsert {
                 "VALUES (?,?,?,?,?,?,?,?,?::jsonb,?,?)"
         check(
             connection.executeBound(
-                sql, id, operationId, actorId, actorKind, action, subjectKind, subjectId,
-                outcome, changes, correlationId, Timestamp.from(createdAt),
+                sql,
+                id,
+                operationId,
+                actorId,
+                actorKind,
+                action,
+                subjectKind,
+                subjectId,
+                outcome,
+                changes,
+                correlationId,
+                Timestamp.from(createdAt),
             ) == 1,
         ) { "Audit record insert failed unexpectedly" }
     }

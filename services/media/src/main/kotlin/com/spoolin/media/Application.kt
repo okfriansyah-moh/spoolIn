@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.spoolin.media
 
 import com.spoolin.media.features.upload.MediaServiceImpl
@@ -130,10 +132,14 @@ class Application {
         environment: Environment,
         quarantineStore: QuarantineStore,
     ): io.grpc.BindableService {
-        val reads = com.spoolin.media.operations.receipts.OwnerReceiptReads(dataSource)
+        val reads =
+            com.spoolin.media.operations.receipts
+                .OwnerReceiptReads(dataSource)
         val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
         val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision)
-        val holdRpc = com.spoolin.media.features.hold.HoldRpc(dataSource)
+        val holdRpc =
+            com.spoolin.media.features.hold
+                .HoldRpc(dataSource)
         return MediaServiceImpl(uploadRpc, holdRpc, reads)
     }
 

@@ -7,16 +7,17 @@ import org.junit.jupiter.api.Test
 import spoolin.v1.Spoolin.CreditWrite
 
 class CreditValidationRulesTest {
-
     @Test
     fun `character names accept embedded slash as one string (AC-026)`() {
-        val names = CreditValidation.validateCreate(
-            creditWrite(
-                personId = "00000000-0000-4000-8000-000000000001",
-                roleId = "00000000-0000-4000-8000-000000000002",
-                characters = listOf("Maya / Echo"),
-            ),
-        ).characters
+        val names =
+            CreditValidation
+                .validateCreate(
+                    creditWrite(
+                        personId = "00000000-0000-4000-8000-000000000001",
+                        roleId = "00000000-0000-4000-8000-000000000002",
+                        characters = listOf("Maya / Echo"),
+                    ),
+                ).characters
         assertEquals(listOf("Maya / Echo"), names)
     }
 
@@ -49,7 +50,8 @@ class CreditValidationRulesTest {
         roleId: String,
         characters: List<String>,
     ): CreditWrite =
-        CreditWrite.newBuilder()
+        CreditWrite
+            .newBuilder()
             .setTitleId("00000000-0000-4000-8000-000000000010")
             .setPersonId(personId)
             .setRoleId(roleId)

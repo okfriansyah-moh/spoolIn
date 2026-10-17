@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
  */
 @Disabled("PostgreSQL boundary pending integration fixture setup")
 class TitleSearchBoundaryTest {
-
     @Test
     fun `placeholder - PostgreSQL search boundary pending integration fixtures`() {
         // Real pg_unicode_fast / keyset search tests require F-CATALOG fixtures.

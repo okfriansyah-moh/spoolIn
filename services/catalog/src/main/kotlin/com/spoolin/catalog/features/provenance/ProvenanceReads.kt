@@ -13,8 +13,9 @@ import javax.sql.DataSource
  * Returns all non-deleted provenance records for a given subject.
  * internal fields (subject_kind, subject_id, deleted_at) are not exposed.
  */
-class ProvenanceReads(private val dataSource: DataSource) {
-
+class ProvenanceReads(
+    private val dataSource: DataSource,
+) {
     data class ProvenanceRow(
         val source: String,
         val externalId: String,
@@ -25,7 +26,10 @@ class ProvenanceReads(private val dataSource: DataSource) {
         val locallyChanged: List<String>,
     )
 
-    fun forSubject(subjectId: UUID, subjectKind: String): List<ProvenanceRow> =
+    fun forSubject(
+        subjectId: UUID,
+        subjectKind: String,
+    ): List<ProvenanceRow> =
         dataSource.connection.use { conn ->
             conn.queryBound(
                 """SELECT source, external_id, record_url, retrieved_at, reuse_note,

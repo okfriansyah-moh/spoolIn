@@ -10,9 +10,13 @@ import javax.sql.DataSource
  * Genre ordering: normalized_label ASC, id ASC (stable).
  * Role ordering:  normalized_label ASC, id ASC (stable).
  */
-class TaxonomyReads(private val dataSource: DataSource) {
-
-    data class GenreRow(val id: UUID, val label: String)
+class TaxonomyReads(
+    private val dataSource: DataSource,
+) {
+    data class GenreRow(
+        val id: UUID,
+        val label: String,
+    )
 
     data class RoleRow(
         val id: UUID,

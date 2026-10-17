@@ -17,15 +17,8 @@ typealias ScopedOperationQuery = (UUID, OperationOwner?, BrowserContext?) -> Map
 class PolicyGraphql(
     schema: String,
     private val provider: PolicyProvider,
-    accounts: AccountGraphql? = null,
+    views: PolicyGraphqlViews = PolicyGraphqlViews(),
     operations: ScopedOperationQuery? = null,
-    catalog: com.spoolin.core.features.catalogview.read.CatalogViewGraphql? = null,
-    drafts: com.spoolin.core.features.draft.DraftGraphql? = null,
-    managedCatalog: com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql? = null,
-    managedPerson: com.spoolin.core.features.catalogview.person.ManagedPersonGraphql? = null,
-    managedCredit: com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql? = null,
-    artwork: com.spoolin.core.features.artworkproxy.ArtworkGraphql? = null,
-    lifecycle: com.spoolin.core.features.catalogview.lifecycle.LifecycleGraphql? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
@@ -50,14 +43,14 @@ class PolicyGraphql(
                 }
             }
         }
-        accounts?.bind(wiring)
-        catalog?.bind(wiring)
-        managedCatalog?.bind(wiring)
-        managedPerson?.bind(wiring)
-        managedCredit?.bind(wiring)
-        artwork?.bind(wiring)
-        lifecycle?.bind(wiring)
-        drafts?.bind(wiring)
+        views.accounts?.bind(wiring)
+        views.catalog?.bind(wiring)
+        views.managedCatalog?.bind(wiring)
+        views.managedPerson?.bind(wiring)
+        views.managedCredit?.bind(wiring)
+        views.artwork?.bind(wiring)
+        views.lifecycle?.bind(wiring)
+        views.drafts?.bind(wiring)
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }
@@ -127,32 +120,56 @@ class PolicyGraphql(
 @Configuration
 class PolicyGraphqlConfiguration {
     @Bean
+    @Suppress("LongParameterList")
+    fun policyGraphqlProviders(
+        accounts: org.springframework.beans.factory.ObjectProvider<AccountGraphql>,
+        catalog: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.catalogview.read.CatalogViewGraphql,
+        >,
+        drafts: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.draft.DraftGraphql,
+        >,
+        managedCatalog: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql,
+        >,
+        managedPerson: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.catalogview.person.ManagedPersonGraphql,
+        >,
+        managedCredit: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql,
+        >,
+        artwork: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.artworkproxy.ArtworkGraphql,
+        >,
+        lifecycle: org.springframework.beans.factory.ObjectProvider<
+            com.spoolin.core.features.catalogview.lifecycle.LifecycleGraphql,
+        >,
+    ): PolicyGraphqlProviders =
+        PolicyGraphqlProviders(
+            accounts = accounts,
+            catalog = catalog,
+            drafts = drafts,
+            managedCatalog = managedCatalog,
+            managedPerson = managedPerson,
+            managedCredit = managedCredit,
+            artwork = artwork,
+            lifecycle = lifecycle,
+        )
+
+    @Bean
     fun policyGraphql(
         provider: PolicyProvider,
-        accounts: org.springframework.beans.factory.ObjectProvider<AccountGraphql>,
-        catalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.read.CatalogViewGraphql>,
-        draftView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.draft.DraftGraphql>,
-        managedCatalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql>,
-        managedPersonView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.person.ManagedPersonGraphql>,
-        managedCreditView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql>,
-        artworkView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.artworkproxy.ArtworkGraphql>,
-        lifecycleView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.lifecycle.LifecycleGraphql>,
+        modules: PolicyGraphqlProviders,
     ): PolicyGraphql {
         val schema =
-            ClassPathResource(
-                "graphql/schema.graphql",
-            ).inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+            ClassPathResource("graphql/schema.graphql")
+                .inputStream
+                .use { it.readBytes().toString(Charsets.UTF_8) }
         return PolicyGraphql(
-            schema, provider,
-            accounts = accounts.ifAvailable,
+            schema,
+            provider,
+            views = modules.resolved(),
             operations = { id, owner, context -> context?.operation(id, owner) },
-            catalog = catalogView.ifAvailable,
-            drafts = draftView.ifAvailable,
-            managedCatalog = managedCatalogView.ifAvailable,
-            managedPerson = managedPersonView.ifAvailable,
-            managedCredit = managedCreditView.ifAvailable,
-            artwork = artworkView.ifAvailable,
-            lifecycle = lifecycleView.ifAvailable,
         )
     }
 }

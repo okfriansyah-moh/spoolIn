@@ -22,7 +22,6 @@ import java.util.UUID
  * Observation: in-process MAC verification on synthetic bytes; no DB/network involved.
  */
 class CursorBindingRulesTest {
-
     private val fixedKey = ByteArray(32) { it.toByte() }
     private val cursor = CatalogCursor(fixedKey)
     private val idA = UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001")
@@ -36,11 +35,12 @@ class CursorBindingRulesTest {
 
     @Test
     fun `cursor valid one microsecond before expiry`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(2024, 10, 9, idA),
-            scopeA,
-            baseInstant,
-        )
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(2024, 10, 9, idA),
+                scopeA,
+                baseInstant,
+            )
         val clockBeforeT = clockAt(expiryAt.minusNanos(1000)) // T - 1 microsecond
         assertNotNull(cursor.decode(encoded, scopeA, clockBeforeT.instant()), "Must be valid before T")
     }
@@ -49,11 +49,12 @@ class CursorBindingRulesTest {
 
     @Test
     fun `cursor invalid at exactly T (expiry equality)`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(2024, 10, 9, idA),
-            scopeA,
-            baseInstant,
-        )
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(2024, 10, 9, idA),
+                scopeA,
+                baseInstant,
+            )
         // At T: now.epochSecond >= expiresAt.epochSecond (>= check)
         val result = cursor.decode(encoded, scopeA, expiryAt)
         assertNull(result, "Cursor must be invalid at exactly T")
@@ -61,11 +62,12 @@ class CursorBindingRulesTest {
 
     @Test
     fun `cursor invalid one microsecond after T`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(2024, 10, 9, idA),
-            scopeA,
-            baseInstant,
-        )
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(2024, 10, 9, idA),
+                scopeA,
+                baseInstant,
+            )
         val result = cursor.decode(encoded, scopeA, expiryAt.plusNanos(1000))
         assertNull(result, "Cursor must be invalid after T")
     }
@@ -74,11 +76,12 @@ class CursorBindingRulesTest {
 
     @Test
     fun `changed scope hash returns invalid cursor`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(2024, 10, 9, idA),
-            scopeA,
-            baseInstant,
-        )
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(2024, 10, 9, idA),
+                scopeA,
+                baseInstant,
+            )
         val differentScope = "different-scope"
         val result = cursor.decode(encoded, differentScope, expiryAt.minusNanos(1000))
         assertNull(result, "Changed scope must return invalid cursor")
@@ -95,27 +98,36 @@ class CursorBindingRulesTest {
 
     @Test
     fun `altered signature returns invalid cursor`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(2024, 10, 9, idA),
-            scopeA,
-            baseInstant,
-        )
-        val bytes = java.util.Base64.getUrlDecoder().decode(encoded).toMutableList()
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(2024, 10, 9, idA),
+                scopeA,
+                baseInstant,
+            )
+        val bytes =
+            java.util.Base64
+                .getUrlDecoder()
+                .decode(encoded)
+                .toMutableList()
         // Flip one bit in the last byte (HMAC region)
         bytes[bytes.size - 1] = (bytes[bytes.size - 1].toInt() xor 0x01).toByte()
-        val tampered = java.util.Base64.getUrlEncoder().withoutPadding()
-            .encodeToString(bytes.toByteArray())
+        val tampered =
+            java.util.Base64
+                .getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes.toByteArray())
         val result = cursor.decode(tampered, scopeA, expiryAt.minusNanos(1000))
         assertNull(result, "Tampered signature must produce invalid cursor")
     }
 
     @Test
     fun `truncated cursor returns invalid cursor`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(2024, 10, 9, idA),
-            scopeA,
-            baseInstant,
-        )
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(2024, 10, 9, idA),
+                scopeA,
+                baseInstant,
+            )
         val truncated = encoded.dropLast(10)
         val result = cursor.decode(truncated, scopeA, expiryAt.minusNanos(1000))
         assertNull(result, "Truncated cursor must return invalid")
@@ -151,11 +163,12 @@ class CursorBindingRulesTest {
 
     @Test
     fun `encoded cursor fits within 1024 bytes`() {
-        val encoded = cursor.encode(
-            CatalogCursor.Keyset(9999, 12, 31, UUID.randomUUID()),
-            "a".repeat(64), // maximum plausible scope hash
-            baseInstant,
-        )
+        val encoded =
+            cursor.encode(
+                CatalogCursor.Keyset(9999, 12, 31, UUID.randomUUID()),
+                "a".repeat(64), // maximum plausible scope hash
+                baseInstant,
+            )
         assert(encoded.length <= 1024) { "Cursor must be ≤ 1024 bytes, got ${encoded.length}" }
     }
 }

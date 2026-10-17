@@ -1,3 +1,5 @@
+@file:Suppress("TooGenericExceptionCaught", "SwallowedException", "ReturnCount", "MagicNumber")
+
 package com.spoolin.media.features.upload
 
 import com.spoolin.media.features.asset.AssetSql
@@ -115,8 +117,13 @@ class UploadRpc(
                     }
 
                     // Commit asset PROCESSING + durable work atomically (§7.6 / ATDD-250)
-                    val workId = WorkRequest("upload-process", "MEDIA_PROCESS", h.assetId,
-                        clock.instant().plus(workDeadlineOffset)).id(h.uploadOperationId)
+                    val workId =
+                        WorkRequest(
+                            "upload-process",
+                            "MEDIA_PROCESS",
+                            h.assetId,
+                            clock.instant().plus(workDeadlineOffset),
+                        ).id(h.uploadOperationId)
                     val now = clock.instant()
                     val accepted = commitProcessing(h, completed, workId, now)
                     if (!accepted) {
@@ -150,23 +157,29 @@ class UploadRpc(
                     return
                 }
                 val checksum = h.inputSha256.toByteArray()
-                val newSink = ChunkSink(
-                    outputStream = openStaging(assetId),
-                    declaredBytes = h.inputBytes,
-                    declaredSha256 = checksum,
-                )
+                val newSink =
+                    ChunkSink(
+                        outputStream = openStaging(assetId),
+                        declaredBytes = h.inputBytes,
+                        declaredSha256 = checksum,
+                    )
                 val headerCheck = newSink.validateHeader()
                 if (headerCheck is ChunkSink.WriteResult.Rejected) {
                     fail(response, Status.INVALID_ARGUMENT, null, headerCheck.errorCode)
                     return
                 }
                 // Insert asset in RECEIVING (idempotent via upload_operation_id UNIQUE)
-                val inserted = dataSource.committed { connection ->
-                    AssetSql.insertReceiving(
-                        connection, assetId, uploadOpId,
-                        actor.accountId, h.inputBytes, policyRevision,
-                    )
-                }
+                val inserted =
+                    dataSource.committed { connection ->
+                        AssetSql.insertReceiving(
+                            connection,
+                            assetId,
+                            uploadOpId,
+                            actor.accountId,
+                            h.inputBytes,
+                            policyRevision,
+                        )
+                    }
                 if (inserted != 1) {
                     fail(response, Status.ALREADY_EXISTS, null, "DUPLICATE_UPLOAD")
                     return
@@ -176,10 +189,11 @@ class UploadRpc(
             }
 
             private fun handleData(chunk: UploadChunk) {
-                val s = sink ?: run {
-                    fail(response, Status.INVALID_ARGUMENT, null, "DATA_BEFORE_HEADER")
-                    return
-                }
+                val s =
+                    sink ?: run {
+                        fail(response, Status.INVALID_ARGUMENT, null, "DATA_BEFORE_HEADER")
+                        return
+                    }
                 val data = chunk.data.toByteArray()
                 val result = s.writeChunk(data)
                 if (result is ChunkSink.WriteResult.Rejected) {
@@ -195,14 +209,21 @@ class UploadRpc(
                 return out
             }
 
-            private fun rejectAndRespond(responseObserver: StreamObserver<Outcome>, assetId: UUID, code: String) {
+            private fun rejectAndRespond(
+                responseObserver: StreamObserver<Outcome>,
+                assetId: UUID,
+                code: String,
+            ) {
                 failed = true
                 rejectAsset(assetId, code)
                 cleanupStaging()
                 fail(responseObserver, Status.INVALID_ARGUMENT, null, code)
             }
 
-            private fun rejectAsset(assetId: UUID, code: String) {
+            private fun rejectAsset(
+                assetId: UUID,
+                code: String,
+            ) {
                 runCatching {
                     dataSource.committed { connection ->
                         AssetSql.markRejected(connection, assetId, code)
@@ -223,15 +244,23 @@ class UploadRpc(
             ): Boolean {
                 val stagingKey = "${ProcessingBounds.STAGING_SUBDIR}/${h.assetId}"
                 return dataSource.committed { connection ->
-                    val updated = AssetSql.acceptProcessing(
-                        connection, h.assetId, stagingKey,
-                        completed.inputHash, workId, now,
-                    )
-                    if (updated == 1) {
-                        val workReq = WorkRequest(
-                            "upload-process", "MEDIA_PROCESS", h.assetId,
-                            now.plus(workDeadlineOffset),
+                    val updated =
+                        AssetSql.acceptProcessing(
+                            connection,
+                            h.assetId,
+                            stagingKey,
+                            completed.inputHash,
+                            workId,
+                            now,
                         )
+                    if (updated == 1) {
+                        val workReq =
+                            WorkRequest(
+                                "upload-process",
+                                "MEDIA_PROCESS",
+                                h.assetId,
+                                now.plus(workDeadlineOffset),
+                            )
                         ReceiptWork.enqueue(connection, h.uploadOperationId, h.uploadOperationId, workReq, now)
                     }
                     updated == 1
@@ -252,7 +281,8 @@ class UploadRpc(
         }
 
     private fun pendingOutcome(operationId: UUID): Outcome =
-        Outcome.newBuilder()
+        Outcome
+            .newBuilder()
             .setOperationId(operationId.toString())
             .setState("PENDING")
             .setResultExpired(false)

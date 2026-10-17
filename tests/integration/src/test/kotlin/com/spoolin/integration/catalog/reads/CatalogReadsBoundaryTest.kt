@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit
  * Cross-service catalog read integration: receipt operation state is readable under scoped admission.
  */
 class CatalogReadsBoundaryTest {
-
     @Test
     fun `catalog operation read uses live identity and receipt owner`() {
         SignedReceiptFixture("t009-catalog-read-boundary.json").use { proof ->

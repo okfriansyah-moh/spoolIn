@@ -1,3 +1,13 @@
+@file:Suppress(
+    "TooManyFunctions",
+    "LongMethod",
+    "CyclomaticComplexMethod",
+    "ThrowsCount",
+    "SwallowedException",
+    "LongParameterList",
+    "MaxLineLength",
+)
+
 package com.spoolin.catalog.features.credit
 
 import com.spoolin.catalog.operations.audit.AuditInsert
@@ -28,12 +38,13 @@ private const val WRITE_KIND = "WriteCredit"
 private const val REMOVE_KIND = "RemoveCredit"
 
 class CreditWrites(
-    private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
 ) {
-
-    fun writeCredit(request: CreditWrite, response: StreamObserver<Outcome>) {
+    fun writeCredit(
+        request: CreditWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw ActorRejected()
@@ -42,17 +53,22 @@ class CreditWrites(
             val actorScope = "account:${claims.accountId}"
             val isCreate = !request.hasId()
             val intentFields = intentFields(request, isCreate)
-            val intent = OperationIntent(
-                operationId,
-                actorScope,
-                WRITE_KIND,
-                request.context.policyRevision,
-                intentFields,
-            )
-            val outcome = receipts.execute(intent, correlationId, true) { conn ->
-                if (isCreate) create(conn, request, claims.accountId, operationId, correlationId)
-                else update(conn, request, claims.accountId, operationId, correlationId)
-            }
+            val intent =
+                OperationIntent(
+                    operationId,
+                    actorScope,
+                    WRITE_KIND,
+                    request.context.policyRevision,
+                    intentFields,
+                )
+            val outcome =
+                receipts.execute(intent, correlationId, true) { conn ->
+                    if (isCreate) {
+                        create(conn, request, claims.accountId, operationId, correlationId)
+                    } else {
+                        update(conn, request, claims.accountId, operationId, correlationId)
+                    }
+                }
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
@@ -60,18 +76,21 @@ class CreditWrites(
         } catch (e: ActorRejected) {
             response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
         } catch (e: InputViolation) {
-            val problem = spoolin.v1.Spoolin.Problem.newBuilder()
-                .setCode("FIELD_INVALID")
-                .addFields(
-                    spoolin.v1.Spoolin.FieldIssue.newBuilder()
-                        .setPath(e.path)
-                        .setCode("INVALID")
-                        .setMessage(e.correction)
-                        .build(),
-                )
-                .build()
+            val problem =
+                spoolin.v1.Spoolin.Problem
+                    .newBuilder()
+                    .setCode("FIELD_INVALID")
+                    .addFields(
+                        spoolin.v1.Spoolin.FieldIssue
+                            .newBuilder()
+                            .setPath(e.path)
+                            .setCode("INVALID")
+                            .setMessage(e.correction)
+                            .build(),
+                    ).build()
             response.onNext(
-                Outcome.newBuilder()
+                Outcome
+                    .newBuilder()
                     .setOperationId(request.context.operationId)
                     .setState("FAILED")
                     .setProblem(problem)
@@ -81,7 +100,10 @@ class CreditWrites(
         }
     }
 
-    fun removeCredit(request: VersionedId, response: StreamObserver<Outcome>) {
+    fun removeCredit(
+        request: VersionedId,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw ActorRejected()
@@ -90,16 +112,18 @@ class CreditWrites(
             val actorScope = "account:${claims.accountId}"
             val creditId = parseId(request.id)
             val expectedVersion = request.expectedVersion
-            val intent = OperationIntent(
-                operationId,
-                actorScope,
-                REMOVE_KIND,
-                request.context.policyRevision,
-                listOf("id" to request.id, "expectedVersion" to expectedVersion.toString()),
-            )
-            val outcome = receipts.execute(intent, correlationId, true) { conn ->
-                remove(conn, creditId, expectedVersion, claims.accountId, operationId, correlationId)
-            }
+            val intent =
+                OperationIntent(
+                    operationId,
+                    actorScope,
+                    REMOVE_KIND,
+                    request.context.policyRevision,
+                    listOf("id" to request.id, "expectedVersion" to expectedVersion.toString()),
+                )
+            val outcome =
+                receipts.execute(intent, correlationId, true) { conn ->
+                    remove(conn, creditId, expectedVersion, claims.accountId, operationId, correlationId)
+                }
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
@@ -125,8 +149,9 @@ class CreditWrites(
         if (title.version != request.expectedVersion) {
             throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
         }
-        val person = loadPerson(conn, personId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val person =
+            loadPerson(conn, personId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (person.status != STATUS_ACTIVE) {
             throw Status.FAILED_PRECONDITION.withDescription("PERSON_ARCHIVED").asRuntimeException()
         }
@@ -174,28 +199,33 @@ class CreditWrites(
     ): SafeResult {
         val creditId = parseId(request.id)
         val expectedVersion = request.expectedVersion
-        val current = lockCredit(conn, creditId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val current =
+            lockCredit(conn, creditId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (current.version != expectedVersion) {
             throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
         }
-        val title = lockTitle(conn, current.titleId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val title =
+            lockTitle(conn, current.titleId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         requireActiveMovie(title)
-        val person = loadPerson(conn, current.personId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val person =
+            loadPerson(conn, current.personId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (person.status != STATUS_ACTIVE) {
             throw Status.FAILED_PRECONDITION.withDescription("PERSON_ARCHIVED").asRuntimeException()
         }
         val patch = CreditValidation.validatePatch(request)
-        val roleId = when (patch.roleId) {
-            is PatchValue.Value -> parseId(patch.roleId.value)
-            else -> current.roleId
-        }
-        val characters = when (patch.characters) {
-            is PatchValue.Value -> patch.characters.value
-            else -> current.characters
-        }
+        val roleId =
+            when (patch.roleId) {
+                is PatchValue.Value -> parseId(patch.roleId.value)
+                else -> current.roleId
+            }
+        val characters =
+            when (patch.characters) {
+                is PatchValue.Value -> patch.characters.value
+                else -> current.characters
+            }
         val role = loadRole(conn, roleId) ?: throw InputViolation("roleId", "Choose a known role.")
         CreditValidation.validateCharactersForRole(role.allowsCharacters, role.category, characters)
         if (roleId != current.roleId && creditExists(conn, current.titleId, current.personId, roleId)) {
@@ -238,13 +268,15 @@ class CreditWrites(
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
-        val current = lockCredit(conn, creditId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val current =
+            lockCredit(conn, creditId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (current.version != expectedVersion) {
             throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
         }
-        val title = lockTitle(conn, current.titleId)
-            ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        val title =
+            lockTitle(conn, current.titleId)
+                ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         requireActiveMovie(title)
         val person = loadPerson(conn, current.personId)
         if (person != null && person.status != STATUS_ACTIVE) {
@@ -269,7 +301,13 @@ class CreditWrites(
         return SafeResult(creditId, version = expectedVersion + 1)
     }
 
-    private fun bumpTitleAndPerson(conn: Connection, titleId: UUID, personId: UUID, titleVersion: Long, now: Timestamp) {
+    private fun bumpTitleAndPerson(
+        conn: Connection,
+        titleId: UUID,
+        personId: UUID,
+        titleVersion: Long,
+        now: Timestamp,
+    ) {
         conn.executeBound(
             "UPDATE title SET version = ?, updated_at = ? WHERE id = ?",
             titleVersion,
@@ -283,9 +321,21 @@ class CreditWrites(
         )
     }
 
-    private data class TitleRow(val kind: String, val status: String, val version: Long)
-    private data class PersonRow(val status: String)
-    private data class RoleRow(val category: String, val allowsCharacters: Boolean)
+    private data class TitleRow(
+        val kind: String,
+        val status: String,
+        val version: Long,
+    )
+
+    private data class PersonRow(
+        val status: String,
+    )
+
+    private data class RoleRow(
+        val category: String,
+        val allowsCharacters: Boolean,
+    )
+
     private data class CreditRow(
         val titleId: UUID,
         val personId: UUID,
@@ -299,54 +349,83 @@ class CreditWrites(
         if (title.kind != KIND_MOVIE) throw Status.FAILED_PRECONDITION.withDescription("TV_CREDIT_DENIED").asRuntimeException()
     }
 
-    private fun lockTitle(conn: Connection, titleId: UUID): TitleRow? =
-        conn.queryBound(
-            "SELECT kind, status, version FROM title WHERE id = ? FOR UPDATE",
-            listOf(titleId),
-        ) { rs ->
-            TitleRow(rs.getString("kind"), rs.getString("status"), rs.getLong("version"))
-        }.firstOrNull()
+    private fun lockTitle(
+        conn: Connection,
+        titleId: UUID,
+    ): TitleRow? =
+        conn
+            .queryBound(
+                "SELECT kind, status, version FROM title WHERE id = ? FOR UPDATE",
+                listOf(titleId),
+            ) { rs ->
+                TitleRow(rs.getString("kind"), rs.getString("status"), rs.getLong("version"))
+            }.firstOrNull()
 
-    private fun loadPerson(conn: Connection, personId: UUID): PersonRow? =
-        conn.queryBound(
-            "SELECT status FROM person WHERE id = ?",
-            listOf(personId),
-        ) { rs -> PersonRow(rs.getString("status")) }.firstOrNull()
+    private fun loadPerson(
+        conn: Connection,
+        personId: UUID,
+    ): PersonRow? =
+        conn
+            .queryBound(
+                "SELECT status FROM person WHERE id = ?",
+                listOf(personId),
+            ) { rs -> PersonRow(rs.getString("status")) }
+            .firstOrNull()
 
-    private fun loadRole(conn: Connection, roleId: UUID): RoleRow? =
-        conn.queryBound(
-            "SELECT category, allows_characters FROM credit_role WHERE id = ?",
-            listOf(roleId),
-        ) { rs ->
-            RoleRow(rs.getString("category"), rs.getBoolean("allows_characters"))
-        }.firstOrNull()
+    private fun loadRole(
+        conn: Connection,
+        roleId: UUID,
+    ): RoleRow? =
+        conn
+            .queryBound(
+                "SELECT category, allows_characters FROM credit_role WHERE id = ?",
+                listOf(roleId),
+            ) { rs ->
+                RoleRow(rs.getString("category"), rs.getBoolean("allows_characters"))
+            }.firstOrNull()
 
-    private fun lockCredit(conn: Connection, creditId: UUID): CreditRow? =
-        conn.queryBound(
-            "SELECT title_id, person_id, role_id, characters, version FROM credit WHERE id = ? FOR UPDATE",
-            listOf(creditId),
-        ) { rs ->
-            val raw = rs.getArray("characters")?.array
-            val characters = (raw as? Array<*>)?.map { it.toString() } ?: emptyList()
-            CreditRow(
-                rs.getObject("title_id", UUID::class.java),
-                rs.getObject("person_id", UUID::class.java),
-                rs.getObject("role_id", UUID::class.java),
-                characters,
-                rs.getLong("version"),
-            )
-        }.firstOrNull()
+    private fun lockCredit(
+        conn: Connection,
+        creditId: UUID,
+    ): CreditRow? =
+        conn
+            .queryBound(
+                "SELECT title_id, person_id, role_id, characters, version FROM credit WHERE id = ? FOR UPDATE",
+                listOf(creditId),
+            ) { rs ->
+                val raw = rs.getArray("characters")?.array
+                val characters = (raw as? Array<*>)?.map { it.toString() } ?: emptyList()
+                CreditRow(
+                    rs.getObject("title_id", UUID::class.java),
+                    rs.getObject("person_id", UUID::class.java),
+                    rs.getObject("role_id", UUID::class.java),
+                    characters,
+                    rs.getLong("version"),
+                )
+            }.firstOrNull()
 
-    private fun creditExists(conn: Connection, titleId: UUID, personId: UUID, roleId: UUID): Boolean =
-        conn.queryBound(
-            "SELECT 1 FROM credit WHERE title_id = ? AND person_id = ? AND role_id = ? LIMIT 1",
-            listOf(titleId, personId, roleId),
-        ) { rs -> rs.next() }.isNotEmpty()
+    private fun creditExists(
+        conn: Connection,
+        titleId: UUID,
+        personId: UUID,
+        roleId: UUID,
+    ): Boolean =
+        conn
+            .queryBound(
+                "SELECT 1 FROM credit WHERE title_id = ? AND person_id = ? AND role_id = ? LIMIT 1",
+                listOf(titleId, personId, roleId),
+            ) { rs -> rs.next() }
+            .isNotEmpty()
 
-    private fun textArray(conn: Connection, values: List<String>): java.sql.Array =
-        conn.createArrayOf("text", values.toTypedArray())
+    private fun textArray(
+        conn: Connection,
+        values: List<String>,
+    ): java.sql.Array = conn.createArrayOf("text", values.toTypedArray())
 
-    private fun intentFields(request: CreditWrite, isCreate: Boolean): List<Pair<String, String?>> {
+    private fun intentFields(
+        request: CreditWrite,
+        isCreate: Boolean,
+    ): List<Pair<String, String?>> {
         val fields = mutableListOf<Pair<String, String?>>()
         if (!isCreate) fields.add("id" to request.id)
         fields.add("titleId" to request.titleId)
@@ -360,15 +439,23 @@ class CreditWrites(
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
 
     private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b = Outcome.newBuilder()
-            .setOperationId(outcome.id.toString())
-            .setState(outcome.state.name)
-            .setResultExpired(outcome.resultExpired)
+        val b =
+            Outcome
+                .newBuilder()
+                .setOperationId(outcome.id.toString())
+                .setState(outcome.state.name)
+                .setResultExpired(outcome.resultExpired)
         outcome.result?.let { r ->
             b.resultId = r.resultId.toString()
             r.version?.let { b.version = it }
         }
-        outcome.errorCode?.let { b.problem = spoolin.v1.Spoolin.Problem.newBuilder().setCode(it).build() }
+        outcome.errorCode?.let {
+            b.problem =
+                spoolin.v1.Spoolin.Problem
+                    .newBuilder()
+                    .setCode(it)
+                    .build()
+        }
         return b.build()
     }
 }

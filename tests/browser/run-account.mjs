@@ -7,6 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { touchSync } from 'node:fs';
 const root = resolve(import.meta.dirname, '../..');
 const report = resolve(root, 'test-results/account/junit.xml');
 function execute(argv, env = process.env) {
@@ -45,7 +46,16 @@ function readerEnvironment() {
   }
   return environment;
 }
+function releaseFixture(handoff) {
+  const target = handoff.releaseFile;
+  if (target) touchSync(target);
+}
+
 function run() {
+  if (process.env.ACCOUNT_BROWSER_GATE === '1') {
+    const script = resolve(root, 'ops/bin/account-browser-gate.sh');
+    return execute(['bash', script]);
+  }
   const cli = [
     process.execPath,
     'node_modules/@playwright/test/cli.js',
@@ -64,16 +74,19 @@ function run() {
     ),
   );
   const container = process.env.ACCOUNT_BROWSER_CONTAINER;
-  if (!container)
-    return execute(cli, {
-      ...process.env,
-      ACCOUNT_ORIGIN: handoff.origin,
-      ACCOUNT_CA: handoff.ca,
-      NODE_EXTRA_CA_CERTS: handoff.ca,
-      ACCOUNT_CREDENTIALS_FILE: handoff.credentialsFile,
-      ACCOUNT_JUNIT: report,
-    });
-  return runContainer(container, handoff);
+  const env = {
+    ...process.env,
+    ACCOUNT_ORIGIN: handoff.origin,
+    ACCOUNT_CA: handoff.ca,
+    NODE_EXTRA_CA_CERTS: handoff.ca,
+    ACCOUNT_CREDENTIALS_FILE: handoff.credentialsFile,
+    ACCOUNT_JUNIT: report,
+    ACCOUNT_BROWSER_ENGINE:
+      process.env.ACCOUNT_BROWSER_ENGINE || 'chromium',
+  };
+  const code = container ? runContainer(container, handoff) : execute(cli, env);
+  if (code === 0) releaseFixture(handoff);
+  return code;
 }
 function runContainer(container, handoff) {
   const insideReport = '/tmp/account-results/gate/junit.xml';
@@ -112,7 +125,9 @@ function runContainer(container, handoff) {
     timeout: 30000,
   });
   if (copied.status === 0) writeFileSync(report, copied.stdout);
-  return code || (copied.status === 0 ? 0 : 2);
+  const finalCode = code || (copied.status === 0 ? 0 : 2);
+  if (finalCode === 0) releaseFixture(handoff);
+  return finalCode;
 }
 try {
   process.exitCode = run();

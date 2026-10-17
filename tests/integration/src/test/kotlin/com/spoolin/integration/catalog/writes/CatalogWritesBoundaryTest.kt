@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit
  * Cross-service catalog write integration: signed Core actor through mTLS to catalog receipt RPC.
  */
 class CatalogWritesBoundaryTest {
-
     @Test
     fun `signed actor receipt read succeeds across core and catalog`() {
         SignedReceiptFixture("t009-catalog-write-boundary.json").use { proof ->

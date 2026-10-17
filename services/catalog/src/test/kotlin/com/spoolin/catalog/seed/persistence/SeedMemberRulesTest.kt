@@ -15,22 +15,22 @@ import java.util.UUID
  * No database access.
  */
 class SeedMemberRulesTest {
-
     @Test
     fun `member row preserves all required fields`() {
         val seedId = "seed-v1.0.0"
         val subjectId = UUID.randomUUID()
         val hash = ByteArray(32) { it.toByte() }
         val appliedAt = Instant.parse("2026-10-17T06:00:00Z")
-        val row = SeedMembership.MemberRow(
-            seedId = seedId,
-            memberKey = "genre/action",
-            subjectKind = "GENRE",
-            subjectId = subjectId,
-            contentHash = hash,
-            appliedAt = appliedAt,
-            removedAt = null,
-        )
+        val row =
+            SeedMembership.MemberRow(
+                seedId = seedId,
+                memberKey = "genre/action",
+                subjectKind = "GENRE",
+                subjectId = subjectId,
+                contentHash = hash,
+                appliedAt = appliedAt,
+                removedAt = null,
+            )
         assertEquals(seedId, row.seedId)
         assertEquals("genre/action", row.memberKey)
         assertEquals("GENRE", row.subjectKind)
@@ -42,12 +42,26 @@ class SeedMemberRulesTest {
 
     @Test
     fun `removedAt is nullable — supports active and tombstoned members`() {
-        val active = SeedMembership.MemberRow(
-            "s1", "key", "TITLE", UUID.randomUUID(), ByteArray(32), Instant.now(), null,
-        )
-        val removed = SeedMembership.MemberRow(
-            "s1", "key", "TITLE", UUID.randomUUID(), ByteArray(32), Instant.now(), Instant.now(),
-        )
+        val active =
+            SeedMembership.MemberRow(
+                "s1",
+                "key",
+                "TITLE",
+                UUID.randomUUID(),
+                ByteArray(32),
+                Instant.now(),
+                null,
+            )
+        val removed =
+            SeedMembership.MemberRow(
+                "s1",
+                "key",
+                "TITLE",
+                UUID.randomUUID(),
+                ByteArray(32),
+                Instant.now(),
+                Instant.now(),
+            )
         assertNull(active.removedAt)
         assertNotNull(removed.removedAt)
     }

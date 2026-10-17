@@ -16,8 +16,9 @@ private const val MAX_PAGE = 100
  * F-PERMISSIONS: caller must hold MAINTAINER role; enforced at the gRPC boundary.
  * AC-056: Only permitted readers see this data; the projection never exposes credentials.
  */
-class AuditReads(private val dataSource: DataSource) {
-
+class AuditReads(
+    private val dataSource: DataSource,
+) {
     data class AuditRow(
         val id: UUID,
         val actorId: UUID?,
@@ -38,9 +39,16 @@ class AuditReads(private val dataSource: DataSource) {
         val hasNextPage: Boolean,
     )
 
-    data class Keyset(val createdAt: Instant, val id: UUID)
+    data class Keyset(
+        val createdAt: Instant,
+        val id: UUID,
+    )
 
-    fun list(subjectId: UUID?, first: Int, after: Keyset?): AuditPage {
+    fun list(
+        subjectId: UUID?,
+        first: Int,
+        after: Keyset?,
+    ): AuditPage {
         val limit = first.coerceIn(1, MAX_PAGE)
         val params = mutableListOf<Any?>()
         val where = mutableListOf<String>()
@@ -71,17 +79,18 @@ class AuditReads(private val dataSource: DataSource) {
         return AuditPage(page, keyset, hasNext)
     }
 
-    private fun mapRow(rs: ResultSet): AuditRow = AuditRow(
-        id = rs.getObject("id", UUID::class.java),
-        actorId = rs.getObject("actor_id")?.let { UUID.fromString(it.toString()) },
-        actorKind = rs.getString("actor_kind"),
-        action = rs.getString("action"),
-        subjectKind = rs.getString("subject_kind"),
-        subjectId = rs.getObject("subject_id")?.let { UUID.fromString(it.toString()) },
-        outcome = rs.getString("outcome"),
-        changes = rs.getString("changes") ?: "{}",
-        operationId = rs.getObject("operation_id")?.let { UUID.fromString(it.toString()) },
-        correlationId = rs.getObject("correlation_id", UUID::class.java),
-        createdAt = rs.getTimestamp("created_at").toInstant(),
-    )
+    private fun mapRow(rs: ResultSet): AuditRow =
+        AuditRow(
+            id = rs.getObject("id", UUID::class.java),
+            actorId = rs.getObject("actor_id")?.let { UUID.fromString(it.toString()) },
+            actorKind = rs.getString("actor_kind"),
+            action = rs.getString("action"),
+            subjectKind = rs.getString("subject_kind"),
+            subjectId = rs.getObject("subject_id")?.let { UUID.fromString(it.toString()) },
+            outcome = rs.getString("outcome"),
+            changes = rs.getString("changes") ?: "{}",
+            operationId = rs.getObject("operation_id")?.let { UUID.fromString(it.toString()) },
+            correlationId = rs.getObject("correlation_id", UUID::class.java),
+            createdAt = rs.getTimestamp("created_at").toInstant(),
+        )
 }

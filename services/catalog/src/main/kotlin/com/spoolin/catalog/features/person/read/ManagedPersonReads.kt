@@ -34,8 +34,10 @@ private const val MAX_PAGE = 100
 class ManagedPersonReads(
     private val dataSource: DataSource,
 ) {
-
-    fun managedPerson(request: Id, response: StreamObserver<Person>) {
+    fun managedPerson(
+        request: Id,
+        response: StreamObserver<Person>,
+    ) {
         try {
             requireMaintainer()
             val id = parseId(request.id)
@@ -52,11 +54,15 @@ class ManagedPersonReads(
         }
     }
 
-    fun managedPeople(request: PageRequest, response: StreamObserver<PersonPage>) {
+    fun managedPeople(
+        request: PageRequest,
+        response: StreamObserver<PersonPage>,
+    ) {
         try {
             requireMaintainer()
-            val state = request.state.takeIf { it.isNotEmpty() }
-                ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
+            val state =
+                request.state.takeIf { it.isNotEmpty() }
+                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
             if (state !in setOf("ACTIVE", "ARCHIVED")) {
                 throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
             }
@@ -97,13 +103,19 @@ class ManagedPersonReads(
 
     private fun findManagedPerson(id: UUID): ManagedPersonRow? =
         dataSource.connection.use { conn ->
-            conn.queryBound(
-                "SELECT id, name, biography, status, version FROM person WHERE id = ?",
-                listOf(id),
-            ) { mapRow(it) }.firstOrNull()
+            conn
+                .queryBound(
+                    "SELECT id, name, biography, status, version FROM person WHERE id = ?",
+                    listOf(id),
+                ) { mapRow(it) }
+                .firstOrNull()
         }
 
-    private fun listManagedPeople(state: String, first: Int, after: String?): ManagedPersonPage {
+    private fun listManagedPeople(
+        state: String,
+        first: Int,
+        after: String?,
+    ): ManagedPersonPage {
         val params = mutableListOf<Any?>(state)
         var keysetClause = ""
         val cursor = after?.let { decodePersonCursor(it) }
@@ -118,33 +130,36 @@ class ManagedPersonReads(
                 " WHERE p.status = ?$keysetClause" +
                 " ORDER BY p.name ASC, p.id ASC" +
                 " LIMIT ${first + 1}"
-        val rows = dataSource.connection.use { conn ->
-            conn.queryBound(sql, params) { mapRow(it) }
-        }
+        val rows =
+            dataSource.connection.use { conn ->
+                conn.queryBound(sql, params) { mapRow(it) }
+            }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
         val endCursor = page.lastOrNull()?.let { encodePersonCursor(it.name, it.id) }
         return ManagedPersonPage(page, endCursor, hasNext)
     }
 
-    private fun mapRow(rs: ResultSet) = ManagedPersonRow(
-        id = rs.getObject("id", UUID::class.java),
-        name = rs.getString("name"),
-        biography = rs.getString("biography"),
-        status = rs.getString("status"),
-        version = rs.getLong("version"),
-    )
+    private fun mapRow(rs: ResultSet) =
+        ManagedPersonRow(
+            id = rs.getObject("id", UUID::class.java),
+            name = rs.getString("name"),
+            biography = rs.getString("biography"),
+            status = rs.getString("status"),
+            version = rs.getLong("version"),
+        )
 
     private fun personProto(row: ManagedPersonRow): Person =
-        Person.newBuilder()
+        Person
+            .newBuilder()
             .setId(row.id.toString())
             .setValues(
-                PersonValues.newBuilder()
+                PersonValues
+                    .newBuilder()
                     .setName(row.name)
                     .also { b -> row.biography?.let { b.biography = it } }
                     .build(),
-            )
-            .setState(row.status)
+            ).setState(row.status)
             .setVersion(row.version)
             .build()
 
@@ -154,9 +169,15 @@ class ManagedPersonReads(
      * Cursor format: Base64Url(name):uuid
      * URL-safe Base64 uses [A-Za-z0-9\-_] — no colons — so splitting on ':' is unambiguous.
      */
-    private fun encodePersonCursor(name: String, id: UUID): String {
-        val encoded = Base64.getUrlEncoder().withoutPadding()
-            .encodeToString(name.toByteArray(Charsets.UTF_8))
+    private fun encodePersonCursor(
+        name: String,
+        id: UUID,
+    ): String {
+        val encoded =
+            Base64
+                .getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(name.toByteArray(Charsets.UTF_8))
         return "$encoded:$id"
     }
 

@@ -24,13 +24,13 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import org.springframework.grpc.server.GlobalServerInterceptor
@@ -125,9 +125,12 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun catalogCursorKey(): ByteArray = com.spoolin.catalog.features.search.CatalogCursor.newRandomKey()
+    fun catalogCursorKey(): ByteArray =
+        com.spoolin.catalog.features.search.CatalogCursor
+            .newRandomKey()
 
     @Bean
+    @Suppress("LongParameterList")
     fun catalogService(
         dataSource: DataSource,
         cursorKey: ByteArray,
@@ -143,17 +146,34 @@ class Application {
         personLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.PersonLifecycle>,
         deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
     ): io.grpc.BindableService {
-        val reads = com.spoolin.catalog.operations.receipts.OwnerReceiptReads(dataSource)
-        val authority = com.spoolin.support.receipts.ReceiptAuthority {
-            com.spoolin.support.identity.ActorRpc.current()?.let { "account:${it.accountId}" }
-        }
-        val titleCursor = com.spoolin.catalog.features.search.CatalogCursor(cursorKey)
-        val peopleCursor = com.spoolin.catalog.features.search.PeopleCursor(cursorKey)
+        val reads =
+            com.spoolin.catalog.operations.receipts
+                .OwnerReceiptReads(dataSource)
+        val authority =
+            com.spoolin.support.receipts.ReceiptAuthority {
+                com.spoolin.support.identity.ActorRpc
+                    .current()
+                    ?.let { "account:${it.accountId}" }
+            }
+        val titleCursor =
+            com.spoolin.catalog.features.search
+                .CatalogCursor(cursorKey)
+        val peopleCursor =
+            com.spoolin.catalog.features.search
+                .PeopleCursor(cursorKey)
         return com.spoolin.catalog.boundary.grpc.CatalogServiceRpc(
-            titleSearch = com.spoolin.catalog.features.search.TitleSearchSql(dataSource),
-            personSearch = com.spoolin.catalog.features.person.read.PersonSearch(dataSource),
-            taxonomy = com.spoolin.catalog.features.taxonomy.read.TaxonomyReads(dataSource),
-            provenance = com.spoolin.catalog.features.provenance.ProvenanceReads(dataSource),
+            titleSearch =
+                com.spoolin.catalog.features.search
+                    .TitleSearchSql(dataSource),
+            personSearch =
+                com.spoolin.catalog.features.person.read
+                    .PersonSearch(dataSource),
+            taxonomy =
+                com.spoolin.catalog.features.taxonomy.read
+                    .TaxonomyReads(dataSource),
+            provenance =
+                com.spoolin.catalog.features.provenance
+                    .ProvenanceReads(dataSource),
             receiptReads = reads,
             receiptAuthority = authority,
             titleCursor = titleCursor,
@@ -176,12 +196,17 @@ class Application {
 /** Wires movie write and managed-read handlers when catalog write keys are configured. */
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
-    name = ["spoolin.catalog.write.enabled"], havingValue = "true", matchIfMissing = false,
+    name = ["spoolin.catalog.write.enabled"],
+    havingValue = "true",
+    matchIfMissing = false,
 )
+@Suppress("TooManyFunctions")
 class CatalogWriteConfiguration {
-
     @Bean
-    fun catalogOwnerReceipts(dataSource: DataSource, environment: Environment): OwnerReceipts {
+    fun catalogOwnerReceipts(
+        dataSource: DataSource,
+        environment: Environment,
+    ): OwnerReceipts {
         val keyId = environment.getRequiredProperty("CATALOG_HMAC_KEY_ID")
         val keyFile = environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")
         val hashes = ComparisonKeys.load(mapOf(keyId to keyFile), keyId, keyFile)
@@ -189,8 +214,7 @@ class CatalogWriteConfiguration {
     }
 
     @Bean
-    fun movieWrites(dataSource: DataSource, receipts: OwnerReceipts): MovieWrites =
-        MovieWrites(dataSource, receipts)
+    fun movieWrites(receipts: OwnerReceipts): MovieWrites = MovieWrites(receipts)
 
     @Bean
     fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
@@ -201,40 +225,57 @@ class CatalogWriteConfiguration {
     }
 
     @Bean
-    fun personWrites(dataSource: DataSource, receipts: OwnerReceipts): PersonWrites =
-        PersonWrites(dataSource, receipts)
+    fun personWrites(receipts: OwnerReceipts): PersonWrites = PersonWrites(receipts)
 
     @Bean
-    fun artworkRpc(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.artwork.ArtworkRpc =
-        com.spoolin.catalog.features.artwork.ArtworkRpc(dataSource, receipts)
+    fun artworkRpc(
+        dataSource: DataSource,
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.artwork.ArtworkRpc =
+        com.spoolin.catalog.features.artwork
+            .ArtworkRpc(dataSource, receipts)
 
     @Bean
-    fun movieLifecycle(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
-        com.spoolin.catalog.features.lifecycle.MovieLifecycle(dataSource, receipts)
+    fun movieLifecycle(
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+        com.spoolin.catalog.features.lifecycle
+            .MovieLifecycle(receipts)
 
     @Bean
-    fun personLifecycle(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
-        com.spoolin.catalog.features.lifecycle.PersonLifecycle(dataSource, receipts)
+    fun personLifecycle(
+        dataSource: DataSource,
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
+        com.spoolin.catalog.features.lifecycle
+            .PersonLifecycle(dataSource, receipts)
 
     @Bean
     fun deletionImpact(dataSource: DataSource): com.spoolin.catalog.features.lifecycle.DeletionImpact =
-        com.spoolin.catalog.features.lifecycle.DeletionImpact(dataSource)
+        com.spoolin.catalog.features.lifecycle
+            .DeletionImpact(dataSource)
 
     @Bean
-    fun managedPersonReads(dataSource: DataSource): ManagedPersonReads =
-        ManagedPersonReads(dataSource)
+    fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
 
     @Bean
-    fun roleWrites(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
-        com.spoolin.catalog.features.taxonomy.roles.RoleWrites(dataSource, receipts)
+    fun roleWrites(
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+        com.spoolin.catalog.features.taxonomy.roles
+            .RoleWrites(receipts)
 
     @Bean
-    fun creditWrites(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.credit.CreditWrites =
-        com.spoolin.catalog.features.credit.CreditWrites(dataSource, receipts)
+    fun creditWrites(
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.credit.CreditWrites =
+        com.spoolin.catalog.features.credit
+            .CreditWrites(receipts)
 
     @Bean
     fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
-        com.spoolin.catalog.features.credit.ManagedCreditReads(dataSource)
+        com.spoolin.catalog.features.credit
+            .ManagedCreditReads(dataSource)
 }
 
 fun main(args: Array<String>) {

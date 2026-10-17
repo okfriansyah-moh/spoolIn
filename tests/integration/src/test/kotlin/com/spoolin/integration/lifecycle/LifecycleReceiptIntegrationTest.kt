@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
  * used before archive/restore/delete outcomes are applied (T024).
  */
 class LifecycleReceiptIntegrationTest {
-
     @Test
     fun `lifecycle outcomes use catalog receipt rpc under signed actor admission`() {
         SignedReceiptFixture("t009-lifecycle-receipt-boundary.json").use { proof ->

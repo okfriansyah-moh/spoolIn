@@ -1,19 +1,21 @@
+@file:Suppress("TooManyFunctions", "LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth")
+
 package com.spoolin.catalog.boundary.grpc
 
 import com.google.protobuf.Timestamp
-import com.spoolin.catalog.features.movie.ManagedMovieReads
-import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.features.credit.CreditWrites
 import com.spoolin.catalog.features.credit.ManagedCreditReads
+import com.spoolin.catalog.features.movie.ManagedMovieReads
+import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.features.person.read.ManagedPersonReads
 import com.spoolin.catalog.features.person.read.PersonSearch
 import com.spoolin.catalog.features.person.write.PersonWrites
-import com.spoolin.catalog.features.taxonomy.roles.RoleWrites
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.CatalogCursor
 import com.spoolin.catalog.features.search.PeopleCursor
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.features.taxonomy.read.TaxonomyReads
+import com.spoolin.catalog.features.taxonomy.roles.RoleWrites
 import com.spoolin.catalog.operations.receipts.OwnerReceiptReads
 import com.spoolin.support.receipts.ReceiptAuthority
 import com.spoolin.support.receipts.ReceiptOutcome
@@ -23,6 +25,7 @@ import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.Spoolin
 import spoolin.v1.Spoolin.AuditPage
 import spoolin.v1.Spoolin.CreditPage
+import spoolin.v1.Spoolin.CreditWrite
 import spoolin.v1.Spoolin.Genres
 import spoolin.v1.Spoolin.Id
 import spoolin.v1.Spoolin.MovieWrite
@@ -40,7 +43,6 @@ import spoolin.v1.Spoolin.Search
 import spoolin.v1.Spoolin.Title
 import spoolin.v1.Spoolin.TitlePage
 import spoolin.v1.Spoolin.VersionedId
-import spoolin.v1.Spoolin.CreditWrite
 import java.time.Clock
 import java.util.UUID
 
@@ -79,10 +81,12 @@ class CatalogServiceRpc(
     private val personLifecycle: com.spoolin.catalog.features.lifecycle.PersonLifecycle? = null,
     private val deletionImpact: com.spoolin.catalog.features.lifecycle.DeletionImpact? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
-
     // ── GetOperation ─────────────────────────────────────────────────────────
 
-    override fun getOperation(request: Id, response: StreamObserver<Outcome>) {
+    override fun getOperation(
+        request: Id,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val actor = receiptAuthority.actorScope() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             val id = parseId(request.id)
@@ -96,7 +100,10 @@ class CatalogServiceRpc(
 
     // ── SearchTitles ─────────────────────────────────────────────────────────
 
-    override fun searchTitles(request: Search, response: StreamObserver<TitlePage>) {
+    override fun searchTitles(
+        request: Search,
+        response: StreamObserver<TitlePage>,
+    ) {
         try {
             val text = request.text.takeIf { it.isNotEmpty() }
             val kind = request.kind.takeIf { it.isNotEmpty() }
@@ -105,10 +112,11 @@ class CatalogServiceRpc(
             val month = if (request.hasMonth()) request.month else null
             val first = if (request.first > 0) request.first else DEFAULT_FIRST
             val scopeHash = CatalogCursor.scopeHash(text, kind, request.genreIdsList, year, month, "public")
-            val afterCursor = request.after.takeIf { it.isNotEmpty() }?.let { raw ->
-                titleCursor.decode(raw, scopeHash, clock.instant())
-                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
-            }
+            val afterCursor =
+                request.after.takeIf { it.isNotEmpty() }?.let { raw ->
+                    titleCursor.decode(raw, scopeHash, clock.instant())
+                        ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
+                }
             val page = titleSearch.search(text, kind, genreIds, year, month, first, afterCursor)
             val builder = TitlePage.newBuilder()
             page.rows.forEach { row ->
@@ -129,7 +137,10 @@ class CatalogServiceRpc(
 
     // ── GetTitle ─────────────────────────────────────────────────────────────
 
-    override fun getTitle(request: Id, response: StreamObserver<Title>) {
+    override fun getTitle(
+        request: Id,
+        response: StreamObserver<Title>,
+    ) {
         try {
             val id = parseId(request.id)
             val row = titleSearch.findById(id)
@@ -150,25 +161,30 @@ class CatalogServiceRpc(
 
     // ── SearchPeople ─────────────────────────────────────────────────────────
 
-    override fun searchPeople(request: Search, response: StreamObserver<PersonPage>) {
+    override fun searchPeople(
+        request: Search,
+        response: StreamObserver<PersonPage>,
+    ) {
         try {
             val text = request.text.takeIf { it.isNotEmpty() }
             val first = if (request.first > 0) request.first else DEFAULT_FIRST
             val scopeHash = CatalogCursor.scopeHash(text, null, emptyList(), null, null, "public-people")
-            val afterCursor = request.after.takeIf { it.isNotEmpty() }?.let { raw ->
-                peopleCursor.decode(raw, scopeHash, clock.instant())?.let {
-                    PersonSearch.PersonKeyset(it.name, it.id)
-                } ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
-            }
+            val afterCursor =
+                request.after.takeIf { it.isNotEmpty() }?.let { raw ->
+                    peopleCursor.decode(raw, scopeHash, clock.instant())?.let {
+                        PersonSearch.PersonKeyset(it.name, it.id)
+                    } ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
+                }
             val page = personSearch.searchPeople(text, first, afterCursor)
             val builder = PersonPage.newBuilder()
             page.rows.forEach { builder.addNodes(personProto(it)) }
             page.keyset?.let { ks ->
-                builder.endCursor = peopleCursor.encode(
-                    PeopleCursor.Keyset(ks.name, ks.id),
-                    scopeHash,
-                    clock.instant(),
-                )
+                builder.endCursor =
+                    peopleCursor.encode(
+                        PeopleCursor.Keyset(ks.name, ks.id),
+                        scopeHash,
+                        clock.instant(),
+                    )
             }
             builder.hasNextPage = page.hasNextPage
             response.onNext(builder.build())
@@ -182,7 +198,10 @@ class CatalogServiceRpc(
 
     // ── GetPerson ────────────────────────────────────────────────────────────
 
-    override fun getPerson(request: Id, response: StreamObserver<Person>) {
+    override fun getPerson(
+        request: Id,
+        response: StreamObserver<Person>,
+    ) {
         try {
             val id = parseId(request.id)
             val row = personSearch.findPerson(id)
@@ -200,15 +219,19 @@ class CatalogServiceRpc(
 
     // ── TitleCredits ─────────────────────────────────────────────────────────
 
-    override fun titleCredits(request: PageRequest, response: StreamObserver<CreditPage>) {
+    override fun titleCredits(
+        request: PageRequest,
+        response: StreamObserver<CreditPage>,
+    ) {
         try {
             val titleId = parseId(request.targetId)
             val first = if (request.first > 0) request.first else DEFAULT_FIRST
             val scope = creditScope(titleId)
-            val afterKeyset = request.after.takeIf { it.isNotEmpty() }?.let { raw ->
-                decodeCreditCursor(raw, scope)
-                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
-            }
+            val afterKeyset =
+                request.after.takeIf { it.isNotEmpty() }?.let { raw ->
+                    decodeCreditCursor(raw, scope)
+                        ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
+                }
             val page = personSearch.titleCredits(titleId, first, afterKeyset)
             response.onNext(creditPageProto(page, scope))
             response.onCompleted()
@@ -219,15 +242,19 @@ class CatalogServiceRpc(
 
     // ── PersonCredits ────────────────────────────────────────────────────────
 
-    override fun personCredits(request: PageRequest, response: StreamObserver<CreditPage>) {
+    override fun personCredits(
+        request: PageRequest,
+        response: StreamObserver<CreditPage>,
+    ) {
         try {
             val personId = parseId(request.targetId)
             val first = if (request.first > 0) request.first else DEFAULT_FIRST
             val scope = creditScope(personId)
-            val afterKeyset = request.after.takeIf { it.isNotEmpty() }?.let { raw ->
-                decodeCreditCursor(raw, scope)
-                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
-            }
+            val afterKeyset =
+                request.after.takeIf { it.isNotEmpty() }?.let { raw ->
+                    decodeCreditCursor(raw, scope)
+                        ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
+                }
             val page = personSearch.personCredits(personId, first, afterKeyset)
             response.onNext(creditPageProto(page, scope))
             response.onCompleted()
@@ -238,11 +265,20 @@ class CatalogServiceRpc(
 
     // ── ListGenres ───────────────────────────────────────────────────────────
 
-    override fun listGenres(request: com.google.protobuf.Empty, response: StreamObserver<Genres>) {
+    override fun listGenres(
+        request: com.google.protobuf.Empty,
+        response: StreamObserver<Genres>,
+    ) {
         try {
             val builder = Genres.newBuilder()
             taxonomy.listGenres().forEach { g ->
-                builder.addNodes(Spoolin.Genre.newBuilder().setId(g.id.toString()).setLabel(g.label).build())
+                builder.addNodes(
+                    Spoolin.Genre
+                        .newBuilder()
+                        .setId(g.id.toString())
+                        .setLabel(g.label)
+                        .build(),
+                )
             }
             response.onNext(builder.build())
             response.onCompleted()
@@ -253,12 +289,16 @@ class CatalogServiceRpc(
 
     // ── ListRoles ────────────────────────────────────────────────────────────
 
-    override fun listRoles(request: com.google.protobuf.Empty, response: StreamObserver<Roles>) {
+    override fun listRoles(
+        request: com.google.protobuf.Empty,
+        response: StreamObserver<Roles>,
+    ) {
         try {
             val builder = Roles.newBuilder()
             taxonomy.listRoles().forEach { r ->
                 builder.addNodes(
-                    Spoolin.CreditRole.newBuilder()
+                    Spoolin.CreditRole
+                        .newBuilder()
                         .setId(r.id.toString())
                         .setCategory(r.category)
                         .setLabel(r.label)
@@ -273,7 +313,10 @@ class CatalogServiceRpc(
         }
     }
 
-    override fun movieLifecycle(request: spoolin.v1.Spoolin.Lifecycle, response: StreamObserver<Outcome>) {
+    override fun movieLifecycle(
+        request: spoolin.v1.Spoolin.Lifecycle,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = movieLifecycle
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.asRuntimeException())
@@ -282,7 +325,10 @@ class CatalogServiceRpc(
         handler.apply(request, response)
     }
 
-    override fun personLifecycle(request: spoolin.v1.Spoolin.Lifecycle, response: StreamObserver<Outcome>) {
+    override fun personLifecycle(
+        request: spoolin.v1.Spoolin.Lifecycle,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = personLifecycle
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.asRuntimeException())
@@ -291,7 +337,10 @@ class CatalogServiceRpc(
         handler.apply(request, response)
     }
 
-    override fun deletionImpact(request: Id, response: StreamObserver<spoolin.v1.Spoolin.Impact>) {
+    override fun deletionImpact(
+        request: Id,
+        response: StreamObserver<spoolin.v1.Spoolin.Impact>,
+    ) {
         val handler = deletionImpact
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.asRuntimeException())
@@ -300,7 +349,10 @@ class CatalogServiceRpc(
         handler.preview(request, response)
     }
 
-    override fun beginArtwork(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<Outcome>) {
+    override fun beginArtwork(
+        request: spoolin.v1.Spoolin.Hold,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = artwork
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Artwork unavailable").asRuntimeException())
@@ -323,7 +375,10 @@ class CatalogServiceRpc(
 
     // ── WriteMovie ────────────────────────────────────────────────────────────
 
-    override fun writeMovie(request: MovieWrite, response: StreamObserver<Outcome>) {
+    override fun writeMovie(
+        request: MovieWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = movieWrites
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
@@ -334,7 +389,10 @@ class CatalogServiceRpc(
 
     // ── CreateRole ────────────────────────────────────────────────────────────
 
-    override fun createRole(request: RoleWrite, response: StreamObserver<Outcome>) {
+    override fun createRole(
+        request: RoleWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = roleWrites
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
@@ -345,7 +403,10 @@ class CatalogServiceRpc(
 
     // ── WriteCredit ───────────────────────────────────────────────────────────
 
-    override fun writeCredit(request: CreditWrite, response: StreamObserver<Outcome>) {
+    override fun writeCredit(
+        request: CreditWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = creditWrites
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
@@ -356,7 +417,10 @@ class CatalogServiceRpc(
 
     // ── RemoveCredit ──────────────────────────────────────────────────────────
 
-    override fun removeCredit(request: VersionedId, response: StreamObserver<Outcome>) {
+    override fun removeCredit(
+        request: VersionedId,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = creditWrites
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
@@ -367,7 +431,10 @@ class CatalogServiceRpc(
 
     // ── ManagedCredits ────────────────────────────────────────────────────────
 
-    override fun managedCredits(request: PageRequest, response: StreamObserver<CreditPage>) {
+    override fun managedCredits(
+        request: PageRequest,
+        response: StreamObserver<CreditPage>,
+    ) {
         val handler = managedCreditReads
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
@@ -378,7 +445,10 @@ class CatalogServiceRpc(
 
     // ── WritePerson ───────────────────────────────────────────────────────────
 
-    override fun writePerson(request: PersonWrite, response: StreamObserver<Outcome>) {
+    override fun writePerson(
+        request: PersonWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         val handler = personWrites
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
@@ -389,7 +459,10 @@ class CatalogServiceRpc(
 
     // ── ManagedPerson ─────────────────────────────────────────────────────────
 
-    override fun managedPerson(request: Id, response: StreamObserver<Person>) {
+    override fun managedPerson(
+        request: Id,
+        response: StreamObserver<Person>,
+    ) {
         val handler = managedPersonReads
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
@@ -400,7 +473,10 @@ class CatalogServiceRpc(
 
     // ── ManagedPeople ─────────────────────────────────────────────────────────
 
-    override fun managedPeople(request: PageRequest, response: StreamObserver<PersonPage>) {
+    override fun managedPeople(
+        request: PageRequest,
+        response: StreamObserver<PersonPage>,
+    ) {
         val handler = managedPersonReads
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
@@ -411,7 +487,10 @@ class CatalogServiceRpc(
 
     // ── ManagedTitle ─────────────────────────────────────────────────────────
 
-    override fun managedTitle(request: Id, response: StreamObserver<Title>) {
+    override fun managedTitle(
+        request: Id,
+        response: StreamObserver<Title>,
+    ) {
         val handler = managedReads
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
@@ -422,7 +501,10 @@ class CatalogServiceRpc(
 
     // ── ManagedTitles ─────────────────────────────────────────────────────────
 
-    override fun managedTitles(request: PageRequest, response: StreamObserver<TitlePage>) {
+    override fun managedTitles(
+        request: PageRequest,
+        response: StreamObserver<TitlePage>,
+    ) {
         val handler = managedReads
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
@@ -433,7 +515,10 @@ class CatalogServiceRpc(
 
     // ── Audit ─────────────────────────────────────────────────────────────────
 
-    override fun audit(request: PageRequest, response: StreamObserver<AuditPage>) {
+    override fun audit(
+        request: PageRequest,
+        response: StreamObserver<AuditPage>,
+    ) {
         val handler = managedReads
         if (handler == null) {
             response.onError(Status.UNAVAILABLE.withDescription("Audit reads unavailable").asRuntimeException())
@@ -449,21 +534,23 @@ class CatalogServiceRpc(
         genreIds: List<UUID>,
         provenanceRows: List<ProvenanceReads.ProvenanceRow>,
     ): Title {
-        val values = Spoolin.MovieValues.newBuilder()
-            .setTitle(row.displayTitle)
-            .setSynopsis(row.synopsis)
-            .setSynopsisLanguage(row.synopsisLanguage)
-            .addAllCountries(row.countries)
-            .addAllGenreIds(genreIds.map { it.toString() })
-            .setRelease(partialDateProto(row.releaseYear, row.releaseMonth, row.releaseDay))
-            .also { b ->
-                row.originalTitle?.let { b.originalTitle = it }
-                row.originalLanguage?.let { b.originalLanguage = it }
-                row.runtimeMinutes?.let { b.runtimeMinutes = it }
-            }
-            .build()
+        val values =
+            Spoolin.MovieValues
+                .newBuilder()
+                .setTitle(row.displayTitle)
+                .setSynopsis(row.synopsis)
+                .setSynopsisLanguage(row.synopsisLanguage)
+                .addAllCountries(row.countries)
+                .addAllGenreIds(genreIds.map { it.toString() })
+                .setRelease(partialDateProto(row.releaseYear, row.releaseMonth, row.releaseDay))
+                .also { b ->
+                    row.originalTitle?.let { b.originalTitle = it }
+                    row.originalLanguage?.let { b.originalLanguage = it }
+                    row.runtimeMinutes?.let { b.runtimeMinutes = it }
+                }.build()
 
-        return Title.newBuilder()
+        return Title
+            .newBuilder()
             .setId(row.id.toString())
             .setKind(row.kind)
             .setState(row.status)
@@ -475,28 +562,32 @@ class CatalogServiceRpc(
                 row.assetId?.let { b.assetId = it.toString() }
                 row.tvStatus?.let { b.tvStatus = it }
                 row.releaseContext?.let { b.releaseContext = it }
-            }
-            .build()
+            }.build()
     }
 
     private fun personProto(row: PersonSearch.PersonRow): Person =
-        Person.newBuilder()
+        Person
+            .newBuilder()
             .setId(row.id.toString())
             .setValues(
-                PersonValues.newBuilder()
+                PersonValues
+                    .newBuilder()
                     .setName(row.name)
                     .also { b -> row.biography?.let { b.biography = it } }
                     .build(),
-            )
-            .setState(row.status)
+            ).setState(row.status)
             .setVersion(row.version)
             .build()
 
-    private fun creditPageProto(page: PersonSearch.CreditPage, scope: String): CreditPage {
+    private fun creditPageProto(
+        page: PersonSearch.CreditPage,
+        scope: String,
+    ): CreditPage {
         val builder = CreditPage.newBuilder()
         page.rows.forEach { r ->
             builder.addNodes(
-                Spoolin.Credit.newBuilder()
+                Spoolin.Credit
+                    .newBuilder()
                     .setId(r.id.toString())
                     .setTitleId(r.titleId.toString())
                     .setPersonId(r.personId.toString())
@@ -506,14 +597,14 @@ class CatalogServiceRpc(
                     .setPersonName(r.personName)
                     .setTitleName(r.titleName)
                     .setRole(
-                        Spoolin.CreditRole.newBuilder()
+                        Spoolin.CreditRole
+                            .newBuilder()
                             .setId(r.roleId.toString())
                             .setCategory(r.roleCategory)
                             .setLabel(r.roleLabel)
                             .setAllowsCharacters(r.roleAllowsCharacters)
                             .build(),
-                    )
-                    .build(),
+                    ).build(),
             )
         }
         page.keyset?.let { builder.endCursor = encodeCreditCursor(it, scope) }
@@ -521,22 +612,32 @@ class CatalogServiceRpc(
         return builder.build()
     }
 
-    private fun partialDateProto(year: Int?, month: Int?, day: Int?): PartialDate =
-        ProtoHelpers.partialDate(year, month, day)
+    private fun partialDateProto(
+        year: Int?,
+        month: Int?,
+        day: Int?,
+    ): PartialDate = ProtoHelpers.partialDate(year, month, day)
 
-    private fun provenanceProto(row: ProvenanceReads.ProvenanceRow): Provenance =
-        ProtoHelpers.provenance(row)
+    private fun provenanceProto(row: ProvenanceReads.ProvenanceRow): Provenance = ProtoHelpers.provenance(row)
 
     private fun outcomeProto(receipt: ReceiptOutcome): Outcome {
-        val b = Outcome.newBuilder()
-            .setOperationId(receipt.id.toString())
-            .setState(receipt.state.name)
-            .setResultExpired(receipt.resultExpired)
+        val b =
+            Outcome
+                .newBuilder()
+                .setOperationId(receipt.id.toString())
+                .setState(receipt.state.name)
+                .setResultExpired(receipt.resultExpired)
         receipt.result?.let { r ->
             b.resultId = r.resultId.toString()
             r.version?.let { b.version = it }
         }
-        receipt.errorCode?.let { b.problem = Spoolin.Problem.newBuilder().setCode(it).build() }
+        receipt.errorCode?.let {
+            b.problem =
+                Spoolin.Problem
+                    .newBuilder()
+                    .setCode(it)
+                    .build()
+        }
         return b.build()
     }
 
@@ -545,12 +646,18 @@ class CatalogServiceRpc(
     /** Scope binds the cursor to a specific target (title or person) to prevent cross-use. */
     private fun creditScope(targetId: UUID): String = "credit-scope-v1:$targetId"
 
-    private fun encodeCreditCursor(ks: PersonSearch.CreditKeyset, scope: String): String {
+    private fun encodeCreditCursor(
+        ks: PersonSearch.CreditKeyset,
+        scope: String,
+    ): String {
         val keyset = CatalogCursor.Keyset(null, null, null, ks.id)
         return titleCursor.encode(keyset, scope, clock.instant())
     }
 
-    private fun decodeCreditCursor(raw: String, scope: String): PersonSearch.CreditKeyset? {
+    private fun decodeCreditCursor(
+        raw: String,
+        scope: String,
+    ): PersonSearch.CreditKeyset? {
         val ks = titleCursor.decode(raw, scope, clock.instant()) ?: return null
         return PersonSearch.CreditKeyset(ks.id)
     }
@@ -560,5 +667,4 @@ class CatalogServiceRpc(
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
-
 }

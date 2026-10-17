@@ -19,7 +19,6 @@ import spoolin.v1.Spoolin.PersonValues
  * - No account credentials, tokens or private state escape the declared projection.
  */
 class ManagedPersonProjectionRulesTest {
-
     // ── person map projection ─────────────────────────────────────────────────
 
     @Test
@@ -46,12 +45,14 @@ class ManagedPersonProjectionRulesTest {
     @Test
     fun `empty string biography from proto projects as null (not empty string)`() {
         // Proto default is "", which PersonSearch / managed reads treat as absent.
-        val p = Person.newBuilder()
-            .setId("test-person-id")
-            .setValues(PersonValues.newBuilder().setName("Alice").build()) // no .setBiography()
-            .setState("ACTIVE")
-            .setVersion(1L)
-            .build()
+        val p =
+            Person
+                .newBuilder()
+                .setId("test-person-id")
+                .setValues(PersonValues.newBuilder().setName("Alice").build()) // no .setBiography()
+                .setState("ACTIVE")
+                .setVersion(1L)
+                .build()
         val map = personMap(p)
         assertNull(map["biography"], "Empty proto biography string must project as null")
     }
@@ -66,12 +67,14 @@ class ManagedPersonProjectionRulesTest {
 
     @Test
     fun `archived person state is exposed correctly`() {
-        val p = Person.newBuilder()
-            .setId("test-person-id")
-            .setValues(PersonValues.newBuilder().setName("Bob").build())
-            .setState("ARCHIVED")
-            .setVersion(5L)
-            .build()
+        val p =
+            Person
+                .newBuilder()
+                .setId("test-person-id")
+                .setValues(PersonValues.newBuilder().setName("Bob").build())
+                .setState("ARCHIVED")
+                .setVersion(5L)
+                .build()
         val map = personMap(p)
         assertEquals("ARCHIVED", map["state"])
     }
@@ -93,6 +96,7 @@ class ManagedPersonProjectionRulesTest {
     fun `empty person page projects nodes as empty list`() {
         val proto = PersonPage.newBuilder().setHasNextPage(false).build()
         val map = personPageMap(proto)
+
         @Suppress("UNCHECKED_CAST")
         val nodes = map["nodes"] as List<*>
         assertTrue(nodes.isEmpty())
@@ -102,6 +106,7 @@ class ManagedPersonProjectionRulesTest {
     fun `person page maps endCursor as null when absent`() {
         val proto = PersonPage.newBuilder().setHasNextPage(false).build()
         val map = personPageMap(proto)
+
         @Suppress("UNCHECKED_CAST")
         val pageInfo = map["pageInfo"] as Map<String, Any?>
         assertNull(pageInfo["endCursor"])
@@ -109,11 +114,14 @@ class ManagedPersonProjectionRulesTest {
 
     @Test
     fun `person page maps endCursor when present`() {
-        val proto = PersonPage.newBuilder()
-            .setEndCursor("some-cursor-value")
-            .setHasNextPage(true)
-            .build()
+        val proto =
+            PersonPage
+                .newBuilder()
+                .setEndCursor("some-cursor-value")
+                .setHasNextPage(true)
+                .build()
         val map = personPageMap(proto)
+
         @Suppress("UNCHECKED_CAST")
         val pageInfo = map["pageInfo"] as Map<String, Any?>
         assertEquals("some-cursor-value", pageInfo["endCursor"])
@@ -122,12 +130,15 @@ class ManagedPersonProjectionRulesTest {
 
     @Test
     fun `person page with nodes maps all persons`() {
-        val proto = PersonPage.newBuilder()
-            .addNodes(activePerson(name = "Alice", biography = null))
-            .addNodes(activePerson(name = "Bob", biography = "Bio"))
-            .setHasNextPage(false)
-            .build()
+        val proto =
+            PersonPage
+                .newBuilder()
+                .addNodes(activePerson(name = "Alice", biography = null))
+                .addNodes(activePerson(name = "Bob", biography = "Bio"))
+                .setHasNextPage(false)
+                .build()
         val map = personPageMap(proto)
+
         @Suppress("UNCHECKED_CAST")
         val nodes = map["nodes"] as List<Map<String, Any?>>
         assertEquals(2, nodes.size)
@@ -150,26 +161,33 @@ class ManagedPersonProjectionRulesTest {
      * Replicates the personMap logic from ManagedPersonGraphql for isolated testing.
      * Keeps the test independent of Spring context.
      */
-    private fun personMap(p: Person): Map<String, Any?> = mapOf(
-        "id" to p.id,
-        "name" to p.values.name,
-        "biography" to p.values.biography.takeIf { it.isNotEmpty() },
-        "state" to p.state,
-        "version" to p.version.toString(),
-    )
+    private fun personMap(p: Person): Map<String, Any?> =
+        mapOf(
+            "id" to p.id,
+            "name" to p.values.name,
+            "biography" to p.values.biography.takeIf { it.isNotEmpty() },
+            "state" to p.state,
+            "version" to p.version.toString(),
+        )
 
-    private fun personPageMap(proto: PersonPage): Map<String, Any?> = mapOf(
-        "nodes" to proto.nodesList.map { personMap(it) },
-        "pageInfo" to mapOf(
-            "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-            "hasNextPage" to proto.hasNextPage,
-        ),
-    )
+    private fun personPageMap(proto: PersonPage): Map<String, Any?> =
+        mapOf(
+            "nodes" to proto.nodesList.map { personMap(it) },
+            "pageInfo" to
+                mapOf(
+                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
+                    "hasNextPage" to proto.hasNextPage,
+                ),
+        )
 
-    private fun activePerson(name: String, biography: String?): Person {
+    private fun activePerson(
+        name: String,
+        biography: String?,
+    ): Person {
         val values = PersonValues.newBuilder().setName(name)
         biography?.let { values.biography = it }
-        return Person.newBuilder()
+        return Person
+            .newBuilder()
             .setId("test-person-id")
             .setValues(values.build())
             .setState("ACTIVE")

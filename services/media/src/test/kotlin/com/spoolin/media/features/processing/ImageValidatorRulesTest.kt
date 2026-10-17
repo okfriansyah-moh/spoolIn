@@ -30,8 +30,10 @@ class ImageValidatorRulesTest {
         return header + ByteArray(size - header.size)
     }
 
-    private fun validate(bytes: ByteArray, max: Long = maxBytes): ImageValidator.ValidationResult =
-        ImageValidator.validate(ByteArrayInputStream(bytes), max)
+    private fun validate(
+        bytes: ByteArray,
+        max: Long = maxBytes,
+    ): ImageValidator.ValidationResult = ImageValidator.validate(ByteArrayInputStream(bytes), max)
 
     @Test
     fun `valid JPEG header returns Valid with JPEG format`() {
@@ -68,8 +70,10 @@ class ImageValidatorRulesTest {
         val data = jpeg(maxBytes.toInt())
         val result = validate(data, maxBytes)
         // Content check may still reject it, but size boundary must be accepted
-        assert(result !is ImageValidator.ValidationResult.Invalid ||
-            (result as ImageValidator.ValidationResult.Invalid).errorCode != "FILE_TOO_LARGE")
+        assert(
+            result !is ImageValidator.ValidationResult.Invalid ||
+                (result as ImageValidator.ValidationResult.Invalid).errorCode != "FILE_TOO_LARGE",
+        )
     }
 
     @Test
@@ -135,21 +139,26 @@ class ImageValidatorRulesTest {
         val data = jpeg()
         val result = validate(data)
         require(result is ImageValidator.ValidationResult.Valid)
-        val expected = java.security.MessageDigest.getInstance("SHA-256").digest(data)
+        val expected =
+            java.security.MessageDigest
+                .getInstance("SHA-256")
+                .digest(data)
         assert(result.inputHash.contentEquals(expected))
     }
 
-    private fun intToBytes(value: Int): ByteArray = byteArrayOf(
-        (value shr 24 and 0xFF).toByte(),
-        (value shr 16 and 0xFF).toByte(),
-        (value shr 8 and 0xFF).toByte(),
-        (value and 0xFF).toByte(),
-    )
+    private fun intToBytes(value: Int): ByteArray =
+        byteArrayOf(
+            (value shr 24 and 0xFF).toByte(),
+            (value shr 16 and 0xFF).toByte(),
+            (value shr 8 and 0xFF).toByte(),
+            (value and 0xFF).toByte(),
+        )
 
-    private fun intToLEBytes(value: Int): ByteArray = byteArrayOf(
-        (value and 0xFF).toByte(),
-        (value shr 8 and 0xFF).toByte(),
-        (value shr 16 and 0xFF).toByte(),
-        (value shr 24 and 0xFF).toByte(),
-    )
+    private fun intToLEBytes(value: Int): ByteArray =
+        byteArrayOf(
+            (value and 0xFF).toByte(),
+            (value shr 8 and 0xFF).toByte(),
+            (value shr 16 and 0xFF).toByte(),
+            (value shr 24 and 0xFF).toByte(),
+        )
 }

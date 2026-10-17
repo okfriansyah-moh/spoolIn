@@ -1,3 +1,5 @@
+@file:Suppress("MaxLineLength")
+
 package com.spoolin.catalog.features.lifecycle
 
 import com.spoolin.support.identity.ActorRpc
@@ -11,9 +13,15 @@ import java.util.Base64
 import java.util.UUID
 import javax.sql.DataSource
 
-class DeletionImpact(private val dataSource: DataSource) {
+class DeletionImpact(
+    private val dataSource: DataSource,
+) {
     companion object {
-        fun matchesToken(dataSource: DataSource, personId: UUID, token: String?): Boolean {
+        fun matchesToken(
+            dataSource: DataSource,
+            personId: UUID,
+            token: String?,
+        ): Boolean {
             if (token.isNullOrBlank()) return false
             val titles =
                 dataSource.connection.use { connection ->
@@ -27,7 +35,11 @@ class DeletionImpact(private val dataSource: DataSource) {
             return token == expected
         }
     }
-    fun preview(request: Id, response: StreamObserver<Impact>) {
+
+    fun preview(
+        request: Id,
+        response: StreamObserver<Impact>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw Status.PERMISSION_DENIED.asRuntimeException()
@@ -42,7 +54,8 @@ class DeletionImpact(private val dataSource: DataSource) {
                 }
             val token = Base64.getEncoder().encodeToString("$personId:${titles.size}".toByteArray())
             response.onNext(
-                Impact.newBuilder()
+                Impact
+                    .newBuilder()
                     .setTargetId(personId.toString())
                     .setVersion(0)
                     .setToken(token)

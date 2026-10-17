@@ -83,16 +83,17 @@ class ProcessingRecoveryBoundaryTest {
                 AssetSql.insertReceiving(connection, assetId, opId, UUID.randomUUID(), 2048L, "v1")
             }
             val now = Instant.now()
-            val updated = dataSource.committed { connection ->
-                AssetSql.acceptProcessing(
-                    connection,
-                    assetId,
-                    "quarantine/$assetId",
-                    ByteArray(32) { 0x11 },
-                    workId,
-                    now,
-                )
-            }
+            val updated =
+                dataSource.committed { connection ->
+                    AssetSql.acceptProcessing(
+                        connection,
+                        assetId,
+                        "quarantine/$assetId",
+                        ByteArray(32) { 0x11 },
+                        workId,
+                        now,
+                    )
+                }
             assertEquals(1, updated, "acceptProcessing must update exactly one row")
 
             // Independent read confirms PROCESSING with complete evidence block
@@ -117,16 +118,18 @@ class ProcessingRecoveryBoundaryTest {
                 AssetSql.insertReceiving(connection, assetId, opId, UUID.randomUUID(), 512L, "v1")
             }
             val now = Instant.now()
-            val first = dataSource.committed { connection ->
-                AssetSql.acceptProcessing(connection, assetId, "quarantine/$assetId", ByteArray(32), workId, now)
-            }
+            val first =
+                dataSource.committed { connection ->
+                    AssetSql.acceptProcessing(connection, assetId, "quarantine/$assetId", ByteArray(32), workId, now)
+                }
             assertEquals(1, first, "First acceptProcessing should succeed")
 
             // Second acceptProcessing on PROCESSING (not RECEIVING) must return 0 (predicate guard)
             val workId2 = insertWorkFixture(dataSource, opId, suffix = "step2")
-            val second = dataSource.committed { connection ->
-                AssetSql.acceptProcessing(connection, assetId, "quarantine/$assetId", ByteArray(32), workId2, now)
-            }
+            val second =
+                dataSource.committed { connection ->
+                    AssetSql.acceptProcessing(connection, assetId, "quarantine/$assetId", ByteArray(32), workId2, now)
+                }
             assertEquals(0, second, "Second acceptProcessing must not override committed PROCESSING")
         }
     }
@@ -140,9 +143,10 @@ class ProcessingRecoveryBoundaryTest {
             dataSource.committed { connection ->
                 AssetSql.insertReceiving(connection, assetId, opId, UUID.randomUUID(), 100L, "v1")
             }
-            val rejected = dataSource.committed { connection ->
-                AssetSql.markRejected(connection, assetId, "FILE_EMPTY")
-            }
+            val rejected =
+                dataSource.committed { connection ->
+                    AssetSql.markRejected(connection, assetId, "FILE_EMPTY")
+                }
             assertEquals(1, rejected)
 
             val row = AssetSql.find(dataSource, assetId)
@@ -153,9 +157,10 @@ class ProcessingRecoveryBoundaryTest {
             val workId = insertWorkFixture(dataSource, opId)
             val now = Instant.now()
             // Cannot accept processing on REJECTED asset
-            val noOp = dataSource.committed { connection ->
-                AssetSql.acceptProcessing(connection, assetId, "quarantine/$assetId", ByteArray(32), workId, now)
-            }
+            val noOp =
+                dataSource.committed { connection ->
+                    AssetSql.acceptProcessing(connection, assetId, "quarantine/$assetId", ByteArray(32), workId, now)
+                }
             assertEquals(0, noOp, "REJECTED asset must not accept processing transition")
         }
     }
@@ -188,16 +193,17 @@ class ProcessingRecoveryBoundaryTest {
     private fun insertReceiptFixture(dataSource: javax.sql.DataSource): UUID {
         val opId = UUID.randomUUID()
         dataSource.committed { connection ->
-            connection.prepareStatement(
-                "INSERT INTO operation_receipt (id, actor_scope, kind, request_hash, state, " +
-                    "correlation_id, expires_at) VALUES (?, 'account:fixture', 'UPLOAD', " +
-                    "decode(repeat('ab',32),'hex'), 'PENDING', ?, ?)",
-            ).use { stmt ->
-                stmt.setObject(1, opId)
-                stmt.setObject(2, UUID.randomUUID())
-                stmt.setTimestamp(3, Timestamp.from(Instant.now().plusSeconds(3600)))
-                stmt.executeUpdate()
-            }
+            connection
+                .prepareStatement(
+                    "INSERT INTO operation_receipt (id, actor_scope, kind, request_hash, state, " +
+                        "correlation_id, expires_at) VALUES (?, 'account:fixture', 'UPLOAD', " +
+                        "decode(repeat('ab',32),'hex'), 'PENDING', ?, ?)",
+                ).use { stmt ->
+                    stmt.setObject(1, opId)
+                    stmt.setObject(2, UUID.randomUUID())
+                    stmt.setTimestamp(3, Timestamp.from(Instant.now().plusSeconds(3600)))
+                    stmt.executeUpdate()
+                }
         }
         return opId
     }
@@ -210,17 +216,18 @@ class ProcessingRecoveryBoundaryTest {
         // Derive a stable work UUID from opId + suffix (UUID v5 style)
         val workId = UUID.nameUUIDFromBytes("$opId-$suffix".toByteArray())
         dataSource.committed { connection ->
-            connection.prepareStatement(
-                "INSERT INTO durable_work (id, operation_id, kind, payload, max_attempts, " +
-                    "deadline_at, correlation_id, base_delay_ms, cap_delay_ms, backoff_multiplier) " +
-                    "VALUES (?, ?, 'MEDIA_PROCESS', '{}', 3, ?, ?, 500, 5000, 2)",
-            ).use { stmt ->
-                stmt.setObject(1, workId)
-                stmt.setObject(2, opId)
-                stmt.setTimestamp(3, Timestamp.from(Instant.now().plusSeconds(300)))
-                stmt.setObject(4, UUID.randomUUID())
-                stmt.executeUpdate()
-            }
+            connection
+                .prepareStatement(
+                    "INSERT INTO durable_work (id, operation_id, kind, payload, max_attempts, " +
+                        "deadline_at, correlation_id, base_delay_ms, cap_delay_ms, backoff_multiplier) " +
+                        "VALUES (?, ?, 'MEDIA_PROCESS', '{}', 3, ?, ?, 500, 5000, 2)",
+                ).use { stmt ->
+                    stmt.setObject(1, workId)
+                    stmt.setObject(2, opId)
+                    stmt.setTimestamp(3, Timestamp.from(Instant.now().plusSeconds(300)))
+                    stmt.setObject(4, UUID.randomUUID())
+                    stmt.executeUpdate()
+                }
         }
         return workId
     }

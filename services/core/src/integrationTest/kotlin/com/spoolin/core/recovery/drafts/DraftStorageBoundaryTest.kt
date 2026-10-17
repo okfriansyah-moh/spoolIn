@@ -13,6 +13,7 @@ import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.crypto.queryBound
 import com.spoolin.core.features.draft.DraftCryptography
 import com.spoolin.core.features.draft.DraftInput
+import com.spoolin.core.features.draft.DraftPersistCommand
 import com.spoolin.core.features.draft.DraftPayload
 import com.spoolin.core.features.draft.DraftQuotaExceeded
 import com.spoolin.core.features.draft.DraftStaleVersion
@@ -68,9 +69,13 @@ class DraftStorageBoundaryTest {
                     ReceiptAudit(ReceiptAction.DRAFT_SAVED, accountId, draftId),
                 ) { connection ->
                     val v =
-                        env.drafts.saveInTransaction(
-                            connection, accountId, draftId, null, env.input("MOVIE", """{"title":"First"}"""),
-                            env.crypto.encrypt(draftId, env.payload.encode("MOVIE", """{"title":"First"}""")),
+                        env.persistDraft(
+                            connection,
+                            accountId,
+                            draftId,
+                            null,
+                            "MOVIE",
+                            """{"title":"First"}""",
                         )
                     SafeResult(draftId, version = v)
                 }
@@ -102,9 +107,13 @@ class DraftStorageBoundaryTest {
                     ReceiptAudit(ReceiptAction.DRAFT_SAVED, accountId, draftId),
                 ) { connection ->
                     val v =
-                        env.drafts.saveInTransaction(
-                            connection, accountId, draftId, 0L, env.input("MOVIE", """{"title":"Updated"}"""),
-                            env.crypto.encrypt(draftId, env.payload.encode("MOVIE", """{"title":"Updated"}""")),
+                        env.persistDraft(
+                            connection,
+                            accountId,
+                            draftId,
+                            0L,
+                            "MOVIE",
+                            """{"title":"Updated"}""",
                         )
                     SafeResult(draftId, version = v)
                 }
@@ -138,7 +147,9 @@ class DraftStorageBoundaryTest {
                     env.discardIntent(discardId, accountId, draftId, 1L),
                     UUID.randomUUID(),
                     ReceiptAudit(ReceiptAction.DRAFT_DISCARDED, accountId, draftId),
-                ) { _ -> SafeResult(draftId, discarded = false) /* must not execute */ }
+                ) { _ ->
+                    SafeResult(draftId, discarded = false) // must not execute
+                }
             assertEquals(true, discardReplay.result?.discarded)
         }
     }
@@ -157,10 +168,7 @@ class DraftStorageBoundaryTest {
                 UUID.randomUUID(),
                 ReceiptAudit(ReceiptAction.DRAFT_SAVED, accountId, draftId),
             ) { connection ->
-                env.drafts.saveInTransaction(
-                    connection, accountId, draftId, null, env.input("PERSON", """{"name":"Alice"}"""),
-                    env.crypto.encrypt(draftId, env.payload.encode("PERSON", """{"name":"Alice"}""")),
-                )
+                env.persistDraft(connection, accountId, draftId, null, "PERSON", """{"name":"Alice"}""")
                 SafeResult(draftId, version = 0L)
             }
 
@@ -193,10 +201,7 @@ class DraftStorageBoundaryTest {
                 UUID.randomUUID(),
                 ReceiptAudit(ReceiptAction.DRAFT_SAVED, accountId, draftId),
             ) { connection ->
-                env.drafts.saveInTransaction(
-                    connection, accountId, draftId, null, env.input("MOVIE", """{"title":"Initial"}"""),
-                    env.crypto.encrypt(draftId, env.payload.encode("MOVIE", """{"title":"Initial"}""")),
-                )
+                env.persistDraft(connection, accountId, draftId, null, "MOVIE", """{"title":"Initial"}""")
                 SafeResult(draftId, version = 0L)
             }
 
@@ -205,10 +210,7 @@ class DraftStorageBoundaryTest {
                 env.pool.connection.use { connection ->
                     connection.autoCommit = false
                     try {
-                        env.drafts.saveInTransaction(
-                            connection, accountId, draftId, 5L, env.input("MOVIE", """{"title":"Stale"}"""),
-                            env.crypto.encrypt(draftId, env.payload.encode("MOVIE", """{"title":"Stale"}""")),
-                        )
+                        env.persistDraft(connection, accountId, draftId, 5L, "MOVIE", """{"title":"Stale"}""")
                     } finally {
                         connection.rollback()
                     }
@@ -225,10 +227,7 @@ class DraftStorageBoundaryTest {
                 val did = UUID.randomUUID()
                 env.pool.connection.use { c ->
                     c.autoCommit = false
-                    env.drafts.saveInTransaction(
-                        c, accountId, did, null, env.input("PERSON", """{"name":"Person $index"}"""),
-                        env.crypto.encrypt(did, env.payload.encode("PERSON", """{"name":"Person $index"}""")),
-                    )
+                    env.persistDraft(c, accountId, did, null, "PERSON", """{"name":"Person $index"}""")
                     c.commit()
                 }
             }
@@ -237,10 +236,7 @@ class DraftStorageBoundaryTest {
                 env.pool.connection.use { c ->
                     c.autoCommit = false
                     try {
-                        env.drafts.saveInTransaction(
-                            c, accountId, did, null, env.input("PERSON", """{"name":"Overflow"}"""),
-                            env.crypto.encrypt(did, env.payload.encode("PERSON", """{"name":"Overflow"}""")),
-                        )
+                        env.persistDraft(c, accountId, did, null, "PERSON", """{"name":"Overflow"}""")
                         c.commit()
                     } catch (e: Exception) {
                         c.rollback()
@@ -296,9 +292,13 @@ class DraftStorageBoundaryTest {
                         ) { connection ->
                             entered.countDown()
                             release.await(10, TimeUnit.SECONDS)
-                            env.drafts.saveInTransaction(
-                                connection, accountId, draftId, null, env.input("MOVIE", """{"title":"Concurrent"}"""),
-                                env.crypto.encrypt(draftId, env.payload.encode("MOVIE", """{"title":"Concurrent"}""")),
+                            env.persistDraft(
+                                connection,
+                                accountId,
+                                draftId,
+                                null,
+                                "MOVIE",
+                                """{"title":"Concurrent"}""",
                             )
                             SafeResult(draftId, version = 0L)
                         }
@@ -408,9 +408,10 @@ class DraftStorageBoundaryTest {
         operationId: UUID,
     ): Int =
         env.pool.connection.use { c ->
-            c.queryBound("SELECT count(*) FROM appdata.operation_receipt WHERE id=?", listOf(operationId)) {
-                it.getInt(1)
-            }.single()
+            c
+                .queryBound("SELECT count(*) FROM appdata.operation_receipt WHERE id=?", listOf(operationId)) {
+                    it.getInt(1)
+                }.single()
         }
 
     private fun countEvents(
@@ -418,9 +419,10 @@ class DraftStorageBoundaryTest {
         operationId: UUID,
     ): Int =
         env.pool.connection.use { c ->
-            c.queryBound("SELECT count(*) FROM appdata.operational_event WHERE operation_id=?", listOf(operationId)) {
-                it.getInt(1)
-            }.single()
+            c
+                .queryBound("SELECT count(*) FROM appdata.operational_event WHERE operation_id=?", listOf(operationId)) {
+                    it.getInt(1)
+                }.single()
         }
 
     private inner class DraftEnv(
@@ -432,6 +434,28 @@ class DraftStorageBoundaryTest {
         val receipts: OwnerReceipts,
         val hashes: IntentHashes,
     ) : AutoCloseable {
+        fun persistDraft(
+            connection: java.sql.Connection,
+            accountId: UUID,
+            draftId: UUID,
+            expectedVersion: Long?,
+            kind: String,
+            values: String,
+        ): Long {
+            val draftInput = input(kind, values)
+            val envelope = crypto.encrypt(draftId, payload.encode(kind, values))
+            return drafts.saveInTransaction(
+                connection,
+                DraftPersistCommand(
+                    accountId = accountId,
+                    draftId = draftId,
+                    expectedVersion = expectedVersion,
+                    input = draftInput,
+                    envelope = envelope,
+                ),
+            )
+        }
+
         fun input(
             kind: String,
             values: String,

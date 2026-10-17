@@ -23,13 +23,14 @@ enum class AssetState {
     fun canTransitionTo(to: AssetState): Boolean = to in ALLOWED[this].orEmpty()
 
     companion object {
-        private val ALLOWED: Map<AssetState, Set<AssetState>> = mapOf(
-            RECEIVING to setOf(PROCESSING, REJECTED),
-            PROCESSING to setOf(READY, REJECTED),
-            READY to setOf(DELETING),
-            REJECTED to emptySet(),
-            DELETING to setOf(DELETED),
-            DELETED to emptySet(),
-        )
+        private val ALLOWED: Map<AssetState, Set<AssetState>> =
+            mapOf(
+                RECEIVING to setOf(PROCESSING, REJECTED),
+                PROCESSING to setOf(READY, REJECTED),
+                READY to setOf(DELETING),
+                REJECTED to emptySet(),
+                DELETING to setOf(DELETED),
+                DELETED to emptySet(),
+            )
     }
 }

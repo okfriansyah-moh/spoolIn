@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class RoleValidationRulesTest {
-
     @Test
     fun `custom role label accepts one character (PRD-BOUND-05)`() {
         val result = RoleValidation.validateCreate("CAST", "V")

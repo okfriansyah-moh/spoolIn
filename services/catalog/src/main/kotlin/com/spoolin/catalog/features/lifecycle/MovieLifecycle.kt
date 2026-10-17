@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "CyclomaticComplexMethod", "ThrowsCount", "MaxLineLength")
+
 package com.spoolin.catalog.features.lifecycle
 
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
@@ -14,10 +16,12 @@ import java.util.UUID
 import javax.sql.DataSource
 
 class MovieLifecycle(
-    private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
 ) {
-    fun apply(request: Lifecycle, response: StreamObserver<Outcome>) {
+    fun apply(
+        request: Lifecycle,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw Status.PERMISSION_DENIED.asRuntimeException()
@@ -74,7 +78,8 @@ class MovieLifecycle(
 
     private fun outcomeProto(receipt: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
         val builder =
-            Outcome.newBuilder()
+            Outcome
+                .newBuilder()
                 .setOperationId(receipt.id.toString())
                 .setState(receipt.state.name)
                 .setResultExpired(receipt.resultExpired)

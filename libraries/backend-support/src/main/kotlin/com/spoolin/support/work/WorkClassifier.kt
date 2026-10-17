@@ -6,7 +6,9 @@ package com.spoolin.support.work
  * Values must match the operational_event CHECK constraint:
  *   attempt_outcome IN ('SUCCEEDED','TRANSIENT','PERMANENT','UNCERTAIN','CANCELLED')
  */
-enum class AttemptOutcome(val code: String) {
+enum class AttemptOutcome(
+    val code: String,
+) {
     SUCCEEDED("SUCCEEDED"),
     TRANSIENT("TRANSIENT"),
     PERMANENT("PERMANENT"),
@@ -21,7 +23,9 @@ enum class AttemptOutcome(val code: String) {
  * TRANSIENT failures schedule a retry within the saved budget.
  * UNCERTAIN failures (possible post-send commit) require destination reconciliation before replay.
  */
-enum class WorkError(val errorCode: String) {
+enum class WorkError(
+    val errorCode: String,
+) {
     INVALID_ARGUMENT("INVALID_ARGUMENT"),
     PERMISSION_DENIED("PERMISSION_DENIED"),
     NOT_FOUND("NOT_FOUND"),
@@ -41,19 +45,22 @@ enum class WorkError(val errorCode: String) {
  * require destination-receipt reconciliation before another send.
  */
 object WorkClassifier {
+    fun classify(error: WorkError): AttemptOutcome =
+        when (error) {
+            WorkError.INVALID_ARGUMENT,
+            WorkError.PERMISSION_DENIED,
+            WorkError.NOT_FOUND,
+            WorkError.STALE_VERSION,
+            -> AttemptOutcome.PERMANENT
 
-    fun classify(error: WorkError): AttemptOutcome = when (error) {
-        WorkError.INVALID_ARGUMENT,
-        WorkError.PERMISSION_DENIED,
-        WorkError.NOT_FOUND,
-        WorkError.STALE_VERSION -> AttemptOutcome.PERMANENT
+            WorkError.UNAVAILABLE_BEFORE_SEND,
+            WorkError.RATE_LIMITED,
+            -> AttemptOutcome.TRANSIENT
 
-        WorkError.UNAVAILABLE_BEFORE_SEND,
-        WorkError.RATE_LIMITED -> AttemptOutcome.TRANSIENT
-
-        WorkError.TIMEOUT_AFTER_SEND,
-        WorkError.UNKNOWN_PROVIDER -> AttemptOutcome.UNCERTAIN
-    }
+            WorkError.TIMEOUT_AFTER_SEND,
+            WorkError.UNKNOWN_PROVIDER,
+            -> AttemptOutcome.UNCERTAIN
+        }
 
     fun isPermanent(error: WorkError): Boolean = classify(error) == AttemptOutcome.PERMANENT
 

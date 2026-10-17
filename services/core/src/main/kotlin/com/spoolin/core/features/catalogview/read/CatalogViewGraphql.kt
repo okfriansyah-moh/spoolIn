@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.spoolin.core.features.catalogview.read
 
 import com.spoolin.support.policy.InputViolation
@@ -29,7 +31,8 @@ class CatalogViewGraphql(
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q ->
-            q.dataFetcher("titles") { env -> titles(env) }
+            q
+                .dataFetcher("titles") { env -> titles(env) }
                 .dataFetcher("title") { env -> title(env) }
                 .dataFetcher("people") { env -> people(env) }
                 .dataFetcher("person") { env -> person(env) }
@@ -48,26 +51,9 @@ class CatalogViewGraphql(
 
     private fun titles(env: DataFetchingEnvironment): Map<String, Any?> {
         val filter = requireNotNull(env.getArgument<Map<String, Any?>>("filter"))
-        val text = (filter["text"] as? String)?.also { validateSearchText(it) }
-        val kind = filter["kind"] as? String
-        val genreIds = (filter["genreIds"] as? List<*>)?.map { it.toString() } ?: emptyList()
-        val year = filter["year"] as? Int
-        val month = filter["month"] as? Int
         val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
         val after = env.getArgument<String>("after")
-
-        val request = Spoolin.Search.newBuilder()
-            .setFirst(first)
-            .addAllGenreIds(genreIds)
-            .also { b ->
-                text?.let { b.text = it }
-                kind?.let { b.kind = it }
-                year?.let { b.year = it }
-                month?.let { b.month = it }
-                after?.let { b.after = it }
-            }
-            .build()
-
+        val request = buildTitleSearchRequest(filter, first, after, ::validateSearchText)
         val result = stub().searchTitles(request)
         return titlePageMap(result)
     }
@@ -77,7 +63,13 @@ class CatalogViewGraphql(
     private fun title(env: DataFetchingEnvironment): Map<String, Any?>? {
         val id = requireNotNull(env.getArgument<String>("id"))
         validateUuid(id)
-        val result = stub().getTitle(Spoolin.Id.newBuilder().setId(id).build())
+        val result =
+            stub().getTitle(
+                Spoolin.Id
+                    .newBuilder()
+                    .setId(id)
+                    .build(),
+            )
         // Empty title (no id) = archived/deleted — return null
         if (result.id.isEmpty()) return null
         return titleMap(result)
@@ -90,13 +82,14 @@ class CatalogViewGraphql(
         val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
         val after = env.getArgument<String>("after")
 
-        val request = Spoolin.Search.newBuilder()
-            .setFirst(first)
-            .also { b ->
-                text?.let { b.text = it }
-                after?.let { b.after = it }
-            }
-            .build()
+        val request =
+            Spoolin.Search
+                .newBuilder()
+                .setFirst(first)
+                .also { b ->
+                    text?.let { b.text = it }
+                    after?.let { b.after = it }
+                }.build()
 
         val result = stub().searchPeople(request)
         return personPageMap(result)
@@ -107,7 +100,13 @@ class CatalogViewGraphql(
     private fun person(env: DataFetchingEnvironment): Map<String, Any?>? {
         val id = requireNotNull(env.getArgument<String>("id"))
         validateUuid(id)
-        val result = stub().getPerson(Spoolin.Id.newBuilder().setId(id).build())
+        val result =
+            stub().getPerson(
+                Spoolin.Id
+                    .newBuilder()
+                    .setId(id)
+                    .build(),
+            )
         if (result.id.isEmpty()) return null
         return personMap(result)
     }
@@ -120,11 +119,13 @@ class CatalogViewGraphql(
         val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
         val after = env.getArgument<String>("after")
 
-        val request = Spoolin.PageRequest.newBuilder()
-            .setTargetId(id)
-            .setFirst(first)
-            .also { b -> after?.let { b.after = it } }
-            .build()
+        val request =
+            Spoolin.PageRequest
+                .newBuilder()
+                .setTargetId(id)
+                .setFirst(first)
+                .also { b -> after?.let { b.after = it } }
+                .build()
 
         return creditPageMap(stub().titleCredits(request))
     }
@@ -137,11 +138,13 @@ class CatalogViewGraphql(
         val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
         val after = env.getArgument<String>("after")
 
-        val request = Spoolin.PageRequest.newBuilder()
-            .setTargetId(id)
-            .setFirst(first)
-            .also { b -> after?.let { b.after = it } }
-            .build()
+        val request =
+            Spoolin.PageRequest
+                .newBuilder()
+                .setTargetId(id)
+                .setFirst(first)
+                .also { b -> after?.let { b.after = it } }
+                .build()
 
         return creditPageMap(stub().personCredits(request))
     }
@@ -154,11 +157,13 @@ class CatalogViewGraphql(
         val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
         val after = env.getArgument<String>("after")
 
-        val request = Spoolin.PageRequest.newBuilder()
-            .setTargetId(id)
-            .setFirst(first)
-            .also { b -> after?.let { b.after = it } }
-            .build()
+        val request =
+            Spoolin.PageRequest
+                .newBuilder()
+                .setTargetId(id)
+                .setFirst(first)
+                .also { b -> after?.let { b.after = it } }
+                .build()
 
         return creditPageMap(stub().titleCredits(request))
     }
@@ -166,14 +171,22 @@ class CatalogViewGraphql(
     // ── genres ────────────────────────────────────────────────────────────────
 
     private fun genres(): List<Map<String, Any?>> {
-        val result = stub().listGenres(com.google.protobuf.Empty.getDefaultInstance())
+        val result =
+            stub().listGenres(
+                com.google.protobuf.Empty
+                    .getDefaultInstance(),
+            )
         return result.nodesList.map { g -> mapOf("id" to g.id, "label" to g.label) }
     }
 
     // ── creditRoles ───────────────────────────────────────────────────────────
 
     private fun creditRoles(): List<Map<String, Any?>> {
-        val result = stub().listRoles(com.google.protobuf.Empty.getDefaultInstance())
+        val result =
+            stub().listRoles(
+                com.google.protobuf.Empty
+                    .getDefaultInstance(),
+            )
         return result.nodesList.map { r ->
             mapOf(
                 "id" to r.id,
@@ -186,108 +199,123 @@ class CatalogViewGraphql(
 
     // ── proto → GraphQL projection maps ──────────────────────────────────────
 
-    private fun titlePageMap(proto: Spoolin.TitlePage): Map<String, Any?> = mapOf(
-        "nodes" to proto.nodesList.map { titleMap(it) },
-        "pageInfo" to mapOf(
-            "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-            "hasNextPage" to proto.hasNextPage,
-        ),
-    )
+    private fun titlePageMap(proto: Spoolin.TitlePage): Map<String, Any?> =
+        mapOf(
+            "nodes" to proto.nodesList.map { titleMap(it) },
+            "pageInfo" to
+                mapOf(
+                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
+                    "hasNextPage" to proto.hasNextPage,
+                ),
+        )
 
-    private fun titleMap(t: Spoolin.Title): Map<String, Any?> = mapOf(
-        "id" to t.id,
-        "kind" to t.kind,
-        "state" to t.state,
-        "title" to t.values.title,
-        "originalTitle" to t.values.originalTitle.takeIf { it.isNotEmpty() },
-        "synopsis" to t.values.synopsis,
-        "synopsisLanguage" to t.values.synopsisLanguage,
-        "originalLanguage" to t.values.originalLanguage.takeIf { it.isNotEmpty() },
-        "countries" to t.values.countriesList,
-        "genres" to t.values.genreIdsList.map { mapOf("id" to it) },
-        "release" to partialDateMap(t.values.release),
-        "runtimeMinutes" to t.values.runtimeMinutes.takeIf { it > 0 },
-        "tvStatus" to t.tvStatus.takeIf { it.isNotEmpty() },
-        "tvEnd" to partialDateMap(t.tvEnd),
-        "releaseContext" to t.releaseContext.takeIf { it.isNotEmpty() },
-        "provenance" to t.provenanceList.map { provenanceMap(it) },
-        "artwork" to null, // artwork enrichment deferred to T013 (Media integration)
-        "version" to t.version.toString(),
-        // credits is a lazy field resolved by titleCreditsField
-    )
+    private fun titleMap(t: Spoolin.Title): Map<String, Any?> =
+        mapOf(
+            "id" to t.id,
+            "kind" to t.kind,
+            "state" to t.state,
+            "title" to t.values.title,
+            "originalTitle" to t.values.originalTitle.takeIf { it.isNotEmpty() },
+            "synopsis" to t.values.synopsis,
+            "synopsisLanguage" to t.values.synopsisLanguage,
+            "originalLanguage" to t.values.originalLanguage.takeIf { it.isNotEmpty() },
+            "countries" to t.values.countriesList,
+            "genres" to t.values.genreIdsList.map { mapOf("id" to it) },
+            "release" to partialDateMap(t.values.release),
+            "runtimeMinutes" to t.values.runtimeMinutes.takeIf { it > 0 },
+            "tvStatus" to t.tvStatus.takeIf { it.isNotEmpty() },
+            "tvEnd" to partialDateMap(t.tvEnd),
+            "releaseContext" to t.releaseContext.takeIf { it.isNotEmpty() },
+            "provenance" to t.provenanceList.map { provenanceMap(it) },
+            "artwork" to null, // artwork enrichment deferred to T013 (Media integration)
+            "version" to t.version.toString(),
+            // credits is a lazy field resolved by titleCreditsField
+        )
 
-    private fun personPageMap(proto: Spoolin.PersonPage): Map<String, Any?> = mapOf(
-        "nodes" to proto.nodesList.map { personMap(it) },
-        "pageInfo" to mapOf(
-            "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-            "hasNextPage" to proto.hasNextPage,
-        ),
-    )
+    private fun personPageMap(proto: Spoolin.PersonPage): Map<String, Any?> =
+        mapOf(
+            "nodes" to proto.nodesList.map { personMap(it) },
+            "pageInfo" to
+                mapOf(
+                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
+                    "hasNextPage" to proto.hasNextPage,
+                ),
+        )
 
-    private fun personMap(p: Spoolin.Person): Map<String, Any?> = mapOf(
-        "id" to p.id,
-        "name" to p.values.name,
-        "biography" to p.values.biography.takeIf { it.isNotEmpty() },
-        "state" to p.state,
-        "version" to p.version.toString(),
-    )
+    private fun personMap(p: Spoolin.Person): Map<String, Any?> =
+        mapOf(
+            "id" to p.id,
+            "name" to p.values.name,
+            "biography" to p.values.biography.takeIf { it.isNotEmpty() },
+            "state" to p.state,
+            "version" to p.version.toString(),
+        )
 
-    private fun creditPageMap(proto: Spoolin.CreditPage): Map<String, Any?> = mapOf(
-        "nodes" to proto.nodesList.map { creditMap(it) },
-        "pageInfo" to mapOf(
-            "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-            "hasNextPage" to proto.hasNextPage,
-        ),
-    )
+    private fun creditPageMap(proto: Spoolin.CreditPage): Map<String, Any?> =
+        mapOf(
+            "nodes" to proto.nodesList.map { creditMap(it) },
+            "pageInfo" to
+                mapOf(
+                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
+                    "hasNextPage" to proto.hasNextPage,
+                ),
+        )
 
-    private fun creditMap(c: Spoolin.Credit): Map<String, Any?> = mapOf(
-        "id" to c.id,
-        "personId" to c.personId,
-        "personName" to c.personName,
-        "titleId" to c.titleId,
-        "titleName" to c.titleName,
-        "role" to mapOf(
-            "id" to c.role.id,
-            "label" to c.role.label,
-            "category" to c.role.category,
-            "allowsCharacters" to c.role.allowsCharacters,
-        ),
-        "characters" to c.charactersList,
-        "version" to c.version.toString(),
-    )
+    private fun creditMap(c: Spoolin.Credit): Map<String, Any?> =
+        mapOf(
+            "id" to c.id,
+            "personId" to c.personId,
+            "personName" to c.personName,
+            "titleId" to c.titleId,
+            "titleName" to c.titleName,
+            "role" to
+                mapOf(
+                    "id" to c.role.id,
+                    "label" to c.role.label,
+                    "category" to c.role.category,
+                    "allowsCharacters" to c.role.allowsCharacters,
+                ),
+            "characters" to c.charactersList,
+            "version" to c.version.toString(),
+        )
 
-    private fun partialDateMap(pd: Spoolin.PartialDate): Map<String, Any?> = mapOf(
-        "year" to pd.year.takeIf { pd.hasYear() },
-        "month" to pd.month.takeIf { pd.hasMonth() },
-        "day" to pd.day.takeIf { pd.hasDay() },
-        "precision" to when {
-            pd.hasDay() -> "DAY"
-            pd.hasMonth() -> "MONTH"
-            pd.hasYear() -> "YEAR"
-            else -> "UNKNOWN"
-        },
-    )
+    private fun partialDateMap(pd: Spoolin.PartialDate): Map<String, Any?> =
+        mapOf(
+            "year" to pd.year.takeIf { pd.hasYear() },
+            "month" to pd.month.takeIf { pd.hasMonth() },
+            "day" to pd.day.takeIf { pd.hasDay() },
+            "precision" to
+                when {
+                    pd.hasDay() -> "DAY"
+                    pd.hasMonth() -> "MONTH"
+                    pd.hasYear() -> "YEAR"
+                    else -> "UNKNOWN"
+                },
+        )
 
-    private fun provenanceMap(p: Spoolin.Provenance): Map<String, Any?> = mapOf(
-        "source" to p.source,
-        "externalId" to p.externalId,
-        "recordUrl" to p.recordUrl.takeIf { it.isNotEmpty() },
-        "retrievedAt" to Instant.ofEpochSecond(p.retrievedAt.seconds, p.retrievedAt.nanos.toLong()).toString(),
-        "reuseNote" to p.reuseNote,
-        "fieldSources" to emptyMap<String, Any?>(), // full parse in T013
-        "locallyChanged" to p.locallyChangedList,
-    )
+    private fun provenanceMap(p: Spoolin.Provenance): Map<String, Any?> =
+        mapOf(
+            "source" to p.source,
+            "externalId" to p.externalId,
+            "recordUrl" to p.recordUrl.takeIf { it.isNotEmpty() },
+            "retrievedAt" to Instant.ofEpochSecond(p.retrievedAt.seconds, p.retrievedAt.nanos.toLong()).toString(),
+            "reuseNote" to p.reuseNote,
+            "fieldSources" to emptyMap<String, Any?>(), // full parse in T013
+            "locallyChanged" to p.locallyChangedList,
+        )
 
-    private fun emptyCreditPage(): Map<String, Any?> = mapOf(
-        "nodes" to emptyList<Any>(),
-        "pageInfo" to mapOf("endCursor" to null, "hasNextPage" to false),
-    )
+    private fun emptyCreditPage(): Map<String, Any?> =
+        mapOf(
+            "nodes" to emptyList<Any>(),
+            "pageInfo" to mapOf("endCursor" to null, "hasNextPage" to false),
+        )
 
     // ── validation ────────────────────────────────────────────────────────────
 
     private fun validateSearchText(text: String) {
-        val maxCodePoints = policy.requestLimits.getOrDefault("maxSearchCodePoints", SEARCH_MAX_CODE_POINTS) as? Int
-            ?: SEARCH_MAX_CODE_POINTS
+        val maxCodePoints =
+            policy.requestLimits.getOrDefault("maxSearchCodePoints", SEARCH_MAX_CODE_POINTS) as? Int
+                ?: SEARCH_MAX_CODE_POINTS
         if (text.codePointCount(0, text.length) > maxCodePoints) {
             throw InputViolation("text", "Search text exceeds the maximum length of $maxCodePoints code points.")
         }

@@ -17,29 +17,31 @@ import java.util.UUID
  * - replace() produces stable sorted insertion order for deadlock avoidance.
  */
 class GenreTaggingRulesTest {
-
     @Test
     fun `empty genre set is rejected`() {
-        val e = assertThrows(InputViolation::class.java) {
-            GenreTagging.validateGenreIds(emptySet())
-        }
+        val e =
+            assertThrows(InputViolation::class.java) {
+                GenreTagging.validateGenreIds(emptySet())
+            }
         assertEquals("genreIds", e.path)
     }
 
     @Test
     fun `more than 20 genres is rejected`() {
         val ids = (1..21).map { UUID.randomUUID().toString() }.toSet()
-        val e = assertThrows(InputViolation::class.java) {
-            GenreTagging.validateGenreIds(ids)
-        }
+        val e =
+            assertThrows(InputViolation::class.java) {
+                GenreTagging.validateGenreIds(ids)
+            }
         assertEquals("genreIds", e.path)
     }
 
     @Test
     fun `malformed UUID in genre set is rejected`() {
-        val e = assertThrows(InputViolation::class.java) {
-            GenreTagging.validateGenreIds(setOf("not-a-uuid"))
-        }
+        val e =
+            assertThrows(InputViolation::class.java) {
+                GenreTagging.validateGenreIds(setOf("not-a-uuid"))
+            }
         assertEquals("genreIds", e.path)
     }
 

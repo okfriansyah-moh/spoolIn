@@ -3,6 +3,7 @@
   import { resolve } from '$app/paths';
   import Notice from '../../../lib/components/Notice.svelte';
   import { createTransport } from '../../../lib/transport/graphql';
+  import { sessionController } from '../../../lib/features/session/context';
   import { createMovieListController } from '../../../lib/features/movie/list-controller';
   import { loadWriteContext } from '../../../lib/features/movie/write-context';
   import type { ListState } from '../../../lib/features/movie/types';
@@ -56,8 +57,8 @@
             <td data-label="Release / state">{row.releaseContext} · {row.state === 'ACTIVE' ? 'Active' : 'Archived'}</td>
             <td data-label="Actions">
               {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
-                <a class="button secondary" href={resolve(`/manage/movies/${row.id}`)}>Edit</a>
-                <a class="button secondary" href={resolve(`/titles/${row.id}`)}>Review</a>
+                <a class="button secondary" href={resolve('/manage/movies/[id]', { id: row.id })}>Edit</a>
+                <a class="button secondary" href={resolve('/titles/[id]', { id: row.id })}>Review</a>
               {:else}
                 <span class="muted">Read-only TV</span>
               {/if}

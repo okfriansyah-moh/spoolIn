@@ -68,6 +68,5 @@ class DraftCryptography(
         }
     }
 
-    private fun binding(row: UUID): ProtectionBinding =
-        ProtectionBinding("core", "form_draft", row, KeyPurpose.DRAFT)
+    private fun binding(row: UUID): ProtectionBinding = ProtectionBinding("core", "form_draft", row, KeyPurpose.DRAFT)
 }

@@ -9,6 +9,8 @@ import com.spoolin.support.work.AttemptOutcome
 import com.spoolin.support.work.WorkClaim
 import com.spoolin.support.work.WorkFence
 import com.spoolin.support.work.WorkSchedule
+import com.spoolin.support.work.WorkAttemptCompletion
+import com.spoolin.support.work.WorkRecoveryCommit
 import com.spoolin.support.work.WorkSql
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -37,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * ATDD covered (integration level): 154, 155, 156, 157, 309.
  */
 class LeaseBoundaryTest {
-
     // ─── ATDD-154: commit work ownership before sending effects ───────────────────
 
     /**
@@ -58,10 +59,11 @@ class LeaseBoundaryTest {
             try {
                 repeat(2) {
                     executor.submit {
-                        val batch = pool.committed { conn ->
-                            val candidates = WorkSql.selectForClaim(conn, now, 1)
-                            candidates.mapNotNull { c -> WorkSql.commitClaim(conn, c, UUID.randomUUID(), now) }
-                        }
+                        val batch =
+                            pool.committed { conn ->
+                                val candidates = WorkSql.selectForClaim(conn, now, 1)
+                                candidates.mapNotNull { c -> WorkSql.commitClaim(conn, c, UUID.randomUUID(), now) }
+                            }
                         synchronized(claimed) { claimed.addAll(batch) }
                         latch.countDown()
                     }
@@ -100,76 +102,108 @@ class LeaseBoundaryTest {
      */
     @Test
     fun `stale epoch completion is rejected and lease loss is fenced`() {
-        fixture("t011-lease-fence.json") { pool ->
-            val t = Instant.parse("2026-10-20T10:00:30Z")
-            val deadline = t.plusSeconds(3600)
-            val workId = insertWork(pool, "SEND_NOTIFICATION", t.minusSeconds(3600), deadline = deadline)
+        fixture("t011-lease-fence.json") { pool -> verifyLeaseFenceScenario(pool) }
+    }
 
-            // W1 claims and gets epoch 1
-            val w1Claim = pool.committed { conn ->
+    private fun verifyLeaseFenceScenario(pool: javax.sql.DataSource) {
+        val t = Instant.parse("2026-10-20T10:00:30Z")
+        val deadline = t.plusSeconds(3600)
+        val workId = insertWork(pool, "SEND_NOTIFICATION", t.minusSeconds(3600), deadline = deadline)
+        val (w1Claim, w2Claim) = leaseFenceClaims(pool, workId, t)
+        assertLeaseFenceEvidence(pool, workId, w1Claim, w2Claim, t)
+    }
+
+    private fun leaseFenceClaims(
+        pool: javax.sql.DataSource,
+        workId: UUID,
+        t: Instant,
+    ): Pair<WorkClaim, WorkClaim> {
+        val w1Claim =
+            pool.committed { conn ->
                 val candidates = WorkSql.selectForClaim(conn, t.minusSeconds(3600), 1)
                 WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t.minusSeconds(3600))
             }
-            assertNotNull(w1Claim)
-            assertEquals(1L, w1Claim!!.leaseEpoch)
-
-            // Simulate lease expiry — force lease_until into the past
+        assertNotNull(w1Claim)
+        assertEquals(1L, w1Claim!!.leaseEpoch)
+        pool.committed { conn ->
+            conn.executeBound(
+                "UPDATE durable_work SET lease_until = ? WHERE id = ?",
+                Timestamp.from(t.minusSeconds(1)),
+                workId,
+            )
+        }
+        pool.committed { conn ->
+            conn.executeBound(
+                """UPDATE durable_work SET state='READY', lease_owner=NULL, lease_until=NULL,
+                   attempt_count=attempt_count WHERE id=? AND state='LEASED'""",
+                workId,
+            )
+        }
+        val w2Claim =
             pool.committed { conn ->
-                conn.executeBound(
-                    "UPDATE durable_work SET lease_until = ? WHERE id = ?",
-                    Timestamp.from(t.minusSeconds(1)),
-                    workId,
-                )
-            }
-
-            // W2 reclaims (simulated via direct update forcing the row back to READY first)
-            // In production a watchdog would detect expiry; here we exercise the fencing path.
-            pool.committed { conn ->
-                conn.executeBound(
-                    """UPDATE durable_work SET state='READY', lease_owner=NULL, lease_until=NULL,
-                       attempt_count=attempt_count WHERE id=? AND state='LEASED'""",
-                    workId,
-                )
-            }
-            val w2Claim = pool.committed { conn ->
                 val candidates = WorkSql.selectForClaim(conn, t, 1)
                 WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t)
             }
-            assertNotNull(w2Claim)
-            assertEquals(2L, w2Claim!!.leaseEpoch, "W2 claim increments epoch to 2")
-            assertNotEquals(w1Claim.leaseOwner, w2Claim.leaseOwner, "Different workers")
+        assertNotNull(w2Claim)
+        assertEquals(2L, w2Claim!!.leaseEpoch, "W2 claim increments epoch to 2")
+        assertNotEquals(w1Claim.leaseOwner, w2Claim.leaseOwner, "Different workers")
+        return w1Claim to w2Claim
+    }
 
-            // W1 tries to complete with stale epoch — must be rejected
-            val w1Accepted = pool.committed { conn ->
-                WorkSql.completeAttempt(conn, w1Claim, AttemptOutcome.SUCCEEDED, null, "DONE", null, t)
+    private fun assertLeaseFenceEvidence(
+        pool: javax.sql.DataSource,
+        workId: UUID,
+        w1Claim: WorkClaim,
+        w2Claim: WorkClaim,
+        t: Instant,
+    ) {
+        val w1Accepted =
+            pool.committed { conn ->
+                WorkSql.completeAttempt(
+                    conn,
+                    w1Claim,
+                    WorkAttemptCompletion(AttemptOutcome.SUCCEEDED, nextState = "DONE"),
+                    t,
+                )
             }
-            assertFalse(w1Accepted, "Stale W1 completion must be fenced out")
-
-            // W2 marks interrupted attempt UNCERTAIN (destination unknown)
-            val w2Accepted = pool.committed { conn ->
-                WorkSql.completeAttempt(conn, w2Claim, AttemptOutcome.UNCERTAIN, "UNCERTAIN", "EXHAUSTED", null, t)
+        assertFalse(w1Accepted, "Stale W1 completion must be fenced out")
+        val w2Accepted =
+            pool.committed { conn ->
+                WorkSql.completeAttempt(
+                    conn,
+                    w2Claim,
+                    WorkAttemptCompletion(
+                        AttemptOutcome.UNCERTAIN,
+                        errorCode = "UNCERTAIN",
+                        nextState = "EXHAUSTED",
+                    ),
+                    t,
+                )
             }
-            assertTrue(w2Accepted, "Current W2 completion must succeed")
-
-            // Verify ATTEMPT_FINISHED with UNCERTAIN was recorded, SUCCEEDED was not
-            val finishedEvents = pool.committed { conn ->
+        assertTrue(w2Accepted, "Current W2 completion must succeed")
+        val finishedEvents =
+            pool.committed { conn ->
                 conn.queryBound(
-                    "SELECT attempt_outcome FROM operational_event WHERE work_id=? AND event_type='ATTEMPT_FINISHED' ORDER BY created_at",
+                    """
+                    SELECT attempt_outcome FROM operational_event
+                    WHERE work_id=? AND event_type='ATTEMPT_FINISHED' ORDER BY created_at
+                    """.trimIndent(),
                     listOf(workId),
                 ) { it.getString("attempt_outcome") }
             }
-            assertEquals(1, finishedEvents.size, "Only W2's FINISHED should be present")
-            assertEquals("UNCERTAIN", finishedEvents.single(), "Must record UNCERTAIN outcome")
-
-            // W1 ATTEMPT_STARTED is still present (original evidence preserved)
-            val startedEvents = pool.committed { conn ->
+        assertEquals(1, finishedEvents.size, "Only W2's FINISHED should be present")
+        assertEquals("UNCERTAIN", finishedEvents.single(), "Must record UNCERTAIN outcome")
+        val startedEvents =
+            pool.committed { conn ->
                 conn.queryBound(
-                    "SELECT attempt_no, lease_epoch FROM operational_event WHERE work_id=? AND event_type='ATTEMPT_STARTED' ORDER BY created_at",
+                    """
+                    SELECT attempt_no, lease_epoch FROM operational_event
+                    WHERE work_id=? AND event_type='ATTEMPT_STARTED' ORDER BY created_at
+                    """.trimIndent(),
                     listOf(workId),
                 ) { Pair(it.getInt("attempt_no"), it.getLong("lease_epoch")) }
             }
-            assertEquals(2, startedEvents.size, "Both W1 and W2 ATTEMPT_STARTED preserved")
-        }
+        assertEquals(2, startedEvents.size, "Both W1 and W2 ATTEMPT_STARTED preserved")
     }
 
     // ─── ATDD-156: persist the sampled retry budget across restarts ───────────────
@@ -180,64 +214,87 @@ class LeaseBoundaryTest {
      */
     @Test
     fun `persisted retry budget survives simulated restart`() {
-        fixture("t011-retry-budget.json") { pool ->
-            val t0 = Instant.parse("2026-10-20T00:00:00Z")
-            val deadline = t0.plusSeconds(300)
-            val workId = insertWork(pool, "SYNC_CATALOG", t0, maxAttempts = 3, deadline = deadline)
+        fixture("t011-retry-budget.json") { pool -> verifyRetryBudgetScenario(pool) }
+    }
 
-            // First claim
-            val claim = pool.committed { conn ->
+    private fun verifyRetryBudgetScenario(pool: javax.sql.DataSource) {
+        val t0 = Instant.parse("2026-10-20T00:00:00Z")
+        val deadline = t0.plusSeconds(300)
+        val workId = insertWork(pool, "SYNC_CATALOG", t0, maxAttempts = 3, deadline = deadline)
+        val nextAttempt = scheduleTransientRetry(pool, t0)
+        assertPersistedRetryBudget(pool, workId, t0, deadline, nextAttempt)
+    }
+
+    private fun scheduleTransientRetry(
+        pool: javax.sql.DataSource,
+        t0: Instant,
+    ): Instant {
+        val claim =
+            pool.committed { conn ->
                 val candidates = WorkSql.selectForClaim(conn, t0, 1)
                 WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t0)
             }!!
-
-            // Complete with TRANSIENT failure — schedules retry
-            val delayMs = 500L // fixed draw=1.0 equivalent: min(500*1,5000) = 500
-            val nextAttempt = t0.plusMillis(delayMs)
-            pool.committed { conn ->
-                WorkSql.completeAttempt(
-                    conn, claim, AttemptOutcome.TRANSIENT, "UNAVAILABLE",
-                    "READY", nextAttempt, t0,
-                )
-            }
-
-            // Read stored state — simulates "process restart" by re-reading from DB
-            data class BudgetRow(val attemptCount: Int, val maxAttempts: Int, val nextAttemptAt: Instant, val deadlineAt: Instant)
-            val stored = pool.committed { conn ->
-                conn.queryBound(
-                    "SELECT attempt_count, max_attempts, next_attempt_at, deadline_at FROM durable_work WHERE id=?",
-                    listOf(workId),
-                ) {
-                    BudgetRow(
-                        it.getInt("attempt_count"),
-                        it.getInt("max_attempts"),
-                        it.getTimestamp("next_attempt_at").toInstant(),
-                        it.getTimestamp("deadline_at").toInstant(),
-                    )
-                }
-            }.single()
-
-            val savedAttemptCount = stored.attemptCount
-            val savedMaxAttempts = stored.maxAttempts
-            val savedNextAttempt = stored.nextAttemptAt
-            val savedDeadline = stored.deadlineAt
-            assertEquals(1, savedAttemptCount, "attempt_count=1 after first failure")
-            assertEquals(3, savedMaxAttempts, "max_attempts preserved")
-            assertEquals(nextAttempt, savedNextAttempt, "sampled next_attempt_at preserved")
-            assertEquals(deadline, savedDeadline, "deadline_at preserved")
-
-            // Verify canAttempt still reads remaining budget correctly from persisted values
-            assertTrue(
-                WorkSchedule.canAttempt(savedAttemptCount, savedMaxAttempts, t0, savedDeadline),
-                "2 remaining attempts allowed",
-            )
-
-            // Verify attempt_count=3 would exhaust budget
-            assertFalse(
-                WorkSchedule.canAttempt(3, 3, t0, savedDeadline),
-                "attempt_count==maxAttempts: no further attempt",
+        val delayMs = 500L
+        val nextAttempt = t0.plusMillis(delayMs)
+        pool.committed { conn ->
+            WorkSql.completeAttempt(
+                conn,
+                claim,
+                WorkAttemptCompletion(
+                    AttemptOutcome.TRANSIENT,
+                    errorCode = "UNAVAILABLE",
+                    nextState = "READY",
+                    nextAttemptAt = nextAttempt,
+                ),
+                t0,
             )
         }
+        return nextAttempt
+    }
+
+    private fun assertPersistedRetryBudget(
+        pool: javax.sql.DataSource,
+        workId: UUID,
+        t0: Instant,
+        deadline: Instant,
+        nextAttempt: Instant,
+    ) {
+        data class BudgetRow(
+            val attemptCount: Int,
+            val maxAttempts: Int,
+            val nextAttemptAt: Instant,
+            val deadlineAt: Instant,
+        )
+        val stored =
+            pool
+                .committed { conn ->
+                    conn.queryBound(
+                        """
+                        SELECT attempt_count, max_attempts, next_attempt_at, deadline_at
+                        FROM durable_work WHERE id=?
+                        """.trimIndent(),
+                        listOf(workId),
+                    ) {
+                        BudgetRow(
+                            it.getInt("attempt_count"),
+                            it.getInt("max_attempts"),
+                            it.getTimestamp("next_attempt_at").toInstant(),
+                            it.getTimestamp("deadline_at").toInstant(),
+                        )
+                    }
+                }.single()
+        assertEquals(1, stored.attemptCount, "attempt_count=1 after first failure")
+        assertEquals(3, stored.maxAttempts, "max_attempts preserved")
+        assertEquals(nextAttempt, stored.nextAttemptAt, "sampled next_attempt_at preserved")
+        assertEquals(deadline, stored.deadlineAt, "deadline_at preserved")
+        assertTrue(
+            WorkSchedule.canAttempt(stored.attemptCount, stored.maxAttempts, t0, stored.deadlineAt),
+            "2 remaining attempts allowed",
+        )
+        assertFalse(
+            WorkSchedule.canAttempt(3, 3, t0, stored.deadlineAt),
+            "attempt_count==maxAttempts: no further attempt",
+        )
     }
 
     // ─── ATDD-157: retry only safe classified transient failures ─────────────────
@@ -247,6 +304,7 @@ class LeaseBoundaryTest {
      * UNCERTAIN failures go to EXHAUSTED pending reconciliation.
      */
     @Test
+    @Suppress("LongMethod")
     fun `permanent failure exhausts without retry transient reschedules uncertain exhausts`() {
         fixture("t011-failure-class.json") { pool ->
             val now = Instant.parse("2026-10-20T00:00:00Z")
@@ -256,13 +314,12 @@ class LeaseBoundaryTest {
             val transId = insertWork(pool, "SYNC_CATALOG", now, maxAttempts = 3, deadline = deadline)
             val uncId = insertWork(pool, "SYNC_CATALOG", now, maxAttempts = 3, deadline = deadline)
 
-            fun claim(workId: UUID): WorkClaim {
-                return pool.committed { conn ->
+            fun claim(workId: UUID): WorkClaim =
+                pool.committed { conn ->
                     val candidates = WorkSql.selectForClaim(conn, now, 10)
                     val target = candidates.first { it.workId == workId }
                     WorkSql.commitClaim(conn, target, UUID.randomUUID(), now)
                 }!!
-            }
 
             val permClaim = claim(permId)
             val transClaim = claim(transId)
@@ -270,25 +327,55 @@ class LeaseBoundaryTest {
 
             // Permanent → EXHAUSTED immediately
             pool.committed { conn ->
-                WorkSql.completeAttempt(conn, permClaim, AttemptOutcome.PERMANENT, "PERMISSION_DENIED", "EXHAUSTED", null, now)
+                WorkSql.completeAttempt(
+                    conn,
+                    permClaim,
+                    WorkAttemptCompletion(
+                        AttemptOutcome.PERMANENT,
+                        errorCode = "PERMISSION_DENIED",
+                        nextState = "EXHAUSTED",
+                    ),
+                    now,
+                )
             }
 
             // Transient → READY with scheduled next attempt
             val nextT = now.plusMillis(250L)
             pool.committed { conn ->
-                WorkSql.completeAttempt(conn, transClaim, AttemptOutcome.TRANSIENT, "UNAVAILABLE", "READY", nextT, now)
+                WorkSql.completeAttempt(
+                    conn,
+                    transClaim,
+                    WorkAttemptCompletion(
+                        AttemptOutcome.TRANSIENT,
+                        errorCode = "UNAVAILABLE",
+                        nextState = "READY",
+                        nextAttemptAt = nextT,
+                    ),
+                    now,
+                )
             }
 
             // Uncertain → EXHAUSTED (destination check required)
             pool.committed { conn ->
-                WorkSql.completeAttempt(conn, uncClaim, AttemptOutcome.UNCERTAIN, "TIMEOUT_AFTER_SEND", "EXHAUSTED", null, now)
+                WorkSql.completeAttempt(
+                    conn,
+                    uncClaim,
+                    WorkAttemptCompletion(
+                        AttemptOutcome.UNCERTAIN,
+                        errorCode = "TIMEOUT_AFTER_SEND",
+                        nextState = "EXHAUSTED",
+                    ),
+                    now,
+                )
             }
 
-            fun state(id: UUID) = pool.committed { conn ->
-                conn.queryBound("SELECT state, next_attempt_at FROM durable_work WHERE id=?", listOf(id)) {
-                    Pair(it.getString("state"), it.getTimestamp("next_attempt_at")?.toInstant())
-                }
-            }.single()
+            fun state(id: UUID) =
+                pool
+                    .committed { conn ->
+                        conn.queryBound("SELECT state, next_attempt_at FROM durable_work WHERE id=?", listOf(id)) {
+                            Pair(it.getString("state"), it.getTimestamp("next_attempt_at")?.toInstant())
+                        }
+                    }.single()
 
             val (permState, _) = state(permId)
             assertEquals("EXHAUSTED", permState, "PERMANENT → EXHAUSTED")
@@ -301,12 +388,17 @@ class LeaseBoundaryTest {
             assertEquals("EXHAUSTED", uncState, "UNCERTAIN → EXHAUSTED pending reconciliation")
 
             // Permanent failure outcome recorded without TRANSIENT retry
-            val permOutcome = pool.committed { conn ->
-                conn.queryBound(
-                    "SELECT attempt_outcome FROM operational_event WHERE work_id=? AND event_type='ATTEMPT_FINISHED'",
-                    listOf(permId),
-                ) { it.getString("attempt_outcome") }
-            }.single()
+            val permOutcome =
+                pool
+                    .committed { conn ->
+                        conn.queryBound(
+                            """
+                            SELECT attempt_outcome FROM operational_event
+                            WHERE work_id=? AND event_type='ATTEMPT_FINISHED'
+                            """.trimIndent(),
+                            listOf(permId),
+                        ) { it.getString("attempt_outcome") }
+                    }.single()
             assertEquals("PERMANENT", permOutcome)
         }
     }
@@ -318,16 +410,18 @@ class LeaseBoundaryTest {
      * Stale renewal attempts return false; recovery after lease loss is inspectable.
      */
     @Test
+    @Suppress("LongMethod")
     fun `only live owner and epoch can renew or write completion`() {
         fixture("t011-heartbeat-fence.json") { pool ->
             val t = Instant.parse("2026-10-20T10:00:00Z")
             val deadline = t.plusSeconds(3600)
             val workId = insertWork(pool, "SYNC_CATALOG", t, deadline = deadline)
 
-            val w1Claim = pool.committed { conn ->
-                val candidates = WorkSql.selectForClaim(conn, t, 1)
-                WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t)
-            }!!
+            val w1Claim =
+                pool.committed { conn ->
+                    val candidates = WorkSql.selectForClaim(conn, t, 1)
+                    WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t)
+                }!!
             assertEquals(1L, w1Claim.leaseEpoch)
 
             // W1 heartbeat before expiry → succeeds
@@ -340,14 +434,18 @@ class LeaseBoundaryTest {
             }
             pool.committed { conn ->
                 conn.executeBound(
-                    "UPDATE durable_work SET state='READY',lease_owner=NULL,lease_until=NULL WHERE id=? AND state='LEASED'",
+                    """
+                    UPDATE durable_work SET state='READY', lease_owner=NULL, lease_until=NULL
+                    WHERE id=? AND state='LEASED'
+                    """.trimIndent(),
                     workId,
                 )
             }
-            val w2Claim = pool.committed { conn ->
-                val candidates = WorkSql.selectForClaim(conn, t.plusSeconds(1), 1)
-                WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t.plusSeconds(1))
-            }!!
+            val w2Claim =
+                pool.committed { conn ->
+                    val candidates = WorkSql.selectForClaim(conn, t.plusSeconds(1), 1)
+                    WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), t.plusSeconds(1))
+                }!!
             assertEquals(2L, w2Claim.leaseEpoch)
 
             // W1 heartbeat with stale epoch → rejected
@@ -355,21 +453,31 @@ class LeaseBoundaryTest {
             assertFalse(staleRenew, "Stale W1 heartbeat must be rejected")
 
             // W2 completes successfully
-            val w2Done = pool.committed { conn ->
-                WorkSql.completeAttempt(conn, w2Claim, AttemptOutcome.SUCCEEDED, null, "DONE", null, t.plusSeconds(5))
-            }
+            val w2Done =
+                pool.committed { conn ->
+                    WorkSql.completeAttempt(
+                        conn,
+                        w2Claim,
+                        WorkAttemptCompletion(AttemptOutcome.SUCCEEDED, nextState = "DONE"),
+                        t.plusSeconds(5),
+                    )
+                }
             assertTrue(w2Done, "W2 completion must succeed")
 
             val finalStatus = pool.committed { conn -> WorkSql.leaseStatus(conn, workId) }
             assertEquals("DONE", finalStatus!!.state)
 
             // Original evidence (W1 ATTEMPT_STARTED) preserved alongside W2's
-            val allStarted = pool.committed { conn ->
-                conn.queryBound(
-                    "SELECT lease_epoch FROM operational_event WHERE work_id=? AND event_type='ATTEMPT_STARTED' ORDER BY created_at",
-                    listOf(workId),
-                ) { it.getLong("lease_epoch") }
-            }
+            val allStarted =
+                pool.committed { conn ->
+                    conn.queryBound(
+                        """
+                        SELECT lease_epoch FROM operational_event
+                        WHERE work_id=? AND event_type='ATTEMPT_STARTED' ORDER BY created_at
+                        """.trimIndent(),
+                        listOf(workId),
+                    ) { it.getLong("lease_epoch") }
+                }
             assertEquals(listOf(1L, 2L), allStarted, "Both W1 and W2 ATTEMPT_STARTED preserved")
         }
     }
@@ -381,19 +489,30 @@ class LeaseBoundaryTest {
      * generation, preserving original evidence, with same effect identity.
      */
     @Test
+    @Suppress("LongMethod")
     fun `recovery resets exhausted work to READY with new generation preserving evidence`() {
         fixture("t011-recovery.json") { pool ->
             val now = Instant.parse("2026-10-20T00:00:00Z")
             val workId = insertWork(pool, "SYNC_CATALOG", now, maxAttempts = 1)
 
-            val claim = pool.committed { conn ->
-                val candidates = WorkSql.selectForClaim(conn, now, 1)
-                WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), now)
-            }!!
+            val claim =
+                pool.committed { conn ->
+                    val candidates = WorkSql.selectForClaim(conn, now, 1)
+                    WorkSql.commitClaim(conn, candidates.single(), UUID.randomUUID(), now)
+                }!!
 
             // Exhaust
             pool.committed { conn ->
-                WorkSql.completeAttempt(conn, claim, AttemptOutcome.PERMANENT, "PERMISSION_DENIED", "EXHAUSTED", null, now)
+                WorkSql.completeAttempt(
+                    conn,
+                    claim,
+                    WorkAttemptCompletion(
+                        AttemptOutcome.PERMANENT,
+                        errorCode = "PERMISSION_DENIED",
+                        nextState = "EXHAUSTED",
+                    ),
+                    now,
+                )
             }
 
             val beforeRecovery = pool.committed { conn -> WorkSql.leaseStatus(conn, workId) }
@@ -401,45 +520,74 @@ class LeaseBoundaryTest {
 
             // Operator-authorized recovery
             val corr = UUID.randomUUID()
-            val recovered = pool.committed { conn ->
-                WorkSql.recoverWork(conn, workId, "ops@example.test", "Re-authorized by ticket #123", corr, 0L, now = now)
-            }
+            val recovered =
+                pool.committed { conn ->
+                    WorkSql.recoverWork(
+                        conn,
+                        workId,
+                        WorkRecoveryCommit(
+                            operatorId = "ops@example.test",
+                            reason = "Re-authorized by ticket #123",
+                            correlationId = corr,
+                        ),
+                        now,
+                    )
+                }
             assertTrue(recovered, "Recovery must succeed on EXHAUSTED work")
 
             val afterRecovery = pool.committed { conn -> WorkSql.leaseStatus(conn, workId) }
             assertEquals("READY", afterRecovery!!.state)
 
             // Generation incremented
-            val gen = pool.committed { conn ->
-                conn.queryBound("SELECT generation, attempt_count FROM durable_work WHERE id=?", listOf(workId)) {
-                    Pair(it.getInt("generation"), it.getInt("attempt_count"))
-                }
-            }.single()
+            val gen =
+                pool
+                    .committed { conn ->
+                        conn.queryBound(
+                            "SELECT generation, attempt_count FROM durable_work WHERE id=?",
+                            listOf(workId),
+                        ) {
+                            Pair(it.getInt("generation"), it.getInt("attempt_count"))
+                        }
+                    }.single()
             assertEquals(1, gen.first, "generation incremented to 1")
             assertEquals(0, gen.second, "attempt_count reset to 0 for new generation")
 
             // Recovery event appended; original ATTEMPT_STARTED / ATTEMPT_FINISHED evidence preserved
-            val eventTypes = pool.committed { conn ->
-                conn.queryBound(
-                    "SELECT event_type FROM operational_event WHERE work_id=? ORDER BY created_at",
-                    listOf(workId),
-                ) { it.getString("event_type") }
-            }
+            val eventTypes =
+                pool.committed { conn ->
+                    conn.queryBound(
+                        "SELECT event_type FROM operational_event WHERE work_id=? ORDER BY created_at",
+                        listOf(workId),
+                    ) { it.getString("event_type") }
+                }
             assertTrue(eventTypes.contains("ATTEMPT_STARTED"), "Original ATTEMPT_STARTED preserved")
             assertTrue(eventTypes.contains("ATTEMPT_FINISHED"), "Original ATTEMPT_FINISHED preserved")
             assertTrue(eventTypes.contains("RECOVERY"), "RECOVERY event appended")
 
             // Recovery rejects non-EXHAUSTED work
-            val secondRecovery = pool.committed { conn ->
-                WorkSql.recoverWork(conn, workId, "ops@example.test", "duplicate", corr, 0L, now = now)
-            }
+            val secondRecovery =
+                pool.committed { conn ->
+                    WorkSql.recoverWork(
+                        conn,
+                        workId,
+                        WorkRecoveryCommit(
+                            operatorId = "ops@example.test",
+                            reason = "duplicate",
+                            correlationId = corr,
+                        ),
+                        now,
+                    )
+                }
             assertFalse(secondRecovery, "Recovery on non-EXHAUSTED work must return false")
         }
     }
 
     // ─── helpers ─────────────────────────────────────────────────────────────────
 
-    private fun fixture(evidenceName: String, block: (javax.sql.DataSource) -> Unit) {
+    private fun fixture(
+        evidenceName: String,
+        block: (javax.sql.DataSource) -> Unit,
+    ) {
         OwnerFixture(evidenceName).start().use { ownerFixture ->
             ownerFixture.membership("core", "grant")
             ownerFixture.pool("core", "migrator").use { MigrationRunner(it).migrate() }
@@ -477,11 +625,15 @@ class LeaseBoundaryTest {
         return id
     }
 
-    private fun countEvents(pool: javax.sql.DataSource, eventType: String): Int =
-        pool.committed { conn ->
-            conn.queryBound(
-                "SELECT count(*) FROM operational_event WHERE event_type=?",
-                listOf(eventType),
-            ) { it.getInt(1) }
-        }.single()
+    private fun countEvents(
+        pool: javax.sql.DataSource,
+        eventType: String,
+    ): Int =
+        pool
+            .committed { conn ->
+                conn.queryBound(
+                    "SELECT count(*) FROM operational_event WHERE event_type=?",
+                    listOf(eventType),
+                ) { it.getInt(1) }
+            }.single()
 }

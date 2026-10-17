@@ -1,3 +1,5 @@
+@file:Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod")
+
 package com.spoolin.catalog.features.search
 
 import com.spoolin.support.receipts.queryBound
@@ -6,7 +8,6 @@ import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val DEFAULT_PAGE = 24
 private const val MAX_PAGE = 100
 private const val SEARCH_MAX_CODE_POINTS = 200
 
@@ -20,8 +21,9 @@ private const val SEARCH_MAX_CODE_POINTS = 200
  * Year/month: "honest precision" — year-only rows have release_month IS NULL,
  *              so a month filter excludes them.
  */
-class TitleSearchSql(private val dataSource: DataSource) {
-
+class TitleSearchSql(
+    private val dataSource: DataSource,
+) {
     data class TitleRow(
         val id: UUID,
         val kind: String,
@@ -68,11 +70,12 @@ class TitleSearchSql(private val dataSource: DataSource) {
         if (!text.isNullOrEmpty()) {
             validateSearchLength(text)
             val pattern = "%" + CatalogCursor.escapeWildcards(text) + "%"
-            val condition = "(casefold(t.display_title) " +
-                "LIKE casefold(?) ESCAPE '\\' " +
-                "OR (t.original_title IS NOT NULL AND " +
-                "casefold(t.original_title) " +
-                "LIKE casefold(?) ESCAPE '\\'))"
+            val condition =
+                "(casefold(t.display_title) " +
+                    "LIKE casefold(?) ESCAPE '\\' " +
+                    "OR (t.original_title IS NOT NULL AND " +
+                    "casefold(t.original_title) " +
+                    "LIKE casefold(?) ESCAPE '\\'))"
             where.add(condition)
             params.add(pattern)
             params.add(pattern)
@@ -111,21 +114,23 @@ class TitleSearchSql(private val dataSource: DataSource) {
         }
 
         val sql = buildQuery(where, limit + 1)
-        val rows = dataSource.connection.use { conn ->
-            conn.queryBound(sql, params) { rs -> mapRow(rs) }
-        }
+        val rows =
+            dataSource.connection.use { conn ->
+                conn.queryBound(sql, params) { rs -> mapRow(rs) }
+            }
 
         val hasNext = rows.size > limit
         val page = if (hasNext) rows.dropLast(1) else rows
         val lastRow = page.lastOrNull()
-        val keyset = lastRow?.let {
-            CatalogCursor.Keyset(
-                releaseYear = it.releaseYear,
-                releaseMonth = it.releaseMonth,
-                releaseDay = it.releaseDay,
-                id = it.id,
-            )
-        }
+        val keyset =
+            lastRow?.let {
+                CatalogCursor.Keyset(
+                    releaseYear = it.releaseYear,
+                    releaseMonth = it.releaseMonth,
+                    releaseDay = it.releaseDay,
+                    id = it.id,
+                )
+            }
         return TitlePage(page, keyset, hasNext)
     }
 
@@ -159,7 +164,10 @@ class TitleSearchSql(private val dataSource: DataSource) {
      * Key invariant: if a field is NULL in the cursor, all rows with that field NOT NULL
      * within the same parent context have already appeared (they sort before NULL).
      */
-    private fun keysetCondition(after: CatalogCursor.Keyset, params: MutableList<Any?>): String {
+    private fun keysetCondition(
+        after: CatalogCursor.Keyset,
+        params: MutableList<Any?>,
+    ): String {
         val y = after.releaseYear
         val m = after.releaseMonth
         val d = after.releaseDay
@@ -204,7 +212,10 @@ class TitleSearchSql(private val dataSource: DataSource) {
         }
     }
 
-    private fun buildQuery(where: List<String>, limit: Int): String =
+    private fun buildQuery(
+        where: List<String>,
+        limit: Int,
+    ): String =
         """SELECT $TITLE_COLUMNS
            FROM title t
            WHERE ${where.joinToString(" AND ")}

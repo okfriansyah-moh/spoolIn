@@ -4,15 +4,32 @@ package com.spoolin.core.features.artworkproxy
 object ArtworkProgressRules {
     enum class Stage { IDLE, TRANSFERRING, PROCESSING, SAVED, FAILED, UNCERTAIN }
 
-    fun stageFromBytes(transferred: Long, declared: Long, processing: Boolean, attached: Boolean): Stage =
+    fun stageFromBytes(
+        transferred: Long,
+        declared: Long,
+        processing: Boolean,
+        attached: Boolean,
+    ): Stage =
         when {
             attached -> Stage.SAVED
-            processing && transferred >= declared -> Stage.PROCESSING
             transferred > 0 && transferred < declared -> Stage.TRANSFERRING
-            transferred >= declared && !processing && !attached -> Stage.PROCESSING
+            else -> postTransferStage(transferred, declared, processing)
+        }
+
+    private fun postTransferStage(
+        transferred: Long,
+        declared: Long,
+        processing: Boolean,
+    ): Stage =
+        when {
+            processing && transferred >= declared -> Stage.PROCESSING
+            transferred >= declared -> Stage.PROCESSING
             else -> Stage.IDLE
         }
 
-    fun transferCompleteIsNotSaved(transferred: Long, declared: Long, attached: Boolean): Boolean =
-        transferred >= declared && !attached
+    fun transferCompleteIsNotSaved(
+        transferred: Long,
+        declared: Long,
+        attached: Boolean,
+    ): Boolean = transferred >= declared && !attached
 }

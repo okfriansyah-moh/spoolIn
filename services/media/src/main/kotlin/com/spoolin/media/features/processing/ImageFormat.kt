@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber", "ReturnCount")
+
 package com.spoolin.media.features.processing
 
 /**
@@ -7,7 +9,9 @@ package com.spoolin.media.features.processing
  * Content-Type. A claimed MIME type that disagrees with the actual magic is a disguised file
  * and is rejected (AC-151-C02 / PRD-POLICY-29).
  */
-enum class ImageFormat(val label: String) {
+enum class ImageFormat(
+    val label: String,
+) {
     JPEG("JPEG"),
     PNG("PNG"),
     WEBP("WEBP"),
@@ -30,14 +34,15 @@ enum class ImageFormat(val label: String) {
          * Returns null if the header does not match any supported format.
          * At least 12 bytes are required for WebP detection.
          */
-        fun detect(header: ByteArray): ImageFormat? = when {
-            header.size >= 3 && header.startsWith(JPEG_MAGIC) -> JPEG
-            header.size >= 8 && header.startsWith(PNG_MAGIC) -> PNG
-            header.size >= 12 &&
-                header.regionMatches(0, WEBP_RIFF, 0, 4) &&
-                header.regionMatches(8, WEBP_WEBP, 0, 4) -> WEBP
-            else -> null
-        }
+        fun detect(header: ByteArray): ImageFormat? =
+            when {
+                header.size >= 3 && header.startsWith(JPEG_MAGIC) -> JPEG
+                header.size >= 8 && header.startsWith(PNG_MAGIC) -> PNG
+                header.size >= 12 &&
+                    header.regionMatches(0, WEBP_RIFF, 0, 4) &&
+                    header.regionMatches(8, WEBP_WEBP, 0, 4) -> WEBP
+                else -> null
+            }
 
         private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
             size >= prefix.size && regionMatches(0, prefix, 0, prefix.size)

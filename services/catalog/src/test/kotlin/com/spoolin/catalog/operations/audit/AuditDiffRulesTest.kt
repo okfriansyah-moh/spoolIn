@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test
  * - An empty diff produces an empty changes array.
  */
 class AuditDiffRulesTest {
-
     @Test
     fun `unchanged fields produce no change entries`() {
         val before = mapOf("displayTitle" to "Movie A", "synopsis" to "desc")

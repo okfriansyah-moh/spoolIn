@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.spoolin.core.features.catalogview.lifecycle
 
 import com.spoolin.core.boundary.grpc.ActorIssuer
@@ -25,7 +27,8 @@ class LifecycleGraphql(
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q -> q.dataFetcher("deletionImpact") { env -> deletionImpact(env) } }
         wiring.type("Mutation") { m ->
-            m.dataFetcher("movieLifecycle") { env -> movieLifecycle(env) }
+            m
+                .dataFetcher("movieLifecycle") { env -> movieLifecycle(env) }
                 .dataFetcher("personLifecycle") { env -> personLifecycle(env) }
         }
     }
@@ -47,7 +50,13 @@ class LifecycleGraphql(
         val operationId = id(env)
         val impactToken = env.getArgument<String>("impactToken")
         val request = lifecycleRequest(env, operationId, context, impactToken)
-        val token = issueToken(principal, "/spoolin.v1.CatalogService/PersonLifecycle", operationId, context.correlation)
+        val token =
+            issueToken(
+                principal,
+                "/spoolin.v1.CatalogService/PersonLifecycle",
+                operationId,
+                context.correlation,
+            )
         val outcome = stub(token).personLifecycle(request)
         context.rememberOperation(operationId, OperationOwner.CATALOG, outcomeMap(outcome))
         return mutationResult(outcome)
@@ -59,13 +68,14 @@ class LifecycleGraphql(
         val personId = requireNotNull(env.getArgument<String>("personId"))
         val opId = UUID.randomUUID()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/DeletionImpact", opId, context.correlation)
-        val impact = stub(token).deletionImpact(Spoolin.Id.newBuilder().setId(personId).build())
-        return mapOf(
-            "targetId" to impact.targetId,
-            "token" to impact.token,
-            "affectedCreditCount" to impact.affectedCreditCount,
-            "affectedTitles" to impact.affectedTitlesList,
-        )
+        val impact =
+            stub(token).deletionImpact(
+                Spoolin.Id
+                    .newBuilder()
+                    .setId(personId)
+                    .build(),
+            )
+        return mapDeletionImpact(impact)
     }
 
     private fun lifecycleRequest(
@@ -79,19 +89,22 @@ class LifecycleGraphql(
         val action = requireNotNull(env.getArgument<String>("action"))
         val confirmed = env.getArgument<Boolean>("confirmed") == true
         val grpcContext =
-            Spoolin.Context.newBuilder()
+            Spoolin.Context
+                .newBuilder()
                 .setOperationId(operationId.toString())
                 .setCorrelationId(context.correlation.toString())
                 .setPolicyRevision("")
                 .build()
         val versioned =
-            Spoolin.VersionedId.newBuilder()
+            Spoolin.VersionedId
+                .newBuilder()
                 .setId(targetId)
                 .setExpectedVersion(version)
                 .setContext(grpcContext)
                 .build()
         val builder =
-            Spoolin.Lifecycle.newBuilder()
+            Spoolin.Lifecycle
+                .newBuilder()
                 .setTarget(versioned)
                 .setAction(action)
                 .setConfirmed(confirmed)
@@ -99,25 +112,28 @@ class LifecycleGraphql(
         return builder.build()
     }
 
-    private fun mutationResult(outcome: Spoolin.Outcome): Map<String, Any?> = mapOf(
-        "operation" to outcomeMap(outcome),
-        "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
-    )
+    private fun mutationResult(outcome: Spoolin.Outcome): Map<String, Any?> =
+        mapOf(
+            "operation" to outcomeMap(outcome),
+            "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
+        )
 
-    private fun outcomeMap(outcome: Spoolin.Outcome): Map<String, Any?> = mapOf(
-        "id" to outcome.operationId,
-        "state" to outcome.state,
-        "resultId" to if (outcome.hasResultId()) outcome.resultId else null,
-        "version" to if (outcome.hasVersion()) outcome.version.toString() else null,
-        "resultExpired" to outcome.resultExpired,
-        "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
-    )
+    private fun outcomeMap(outcome: Spoolin.Outcome): Map<String, Any?> =
+        mapOf(
+            "id" to outcome.operationId,
+            "state" to outcome.state,
+            "resultId" to if (outcome.hasResultId()) outcome.resultId else null,
+            "version" to if (outcome.hasVersion()) outcome.version.toString() else null,
+            "resultExpired" to outcome.resultExpired,
+            "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
+        )
 
-    private fun problemMap(p: Spoolin.Problem): Map<String, Any?> = mapOf(
-        "code" to p.code,
-        "message" to "The operation could not be completed.",
-        "fields" to p.fieldsList.map { mapOf("path" to it.path, "code" to it.code, "message" to it.message) },
-    )
+    private fun problemMap(p: Spoolin.Problem): Map<String, Any?> =
+        mapOf(
+            "code" to p.code,
+            "message" to "The operation could not be completed.",
+            "fields" to p.fieldsList.map { mapOf("path" to it.path, "code" to it.code, "message" to it.message) },
+        )
 
     private fun issueToken(
         principal: com.spoolin.core.features.session.SessionPrincipal,
@@ -131,13 +147,21 @@ class LifecycleGraphql(
 
     private fun stub(token: String): CatalogServiceGrpc.CatalogServiceBlockingStub {
         val meta = Metadata().apply { put(ActorRpc.metadata, token) }
-        return catalog.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
+        return catalog
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
     private fun browser(env: DataFetchingEnvironment): BrowserContext =
         requireNotNull(env.graphQlContext.get("browser"))
 
-    private fun id(env: DataFetchingEnvironment): UUID =
-        UUID.fromString(env.getArgument<String>("operationId"))
+    private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 }
+
+internal fun mapDeletionImpact(impact: Spoolin.Impact): Map<String, Any?> =
+    mapOf(
+        "targetId" to impact.targetId,
+        "token" to impact.token,
+        "affectedCreditCount" to impact.affectedCreditCount,
+        "affectedTitles" to impact.affectedTitlesList,
+    )

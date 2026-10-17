@@ -1,3 +1,5 @@
+@file:Suppress("SwallowedException")
+
 package com.spoolin.catalog.features.taxonomy.roles
 
 import com.spoolin.catalog.operations.audit.AuditInsert
@@ -27,12 +29,13 @@ private const val WRITE_KIND = "CreateRole"
  * CREATOR category forbids characters on credits at validation time.
  */
 class RoleWrites(
-    private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
 ) {
-
-    fun createRole(request: RoleWrite, response: StreamObserver<Outcome>) {
+    fun createRole(
+        request: RoleWrite,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw ActorRejected()
@@ -40,16 +43,18 @@ class RoleWrites(
             val correlationId = parseId(request.context.correlationId)
             val actorScope = "account:${claims.accountId}"
             val validated = RoleValidation.validateCreate(request.category, request.label)
-            val intent = OperationIntent(
-                operationId,
-                actorScope,
-                WRITE_KIND,
-                request.context.policyRevision,
-                listOf("category" to validated.category, "label" to validated.label),
-            )
-            val outcome = receipts.execute(intent, correlationId, true) { conn ->
-                create(conn, validated, claims.accountId, operationId, correlationId)
-            }
+            val intent =
+                OperationIntent(
+                    operationId,
+                    actorScope,
+                    WRITE_KIND,
+                    request.context.policyRevision,
+                    listOf("category" to validated.category, "label" to validated.label),
+                )
+            val outcome =
+                receipts.execute(intent, correlationId, true) { conn ->
+                    create(conn, validated, claims.accountId, operationId, correlationId)
+                }
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
@@ -96,26 +101,39 @@ class RoleWrites(
         return SafeResult(roleId, version = 0)
     }
 
-    private fun roleExists(conn: Connection, label: String): Boolean =
-        conn.queryBound(
-            "SELECT 1 FROM credit_role WHERE normalized_label = casefold(?) LIMIT 1",
-            listOf(label),
-        ) { rs -> rs.next() }.isNotEmpty()
+    private fun roleExists(
+        conn: Connection,
+        label: String,
+    ): Boolean =
+        conn
+            .queryBound(
+                "SELECT 1 FROM credit_role WHERE normalized_label = casefold(?) LIMIT 1",
+                listOf(label),
+            ) { rs -> rs.next() }
+            .isNotEmpty()
 
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
 
     private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b = Outcome.newBuilder()
-            .setOperationId(outcome.id.toString())
-            .setState(outcome.state.name)
-            .setResultExpired(outcome.resultExpired)
+        val b =
+            Outcome
+                .newBuilder()
+                .setOperationId(outcome.id.toString())
+                .setState(outcome.state.name)
+                .setResultExpired(outcome.resultExpired)
         outcome.result?.let { r ->
             b.resultId = r.resultId.toString()
             r.version?.let { b.version = it }
         }
-        outcome.errorCode?.let { b.problem = spoolin.v1.Spoolin.Problem.newBuilder().setCode(it).build() }
+        outcome.errorCode?.let {
+            b.problem =
+                spoolin.v1.Spoolin.Problem
+                    .newBuilder()
+                    .setCode(it)
+                    .build()
+        }
         return b.build()
     }
 }

@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions", "NestedBlockDepth")
+
 package com.spoolin.catalog.features.movie
 
 import com.spoolin.catalog.boundary.grpc.ProtoHelpers
@@ -17,7 +19,6 @@ import spoolin.v1.Spoolin.PageRequest
 import spoolin.v1.Spoolin.Title
 import spoolin.v1.Spoolin.TitlePage
 import java.sql.ResultSet
-import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -39,10 +40,11 @@ class ManagedMovieReads(
     private val provenance: ProvenanceReads,
     private val titleSearch: TitleSearchSql,
     private val auditReads: AuditReads,
-    private val clock: Clock = Clock.systemUTC(),
 ) {
-
-    fun managedTitle(request: Id, response: StreamObserver<Title>) {
+    fun managedTitle(
+        request: Id,
+        response: StreamObserver<Title>,
+    ) {
         try {
             requireMaintainer()
             val id = parseId(request.id)
@@ -61,11 +63,15 @@ class ManagedMovieReads(
         }
     }
 
-    fun managedTitles(request: PageRequest, response: StreamObserver<TitlePage>) {
+    fun managedTitles(
+        request: PageRequest,
+        response: StreamObserver<TitlePage>,
+    ) {
         try {
             requireMaintainer()
-            val state = request.state.takeIf { it.isNotEmpty() }
-                ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
+            val state =
+                request.state.takeIf { it.isNotEmpty() }
+                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
             if (state !in setOf("ACTIVE", "ARCHIVED")) {
                 throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
             }
@@ -87,7 +93,10 @@ class ManagedMovieReads(
         }
     }
 
-    fun audit(request: PageRequest, response: StreamObserver<AuditPage>) {
+    fun audit(
+        request: PageRequest,
+        response: StreamObserver<AuditPage>,
+    ) {
         try {
             requireMaintainer()
             val subjectId = request.targetId.takeIf { it.isNotEmpty() }?.let { parseId(it) }
@@ -96,19 +105,24 @@ class ManagedMovieReads(
             val page = auditReads.list(subjectId, first, after)
             val builder = AuditPage.newBuilder()
             page.rows.forEach { row ->
-                val event = AuditEvent.newBuilder()
-                    .setId(row.id.toString())
-                    .setActorRef(actorRef(row.actorId, row.actorKind))
-                    .setAction(row.action)
-                    .setOutcome(row.outcome)
-                    .setSubjectKind(row.subjectKind)
-                    .setAt(com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(row.createdAt.epochSecond).setNanos(row.createdAt.nano).build())
-                    .also { b ->
-                        row.subjectId?.let { b.subjectId = it.toString() }
-                        row.operationId?.let { b.operationId = it.toString() }
-                    }
-                    .build()
+                val event =
+                    AuditEvent
+                        .newBuilder()
+                        .setId(row.id.toString())
+                        .setActorRef(actorRef(row.actorId, row.actorKind))
+                        .setAction(row.action)
+                        .setOutcome(row.outcome)
+                        .setSubjectKind(row.subjectKind)
+                        .setAt(
+                            com.google.protobuf.Timestamp
+                                .newBuilder()
+                                .setSeconds(row.createdAt.epochSecond)
+                                .setNanos(row.createdAt.nano)
+                                .build(),
+                        ).also { b ->
+                            row.subjectId?.let { b.subjectId = it.toString() }
+                            row.operationId?.let { b.operationId = it.toString() }
+                        }.build()
                 builder.addNodes(event)
             }
             page.keyset?.let { ks ->
@@ -130,25 +144,49 @@ class ManagedMovieReads(
     }
 
     private data class ManagedTitleRow(
-        val id: UUID, val kind: String, val status: String, val displayTitle: String,
-        val originalTitle: String?, val synopsis: String, val synopsisLanguage: String,
-        val originalLanguage: String?, val countries: List<String>,
-        val releaseYear: Int?, val releaseMonth: Int?, val releaseDay: Int?,
-        val releaseContext: String?, val runtimeMinutes: Int?, val tvStatus: String?,
-        val endYear: Int?, val endMonth: Int?, val endDay: Int?, val assetId: UUID?, val version: Long,
+        val id: UUID,
+        val kind: String,
+        val status: String,
+        val displayTitle: String,
+        val originalTitle: String?,
+        val synopsis: String,
+        val synopsisLanguage: String,
+        val originalLanguage: String?,
+        val countries: List<String>,
+        val releaseYear: Int?,
+        val releaseMonth: Int?,
+        val releaseDay: Int?,
+        val releaseContext: String?,
+        val runtimeMinutes: Int?,
+        val tvStatus: String?,
+        val endYear: Int?,
+        val endMonth: Int?,
+        val endDay: Int?,
+        val assetId: UUID?,
+        val version: Long,
     )
 
-    private data class ManagedPage(val rows: List<ManagedTitleRow>, val endCursor: String?, val hasNextPage: Boolean)
+    private data class ManagedPage(
+        val rows: List<ManagedTitleRow>,
+        val endCursor: String?,
+        val hasNextPage: Boolean,
+    )
 
     private fun findManagedTitle(id: UUID): ManagedTitleRow? =
         dataSource.connection.use { conn ->
-            conn.queryBound(
-                "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id = ?",
-                listOf(id),
-            ) { mapManagedRow(it) }.firstOrNull()
+            conn
+                .queryBound(
+                    "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id = ?",
+                    listOf(id),
+                ) { mapManagedRow(it) }
+                .firstOrNull()
         }
 
-    private fun listManagedTitles(state: String, first: Int, after: String?): ManagedPage {
+    private fun listManagedTitles(
+        state: String,
+        first: Int,
+        after: String?,
+    ): ManagedPage {
         val params = mutableListOf<Any?>(state)
         var keyset = ""
         if (after != null) {
@@ -176,15 +214,24 @@ class ManagedMovieReads(
         val rawCountries = rs.getArray("countries")?.array
         val countries = (rawCountries as? Array<*>)?.map { it.toString() } ?: emptyList()
         return ManagedTitleRow(
-            id = rs.getObject("id", UUID::class.java), kind = rs.getString("kind"),
-            status = rs.getString("status"), displayTitle = rs.getString("display_title"),
-            originalTitle = rs.getString("original_title"), synopsis = rs.getString("synopsis"),
-            synopsisLanguage = rs.getString("synopsis_language"), originalLanguage = rs.getString("original_language"),
-            countries = countries, releaseYear = rs.getObject("release_year") as? Int,
-            releaseMonth = rs.getObject("release_month") as? Int, releaseDay = rs.getObject("release_day") as? Int,
-            releaseContext = rs.getString("release_context"), runtimeMinutes = rs.getObject("runtime_minutes") as? Int,
-            tvStatus = rs.getString("tv_status"), endYear = rs.getObject("end_year") as? Int,
-            endMonth = rs.getObject("end_month") as? Int, endDay = rs.getObject("end_day") as? Int,
+            id = rs.getObject("id", UUID::class.java),
+            kind = rs.getString("kind"),
+            status = rs.getString("status"),
+            displayTitle = rs.getString("display_title"),
+            originalTitle = rs.getString("original_title"),
+            synopsis = rs.getString("synopsis"),
+            synopsisLanguage = rs.getString("synopsis_language"),
+            originalLanguage = rs.getString("original_language"),
+            countries = countries,
+            releaseYear = rs.getObject("release_year") as? Int,
+            releaseMonth = rs.getObject("release_month") as? Int,
+            releaseDay = rs.getObject("release_day") as? Int,
+            releaseContext = rs.getString("release_context"),
+            runtimeMinutes = rs.getObject("runtime_minutes") as? Int,
+            tvStatus = rs.getString("tv_status"),
+            endYear = rs.getObject("end_year") as? Int,
+            endMonth = rs.getObject("end_month") as? Int,
+            endDay = rs.getObject("end_day") as? Int,
             assetId = rs.getObject("asset_id")?.let { UUID.fromString(it.toString()) },
             version = rs.getLong("version"),
         )
@@ -195,20 +242,22 @@ class ManagedMovieReads(
         genreIds: List<UUID>,
         provenanceRows: List<ProvenanceReads.ProvenanceRow>,
     ): Title {
-        val values = spoolin.v1.Spoolin.MovieValues.newBuilder()
-            .setTitle(row.displayTitle)
-            .setSynopsis(row.synopsis)
-            .setSynopsisLanguage(row.synopsisLanguage)
-            .addAllCountries(row.countries)
-            .addAllGenreIds(genreIds.map { it.toString() })
-            .setRelease(ProtoHelpers.partialDate(row.releaseYear, row.releaseMonth, row.releaseDay))
-            .also { b ->
-                row.originalTitle?.let { b.originalTitle = it }
-                row.originalLanguage?.let { b.originalLanguage = it }
-                row.runtimeMinutes?.let { b.runtimeMinutes = it }
-            }
-            .build()
-        return Title.newBuilder()
+        val values =
+            spoolin.v1.Spoolin.MovieValues
+                .newBuilder()
+                .setTitle(row.displayTitle)
+                .setSynopsis(row.synopsis)
+                .setSynopsisLanguage(row.synopsisLanguage)
+                .addAllCountries(row.countries)
+                .addAllGenreIds(genreIds.map { it.toString() })
+                .setRelease(ProtoHelpers.partialDate(row.releaseYear, row.releaseMonth, row.releaseDay))
+                .also { b ->
+                    row.originalTitle?.let { b.originalTitle = it }
+                    row.originalLanguage?.let { b.originalLanguage = it }
+                    row.runtimeMinutes?.let { b.runtimeMinutes = it }
+                }.build()
+        return Title
+            .newBuilder()
             .setId(row.id.toString())
             .setKind(row.kind)
             .setState(row.status)
@@ -220,11 +269,13 @@ class ManagedMovieReads(
                 row.assetId?.let { b.assetId = it.toString() }
                 row.tvStatus?.let { b.tvStatus = it }
                 row.releaseContext?.let { b.releaseContext = it }
-            }
-            .build()
+            }.build()
     }
 
-    private fun actorRef(actorId: UUID?, actorKind: String): String =
+    private fun actorRef(
+        actorId: UUID?,
+        actorKind: String,
+    ): String =
         when (actorKind) {
             "HUMAN" -> actorId?.toString() ?: "UNKNOWN"
             else -> actorKind

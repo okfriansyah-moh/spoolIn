@@ -15,8 +15,7 @@ import java.security.MessageDigest
  * cancellation guard for the ChunkSink component (isolated unit — no DB access).
  */
 class ChunkSinkRulesTest {
-    private fun sha256(bytes: ByteArray): ByteArray =
-        MessageDigest.getInstance("SHA-256").digest(bytes)
+    private fun sha256(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(bytes)
 
     private fun sink(
         declared: Long = 10L,

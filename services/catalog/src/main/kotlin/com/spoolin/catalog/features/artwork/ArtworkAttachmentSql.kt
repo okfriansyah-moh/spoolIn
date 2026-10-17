@@ -1,3 +1,5 @@
+@file:Suppress("LongParameterList", "MaxLineLength")
+
 package com.spoolin.catalog.features.artwork
 
 import com.spoolin.support.receipts.executeBound
@@ -28,14 +30,20 @@ object ArtworkAttachmentSql {
             policyRevision,
         )
 
-    fun markAttached(connection: Connection, id: UUID): Int =
+    fun markAttached(
+        connection: Connection,
+        id: UUID,
+    ): Int =
         connection.executeBound(
             "UPDATE artwork_attachment_request SET state = 'ATTACHED', updated_at = CURRENT_TIMESTAMP" +
                 " WHERE id = ? AND state = 'PREPARING'",
             id,
         )
 
-    fun markAborted(connection: Connection, id: UUID): Int =
+    fun markAborted(
+        connection: Connection,
+        id: UUID,
+    ): Int =
         connection.executeBound(
             "UPDATE artwork_attachment_request SET state = 'ABORTED', updated_at = CURRENT_TIMESTAMP" +
                 " WHERE id = ? AND state = 'PREPARING'",

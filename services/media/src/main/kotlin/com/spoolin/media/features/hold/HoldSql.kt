@@ -42,7 +42,10 @@ object HoldSql {
             holdId,
         )
 
-    fun countProtectiveHolds(connection: Connection, assetId: UUID): Int =
+    fun countProtectiveHolds(
+        connection: Connection,
+        assetId: UUID,
+    ): Int =
         connection
             .queryBound(
                 "SELECT COUNT(*) FROM asset_reference WHERE asset_id = ? AND state IN ('RESERVED','ACTIVE')",

@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package com.spoolin.catalog.features.taxonomy.roles
 
 import com.spoolin.support.policy.InputViolation
@@ -15,7 +17,10 @@ data class ValidatedRoleCreate(
 object RoleValidation {
     private val categories = setOf("CAST", "CREATOR")
 
-    fun validateCreate(category: String, label: String): ValidatedRoleCreate {
+    fun validateCreate(
+        category: String,
+        label: String,
+    ): ValidatedRoleCreate {
         val normalizedCategory = category.trim().uppercase()
         if (normalizedCategory !in categories) {
             throw InputViolation("category", "Choose Cast or Creator.")

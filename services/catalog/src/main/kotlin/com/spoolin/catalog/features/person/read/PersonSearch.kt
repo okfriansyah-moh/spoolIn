@@ -6,7 +6,6 @@ import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val DEFAULT_PAGE = 24
 private const val MAX_PAGE = 100
 private const val SEARCH_MAX_CODE_POINTS = 200
 
@@ -17,8 +16,9 @@ private const val SEARCH_MAX_CODE_POINTS = 200
  * Person visibility: status = 'ACTIVE' only.
  * Credit visibility: both person and title must be ACTIVE.
  */
-class PersonSearch(private val dataSource: DataSource) {
-
+class PersonSearch(
+    private val dataSource: DataSource,
+) {
     data class PersonRow(
         val id: UUID,
         val name: String,
@@ -33,7 +33,10 @@ class PersonSearch(private val dataSource: DataSource) {
         val hasNextPage: Boolean,
     )
 
-    data class PersonKeyset(val name: String, val id: UUID)
+    data class PersonKeyset(
+        val name: String,
+        val id: UUID,
+    )
 
     data class CreditRow(
         val id: UUID,
@@ -55,7 +58,9 @@ class PersonSearch(private val dataSource: DataSource) {
         val hasNextPage: Boolean,
     )
 
-    data class CreditKeyset(val id: UUID)
+    data class CreditKeyset(
+        val id: UUID,
+    )
 
     fun searchPeople(
         text: String?,
@@ -89,9 +94,10 @@ class PersonSearch(private val dataSource: DataSource) {
                      ORDER BY p.name ASC, p.id ASC
                      LIMIT ${limit + 1}"""
 
-        val rows = dataSource.connection.use { conn ->
-            conn.queryBound(sql, params) { rs -> mapPersonRow(rs) }
-        }
+        val rows =
+            dataSource.connection.use { conn ->
+                conn.queryBound(sql, params) { rs -> mapPersonRow(rs) }
+            }
 
         val hasNext = rows.size > limit
         val page = if (hasNext) rows.dropLast(1) else rows
@@ -101,38 +107,52 @@ class PersonSearch(private val dataSource: DataSource) {
 
     fun findPerson(id: UUID): PersonRow? =
         dataSource.connection.use { conn ->
-            conn.queryBound(
-                "SELECT id, name, biography, status, version FROM person WHERE id = ? AND status = 'ACTIVE'",
-                listOf(id),
-            ) { rs -> mapPersonRow(rs) }.firstOrNull()
+            conn
+                .queryBound(
+                    "SELECT id, name, biography, status, version FROM person WHERE id = ? AND status = 'ACTIVE'",
+                    listOf(id),
+                ) { rs -> mapPersonRow(rs) }
+                .firstOrNull()
         }
 
-    fun titleCredits(titleId: UUID, first: Int, after: CreditKeyset?): CreditPage =
+    fun titleCredits(
+        titleId: UUID,
+        first: Int,
+        after: CreditKeyset?,
+    ): CreditPage =
         fetchCredits(
-            where = buildList {
-                add("t.status = 'ACTIVE'")
-                add("p.status = 'ACTIVE'")
-                add("c.title_id = ?")
-            },
-            params = buildList {
-                add(titleId)
-                after?.let { add(it.id) }
-            },
+            where =
+                buildList {
+                    add("t.status = 'ACTIVE'")
+                    add("p.status = 'ACTIVE'")
+                    add("c.title_id = ?")
+                },
+            params =
+                buildList {
+                    add(titleId)
+                    after?.let { add(it.id) }
+                },
             after = after,
             first = first,
         )
 
-    fun personCredits(personId: UUID, first: Int, after: CreditKeyset?): CreditPage =
+    fun personCredits(
+        personId: UUID,
+        first: Int,
+        after: CreditKeyset?,
+    ): CreditPage =
         fetchCredits(
-            where = buildList {
-                add("t.status = 'ACTIVE'")
-                add("p.status = 'ACTIVE'")
-                add("c.person_id = ?")
-            },
-            params = buildList {
-                add(personId)
-                after?.let { add(it.id) }
-            },
+            where =
+                buildList {
+                    add("t.status = 'ACTIVE'")
+                    add("p.status = 'ACTIVE'")
+                    add("c.person_id = ?")
+                },
+            params =
+                buildList {
+                    add(personId)
+                    after?.let { add(it.id) }
+                },
             after = after,
             first = first,
         )
@@ -160,22 +180,24 @@ class PersonSearch(private val dataSource: DataSource) {
                      WHERE ${mutableWhere.joinToString(" AND ")}
                      ORDER BY c.id ASC
                      LIMIT ${limit + 1}"""
-        val rows = dataSource.connection.use { conn ->
-            conn.queryBound(sql, mutableParams) { rs -> mapCreditRow(rs) }
-        }
+        val rows =
+            dataSource.connection.use { conn ->
+                conn.queryBound(sql, mutableParams) { rs -> mapCreditRow(rs) }
+            }
         val hasNext = rows.size > limit
         val page = if (hasNext) rows.dropLast(1) else rows
         val keyset = page.lastOrNull()?.let { CreditKeyset(it.id) }
         return CreditPage(page, keyset, hasNext)
     }
 
-    private fun mapPersonRow(rs: ResultSet) = PersonRow(
-        id = rs.getObject("id", UUID::class.java),
-        name = rs.getString("name"),
-        biography = rs.getString("biography"),
-        status = rs.getString("status"),
-        version = rs.getLong("version"),
-    )
+    private fun mapPersonRow(rs: ResultSet) =
+        PersonRow(
+            id = rs.getObject("id", UUID::class.java),
+            name = rs.getString("name"),
+            biography = rs.getString("biography"),
+            status = rs.getString("status"),
+            version = rs.getLong("version"),
+        )
 
     private fun mapCreditRow(rs: ResultSet): CreditRow {
         val rawChars = rs.getArray("characters")?.array

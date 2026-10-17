@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test
  * - TIMEOUT_AFTER_SEND, UNKNOWN_PROVIDER → UNCERTAIN (destination check before replay).
  */
 class WorkClassifierRulesTest {
-
     @Test
     fun `INVALID_ARGUMENT maps to PERMANENT`() {
         assertEquals(AttemptOutcome.PERMANENT, WorkClassifier.classify(WorkError.INVALID_ARGUMENT))

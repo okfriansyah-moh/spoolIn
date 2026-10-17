@@ -33,7 +33,8 @@ class DraftShapeRulesTest {
 
     @Test
     fun `MOVIE all allowed fields are accepted`() {
-        val json = """
+        val json =
+            """
             {
               "title":"T","originalTitle":"OT","synopsis":"S",
               "genreIds":["3fa85f64-5717-4562-b3fc-2c963f66afa6"],
@@ -41,7 +42,7 @@ class DraftShapeRulesTest {
               "originalLanguage":"en","synopsisLanguage":"en",
               "countries":["US"],"tvStatus":null,"tvEnd":null,"releaseContext":null
             }
-        """.trimIndent()
+            """.trimIndent()
         assertDoesNotThrow { codec.encode("MOVIE", json) }
     }
 
@@ -102,14 +103,15 @@ class DraftShapeRulesTest {
 
     @Test
     fun `CREDIT all fields are accepted`() {
-        val json = """
+        val json =
+            """
             {
               "titleId":"3fa85f64-5717-4562-b3fc-2c963f66afa6",
               "personId":"3fa85f64-5717-4562-b3fc-2c963f66afb7",
               "roleId":"3fa85f64-5717-4562-b3fc-2c963f66afc8",
               "characters":["Hero","Narrator"]
             }
-        """.trimIndent()
+            """.trimIndent()
         assertDoesNotThrow { codec.encode("CREDIT", json) }
     }
 

@@ -19,7 +19,6 @@ import spoolin.v1.Spoolin
  * No real gRPC client or database; uses test double pattern.
  */
 class CatalogViewGraphqlRulesTest {
-
     // ── partial date precision rules ──────────────────────────────────────────
 
     @Test
@@ -31,19 +30,34 @@ class CatalogViewGraphqlRulesTest {
 
     @Test
     fun `year-only returns YEAR precision`() {
-        val pd = Spoolin.PartialDate.newBuilder().setYear(2024).build()
+        val pd =
+            Spoolin.PartialDate
+                .newBuilder()
+                .setYear(2024)
+                .build()
         assertEquals("YEAR", partialDatePrecision(pd))
     }
 
     @Test
     fun `year-month returns MONTH precision`() {
-        val pd = Spoolin.PartialDate.newBuilder().setYear(2024).setMonth(10).build()
+        val pd =
+            Spoolin.PartialDate
+                .newBuilder()
+                .setYear(2024)
+                .setMonth(10)
+                .build()
         assertEquals("MONTH", partialDatePrecision(pd))
     }
 
     @Test
     fun `year-month-day returns DAY precision`() {
-        val pd = Spoolin.PartialDate.newBuilder().setYear(2024).setMonth(10).setDay(9).build()
+        val pd =
+            Spoolin.PartialDate
+                .newBuilder()
+                .setYear(2024)
+                .setMonth(10)
+                .setDay(9)
+                .build()
         assertEquals("DAY", partialDatePrecision(pd))
     }
 
@@ -59,9 +73,11 @@ class CatalogViewGraphqlRulesTest {
 
     @Test
     fun `title with id is a valid title`() {
-        val title = Spoolin.Title.newBuilder()
-            .setId("aaaaaaaa-0000-0000-0000-000000000001")
-            .build()
+        val title =
+            Spoolin.Title
+                .newBuilder()
+                .setId("aaaaaaaa-0000-0000-0000-000000000001")
+                .build()
         assertFalse(title.id.isEmpty())
     }
 
@@ -78,9 +94,16 @@ class CatalogViewGraphqlRulesTest {
     @Test
     fun `person projection does not include email, password or session fields`() {
         // PersonValues only has name and biography — no account PII
-        val values = Spoolin.PersonValues.newBuilder().setName("Alice").build()
+        val values =
+            Spoolin.PersonValues
+                .newBuilder()
+                .setName("Alice")
+                .build()
         val knownFields = setOf("name", "biography")
-        val protoFields = values.allFields.keys.map { it.name }.toSet()
+        val protoFields =
+            values.allFields.keys
+                .map { it.name }
+                .toSet()
         for (field in protoFields) {
             assertTrue(
                 field in knownFields,
@@ -101,28 +124,39 @@ class CatalogViewGraphqlRulesTest {
 
     @Test
     fun `null originalTitle does not fabricate a value`() {
-        val values = Spoolin.MovieValues.newBuilder()
-            .setTitle("Dark Knight")
-            .setSynopsis("A hero rises.")
-            .setSynopsisLanguage("en")
-            .setRelease(Spoolin.PartialDate.newBuilder().setYear(2008).build())
-            .build()
+        val values =
+            Spoolin.MovieValues
+                .newBuilder()
+                .setTitle("Dark Knight")
+                .setSynopsis("A hero rises.")
+                .setSynopsisLanguage("en")
+                .setRelease(
+                    Spoolin.PartialDate
+                        .newBuilder()
+                        .setYear(2008)
+                        .build(),
+                ).build()
         // originalTitle is not set — must remain empty string (proto default), not fabricated
         assertTrue(values.originalTitle.isEmpty(), "Absent original title must not be fabricated")
     }
 
     @Test
     fun `null biography does not fabricate a value`() {
-        val values = Spoolin.PersonValues.newBuilder().setName("Alice").build()
+        val values =
+            Spoolin.PersonValues
+                .newBuilder()
+                .setName("Alice")
+                .build()
         assertTrue(values.biography.isEmpty(), "Absent biography must not be fabricated")
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private fun partialDatePrecision(pd: Spoolin.PartialDate): String = when {
-        pd.hasDay() -> "DAY"
-        pd.hasMonth() -> "MONTH"
-        pd.hasYear() -> "YEAR"
-        else -> "UNKNOWN"
-    }
+    private fun partialDatePrecision(pd: Spoolin.PartialDate): String =
+        when {
+            pd.hasDay() -> "DAY"
+            pd.hasMonth() -> "MONTH"
+            pd.hasYear() -> "YEAR"
+            else -> "UNKNOWN"
+        }
 }

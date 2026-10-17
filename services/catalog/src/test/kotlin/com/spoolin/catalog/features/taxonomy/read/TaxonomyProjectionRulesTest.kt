@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test
  * No database access — pure structural rules.
  */
 class TaxonomyProjectionRulesTest {
-
     @Test
     fun `genre rows have id and label fields`() {
         val row = TaxonomyReads.GenreRow(java.util.UUID.randomUUID(), "Action")
@@ -22,12 +21,13 @@ class TaxonomyProjectionRulesTest {
 
     @Test
     fun `role rows have id, category, label, allowsCharacters`() {
-        val row = TaxonomyReads.RoleRow(
-            java.util.UUID.randomUUID(),
-            "CAST",
-            "Actor",
-            allowsCharacters = true,
-        )
+        val row =
+            TaxonomyReads.RoleRow(
+                java.util.UUID.randomUUID(),
+                "CAST",
+                "Actor",
+                allowsCharacters = true,
+            )
         assertEquals("CAST", row.category)
         assertTrue(row.allowsCharacters)
     }
@@ -35,16 +35,17 @@ class TaxonomyProjectionRulesTest {
     @Test
     fun `genre normalized label ordering uses stable comparison`() {
         // Simulate ORDER BY normalized_label ASC, id ASC
-        val rows = listOf(
-            TaxonomyReads.GenreRow(
-                java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
-                "Drama",
-            ),
-            TaxonomyReads.GenreRow(
-                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                "Action",
-            ),
-        )
+        val rows =
+            listOf(
+                TaxonomyReads.GenreRow(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                    "Drama",
+                ),
+                TaxonomyReads.GenreRow(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                    "Action",
+                ),
+            )
         val sorted = rows.sortedWith(compareBy({ it.label.lowercase() }, { it.id }))
         assertEquals("Action", sorted[0].label)
         assertEquals("Drama", sorted[1].label)

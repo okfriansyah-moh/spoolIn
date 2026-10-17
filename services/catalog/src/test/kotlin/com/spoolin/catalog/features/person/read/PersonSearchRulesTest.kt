@@ -14,7 +14,6 @@ import java.util.UUID
  * (only ACTIVE people are visible). No database access.
  */
 class PersonSearchRulesTest {
-
     @Test
     fun `person row preserves all required fields`() {
         val id = UUID.randomUUID()
@@ -36,10 +35,11 @@ class PersonSearchRulesTest {
     fun `person ordering is name ASC then id ASC for ties`() {
         val idA = UUID.fromString("00000000-0000-0000-0000-000000000001")
         val idB = UUID.fromString("00000000-0000-0000-0000-000000000002")
-        val rows = listOf(
-            PersonSearch.PersonRow(idB, "Alice", null, "ACTIVE", 0L),
-            PersonSearch.PersonRow(idA, "Alice", null, "ACTIVE", 0L),
-        )
+        val rows =
+            listOf(
+                PersonSearch.PersonRow(idB, "Alice", null, "ACTIVE", 0L),
+                PersonSearch.PersonRow(idA, "Alice", null, "ACTIVE", 0L),
+            )
         val sorted = rows.sortedWith(compareBy({ it.name }, { it.id }))
         assertEquals(idA, sorted[0].id, "Same name — lower UUID must come first")
         assertEquals(idB, sorted[1].id)
@@ -61,19 +61,20 @@ class PersonSearchRulesTest {
         val titleId = UUID.randomUUID()
         val personId = UUID.randomUUID()
         val roleId = UUID.randomUUID()
-        val row = PersonSearch.CreditRow(
-            id = creditId,
-            titleId = titleId,
-            personId = personId,
-            roleId = roleId,
-            characters = listOf("Batman"),
-            version = 1L,
-            personName = "Alice",
-            titleName = "Dark Knight",
-            roleCategory = "CAST",
-            roleLabel = "Actor",
-            roleAllowsCharacters = true,
-        )
+        val row =
+            PersonSearch.CreditRow(
+                id = creditId,
+                titleId = titleId,
+                personId = personId,
+                roleId = roleId,
+                characters = listOf("Batman"),
+                version = 1L,
+                personName = "Alice",
+                titleName = "Dark Knight",
+                roleCategory = "CAST",
+                roleLabel = "Actor",
+                roleAllowsCharacters = true,
+            )
         assertEquals(creditId, row.id)
         assertEquals(listOf("Batman"), row.characters)
         assertEquals("CAST", row.roleCategory)

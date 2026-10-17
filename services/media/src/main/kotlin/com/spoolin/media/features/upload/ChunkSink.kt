@@ -1,3 +1,5 @@
+@file:Suppress("ReturnCount", "MagicNumber")
+
 package com.spoolin.media.features.upload
 
 import com.spoolin.media.features.processing.ProcessingBounds
@@ -29,12 +31,21 @@ class ChunkSink(
 
     sealed class WriteResult {
         object Accepted : WriteResult()
-        data class Rejected(val errorCode: String) : WriteResult()
+
+        data class Rejected(
+            val errorCode: String,
+        ) : WriteResult()
     }
 
     sealed class CompleteResult {
-        data class Accepted(val inputHash: ByteArray, val inputBytes: Long) : CompleteResult()
-        data class Rejected(val errorCode: String) : CompleteResult()
+        data class Accepted(
+            val inputHash: ByteArray,
+            val inputBytes: Long,
+        ) : CompleteResult()
+
+        data class Rejected(
+            val errorCode: String,
+        ) : CompleteResult()
     }
 
     /** Validate header-declared byte count and digest before accepting any data. */

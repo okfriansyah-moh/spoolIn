@@ -23,7 +23,6 @@ import java.util.UUID
  * - W1/epoch7 at deadline D → rejected (deadline reached).
  */
 class WorkFenceRulesTest {
-
     private val w1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     private val w2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
     private val workId = UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001")

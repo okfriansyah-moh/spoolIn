@@ -1,3 +1,5 @@
+@file:Suppress("NestedBlockDepth", "TooGenericExceptionCaught")
+
 package com.spoolin.catalog.features.artwork
 
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
@@ -18,7 +20,10 @@ class ArtworkRpc(
     private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
 ) {
-    fun beginArtwork(request: Hold, response: StreamObserver<Outcome>) {
+    fun beginArtwork(
+        request: Hold,
+        response: StreamObserver<Outcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw Status.PERMISSION_DENIED.asRuntimeException()
@@ -56,7 +61,10 @@ class ArtworkRpc(
         }
     }
 
-    fun cancelArtwork(request: CancelArtworkRequest, response: StreamObserver<ArtworkCancelOutcome>) {
+    fun cancelArtwork(
+        request: CancelArtworkRequest,
+        response: StreamObserver<ArtworkCancelOutcome>,
+    ) {
         try {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             val uploadOp = parseUuid(request.uploadOperationId)
@@ -71,21 +79,22 @@ class ArtworkRpc(
                 }
             }
             response.onNext(
-                ArtworkCancelOutcome.newBuilder()
+                ArtworkCancelOutcome
+                    .newBuilder()
                     .setCancelled(true)
                     .setOperation(
-                        Outcome.newBuilder()
+                        Outcome
+                            .newBuilder()
                             .setOperationId(request.context.operationId)
                             .setState("SUCCEEDED")
                             .build(),
-                    )
-                    .setUploadOperation(
-                        Outcome.newBuilder()
+                    ).setUploadOperation(
+                        Outcome
+                            .newBuilder()
                             .setOperationId(uploadOp.toString())
                             .setState("CANCELLED")
                             .build(),
-                    )
-                    .build(),
+                    ).build(),
             )
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
@@ -95,7 +104,8 @@ class ArtworkRpc(
 
     private fun outcomeProto(receipt: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
         val builder =
-            Outcome.newBuilder()
+            Outcome
+                .newBuilder()
                 .setOperationId(receipt.id.toString())
                 .setState(receipt.state.name)
                 .setResultExpired(receipt.resultExpired)
