@@ -1,6 +1,5 @@
 package com.spoolin.core.features.mcpgateway
 
-import com.spoolin.core.boundary.grpc.ActorConfiguration
 import com.spoolin.core.features.connector.ConnectorStore
 import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.support.identity.ActorSigner
