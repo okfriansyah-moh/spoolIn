@@ -235,24 +235,34 @@ class ProposalWrites(
         if (approve) {
             val outcome =
                 publishApprovedProposal(conn, claims, row, content, proposalId, revision, correlationId)
-            recordProposalAuditAfterCommit(
-                "APPROVE_PROPOSAL",
-                proposalId,
-                claims.accountId,
+            AuditInsert.record(
+                conn,
                 operationId,
-                correlationId,
+                claims.accountId,
                 actorKind,
+                "APPROVE_PROPOSAL",
+                "PROPOSAL",
+                proposalId,
+                "SUCCEEDED",
+                "{}",
+                correlationId,
+                clock.instant(),
             )
             return outcome
         }
         ProposalStore.markRejected(conn, proposalId, revision)
-        recordProposalAuditAfterCommit(
-            "REJECT_PROPOSAL",
-            proposalId,
-            claims.accountId,
+        AuditInsert.record(
+            conn,
             operationId,
-            correlationId,
+            claims.accountId,
             actorKind,
+            "REJECT_PROPOSAL",
+            "PROPOSAL",
+            proposalId,
+            "SUCCEEDED",
+            "{}",
+            correlationId,
+            clock.instant(),
         )
         return SafeResult(proposalId, revision.toLong())
     }
@@ -298,32 +308,6 @@ class ProposalWrites(
             "CLAUDE", "CHATGPT" -> "SERVICE"
             else -> "SERVICE"
         }
-
-    private fun recordProposalAuditAfterCommit(
-        action: String,
-        proposalId: UUID,
-        actorId: UUID,
-        operationId: UUID,
-        correlationId: UUID,
-        actorKind: String,
-    ) {
-        dataSource.connection.use { conn ->
-            conn.autoCommit = true
-            AuditInsert.record(
-                conn,
-                operationId,
-                actorId,
-                actorKind,
-                action,
-                "PROPOSAL",
-                proposalId,
-                "SUCCEEDED",
-                "{}",
-                correlationId,
-                clock.instant(),
-            )
-        }
-    }
 
     private fun approvalOperationId(
         proposalId: UUID,

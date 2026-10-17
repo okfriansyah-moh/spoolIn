@@ -1,6 +1,7 @@
 package com.spoolin.support.logging
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class JsonLogMessageRulesTest {
@@ -15,7 +16,9 @@ class JsonLogMessageRulesTest {
     fun normalize_log_level_to_info_or_debug_only() {
         assertEquals("DEBUG", normalizeConfiguredLogLevel("debug"))
         assertEquals("INFO", normalizeConfiguredLogLevel("info"))
-        assertEquals("INFO", normalizeConfiguredLogLevel("trace"))
         assertEquals("INFO", normalizeConfiguredLogLevel(null))
+        assertThrows(InvalidLogLevelException::class.java) { normalizeConfiguredLogLevel("trace") }
+        assertThrows(InvalidLogLevelException::class.java) { normalizeConfiguredLogLevel("") }
+        assertThrows(InvalidLogLevelException::class.java) { normalizeConfiguredLogLevel("   ") }
     }
 }

@@ -6,9 +6,13 @@ bin="$root_dir/ops/bin"
 source "$root_dir/ops/bin/_compose_common.sh"
 
 run_migrations() {
-  if [[ -z "${SPOOLIN_INSTALLATION:-}" || -z "${SPOOLIN_LOCK_DIR:-}" ]]; then
-    printf '%s\n' "start: skipping migrations (set SPOOLIN_INSTALLATION and SPOOLIN_LOCK_DIR)" >&2
-    return 0
+  if [[ -z "${SPOOLIN_INSTALLATION:-}" ]]; then
+    printf '%s\n' "start: SPOOLIN_INSTALLATION is required for safe migrations" >&2
+    exit 78
+  fi
+  if [[ -z "${SPOOLIN_LOCK_DIR:-}" ]]; then
+    printf '%s\n' "start: SPOOLIN_LOCK_DIR is required for safe migrations" >&2
+    exit 78
   fi
   for owner in core catalog media; do
     "$bin/migrate.sh" "$owner" || exit 4

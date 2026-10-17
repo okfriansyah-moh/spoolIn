@@ -21,50 +21,72 @@ class CatalogSeedLoader(
         manifest: Path,
         seedVersion: String,
     ): Int {
+        if (initializationSucceeded(seedVersion)) return 0
         val root = mapper.readTree(manifest.toFile())
         val snapshotHash = snapshotDigest(manifest)
-        ensureCatalogInitializationReceipt(seedVersion, snapshotHash)
         var inserted = 0
         dataSource.connection.use { connection ->
             connection.autoCommit = false
+            ensurePendingInitializationReceipt(connection, seedVersion, snapshotHash)
             for (section in listOf("movies", "series")) {
                 val entries = root.get(section) ?: continue
                 for (node in entries) {
                     inserted += insertEntry(connection, seedVersion, node)
                 }
             }
+            finalizeInitializationReceipt(connection, seedVersion)
             connection.commit()
         }
         return inserted
     }
 
-    private fun ensureCatalogInitializationReceipt(
+    private fun initializationSucceeded(seedVersion: String): Boolean =
+        dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT 1 FROM operation_receipt WHERE seed_version = ? AND receipt_type = 'CATALOG_INITIALIZATION' " +
+                        "AND state = 'SUCCEEDED' LIMIT 1",
+                    listOf(seedVersion),
+                ) { 1 }
+                .isNotEmpty()
+        }
+
+    private fun ensurePendingInitializationReceipt(
+        connection: java.sql.Connection,
         seedVersion: String,
         snapshotHash: ByteArray,
     ) {
-        dataSource.connection.use { connection ->
-            val exists =
-                connection
-                    .queryBound(
-                        "SELECT 1 FROM operation_receipt WHERE seed_version = ? AND receipt_type = 'CATALOG_INITIALIZATION' LIMIT 1",
-                        listOf(seedVersion),
-                    ) { 1 }
-                    .isNotEmpty()
-            if (exists) return
-            val receiptId = UUID.nameUUIDFromBytes("catalog-init:$seedVersion".toByteArray(Charsets.UTF_8))
-            connection.autoCommit = true
-            connection.executeBound(
-                "INSERT INTO operation_receipt " +
-                    "(id, actor_scope, kind, receipt_type, request_hash, state, correlation_id, " +
-                    "seed_version, seed_snapshot_hash, seed_movie_count, seed_tv_count, seed_summary) " +
-                    "VALUES (?, 'SERVICE_INITIALIZER', 'INITIALIZE_CATALOG', 'CATALOG_INITIALIZATION', ?, 'SUCCEEDED', ?, ?, ?, 100, 100, '{}'::jsonb)",
-                receiptId,
-                snapshotHash,
-                UUID.nameUUIDFromBytes("catalog-init-correlation:$seedVersion".toByteArray()),
-                seedVersion,
-                snapshotHash,
-            )
-        }
+        val exists =
+            connection
+                .queryBound(
+                    "SELECT 1 FROM operation_receipt WHERE seed_version = ? AND receipt_type = 'CATALOG_INITIALIZATION' LIMIT 1",
+                    listOf(seedVersion),
+                ) { 1 }
+                .isNotEmpty()
+        if (exists) return
+        val receiptId = UUID.nameUUIDFromBytes("catalog-init:$seedVersion".toByteArray(Charsets.UTF_8))
+        connection.executeBound(
+            "INSERT INTO operation_receipt " +
+                "(id, actor_scope, kind, receipt_type, request_hash, state, correlation_id, " +
+                "seed_version, seed_snapshot_hash, seed_movie_count, seed_tv_count, seed_summary) " +
+                "VALUES (?, 'SERVICE_INITIALIZER', 'INITIALIZE_CATALOG', 'CATALOG_INITIALIZATION', ?, 'PENDING', ?, ?, ?, 0, 0, '{}'::jsonb)",
+            receiptId,
+            snapshotHash,
+            UUID.nameUUIDFromBytes("catalog-init-correlation:$seedVersion".toByteArray()),
+            seedVersion,
+            snapshotHash,
+        )
+    }
+
+    private fun finalizeInitializationReceipt(
+        connection: java.sql.Connection,
+        seedVersion: String,
+    ) {
+        connection.executeBound(
+            "UPDATE operation_receipt SET state = 'SUCCEEDED', seed_movie_count = 100, seed_tv_count = 100 " +
+                "WHERE seed_version = ? AND receipt_type = 'CATALOG_INITIALIZATION' AND state = 'PENDING'",
+            seedVersion,
+        )
     }
 
     private fun insertEntry(
@@ -77,14 +99,17 @@ class CatalogSeedLoader(
         val titleKind = titleKindFromManifest(node.get("kind").asText())
         val titleId = UUID.randomUUID()
         val now = Timestamp.from(Instant.now())
+        val synopsisLanguage =
+            node.get("synopsisLanguage")?.asText()?.takeIf { it.isNotBlank() } ?: DEFAULT_SYNOPSIS_LANGUAGE
         connection.executeBound(
-            "INSERT INTO title (id,kind,status,display_title,synopsis,release_year,version," +
-                "created_at,updated_at) VALUES (?,?,?,?,?,?,0,?,?)",
+            "INSERT INTO title (id,kind,status,display_title,synopsis,synopsis_language,release_year,version," +
+                "created_at,updated_at) VALUES (?,?,?,?,?,?,?,0,?,?)",
             titleId,
             titleKind,
             "ACTIVE",
             node.get("title").asText(),
             node.get("synopsis").asText(),
+            synopsisLanguage,
             node.get("releaseYear").asInt(),
             now,
             now,
@@ -155,4 +180,8 @@ class CatalogSeedLoader(
 
     private fun snapshotDigest(manifest: Path): ByteArray =
         MessageDigest.getInstance("SHA-256").digest(manifest.readBytes())
+
+    companion object {
+        private const val DEFAULT_SYNOPSIS_LANGUAGE = "en"
+    }
 }

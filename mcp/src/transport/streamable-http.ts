@@ -1,6 +1,9 @@
 import http from 'node:http';
 import { connectorTokenDigest } from '../identity/connector.js';
+import { composeProposeMovieToolResult } from '../tools/propose-movie-result.js';
 import { toolRegistry } from '../tools/registry.js';
+
+export { composeProposeMovieToolResult };
 
 export class StreamableHttpTransport {
   async listen(options: { httpPath: string; healthPort: number }): Promise<void> {

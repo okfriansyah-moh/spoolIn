@@ -80,16 +80,21 @@ class McpGatewayRpc(
             response = response,
         ) { token ->
             val revision = catalogStub(token).proposeMovie(request)
+            val builder = revision.toBuilder().clearUiChallenge()
             if (revision.hasUiChallenge()) {
                 val challenge = revision.uiChallenge.toStringUtf8()
-                uiChallenges.put(
-                    revision.proposalId,
-                    revision.revision,
-                    revision.contentHash,
-                    challenge,
-                )
+                val bindingToken =
+                    uiChallenges.put(
+                        revision.proposalId,
+                        revision.revision,
+                        revision.contentHash,
+                        challenge,
+                    )
+                if (bindingToken.isNotBlank()) {
+                    builder.uiBindingToken = bindingToken
+                }
             }
-            revision.toBuilder().clearUiChallenge().build()
+            builder.build()
         }
     }
 

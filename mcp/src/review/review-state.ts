@@ -12,6 +12,7 @@ export type ReviewQuery = Readonly<{
   proposalId: string;
   revision: number;
   contentHash: string;
+  bindingToken: string;
 }>;
 
 function escapeText(value: string): Text {
@@ -23,8 +24,11 @@ export function parseReviewQuery(search: string): ReviewQuery | null {
   const proposalId = params.get('proposalId') ?? '';
   const revision = Number(params.get('revision') ?? '0');
   const contentHash = params.get('contentHash') ?? '';
-  if (!proposalId || !Number.isFinite(revision) || revision < 1 || !contentHash) return null;
-  return Object.freeze({ proposalId, revision, contentHash });
+  const bindingToken = params.get('bindingToken') ?? '';
+  if (!proposalId || !Number.isFinite(revision) || revision < 1 || !contentHash || !bindingToken) {
+    return null;
+  }
+  return Object.freeze({ proposalId, revision, contentHash, bindingToken });
 }
 
 function sourceLabel(source: unknown): string {

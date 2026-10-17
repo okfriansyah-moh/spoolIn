@@ -15,7 +15,7 @@ if (root && query) {
   };
   renderReview(root, model);
   void fetch(
-    `/gateway/review_ui_binding?proposalId=${encodeURIComponent(query.proposalId)}&revision=${query.revision}&contentHash=${encodeURIComponent(query.contentHash)}`,
+    `/gateway/review_ui_binding?proposalId=${encodeURIComponent(query.proposalId)}&revision=${query.revision}&contentHash=${encodeURIComponent(query.contentHash)}&bindingToken=${encodeURIComponent(query.bindingToken)}`,
   )
     .then(async (response) => {
       if (!response.ok) return;
@@ -48,8 +48,19 @@ if (root && query) {
       model = { ...model, sources: data.sources as readonly unknown[] };
       renderReview(root, model);
     }
-    if ('challenge' in data && typeof data.challenge === 'string') {
-      model = { ...model, challenge: data.challenge };
+    if ('bindingToken' in data && typeof data.bindingToken === 'string' && data.bindingToken.trim()) {
+      void fetch(
+        `/gateway/review_ui_binding?proposalId=${encodeURIComponent(model.proposalId)}&revision=${model.revision}&contentHash=${encodeURIComponent(model.contentHash)}&bindingToken=${encodeURIComponent(data.bindingToken)}`,
+      )
+        .then(async (response) => {
+          if (!response.ok) return;
+          const payload = (await response.json()) as { challenge?: string };
+          if (typeof payload.challenge === 'string' && payload.challenge.trim()) {
+            model = { ...model, challenge: payload.challenge };
+            renderReview(root, model);
+          }
+        })
+        .catch(() => undefined);
     }
   });
 }

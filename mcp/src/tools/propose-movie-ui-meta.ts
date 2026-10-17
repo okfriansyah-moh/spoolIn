@@ -2,7 +2,7 @@ export type ProposeMovieUiBinding = Readonly<{
   proposalId: string;
   revision: number;
   contentHash: string;
-  challenge: string;
+  bindingToken: string;
 }>;
 
 /** MCP Apps UI-only metadata; must not appear in model structured content. */
@@ -11,7 +11,7 @@ export function buildProposeMovieToolMeta(binding: ProposeMovieUiBinding): Recor
     ui: Object.freeze({
       resourceUri: `spoolin://proposal/${binding.proposalId}/${binding.revision}`,
       visibility: ['app'],
-      challenge: binding.challenge,
+      bindingToken: binding.bindingToken,
       contentHash: binding.contentHash,
       revision: binding.revision,
       proposalId: binding.proposalId,
@@ -26,5 +26,8 @@ export function modelVisibleProposeMovieContent(
   delete copy.challenge;
   delete copy.ui_challenge;
   delete copy.uiChallenge;
+  delete copy.bindingToken;
+  delete copy.ui_binding_token;
+  delete copy.uiBindingToken;
   return Object.freeze(copy);
 }

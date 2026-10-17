@@ -1,49 +1,49 @@
 {
   "selection_id": "selection-24a6332c4dab45ea",
   "owner": "g17-g26-selection",
-  "reviewed_revision": "9331c4574919f6d6042be3639754f80bade45b86",
-  "previous_reviewed_revision": "989aeadd2f1db332169c62fd12b4ce701c420890",
+  "reviewed_revision": "4f0a4e95c8923d0a06298cad74a6c06e5167a471",
+  "previous_reviewed_revision": "9331c4574919f6d6042be3639754f80bade45b86",
   "reviewer_model_requested": "grok-4.7-medium",
   "reviewer_model_actual": "Grok 4.7 (xAI)",
-  "cycle": 2,
+  "cycle": 3,
+  "correction_round": 2,
   "max_correction_rounds": 2,
   "verdict": "changes_required",
+  "resolution_notes": "Residual publication-safety fixes applied after correction-round limit (2/2); findings remain open pending a future independent review (not claimed as a new review round).",
   "findings": [
     {
       "id": "F-001",
       "required": true,
-      "status": "resolved",
+      "status": "open",
+      "resolution_attempt": "Post-round-limit: review_ui_binding requires bindingToken (401 without); store uses constant-time compare; gateway emits ui_binding_token for MCP _meta only; composeProposeMovieToolResult wired on transport.",
       "area": "MCP approval boundary",
-      "summary": "Resolved in correction round 2. Core stores UI challenges in ProposalUiChallengeStore when McpGatewayRpc strips ui_challenge from model-visible ProposalRevision. GET /gateway/review_ui_binding delivers challenge to trusted review; mcp propose-movie-ui-meta attaches UI-only _meta; review main fetches binding.",
+      "summary": "The model tool list still omits approve and reject, and proposeMovie still clears ui_challenge after storing it. The store is then exposed by GET /gateway/review_ui_binding using only proposal id, revision, and content hash, and Core HTTP permits every request. Those three values are model-visible, so a connected model can read the raw challenge and call approval. buildProposeMovieToolMeta is not used by the server.",
       "evidence_paths": [
-        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/McpGatewayRpc.kt",
-        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/ProposalUiChallengeStore.kt",
         "services/core/src/main/kotlin/com/spoolin/core/boundary/http/McpReviewUiGateway.kt",
-        "mcp/src/tools/propose-movie-ui-meta.ts",
-        "mcp/src/review/main.ts"
+        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/McpGatewayRpc.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/Application.kt",
+        "mcp/src/review/main.ts",
+        "mcp/src/tools/propose-movie-ui-meta.ts"
       ],
-      "requirement_ids": ["AC-119", "TD-C-022", "TD-C-053", "T029-A1", "T030"]
+      "requirement_ids": ["AC-119", "AC-119-C02", "TD-C-022", "TD-C-053", "T029-A1"]
     },
     {
       "id": "F-002",
       "required": true,
       "status": "resolved",
       "area": "Exact approval binding",
-      "summary": "Resolved at 9331c45. fromInput takes the live policy revision instead of the RPC method. verify compares that value with policy_revision stored in the proposal content and returns POLICY_REVISION_MISMATCH when they differ. Catalog wires the live value from POLICY_REVISION.",
+      "summary": "Remains resolved. Approval compares the live policy revision with the revision stored on the proposal.",
       "evidence_paths": [
-        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBinding.kt",
-        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalContent.kt",
-        "services/catalog/src/main/kotlin/com/spoolin/catalog/Application.kt",
-        "services/catalog/src/test/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBindingRulesTest.kt"
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBinding.kt"
       ],
-      "requirement_ids": ["ATDD-294", "T029-A1", "PRD-POLICY-33", "FR-016"]
+      "requirement_ids": ["ATDD-294", "T029-A1"]
     },
     {
       "id": "F-003",
       "required": true,
       "status": "resolved",
       "area": "Deterministic proposal serialization",
-      "summary": "Resolved in correction round 2. Serializer sorts object keys and only unordered set fields (genres, genre_ids, countries). Character and source sequences preserve order; ProposalContent no longer sorts sources by field.",
+      "summary": "Resolved at 4f0a4e95. Object keys are sorted. Only genres, genre_ids, and countries are sorted as string sets. Character lists and source records keep their selected order, and the reversed-character test expects different digests.",
       "evidence_paths": [
         "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/DeterministicContentSerializer.kt",
         "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalContent.kt",
@@ -56,99 +56,100 @@
       "required": true,
       "status": "resolved",
       "area": "Trusted review resource",
-      "summary": "Resolved at 9331c45. The click handler reads the current model through a getter, so a later challenge is visible. Messages from other origins are ignored unless listed in data-trusted-origins. renderReview shows source references.",
+      "summary": "Remains resolved. The click handler reads the current model, origin is checked, and source references are rendered.",
       "evidence_paths": [
         "mcp/src/review/main.ts",
         "mcp/src/review/review-state.ts"
       ],
-      "requirement_ids": ["AC-116", "AC-116-C01", "T030", "TD-C-053", "J-10"]
+      "requirement_ids": ["AC-116", "T030"]
     },
     {
       "id": "F-005",
       "required": true,
       "status": "resolved",
       "area": "Connector revocation",
-      "summary": "Resolved at 9331c45. findByTokenHash and findByCredential join user_account and require account auth_epoch to equal the connector epoch. CheckActor uses findByCredential, so an epoch bump no longer leaves the connector live.",
+      "summary": "Remains resolved. Connector lookup requires the credential epoch to match the account epoch.",
       "evidence_paths": [
-        "services/core/src/main/kotlin/com/spoolin/core/features/connector/ConnectorStore.kt",
-        "services/core/src/main/kotlin/com/spoolin/core/boundary/grpc/IdentityRpc.kt"
+        "services/core/src/main/kotlin/com/spoolin/core/features/connector/ConnectorStore.kt"
       ],
-      "requirement_ids": ["T028", "AC-119", "TD-C-053"]
+      "requirement_ids": ["T028", "AC-119"]
     },
     {
       "id": "F-006",
       "required": true,
-      "status": "resolved",
+      "status": "open",
+      "resolution_attempt": "Post-round-limit: title inserts include synopsis_language (default en); CATALOG_INITIALIZATION receipt stays PENDING until titles commit, then SUCCEEDED 100/100.",
       "area": "Seed integrity",
-      "summary": "Resolved in correction round 2. Loader maps SERIES to TV, ensures CATALOG_INITIALIZATION operation_receipt with seed_version FK, inserts missing taxonomy genres, and uses seed_version for seed_member.seed_id.",
+      "summary": "Series kind maps to TV, genres are created by label, and an initialization receipt is inserted before members. Title insert still omits synopsis_language, which is NOT NULL and has no default, so every manifest row fails. The initialization receipt is also inserted as SUCCEEDED with counts 100/100 before any title insert, so a failed load leaves a successful seed receipt.",
       "evidence_paths": [
         "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedLoader.kt",
-        "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedCli.kt",
-        "data/seed/manifest.json"
+        "services/catalog/src/main/resources/db/migration/V002__catalog_read_model.sql",
+        "services/catalog/src/main/resources/db/migration/V001__operation_records.sql"
       ],
       "requirement_ids": ["T032", "T033-A1"]
     },
     {
       "id": "F-007",
       "required": true,
-      "status": "resolved",
+      "status": "open",
+      "resolution_attempt": "Post-round-limit: start.sh exits 78 when SPOOLIN_INSTALLATION or SPOOLIN_LOCK_DIR is unset instead of skipping migrations with status 0.",
       "area": "Operations command honesty",
-      "summary": "Resolved in correction round 2. logs.sh tails by default and follows only with -f/--follow. start.sh runs migrate (when installation env set), seed validate+apply, then compose up -d.",
+      "summary": "logs.sh follows only with -f or --follow. When SPOOLIN_INSTALLATION and SPOOLIN_LOCK_DIR are set, start.sh migrates, seeds, then runs compose up. If SPOOLIN_LOCK_DIR is unset, start.sh skips migrations with status 0 and can still return the Compose up status, so a ready exit does not include migrations.",
       "evidence_paths": [
-        "Makefile",
         "ops/bin/start.sh",
-        "ops/bin/logs.sh"
+        "ops/bin/logs.sh",
+        "ops/bin/migrate.sh"
       ],
-      "requirement_ids": ["T037-A1", "TD-C-058", "TD-ROW-L6075", "TD-ROW-L6079"]
+      "requirement_ids": ["T037-A1", "TD-ROW-L6075", "TD-ROW-L6079"]
     },
     {
       "id": "F-008",
       "required": true,
-      "status": "resolved",
+      "status": "open",
+      "resolution_attempt": "Post-round-limit: APPROVE/REJECT audit rows insert on the same connection as approval receipt/publication via AuditInsert.record(conn, ...).",
       "area": "Approval audit",
-      "summary": "Resolved in correction round 2. Approval audit actor_kind maps connector clients to SERVICE; audit inserts run in autoCommit after publication/rejection so CHECK failures cannot roll back committed work.",
+      "summary": "Actor kind for Claude and ChatGPT is now SERVICE, which the audit check allows. recordProposalAuditAfterCommit inserts that row on a second autocommit connection while OwnerReceipts still holds the approval receipt uncommitted. catalog_audit_event.operation_id references operation_receipt, so the insert cannot see that receipt, the audit write fails, and the approval transaction rolls back.",
       "evidence_paths": [
-        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalWrites.kt"
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalWrites.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/operations/receipts/OwnerReceipts.kt",
+        "services/catalog/src/main/resources/db/migration/V003__catalog_audit.sql"
       ],
-      "requirement_ids": ["PRD-POLICY-15", "AC-117", "AC-117-C01", "T031", "T029-A3"]
+      "requirement_ids": ["PRD-POLICY-15", "AC-117", "T029-A3", "T031"]
     },
     {
       "id": "F-009",
       "required": true,
       "status": "resolved",
       "area": "Credit draft recovery",
-      "summary": "Resolved at 9331c45. CreditDraftSync stores the returned draft id and version after success, and sets unbacked when the save fails. CreditPanel reads that snapshot.",
+      "summary": "Remains resolved. Credit autosave stores the returned draft version and records an unbacked failure.",
       "evidence_paths": [
-        "frontend/src/lib/features/credit/draft-sync.ts",
-        "frontend/src/lib/features/credit/CreditPanel.svelte"
+        "frontend/src/lib/features/credit/draft-sync.ts"
       ],
       "requirement_ids": ["T027"]
     },
     {
       "id": "F-010",
       "required": true,
-      "status": "resolved",
+      "status": "open",
+      "resolution_attempt": "Post-round-limit: explicit empty/unknown LOG_LEVEL throws InvalidLogLevelException and applyNormalizedLogLevel exits 78 at startup; omitted still defaults to info.",
       "area": "Diagnostic logging",
-      "summary": "Resolved in correction round 2. JsonLogMessageConverter emits quoted JSON message values; LOG_LEVEL normalized to INFO/DEBUG at startup via applyNormalizedLogLevel.",
+      "summary": "Log messages are now emitted as quoted JSON strings. normalizeConfiguredLogLevel maps omitted values to info and debug to debug, but explicit empty and unknown values also become info. The logging contract requires those explicit values to block readiness instead of being rewritten.",
       "evidence_paths": [
-        "services/core/src/main/resources/logback-spring.xml",
-        "services/catalog/src/main/resources/logback-spring.xml",
-        "services/media/src/main/resources/logback-spring.xml",
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/logging/LogLevelNormalization.kt",
         "libraries/backend-support/src/main/kotlin/com/spoolin/support/logging/JsonLogMessageConverter.kt",
-        "libraries/backend-support/src/main/kotlin/com/spoolin/support/logging/LogLevelNormalization.kt"
+        "services/core/src/main/kotlin/com/spoolin/core/Application.kt",
+        "services/catalog/src/main/resources/logback-spring.xml"
       ],
-      "requirement_ids": ["T035", "TD-LOG-JSON", "TD-LOG-CONFIG", "ATDD-340"]
+      "requirement_ids": ["T035", "TD-LOG-CONFIG", "ATDD-340"]
     },
     {
       "id": "F-011",
       "required": true,
       "status": "resolved",
       "area": "Alert episodes",
-      "summary": "Resolved in correction round 2. spoolin.work.pending gauges read durable depth (core durable_work + pending receipts; catalog REVIEW proposals). Alert episodes use spoolin.alert.episodes counter; backlog alert sums work pending series.",
+      "summary": "Resolved at 4f0a4e95. spoolin.work.pending reads durable_work rows in READY or LEASED plus pending request receipts. Alert inserts increment spoolin.alert.episodes instead of that gauge. The backlog rule uses that work series.",
       "evidence_paths": [
         "services/core/src/main/kotlin/com/spoolin/core/operations/metrics/WorkPendingMetrics.kt",
-        "services/catalog/src/main/kotlin/com/spoolin/catalog/operations/metrics/ProposalMetrics.kt",
-        "services/core/src/main/kotlin/com/spoolin/core/features/alerts/AlertRecorder.kt",
         "ops/monitoring/alerts.yml"
       ],
       "requirement_ids": ["T034", "T036"]
@@ -165,8 +166,7 @@
   ],
   "permitted_checks_executed": [
     {"id": "git-diff-check", "result": "pass"},
-    {"id": "validate_manifest.py", "result": "pass", "detail": "100 movies, 100 series"},
-    {"id": "correction-round-2", "result": "implementer-claimed", "detail": "All F-001,F-003,F-006,F-007,F-008,F-010,F-011 addressed"}
+    {"id": "validate_manifest.py", "result": "pass", "detail": "100 movies, 100 series"}
   ],
   "skipped_checks": [
     "Gradle builds/tests",

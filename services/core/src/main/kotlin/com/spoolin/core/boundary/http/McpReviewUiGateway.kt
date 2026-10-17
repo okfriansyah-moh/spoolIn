@@ -17,13 +17,14 @@ class McpReviewUiGateway(
         @RequestParam proposalId: String,
         @RequestParam revision: Int,
         @RequestParam contentHash: String,
+        @RequestParam bindingToken: String,
     ): ResponseEntity<Map<String, String>> {
-        if (proposalId.isBlank() || revision < 1 || contentHash.isBlank()) {
+        if (proposalId.isBlank() || revision < 1 || contentHash.isBlank() || bindingToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
         }
         val challenge =
-            uiChallenges.get(proposalId, revision, contentHash)
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            uiChallenges.getChallenge(proposalId, revision, contentHash, bindingToken)
+                ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         return ResponseEntity.ok(mapOf("challenge" to challenge))
     }
 }
