@@ -1,0 +1,114 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { resolve } from '$app/paths';
+  import { createTransport } from '../../../../lib/transport/graphql';
+  import { sessionController } from '../../../../lib/features/session/context';
+  import { createDraftSource } from '../../../../lib/features/draft/api';
+  import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller';
+  import { loadWriteContext } from '../../../../lib/features/movie/write-context';
+  import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
+  import type { EditorState } from '../../../../lib/features/movie/types';
+  import ConfirmDialog from '../../../../lib/components/ConfirmDialog.svelte';
+  import { isRecordId } from '../../../../lib/components/safe-url';
+
+  const sessionCtl = sessionController();
+  let editorState = $state<EditorState | null>(null);
+  let ready = $state(false);
+  let controller: ReturnType<typeof createMovieEditorController> | null = null;
+  const movieId = $derived(page.params.id ?? '');
+
+  onMount(() => {
+    if (!isRecordId(movieId)) {
+      ready = true;
+      return;
+    }
+    const transport = createTransport();
+    controller = createMovieEditorController(
+      transport,
+      createDraftSource(transport),
+      'edit',
+      movieId,
+    );
+    const unsubscribe = controller.subscribe((next) => {
+      editorState = next;
+    });
+    const abort = new AbortController();
+    void (async () => {
+      const context = await loadWriteContext(abort.signal);
+      const policy = sessionCtl.snapshot.policy;
+      if (!context || !policy || abort.signal.aborted) return;
+      await controller?.bootstrap(policy, context, abort.signal);
+      ready = true;
+    })();
+    return () => {
+      abort.abort();
+      unsubscribe();
+      controller?.dispose();
+    };
+  });
+
+  function draftChange(field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear', value: string) {
+    if (!controller || !editorState) return;
+    const draft = { ...editorState.draft };
+    if (field === 'releaseYear') {
+      const year = value.trim() === '' ? null : Number(value);
+      draft.release = Object.freeze({
+        ...(draft.release ?? {}),
+        year: Number.isInteger(year) ? year : null,
+        month: draft.release?.month ?? null,
+        day: draft.release?.day ?? null,
+      });
+    } else if (field === 'originalTitle') {
+      draft.originalTitle = value;
+      controller.updateDraft(draft, { originalTitleTouched: true });
+      return;
+    } else {
+      draft[field] = value;
+    }
+    controller.updateDraft(draft);
+  }
+</script>
+
+<svelte:head><title>Edit movie · SpoolIn</title></svelte:head>
+<h1 tabindex="-1">{editorState?.saved?.title ?? 'Edit movie'}</h1>
+<p class="muted">
+  <a href={resolve('/manage/movies')}>Movies</a>
+  {#if editorState?.saved}
+    · <a href={resolve(`/titles/${editorState.saved.id}`)}>Review public record</a>
+  {/if}
+</p>
+
+{#if !isRecordId(movieId)}
+  <p role="alert">This movie link is not valid.</p>
+{:else if ready && editorState && sessionCtl.snapshot.policy}
+  <MovieEditorForm
+    state={editorState}
+    policy={sessionCtl.snapshot.policy}
+    disabled={editorState.phase === 'target-changed'}
+    onSubmit={() => void controller?.submit()}
+    onCheckOriginal={() => void controller?.checkOriginalResult()}
+    onReviewStale={() => controller?.toggleStaleReview()}
+    onDraftChange={draftChange}
+    onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
+    onDiscardOpen={() => controller?.openDiscardDialog()}
+  />
+{:else}
+  <p role="status">Loading movie editor…</p>
+{/if}
+
+<ConfirmDialog
+  open={editorState?.discardDialogOpen ?? false}
+  title="Leave this draft?"
+  action="Discard draft"
+  oncancel={() => controller?.closeDiscardDialog()}
+  onconfirm={() => void controller?.confirmDiscard()}
+>
+  <p>Leaving discards the current unsaved form values. Saved movie information stays unchanged.</p>
+</ConfirmDialog>
+
+<style>
+  .muted {
+    margin-bottom: 1rem;
+  }
+</style>

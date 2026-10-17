@@ -638,11 +638,41 @@
     "T017": {
       "source": "docs/plan/12-movie-management/tasks/T017-connect-movie-editors-and-confirmed-outcomes.md",
       "test_paths": [
+        "frontend/src/routes/manage/movies/",
+        "frontend/src/lib/features/movie/",
         "tests/browser/flows/movies/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t017-movie-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t017-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t017-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/movie/patch.test.ts",
+            "frontend/src/lib/features/movie/validation.test.ts",
+            "frontend/src/lib/features/movie/editor-controller.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t017-movies-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-movies.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t017-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/movies/movies.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": "Real Catalog/Media service fixture required for full integration boundary"
     },
     "T018": {
       "source": "docs/plan/13-people-and-credits/tasks/T018-implement-shared-person-writes-and-identity.md",

@@ -1,0 +1,162 @@
+<script lang="ts">
+  import Button from '../../components/Button.svelte';
+  import type { Policy } from '../../policy/types';
+  import type { EditorState } from './types';
+  import { policyGuidance } from './types';
+  import MovieSaveFeedback from './MovieSaveFeedback.svelte';
+  let {
+    state,
+    policy,
+    disabled = false,
+    onSubmit,
+    onCheckOriginal,
+    onReviewStale,
+    onDraftChange,
+    onGenreToggle,
+    onDiscardOpen,
+  }: {
+    state: EditorState;
+    policy: Policy;
+    disabled?: boolean;
+    onSubmit: () => void;
+    onCheckOriginal: () => void;
+    onReviewStale: () => void;
+    onDraftChange: (field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear', value: string) => void;
+    onGenreToggle: (genreId: string, checked: boolean) => void;
+    onDiscardOpen: () => void;
+  } = $props();
+  const titleHelp = $derived(policyGuidance(policy, 'title'));
+  const synopsisHelp = $derived(policyGuidance(policy, 'synopsis'));
+  const errorFor = (id: string) => state.fieldErrors.find((error) => error.id === id)?.message ?? '';
+  const submitLabel = $derived(state.mode === 'create' ? 'Create movie' : 'Save movie');
+  const submitDisabled = $derived(
+    disabled ||
+      state.phase === 'submitting' ||
+      state.phase === 'uncertain' ||
+      state.phase === 'stale' ||
+      state.phase === 'target-changed',
+  );
+</script>
+
+<MovieSaveFeedback {state} {onCheckOriginal} {onReviewStale} />
+
+<form
+  id="movie-editor-form"
+  aria-label={state.mode === 'create' ? 'Create movie' : 'Edit movie'}
+  onsubmit={(event) => {
+    event.preventDefault();
+    onSubmit();
+  }}
+>
+  <div class="field">
+    <label for="movie-title">Title · Required</label>
+    <input
+      id="movie-title"
+      value={state.draft.title ?? ''}
+      required
+      disabled={disabled}
+      aria-invalid={!!errorFor('movie-title')}
+      aria-describedby="movie-title-help movie-title-error"
+      oninput={(event) => onDraftChange('title', event.currentTarget.value)}
+    />
+    <small id="movie-title-help">{titleHelp}</small>
+    {#if errorFor('movie-title')}<p class="field-error" id="movie-title-error">{errorFor('movie-title')}</p>{/if}
+  </div>
+  <div class="field">
+    <label for="movie-synopsis">Synopsis · Required</label>
+    <textarea
+      id="movie-synopsis"
+      rows="4"
+      required
+      disabled={disabled}
+      aria-invalid={!!errorFor('movie-synopsis')}
+      aria-describedby="movie-synopsis-help movie-synopsis-error"
+      value={state.draft.synopsis ?? ''}
+      oninput={(event) => onDraftChange('synopsis', event.currentTarget.value)}
+    ></textarea>
+    <small id="movie-synopsis-help">{synopsisHelp} Line breaks are preserved.</small>
+    {#if errorFor('movie-synopsis')}<p class="field-error" id="movie-synopsis-error">{errorFor('movie-synopsis')}</p>{/if}
+  </div>
+  <div class="field">
+    <label for="movie-release-year">Release year · Required</label>
+    <input
+      id="movie-release-year"
+      inputmode="numeric"
+      value={state.draft.release?.year ? String(state.draft.release.year) : ''}
+      required
+      disabled={disabled}
+      aria-invalid={!!errorFor('movie-release-year')}
+      aria-describedby="movie-release-year-help movie-release-year-error"
+      oninput={(event) => onDraftChange('releaseYear', event.currentTarget.value)}
+    />
+    <small id="movie-release-year-help">Four-digit release year required for new movies.</small>
+    {#if errorFor('movie-release-year')}<p class="field-error" id="movie-release-year-error">{errorFor('movie-release-year')}</p>{/if}
+  </div>
+  <fieldset id="movie-genres" aria-describedby="movie-genres-error">
+    <legend>Genres · at least one required</legend>
+    {#each state.genres as genre (genre.id)}
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={(state.draft.genreIds ?? []).includes(genre.id)}
+          disabled={disabled}
+          onchange={(event) =>
+            onGenreToggle(genre.id, event.currentTarget.checked)}
+        />
+        {genre.label}
+      </label>
+    {/each}
+    {#if errorFor('movie-genres')}
+      <p class="field-error" id="movie-genres-error">{errorFor('movie-genres')}</p>
+    {/if}
+  </fieldset>
+  <div class="field">
+    <label for="movie-originalTitle">Original title · Optional</label>
+    <input
+      id="movie-originalTitle"
+      value={state.draft.originalTitle ?? ''}
+      disabled={disabled}
+      aria-invalid={!!errorFor('movie-originalTitle')}
+      aria-describedby="movie-originalTitle-help movie-originalTitle-error"
+      oninput={(event) => onDraftChange('originalTitle', event.currentTarget.value)}
+    />
+    <small id="movie-originalTitle-help"
+      >Clear this field to remove the original title. Unknown information may stay blank.</small
+    >
+    {#if errorFor('movie-originalTitle')}<p class="field-error" id="movie-originalTitle-error">{errorFor('movie-originalTitle')}</p>{/if}
+  </div>
+  <div class="editor-actions">
+    <Button type="button" variant="secondary" onclick={onDiscardOpen}>Leave draft</Button>
+    <Button
+      type="submit"
+      pending={state.phase === 'submitting'}
+      disabledReason={submitDisabled ? 'Review current changes before saving again.' : ''}
+      >{submitLabel}</Button
+    >
+  </div>
+</form>
+
+<style>
+  form {
+    display: grid;
+    gap: 1rem;
+    max-width: 42rem;
+  }
+  fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .check {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+</style>
