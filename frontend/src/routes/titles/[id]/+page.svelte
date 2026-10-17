@@ -183,13 +183,14 @@
     </section>
 
     {#if state.title.credits.nodes.length > 0}
+      <!-- eslint-disable svelte/no-navigation-without-resolve -- dynamic person id segments in credits -->
       <section aria-label="Credits">
         <h2>Credits</h2>
         <ul>
           {#each state.title.credits.nodes as credit (credit.id)}
             <li>
               <a
-                href={resolve(`/people/${credit.personId}`)}
+                href={`${resolve('/')}people/${encodeURIComponent(credit.personId)}`}
               >
                 {credit.personName}
               </a>
@@ -282,13 +283,14 @@
     </section>
 
     {#if state.title.credits.nodes.length > 0}
+      <!-- eslint-disable svelte/no-navigation-without-resolve -- dynamic person id segments in credits -->
       <section aria-label="Credits">
         <h2>Credits</h2>
         <ul>
           {#each state.title.credits.nodes as credit (credit.id)}
             <li>
               <a
-                href={resolve(`/people/${credit.personId}`)}
+                href={`${resolve('/')}people/${encodeURIComponent(credit.personId)}`}
               >
                 {credit.personName}
               </a>

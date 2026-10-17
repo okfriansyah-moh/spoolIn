@@ -131,7 +131,8 @@
   <ul class="people-list" aria-label="People">
     {#each state.people as person (person.id)}
       <li>
-        <a href={resolve(`/people/${person.id}`)}>
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic person id segment -->
+        <a href={`${resolve('/')}people/${encodeURIComponent(person.id)}`}>
           {person.name}
         </a>
         {#if person.biography}

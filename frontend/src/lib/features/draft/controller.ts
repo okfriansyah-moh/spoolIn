@@ -1,5 +1,5 @@
 import { TransportFailure } from '../../transport/graphql';
-import type { PersonDraft } from '../../generated/json-types';
+import type { DraftValues, PersonDraft } from '../../generated/json-types';
 import { DraftHandles } from './handles';
 import type {
   DraftEligibility,
@@ -22,14 +22,15 @@ type PendingCore = Readonly<{
 }>;
 
 function beginEditLayers(options: {
-  base?: PersonDraft | null;
-  current?: PersonDraft | null;
-  initial?: PersonDraft;
+  base?: DraftValues | null;
+  current?: DraftValues | null;
+  initial?: DraftValues;
 }): DraftLayers {
+  const initial = options.initial as PersonDraft | undefined;
   const draft = Object.freeze({
-    name: options.initial?.name ?? '',
-    biography: options.initial?.biography ?? null,
-  });
+    name: initial?.name ?? '',
+    biography: initial?.biography ?? null,
+  }) as DraftValues;
   return Object.freeze({
     base: options.base ?? null,
     current: options.current ?? null,
@@ -128,9 +129,9 @@ export class DraftController {
     options: {
       draftId?: string;
       catalogOperationId?: string | null;
-      base?: PersonDraft | null;
-      current?: PersonDraft | null;
-      initial?: PersonDraft;
+      base?: DraftValues | null;
+      current?: DraftValues | null;
+      initial?: DraftValues;
     } = {},
   ): void {
     if (this.session.accountId === null) {
@@ -363,7 +364,7 @@ export class DraftController {
     operationId: string;
     draftId: string;
     expectedVersion: string | null;
-    values: PersonDraft;
+    values: DraftValues;
     policyRevision: string;
     csrf: string;
     generation: number;

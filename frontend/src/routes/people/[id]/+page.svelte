@@ -121,7 +121,8 @@
         <ul>
           {#each state.credits as credit (credit.id)}
             <li>
-              <a href={resolve(`/titles/${credit.titleId}`)}>
+              <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic title id segment -->
+              <a href={`${resolve('/')}titles/${encodeURIComponent(credit.titleId)}`}>
                 {credit.titleName}
               </a>
               — {credit.role.label}

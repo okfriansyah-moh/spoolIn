@@ -13,7 +13,9 @@ import type { Criteria, TextValidity } from './types';
 import { MAX_SEARCH_CODE_POINTS } from './types';
 
 /** Parse URL search params into Criteria. */
-export function parseCriteria(params: URLSearchParams): Criteria {
+export function parseCriteria(
+  params: URLSearchParams | ReadonlyURLSearchParams,
+): Criteria {
   const text = params.get('q') ?? '';
   const kind = params.get('kind') ?? '';
   const year = params.get('year') ?? '';

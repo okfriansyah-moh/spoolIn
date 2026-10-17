@@ -76,7 +76,7 @@
 
   async function submitCredit(): Promise<void> {
     if (!personId || !roleId || submitting) return;
-    const characters = parseCreditCharacters(selectedRole, characterText);
+    const characters = parseCreditCharacters(selectedRole ?? undefined, characterText);
     const validation = validateCharacterNames(
       characters,
       policy,

@@ -92,8 +92,9 @@
   function pushUrl(c: Criteria): void {
     const params = criteriaToParams(c);
     const qs = params.toString();
-    const path = qs ? `/?${qs}` : '/';
-    void goto(resolve(path), { replaceState: true, keepFocus: true });
+    const root = resolve('/');
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve catalog query string on /
+    void goto(qs ? `${root}?${qs}` : root, { replaceState: true });
   }
 
   // Dispatch criteria to the controller, with optional debounce for text.
