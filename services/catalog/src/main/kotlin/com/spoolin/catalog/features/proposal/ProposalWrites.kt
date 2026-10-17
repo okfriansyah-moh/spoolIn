@@ -3,6 +3,7 @@
 package com.spoolin.catalog.features.proposal
 
 import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.operations.metrics.ProposalMetrics
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
@@ -33,6 +34,7 @@ class ProposalWrites(
     private val dataSource: DataSource,
     private val receipts: OwnerReceipts,
     private val movieWrites: MovieWrites,
+    private val metrics: ProposalMetrics? = null,
     private val clock: Clock = Clock.systemUTC(),
 ) {
     private val random = SecureRandom()
@@ -203,6 +205,11 @@ class ProposalWrites(
                         SafeResult(proposalId, revision.toLong())
                     }
                 }
+            if (approve) {
+                metrics?.markApproved()
+            } else {
+                metrics?.markRejected()
+            }
             response.onNext(outcomeProto(outcome, operationId))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {

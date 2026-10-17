@@ -274,12 +274,24 @@ class CatalogWriteConfiguration {
             .ManagedCreditReads(dataSource)
 
     @Bean
+    fun proposalMetrics(
+        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+    ): com.spoolin.catalog.operations.metrics.ProposalMetrics? =
+        registry.ifAvailable?.let { com.spoolin.catalog.operations.metrics.ProposalMetrics(it) }
+
+    @Bean
     fun proposalWrites(
         dataSource: DataSource,
         receipts: OwnerReceipts,
         movieWrites: MovieWrites,
+        proposalMetrics: com.spoolin.catalog.operations.metrics.ProposalMetrics?,
     ): com.spoolin.catalog.features.proposal.ProposalWrites =
-        com.spoolin.catalog.features.proposal.ProposalWrites(dataSource, receipts, movieWrites)
+        com.spoolin.catalog.features.proposal.ProposalWrites(
+            dataSource,
+            receipts,
+            movieWrites,
+            proposalMetrics,
+        )
 }
 
 fun main(args: Array<String>) {
