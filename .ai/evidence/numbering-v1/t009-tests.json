@@ -1,0 +1,933 @@
+{
+  "selected": 141,
+  "executed": 141,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t009-unit",
+      "argv": [
+        "python3",
+        "build-tools/verification-tests/run_receipts.py",
+        "--task",
+        "T009",
+        "--level",
+        "unit"
+      ],
+      "exit_code": 0,
+      "selected": 141,
+      "executed": 141,
+      "failed": 0,
+      "commands": [
+        {
+          "argv": [
+            "./gradlew",
+            ":libraries:backend-support:test",
+            "--console",
+            "plain",
+            "--tests",
+            "com.spoolin.support.identity.*"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207559111034000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/shared.log",
+            "sha256": "4f8a1c6f6b97185334fd44981b0dc36b66c1e284ee834d6cb675b89d081fef5a"
+          }
+        },
+        {
+          "argv": [
+            "./gradlew",
+            ":services:core:test",
+            "--console",
+            "plain",
+            "--tests",
+            "*ActorIssuerRulesTest"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207559891137000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/issuer.log",
+            "sha256": "b6359039b496eab2b4f04114a3742137920bbffcf75750cb171bce4259b2f091"
+          }
+        }
+      ],
+      "reports": [
+        {
+          "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/junit/shared/TEST-com.spoolin.support.identity.ActorAssertionsTest.xml",
+          "sha256": "1ddd0d14c83f1739386bde0ae7b0584c52a95765199b8f0cf8d5bdb9908107c9"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/junit/shared/TEST-com.spoolin.support.identity.ActorTrustTest.xml",
+          "sha256": "227d73e8dd3ac2e8d5bae0e1f599d9afd83a40979f2ada7f59e99bbd8bc00604"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/junit/shared/TEST-com.spoolin.support.identity.PermissionsTest.xml",
+          "sha256": "97e0be6c6bc7581dce2498897b51b49651dcfd7c0f5b41c55c37fc6945da98ac"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/junit/shared/TEST-com.spoolin.support.identity.RateProfilesTest.xml",
+          "sha256": "01d699f32122b3c9389ff3da749a98733d3a9ebec335b31050eb0036fe8d476a"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t009-boundaries/unit/run-2de3d0a2ff2e417fbbf73e56b1f3e2da/junit/issuer/TEST-com.spoolin.core.boundary.grpc.ActorIssuerRulesTest.xml",
+          "sha256": "198c077b0c1ba611ab85d5a7502a5f3e858cec431e21d38d5de1d1dff3afe1c3"
+        }
+      ],
+      "cases": [
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "two second skew and thirty second lifetime boundaries are accepted()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "issuer",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "duplicate issuer",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "algorithm",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "epoch number",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "negative epoch",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "zero prefixed epoch",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "unknown role",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "credit role",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "client kind",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "nonce short",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "nonce padding",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "duration zero",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "duration 31",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "expired",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "future",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "signature key metadata and base64 alterations fail safely()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "real signature verifies only exact receiver method actor and operation()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorAssertionsTest",
+          "method": "bounded verifier set startup and signed time failures are explicit()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorTrustTest",
+          "method": "private signer accepts only protected regular Ed25519 DER()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.ActorTrustTest",
+          "method": "public verifier map rejects duplicate malformed excessive and writable trust()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.PermissionsTest",
+          "method": "public management ownership and television decisions use verified role and owner()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS accepts 2147483647",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS accepts 86400",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS accepts 2147483647",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS accepts 86400",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS accepts 2147483647",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS accepts 86400",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS accepts 2147483647",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS accepts 86400",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS accepts 2147483647",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS accepts 86400",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS accepts 1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS accepts 100000",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS rejects 86401",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS rejects 86401",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_MAX_REQUESTS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_REGISTER_WINDOW_SECONDS rejects 86401",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_MAX_REQUESTS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_MUTATION_WINDOW_SECONDS rejects 86401",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_MAX_REQUESTS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "RATE_LIMIT_READ_WINDOW_SECONDS rejects 86401",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects 0",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects -1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects 1.5",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects NaN",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects  1",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects 1 ",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects 2147483648",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "MCP_RATE_LIMIT_MAX_BINDINGS rejects 100001",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.support.identity.RateProfilesTest",
+          "method": "defaults stable revision and changed operator value have independent outcomes()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.boundary.grpc.ActorIssuerRulesTest",
+          "method": "session expiry bounds issued assertions and expired or wrong audience target cannot issue()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.boundary.grpc.ActorIssuerRulesTest",
+          "method": "issuer binds authoritative identity and fresh sixteen byte nonces with thirty second ceiling()",
+          "executed": true,
+          "failed": false
+        }
+      ],
+      "setup_error": null,
+      "proof_boundary": "isolated rules",
+      "finished_at_utc": "2026-10-17T03:26:01.203580+00:00"
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:01.233924+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}

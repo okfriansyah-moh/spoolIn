@@ -18,8 +18,8 @@ val foundationTestRuntime =
     )
 
 tasks.named<Test>("test") {
-    testClassesDirs = bootstrapTests.output.classesDirs
-    classpath = foundationTestRuntime
+    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    classpath = files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
     filter { includeTestsMatching("*RulesTest") }
 }
 
@@ -55,6 +55,128 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
 }
 
 tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
+
+val workIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    dependsOn("testClasses")
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            configurations["testRuntimeClasspath"],
+            foundationTestRuntime,
+        )
+    filter { includeTestsMatching("com.spoolin.catalog.operations.work.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("work.test.classpath", classpath.asPath)
+}
+
+tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
+
+val catalogReadUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
+    filter {
+        includeTestsMatching("com.spoolin.catalog.features.search.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.person.read.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.provenance.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.seed.persistence.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogReadUnitTest) }
+
+val catalogMovieWriteUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
+    filter {
+        includeTestsMatching("com.spoolin.catalog.features.movie.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.taxonomy.write.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.operations.audit.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogMovieWriteUnitTest) }
+
+val catalogPersonWriteUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
+    filter {
+        includeTestsMatching("com.spoolin.catalog.features.person.write.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogPersonWriteUnitTest) }
+
+val catalogArtworkUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.catalog.features.artwork.*RulesTest") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogArtworkUnitTest) }
+
+val catalogLifecycleUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.catalog.features.lifecycle.*RulesTest") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogLifecycleUnitTest) }
+
+val catalogCreditWriteUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["testRuntimeClasspath"],
+        )
+    filter {
+        includeTestsMatching("com.spoolin.catalog.features.credit.*RulesTest")
+        includeTestsMatching("com.spoolin.catalog.features.taxonomy.roles.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogCreditWriteUnitTest) }
 
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts"))

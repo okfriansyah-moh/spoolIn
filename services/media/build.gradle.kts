@@ -18,8 +18,8 @@ val foundationTestRuntime =
     )
 
 tasks.named<Test>("test") {
-    testClassesDirs = bootstrapTests.output.classesDirs
-    classpath = foundationTestRuntime
+    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    classpath = files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
     filter { includeTestsMatching("*RulesTest") }
 }
 
@@ -55,6 +55,51 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
 }
 
 tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
+
+val workIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    dependsOn("testClasses")
+    classpath =
+        files(
+            sourceSets["test"].output.classesDirs,
+            configurations["testRuntimeClasspath"],
+            foundationTestRuntime,
+        )
+    filter { includeTestsMatching("com.spoolin.media.operations.work.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("work.test.classpath", classpath.asPath)
+}
+
+tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
+
+val artworkUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    dependsOn("testClasses")
+    classpath = files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
+    filter { includeTestsMatching("com.spoolin.media.features.*") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(artworkUnitTest) }
+
+val artworkIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath =
+        files(
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.media.recovery.processing.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+    systemProperty("artwork.test.classpath", classpath.asPath)
+}
+
+tasks.named("koverXmlReport") { dependsOn(artworkIntegrationTest) }
 
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/media/operations/receipts"))

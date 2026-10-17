@@ -1,0 +1,12 @@
+query RecoverDraftOperation($id: UUID!) {
+  operation(id: $id, owner: CORE) {
+    id
+    state
+    resultId
+    version
+    resultExpired
+    problem {
+      code
+    }
+  }
+}

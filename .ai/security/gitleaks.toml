@@ -76,3 +76,16 @@ condition = "AND"
 regexTarget = "line"
 paths = ['''(^|/)\.ai/evidence/t010-receipts/development-8b199ad/summary\.json$''']
 regexes = ['''^\s*"(?:libraries/backend-support/src/main/kotlin/com/spoolin/support/receipts/(?:ComparisonKeys|ReceiptAccess)\.kt|libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/ComparisonKeyRulesTest\.kt|services/core/src/main/kotlin/com/spoolin/core/operations/receipts/ComparisonKeySettings\.kt)": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Workflow selection and numbering state input_fingerprint SHA-256 map entries"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''(^|/)\.ai/evidence/account-selection-final-receipt-output\.json$''',
+  '''(^|/)\.ai/evidence/run-[0-9a-f]{32}/receipt\.json$''',
+  '''(^|/)\.ai/state/numbering-[^/]+\.json$''',
+  '''(^|/)\.ai/state/host-verifications/[^/]+/.*\.json$'''
+]
+regexes = ['''^\s*"(?:\.agents|\.ai|\.claude|\.cursor|\.github|docs|build-tools|frontend|services|tests|contracts|mcp|plan|gradle|package-lock\.json|node_modules)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']

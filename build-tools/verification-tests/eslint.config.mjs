@@ -33,6 +33,14 @@ export default [
         HTMLButtonElement: 'readonly',
         HTMLDivElement: 'readonly',
         KeyboardEvent: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
+        crypto: 'readonly',
+        HTMLInputElement: 'readonly',
+        URLSearchParams: 'readonly',
+        location: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
     rules: {
@@ -42,10 +50,28 @@ export default [
         'error',
         { max: 50, skipBlankLines: true, skipComments: true },
       ],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {
     files: ['**/*.svelte'],
     languageOptions: { parserOptions: { parser: ts.parser } },
+  },
+  {
+    files: ['**/*.{test,spec}.{ts,js}', 'tests/browser/flows/**/fixture.ts'],
+    rules: {
+      'max-lines-per-function': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
   },
 ];

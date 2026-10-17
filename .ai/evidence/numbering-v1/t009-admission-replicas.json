@@ -1,0 +1,1 @@
+[{"name":"private-postgres","namespace":"atdd-7fb415c8-fde2-430d-80a0-e42e1df5212a","host":"127.0.0.1","port":61562},{"name":"cleanup","namespace":"atdd-7fb415c8-fde2-430d-80a0-e42e1df5212a","containerRemoved":true}]

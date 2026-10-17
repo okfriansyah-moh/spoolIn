@@ -1,0 +1,22 @@
+{
+  "selected": 2,
+  "executed": 2,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t025-archive-unit",
+      "argv": [
+        "node",
+        "build-tools/verification-tests/frontend/run-t025-tests.mjs"
+      ],
+      "exit_code": 0,
+      "selected": 2,
+      "executed": 2,
+      "failed": 0
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:49.465742+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}

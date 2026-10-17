@@ -1,6 +1,9 @@
 {
   "schema_version": 1,
-  "levels": ["unit", "integration"],
+  "levels": [
+    "unit",
+    "integration"
+  ],
   "tasks": {
     "T001": {
       "source": "docs/plan/01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md",
@@ -17,13 +20,19 @@
       "unit": [
         {
           "id": "harness",
-          "argv": ["python3", "build-tools/verification-tests/test_harness.py"],
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/test_harness.py"
+          ],
           "report": ".ai/evidence/numbering-v1/t001-harness.json",
           "timeout": 120
         },
         {
           "id": "locked-build-twice",
-          "argv": ["python3", "build-tools/verification-tests/test_build.py"],
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/test_build.py"
+          ],
           "report": ".ai/evidence/numbering-v1/t001-build.json",
           "timeout": 1800
         }
@@ -42,8 +51,13 @@
       "unit": [
         {
           "id": "wire-contracts",
-          "argv": ["python3", "tests/contracts/run.py"],
-          "required_paths": ["tests/contracts/run.py"],
+          "argv": [
+            "python3",
+            "tests/contracts/run.py"
+          ],
+          "required_paths": [
+            "tests/contracts/run.py"
+          ],
           "report": ".ai/evidence/numbering-v1/t002-contract-tests.json",
           "timeout": 1200
         }
@@ -81,7 +95,10 @@
     },
     "T004": {
       "source": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
-      "test_paths": ["frontend/src/lib", "tests/browser/flows/shell/"],
+      "test_paths": [
+        "frontend/src/lib",
+        "tests/browser/flows/shell/"
+      ],
       "unit": [
         {
           "id": "shell-unit-components",
@@ -338,7 +355,9 @@
           ],
           "timeout": 1800,
           "report": ".ai/evidence/numbering-v1/t010-unit-results.json",
-          "required_paths": ["frontend/src/lib/features/session/*test.ts"]
+          "required_paths": [
+            "frontend/src/lib/features/session/*test.ts"
+          ]
         }
       ],
       "integration": [
@@ -369,9 +388,42 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/work/",
         "services/media/src/test/kotlin/com/spoolin/media/operations/work/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t011-work-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_work.py",
+            "--task",
+            "T011",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t011-unit-results.json",
+          "required_paths": [
+            "services/core/src/test/kotlin/com/spoolin/core/operations/work/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t011-work-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_work.py",
+            "--task",
+            "T011",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t011-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/work/leases/*Test.kt"
+          ]
+        }
+      ]
     },
     "T012": {
       "source": "docs/plan/10-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",
@@ -385,16 +437,85 @@
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/",
         "services/catalog/src/test/kotlin/com/spoolin/catalog/seed/persistence/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t012-catalog-read-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_catalog_reads.py",
+            "--task",
+            "T012",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t012-unit-results.json",
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/search/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t012-catalog-reads-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_catalog_reads.py",
+            "--task",
+            "T012",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t012-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/reads/*Test.kt"
+          ]
+        }
+      ]
     },
     "T013": {
       "source": "docs/plan/10-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
-      "test_paths": ["tests/browser/flows/discovery/"],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "test_paths": [
+        "frontend/src/routes/+page.svelte",
+        "frontend/src/routes/titles/",
+        "frontend/src/routes/people/",
+        "frontend/src/lib/features/catalog/",
+        "frontend/src/lib/features/person/read/",
+        "tests/browser/flows/discovery/"
+      ],
+      "unit": [
+        {
+          "id": "t013-catalog-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t013-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t013-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/catalog/filter.test.ts",
+            "frontend/src/lib/features/catalog/controller.test.ts",
+            "frontend/src/lib/features/person/read/read.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t013-discovery-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-discovery.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t013-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/discovery/discovery.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": "Real Catalog/People service fixture required for full integration boundary"
     },
     "T014": {
       "source": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
@@ -402,9 +523,42 @@
         "services/core/src/test/kotlin/com/spoolin/core/features/draft/",
         "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/drafts/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t014-draft-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_drafts.py",
+            "--task",
+            "T014",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t014-unit-results.json",
+          "required_paths": [
+            "services/core/src/test/kotlin/com/spoolin/core/features/draft/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t014-draft-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_drafts.py",
+            "--task",
+            "T014",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t014-integration-results.json",
+          "required_paths": [
+            "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/drafts/*Test.kt"
+          ]
+        }
+      ]
     },
     "T015": {
       "source": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T015-build-account-isolated-browser-draft-controllers.md",
@@ -412,9 +566,42 @@
         "frontend/src/lib/features/draft/draft-controller.test.ts",
         "tests/browser/flows/draft-component/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t015-draft-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_draft.py",
+            "--task",
+            "T015",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t015-unit-results.json",
+          "required_paths": [
+            "frontend/src/lib/features/draft/draft-controller.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t015-draft-component",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_draft.py",
+            "--task",
+            "T015",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t015-integration-results.json",
+          "required_paths": [
+            "tests/browser/flows/draft-component/draft-component.spec.ts"
+          ]
+        }
+      ]
     },
     "T016": {
       "source": "docs/plan/12-movie-management/tasks/T016-implement-authoritative-movie-creation-and-edits.md",
@@ -425,16 +612,67 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/audit/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/movie/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t016-movie-writes-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_movie_writes.py",
+            "--task",
+            "T016",
+            "--level",
+            "unit"
+          ],
+          "report": ".ai/evidence/numbering-v1/t016-unit-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/movie/*RulesTest.kt",
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/audit/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/movie/*RulesTest.kt"
+          ]
+        }
+      ],
       "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": null
     },
     "T017": {
       "source": "docs/plan/12-movie-management/tasks/T017-connect-movie-editors-and-confirmed-outcomes.md",
-      "test_paths": ["tests/browser/flows/movies/"],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "test_paths": [
+        "frontend/src/routes/manage/movies/",
+        "frontend/src/lib/features/movie/",
+        "tests/browser/flows/movies/"
+      ],
+      "unit": [
+        {
+          "id": "t017-movie-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t017-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t017-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/movie/patch.test.ts",
+            "frontend/src/lib/features/movie/validation.test.ts",
+            "frontend/src/lib/features/movie/editor-controller.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t017-movies-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-movies.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t017-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/movies/movies.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": "Real Catalog/Media service fixture required for full integration boundary"
     },
     "T018": {
       "source": "docs/plan/13-people-and-credits/tasks/T018-implement-shared-person-writes-and-identity.md",
@@ -444,16 +682,65 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/write/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/person/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t018-person-writes-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_person_writes.py",
+            "--task",
+            "T018",
+            "--level",
+            "unit"
+          ],
+          "report": ".ai/evidence/numbering-v1/t018-unit-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/write/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/person/*RulesTest.kt"
+          ]
+        }
+      ],
       "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": null
     },
     "T019": {
       "source": "docs/plan/13-people-and-credits/tasks/T019-connect-people-management-and-retained-edits.md",
-      "test_paths": ["tests/browser/flows/people/"],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "test_paths": [
+        "frontend/src/routes/manage/people/",
+        "frontend/src/lib/features/person/write/",
+        "tests/browser/flows/people/"
+      ],
+      "unit": [
+        {
+          "id": "t019-people-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t019-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t019-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/person/write/validation.test.ts",
+            "frontend/src/lib/features/person/write/editor-controller.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t019-people-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-people.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t019-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/people/people.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T020": {
       "source": "docs/plan/13-people-and-credits/tasks/T020-implement-ordered-credits-and-custom-contribution-roles.md",
@@ -463,16 +750,64 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/roles/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/credit/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t020-credit-writes-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_credit_writes.py",
+            "--task",
+            "T020",
+            "--level",
+            "unit"
+          ],
+          "report": ".ai/evidence/numbering-v1/t020-unit-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/credit/*RulesTest.kt",
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/roles/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/credit/*RulesTest.kt"
+          ]
+        }
+      ],
       "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": null
     },
     "T021": {
       "source": "docs/plan/13-people-and-credits/tasks/T021-connect-credit-editing-and-verify-the-people-outcome.md",
-      "test_paths": ["tests/browser/flows/credits/"],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "test_paths": [
+        "frontend/src/lib/features/credit/",
+        "tests/browser/flows/credits/"
+      ],
+      "unit": [
+        {
+          "id": "t021-credit-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t021-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t021-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/credit/validation.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t021-credits-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-credits.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t021-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/credits/credits.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T022": {
       "source": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T022-accept-and-process-bounded-artwork-streams.md",
@@ -482,9 +817,43 @@
         "services/media/src/test/kotlin/com/spoolin/media/features/upload/",
         "services/media/src/test/kotlin/com/spoolin/media/features/asset/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t022-artwork-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_artwork.py",
+            "--task",
+            "T022",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t022-unit-results.json",
+          "required_paths": [
+            "services/media/src/test/kotlin/com/spoolin/media/features/processing/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t022-artwork-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_artwork.py",
+            "--task",
+            "T022",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t022-integration-results.json",
+          "required_paths": [
+            "services/media/src/integrationTest/kotlin/com/spoolin/media/recovery/processing/*Test.kt"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T023": {
       "source": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T023-coordinate-protective-holds-attachment-and-cleanup.md",
@@ -495,9 +864,45 @@
         "services/media/src/test/kotlin/com/spoolin/media/features/cleanup/",
         "services/core/src/test/kotlin/com/spoolin/core/features/artworkproxy/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t023-artwork-attachment-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_artwork_attachment.py",
+            "--task",
+            "T023",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t023-unit-results.json",
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/artwork/*RulesTest.kt",
+            "services/media/src/test/kotlin/com/spoolin/media/features/hold/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/artworkproxy/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t023-artwork-attachment-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_artwork_attachment.py",
+            "--task",
+            "T023",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t023-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/artwork/*Test.kt"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T024": {
       "source": "docs/plan/15-archive-management/tasks/T024-implement-current-impact-archive-restore-and-deletion.md",
@@ -506,23 +911,97 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/lifecycle/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/lifecycle/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t024-lifecycle-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_lifecycle.py",
+            "--task",
+            "T024",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t024-unit-results.json",
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/lifecycle/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/lifecycle/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t024-lifecycle-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_lifecycle.py",
+            "--task",
+            "T024",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t024-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/lifecycle/*Test.kt"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T025": {
       "source": "docs/plan/15-archive-management/tasks/T025-connect-private-archives-and-irreversible-confirmations.md",
-      "test_paths": ["tests/browser/flows/archives/"],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "test_paths": [
+        "frontend/src/routes/manage/archives/",
+        "frontend/src/lib/features/archive/",
+        "tests/browser/flows/archives/"
+      ],
+      "unit": [
+        {
+          "id": "t025-archive-unit",
+          "argv": ["node", "build-tools/verification-tests/frontend/run-t025-tests.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t025-unit.json",
+          "required_paths": ["frontend/src/lib/features/archive/archive-rules.test.ts"]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t025-archives-browser",
+          "argv": ["node", "tests/browser/run-archives.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t025-integration.json",
+          "required_paths": ["tests/browser/flows/archives/archives.spec.ts"]
+        }
+      ],
+      "pending_reason": null
     },
     "T026": {
       "source": "docs/plan/16-artwork-management-browser-journeys/tasks/T026-connect-measured-progress-and-recover-attachment-outcomes.md",
-      "test_paths": ["tests/browser/flows/artwork/"],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "test_paths": [
+        "frontend/src/lib/features/artwork/",
+        "tests/browser/flows/artwork/"
+      ],
+      "unit": [
+        {
+          "id": "t026-artwork-unit",
+          "argv": ["node", "build-tools/verification-tests/frontend/run-t026-tests.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t026-unit.json",
+          "required_paths": ["frontend/src/lib/features/artwork/progress.test.ts"]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t026-artwork-browser",
+          "argv": ["node", "tests/browser/run-artwork.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t026-integration.json",
+          "required_paths": ["tests/browser/flows/artwork/artwork.spec.ts"]
+        }
+      ],
+      "pending_reason": null
     },
     "T027": {
       "source": "docs/plan/17-draft-recovery-editor-integration/tasks/T027-prove-recovery-through-real-movie-person-and-credit-editors.md",
@@ -644,14 +1123,18 @@
     },
     "T038": {
       "source": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T038-verify-trusted-approval-in-claude-desktop.md",
-      "test_paths": ["tests/clients/claude/"],
+      "test_paths": [
+        "tests/clients/claude/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"
     },
     "T039": {
       "source": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T039-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
-      "test_paths": ["tests/clients/chatgpt/"],
+      "test_paths": [
+        "tests/clients/chatgpt/"
+      ],
       "unit": [],
       "integration": [],
       "pending_reason": "Suite implementation is pending its owning task"

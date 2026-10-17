@@ -9,6 +9,8 @@ enum class ReceiptAction(
     ACCOUNT_REGISTERED("ACCOUNT"),
     SESSION_SIGNED_IN("SESSION"),
     SESSION_SIGNED_OUT("SESSION"),
+    DRAFT_SAVED("DRAFT"),
+    DRAFT_DISCARDED("DRAFT"),
 }
 
 data class ReceiptAudit(

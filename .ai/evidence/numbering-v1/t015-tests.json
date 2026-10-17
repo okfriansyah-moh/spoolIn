@@ -1,0 +1,102 @@
+{
+  "selected": 6,
+  "executed": 6,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t015-draft-unit",
+      "argv": [
+        "python3",
+        "build-tools/verification-tests/run_draft.py",
+        "--task",
+        "T015",
+        "--level",
+        "unit"
+      ],
+      "exit_code": 0,
+      "selected": 6,
+      "executed": 6,
+      "failed": 0,
+      "commands": [
+        {
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t015-tests.mjs"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207579755301000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t015-draft/unit/run-68d2b858e179476ea916aad6914b2e11/frontend-unit.log",
+            "sha256": "56a6cc1937b2d57c95e5d0ddc6d0d7c3495c1cd59070ab8f47e802129c337be7"
+          },
+          "setup": {
+            "argv": [
+              "npm",
+              "run",
+              "pretest:coverage",
+              "--workspace",
+              "frontend"
+            ],
+            "exit_code": 0,
+            "started_ns": 1792207578351491000,
+            "log": {
+              "path": ".ai/evidence/numbering-v1/t015-draft/unit/run-68d2b858e179476ea916aad6914b2e11/frontend-setup.log",
+              "sha256": "c34f2a4d20d3f724b1aaef6eb018bf37a03cfea8051bba8939ccbe9cce9adc16"
+            }
+          }
+        }
+      ],
+      "reports": [
+        {
+          "path": ".ai/evidence/numbering-v1/t015-unit-vitest.json",
+          "sha256": "d6cc8576716fc766aa666b25a4c05167232aefd6f23b769e4b887b954b30b9ef"
+        }
+      ],
+      "cases": [
+        {
+          "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/draft/draft-controller.test.ts",
+          "method": "T015 draft autosave starts autosave only after 750 ms idle",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/draft/draft-controller.test.ts",
+          "method": "T015 draft autosave T015-A3 marks unbacked state and keeps in-memory input when autosave fails",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/draft/draft-controller.test.ts",
+          "method": "T015 account isolation T015-A2 rejects a delayed save response after switching to another account",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/draft/draft-controller.test.ts",
+          "method": "T015 account isolation conceals on session loss and releases object URLs",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/draft/draft-controller.test.ts",
+          "method": "T015 recovery ordering T015-A1 reconciles the known Core operation before listing current drafts",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/draft/draft-controller.test.ts",
+          "method": "T015 recovery ordering does not claim discard success before a confirmed outcome",
+          "executed": true,
+          "failed": false
+        }
+      ],
+      "setup_error": null,
+      "proof_boundary": "isolated draft controller and controlled component fixture",
+      "finished_at_utc": "2026-10-17T03:26:21.464510+00:00"
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:21.514980+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}

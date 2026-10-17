@@ -7,7 +7,7 @@ depends_on:
 - T006
 - T007
 readiness: Ready
-status: In progress
+status: Implementation complete
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
@@ -341,6 +341,11 @@ Execution update — 15 October 2026: Selected-only dependency check: unselected
 Resume — 15 October 2026: The user requested every selected shell/account-access implementation delivered. Required T009/T010 are now included in this run; their accepted implementations are pending. T005 is accepted in draft PR4. The earlier selected-only exclusion is superseded by this explicit completion request.
 
 Execution scope update — 16 October 2026: T005 and T004 are accepted. T009 and T010 are included in the authorized sequential completion and are normal unfinished execution prerequisites. T006 waits for their accepted outputs; the earlier selected-only exclusion is historical and is no longer an external blocker.
+
+
+## Implementation delivery (17 October 2026)
+
+Implementation for this task is on branch `codex/g04-g16-delivery` ([PR #8](https://github.com/okfriansyah-moh/spoolIn/pull/8)). Local task and browser runners were **not** executed on the authoring machine (host resource limit). Use CI or a better-resourced environment to run `ops/bin/test-unit.sh` / `ops/bin/test-integration.sh` for this task; set `SPOOLIN_TASK_BROWSER=1` for lighter Playwright when running browser integrations. Formal acceptance, combined review, and release proof remain with **G26**.
 
 ## Completion and handoff
 

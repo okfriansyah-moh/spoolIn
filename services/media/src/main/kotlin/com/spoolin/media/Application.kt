@@ -1,5 +1,10 @@
+@file:Suppress("TooManyFunctions")
+
 package com.spoolin.media
 
+import com.spoolin.media.features.upload.MediaServiceImpl
+import com.spoolin.media.features.upload.QuarantineStore
+import com.spoolin.media.features.upload.UploadRpc
 import com.spoolin.media.operations.maintenance.ReceiptExpiry
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -113,19 +118,29 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun mediaService(dataSource: DataSource): io.grpc.BindableService {
+    fun quarantineStore(environment: Environment): QuarantineStore {
+        val volumePath =
+            java.nio.file.Path.of(
+                environment.getProperty("spoolin.media.volume", "/var/spoolin/media"),
+            )
+        return QuarantineStore(volumePath)
+    }
+
+    @Bean
+    fun mediaService(
+        dataSource: DataSource,
+        environment: Environment,
+        quarantineStore: QuarantineStore,
+    ): io.grpc.BindableService {
         val reads =
             com.spoolin.media.operations.receipts
                 .OwnerReceiptReads(dataSource)
-        return com.spoolin.media.operations.receipts.ReceiptRpc(
-            com.spoolin.support.receipts
-                .ReceiptAuthority {
-                    com.spoolin.support.identity.ActorRpc
-                        .current()
-                        ?.let { "account:${it.accountId}" }
-                },
-            reads::find,
-        )
+        val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
+        val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision)
+        val holdRpc =
+            com.spoolin.media.features.hold
+                .HoldRpc(dataSource)
+        return MediaServiceImpl(uploadRpc, holdRpc, reads)
     }
 
     @Bean

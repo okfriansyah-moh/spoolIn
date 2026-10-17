@@ -1,0 +1,249 @@
+{
+  "selected": 33,
+  "executed": 33,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:catalog:catalogPersonWriteUnitTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207587304327000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t018-person-writes/unit/run-a1851a00399b4b8db5af7bd4cbd86a6f/catalog-person-write-unit.log",
+        "sha256": "ad7110e51a9a79f39dab7276be665893134305799bf2a8adc44010fd65d38bda"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:managedPersonUnitTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207588143995000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t018-person-writes/unit/run-a1851a00399b4b8db5af7bd4cbd86a6f/core-managed-person-unit.log",
+        "sha256": "96e0d213afb37cc27da7cb7ee6bee0bcec9d52f0eaecb5aed1a2ed3ba5284d9e"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t018-person-writes/unit/run-a1851a00399b4b8db5af7bd4cbd86a6f/junit/catalog-person-write-unit/TEST-com.spoolin.catalog.features.person.write.PersonValidationRulesTest.xml",
+      "sha256": "fc2b9b781b6c2d8e6c023d6192a05dc923e70d862765b2668f8f6bf6ed23a85f"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t018-person-writes/unit/run-a1851a00399b4b8db5af7bd4cbd86a6f/junit/core-managed-person-unit/TEST-com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest.xml",
+      "sha256": "7c2715baf3dc1cd48eb39e9b1dcdb58c17fe295c1e457656978759e664099a88"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "biography is preserved when supplied()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "zero code point name is rejected (AC-140-C01)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "name in mask with 101 code points is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "name with hyphen and apostrophe is accepted (PRD-POLICY-18)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "empty biography is treated as absent (not stored as empty string)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "biography is absent when not supplied (TD-ROW-L4490 NULL allowed)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "two creates with same name produce distinct objects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "biography omitted from mask leaves biography unaffected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "Unicode name is preserved intact (PRD-POLICY-18)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "markup in name is preserved as plain text (PRD-POLICY-26)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "101 code point name is rejected (AC-140-C01 max+1)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "name in mask with one code point is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "empty biography in mask signals clear (TD-ROW-L4490 NULL allowed)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "non-empty biography in mask is accepted as value()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "mononym is accepted without surname requirement (PRD-POLICY-18)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "name is trimmed of surrounding whitespace()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "empty name after trim is rejected (AC-140-C01 zero code points)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "single character name is accepted (PRD-BOUND-01 min=1)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "exactly 100 code point name is accepted (PRD-BOUND-01 max=100)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "name omitted from mask leaves name unaffected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.person.write.PersonValidationRulesTest",
+      "method": "name with punctuation is preserved as-is (PRD-POLICY-18)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "empty person page projects nodes as empty list()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "absent biography projects as null (TD-ROW-L4490 NULL allowed)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "present biography projects as supplied value()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "person page maps endCursor when present()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "no private account data appears in person projection()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "version is serialised as string not raw Long (AC-127)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "person map exposes id name state and version()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "person page with nodes maps all persons()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "person page maps endCursor as null when absent()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "empty string biography from proto projects as null (not empty string)()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "archived person state is exposed correctly()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.person.ManagedPersonProjectionRulesTest",
+      "method": "default proto person has empty id \u2014 managedPerson returns null for missing()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "isolated rules \u2014 no database access",
+  "finished_at_utc": "2026-10-17T03:26:29.617959+00:00"
+}

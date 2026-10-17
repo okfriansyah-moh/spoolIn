@@ -1,0 +1,289 @@
+{
+  "selected": 45,
+  "executed": 45,
+  "failed": 0,
+  "command": {
+    "argv": [
+      "./gradlew",
+      ":services:core:test",
+      "--console",
+      "plain",
+      "--tests",
+      "com.spoolin.core.features.session.*",
+      "--tests",
+      "*IdentityRulesTest",
+      "--tests",
+      "*PasswordRulesTest",
+      "--tests",
+      "*PolicyBoundaryRulesTest",
+      "--tests",
+      "*OperationGraphqlRulesTest",
+      "--tests",
+      "com.spoolin.core.boundary.http.*"
+    ],
+    "exit_code": 0,
+    "started_ns": 1792207557225205000,
+    "log": ".ai/evidence/numbering-v1/t008-unit-command.log",
+    "log_sha256": "b6359039b496eab2b4f04114a3742137920bbffcf75750cb171bce4259b2f091"
+  },
+  "reports": [
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest.xml",
+      "sha256": "5e66cf79312c5ecda21337f76d2e34e34e932a9f7d66d326d97d7e137cd23815"
+    },
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.features.account.persistence.IdentityRulesTest.xml",
+      "sha256": "cc93da6a2b5a532c45b073a335baf6222e4354742ba00e668df591f359fd9b0f"
+    },
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.features.crypto.PasswordRulesTest.xml",
+      "sha256": "7f5f84eaee32b57cc36da0f4c1ba31eaa6a48382c92d2bee6b3f3ce84fd8fd4c"
+    },
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.features.session.AnonymousCsrfRulesTest.xml",
+      "sha256": "32026e825d85a894ed61cecd6e98bc67d3bc5653205ab73904af8af3e9c89f59"
+    },
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.features.session.SessionCredentialRulesTest.xml",
+      "sha256": "030e9df9d1da54804f5c28df60c026d29ca9acff0ee3c3f84f5ba40ef00cae6f"
+    },
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.features.session.SessionRulesTest.xml",
+      "sha256": "f4f5862483c3f4acc34db3accac0bf654b5448b280d397559958db9bc50a2766"
+    },
+    {
+      "path": "services/core/build/test-results/test/TEST-com.spoolin.core.operations.receipts.OperationGraphqlRulesTest.xml",
+      "sha256": "374a0d03241b47c3cb7249c35c309650c8592ce1d5cb4afcc7ebc95cadd1cb25"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 envelope rejects unknown and excessive fields without leaking values()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 0 UUID",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 1 UUID",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 2 Long",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 3 Long",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 4 Long",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 5 Long",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 6 DateTime",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 7 DateTime",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 8 DateTime",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 9 DateTime",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 10 Base64",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 11 Base64",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 12 Base64",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 13 Base64",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 14 Cursor",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 strict scalar recipe 15 Cursor",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "T006 mutation root count includes named and inline fragments()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.boundary.graphql.PolicyBoundaryRulesTest",
+      "method": "ATDD-251-T1-R02 generated SDL engine resolves exact public policy locally()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "effectiveEmailMaximumCountsTrimmedDisplayCodePointsOnlyForNewAccounts()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "idna2008RejectsDisallowedLabelsAndWholeDomainBidiViolations()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "unsupportedEmailSyntaxAndOctetOverflowReject()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "effectiveEmailMaximumCountsSupplementaryDomainCodePoints()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "nameBoundsCountCodePointsWithoutChangingInternalText()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "idna2008LabelAndContextRulesRejectCompatibilityAndMalformedAlabels()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "caseFoldingAndIdna2008PreserveIdentityDistinctions()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.account.persistence.IdentityRulesTest",
+      "method": "effectiveNameBoundsUseSharedWhitespaceRules()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.crypto.PasswordRulesTest",
+      "method": "exactUtf8PreparationDoesNotTrimNormalizeOrTruncate()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.crypto.PasswordRulesTest",
+      "method": "inclusiveNewPasswordBoundsUseCodePointsAndUtf8Octets()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.crypto.PasswordRulesTest",
+      "method": "effectivePasswordBoundsRetainByteCeiling()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.crypto.PasswordRulesTest",
+      "method": "phcParsingBoundsResourceCostBeforeHashing()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.crypto.PasswordRulesTest",
+      "method": "existingCredentialEligibilityIgnoresNewPasswordPolicyTightening()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.AnonymousCsrfRulesTest",
+      "method": "anonymous scope and csrf are signed bound and expire before registration()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionCredentialRulesTest",
+      "method": "csrf derives from exact decoded session bytes and changes with key or credential()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionCredentialRulesTest",
+      "method": "credential parser rejects padding wrong sizes and alternate encodings()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionCredentialRulesTest",
+      "method": "opaque credentials store only digests and deliver scoped session cookies()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "revocation and account epoch changes cannot be restored by a cookie()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "idle at -1 microseconds",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "idle at 0 microseconds",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "idle at 1 microseconds",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "absolute at -1 microseconds",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "absolute at 0 microseconds",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionRulesTest",
+      "method": "absolute at 1 microseconds",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationGraphqlRulesTest",
+      "method": "generated SDL operation composes typed routing without replacing policy()",
+      "passed": true
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationGraphqlRulesTest",
+      "method": "ambiguous UUID yields explicit safe problem and default resolver remains hidden()",
+      "passed": true
+    }
+  ],
+  "proof_boundary": "isolated owner rules",
+  "exit_code": 0,
+  "finished_at_utc": "2026-10-17T03:25:58.959867+00:00"
+}

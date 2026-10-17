@@ -1,5 +1,14 @@
 package com.spoolin.catalog
 
+import com.spoolin.catalog.features.movie.ManagedMovieReads
+import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.features.person.read.ManagedPersonReads
+import com.spoolin.catalog.features.person.write.PersonWrites
+import com.spoolin.catalog.features.provenance.ProvenanceReads
+import com.spoolin.catalog.features.search.TitleSearchSql
+import com.spoolin.catalog.operations.audit.AuditReads
+import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.support.receipts.ComparisonKeys
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -15,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -115,20 +125,151 @@ class Application {
     fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
 
     @Bean
-    fun catalogService(dataSource: DataSource): io.grpc.BindableService {
+    fun catalogCursorKey(): ByteArray =
+        com.spoolin.catalog.features.search.CatalogCursor
+            .newRandomKey()
+
+    @Bean
+    @Suppress("LongParameterList")
+    fun catalogService(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        movieWritesProvider: ObjectProvider<MovieWrites>,
+        managedReadsProvider: ObjectProvider<ManagedMovieReads>,
+        personWritesProvider: ObjectProvider<PersonWrites>,
+        managedPersonReadsProvider: ObjectProvider<ManagedPersonReads>,
+        roleWritesProvider: ObjectProvider<com.spoolin.catalog.features.taxonomy.roles.RoleWrites>,
+        creditWritesProvider: ObjectProvider<com.spoolin.catalog.features.credit.CreditWrites>,
+        managedCreditReadsProvider: ObjectProvider<com.spoolin.catalog.features.credit.ManagedCreditReads>,
+        artworkRpcProvider: ObjectProvider<com.spoolin.catalog.features.artwork.ArtworkRpc>,
+        movieLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.MovieLifecycle>,
+        personLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.PersonLifecycle>,
+        deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
+    ): io.grpc.BindableService {
         val reads =
             com.spoolin.catalog.operations.receipts
                 .OwnerReceiptReads(dataSource)
-        return com.spoolin.catalog.operations.receipts.ReceiptRpc(
-            com.spoolin.support.receipts
-                .ReceiptAuthority {
-                    com.spoolin.support.identity.ActorRpc
-                        .current()
-                        ?.let { "account:${it.accountId}" }
-                },
-            reads::find,
+        val authority =
+            com.spoolin.support.receipts.ReceiptAuthority {
+                com.spoolin.support.identity.ActorRpc
+                    .current()
+                    ?.let { "account:${it.accountId}" }
+            }
+        val titleCursor =
+            com.spoolin.catalog.features.search
+                .CatalogCursor(cursorKey)
+        val peopleCursor =
+            com.spoolin.catalog.features.search
+                .PeopleCursor(cursorKey)
+        return com.spoolin.catalog.boundary.grpc.CatalogServiceRpc(
+            titleSearch =
+                com.spoolin.catalog.features.search
+                    .TitleSearchSql(dataSource),
+            personSearch =
+                com.spoolin.catalog.features.person.read
+                    .PersonSearch(dataSource),
+            taxonomy =
+                com.spoolin.catalog.features.taxonomy.read
+                    .TaxonomyReads(dataSource),
+            provenance =
+                com.spoolin.catalog.features.provenance
+                    .ProvenanceReads(dataSource),
+            receiptReads = reads,
+            receiptAuthority = authority,
+            titleCursor = titleCursor,
+            peopleCursor = peopleCursor,
+            movieWrites = movieWritesProvider.ifAvailable,
+            managedReads = managedReadsProvider.ifAvailable,
+            personWrites = personWritesProvider.ifAvailable,
+            managedPersonReads = managedPersonReadsProvider.ifAvailable,
+            roleWrites = roleWritesProvider.ifAvailable,
+            creditWrites = creditWritesProvider.ifAvailable,
+            managedCreditReads = managedCreditReadsProvider.ifAvailable,
+            artwork = artworkRpcProvider.ifAvailable,
+            movieLifecycle = movieLifecycleProvider.ifAvailable,
+            personLifecycle = personLifecycleProvider.ifAvailable,
+            deletionImpact = deletionImpactProvider.ifAvailable,
         )
     }
+}
+
+/** Wires movie write and managed-read handlers when catalog write keys are configured. */
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+    name = ["spoolin.catalog.write.enabled"],
+    havingValue = "true",
+    matchIfMissing = false,
+)
+@Suppress("TooManyFunctions")
+class CatalogWriteConfiguration {
+    @Bean
+    fun catalogOwnerReceipts(
+        dataSource: DataSource,
+        environment: Environment,
+    ): OwnerReceipts {
+        val keyId = environment.getRequiredProperty("CATALOG_HMAC_KEY_ID")
+        val keyFile = environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")
+        val hashes = ComparisonKeys.load(mapOf(keyId to keyFile), keyId, keyFile)
+        return OwnerReceipts(dataSource, hashes)
+    }
+
+    @Bean
+    fun movieWrites(receipts: OwnerReceipts): MovieWrites = MovieWrites(receipts)
+
+    @Bean
+    fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
+        val provenance = ProvenanceReads(dataSource)
+        val titleSearch = TitleSearchSql(dataSource)
+        val auditReads = AuditReads(dataSource)
+        return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads)
+    }
+
+    @Bean
+    fun personWrites(receipts: OwnerReceipts): PersonWrites = PersonWrites(receipts)
+
+    @Bean
+    fun artworkRpc(
+        dataSource: DataSource,
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.artwork.ArtworkRpc =
+        com.spoolin.catalog.features.artwork
+            .ArtworkRpc(dataSource, receipts)
+
+    @Bean
+    fun movieLifecycle(receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+        com.spoolin.catalog.features.lifecycle
+            .MovieLifecycle(receipts)
+
+    @Bean
+    fun personLifecycle(
+        dataSource: DataSource,
+        receipts: OwnerReceipts,
+    ): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
+        com.spoolin.catalog.features.lifecycle
+            .PersonLifecycle(dataSource, receipts)
+
+    @Bean
+    fun deletionImpact(dataSource: DataSource): com.spoolin.catalog.features.lifecycle.DeletionImpact =
+        com.spoolin.catalog.features.lifecycle
+            .DeletionImpact(dataSource)
+
+    @Bean
+    fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
+
+    @Bean
+    fun roleWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+        com.spoolin.catalog.features.taxonomy.roles
+            .RoleWrites(receipts)
+
+    @Bean
+    fun creditWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.credit.CreditWrites =
+        com.spoolin.catalog.features.credit
+            .CreditWrites(receipts)
+
+    @Bean
+    fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
+        com.spoolin.catalog.features.credit
+            .ManagedCreditReads(dataSource)
 }
 
 fun main(args: Array<String>) {

@@ -161,3 +161,4 @@ appendonly.aof
 # T001 fixture outputs remain derived build inputs.
 /build-tools/verification-tests/frontend/.svelte-kit/
 /build-tools/verification-tests/frontend/build/
+tests/browser/results/

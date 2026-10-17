@@ -11,7 +11,7 @@ depends_on:
 - T021
 - T024
 readiness: Ready
-status: Not started
+status: Implementation complete
 risk: high
 test_strategy: test-first
 visual_review: required
@@ -472,6 +472,11 @@ Check changed keyboard/focus/labels/errors/announcements and relevant zoom, moti
 | independent-review | Not run | — | — | — | — |
 
 Create evidence files only after an actual authorized run. A Passed row needs a nonempty local linked artifact, implementation revision/content fingerprint and real environment; review rows identify different people/agent identities. Retain prior runs and mark affected evidence Stale after code/source changes.
+
+
+## Implementation delivery (17 October 2026)
+
+Implementation for this task is on branch `codex/g04-g16-delivery` ([PR #8](https://github.com/okfriansyah-moh/spoolIn/pull/8)). Local task and browser runners were **not** executed on the authoring machine (host resource limit). Use CI or a better-resourced environment to run `ops/bin/test-unit.sh` / `ops/bin/test-integration.sh` for this task; set `SPOOLIN_TASK_BROWSER=1` for lighter Playwright when running browser integrations. Formal acceptance, combined review, and release proof remain with **G26**.
 
 ## Completion and handoff
 

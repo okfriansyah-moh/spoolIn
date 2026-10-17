@@ -1,0 +1,2841 @@
+{
+  "selected": 456,
+  "executed": 456,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:receiptIntegrationTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792204984292250000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/core.log",
+        "sha256": "cc2d22ad709dcec2bd8cff6718a37c1d21147e7c29da1edc2cb22daebbb1cedf"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":services:catalog:receiptIntegrationTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205017656631000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/catalog.log",
+        "sha256": "723956ef1524b8e583b996df6e82ca0852041827c51b31cde7399320cfdfaee1"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":services:media:receiptIntegrationTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205044661141000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/media.log",
+        "sha256": "60889e530b2963cb7a9a477451e1093d916dda7fd5c5c3a96f5e5f7b92c70d31"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/core/TEST-com.spoolin.core.operations.receipts.OperationRouterBoundaryTest.xml",
+      "sha256": "cd4f8d1234200fe3cad62100bc50d88696847efe0be59c42e294b13e31490b63"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/core/TEST-com.spoolin.core.operations.receipts.OwnerReceiptBoundaryTest.xml",
+      "sha256": "23356be4b5c82e99b189bf183adbfb43a74d646366d0b8695ffd64971b77a9fa"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/core/TEST-com.spoolin.core.operations.receipts.ReceiptCrashBoundaryTest.xml",
+      "sha256": "eb7a7710ba6bfb4e0ee44b886d89b0d5662e52eed08c64b85bc527500aefe790"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/core/TEST-com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest.xml",
+      "sha256": "46e208c722c6c3c8caca9ec44cbf95f11585ca3939e2ae9bbdeb8f6ec6672929"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/catalog/TEST-com.spoolin.catalog.operations.receipts.OwnerReceiptBoundaryTest.xml",
+      "sha256": "d1ab73f7717e29a1eec77447b93a34256ecd63f5240bf548dad8ef52f813fd65"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/catalog/TEST-com.spoolin.catalog.operations.receipts.ReceiptCrashBoundaryTest.xml",
+      "sha256": "1cd2a815f612277177f4ff9b9f3b11d22092343cbcefab941aafb40ab1187ace"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/catalog/TEST-com.spoolin.catalog.operations.receipts.ReceiptRpcBoundaryTest.xml",
+      "sha256": "458bcd9db2943e58b8da5c611b3687df6aac0feaf95a65cd0df492a2410b073c"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/catalog/TEST-com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest.xml",
+      "sha256": "b4632889b3195e43f35d6632b761afa781aa1b7895fb01195ca53107820aaf13"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/media/TEST-com.spoolin.media.operations.receipts.OwnerReceiptBoundaryTest.xml",
+      "sha256": "405cb488bf1efcb93bfa3c2ca435b6f7ff54219332de7ee1e0f7b611f92d9040"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/media/TEST-com.spoolin.media.operations.receipts.ReceiptCrashBoundaryTest.xml",
+      "sha256": "b845c15692451c51910dd24ba6bf1eb5209d116304a1aca8d6115af9446be196"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/media/TEST-com.spoolin.media.operations.receipts.ReceiptRpcBoundaryTest.xml",
+      "sha256": "ecf1cc42e2bd8cd4c5497f6f8f9bd47607f740cfb4805bb07d262f4efbc5bf43"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/integration/run-22613a342c124149a38101cbe84caa29/junit/media/TEST-com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest.xml",
+      "sha256": "e946b0f8a32d139db21ba3153f46e10ba6aab79945e09379d80cbc4751d620d9"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationRouterBoundaryTest",
+      "method": "explicit owners and omitted ambiguity use typed TLS clients without database fanout()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OwnerReceiptBoundaryTest",
+      "method": "failed domain mutation rolls back receipt and audit atomically()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OwnerReceiptBoundaryTest",
+      "method": "concurrent intent commits once and replay after expiry never repeats effect()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptCrashBoundaryTest",
+      "method": "actual process death before commit leaves no effects in fresh process reader()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptCrashBoundaryTest",
+      "method": "actual process response loss after commit preserves original result and all effects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "safe projection refuses private fields wrong types and unlisted problem codes()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R01 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R01 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R02 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R02 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R03 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R03 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R04 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R04 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R05 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R05 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R06 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R06 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R07 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R07 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R08 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R08 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R09 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R09 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R10 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R10 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R11 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R11 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R12 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R12 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_scope capacity 96",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_scope capacity 97",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "kind capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "kind capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "hash_key_id capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "hash_key_id capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 31",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 32",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 33",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16383",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16384",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16385",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects []",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects true",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects null",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state unknown",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "malformed UUID conversion",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "receipt_type allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "receipt_type allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "initializer evidence stays permanently hidden and cannot be replayed as a request()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R01 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R01 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R02 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R02 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R03 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R03 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R04 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R04 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R05 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R05 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R06 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R06 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R07 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R07 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R08 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R08 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R09 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R09 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R10 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R10 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R11 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R11 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R12 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R12 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R13 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R13 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R14 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R14 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R15 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R15 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R16 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R16 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R17 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R17 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R18 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R18 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R19 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R19 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "action capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "action capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "subject_kind capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "subject_kind capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operator_id capacity 96",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operator_id capacity 97",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "activity cannot claim attempt",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "activity metadata wrong shape",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_kind allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_kind allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "outcome allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "outcome allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "event_type allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "event_type allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_outcome allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_outcome allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65535",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65536",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65537",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED valid phase",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires work_id",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires generation",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires attempt_no",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires lease_epoch",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate -1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 10",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 11",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate -1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED SUCCEEDED",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED SUCCEEDED mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED TRANSIENT",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED TRANSIENT mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED PERMANENT",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED PERMANENT mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED UNCERTAIN",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED UNCERTAIN mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED CANCELLED",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED CANCELLED mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED no error",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED no finished outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY valid phase",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY verified operator required",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY no attempt",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operation FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "work FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "generation physical integer range 2147483647",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "generation physical integer range 2147483648",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_no physical integer range 2147483647",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_no physical integer range 2147483648",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "lease_epoch physical integer range 9223372036854775807",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "lease_epoch physical integer range 9223372036854775808",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.OwnerReceiptBoundaryTest",
+      "method": "failed domain mutation rolls back receipt and audit atomically()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.OwnerReceiptBoundaryTest",
+      "method": "concurrent intent commits once and replay after expiry never repeats effect()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptCrashBoundaryTest",
+      "method": "actual process death before commit leaves no effects in fresh process reader()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptCrashBoundaryTest",
+      "method": "actual process response loss after commit preserves original result and all effects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptRpcBoundaryTest",
+      "method": "actual TCP mutual TLS routes owner receipt and denies unverified actor before lookup()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "safe projection refuses private fields wrong types and unlisted problem codes()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R01 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R01 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R02 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R02 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R03 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R03 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R04 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R04 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R05 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R05 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R06 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R06 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R07 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R07 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R08 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R08 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R09 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R09 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R10 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R10 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R11 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R11 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R12 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R12 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_scope capacity 96",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_scope capacity 97",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "kind capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "kind capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "hash_key_id capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "hash_key_id capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 31",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 32",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 33",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16383",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16384",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16385",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects []",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects true",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects null",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state unknown",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "malformed UUID conversion",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "receipt_type allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "receipt_type allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "initializer evidence stays permanently hidden and cannot be replayed as a request()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R01 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R01 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R02 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R02 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R03 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R03 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R04 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R04 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R05 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R05 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R06 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R06 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R07 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R07 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R08 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R08 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R09 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R09 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R10 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R10 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R11 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R11 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R12 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R12 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R13 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R13 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R14 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R14 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R15 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R15 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R16 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R16 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R17 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R17 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R18 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R18 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R19 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R19 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "action capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "action capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "subject_kind capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "subject_kind capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operator_id capacity 96",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operator_id capacity 97",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "activity cannot claim attempt",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "activity metadata wrong shape",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_kind allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_kind allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "outcome allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "outcome allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "event_type allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "event_type allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_outcome allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_outcome allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65535",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65536",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65537",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED valid phase",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires work_id",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires generation",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires attempt_no",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires lease_epoch",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate -1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 10",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 11",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate -1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED SUCCEEDED",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED SUCCEEDED mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED TRANSIENT",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED TRANSIENT mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED PERMANENT",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED PERMANENT mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED UNCERTAIN",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED UNCERTAIN mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED CANCELLED",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED CANCELLED mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED no error",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED no finished outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY valid phase",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY verified operator required",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY no attempt",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operation FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "work FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "generation physical integer range 2147483647",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "generation physical integer range 2147483648",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_no physical integer range 2147483647",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_no physical integer range 2147483648",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "lease_epoch physical integer range 9223372036854775807",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "lease_epoch physical integer range 9223372036854775808",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.OwnerReceiptBoundaryTest",
+      "method": "failed domain mutation rolls back receipt and audit atomically()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.OwnerReceiptBoundaryTest",
+      "method": "concurrent intent commits once and replay after expiry never repeats effect()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptCrashBoundaryTest",
+      "method": "actual process death before commit leaves no effects in fresh process reader()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptCrashBoundaryTest",
+      "method": "actual process response loss after commit preserves original result and all effects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptRpcBoundaryTest",
+      "method": "actual TCP mutual TLS routes owner receipt and denies unverified actor before lookup()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "safe projection refuses private fields wrong types and unlisted problem codes()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "media rejects every internal initialization variant()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R01 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R01 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R02 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R02 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R03 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R03 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R04 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R04 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R05 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R05 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R06 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R06 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R07 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R07 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R08 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R08 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R09 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R09 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R10 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R10 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R11 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R11 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R12 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-223-T1-R12 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_scope capacity 96",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_scope capacity 97",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "kind capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "kind capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "hash_key_id capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "hash_key_id capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 31",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 32",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "request_hash bytes 33",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16383",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16384",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result jsonb text bytes 16385",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects []",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects true",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "result rejects null",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state unknown",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "malformed UUID conversion",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "receipt_type allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "receipt_type allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "state allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R01 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R01 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R02 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R02 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R03 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R03 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R04 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R04 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R05 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R05 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R06 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R06 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R07 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R07 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R08 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R08 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R09 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R09 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R10 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R10 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R11 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R11 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R12 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R12 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R13 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R13 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R14 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R14 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R15 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R15 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R16 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R16 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R17 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R17 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R18 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R18 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R19 omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "ATDD-226-T1-R19 SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "action capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "action capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "subject_kind capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "subject_kind capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 64",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "error_code capacity 65",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operator_id capacity 96",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operator_id capacity 97",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "activity cannot claim attempt",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "activity metadata wrong shape",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_kind allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "actor_kind allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "outcome allowlist capacity 16",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "outcome allowlist capacity 17",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "event_type allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "event_type allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_outcome allowlist capacity 24",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_outcome allowlist capacity 25",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65535",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65536",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "changes jsonb text bytes 65537",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED valid phase",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires work_id",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires generation",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires attempt_no",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED requires lease_epoch",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate -1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED generation predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 10",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED attempt_no predicate 11",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate -1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED lease_epoch predicate 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED SUCCEEDED",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED SUCCEEDED mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED TRANSIENT",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED TRANSIENT mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED PERMANENT",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED PERMANENT mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED UNCERTAIN",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED UNCERTAIN mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED CANCELLED",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "FINISHED CANCELLED mismatched activity outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED no error",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "STARTED no finished outcome",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY valid phase",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY verified operator required",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "RECOVERY no attempt",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "operation FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "work FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "generation physical integer range 2147483647",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "generation physical integer range 2147483648",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_no physical integer range 2147483647",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "attempt_no physical integer range 2147483648",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "lease_epoch physical integer range 9223372036854775807",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.media.operations.receipts.ReceiptSchemaBoundaryTest",
+      "method": "lease_epoch physical integer range 9223372036854775808",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "real owner PostgreSQL and service transport",
+  "finished_at_utc": "2026-10-17T02:44:30.427887+00:00"
+}

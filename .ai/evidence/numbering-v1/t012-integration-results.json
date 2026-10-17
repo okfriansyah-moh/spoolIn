@@ -1,0 +1,39 @@
+{
+  "selected": 1,
+  "executed": 1,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":tests:integration:catalogReadsTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205291966701000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t012-catalog-reads/integration/run-df4a76281ebb49db8e6ca8f099ffe365/catalog-reads-integration.log",
+        "sha256": "3e47aa8cc4752311efc4390d8b8a1b5c9966f6406b3c4e0d4d5d2087d6c4e387"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t012-catalog-reads/integration/run-df4a76281ebb49db8e6ca8f099ffe365/junit/catalog-reads-integration/TEST-com.spoolin.integration.catalog.reads.CatalogReadsBoundaryTest.xml",
+      "sha256": "c7e6f279b374ccee1c76a2b1fe0c191948683543066bfdeabf3f341fba80d4bd"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.integration.catalog.reads.CatalogReadsBoundaryTest",
+      "method": "catalog read boundary evidence lives in catalog search owner()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "real PostgreSQL 18.6 and service transport",
+  "finished_at_utc": "2026-10-17T02:48:14.775175+00:00"
+}

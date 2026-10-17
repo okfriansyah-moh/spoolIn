@@ -1,0 +1,167 @@
+{
+  "selected": 15,
+  "executed": 15,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:admissionIntegrationTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205165044977000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/admission.log",
+        "sha256": "f802e55e78ddb600581f4c9440bcd1e6dc38bd5752cc6d935ba93e4dffd8b431"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":tests:integration:test",
+        "--console",
+        "plain",
+        "--tests",
+        "com.spoolin.integration.identity.*"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205216188574000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/actors.log",
+        "sha256": "a00be504f53adbddaddd920b83fe3895790065f6ef0b7b1a0eb802c9a79fb6e0"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/admission/TEST-com.spoolin.core.boundary.admission.AdmissionHttpTest.xml",
+      "sha256": "8357ba006706dcfb653553d5969a06e95957f3e0c313a22a66129874f15559f9"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/admission/TEST-com.spoolin.core.boundary.admission.CoreReplicaAdmissionTest.xml",
+      "sha256": "0d253249c8e405c6bb36849b78f5c2a820ca3c07c1bdb5cce271f4442d4e4528"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/admission/TEST-com.spoolin.core.boundary.admission.OperationRecoveryHttpTest.xml",
+      "sha256": "b17b6523a26673a0607f02902766f14265444f2149eb481577121372a8b924a2"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/admission/TEST-com.spoolin.core.boundary.admission.RateAgreementTest.xml",
+      "sha256": "a00c423196945142f341ac30bd454e83b9db184a8b6a798563df696f2cd6d018"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/admission/TEST-com.spoolin.core.boundary.admission.RateMaintenanceTest.xml",
+      "sha256": "c404f2a7e622134d0c025d8e14aee6affdfd68e1cebee2cb7add5f3a6c635928"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/admission/TEST-com.spoolin.core.boundary.admission.SharedAdmissionTest.xml",
+      "sha256": "c2bcc5f25cc5b09454655d8bdc9fd809f43ff4996e71859231195743f067a05f"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/actors/TEST-com.spoolin.integration.identity.ActorRotationTest.xml",
+      "sha256": "9243a768648e6c5ef04fa95635ec4eecc085c5d114cce1a126cbc2db26fe8035"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t009-boundaries/integration/run-2d6e389e4a6d4bf0bcb52498a9baf76d/junit/actors/TEST-com.spoolin.integration.identity.ScopedActorTest.xml",
+      "sha256": "066bcbe8bdff1ebb1509811f1392bb8c1e062672ddced32f1e082e3a70f7cd4f"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.core.boundary.admission.AdmissionHttpTest",
+      "method": "policy source quota returns no partial data and safe retry timing()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.AdmissionHttpTest",
+      "method": "actual production source quota denies before account hashing and receipt insertion()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.CoreReplicaAdmissionTest",
+      "method": "two real Core HTTPS replicas share one remaining slot and full application restart retains quota()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.CoreReplicaAdmissionTest",
+      "method": "divergent actual resolved replica profile cannot become ready under existing protected agreement()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.OperationRecoveryHttpTest",
+      "method": "operation variable defaults and explicit null match actual GraphQL execution()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.OperationRecoveryHttpTest",
+      "method": "anonymous receipt remains source scoped after sign in and aliases consume once()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.OperationRecoveryHttpTest",
+      "method": "lost sign out is reconciled only for original session and original intent()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.RateAgreementTest",
+      "method": "links public permissions duplicates trailing bytes and malformed maps fail safely()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.RateAgreementTest",
+      "method": "protected persisted agreement binds actual resolved profiles and key across restart()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.RateMaintenanceTest",
+      "method": "purge removes only expired windows and changed agreement fails live readiness and admission()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.SharedAdmissionTest",
+      "method": "two independent replicas admit one remaining slot and restart preserves counters()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.SharedAdmissionTest",
+      "method": "denied profile consumes available companion and deduplicates exact dimension only()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.boundary.admission.SharedAdmissionTest",
+      "method": "explicit max and duration transition retains prior counters and outage never admits()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.identity.ActorRotationTest",
+      "method": "actual receivers overlap public keys and retire after sixty seconds without private distribution()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.identity.ScopedActorTest",
+      "method": "real signed receipt call verifies mTLS and live Core revocation before owner lookup()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "real owner PostgreSQL and service transport",
+  "finished_at_utc": "2026-10-17T02:47:11.574029+00:00"
+}

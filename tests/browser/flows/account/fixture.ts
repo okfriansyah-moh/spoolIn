@@ -1,5 +1,5 @@
 import { test as base, type BrowserContext } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,6 +9,41 @@ export type Credentials = {
   maintainerEmail: string;
   registrationEmail: string;
 };
+function certutilPath(): string {
+  const explicit = process.env.ACCOUNT_CERTUTIL;
+  if (explicit) return explicit;
+  try {
+    return execSync('which certutil', { encoding: 'utf8' }).trim();
+  } catch {
+    return '/opt/certutil';
+  }
+}
+
+function trustFixtureCa(profile: string, ca: string) {
+  const certutil = certutilPath();
+  const nss = `sql:${profile}`;
+  const importCa = () =>
+    execFileSync(
+      certutil,
+      ['-A', '-d', nss, '-n', 'Account fixture CA', '-t', 'CT,C,C', '-i', ca],
+      { stdio: 'pipe' },
+    );
+  try {
+    importCa();
+  } catch {
+    execFileSync(certutil, ['-N', '--empty-password', '-d', nss], {
+      stdio: 'pipe',
+    });
+    importCa();
+  }
+}
+
+function accountEngine(): 'chromium' | 'firefox' {
+  const raw = process.env.ACCOUNT_BROWSER_ENGINE?.toLowerCase();
+  if (raw === 'firefox') return 'firefox';
+  return 'chromium';
+}
+
 export function credentials(): Credentials {
   const file = process.env.ACCOUNT_CREDENTIALS_FILE;
   if (!file) throw new Error('Protected browser input is required');
@@ -49,42 +84,51 @@ export const test = base.extend<object, { accountContext: BrowserContext }>({
       if (!ca || !origin)
         throw new Error('Actual HTTPS origin and public CA are required');
       const profile = mkdtempSync(join(tmpdir(), 'spoolin-account-profile-'));
+      const engine = accountEngine();
+      const headed = process.env.ACCOUNT_BROWSER_HEADED === '1';
+      const headless = !headed;
+      const shared = {
+        ignoreHTTPSErrors: false,
+        baseURL: origin,
+        viewport: { width: 390, height: 900 },
+        reducedMotion: 'reduce' as const,
+      };
       try {
-        execFileSync(
-          '/opt/certutil',
-          ['-N', '--empty-password', '-d', `sql:${profile}`],
-          { stdio: 'pipe' },
-        );
-        execFileSync(
-          '/opt/certutil',
-          [
-            '-A',
-            '-d',
-            `sql:${profile}`,
-            '-n',
-            'Account fixture CA',
-            '-t',
-            'CT,C,C',
-            '-i',
-            ca,
-          ],
-          { stdio: 'pipe' },
-        );
-        const context = await playwright.firefox.launchPersistentContext(
-          profile,
-          {
-            headless: false,
-            ignoreHTTPSErrors: false,
-            baseURL: origin,
-            viewport: { width: 390, height: 900 },
-            reducedMotion: 'reduce',
-          },
-        );
-        await observeStorage(context);
-        try {
-          await use(context);
-        } finally {
-          await context.close();
+        if (engine === 'chromium') {
+          const bootstrap = await playwright.chromium.launchPersistentContext(
+            profile,
+            { ...shared, headless: true },
+          );
+          await bootstrap.close();
+          trustFixtureCa(profile, ca);
+          const context = await playwright.chromium.launchPersistentContext(
+            profile,
+            { ...shared, headless },
+          );
+          await observeStorage(context);
+          try {
+            await use(context);
+          } finally {
+            await context.close();
+          }
+        } else {
+          // Bootstrap headless so macOS does not open a broken Firefox profile dialog.
+          const bootstrap = await playwright.firefox.launchPersistentContext(
+            profile,
+            { ...shared, headless: true },
+          );
+          await bootstrap.close();
+          trustFixtureCa(profile, ca);
+          const context = await playwright.firefox.launchPersistentContext(
+            profile,
+            { ...shared, headless },
+          );
+          await observeStorage(context);
+          try {
+            await use(context);
+          } finally {
+            await context.close();
+          }
         }
       } finally {
         rmSync(profile, { recursive: true, force: true });

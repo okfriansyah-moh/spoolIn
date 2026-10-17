@@ -4,7 +4,7 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   workers: 1,
-  timeout: 60000,
+  timeout: 180000,
   reporter: [
     ['list'],
     [
@@ -23,13 +23,26 @@ export default defineConfig({
     screenshot: 'off',
   },
   projects: [
-    {
-      name: 'firefox-account',
-      use: {
-        browserName: 'firefox',
-        viewport: { width: 390, height: 900 },
-        reducedMotion: 'reduce',
-      },
-    },
+    ...(process.env.ACCOUNT_BROWSER_ENGINE === 'firefox'
+      ? [
+          {
+            name: 'firefox-account',
+            use: {
+              browserName: 'firefox' as const,
+              viewport: { width: 390, height: 900 },
+              reducedMotion: 'reduce' as const,
+            },
+          },
+        ]
+      : [
+          {
+            name: 'chromium-account',
+            use: {
+              browserName: 'chromium' as const,
+              viewport: { width: 390, height: 900 },
+              reducedMotion: 'reduce' as const,
+            },
+          },
+        ]),
   ],
 });

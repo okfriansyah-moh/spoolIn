@@ -1,0 +1,471 @@
+{
+  "selected": 66,
+  "executed": 66,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:test",
+        "--console",
+        "plain",
+        "--tests",
+        "com.spoolin.support.receipts.*"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207554761568000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/shared.log",
+        "sha256": "427d81a6850bb99a51eb4c59071396eee9c266b7e54c8e342a311fadeb63b183"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:test",
+        "--console",
+        "plain",
+        "--tests",
+        "com.spoolin.core.operations.receipts.*"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207555542166000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/core.log",
+        "sha256": "b6359039b496eab2b4f04114a3742137920bbffcf75750cb171bce4259b2f091"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/shared/TEST-com.spoolin.support.receipts.ComparisonKeyRulesTest.xml",
+      "sha256": "31c9d39622307173b2df611ed7b88f33447f61a4fa602c24babf59a6d408c436"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/shared/TEST-com.spoolin.support.receipts.IntentRecipeRulesTest.xml",
+      "sha256": "145fd53a374573ed9a11e7473c9318e2de5fc1b72dc0dc1d3cd3608ace194857"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/shared/TEST-com.spoolin.support.receipts.IntentRulesTest.xml",
+      "sha256": "f3c70b7f5f20b9c966996c41f65e7f44235f06ee42aa93d749b064e947b864ec"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/shared/TEST-com.spoolin.support.receipts.WorkRulesTest.xml",
+      "sha256": "50c0d46d53ceaa9ce4d3b0fecdd332fa38321ff9dbc32e5a8e352e424453fa66"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/core/TEST-com.spoolin.core.operations.receipts.ComparisonSettingsRulesTest.xml",
+      "sha256": "f1594c0379c944cea971c77ae80bf36edc5f20a6480810826804c0e9c773efdc"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/core/TEST-com.spoolin.core.operations.receipts.OperationGraphqlRulesTest.xml",
+      "sha256": "14c5300c0d2593489f9c25e65a15d6f1e5b79d37a16ed9f0f697b295e15bce8f"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t007-receipts/unit/run-03fb8fccefd1432a8371f84d2ec41189/junit/core/TEST-com.spoolin.core.operations.receipts.OperationSelectionRulesTest.xml",
+      "sha256": "29e807c61b9c6213cb366342621bc57c2d117f2e94a3fa24f7f17235b74163e9"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.support.receipts.ComparisonKeyRulesTest",
+      "method": "file capacity permission links active binding and purpose independence fail closed()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.ComparisonKeyRulesTest",
+      "method": "retained version remains selected after active rotation without exposing material()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 1",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 2",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 3",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 4",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 5",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 6",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 7",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 8",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 9",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 10",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 11",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 12",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 13",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 14",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "intent comparison recipe 15",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "sessionIdle at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "sessionIdle at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "sessionIdle at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "sessionAbsolute at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "sessionAbsolute at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "sessionAbsolute at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "connector at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "connector at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "connector at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "draft at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "draft at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "draft at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "cursor at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "cursor at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "cursor at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "impact at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "impact at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "impact at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "challenge at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "challenge at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "challenge at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "approval at cutoff -1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "approval at cutoff 0 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRecipeRulesTest",
+      "method": "approval at cutoff 1 microseconds",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRulesTest",
+      "method": "expiry is strict and retained keys never fall back to active()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRulesTest",
+      "method": "registration binds only normalized identity and ephemeral submission nonce()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.IntentRulesTest",
+      "method": "matching identity replays while changed content conflicts and actor stays hidden()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "attempt zero",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "attempt eleven",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "base zero",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "base above cap",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "cap zero",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "cap above bound",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "multiplier zero",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "multiplier above bound",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "inverted delays",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "untyped handler",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "notification requires separate typed evidence",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "empty stable step",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.support.receipts.WorkRulesTest",
+      "method": "stable child UUID uses RFC version five namespace and exact step()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ComparisonSettingsRulesTest",
+      "method": "present invalid root entry or active selector cannot fall back and diagnostics are redacted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ComparisonSettingsRulesTest",
+      "method": "native bracket map preserves exact key IDs and merges retained lower source()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ComparisonSettingsRulesTest",
+      "method": "actual Spring application JSON source preserves exact IDs above mounted entries()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.ComparisonSettingsRulesTest",
+      "method": "duplicate JSON key IDs are refused after native source processing()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationGraphqlRulesTest",
+      "method": "generated SDL operation composes typed routing without replacing policy()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationGraphqlRulesTest",
+      "method": "ambiguous UUID yields explicit safe problem and default resolver remains hidden()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationSelectionRulesTest",
+      "method": "omittedVariablesUseDefaults()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.operations.receipts.OperationSelectionRulesTest",
+      "method": "suppliedVariablesOverrideDefaultsIncludingExplicitNull()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "isolated rules",
+  "finished_at_utc": "2026-10-17T03:25:57.068940+00:00"
+}

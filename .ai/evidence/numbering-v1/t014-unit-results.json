@@ -1,0 +1,253 @@
+{
+  "selected": 35,
+  "executed": 35,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:test",
+        "--console",
+        "plain",
+        "--tests",
+        "com.spoolin.core.features.draft.*RulesTest"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207576755459000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t014-drafts/unit/run-0d24b7014b244a48898fd0a6d367853e/core-draft-unit.log",
+        "sha256": "b6359039b496eab2b4f04114a3742137920bbffcf75750cb171bce4259b2f091"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t014-drafts/unit/run-0d24b7014b244a48898fd0a6d367853e/junit/core-draft-unit/TEST-com.spoolin.core.features.draft.DraftBindingRulesTest.xml",
+      "sha256": "0f00362f3cb87f52725005c98c6ac85a0dd37eae6ccf3b761f7b31c549edc53d"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t014-drafts/unit/run-0d24b7014b244a48898fd0a6d367853e/junit/core-draft-unit/TEST-com.spoolin.core.features.draft.DraftReplayRulesTest.xml",
+      "sha256": "8a37242cdbd8e95ecc8875a95c12bfe3ad0c58eca684e2355c560db42cb1ec90"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t014-drafts/unit/run-0d24b7014b244a48898fd0a6d367853e/junit/core-draft-unit/TEST-com.spoolin.core.features.draft.DraftShapeRulesTest.xml",
+      "sha256": "874daf2e9cbe124c93b273a886af142cbd59b8291bbab95e34b1fb4f59e8f345"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "fingerprint bytes do not contain the raw draft values string()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "changed targetKind changes the fingerprint()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "Core operationId D1 and Catalog operationId C1 are independent fields()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "two different Core operationIds produce different receipts even with same content()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "present expectedVersion versus absent changes the fingerprint()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "different accounts produce a HIDDEN comparison for same operationId()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftBindingRulesTest",
+      "method": "different expectedVersion values change the fingerprint()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "discard result encodes resultId and discarded flag()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "matching save replay returns original operation ID and version()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "matching discard replay returns original discarded flag()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "expired result body is null and resultExpired is true()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "foreign account cannot inspect receipts for same operationId()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "discard result with discarded false encodes correctly()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "save result encodes resultId and version as non-null strings()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftReplayRulesTest",
+      "method": "changed values under same operationId is a CONFLICT()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "CREDIT all fields are accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "payload exactly at 65536-byte limit is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "encode then decode preserves exact UTF-8 text()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "PERSON partial name is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "unknown target kind is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE piiCipher key is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "PERSON unknown key is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "CREDIT empty characters array is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE blank title is accepted as an incomplete draft()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "PERSON null biography is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE all allowed fields are accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "non-JSON string is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE unknown key is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "JSON array instead of object is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE empty object is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "payload one byte over 65536-byte limit is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE password key is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE partial fields are accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "MOVIE text beyond current field policy limit is accepted in draft()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.draft.DraftShapeRulesTest",
+      "method": "CREDIT unknown key is rejected()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "isolated rules",
+  "finished_at_utc": "2026-10-17T03:26:18.170100+00:00"
+}

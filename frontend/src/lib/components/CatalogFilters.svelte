@@ -1,11 +1,5 @@
 <script lang="ts">
-  export type Criteria = {
-    text: string;
-    kind: string;
-    genres: string[];
-    year: string;
-    month: string;
-  };
+  import type { Criteria } from '../features/catalog/types';
   let {
     criteria = $bindable(),
     genres,
@@ -19,6 +13,15 @@
   function yearChanged(event: Event) {
     const year = (event.currentTarget as HTMLSelectElement).value;
     criteria = { ...criteria, year, month: year ? criteria.month : '' };
+  }
+
+  function toggleGenre(genreId: string, checked: boolean): void {
+    const next = checked
+      ? criteria.genres.includes(genreId)
+        ? criteria.genres
+        : Object.freeze([...criteria.genres, genreId])
+      : Object.freeze(criteria.genres.filter((id) => id !== genreId));
+    criteria = { ...criteria, genres: next };
   }
 </script>
 
@@ -46,7 +49,9 @@
         ><input
           type="checkbox"
           value={genre.id}
-          bind:group={criteria.genres}
+          checked={criteria.genres.includes(genre.id)}
+          onchange={(event) =>
+            toggleGenre(genre.id, event.currentTarget.checked)}
         />{genre.name}</label
       >{/each}
   </fieldset>
