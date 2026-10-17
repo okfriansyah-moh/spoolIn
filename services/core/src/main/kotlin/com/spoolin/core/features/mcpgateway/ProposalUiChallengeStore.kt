@@ -36,6 +36,23 @@ class ProposalUiChallengeStore(
         return bindingToken
     }
 
+    fun matchesBoundChallenge(
+        proposalId: String,
+        revision: Int,
+        contentHash: String,
+        challenge: String,
+    ): Boolean {
+        if (challenge.isBlank()) return false
+        purgeExpired()
+        val entry = entries[key(proposalId, revision)] ?: return false
+        if (clock.instant().isAfter(entry.expiresAt)) {
+            entries.remove(key(proposalId, revision))
+            return false
+        }
+        if (entry.contentHash != contentHash) return false
+        return constantTimeEquals(entry.challenge, challenge)
+    }
+
     fun getChallenge(
         proposalId: String,
         revision: Int,

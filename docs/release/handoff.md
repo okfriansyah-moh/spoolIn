@@ -2,22 +2,19 @@
 
 Runtime acceptance for selection G17–G26 remains **pending** under lane resource limits.
 
-## Source delivered (not proof)
+## Source closure
 
-- **T029** — Catalog `ProposalWrites.approve` / `reject` with exact binding, movie create via `MovieWrites.publishFromProposal`, deterministic proposal content maps.
-- **T028** — Core connector bearer interceptor, `IdentityRpc` connector `checkActor`, MCP gateway method-scoped actor tokens.
-- **T030** — Review resource loads query-bound revision metadata; approval posts only via explicit challenge + gateway paths (no auto-approve).
-- **T027** — Credit panel draft autosave/recovery wiring.
-- **T032–T033** — Manifest validator, `CatalogSeedLoader`, documented `seed.sh` steps.
-- **T034–T041** — Actionable alert table, logback skeletons, ops script wrappers, key rotation plan source.
-- **T042–T046** — Release matrix stub rows, policy/security test skeletons, root README.
+See **[g01-g26-closure-matrix.md](./g01-g26-closure-matrix.md)** for one row per **T001–T046**: required outcomes, source wiring, integration status, evidence boundaries, open source gaps, review (pending Grok), and runtime (pending).
 
-## Proof still required
+## Open findings (source)
 
-| Boundary | Gap |
-|----------|-----|
-| PostgreSQL integration | Proposal approve/reject ATDD rows, alert persistence, seed load |
-| Gradle test execution | Changed-module unit/integration suites |
-| Compose / Docker | `start.sh` wrappers not executed in lane |
-| MCP real hosts | Claude Desktop / ChatGPT tunnel, human review evidence |
-| Browser / Playwright | Manage audit UI, credit draft recovery UX |
+| Area | Gap |
+|------|-----|
+| MCP adapter | Full Streamable MCP session, stdio bridge, and live `McpGatewayService` gRPC client not wired; POST composer covers propose result shaping only |
+| MCP UI assertion | `MCP_UI_ASSERTION_*` signing/verification not implemented in services |
+| Trusted review | Approve/reject HTTP exists on Core; review UI needs host `postMessage` `connectorToken` for bearer |
+| Proof | Gradle integration tests, Compose startup, PostgreSQL seed load, Playwright, and client hosts (T038–T039) not executed in this lane |
+
+## Prior delivered source (unchanged summary)
+
+- Catalog proposal approve/reject + exact binding; Core MCP gateway and connector identity; review resource + challenge binding endpoint; seed loader + manifest validator; ops lifecycle scripts; audit GraphQL path; owner receipts with in-transaction audit on catalog mutations.

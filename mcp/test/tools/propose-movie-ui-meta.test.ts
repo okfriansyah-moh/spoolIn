@@ -3,7 +3,9 @@ import {
   buildProposeMovieToolMeta,
   modelVisibleProposeMovieContent,
 } from '../../src/tools/propose-movie-ui-meta.js';
+import { composeProposeMovieFromGatewayPayload } from '../../src/tools/propose-movie-from-gateway.js';
 import { composeProposeMovieToolResult } from '../../src/tools/propose-movie-result.js';
+import { buildProposeMovieCallToolResult } from '../../src/transport/propose-tool-result.js';
 
 describe('propose-movie-ui-meta', () => {
   it('keeps binding token in UI-only _meta, not structured content', () => {
@@ -47,5 +49,28 @@ describe('propose-movie-ui-meta', () => {
     );
     expect(result.structuredContent).not.toHaveProperty('ui_binding_token');
     expect(result._meta.ui).toMatchObject({ bindingToken: 'gateway-token' });
+  });
+
+  it('composeProposeMovieFromGatewayPayload maps snake_case gateway fields', () => {
+    const result = composeProposeMovieFromGatewayPayload({
+      proposal_id: '00000000-0000-4000-8000-000000000003',
+      revision: 3,
+      content_hash: 'ghi',
+      ui_binding_token: 'snake-token',
+      status: 'REVIEW',
+    });
+    expect(result.structuredContent).not.toHaveProperty('ui_binding_token');
+    expect(result._meta.ui).toMatchObject({ bindingToken: 'snake-token' });
+  });
+
+  it('buildProposeMovieCallToolResult is the transport entrypoint', () => {
+    const result = buildProposeMovieCallToolResult({
+      proposalId: '00000000-0000-4000-8000-000000000004',
+      revision: 1,
+      contentHash: 'hash',
+      uiBindingToken: 'meta-only',
+    });
+    expect(result.structuredContent).not.toHaveProperty('uiBindingToken');
+    expect(result._meta.ui).toMatchObject({ bindingToken: 'meta-only' });
   });
 });

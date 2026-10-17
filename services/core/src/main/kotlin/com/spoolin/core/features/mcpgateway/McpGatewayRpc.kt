@@ -111,6 +111,11 @@ class McpGatewayRpc(
         }
     }
 
+    fun approveMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
+        forwardCatalogBlocking("/spoolin.v1.CatalogService/ApproveAndCreate") { token ->
+            catalogStub(token).approveAndCreate(request)
+        }
+
     override fun rejectMovie(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
@@ -124,6 +129,11 @@ class McpGatewayRpc(
         }
     }
 
+    fun rejectMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
+        forwardCatalogBlocking("/spoolin.v1.CatalogService/RejectProposal") { token ->
+            catalogStub(token).rejectProposal(request)
+        }
+
     override fun getMovieOperation(
         request: Spoolin.Id,
         response: StreamObserver<Spoolin.Outcome>,
@@ -135,6 +145,27 @@ class McpGatewayRpc(
         ) { token ->
             catalogStub(token).getOperation(request)
         }
+    }
+
+    private fun <T> forwardCatalogBlocking(
+        catalogMethod: String,
+        call: (String) -> T,
+    ): T {
+        val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException()
+        if (issuer == null) throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException()
+        if (!Permissions.management(roleFor(connector))) {
+            throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException()
+        }
+        val operationId = UUID.randomUUID()
+        val token =
+            issuer.issue(
+                connector,
+                roleFor(connector),
+                catalogMethod,
+                operationId,
+                UUID.randomUUID(),
+            )
+        return call(token)
     }
 
     private fun <T> forwardCatalog(

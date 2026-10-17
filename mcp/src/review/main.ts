@@ -4,6 +4,7 @@ import { isTrustedReviewOrigin, parseReviewQuery, renderReview, wireTrustedAppro
 const root = document.querySelector('#app');
 const query = parseReviewQuery(globalThis.location.search);
 if (root && query) {
+  let connectorBearer = '';
   let model = {
     proposalId: query.proposalId,
     revision: query.revision,
@@ -12,6 +13,13 @@ if (root && query) {
     sources: [] as readonly unknown[],
     unknowns: [] as readonly string[],
     challenge: '',
+  };
+  const approvalHeaders = (): HeadersInit => {
+    const headers: Record<string, string> = { 'content-type': 'application/json' };
+    if (connectorBearer.trim()) {
+      headers.authorization = `Bearer ${connectorBearer.trim()}`;
+    }
+    return headers;
   };
   renderReview(root, model);
   void fetch(
@@ -34,7 +42,7 @@ if (root && query) {
       challenge: binding.challenge ?? '',
     });
     const path = action === 'approve' ? '/gateway/approve_movie' : '/gateway/reject_movie';
-    await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    await fetch(path, { method: 'POST', headers: approvalHeaders(), body: JSON.stringify(body) });
   });
   globalThis.addEventListener('message', (event) => {
     if (!isTrustedReviewOrigin(event.origin)) return;
@@ -47,6 +55,9 @@ if (root && query) {
     if ('sources' in data && Array.isArray(data.sources)) {
       model = { ...model, sources: data.sources as readonly unknown[] };
       renderReview(root, model);
+    }
+    if ('connectorToken' in data && typeof data.connectorToken === 'string' && data.connectorToken.trim()) {
+      connectorBearer = data.connectorToken;
     }
     if ('bindingToken' in data && typeof data.bindingToken === 'string' && data.bindingToken.trim()) {
       void fetch(
