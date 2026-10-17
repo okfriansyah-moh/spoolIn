@@ -707,11 +707,40 @@
     "T019": {
       "source": "docs/plan/13-people-and-credits/tasks/T019-connect-people-management-and-retained-edits.md",
       "test_paths": [
+        "frontend/src/routes/manage/people/",
+        "frontend/src/lib/features/person/write/",
         "tests/browser/flows/people/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t019-people-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t019-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t019-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/person/write/validation.test.ts",
+            "frontend/src/lib/features/person/write/editor-controller.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t019-people-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-people.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t019-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/people/people.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T020": {
       "source": "docs/plan/13-people-and-credits/tasks/T020-implement-ordered-credits-and-custom-contribution-roles.md",
@@ -747,11 +776,38 @@
     "T021": {
       "source": "docs/plan/13-people-and-credits/tasks/T021-connect-credit-editing-and-verify-the-people-outcome.md",
       "test_paths": [
+        "frontend/src/lib/features/credit/",
         "tests/browser/flows/credits/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t021-credit-unit",
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t021-tests.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t021-unit.json",
+          "timeout": 1800,
+          "required_paths": [
+            "frontend/src/lib/features/credit/validation.test.ts"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t021-credits-browser",
+          "argv": [
+            "node",
+            "tests/browser/run-credits.mjs"
+          ],
+          "report": ".ai/evidence/numbering-v1/t021-integration.json",
+          "timeout": 1800,
+          "required_paths": [
+            "tests/browser/flows/credits/credits.spec.ts"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T022": {
       "source": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T022-accept-and-process-bounded-artwork-streams.md",
@@ -808,9 +864,45 @@
         "services/media/src/test/kotlin/com/spoolin/media/features/cleanup/",
         "services/core/src/test/kotlin/com/spoolin/core/features/artworkproxy/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t023-artwork-attachment-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_artwork_attachment.py",
+            "--task",
+            "T023",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t023-unit-results.json",
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/artwork/*RulesTest.kt",
+            "services/media/src/test/kotlin/com/spoolin/media/features/hold/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/artworkproxy/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t023-artwork-attachment-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_artwork_attachment.py",
+            "--task",
+            "T023",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t023-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/artwork/*Test.kt"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T024": {
       "source": "docs/plan/15-archive-management/tasks/T024-implement-current-impact-archive-restore-and-deletion.md",
@@ -819,9 +911,44 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/lifecycle/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/lifecycle/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t024-lifecycle-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_lifecycle.py",
+            "--task",
+            "T024",
+            "--level",
+            "unit"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t024-unit-results.json",
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/lifecycle/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/lifecycle/*RulesTest.kt"
+          ]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t024-lifecycle-integration",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_lifecycle.py",
+            "--task",
+            "T024",
+            "--level",
+            "integration"
+          ],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t024-integration-results.json",
+          "required_paths": [
+            "tests/integration/src/test/kotlin/com/spoolin/integration/lifecycle/*Test.kt"
+          ]
+        }
+      ],
+      "pending_reason": null
     },
     "T025": {
       "source": "docs/plan/15-archive-management/tasks/T025-connect-private-archives-and-irreversible-confirmations.md",
