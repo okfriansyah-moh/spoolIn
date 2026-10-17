@@ -1,13 +1,14 @@
 import { spawnSync } from 'node:child_process';
 import {
+  closeSync,
   mkdirSync,
+  openSync,
   readFileSync,
   readdirSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { touchSync } from 'node:fs';
 const root = resolve(import.meta.dirname, '../..');
 const report = resolve(root, 'test-results/account/junit.xml');
 function execute(argv, env = process.env) {
@@ -48,7 +49,9 @@ function readerEnvironment() {
 }
 function releaseFixture(handoff) {
   const target = handoff.releaseFile;
-  if (target) touchSync(target);
+  if (target) {
+    closeSync(openSync(target, 'a'));
+  }
 }
 
 function run() {
