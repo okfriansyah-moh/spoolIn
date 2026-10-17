@@ -27,6 +27,9 @@ class PersonLifecycle(
             if (action == LifecycleRules.Action.DELETE && request.impactToken.isNullOrBlank()) {
                 throw Status.FAILED_PRECONDITION.withDescription("IMPACT_TOKEN_REQUIRED").asRuntimeException()
             }
+            if (action == LifecycleRules.Action.DELETE && !DeletionImpact.matchesToken(dataSource, target, request.impactToken)) {
+                throw Status.FAILED_PRECONDITION.withDescription("IMPACT_TOKEN_STALE").asRuntimeException()
+            }
             if (!request.confirmed && LifecycleRules.requiresConfirmation(action)) {
                 throw Status.FAILED_PRECONDITION.withDescription("CONFIRMATION_REQUIRED").asRuntimeException()
             }
