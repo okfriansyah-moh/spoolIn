@@ -1,0 +1,75 @@
+{
+  "selected": 4,
+  "executed": 4,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:catalog:catalogLifecycleUnitTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207603207005000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t024-lifecycle/unit/run-3fcc3c8fe0d7469fbfd5526484a445bd/catalog-lifecycle-unit.log",
+        "sha256": "19ab30f2af8699c8c1ce25631cfa27a54104edb970fbf4660c89ea36b73b6678"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:lifecycleProjectionUnitTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207604412053000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t024-lifecycle/unit/run-3fcc3c8fe0d7469fbfd5526484a445bd/core-lifecycle-unit.log",
+        "sha256": "1a5ab0f3e19661e61420062f3b1698c4a4d4246d643abe59eb4fa944f16de2f8"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t024-lifecycle/unit/run-3fcc3c8fe0d7469fbfd5526484a445bd/junit/catalog-lifecycle-unit/TEST-com.spoolin.catalog.features.lifecycle.LifecycleRulesTest.xml",
+      "sha256": "a8cfbb9d33b6f4774c8c003e6e496428e2deaaf519fce66af09bd1a9235e833b"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t024-lifecycle/unit/run-3fcc3c8fe0d7469fbfd5526484a445bd/junit/core-lifecycle-unit/TEST-com.spoolin.core.features.catalogview.lifecycle.LifecycleProjectionRulesTest.xml",
+      "sha256": "5346ac4465a33e1c5f3a79567c21da0aa858dd2be5717032f3e0d19fb1171178"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.catalog.features.lifecycle.LifecycleRulesTest",
+      "method": "active record allows archive only()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.lifecycle.LifecycleRulesTest",
+      "method": "delete requires confirmation()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.lifecycle.LifecycleRulesTest",
+      "method": "archived record allows restore or delete()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.lifecycle.LifecycleProjectionRulesTest",
+      "method": "lifecycle graphql exposes bind entry for catalog lifecycle mutations()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "isolated rules",
+  "finished_at_utc": "2026-10-17T03:26:45.871735+00:00"
+}

@@ -1,0 +1,431 @@
+{
+  "selected": 56,
+  "executed": 56,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t012-catalog-read-unit",
+      "argv": [
+        "python3",
+        "build-tools/verification-tests/run_catalog_reads.py",
+        "--task",
+        "T012",
+        "--level",
+        "unit"
+      ],
+      "exit_code": 0,
+      "selected": 56,
+      "executed": 56,
+      "failed": 0,
+      "commands": [
+        {
+          "argv": [
+            "./gradlew",
+            ":services:catalog:catalogReadUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207570669383000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/catalog-read-unit.log",
+            "sha256": "6a26d81e8d51c61bf0d95d9cb8bbf7be01a3c5a22c737f59925f4da2cf08b69e"
+          }
+        },
+        {
+          "argv": [
+            "./gradlew",
+            ":services:core:catalogViewUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207571497352000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/core-catalogview-unit.log",
+            "sha256": "1c27aced674fcfb4b98f1c05337daf3d134e2853bdd83965fdd980affecff037"
+          }
+        }
+      ],
+      "reports": [
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.features.person.read.PersonSearchRulesTest.xml",
+          "sha256": "9dc0c51987a117713fae214b7bb83b8df5177f66f919ff2c4b727950fa5186d2"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.features.provenance.ProvenanceProjectionRulesTest.xml",
+          "sha256": "b619727dc35d4fd933baed695da230eca5223a703452a874fb3586b8b0a4cdbf"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.features.search.CursorBindingRulesTest.xml",
+          "sha256": "b0622617207497cf6fefbf39d5131f48c0ecfdb427d5e7306fe85d237560534b"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.features.search.DateOrderingRulesTest.xml",
+          "sha256": "081319a855eee46c70ba96e0709d246e301708c1cfa991b003731984f2e262d8"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.features.search.QueryStructureRulesTest.xml",
+          "sha256": "a3afe9951ef0e7f03144d4ca5e19a38610b93a4edc47cf413f55e3fdf428bcea"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.features.taxonomy.read.TaxonomyProjectionRulesTest.xml",
+          "sha256": "c3f8c5b7aa9f247aaa20644c90a03be7149eceff5e25e966c97cdadd3661f841"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/catalog-read-unit/TEST-com.spoolin.catalog.seed.persistence.SeedMemberRulesTest.xml",
+          "sha256": "2bd5c10d3209fe3e2d69a040c117f586fc85f388ef874b5f60a3316f2b67eb43"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t012-catalog-reads/unit/run-7a90e1789467488b919000d020ee22b9/junit/core-catalogview-unit/TEST-com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest.xml",
+          "sha256": "2854ce4582f0bd53cebe80d42c5626b690460fea58eb22776b6ba09ada5a9e76"
+        }
+      ],
+      "cases": [
+        {
+          "class": "com.spoolin.catalog.features.person.read.PersonSearchRulesTest",
+          "method": "same names do not collapse identities()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.person.read.PersonSearchRulesTest",
+          "method": "escaped name in wildcard does not break LIKE pattern()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.person.read.PersonSearchRulesTest",
+          "method": "person ordering is name ASC then id ASC for ties()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.person.read.PersonSearchRulesTest",
+          "method": "person row with no biography is null not empty string()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.person.read.PersonSearchRulesTest",
+          "method": "credit row preserves required fields()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.person.read.PersonSearchRulesTest",
+          "method": "person row preserves all required fields()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.provenance.ProvenanceProjectionRulesTest",
+          "method": "subject_kind and subject_id are internal fields not in the row projection()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.provenance.ProvenanceProjectionRulesTest",
+          "method": "provenance row preserves all required fields()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.provenance.ProvenanceProjectionRulesTest",
+          "method": "deleted_at is internal and not in the row projection()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.provenance.ProvenanceProjectionRulesTest",
+          "method": "empty locally_changed is valid()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.provenance.ProvenanceProjectionRulesTest",
+          "method": "optional recordUrl can be null without fabrication()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "scope hash is stable for same inputs()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "cursor invalid at exactly T (expiry equality)()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "unknown-year keyset roundtrip()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "full keyset roundtrip preserves year, month, day, uuid()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "changed scope hash returns invalid cursor()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "cursor valid one microsecond before expiry()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "cursor invalid one microsecond after T()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "truncated cursor returns invalid cursor()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "encoded cursor fits within 1024 bytes()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.CursorBindingRulesTest",
+          "method": "altered signature returns invalid cursor()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.DateOrderingRulesTest",
+          "method": "equal date rows are ordered by UUID ascending()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.DateOrderingRulesTest",
+          "method": "first five rows order a,b,c,d,e regardless of insertion order()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.DateOrderingRulesTest",
+          "method": "unknown year rows appear after all known-year rows()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.DateOrderingRulesTest",
+          "method": "all five rows together produce canonical sequence()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.DateOrderingRulesTest",
+          "method": "ordering does not manufacture chronological precision()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "apostrophe does not affect the LIKE pattern structure()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "scope hash is a hex digest not containing user text()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "percent sign is escaped to preserve literal search semantics()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "filter enum values are from a closed allowlist()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "UNION injection is treated as literal text()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "combined wildcards are all escaped()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "underscore is escaped to preserve literal search semantics()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "backslash is escaped first to avoid double-escaping()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "SQL injection attempt OR 1=1 is escaped as literal text()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "sort field is a fixed identifier not derived from user input()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.search.QueryStructureRulesTest",
+          "method": "SQL comment injection is treated as literal text()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.read.TaxonomyProjectionRulesTest",
+          "method": "role category allowlist is CAST or CREATOR()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.read.TaxonomyProjectionRulesTest",
+          "method": "genre normalized label ordering uses stable comparison()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.read.TaxonomyProjectionRulesTest",
+          "method": "genre rows have id and label fields()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.read.TaxonomyProjectionRulesTest",
+          "method": "role rows have id, category, label, allowsCharacters()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.seed.persistence.SeedMemberRulesTest",
+          "method": "member row preserves all required fields()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.seed.persistence.SeedMemberRulesTest",
+          "method": "subject_kind enum values match seed schema()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.seed.persistence.SeedMemberRulesTest",
+          "method": "content hash must be exactly 32 bytes()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.seed.persistence.SeedMemberRulesTest",
+          "method": "removedAt is nullable \u2014 supports active and tombstoned members()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "empty Person proto indicates absent or archived person \u2014 must produce null()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "year-only returns YEAR precision()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "empty Title proto indicates absent or archived title \u2014 must produce null()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "person projection does not include email, password or session fields()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "null originalTitle does not fabricate a value()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "title projection does not include attachment_id()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "year-month-day returns DAY precision()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "title with id is a valid title()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "unknown year returns UNKNOWN precision()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "year-month returns MONTH precision()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.read.CatalogViewGraphqlRulesTest",
+          "method": "null biography does not fabricate a value()",
+          "executed": true,
+          "failed": false
+        }
+      ],
+      "setup_error": null,
+      "proof_boundary": "isolated rules",
+      "finished_at_utc": "2026-10-17T03:26:13.019792+00:00"
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:13.062531+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}

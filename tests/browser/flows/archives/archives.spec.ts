@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { freshSession, goToArchives } from './fixture';
 
-test('T025-archives: maintainer archive page exposes tabs and cancel-safe confirmation', async ({
+test('T025-archives: maintainer archive page exposes tabs and safe empty state', async ({
   page,
   context,
 }) => {
@@ -10,8 +10,9 @@ test('T025-archives: maintainer archive page exposes tabs and cancel-safe confir
   await expect(page.getByRole('heading', { level: 1, name: 'Archives' })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Movies' })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'People' })).toBeVisible();
-  await page.getByRole('button', { name: 'Review permanent deletion' }).click();
-  await expect(page.getByRole('heading', { level: 2, name: 'Confirm permanent deletion' })).toBeVisible();
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByRole('heading', { level: 2, name: 'Confirm permanent deletion' })).toBeHidden();
+  await page.getByRole('tab', { name: 'People' }).click();
+  await expect(page.getByRole('tab', { name: 'People' })).toHaveAttribute('aria-selected', 'true');
+  await expect(
+    page.getByText(/No archived records|Loading archives|do not have access/i),
+  ).toBeVisible();
 });

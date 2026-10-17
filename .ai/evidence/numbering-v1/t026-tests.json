@@ -1,0 +1,22 @@
+{
+  "selected": 5,
+  "executed": 5,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t026-artwork-unit",
+      "argv": [
+        "node",
+        "build-tools/verification-tests/frontend/run-t026-tests.mjs"
+      ],
+      "exit_code": 0,
+      "selected": 5,
+      "executed": 5,
+      "failed": 0
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:52.862582+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}

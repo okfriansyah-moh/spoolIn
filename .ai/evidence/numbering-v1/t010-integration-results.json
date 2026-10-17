@@ -1,0 +1,547 @@
+{
+  "selected": 73,
+  "executed": 73,
+  "failed": 23,
+  "exit_code": 1,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:accountIntegrationTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205250450488000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/core.log",
+        "sha256": "5e2f96de87435327a4ffe0a5170eac472c89322f1946f239d187dec1953d8cd0"
+      }
+    },
+    {
+      "argv": [
+        "node",
+        "tests/browser/run-account.mjs"
+      ],
+      "exit_code": 1,
+      "started_ns": 1792205252312108000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/browser.log",
+        "sha256": "232722ba8e3953cc440c27d1d0fff1d0e969e35e97003249e172f2ded853e8f0"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.CsrfHttpTest.xml",
+      "sha256": "a61bfee25c00a33bdc68b0e3178516df3b27bc325864dec5283a699ba7b615aa"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.EmailIdentityTest.xml",
+      "sha256": "8336d45af35a7cf858f1e99250ba6a0ada236f0a64e10fc98e113bf631c51d3f"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.EmailPolicyHttpTest.xml",
+      "sha256": "53b475b87c162ee01e9c3699c1356275b4d9171802b1af33b04c4528df14133a"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.HttpRejectionTest.xml",
+      "sha256": "0ee9e4de56400d4357cd1abf89f49a402091feaae6d437fc8c885240acdf270d"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.IdentityDeadlineTest.xml",
+      "sha256": "6fd5eeb536c60b5c47cf77784a234206b4e30a045f0af54eb55756b9d9a4df18"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.IdentityHttpTest.xml",
+      "sha256": "3dcc256a46d7fdaaa286e7e0e7c5d4f75ae90458f94c52f14bcfaa99de9d61fa"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.PrivateRegistrationTest.xml",
+      "sha256": "156f7fe76e32a37c95b8a671c424bb0236e4a5d52112df049ffba14c3be6d574"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.RegistrationApplicationTest.xml",
+      "sha256": "2644bb6dd8e96f016a2abb7e4ff60a7760f1bed947d5a055e31db85068ad7e5d"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.RegistrationTransactionTest.xml",
+      "sha256": "7420b6db22c24bee41fa603547c33b03e2bc5da4605f3915551cbd088a2aea46"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.SessionConcurrencyTest.xml",
+      "sha256": "66cc645c6128a223e883251f8fa5b0af380de2363cb2e50b0a9392d7e57b1a7e"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.SessionLifecycleTest.xml",
+      "sha256": "5d70e921a8a3e0a05246d3a89325c4b0f95025ee160cbf26a3da6c12a5a2eb99"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.SessionSchemaTest.xml",
+      "sha256": "b73f20c2f0020fc1c201740f187414e8c7f6487df9fc06c108872fba28e0d2b1"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.SessionStoreTest.xml",
+      "sha256": "2393ba9b68e4f53d3399c4acb452cf9d26875bd02c32659a28907cad7c4d7b56"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.SignInApplicationTest.xml",
+      "sha256": "166db321c42f6d8e6f918f27b5a77f515dd25e63ad5f955594d6811cbb8aaf55"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.features.session.SignOutApplicationTest.xml",
+      "sha256": "e7aa531d64b0b35412b4e81dd5472562065ea1fb6bf298fa00398a8e80f76386"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/core/TEST-com.spoolin.core.recovery.crypto.CredentialIntegrationTest.xml",
+      "sha256": "232999fe92aa2a45ddf6ece279f953a6bf92c86f5f41013f1d0ac7397f8488b7"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/integration/run-97478b0b4fa54fe09862eb6d598b9c68/junit/browser/junit.xml",
+      "sha256": "becf076b7665114f8ad4c63d5b81722eb08b11a2d33c9e0ae10ebe87d6f4617d"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.core.features.session.CsrfHttpTest",
+      "method": "actual anonymous bootstrap permits only one matching CSRF header before mutation dispatch()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.EmailIdentityTest",
+      "method": "ATDD175 application case race commits one encrypted Viewer and one audit without directory projection()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.EmailIdentityTest",
+      "method": "ATDD175 plus dots IDNA and encrypted display preserve distinct actual owner identities()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.EmailPolicyHttpTest",
+      "method": "effective email maximum rejects direct registration without owner effects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.EmailPolicyHttpTest",
+      "method": "existing longer email can sign in after registration policy narrows()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.HttpRejectionTest",
+      "method": "actual HTTPS client without fixture CA cannot establish a connection()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.HttpRejectionTest",
+      "method": "actual trusted HTTPS rejects transport and envelope faults before account dispatch with no store()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.IdentityDeadlineTest",
+      "method": "real HTTPS enforces five second identity budget and finite dispatch capacity without late effects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.IdentityHttpTest",
+      "method": "trusted HTTPS identities deliver credentials only through scoped headers()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.IdentityHttpTest",
+      "method": "missing admission denies registration before hashing receipt or account effects()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.PrivateRegistrationTest",
+      "method": "ATDD153 persisted receipt binds keyed identity and nonce without retaining private credential channels()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.RegistrationApplicationTest",
+      "method": "admission is closed by default and generic private replay never revalidates changed password or name()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.RegistrationTransactionTest",
+      "method": "prepared registration shares receipt transaction and rollback consumes nonce without partial account()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionConcurrencyTest",
+      "method": "concurrent owner issuances serialize account authority and retain exactly five active credentials()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionLifecycleTest",
+      "method": "absolute eligibility ends before purge even after recent activity()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionLifecycleTest",
+      "method": "signing in to another account revokes previous browser credential()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionLifecycleTest",
+      "method": "revoked hashes purge seven days after revocation without deleting a newer eligible retention row()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionLifecycleTest",
+      "method": "expired hashes remain seven days and purge at exact idle retention cutoff()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "token_hash omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "token_hash SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "id omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "id SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "account_id omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "account_id SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "auth_epoch omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "auth_epoch SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "csrf_hash omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "csrf_hash SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "created_at omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "created_at SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "last_seen_at omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "last_seen_at SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "expires_at omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "expires_at SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "revoked_at omitted",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "revoked_at SQL NULL",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "token_hash rejects 31 bytes",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "token_hash rejects 33 bytes",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "csrf_hash rejects 31 bytes",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "csrf_hash rejects 33 bytes",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "epoch rejects negative",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "epoch permits signed upper bound",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionSchemaTest",
+      "method": "missing account denies FK",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SessionStoreTest",
+      "method": "issued sessions rotate expire and retain only hashes with five active bound()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SignInApplicationTest",
+      "method": "lost sign in response rechecks credential issues fresh opaque session and never stores raw cookie()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.session.SignOutApplicationTest",
+      "method": "lost logout reconciles only original session intent and never restores protected authority()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.recovery.crypto.CredentialIntegrationTest",
+      "method": "successfulLegacyParametersOfferRehashButWrongCredentialNeverDoes()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.recovery.crypto.CredentialIntegrationTest",
+      "method": "hashingCannotEnterAnActualDatabaseTransaction()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.recovery.crypto.CredentialIntegrationTest",
+      "method": "realArgon2WorkHasTwoSlotsAndBoundedQueueAdmission()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.recovery.crypto.CredentialIntegrationTest",
+      "method": "actualArgon2UsesTheSelectedPhcAndExactInputAcrossPolicyTightening()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "account.spec.ts",
+      "method": "actual registration assigns Viewer and keeps the password out of recovery storage",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "account.spec.ts",
+      "method": "real cookies rotate at sign-in and Viewer cannot reveal management",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "account.spec.ts",
+      "method": "verified Maintainer enters only the local management shell",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "registration name boundary 1",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "registration name boundary 2",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "registration name boundary 100",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "registration name boundary 101",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password below minimum",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password minimum",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password maximum",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password above maximum",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password exact whitespace",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password composed text",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password decomposed text",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "new password maximum UTF8 bytes",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "sign-in safely rejects wrong password",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "sign-in safely rejects unknown email",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "sign-in safely rejects invalid syntax",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "boundaries.spec.ts",
+      "method": "duplicate normalized email retains only permitted correction values",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "guards.spec.ts",
+      "method": "controlled sign-out response loss with deletion applied=false",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "guards.spec.ts",
+      "method": "controlled sign-out response loss with deletion applied=true",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "guards.spec.ts",
+      "method": "controlled identity outage conceals an existing account without claiming an anonymous session",
+      "executed": true,
+      "failed": true
+    },
+    {
+      "class": "guards.spec.ts",
+      "method": "controlled pagehide conceals identity before a later current check restores it",
+      "executed": true,
+      "failed": true
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "actual Core PostgreSQL18.6, trusted HTTPS and built-UI Firefox",
+  "finished_at_utc": "2026-10-17T02:47:43.237931+00:00"
+}

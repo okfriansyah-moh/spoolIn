@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { permanentDeleteReady } from './rules';
 
 describe('T025 archive rules', () => {
-  it('requires explicit confirmation before permanent deletion', () => {
-    const confirmed = false;
-    expect(confirmed).toBe(false);
+  it('blocks person permanent delete until impact token is present', () => {
+    expect(permanentDeleteReady('people', null)).toBe(false);
+    expect(permanentDeleteReady('people', '')).toBe(false);
+    expect(permanentDeleteReady('people', 'token-abc')).toBe(true);
   });
 
-  it('cancel leaves archive list unchanged', () => {
-    const before = ['movie-a'];
-    const afterCancel = before;
-    expect(afterCancel).toEqual(before);
+  it('allows movie permanent delete without impact token', () => {
+    expect(permanentDeleteReady('movies', null)).toBe(true);
   });
 });

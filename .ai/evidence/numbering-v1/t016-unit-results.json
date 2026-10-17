@@ -1,0 +1,275 @@
+{
+  "selected": 36,
+  "executed": 36,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:catalog:catalogMovieWriteUnitTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207581650779000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t016-movie-writes/unit/run-d9922313eac14cc58c0859b96f9f2d65/catalog-movie-write-unit.log",
+        "sha256": "4c8a611db445ba32193b2e7147c9868d81a7ae1665be995d8c74421a90ba68bf"
+      }
+    },
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:managedCatalogUnitTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207582484717000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t016-movie-writes/unit/run-d9922313eac14cc58c0859b96f9f2d65/core-managed-catalog-unit.log",
+        "sha256": "8cbaa5e0df0c036136d426e5a444bd4f1388f342c868191e0b7c252de3df4fd4"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t016-movie-writes/unit/run-d9922313eac14cc58c0859b96f9f2d65/junit/catalog-movie-write-unit/TEST-com.spoolin.catalog.features.movie.MovieValidationRulesTest.xml",
+      "sha256": "56b2f04d8b3e8a2510946148108e68a67e350964aadf459780337fc0ecb451ab"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t016-movie-writes/unit/run-d9922313eac14cc58c0859b96f9f2d65/junit/catalog-movie-write-unit/TEST-com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest.xml",
+      "sha256": "73a16d1d2344228461dfaa162e1efcfaa6bbede963908b30630d916fd416d093"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t016-movie-writes/unit/run-d9922313eac14cc58c0859b96f9f2d65/junit/catalog-movie-write-unit/TEST-com.spoolin.catalog.operations.audit.AuditDiffRulesTest.xml",
+      "sha256": "95e2f44c6449bd3e28b233f5c90e75125a38d2b2d6a7fb869a186d8573d8d1f2"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t016-movie-writes/unit/run-d9922313eac14cc58c0859b96f9f2d65/junit/core-managed-catalog-unit/TEST-com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest.xml",
+      "sha256": "97e969eea4d6833d8abe7bc04a2b28feceb2c29eb581220be97786759025ce57"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "exactly 255 code point title is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "release year 0 is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "exactly 5000 code point synopsis is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "title exceeding 255 code points is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "synopsis exceeding 5000 code points is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "runtime minutes 100001 is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "valid minimal create input is accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "empty genre list is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "runtime minutes 0 is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "blank title is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "markup characters in title are preserved as plain text()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "optional originalTitle is trimmed and stored when present()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.movie.MovieValidationRulesTest",
+      "method": "year-only release preserves precision \u2014 no month or day invented()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest",
+      "method": "malformed UUID in genre set is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest",
+      "method": "valid UUIDs within limit are parsed without error()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest",
+      "method": "more than 20 genres is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest",
+      "method": "sorted replacement order is stable across inputs()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest",
+      "method": "exactly 20 genres are accepted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.features.taxonomy.write.GenreTaggingRulesTest",
+      "method": "empty genre set is rejected()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "private fields are excluded from changes output()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "result is valid JSON-like object containing changes key()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "source domain inputs are not mutated()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "oversized diff triggers summarised form with digests and valueOmitted()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "unchanged fields produce no change entries()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "field removed appears as delete entry with null after()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "encodeValue handles null number boolean and string()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "changed fields appear inline when within size limit()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "encode value handles list and set types()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.catalog.operations.audit.AuditDiffRulesTest",
+      "method": "new field added appears as create entry with null before()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "full partial date maps all three components()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "title map exposes id kind state version()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "unknown release date maps precision to UNKNOWN()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "release partial date maps year precision without inventing month or day()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "no private account data appears in title projection()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "absent optional title fields project as null()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.core.features.catalogview.movie.ManagedCatalogProjectionRulesTest",
+      "method": "genres list contains only id maps()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "isolated rules \u2014 no database access",
+  "finished_at_utc": "2026-10-17T03:26:23.688375+00:00"
+}

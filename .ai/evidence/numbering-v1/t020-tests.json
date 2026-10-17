@@ -1,0 +1,117 @@
+{
+  "selected": 7,
+  "executed": 7,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t020-credit-writes-unit",
+      "argv": [
+        "python3",
+        "build-tools/verification-tests/run_credit_writes.py",
+        "--task",
+        "T020",
+        "--level",
+        "unit"
+      ],
+      "exit_code": 0,
+      "selected": 7,
+      "executed": 7,
+      "failed": 0,
+      "commands": [
+        {
+          "argv": [
+            "./gradlew",
+            ":services:catalog:catalogCreditWriteUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207593154948000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t020-credit-writes/unit/run-219d080a504448bf932b17b3ec1266ca/catalog-credit-write-unit.log",
+            "sha256": "46f8570c7d5b15b97410caa3f58c4273184981c3459904dd4699579f81d74d99"
+          }
+        },
+        {
+          "argv": [
+            "./gradlew",
+            ":services:core:managedCreditUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207594048719000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t020-credit-writes/unit/run-219d080a504448bf932b17b3ec1266ca/core-managed-credit-unit.log",
+            "sha256": "87c7ed73db9131be0f99243e3403f09e87b7d2e1b73c0fb0fd80d000310c0d24"
+          }
+        }
+      ],
+      "reports": [
+        {
+          "path": ".ai/evidence/numbering-v1/t020-credit-writes/unit/run-219d080a504448bf932b17b3ec1266ca/junit/catalog-credit-write-unit/TEST-com.spoolin.catalog.features.credit.CreditValidationRulesTest.xml",
+          "sha256": "ed50b282b4d6b75e72eb10ed9dd7fe9f416ff0ec05c6b102ef75a457f7186019"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t020-credit-writes/unit/run-219d080a504448bf932b17b3ec1266ca/junit/catalog-credit-write-unit/TEST-com.spoolin.catalog.features.taxonomy.roles.RoleValidationRulesTest.xml",
+          "sha256": "f4990825e8f4cce36b3beab5c27b091ae0d579b8033436f68a30953194924a0c"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t020-credit-writes/unit/run-219d080a504448bf932b17b3ec1266ca/junit/core-managed-credit-unit/TEST-com.spoolin.core.features.catalogview.credit.ManagedCreditProjectionRulesTest.xml",
+          "sha256": "1b977d0f8026ce7e68784831a533899af3197e650aac8268ffc52d043e617b21"
+        }
+      ],
+      "cases": [
+        {
+          "class": "com.spoolin.catalog.features.credit.CreditValidationRulesTest",
+          "method": "character names accept embedded slash as one string (AC-026)()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.credit.CreditValidationRulesTest",
+          "method": "duplicate trimmed character names reject (AC-027)()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.credit.CreditValidationRulesTest",
+          "method": "creator roles reject character payload (AC-027-C02)()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.roles.RoleValidationRulesTest",
+          "method": "custom role label accepts one character (PRD-BOUND-05)()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.roles.RoleValidationRulesTest",
+          "method": "invalid category rejects()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.taxonomy.roles.RoleValidationRulesTest",
+          "method": "101 code point role label rejects()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.catalogview.credit.ManagedCreditProjectionRulesTest",
+          "method": "credit page preserves ordered character list in projection shape()",
+          "executed": true,
+          "failed": false
+        }
+      ],
+      "setup_error": null,
+      "proof_boundary": "isolated rules \u2014 no database access",
+      "finished_at_utc": "2026-10-17T03:26:35.310750+00:00"
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:35.325981+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}

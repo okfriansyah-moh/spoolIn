@@ -1,0 +1,551 @@
+{
+  "selected": 79,
+  "executed": 79,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":services:core:test",
+        "--console",
+        "plain",
+        "--tests",
+        "*FrontendPolicyRulesTest"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207561359838000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t010-checks/unit/run-22006295900649d4849e526d4fba549a/core.log",
+        "sha256": "b6359039b496eab2b4f04114a3742137920bbffcf75750cb171bce4259b2f091"
+      }
+    },
+    {
+      "argv": [
+        "npm",
+        "exec",
+        "--workspace",
+        "frontend",
+        "--",
+        "vitest",
+        "run",
+        "--config",
+        "vitest.config.ts",
+        "src/lib/features/session",
+        "src/lib/transport",
+        "--reporter=json",
+        "--outputFile=../.ai/evidence/numbering-v1/t010-checks/unit/run-22006295900649d4849e526d4fba549a/vitest.json"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792207564317804000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t010-checks/unit/run-22006295900649d4849e526d4fba549a/frontend.log",
+        "sha256": "86b12f8edc2ee9894bae8f9ea8cc336463e06c84273c9bf9167fa0fd1bc52928"
+      },
+      "setup": {
+        "argv": [
+          "npm",
+          "run",
+          "pretest:coverage",
+          "--workspace",
+          "frontend"
+        ],
+        "exit_code": 0,
+        "started_ns": 1792207562803236000,
+        "log": {
+          "path": ".ai/evidence/numbering-v1/t010-checks/unit/run-22006295900649d4849e526d4fba549a/frontend-setup.log",
+          "sha256": "c34f2a4d20d3f724b1aaef6eb018bf37a03cfea8051bba8939ccbe9cce9adc16"
+        }
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/unit/run-22006295900649d4849e526d4fba549a/junit/core/TEST-com.spoolin.core.boundary.FrontendPolicyRulesTest.xml",
+      "sha256": "a55130b2cc8e77dc06153657aa3dc842be2cbf85974d1bde05583a641e75b11c"
+    },
+    {
+      "path": ".ai/evidence/numbering-v1/t010-checks/unit/run-22006295900649d4849e526d4fba549a/vitest.json",
+      "sha256": "91646f7884cfbc3606c481774a55afa7dc8374bc7ea421fe8039ceb4fb15d5f7"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.core.boundary.FrontendPolicyRulesTest",
+      "method": "packaged bootstrap receives only its exact script hash()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/form.dom.test.ts",
+      "method": "real form validation focuses the summary and never dispatches invalid values",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/form.dom.test.ts",
+      "method": "registration clears the password before dispatch and announces first success",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/form.dom.test.ts",
+      "method": "server denial preserves email and name while clearing password and focusing safe feedback",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/form.dom.test.ts",
+      "method": "uncertain form checks the original registration and never resubmits a password",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/transport/graphql.test.ts",
+      "method": "uses same-origin POST no-store and the exact mutation CSRF header without changing a password",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/transport/graphql.test.ts",
+      "method": "does not require or send a mutation-only token for reads",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/transport/graphql.test.ts",
+      "method": "classifies a lost mutation response as uncertain and does not expose transport text",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/transport/graphql.test.ts",
+      "method": "retains bounded retry guidance while discarding a server supplied private message",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/transport/graphql.test.ts",
+      "method": "gives identity bootstrap its five second deadline while cancellation still aborts it",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/transport/graphql.test.ts",
+      "method": "rejects a mutation before sending when the in-memory anti-forgery value is missing",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/api.test.ts",
+      "method": "named account adapters use exact submitted values and original owner lookup without exposing private receipt fields",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/controller.test.ts",
+      "method": "conceals authority until the actual bootstrap finishes and then uses its assigned role",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/controller.test.ts",
+      "method": "an older account-bound reply cannot overwrite a newer verified generation",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/controller.test.ts",
+      "method": "identity outage conceals the known account and stays distinct from confirmed anonymous state",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/controller.test.ts",
+      "method": "conceals an expired session and cancels an older account expiry",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "registration uses anonymous CSRF and clears the secret from its result without automatically signing in",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "confirmed sign-in rechecks the actual session and follows its assigned Viewer role",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "a signed-in account cannot use the visitor registration controller",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "an uncertain registration checks the original intent without replaying credentials",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "confirmed denial retains safe anonymous recovery with retry hint 0",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "confirmed denial retains safe anonymous recovery with retry hint 2000",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/identity.test.ts",
+      "method": "missing original result remains uncertain without granting an account",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "confirmed logout conceals the account and reports signed out",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "a deleted cookie and anonymous read cannot prove revocation after a lost response body",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "an authorized original receipt plus current session read resolves a lost reply without another signout UUID",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "a confirmed failure before revocation retains the known active identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "confirmed HTTP rejection rechecks actual authority (true)",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "confirmed HTTP rejection rechecks actual authority (false)",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "an unavailable rejection recheck keeps logout uncertain",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "a failed original logout receipt restores only the same current account",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "fresh sign-in preparation keeps old logout unconfirmed even when authenticated=true",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "fresh sign-in preparation keeps old logout unconfirmed even when authenticated=false",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/logout.test.ts",
+      "method": "unavailable sign-in preparation and receipt lookup preserve concealed uncertain logout",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "accepts bounded operation state PENDING without adding private data",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "accepts bounded operation state SUCCEEDED without adding private data",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "accepts bounded operation state FAILED without adding private data",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "accepts bounded operation state EXPIRED without adding private data",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects incoherent or foreign operation projection",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects incoherent or foreign operation projection",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects incoherent or foreign operation projection",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects incoherent or foreign operation projection",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects incoherent or foreign operation projection",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects unsafe feedback fields",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects unsafe feedback fields",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects unsafe feedback fields",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "rejects unsafe feedback fields",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/outcome.test.ts",
+      "method": "retains bounded retry hints and rejects contradictory mutation success",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "parses only a coherent authoritative session and permits readable anti-forgery data without granting authority",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "rejects malformed or contradictory session input without publishing an identity",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/parse.test.ts",
+      "method": "production adapter uses the generated named bootstrap operation and validates both projections",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/render.test.ts",
+      "method": "registration renders labelled new-password controls without a role selector",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/render.test.ts",
+      "method": "first-success status exists before the header has any announcement",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/render.test.ts",
+      "method": "checking conceals credentials and private projections",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/render.test.ts",
+      "method": "uncertain sign-out shows its actual status while keeping identity concealed",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through https://other.test/",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through //other.test/",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through /\\other.test/",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through /graphql",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through /sign-in",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through /register",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "Viewer cannot acquire an external or restricted destination through /manage/movies",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/routing.test.ts",
+      "method": "preserves an allowed public destination and gives only verified Maintainer its workspace",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/validation.test.ts",
+      "method": "existing sign-in passwords are not subjected to new-password minimums or rewritten",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/validation.test.ts",
+      "method": "registration reports bounded name, email and password errors once per field",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/validation.test.ts",
+      "method": "valid surrounding ordinary name spaces do not transform password or retained input",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "/Users/mekari/Developer/personal-project/movie-app/frontend/src/lib/features/session/validation.test.ts",
+      "method": "narrower registration email policy preserves existing sign-in email access",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "isolated rules and rendered component units; no live transport verdict",
+  "finished_at_utc": "2026-10-17T03:26:07.223581+00:00"
+}

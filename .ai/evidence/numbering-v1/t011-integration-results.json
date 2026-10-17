@@ -1,0 +1,69 @@
+{
+  "selected": 6,
+  "executed": 6,
+  "failed": 0,
+  "exit_code": 0,
+  "commands": [
+    {
+      "argv": [
+        "./gradlew",
+        ":tests:integration:leasesTest",
+        "--console",
+        "plain"
+      ],
+      "exit_code": 0,
+      "started_ns": 1792205268592596000,
+      "log": {
+        "path": ".ai/evidence/numbering-v1/t011-work/integration/run-ac6c2df08e0144f0aedf8760efd0cd57/leases.log",
+        "sha256": "190bb7ca5960641cc823c5443b96cf3aa1f4a76af2fda082086b34d7b6ee20bc"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "path": ".ai/evidence/numbering-v1/t011-work/integration/run-ac6c2df08e0144f0aedf8760efd0cd57/junit/leases/TEST-com.spoolin.integration.work.leases.LeaseBoundaryTest.xml",
+      "sha256": "926599cd225284bf20965e1b9f3a9fa2e33ffb9c708d216f58dee532251fe38a"
+    }
+  ],
+  "cases": [
+    {
+      "class": "com.spoolin.integration.work.leases.LeaseBoundaryTest",
+      "method": "stale epoch completion is rejected and lease loss is fenced()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.work.leases.LeaseBoundaryTest",
+      "method": "permanent failure exhausts without retry transient reschedules uncertain exhausts()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.work.leases.LeaseBoundaryTest",
+      "method": "only live owner and epoch can renew or write completion()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.work.leases.LeaseBoundaryTest",
+      "method": "persisted retry budget survives simulated restart()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.work.leases.LeaseBoundaryTest",
+      "method": "two workers claim distinct items and ATTEMPT_STARTED is committed before send()",
+      "executed": true,
+      "failed": false
+    },
+    {
+      "class": "com.spoolin.integration.work.leases.LeaseBoundaryTest",
+      "method": "recovery resets exhausted work to READY with new generation preserving evidence()",
+      "executed": true,
+      "failed": false
+    }
+  ],
+  "setup_error": null,
+  "proof_boundary": "real owner PostgreSQL18.6 and service transport",
+  "finished_at_utc": "2026-10-17T02:48:11.779964+00:00"
+}

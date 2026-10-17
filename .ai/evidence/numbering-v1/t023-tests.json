@@ -1,0 +1,713 @@
+{
+  "selected": 100,
+  "executed": 100,
+  "failed": 0,
+  "exit_code": 0,
+  "entries": [
+    {
+      "id": "t023-artwork-attachment-unit",
+      "argv": [
+        "python3",
+        "build-tools/verification-tests/run_artwork_attachment.py",
+        "--task",
+        "T023",
+        "--level",
+        "unit"
+      ],
+      "exit_code": 0,
+      "selected": 100,
+      "executed": 100,
+      "failed": 0,
+      "commands": [
+        {
+          "argv": [
+            "./gradlew",
+            ":services:catalog:catalogArtworkUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207599925296000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/catalog-artwork-unit.log",
+            "sha256": "2ecc50b84051128664d0cd997d42679f511b850c1c2dd99694a297e5a8807ace"
+          }
+        },
+        {
+          "argv": [
+            "./gradlew",
+            ":services:media:artworkUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207600761140000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/media-hold-unit.log",
+            "sha256": "d1161e4d7353db2cc9fa4c64793dcbe992489a55c7f766fe8247ba81e53540d8"
+          }
+        },
+        {
+          "argv": [
+            "./gradlew",
+            ":services:core:artworkProxyUnitTest",
+            "--console",
+            "plain"
+          ],
+          "exit_code": 0,
+          "started_ns": 1792207601747937000,
+          "log": {
+            "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/core-artwork-proxy-unit.log",
+            "sha256": "d4c89934f4d2316476e13ff97c3c057777c19db17d7af4272e23c64028d8e822"
+          }
+        }
+      ],
+      "reports": [
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/catalog-artwork-unit/TEST-com.spoolin.catalog.features.artwork.ArtworkAttachmentRulesTest.xml",
+          "sha256": "486c45672f8b668c323ba80755879e4f72d91d9754222b027a876ead14694544"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.asset.AssetStateRulesTest.xml",
+          "sha256": "91943693ddec5299fa32ee930579759a924eb3431ea5877eab243ba2bbf7912d"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.cleanup.CleanupRulesTest.xml",
+          "sha256": "54e64f6333d25b197883ccaa668547c474d96a0b2ad288c4a6af1bbe9c6dabf8"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.hold.HoldRulesTest.xml",
+          "sha256": "22944177989403da926b51cb734fcb1efe499ba46ffc1c8c3ab2d6a3c72aa0d9"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.processing.ImageFormatRulesTest.xml",
+          "sha256": "7fd180a316c765349e2bfb7240197f0093b80958b87c8c385045ccc57bb07cd6"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.processing.ImageValidatorRulesTest.xml",
+          "sha256": "fe8d653d438616284471638aab4ff29be7d4a0ac3fff7ee24f0a5c7d3bae8784"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.processing.ProcessingBoundsRulesTest.xml",
+          "sha256": "e0cc88d2687164e2945806d24bbef50420783f5bd5bce4b7a8ecd75e4017cdff"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/media-hold-unit/TEST-com.spoolin.media.features.upload.ChunkSinkRulesTest.xml",
+          "sha256": "76b7cc977ea877a1bad99c79900dd7b700629e5077df360d8471e37e6c59e589"
+        },
+        {
+          "path": ".ai/evidence/numbering-v1/t023-artwork-attachment/unit/run-cd22393123d0423290a2080d0b7283ae/junit/core-artwork-proxy-unit/TEST-com.spoolin.core.features.artworkproxy.ArtworkProgressRulesTest.xml",
+          "sha256": "cb9666357acaa663646c71e645a586c3a58544395cf08b7a1c9dd87b14ff0799"
+        }
+      ],
+      "cases": [
+        {
+          "class": "com.spoolin.catalog.features.artwork.ArtworkAttachmentRulesTest",
+          "method": "PREPARING may attach or abort()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.catalog.features.artwork.ArtworkAttachmentRulesTest",
+          "method": "terminal states cannot transition()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED has no successors",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED has no successors",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 RECEIVING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 PROCESSING (expected=true)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 READY (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 REJECTED (expected=true)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 DELETING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 DELETED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "PROCESSING \u2192 RECEIVING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "PROCESSING \u2192 PROCESSING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "PROCESSING \u2192 READY (expected=true)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "PROCESSING \u2192 REJECTED (expected=true)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "PROCESSING \u2192 DELETING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "PROCESSING \u2192 DELETED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 RECEIVING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 PROCESSING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 READY (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 REJECTED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 DELETING (expected=true)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 DELETED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED \u2192 RECEIVING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED \u2192 PROCESSING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED \u2192 READY (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED \u2192 REJECTED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED \u2192 DELETING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "REJECTED \u2192 DELETED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETING \u2192 RECEIVING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETING \u2192 PROCESSING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETING \u2192 READY (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETING \u2192 REJECTED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETING \u2192 DELETING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETING \u2192 DELETED (expected=true)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED \u2192 RECEIVING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED \u2192 PROCESSING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED \u2192 READY (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED \u2192 REJECTED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED \u2192 DELETING (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "DELETED \u2192 DELETED (expected=false)",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 RECEIVING",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 PROCESSING",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 READY",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 REJECTED",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 DELETING",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "READY \u2192 DELETED",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 RECEIVING",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 PROCESSING",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 READY",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 REJECTED",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 DELETING",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.asset.AssetStateRulesTest",
+          "method": "RECEIVING \u2192 DELETED",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.cleanup.CleanupRulesTest",
+          "method": "unreferenced READY asset may delete()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.cleanup.CleanupRulesTest",
+          "method": "protective hold prevents deletion()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.hold.HoldRulesTest",
+          "method": "RESERVED may become ACTIVE or RELEASED only()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.hold.HoldRulesTest",
+          "method": "RELEASED is terminal()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "JPEG magic with altered first byte is rejected()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "SVG-like text magic is not supported()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "GIF magic is not a supported format()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "PNG magic 89504E47 is detected correctly()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "empty header is not supported()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "random one-byte file is not supported()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "format label matches declared name()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "JPEG magic FF D8 FF is detected correctly()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageFormatRulesTest",
+          "method": "WebP magic RIFF_WEBP is detected correctly()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "GIF content returns UNSUPPORTED_FORMAT()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "stream exactly at maximum is accepted (size boundary)()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "valid WebP header returns Valid with WEBP format()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "input hash is SHA-256 of complete content()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "valid JPEG header returns Valid with JPEG format()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "random bytes return UNSUPPORTED_FORMAT()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "animated WebP with ANIM chunk returns ANIMATED_IMAGE()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "single-byte invalid file returns UNSUPPORTED_FORMAT()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "stream one byte above maximum returns FILE_TOO_LARGE()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "animated PNG with acTL chunk before IDAT returns ANIMATED_IMAGE()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "empty stream returns FILE_EMPTY()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ImageValidatorRulesTest",
+          "method": "valid PNG header returns Valid with PNG format()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MAX_WALL_SECONDS is 10 and MAX_CPU_SECONDS is 5()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MAX_PIXELS is 40 million()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "SUPPORTED_FORMATS contains exactly JPEG PNG WEBP()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MAX_DIMENSION_PX is 8192()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MIN_INPUT_BYTES is 1 \u2014 rejects zero-byte streams()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MAX_OUTPUT_BYTES is 8 MiB()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MAX_INPUT_BYTES is exactly 5 MiB \u2014 5242880 bytes()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "CHUNK_BYTES is 64 KiB()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "dimension limit 8192 and pixel limit 40M are independent \u2014 8192x8192 exceeds pixels()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.processing.ProcessingBoundsRulesTest",
+          "method": "MAX_DECODED_BYTES is 160 MB()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "received count mismatch returns BYTE_COUNT_MISMATCH()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "cancelled sink returns UPLOAD_CANCELLED from complete()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "header with declared bytes exceeding maximum returns FILE_TOO_LARGE()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "header with declared zero bytes returns FILE_EMPTY()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "exact declared maximum input bytes passes header check()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "checksum mismatch returns CHECKSUM_MISMATCH()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "chunk pushing running total above max is rejected with FILE_TOO_LARGE()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "valid chunk stream completes with correct inputHash and inputBytes()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "header with 31-byte checksum returns INVALID_CHECKSUM()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "writeChunk on cancelled sink returns UPLOAD_CANCELLED()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.media.features.upload.ChunkSinkRulesTest",
+          "method": "valid header with correct count and hash is accepted()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.artworkproxy.ArtworkProgressRulesTest",
+          "method": "transfer at one hundred percent is not saved()",
+          "executed": true,
+          "failed": false
+        },
+        {
+          "class": "com.spoolin.core.features.artworkproxy.ArtworkProgressRulesTest",
+          "method": "attached bytes show saved stage()",
+          "executed": true,
+          "failed": false
+        }
+      ],
+      "setup_error": null,
+      "proof_boundary": "isolated rules",
+      "finished_at_utc": "2026-10-17T03:26:43.061814+00:00"
+    }
+  ],
+  "finished_at_utc": "2026-10-17T03:26:43.077621+00:00",
+  "level": "unit",
+  "proof_boundary": "selected task suites at their declared boundaries"
+}
