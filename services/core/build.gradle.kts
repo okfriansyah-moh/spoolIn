@@ -145,6 +145,22 @@ val managedPersonUnitTest by tasks.registering(Test::class) {
 
 tasks.named("koverXmlReport") { dependsOn(managedPersonUnitTest) }
 
+val managedCreditUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = files(
+        sourceSets["test"].output.classesDirs,
+        sourceSets["main"].output,
+        configurations["testRuntimeClasspath"],
+    )
+    filter {
+        includeTestsMatching("com.spoolin.core.features.catalogview.credit.*RulesTest")
+    }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(managedCreditUnitTest) }
+
 val accountIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")

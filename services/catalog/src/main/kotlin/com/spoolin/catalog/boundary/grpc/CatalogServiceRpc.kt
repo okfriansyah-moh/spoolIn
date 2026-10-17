@@ -3,9 +3,12 @@ package com.spoolin.catalog.boundary.grpc
 import com.google.protobuf.Timestamp
 import com.spoolin.catalog.features.movie.ManagedMovieReads
 import com.spoolin.catalog.features.movie.MovieWrites
+import com.spoolin.catalog.features.credit.CreditWrites
+import com.spoolin.catalog.features.credit.ManagedCreditReads
 import com.spoolin.catalog.features.person.read.ManagedPersonReads
 import com.spoolin.catalog.features.person.read.PersonSearch
 import com.spoolin.catalog.features.person.write.PersonWrites
+import com.spoolin.catalog.features.taxonomy.roles.RoleWrites
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.CatalogCursor
 import com.spoolin.catalog.features.search.PeopleCursor
@@ -31,10 +34,13 @@ import spoolin.v1.Spoolin.PersonPage
 import spoolin.v1.Spoolin.PersonValues
 import spoolin.v1.Spoolin.PersonWrite
 import spoolin.v1.Spoolin.Provenance
+import spoolin.v1.Spoolin.RoleWrite
 import spoolin.v1.Spoolin.Roles
 import spoolin.v1.Spoolin.Search
 import spoolin.v1.Spoolin.Title
 import spoolin.v1.Spoolin.TitlePage
+import spoolin.v1.Spoolin.VersionedId
+import spoolin.v1.Spoolin.CreditWrite
 import java.time.Clock
 import java.util.UUID
 
@@ -65,6 +71,10 @@ class CatalogServiceRpc(
     private val managedReads: ManagedMovieReads? = null,
     private val personWrites: PersonWrites? = null,
     private val managedPersonReads: ManagedPersonReads? = null,
+    private val roleWrites: RoleWrites? = null,
+    private val creditWrites: CreditWrites? = null,
+    private val managedCreditReads: ManagedCreditReads? = null,
+    private val artwork: com.spoolin.catalog.features.artwork.ArtworkRpc? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
 
     // ── GetOperation ─────────────────────────────────────────────────────────
@@ -260,6 +270,27 @@ class CatalogServiceRpc(
         }
     }
 
+    override fun beginArtwork(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<Outcome>) {
+        val handler = artwork
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Artwork unavailable").asRuntimeException())
+            return
+        }
+        handler.beginArtwork(request, response)
+    }
+
+    override fun cancelArtwork(
+        request: spoolin.v1.Spoolin.CancelArtworkRequest,
+        response: StreamObserver<spoolin.v1.Spoolin.ArtworkCancelOutcome>,
+    ) {
+        val handler = artwork
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Artwork unavailable").asRuntimeException())
+            return
+        }
+        handler.cancelArtwork(request, response)
+    }
+
     // ── WriteMovie ────────────────────────────────────────────────────────────
 
     override fun writeMovie(request: MovieWrite, response: StreamObserver<Outcome>) {
@@ -269,6 +300,50 @@ class CatalogServiceRpc(
             return
         }
         handler.writeMovie(request, response)
+    }
+
+    // ── CreateRole ────────────────────────────────────────────────────────────
+
+    override fun createRole(request: RoleWrite, response: StreamObserver<Outcome>) {
+        val handler = roleWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
+            return
+        }
+        handler.createRole(request, response)
+    }
+
+    // ── WriteCredit ───────────────────────────────────────────────────────────
+
+    override fun writeCredit(request: CreditWrite, response: StreamObserver<Outcome>) {
+        val handler = creditWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
+            return
+        }
+        handler.writeCredit(request, response)
+    }
+
+    // ── RemoveCredit ──────────────────────────────────────────────────────────
+
+    override fun removeCredit(request: VersionedId, response: StreamObserver<Outcome>) {
+        val handler = creditWrites
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Write operations unavailable").asRuntimeException())
+            return
+        }
+        handler.removeCredit(request, response)
+    }
+
+    // ── ManagedCredits ────────────────────────────────────────────────────────
+
+    override fun managedCredits(request: PageRequest, response: StreamObserver<CreditPage>) {
+        val handler = managedCreditReads
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.withDescription("Managed reads unavailable").asRuntimeException())
+            return
+        }
+        handler.managedCredits(request, response)
     }
 
     // ── WritePerson ───────────────────────────────────────────────────────────

@@ -135,6 +135,10 @@ class Application {
         managedReadsProvider: ObjectProvider<ManagedMovieReads>,
         personWritesProvider: ObjectProvider<PersonWrites>,
         managedPersonReadsProvider: ObjectProvider<ManagedPersonReads>,
+        roleWritesProvider: ObjectProvider<com.spoolin.catalog.features.taxonomy.roles.RoleWrites>,
+        creditWritesProvider: ObjectProvider<com.spoolin.catalog.features.credit.CreditWrites>,
+        managedCreditReadsProvider: ObjectProvider<com.spoolin.catalog.features.credit.ManagedCreditReads>,
+        artworkRpcProvider: ObjectProvider<com.spoolin.catalog.features.artwork.ArtworkRpc>,
     ): io.grpc.BindableService {
         val reads = com.spoolin.catalog.operations.receipts.OwnerReceiptReads(dataSource)
         val authority = com.spoolin.support.receipts.ReceiptAuthority {
@@ -155,6 +159,10 @@ class Application {
             managedReads = managedReadsProvider.ifAvailable,
             personWrites = personWritesProvider.ifAvailable,
             managedPersonReads = managedPersonReadsProvider.ifAvailable,
+            roleWrites = roleWritesProvider.ifAvailable,
+            creditWrites = creditWritesProvider.ifAvailable,
+            managedCreditReads = managedCreditReadsProvider.ifAvailable,
+            artwork = artworkRpcProvider.ifAvailable,
         )
     }
 }
@@ -191,8 +199,24 @@ class CatalogWriteConfiguration {
         PersonWrites(dataSource, receipts)
 
     @Bean
+    fun artworkRpc(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.artwork.ArtworkRpc =
+        com.spoolin.catalog.features.artwork.ArtworkRpc(dataSource, receipts)
+
+    @Bean
     fun managedPersonReads(dataSource: DataSource): ManagedPersonReads =
         ManagedPersonReads(dataSource)
+
+    @Bean
+    fun roleWrites(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+        com.spoolin.catalog.features.taxonomy.roles.RoleWrites(dataSource, receipts)
+
+    @Bean
+    fun creditWrites(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.credit.CreditWrites =
+        com.spoolin.catalog.features.credit.CreditWrites(dataSource, receipts)
+
+    @Bean
+    fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
+        com.spoolin.catalog.features.credit.ManagedCreditReads(dataSource)
 }
 
 fun main(args: Array<String>) {

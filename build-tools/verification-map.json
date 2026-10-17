@@ -721,9 +721,28 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/roles/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/credit/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t020-credit-writes-unit",
+          "argv": [
+            "python3",
+            "build-tools/verification-tests/run_credit_writes.py",
+            "--task",
+            "T020",
+            "--level",
+            "unit"
+          ],
+          "report": ".ai/evidence/numbering-v1/t020-unit-results.json",
+          "timeout": 1800,
+          "required_paths": [
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/credit/*RulesTest.kt",
+            "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/roles/*RulesTest.kt",
+            "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/credit/*RulesTest.kt"
+          ]
+        }
+      ],
       "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "pending_reason": null
     },
     "T021": {
       "source": "docs/plan/13-people-and-credits/tasks/T021-connect-credit-editing-and-verify-the-people-outcome.md",

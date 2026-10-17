@@ -23,6 +23,8 @@ class PolicyGraphql(
     drafts: com.spoolin.core.features.draft.DraftGraphql? = null,
     managedCatalog: com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql? = null,
     managedPerson: com.spoolin.core.features.catalogview.person.ManagedPersonGraphql? = null,
+    managedCredit: com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql? = null,
+    artwork: com.spoolin.core.features.artworkproxy.ArtworkGraphql? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
@@ -51,6 +53,8 @@ class PolicyGraphql(
         catalog?.bind(wiring)
         managedCatalog?.bind(wiring)
         managedPerson?.bind(wiring)
+        managedCredit?.bind(wiring)
+        artwork?.bind(wiring)
         drafts?.bind(wiring)
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
@@ -128,6 +132,7 @@ class PolicyGraphqlConfiguration {
         draftView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.draft.DraftGraphql>,
         managedCatalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql>,
         managedPersonView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.person.ManagedPersonGraphql>,
+        managedCreditView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql>,
     ): PolicyGraphql {
         val schema =
             ClassPathResource(
@@ -141,6 +146,7 @@ class PolicyGraphqlConfiguration {
             drafts = draftView.ifAvailable,
             managedCatalog = managedCatalogView.ifAvailable,
             managedPerson = managedPersonView.ifAvailable,
+            managedCredit = managedCreditView.ifAvailable,
         )
     }
 }
