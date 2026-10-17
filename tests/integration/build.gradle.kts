@@ -36,6 +36,24 @@ val leasesTest by tasks.registering(Test::class) {
     maxHeapSize = "768m"
 }
 
+val lifecycleIntegrationTest by tasks.registering(Test::class) {
+    dependsOn(":services:core:integrationTestClasses", ":services:catalog:classes", ":services:media:classes")
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter { includeTestsMatching("com.spoolin.integration.lifecycle.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+
+val artworkIntegrationTest by tasks.registering(Test::class) {
+    dependsOn(":services:core:integrationTestClasses", ":services:catalog:classes", ":services:media:classes")
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter { includeTestsMatching("com.spoolin.integration.artwork.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+
 val catalogReadsTest by tasks.registering(Test::class) {
     dependsOn(":services:core:integrationTestClasses", ":services:catalog:classes", ":services:media:classes")
     testClassesDirs = sourceSets["test"].output.classesDirs

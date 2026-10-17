@@ -75,6 +75,9 @@ class CatalogServiceRpc(
     private val creditWrites: CreditWrites? = null,
     private val managedCreditReads: ManagedCreditReads? = null,
     private val artwork: com.spoolin.catalog.features.artwork.ArtworkRpc? = null,
+    private val movieLifecycle: com.spoolin.catalog.features.lifecycle.MovieLifecycle? = null,
+    private val personLifecycle: com.spoolin.catalog.features.lifecycle.PersonLifecycle? = null,
+    private val deletionImpact: com.spoolin.catalog.features.lifecycle.DeletionImpact? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
 
     // ── GetOperation ─────────────────────────────────────────────────────────
@@ -268,6 +271,33 @@ class CatalogServiceRpc(
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
         }
+    }
+
+    override fun movieLifecycle(request: spoolin.v1.Spoolin.Lifecycle, response: StreamObserver<Outcome>) {
+        val handler = movieLifecycle
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.asRuntimeException())
+            return
+        }
+        handler.apply(request, response)
+    }
+
+    override fun personLifecycle(request: spoolin.v1.Spoolin.Lifecycle, response: StreamObserver<Outcome>) {
+        val handler = personLifecycle
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.asRuntimeException())
+            return
+        }
+        handler.apply(request, response)
+    }
+
+    override fun deletionImpact(request: Id, response: StreamObserver<spoolin.v1.Spoolin.Impact>) {
+        val handler = deletionImpact
+        if (handler == null) {
+            response.onError(Status.UNAVAILABLE.asRuntimeException())
+            return
+        }
+        handler.preview(request, response)
     }
 
     override fun beginArtwork(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<Outcome>) {

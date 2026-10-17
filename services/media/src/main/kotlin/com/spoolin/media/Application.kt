@@ -133,7 +133,8 @@ class Application {
         val reads = com.spoolin.media.operations.receipts.OwnerReceiptReads(dataSource)
         val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
         val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision)
-        return MediaServiceImpl(uploadRpc, reads)
+        val holdRpc = com.spoolin.media.features.hold.HoldRpc(dataSource)
+        return MediaServiceImpl(uploadRpc, holdRpc, reads)
     }
 
     @Bean

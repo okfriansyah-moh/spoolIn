@@ -139,6 +139,9 @@ class Application {
         creditWritesProvider: ObjectProvider<com.spoolin.catalog.features.credit.CreditWrites>,
         managedCreditReadsProvider: ObjectProvider<com.spoolin.catalog.features.credit.ManagedCreditReads>,
         artworkRpcProvider: ObjectProvider<com.spoolin.catalog.features.artwork.ArtworkRpc>,
+        movieLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.MovieLifecycle>,
+        personLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.PersonLifecycle>,
+        deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
     ): io.grpc.BindableService {
         val reads = com.spoolin.catalog.operations.receipts.OwnerReceiptReads(dataSource)
         val authority = com.spoolin.support.receipts.ReceiptAuthority {
@@ -163,6 +166,9 @@ class Application {
             creditWrites = creditWritesProvider.ifAvailable,
             managedCreditReads = managedCreditReadsProvider.ifAvailable,
             artwork = artworkRpcProvider.ifAvailable,
+            movieLifecycle = movieLifecycleProvider.ifAvailable,
+            personLifecycle = personLifecycleProvider.ifAvailable,
+            deletionImpact = deletionImpactProvider.ifAvailable,
         )
     }
 }
@@ -201,6 +207,18 @@ class CatalogWriteConfiguration {
     @Bean
     fun artworkRpc(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.artwork.ArtworkRpc =
         com.spoolin.catalog.features.artwork.ArtworkRpc(dataSource, receipts)
+
+    @Bean
+    fun movieLifecycle(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+        com.spoolin.catalog.features.lifecycle.MovieLifecycle(dataSource, receipts)
+
+    @Bean
+    fun personLifecycle(dataSource: DataSource, receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
+        com.spoolin.catalog.features.lifecycle.PersonLifecycle(dataSource, receipts)
+
+    @Bean
+    fun deletionImpact(dataSource: DataSource): com.spoolin.catalog.features.lifecycle.DeletionImpact =
+        com.spoolin.catalog.features.lifecycle.DeletionImpact(dataSource)
 
     @Bean
     fun managedPersonReads(dataSource: DataSource): ManagedPersonReads =

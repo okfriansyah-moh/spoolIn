@@ -20,10 +20,20 @@ import javax.sql.DataSource
  */
 class MediaServiceImpl(
     private val upload: UploadRpc,
+    private val holds: com.spoolin.media.features.hold.HoldRpc,
     private val receiptReads: OwnerReceiptReads,
 ) : MediaServiceGrpc.MediaServiceImplBase() {
     override fun upload(response: StreamObserver<Outcome>): StreamObserver<UploadChunk> =
         upload.upload(response)
+
+    override fun reserve(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) =
+        holds.reserve(request, response)
+
+    override fun confirm(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) =
+        holds.confirm(request, response)
+
+    override fun release(request: spoolin.v1.Spoolin.Hold, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) =
+        holds.release(request, response)
 
     override fun getOperation(
         request: Id,

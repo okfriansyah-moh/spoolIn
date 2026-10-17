@@ -129,6 +129,34 @@ val managedCatalogUnitTest by tasks.registering(Test::class) {
 
 tasks.named("koverXmlReport") { dependsOn(managedCatalogUnitTest) }
 
+val artworkProxyUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = files(
+        sourceSets["test"].output.classesDirs,
+        sourceSets["main"].output,
+        configurations["testRuntimeClasspath"],
+    )
+    filter { includeTestsMatching("com.spoolin.core.features.artworkproxy.*RulesTest") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(artworkProxyUnitTest) }
+
+val lifecycleProjectionUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = files(
+        sourceSets["test"].output.classesDirs,
+        sourceSets["main"].output,
+        configurations["testRuntimeClasspath"],
+    )
+    filter { includeTestsMatching("com.spoolin.core.features.catalogview.lifecycle.*RulesTest") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(lifecycleProjectionUnitTest) }
+
 val managedPersonUnitTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = files(

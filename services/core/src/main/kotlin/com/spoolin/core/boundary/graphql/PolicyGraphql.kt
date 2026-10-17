@@ -25,6 +25,7 @@ class PolicyGraphql(
     managedPerson: com.spoolin.core.features.catalogview.person.ManagedPersonGraphql? = null,
     managedCredit: com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql? = null,
     artwork: com.spoolin.core.features.artworkproxy.ArtworkGraphql? = null,
+    lifecycle: com.spoolin.core.features.catalogview.lifecycle.LifecycleGraphql? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
     private val envelope = GraphqlEnvelope(provider.policy)
@@ -55,6 +56,7 @@ class PolicyGraphql(
         managedPerson?.bind(wiring)
         managedCredit?.bind(wiring)
         artwork?.bind(wiring)
+        lifecycle?.bind(wiring)
         drafts?.bind(wiring)
         val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
@@ -133,6 +135,8 @@ class PolicyGraphqlConfiguration {
         managedCatalogView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql>,
         managedPersonView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.person.ManagedPersonGraphql>,
         managedCreditView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.credit.ManagedCreditGraphql>,
+        artworkView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.artworkproxy.ArtworkGraphql>,
+        lifecycleView: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.catalogview.lifecycle.LifecycleGraphql>,
     ): PolicyGraphql {
         val schema =
             ClassPathResource(
@@ -147,6 +151,8 @@ class PolicyGraphqlConfiguration {
             managedCatalog = managedCatalogView.ifAvailable,
             managedPerson = managedPersonView.ifAvailable,
             managedCredit = managedCreditView.ifAvailable,
+            artwork = artworkView.ifAvailable,
+            lifecycle = lifecycleView.ifAvailable,
         )
     }
 }

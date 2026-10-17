@@ -953,20 +953,55 @@
     "T025": {
       "source": "docs/plan/15-archive-management/tasks/T025-connect-private-archives-and-irreversible-confirmations.md",
       "test_paths": [
+        "frontend/src/routes/manage/archives/",
+        "frontend/src/lib/features/archive/",
         "tests/browser/flows/archives/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t025-archive-unit",
+          "argv": ["node", "build-tools/verification-tests/frontend/run-t025-tests.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t025-unit.json",
+          "required_paths": ["frontend/src/lib/features/archive/archive-rules.test.ts"]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t025-archives-browser",
+          "argv": ["node", "tests/browser/run-archives.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t025-integration.json",
+          "required_paths": ["tests/browser/flows/archives/archives.spec.ts"]
+        }
+      ],
+      "pending_reason": null
     },
     "T026": {
       "source": "docs/plan/16-artwork-management-browser-journeys/tasks/T026-connect-measured-progress-and-recover-attachment-outcomes.md",
       "test_paths": [
+        "frontend/src/lib/features/artwork/",
         "tests/browser/flows/artwork/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t026-artwork-unit",
+          "argv": ["node", "build-tools/verification-tests/frontend/run-t026-tests.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t026-unit.json",
+          "required_paths": ["frontend/src/lib/features/artwork/progress.test.ts"]
+        }
+      ],
+      "integration": [
+        {
+          "id": "t026-artwork-browser",
+          "argv": ["node", "tests/browser/run-artwork.mjs"],
+          "timeout": 1800,
+          "report": ".ai/evidence/numbering-v1/t026-integration.json",
+          "required_paths": ["tests/browser/flows/artwork/artwork.spec.ts"]
+        }
+      ],
+      "pending_reason": null
     },
     "T027": {
       "source": "docs/plan/17-draft-recovery-editor-integration/tasks/T027-prove-recovery-through-real-movie-person-and-credit-editors.md",
