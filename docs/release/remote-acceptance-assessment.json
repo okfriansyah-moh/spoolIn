@@ -106,7 +106,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T002",
@@ -220,7 +232,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T003",
@@ -316,7 +340,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T004",
@@ -425,7 +461,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T005",
@@ -560,7 +608,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T006",
@@ -686,7 +746,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T007",
@@ -807,7 +879,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T008",
@@ -967,7 +1051,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T009",
@@ -1125,7 +1221,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T010",
@@ -1347,7 +1455,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T011",
@@ -1566,7 +1686,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T012",
@@ -1761,7 +1893,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T013",
@@ -2022,7 +2166,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T014",
@@ -2175,7 +2331,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T015",
@@ -2282,7 +2450,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T016",
@@ -2449,7 +2629,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T017",
@@ -2599,7 +2791,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T018",
@@ -2699,7 +2903,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T019",
@@ -2838,7 +3054,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T020",
@@ -2948,7 +3176,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T021",
@@ -3094,7 +3334,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T022",
@@ -3226,7 +3478,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294: Media container security context passed, but Bubblewrap could not mount proc; no conversion ran.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T023",
@@ -3377,7 +3641,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T024",
@@ -3503,7 +3779,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T025",
@@ -3781,7 +4069,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T026",
@@ -4073,7 +4373,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294: production draft and movie mutation succeeded; browser then failed because Create movie stayed enabled; persisted reload/artwork checks did not run.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T027",
@@ -4202,7 +4514,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 screenshot shows a1440x10899 create form and long seeded genre checklist; design match unproved.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T028",
@@ -4317,7 +4641,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 real SDK stdio/gateway/revocation positive proof passed. Required host compatibility/provenance and approval/rejection pending.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T029",
@@ -4465,7 +4801,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 real MCP protocol succeeds; trusted host signer/UI-origin and approval proof remains pending.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T030",
@@ -4562,7 +4910,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 real MCP protocol succeeds; approved private challenge/connector host delivery remains pending.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T031",
@@ -4750,7 +5110,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T032",
@@ -4841,7 +5213,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 all200 frozen DB/API records, repeat-safe loading and restart persistence passed.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T033",
@@ -5053,7 +5437,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 all200 frozen DB/API records, repeat-safe loading and restart persistence passed.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T034",
@@ -5196,7 +5592,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T035",
@@ -5342,7 +5750,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T036",
@@ -5493,7 +5913,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 all seven actual monitoring assertions passed; dashboard rendered-browser observation and other assigned requirements remain open.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T037",
@@ -5763,7 +6195,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 actual make start/readiness passed. Documented Make lifecycle suites skipped because mode was runtime; earlier partial Make checks are run-bound to2d3db725.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T038",
@@ -5924,7 +6368,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T039",
@@ -6130,7 +6586,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T040",
@@ -6238,7 +6706,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T041",
@@ -6382,7 +6862,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T042",
@@ -7060,7 +7552,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T043",
@@ -7360,7 +7864,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T044",
@@ -7730,7 +8246,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T045",
@@ -7835,7 +8363,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     },
     {
       "task_id": "T046",
@@ -8010,7 +8550,19 @@
           ],
           "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary has current inspected evidence and final independent combined review."
         }
-      ]
+      ],
+      "latest_focused_run": {
+        "run_id": 39104220294,
+        "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+        "result": "Run39104220294 FAILED on application SHA287c050587ad3c35995c6c9dac7bec03be35d886: actual startup/readiness and200/200 seed database/API/repeat/restart passed; real MCP SDK/stdio/revocation and seven monitoring assertions passed; codec failed before conversion and first browser case failed after successful creation;83 browser cases skipped; Make lifecycle and delivery gates skipped in runtime mode.",
+        "evidence_links": [
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067",
+          "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419"
+        ],
+        "runtime_verified": false,
+        "formally_accepted": false
+      }
     }
   ],
   "source_findings": [
@@ -8542,8 +9094,8 @@
     "data/seed/manifest.json": "e6b45414eadccc4cefa297e0f8e5f3d100404783827ceeb79364a24de042e78d",
     "ops/monitoring/alerts.yml": "6195c88b22fb321e514631046b0117705982d3d28b19f31c42a98d9e66553300"
   },
-  "latest_continuation_sha": "2d3db725d8f3d445ccfa0537015eae601fc21405",
-  "latest_continuation_scope": "All46 rows retained and explicitly reassessed against the fresh remote results below; partial boundary passes do not close complete tasks.",
+  "latest_continuation_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+  "latest_continuation_scope": "All46 task rows assessed; run39104220294 adds actual focused runtime evidence without closing any complete task.",
   "latest_make_target_results": [
     {
       "target": "start",
@@ -8626,5 +9178,26 @@
       "restart_persistence": "pass",
       "supplied_optional_artwork": 0
     }
-  ]
+  ],
+  "latest_focused_run_summary": {
+    "run_id": 39104220294,
+    "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
+    "runner": "GitHub-hosted ubuntu24 X64 image20261012.334.1",
+    "workflow_result": "failure",
+    "make_start": "passed",
+    "seed": "200/200 database/API and repeat/restart passed",
+    "protocol": "actual SDK stdio/gateway/revocation passed; hosts pending",
+    "codec": "failed before conversion at Bubblewrap proc mount",
+    "browser": "84 selected;1 failed,83 skipped; successful create then enabled-button assertion failed",
+    "monitoring": "seven assertions passed",
+    "make_lifecycle": "skipped in focused mode",
+    "gates": "skipped",
+    "evidence_artifact_ids": [
+      12128241332,
+      12128576419,
+      12128696067,
+      12128671183,
+      12128481910
+    ]
+  }
 }

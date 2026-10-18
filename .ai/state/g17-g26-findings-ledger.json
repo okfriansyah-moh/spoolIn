@@ -180,6 +180,16 @@
           "source_correction_and_runtime_boundary": "All200 frozen database+HTTPSAPI records, exact counts/relationships/provenance, repeat-safe loading and restart persistence pass. Suppliedoptionalartwork0 is permitted; uploadedartwork pipeline separate.",
           "runtime_accepted": false,
           "formal_acceptance": "pending independent combined review and complete assigned obligations"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "All200 frozen seed database/API pairs pass, with exact record/relationship counts, repeat-safe load and restart persistence.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -333,6 +343,16 @@
           "source_correction_and_runtime_boundary": "All7actual monitoring checks pass, including real delivery, duplicate coalescing and durable firing/resolved episodes.",
           "runtime_accepted": false,
           "formal_acceptance": "pending independent combined review and complete assigned obligations"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "All7 actual monitoring assertions pass, including scrapes, auth denials, dashboard datasource and persisted alert firing/resolution.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -794,6 +814,16 @@
           "source_correction_and_runtime_boundary": "Actualrestricted Media process settings observed but pipeline exits126 duringversions. Narrow explicitcompoundlabel correctiona60695ce committed; fresh kernel/codec proof pending.",
           "runtime_accepted": false,
           "formal_acceptance": "pending independent combined review and complete assigned obligations"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "Explicit profile-stack source change is present, but production Bubblewrap still fails to mount proc before codec conversion; exact host denial source remains unproven.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -1167,6 +1197,16 @@
           "runtime_accepted": false,
           "detail": "Native3227 executed/1failure with two separate compilation blockers; corrected source0f87d739/81d6f42f/3191f50f requires rerun.",
           "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "Full native run39103621949 was cancelled during native execution; current focused run skips native suites.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -1246,6 +1286,16 @@
           "runtime_accepted": false,
           "detail": "Actual startup and complete seed pass; browser and codec failed. Cancellation preserves evidence and leaves unexecuted operations/gates pending.",
           "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "Current actual startup, seed and protocol pass. Browser post-save assertion and codec fail; lifecycle/quality gates are skipped.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -1304,6 +1354,16 @@
           "runtime_accepted": false,
           "detail": "Every frozen seed database and HTTPS API record passes, including all100TV end fields, repeat-safe loading and restart persistence. Whole-task acceptance remains pending.",
           "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "All frozen seed database/API comparisons pass, including all200 records, approved source fields, repeat loading and restart.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -1341,6 +1401,16 @@
           "source_correction_and_runtime_boundary": "Actualbrowser stillfails requiredbackupFIELD_INVALID beforeCreateMovie. Mandatory DraftConfiguration and requiredGraphQL resolver injection287c0505 nowcommitted; freshmakeStart/UIpersistedproof pending.",
           "runtime_accepted": false,
           "formal_acceptance": "pending independent combined review and complete assigned obligations"
+        },
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "Actual draft backup and movie creation now succeed. Browser then fails at post-save enabled-button assertion; reload/artwork checks remain pending.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
         }
       ]
     },
@@ -1362,7 +1432,52 @@
       ],
       "source_disposition": "Prepared b4c337af bounded responsive region retains every native checkbox and legend/help; added actual API-to-UI complete ID/count and keyboard assertions.",
       "runtime_accepted": false,
-      "remote_proof_required": "Matching approved textual layout/property and real keyboard/browser/theme/viewport checks plus actual screenshots/diffs."
+      "remote_proof_required": "Matching approved textual layout/property and real keyboard/browser/theme/viewport checks plus actual screenshots/diffs.",
+      "continuation_assessments": [
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "Discovery filter change is present; current management screenshot exposes separate long seeded-genre layout at1440x10899.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128576419",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
+        }
+      ]
+    },
+    {
+      "id": "F-053",
+      "required": true,
+      "status": "open",
+      "area": "Successful create state and seeded genre layout",
+      "summary": "The production browser passed draft backup and the CreateMovie mutation, then failed after Movie saved because the Create movie button stayed enabled. The actual1440x10899 screenshot also shows the long seeded genre checklist. The journey stopped before persisted reload and artwork attachment checks.",
+      "evidence_paths": [
+        "frontend/src/lib/features/movie/MovieEditorForm.svelte",
+        "frontend/src/lib/features/movie/editor-controller.ts",
+        "tests/browser/flows/remote/artwork.spec.ts",
+        "docs/design-system/mockup/management.html"
+      ],
+      "task_ids": [
+        "T026",
+        "T027",
+        "T044"
+      ],
+      "requirement_ids": [
+        "ATDD-260-T1-R03",
+        "ATDD-039"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "287c050587ad3c35995c6c9dac7bec03be35d886",
+          "run_id": 39104220294,
+          "result": "Actual create response succeeded; post-save button assertion failed. Reload and upload not executed; screenshot height1440x10899 shows long genre list.",
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294/artifacts/12128696067"
+          ],
+          "runtime_accepted": false
+        }
+      ]
     }
   ],
   "pending_acceptance": [
@@ -2041,13 +2156,39 @@
       {
         "run_id": 39104220294,
         "tested_sha": "287c050587ad3c35995c6c9dac7bec03be35d886",
-        "result": "in_progress",
+        "result": "failed-browser-and-codec",
         "last_observed_step": "Start documented application",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294",
         "artifact_retention_days": 14,
         "scope": "Focused actual make start, seed/persistence, SDK protocol, restricted codec and four Chromium browser projects. No passing startup/browser conclusion yet for these corrected inputs.",
         "job_id": 117609224604,
-        "inspected_prerequisites": "Strict build/contract generation, production frontend/MCP check, readiness/redaction checks, pinned codec prerequisite provisioning, synthetic environment, Compose forwarding and browser engines/CA trust all completed success; actual make start active since06:49:01UTC. No browser result yet."
+        "inspected_prerequisites": "Strict build/contract generation, production frontend/MCP check, readiness/redaction checks, pinned codec prerequisite provisioning, synthetic environment, Compose forwarding and browser engines/CA trust all completed success; actual make start active since06:49:01UTC. No browser result yet.",
+        "runner": {
+          "environment": "GitHub-hosted",
+          "os": "Linux",
+          "arch": "X64",
+          "image": "ubuntu24",
+          "image_version": "20261012.334.1"
+        },
+        "actual_steps": {
+          "build_contracts_frontend_mcp": "passed",
+          "sandbox_environment_and_browser_prerequisites": "passed",
+          "make_start_and_trusted_readiness": "passed",
+          "public_policy_and_titles": "200 both",
+          "seed_database_api_repeat_restart": "200/200;100movies/100series/1213people/1475credits/3057members;202APIrequests;0throttles;repeat and restart passed",
+          "SDK_stdio_gateway_revocation": "passed;revoked HTTP403 and stdio refusal",
+          "codec": "failed before conversion; Bubblewrap proc mount Operation not permitted",
+          "browser": "failed;84 selected;1 failed,83 skipped,0 errors; Create movie remained enabled after successful save",
+          "monitoring": "all7 actual assertions passed",
+          "make_lifecycle_and_final_gates": "skipped in runtime mode"
+        },
+        "artifacts": [
+          12128241332,
+          12128576419,
+          12128696067,
+          12128671183,
+          12128481910
+        ]
       }
     ],
     "progress_checkpoints": [
@@ -2178,7 +2319,7 @@
       "conclusion": "Required actual Claude/ChatGPT hosts, approved registered tunnel identity and assistive reader observations remain pending. Empty repository secret listing is not proof about organization-level services or user accounts."
     },
     "wrap_up_boundary": {
-      "implementation": "Corrected draft mandatory wiring287c0505, fail-closed compound codec profilea60695ce, start argument rejection3ece5962 committed/pushed. Fresh actual product proof remains in progress.",
+      "implementation": "Source corrections are published. Run39104220294 proves actual startup, draft backup/create, all200 seed records, real SDK protocol/revocation and seven monitoring assertions. It fails the browser post-save button assertion and restricted codec proc mount.",
       "independent_combined_review": "not performed; implementation and required current proof remain incomplete",
       "formal_selection_acceptance": "not satisfied: complete current check/evidence receipt and independent combined review absent; actual required host/reader boundaries pending; overlapping retained selection ownership preserved",
       "whole_task_totals": {
@@ -2187,7 +2328,7 @@
         "runtime_verified": 0,
         "formally_accepted": 0
       },
-      "pending": "No task/finding newly markedDone oraccepted. Original findings and exhausted review/correction history retained."
+      "pending": "83 browser cases skipped; image codec did not start; Make lifecycle, native suites, recovery, rotation, capacity, final gates, host/reader duties, complete design comparisons and one final combined review remain pending."
     }
   }
 }
