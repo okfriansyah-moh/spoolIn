@@ -5,7 +5,7 @@ import {
   ResourceTemplate,
   fromJsonSchema,
 } from '@modelcontextprotocol/server';
-import type { JsonSchemaType, RegisteredTool } from '@modelcontextprotocol/server';
+import type { JsonSchemaType, RegisteredTool, Tool } from '@modelcontextprotocol/server';
 import { McpMetrics, mcpMetrics } from '../operations/metrics.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
 import { GatewayClient } from '../operations/gateway-client.js';
@@ -149,6 +149,7 @@ export async function createSession(
     registerContext(server, state);
     registerOperation(server, state);
     registerProposal(server, state);
+    registerToolListing(server, state);
     return { server, close: async () => {
       state.proposals.clear();
       gateway.close();
@@ -158,6 +159,22 @@ export async function createSession(
     gateway.close();
     throw error;
   }
+}
+
+function registerToolListing(server: McpServer, state: SessionState) {
+  const results: Record<string, string> = {
+    movie_context: 'context', movie_operation: 'operationReceipt', propose_movie: 'proposalReview',
+  };
+  server.server.setRequestHandler('tools/list', async () => {
+    await state.policy.refresh();
+    const tools: Tool[] = [...state.tools].filter(([, tool]) => tool.enabled).map(([name, tool]) => ({
+      name, description: tool.description!,
+      inputSchema: state.schemas[name]! as Tool['inputSchema'],
+      outputSchema: outputs.$defs[results[name]!]! as NonNullable<Tool['outputSchema']>,
+      ...(tool._meta ? { _meta: tool._meta } : {}),
+    }));
+    return { tools };
+  });
 }
 
 async function refreshInput(state: SessionState, name: string, args: Record<string, unknown>) {

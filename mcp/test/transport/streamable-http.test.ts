@@ -212,6 +212,15 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     expect(invalid.isError).toBe(true);
     expect(proposals).toBe(0);
   });
+  it('refreshes tools listing itself before advertising current effective bounds', async () => {
+    const connected = await connect();
+    policy = nextPolicy();
+    const tools = (await connected.listTools()).tools;
+    expect(tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({ properties: { title: { maxLength: 5 } } });
+    expect(tools.map((tool) => tool.name)).not.toContain('approve_movie');
+    expect(tools.find((tool) => tool.name === 'propose_movie')?._meta).toEqual({ ui: { resourceUri: 'ui://spoolin/movie-review' } });
+    expect(proposals).toBe(0);
+  });
   it('refreshes a downstream stale-policy rejection but never automatically repeats the write', async () => {
     const connected = await connect();
     policyChangesOnWrite = true;
