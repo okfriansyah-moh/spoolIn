@@ -116,9 +116,7 @@ class ArtworkGraphql(
 
     private fun validateResultId(outcome: Spoolin.Outcome) {
         if (outcome.hasResultId()) {
-            val valid = runCatching {
-                UUID.fromString(outcome.resultId).toString() == outcome.resultId
-            }.getOrDefault(false)
+            val valid = isUuid(outcome.resultId)
             if (!valid) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
         }
     }
@@ -228,7 +226,12 @@ class ArtworkGraphql(
     }
 
     private fun validateUuid(id: String, path: String) {
-        runCatching { UUID.fromString(id).also { require(it.toString() == id) } }
-            .onFailure { throw InputViolation(path, "Supply a lowercase, hyphenated UUID.") }
+        if (!isUuid(id)) throw InputViolation(path, "Supply a lowercase, hyphenated UUID.")
+    }
+
+    private fun isUuid(value: String): Boolean = try {
+        UUID.fromString(value).toString() == value
+    } catch (_: IllegalArgumentException) {
+        false
     }
 }
