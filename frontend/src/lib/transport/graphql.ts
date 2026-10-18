@@ -27,6 +27,7 @@ function rejected(errors: unknown, ambiguous: boolean): TransportFailure {
     'UNAUTHENTICATED',
     'FORBIDDEN',
     'VALIDATION_FAILED',
+    'FIELD_INVALID',
     'CONFLICT',
   ];
   const code =

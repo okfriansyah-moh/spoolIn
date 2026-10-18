@@ -10,7 +10,7 @@
    *
    * SSR note: hero/head always rendered; interactive sections are client-side only.
    */
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { historyCursor } from '../lib/state/pagination';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -27,7 +27,7 @@
     MAX_SEARCH_CODE_POINTS,
   } from '../lib/features/catalog/types';
   import type { Criteria, CatalogState } from '../lib/features/catalog/types';
-  import { fetchGenres } from '../lib/features/catalog/api';
+  import { fetchCatalogFilterOptions } from '../lib/features/catalog/api';
   import CatalogFilters from '../lib/components/CatalogFilters.svelte';
   import TitleCard from '../lib/components/TitleCard.svelte';
 
@@ -36,8 +36,11 @@
   let genreError = $state('');
   let genresLoading = $state(false);
   let genreAbort: AbortController | null = null;
-  let years = $state<string[]>(
-    Array.from({ length: 10 }, (_, i) => String(new Date().getFullYear() - i)),
+  let releaseYears = $state<{ year: number; months: number[] }[]>([]);
+  const years = $derived(releaseYears.map((date) => String(date.year)));
+  const months = $derived(
+    releaseYears.find((date) => String(date.year) === criteria.year)?.months ??
+      [],
   );
   let catalogState = $state<CatalogState>({
     kind: 'loading',
@@ -69,7 +72,7 @@
       catalogState = state;
     });
 
-    void loadGenres();
+    void loadFilterOptions();
 
     // Bootstrap from URL
     const initial = parseCriteria(page.url.searchParams);
@@ -85,43 +88,51 @@
     };
   });
 
-  async function loadGenres() {
+  async function loadFilterOptions() {
     genreAbort?.abort();
     const abort = new AbortController();
     genreAbort = abort;
     genresLoading = true;
     genreError = '';
     try {
-      const current = await fetchGenres(createTransport(), abort.signal);
-      if (!abort.signal.aborted)
-        genres = current.map((genre) => ({ id: genre.id, name: genre.label }));
+      const current = await fetchCatalogFilterOptions(
+        createTransport(),
+        abort.signal,
+      );
+      if (!abort.signal.aborted) {
+        genres = current.genres.map((genre) => ({
+          id: genre.id,
+          name: genre.label,
+        }));
+        releaseYears = current.releaseYears;
+      }
     } catch {
       if (!abort.signal.aborted)
         genreError =
-          'Genre choices could not be loaded. Your current filters are retained.';
+          'Filter choices could not be loaded. Your current filters are retained.';
     } finally {
       if (!abort.signal.aborted) genresLoading = false;
     }
   }
 
-  // Push current criteria into the URL (replaceState = true for filter changes,
-  // false for explicit navigation like clicking a title).
+  // Update catalog history without route navigation, preserving focus and scroll.
   function pushUrl(c: Criteria): void {
     const params = criteriaToParams(c);
     const qs = params.toString();
     const root = resolve('/');
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve catalog query string on /
     void goto(qs ? `${root}?${qs}` : root, {
-      replaceState: true,
+      shallow: true,
+      replace: true,
       state: { ...page.state, catalogCursor: null },
     });
   }
 
   // Dispatch criteria to the controller, with optional debounce for text.
   function dispatch(c: Criteria, textChanged: boolean): void {
-    lastDispatched = c;
+    lastDispatched = { ...c, genres: [...c.genres] };
     lastPageCursor = null;
-    controller?.setCriteria(c, { debounce: textChanged });
+    controller?.setCriteria(lastDispatched, { debounce: textChanged });
   }
 
   // Called when CatalogFilters mutates criteria via two-way binding.
@@ -149,9 +160,9 @@
   // Sync URL changes (Back/Forward) back to criteria and controller.
   $effect(() => {
     if (!mounted || !controller) return;
-    const params = page.url.searchParams;
+    const params = (page.shallow?.url ?? page.url).searchParams;
     const fromUrl = parseCriteria(params);
-    const cur = criteria;
+    const cur = untrack(() => criteria);
 
     const cursor = historyCursor(page.state, 'catalogCursor');
     const same = cursor === lastPageCursor && sameCriteria(fromUrl, cur);
@@ -187,10 +198,10 @@
     )
       return;
     lastPageCursor = cursor;
-    // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
-    await goto(page.url.href, {
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- retain the current catalog criteria
+    await goto((page.shallow?.url ?? page.url).href, {
+      shallow: true,
       state: { ...page.state, catalogCursor: cursor },
-      reset: false,
     });
   }
 
@@ -223,94 +234,103 @@
         </p>
       {/if}
 
-      {#if genresLoading}<p role="status">Loading genre choices…</p>{/if}
+      {#if genresLoading}<p role="status">Loading filter choices…</p>{/if}
       {#if genreError}<p role="alert">{genreError}</p>
-        <button type="button" onclick={() => void loadGenres()}
-          >Retry genre choices</button
+        <button type="button" onclick={() => void loadFilterOptions()}
+          >Retry filter choices</button
         >{/if}
-      <CatalogFilters bind:criteria {genres} {years} />
+      <CatalogFilters
+        bind:criteria
+        {genres}
+        {years}
+        {months}
+        onsearch={() => dispatch(criteria, false)}
+      />
     </section>
 
-    {#if catalogState.kind === 'loading'}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label="Finding titles"
-        class="catalog-status"
-      >
-        <p>Finding titles for the current criteria…</p>
-      </div>
-    {:else if catalogState.kind === 'outdated'}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label="Refreshing"
-        class="catalog-status"
-      >
-        <p>Finding titles for the current criteria…</p>
-      </div>
-    {:else if catalogState.kind === 'failure'}
-      <div role="alert" class="catalog-status catalog-failure">
-        <p>The catalog could not load.</p>
-        <button onclick={() => controller?.retry()}>Try again</button>
-      </div>
-    {:else if catalogState.kind === 'empty'}
-      <div class="catalog-status catalog-empty">
-        <p>The catalog is empty.</p>
-        <a href={resolve('/')}>Browse again</a>
-      </div>
-    {:else if catalogState.kind === 'no-match'}
-      <div class="catalog-status catalog-no-match">
-        <p>No matching titles — try changing your filters.</p>
-      </div>
-    {:else if catalogState.kind === 'invalid'}
-      <div role="alert" class="catalog-status catalog-invalid">
-        <p>
-          Search text is too long — up to {MAX_SEARCH_CODE_POINTS} characters are
-          accepted. Correct the input above.
-        </p>
-      </div>
-    {:else if catalogState.kind === 'catalog'}
-      <section aria-label="Title results">
-        <div class="catalog-heading">
-          <h2>Explore the catalog</h2>
-          <p class="result-count">
-            {catalogState.titles.length} title{catalogState.titles.length === 1
-              ? ''
-              : 's'} found
+    <div class="catalog-results">
+      {#if catalogState.kind === 'loading'}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="Finding titles"
+          class="catalog-status"
+        >
+          <p>Finding titles for the current criteria…</p>
+        </div>
+      {:else if catalogState.kind === 'outdated'}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="Refreshing"
+          class="catalog-status"
+        >
+          <p>Finding titles for the current criteria…</p>
+        </div>
+      {:else if catalogState.kind === 'failure'}
+        <div role="alert" class="catalog-status catalog-failure">
+          <p>The catalog could not load.</p>
+          <button onclick={() => controller?.retry()}>Try again</button>
+        </div>
+      {:else if catalogState.kind === 'empty'}
+        <div class="catalog-status catalog-empty">
+          <p>The catalog is empty.</p>
+          <a href={resolve('/')}>Browse again</a>
+        </div>
+      {:else if catalogState.kind === 'no-match'}
+        <div class="catalog-status catalog-no-match">
+          <p>No matching titles — try changing your filters.</p>
+        </div>
+      {:else if catalogState.kind === 'invalid'}
+        <div role="alert" class="catalog-status catalog-invalid">
+          <p>
+            Search text is too long — up to {MAX_SEARCH_CODE_POINTS} characters are
+            accepted. Correct the input above.
           </p>
         </div>
-        <ul class="title-grid" aria-label="Titles">
-          {#each catalogState.titles as t (t.id)}
-            <li>
-              <TitleCard
-                id={t.id}
-                title={t.title}
-                kind={t.kind === 'TV' ? 'TV' : 'Movie'}
-                date={t.displayRelease ?? null}
-                genres={t.genreLabels ?? []}
-                artwork={t.artworkUrl}
-              />
-            </li>
-          {/each}
-        </ul>
-        {#if catalogState.pageError}<p role="alert">
-            {catalogState.pageError}
-          </p>{/if}
-        {#if catalogState.pageInfo?.hasNextPage}<button
-            type="button"
-            disabled={catalogState.loadingMore}
-            aria-busy={catalogState.loadingMore}
-            onclick={() => void nextTitlesPage()}
-          >
-            {catalogState.pageError
-              ? 'Retry next titles page'
-              : catalogState.loadingMore
-                ? 'Loading more titles…'
-                : 'Next titles page'}
-          </button>{/if}
-      </section>
-    {/if}
+      {:else if catalogState.kind === 'catalog'}
+        <section aria-label="Title results">
+          <div class="catalog-heading">
+            <h2>Explore the catalog</h2>
+            <p class="result-count">
+              {catalogState.titles.length} title{catalogState.titles.length ===
+              1
+                ? ''
+                : 's'} found
+            </p>
+          </div>
+          <ul class="title-grid" aria-label="Titles">
+            {#each catalogState.titles as t (t.id)}
+              <li>
+                <TitleCard
+                  id={t.id}
+                  title={t.title}
+                  kind={t.kind === 'TV' ? 'TV' : 'Movie'}
+                  date={t.displayRelease ?? null}
+                  genres={t.genreLabels ?? []}
+                  artwork={t.artworkUrl}
+                />
+              </li>
+            {/each}
+          </ul>
+          {#if catalogState.pageError}<p role="alert">
+              {catalogState.pageError}
+            </p>{/if}
+          {#if catalogState.pageInfo?.hasNextPage}<button
+              type="button"
+              disabled={catalogState.loadingMore}
+              aria-busy={catalogState.loadingMore}
+              onclick={() => void nextTitlesPage()}
+            >
+              {catalogState.pageError
+                ? 'Retry next titles page'
+                : catalogState.loadingMore
+                  ? 'Loading more titles…'
+                  : 'Next titles page'}
+            </button>{/if}
+        </section>
+      {/if}
+    </div>
   {:else}
     <!-- SSR / pre-hydration placeholder -->
     <div role="status" aria-live="polite" class="catalog-status">
@@ -318,3 +338,9 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .catalog-results {
+    min-height: 100vh;
+  }
+</style>

@@ -16,7 +16,7 @@ class CodecSandbox {
     ): String? {
         val command = CodecCommand.build(input, scratch, codecArguments)
         return try {
-            boundedProcess(command, deadline)
+            boundedProcess(command, deadline, codecArguments.first().endsWith("spoolin-image-header"))
         } catch (
             _: IOException,
         ) {
@@ -42,6 +42,7 @@ class CodecSandbox {
     private fun boundedProcess(
         command: List<String>,
         deadline: Long,
+        headerRead: Boolean,
     ): String? {
         val process = ProcessBuilder(command).redirectErrorStream(true).start()
         val captured = ByteArrayOutputStream()
@@ -51,7 +52,7 @@ class CodecSandbox {
                 "PROCESSING_TIMEOUT"
             } else {
                 reader.join(READER_JOIN_MILLIS)
-                exitError(process, captured)
+                exitError(process, captured, headerRead)
             }
         } finally {
             terminate(process, reader)
@@ -61,11 +62,14 @@ class CodecSandbox {
     private fun exitError(
         process: Process,
         captured: ByteArrayOutputStream,
+        headerRead: Boolean,
     ): String? {
         if (process.exitValue() == 0) return null
         val diagnostic = captured.toString(Charsets.UTF_8)
         return if (diagnostic.contains("bwrap:") || diagnostic.contains("prlimit:")) {
             "PROCESSING_SANDBOX_UNAVAILABLE"
+        } else if (headerRead && process.exitValue() == 3) {
+            "INVALID_IMAGE_DIMENSIONS"
         } else {
             "PROCESSING_FAILED"
         }

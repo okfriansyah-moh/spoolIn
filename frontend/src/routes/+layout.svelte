@@ -41,7 +41,9 @@
       controller.dispose();
     };
   });
-  afterNavigate(focusContentHeading);
+  afterNavigate((navigation) => {
+    if (!navigation.shallow) focusContentHeading();
+  });
 </script>
 
 <AppShell currentPath={page.url.pathname} {capabilities}>

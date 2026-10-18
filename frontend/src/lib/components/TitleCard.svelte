@@ -21,8 +21,20 @@
 
 <article class="title-card">
   <div class="card-poster">
-    <ArtworkSlot src={artwork ?? null} />
-    <span class="title-kind-badge">{kind}</span>
+    {#if isRecordId(id)}
+      <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- use the same validated detail route as the title link. -->
+      <a
+        class="poster-link"
+        href={`${resolve('/')}titles/${encodeURIComponent(id)}`}
+        aria-label={title}
+      >
+        <ArtworkSlot src={artwork ?? null} />
+        <span class="title-kind-badge">{kind}</span>
+      </a>
+    {:else}
+      <ArtworkSlot src={artwork ?? null} />
+      <span class="title-kind-badge">{kind}</span>
+    {/if}
   </div>
   <h3>
     {#if isRecordId(id)}
@@ -33,3 +45,9 @@
   <p>{date ?? 'Release date unknown'}</p>
   {#if genres.length}<p class="card-genres">{genres.join(', ')}</p>{/if}
 </article>
+
+<style>
+  .poster-link {
+    display: block;
+  }
+</style>

@@ -3,7 +3,7 @@
  * Wraps the typed document nodes so callers never see raw query strings.
  */
 import { readPageInfo } from '../../state/pagination';
-import type { GraphqlRequest } from '../../transport/graphql';
+import { TransportFailure, type GraphqlRequest } from '../../transport/graphql';
 import { withSignal } from '../../transport/request-options';
 import type {
   TitlesQuery,
@@ -75,16 +75,39 @@ function record(value: unknown): Record<string, unknown> {
   return Object.fromEntries(Object.entries(value));
 }
 
+async function readCatalog(
+  request: GraphqlRequest,
+  query: string,
+  variables: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<unknown> {
+  try {
+    return await request(query, variables, withSignal(signal));
+  } catch (error) {
+    if (
+      signal?.aborted ||
+      !(error instanceof TransportFailure) ||
+      error.code !== 'UNAVAILABLE'
+    )
+      throw error;
+    // A cold service or interrupted read may recover; never retry rejected access or rate limits.
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 150));
+    if (signal?.aborted) throw error;
+    return request(query, variables, withSignal(signal));
+  }
+}
+
 export async function fetchTitles(
   request: GraphqlRequest,
   variables: TitlesQueryVariables,
   signal?: AbortSignal,
 ): Promise<TitlesQuery['titles']> {
   const data = record(
-    await request(
+    await readCatalog(
+      request,
       TITLES_QUERY,
       variables as Record<string, unknown>,
-      withSignal(signal),
+      signal,
     ),
   );
   return (data as { titles: TitlesQuery['titles'] }).titles;
@@ -137,4 +160,51 @@ export async function fetchTitleCredits(
   const result = data.titleCredits as CatalogTitleDetail['credits'];
   if (!Array.isArray(result?.nodes)) throw new Error('Credits unavailable.');
   return { ...result, pageInfo: readPageInfo(result.pageInfo, after) };
+}
+
+export type CatalogFilterOptions = {
+  genres: { id: string; label: string }[];
+  releaseYears: { year: number; months: number[] }[];
+};
+
+export async function fetchCatalogFilterOptions(
+  request: GraphqlRequest,
+  signal?: AbortSignal,
+): Promise<CatalogFilterOptions> {
+  const data = record(
+    await readCatalog(
+      request,
+      `query CatalogFilterOptions {
+      catalogFilterOptions { genres { id label } releaseYears { year months } }
+    }`,
+      {},
+      signal,
+    ),
+  );
+  const options = record(data.catalogFilterOptions);
+  if (!Array.isArray(options.genres) || !Array.isArray(options.releaseYears))
+    throw new Error('Unexpected filter choices');
+  return {
+    genres: options.genres.map((value) => {
+      const genre = record(value);
+      if (typeof genre.id !== 'string' || typeof genre.label !== 'string')
+        throw new Error('Unexpected genre choice');
+      return { id: genre.id, label: genre.label };
+    }),
+    releaseYears: options.releaseYears.map((value) => {
+      const date = record(value);
+      if (
+        typeof date.year !== 'number' ||
+        !Number.isInteger(date.year) ||
+        date.year < 1 ||
+        date.year > 9999 ||
+        !Array.isArray(date.months) ||
+        !date.months.every(
+          (month) => Number.isInteger(month) && month >= 1 && month <= 12,
+        )
+      )
+        throw new Error('Unexpected release date choice');
+      return { year: date.year, months: date.months };
+    }),
+  };
 }

@@ -1,3 +1,4 @@
+import { matchingPage } from '../../../state/search-page';
 import type { GraphqlRequest } from '../../../transport/graphql';
 import { appendDistinct, type PageInfo } from '../../../state/pagination';
 import { fetchManagedPeoplePage } from './api';
@@ -5,10 +6,15 @@ import type { ListState } from './types';
 
 export class PersonListController {
   private generation = 0;
+  private query = '';
   private current: ListState = { kind: 'loading' };
   private readonly listeners = new Set<(state: ListState) => void>();
 
   constructor(private readonly request: GraphqlRequest) {}
+
+  get snapshot(): ListState {
+    return this.current;
+  }
 
   subscribe(listener: (state: ListState) => void): () => void {
     this.listeners.add(listener);
@@ -16,15 +22,21 @@ export class PersonListController {
     return () => this.listeners.delete(listener);
   }
 
-  async load(csrf: string, signal: AbortSignal): Promise<void> {
+  async load(
+    csrf: string,
+    signal: AbortSignal,
+    query = this.query,
+  ): Promise<void> {
+    this.query = query.trim();
     const generation = ++this.generation;
     this.publish({ kind: 'loading' });
     try {
-      const page = await fetchManagedPeoplePage(
-        this.request,
-        csrf,
+      const page = await matchingPage(
+        (after) => fetchManagedPeoplePage(this.request, csrf, after, signal),
         null,
-        signal,
+        this.query,
+        (row) => row.name,
+        () => !signal.aborted && generation === this.generation,
       );
       if (signal.aborted || generation !== this.generation) return;
       this.publish({
@@ -54,11 +66,12 @@ export class PersonListController {
     const generation = this.generation;
     this.publish({ ...current, loadingMore: true, pageError: null });
     try {
-      const page = await fetchManagedPeoplePage(
-        this.request,
-        csrf,
+      const page = await matchingPage(
+        (after) => fetchManagedPeoplePage(this.request, csrf, after, signal),
         current.pageInfo.endCursor,
-        signal,
+        this.query,
+        (row) => row.name,
+        () => !signal.aborted && generation === this.generation,
       );
       if (signal.aborted || generation !== this.generation) return;
       this.publish({

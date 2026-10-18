@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import { fetchPeopleMatches } from './people-search';
+  import { beforeNavigate, goto } from '$app/navigation';
   import { appendDistinct } from '../../state/pagination';
   import Notice from '../../components/Notice.svelte';
   import Button from '../../components/Button.svelte';
   import RoleCreator from './RoleCreator.svelte';
+  import PersonSearchSelect from './PersonSearchSelect.svelte';
   import ConfirmDialog from '../../components/ConfirmDialog.svelte';
   import { fetchManagedMovie } from '../movie/api';
   import { createTransport } from '../../transport/graphql';
@@ -32,6 +35,8 @@
     context,
     draftSource,
     onTitleVersionChange,
+    onFinish,
+    showSkip = false,
   }: {
     titleId: string;
     titleVersion: string;
@@ -39,6 +44,8 @@
     context: WriteContext;
     draftSource: DraftSource;
     onTitleVersionChange: (version: string) => void;
+    onFinish?: () => void;
+    showSkip?: boolean;
   } = $props();
 
   let credits = $state<readonly ManagedCredit[]>([]);
@@ -46,7 +53,19 @@
   let people = $state<readonly PersonOption[]>([]);
   let loading = $state(true);
   let loadingPeople = $state(false);
+  let appliedPeopleSearch = $state('');
+  let peopleFeedback = $state('');
+  let peopleError = $state('');
+  let peopleRetryAppend = false;
+  let peopleGeneration = 0;
+  let peopleAbort: AbortController | null = null;
+  let pickedPerson = $state<PersonOption | null>(null);
+  let creditsFeedback = $state('');
+  let roleDirty = $state(false);
+  let roleBlocked = $state(false);
+  let roleResetKey = $state(0);
   let loadingCredits = $state(false);
+  let refreshingSavedCredits = $state(false);
   let nextCredits = $state<string | null>(null);
   let creditPageError = $state('');
   let creditGeneration = 0;
@@ -66,6 +85,97 @@
   let retryOriginal = $state<(() => Promise<CreditCommandOutcome>) | null>(
     null,
   );
+
+  let editorOpen = $state(false);
+  let category = $state<string | null>(null);
+  let leaveUrl = $state<string | null>(null);
+  let leaveDialog = $state(false);
+  let finishRequested = false;
+  let saveBeforeLeaving = false;
+  const formVisible = $derived(
+    editorOpen || !!editing || !!personId || !!roleId,
+  );
+  const visibleRoles = $derived(
+    category ? roles.filter((role) => role.category === category) : roles,
+  );
+
+  function hasUnfinishedCredit(): boolean {
+    return !!(
+      personId ||
+      roleId ||
+      characterText ||
+      creditDirty ||
+      backup.backed ||
+      backup.unbacked ||
+      creditDraftChoices.length ||
+      creditReviewRequired ||
+      roleDirty
+    );
+  }
+
+  beforeNavigate((navigation) => {
+    if (!submitting && !pendingId && !roleBlocked && !hasUnfinishedCredit())
+      return;
+    navigation.cancel();
+    if (roleBlocked) {
+      message = 'Finish checking the custom role result before leaving.';
+      return;
+    }
+    if (submitting || pendingId) {
+      message =
+        'Wait for the current credit save or check its original result before leaving.';
+      return;
+    }
+    if (navigation.willUnload) return;
+    if (creditDraftChoices.length) {
+      message =
+        'Choose a retained credit draft before saving or discarding it.';
+      return;
+    }
+    leaveUrl = navigation.to?.url.href ?? null;
+    finishRequested = false;
+    leaveDialog = true;
+  });
+
+  function addPerson(selectedCategory: string) {
+    category = selectedCategory;
+    editorOpen = true;
+    message = '';
+    queueMicrotask(() => document.getElementById('credit-person')?.focus());
+  }
+
+  function requestFinish() {
+    if (submitting || pendingId || roleBlocked) return;
+    if (creditDraftChoices.length) {
+      message =
+        'Choose a retained credit draft before saving or discarding it.';
+      return;
+    }
+    if (hasUnfinishedCredit()) {
+      finishRequested = true;
+      leaveUrl = null;
+      leaveDialog = true;
+    } else onFinish?.();
+  }
+
+  function continueAfterCredit() {
+    submitting = false;
+    leaveDialog = false;
+    saveBeforeLeaving = false;
+    const destination = leaveUrl;
+    leaveUrl = null;
+    if (finishRequested) {
+      finishRequested = false;
+      onFinish?.();
+    } else if (destination) void goto(destination);
+  }
+
+  async function saveAndLeave() {
+    saveBeforeLeaving = true;
+    leaveDialog = false;
+    await submitCredit();
+    if (hasUnfinishedCredit() || pendingId) saveBeforeLeaving = false;
+  }
 
   const selectedRole = $derived(
     roles.find((role) => role.id === roleId) ?? null,
@@ -90,7 +200,10 @@
       !!pendingId ||
       !!creditDraftChoices.length ||
       creditReviewRequired ||
-      draftUnavailable
+      draftUnavailable ||
+      loadingCredits ||
+      roleBlocked ||
+      roleDirty
     );
   }
 
@@ -168,6 +281,8 @@
     return () => {
       abort.abort();
       creditAbort?.abort();
+      peopleAbort?.abort();
+      peopleGeneration += 1;
       creditGeneration += 1;
       sync.dispose();
     };
@@ -307,7 +422,7 @@
   }
 
   async function discardCreditDraft() {
-    if (!draftSync || pendingId || submitting) return;
+    if (!draftSync || pendingId || submitting || roleBlocked) return;
     submitting = true;
     try {
       if (!(await draftSync.discard(context))) {
@@ -323,6 +438,9 @@
       discardingDraft = false;
       backup = draftSync.snapshot;
       message = 'Credit draft discarded. Saved credits are unchanged.';
+      if (leaveDialog) {
+        continueAfterCredit();
+      }
     } finally {
       submitting = false;
     }
@@ -346,26 +464,61 @@
     }
   }
 
-  async function loadMorePeople() {
-    if (!nextPeople || loadingPeople) return;
+  function searchPeople(query: string) {
+    appliedPeopleSearch = query.trim();
+    void loadPeople(false);
+  }
+
+  function installPeoplePage(
+    previous: readonly PersonOption[],
+    page: Awaited<ReturnType<typeof fetchPeopleMatches>>,
+  ) {
+    const known = new Set(previous.map((person) => person.id));
+    const added = page.nodes.filter((person) => !known.has(person.id));
+    people = [...previous, ...added];
+    nextPeople = page.next;
+    peopleFeedback = `${added.length} names added. ${people.length} ${appliedPeopleSearch ? 'matching names' : 'names'} available.${nextPeople ? '' : ' All results loaded.'}`;
+    if (!people.length)
+      peopleFeedback =
+        'No matching people. Try another name or clear the search.';
+  }
+
+  async function loadPeople(append: boolean) {
+    if (append && (!nextPeople || loadingPeople)) return;
+    peopleAbort?.abort();
+    const generation = ++peopleGeneration;
+    peopleAbort = new AbortController();
+    const signal = peopleAbort.signal;
+    pickedPerson =
+      people.find((person) => person.id === personId) ?? pickedPerson;
+    const previous = append ? people : [];
+    const cursor = append ? nextPeople : null;
+    peopleRetryAppend = append;
     loadingPeople = true;
+    peopleError = '';
+    peopleFeedback = 'Finding people…';
+    if (!append) {
+      people = [];
+      nextPeople = null;
+    }
     try {
-      const page = await fetchActivePeoplePage(
+      const page = await fetchPeopleMatches(
         createTransport(),
         context.csrf,
-        nextPeople,
+        cursor,
+        appliedPeopleSearch,
+        signal,
       );
-      const known = new Set(people.map((person) => person.id));
-      people = [
-        ...people,
-        ...page.nodes.filter((person) => !known.has(person.id)),
-      ];
-      nextPeople = page.next;
+      if (signal.aborted || generation !== peopleGeneration) return;
+      installPeoplePage(previous, page);
     } catch {
-      message =
-        'More people could not be loaded. Retry before choosing a missing person.';
+      if (!signal.aborted && generation === peopleGeneration) {
+        peopleFeedback = '';
+        peopleError =
+          'Names could not be loaded. Retry the search; your selected person is unchanged.';
+      }
     } finally {
-      loadingPeople = false;
+      if (generation === peopleGeneration) loadingPeople = false;
     }
   }
 
@@ -374,29 +527,62 @@
     creditGeneration += 1;
     creditAbort = new AbortController();
     const signal = creditAbort.signal;
-    const page = await fetchTitleCreditsPage(
+    const desiredCount = credits.length;
+    let page = await fetchTitleCreditsPage(
       createTransport(),
       titleId,
       context.csrf,
       null,
       signal,
     );
+    let refreshed = page.nodes;
+    while (
+      !signal.aborted &&
+      refreshed.length < desiredCount &&
+      page.pageInfo.hasNextPage
+    ) {
+      page = await fetchTitleCreditsPage(
+        createTransport(),
+        titleId,
+        context.csrf,
+        page.pageInfo.endCursor,
+        signal,
+      );
+      refreshed = appendDistinct(refreshed, page.nodes);
+    }
     if (signal.aborted) return;
-    credits = page.nodes;
+    const scrollY = window.scrollY;
+    credits = refreshed;
     nextCredits = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
     loadingCredits = false;
     creditPageError = '';
+    await tick();
+    if (!signal.aborted) window.scrollTo({ top: scrollY, behavior: 'instant' });
   }
 
   async function checkCreditReferences() {
     loadingCredits = true;
+    refreshingSavedCredits = true;
+    const generation = creditGeneration + 1;
+    const before = JSON.stringify(credits);
+    creditsFeedback = 'Refreshing saved credits…';
     try {
       await refreshCredits();
+      if (generation !== creditGeneration) return;
+      creditsFeedback =
+        JSON.stringify(credits) === before
+          ? 'Saved credits refreshed. No changes found.'
+          : `Saved credits refreshed. ${credits.length} credits loaded.`;
     } catch {
+      if (generation !== creditGeneration) return;
+      creditsFeedback = '';
       creditPageError =
-        'Current credit references could not be loaded. Retry the read.';
+        'Saved credits could not be refreshed. Your input is unchanged. Select Refresh saved credits to retry.';
     } finally {
-      loadingCredits = false;
+      if (generation === creditGeneration) {
+        loadingCredits = false;
+        refreshingSavedCredits = false;
+      }
     }
   }
 
@@ -437,6 +623,7 @@
       throw new Error('Created role is not available yet.');
     roles = current;
     roleId = id;
+    category = current.find((role) => role.id === id)?.category ?? null;
     creditDirty = true;
   }
 
@@ -452,11 +639,16 @@
   }
 
   function resetFields() {
+    roleResetKey += 1;
+    roleDirty = false;
+    pickedPerson = null;
     creditDirty = false;
     editing = null;
     personId = '';
     roleId = '';
     characterText = '';
+    editorOpen = false;
+    category = null;
   }
 
   function editCredit(credit: ManagedCredit) {
@@ -477,7 +669,10 @@
       return;
     draftSync.reset({ targetId: credit.id });
     creditDirty = false;
+    pickedPerson = { id: credit.personId, name: credit.personName };
     editing = credit;
+    category = null;
+    editorOpen = true;
     personId = credit.personId;
     roleId = credit.role.id;
     characterText = credit.characters.join('\n');
@@ -582,8 +777,21 @@
     pendingId = null;
     retainedSubmissionDraft = null;
     retryOriginal = null;
+    const savedLabel = [
+      people.find((person) => person.id === personId)?.name ??
+        editing?.personName,
+      selectedRole?.label,
+    ]
+      .filter(Boolean)
+      .join(' · ');
     resetFields();
-    message = pendingKind === 'remove' ? 'Credit removed.' : 'Credit saved.';
+    message =
+      pendingKind === 'remove'
+        ? 'Credit removed.'
+        : savedLabel
+          ? `Credit saved: ${savedLabel}.`
+          : 'Credit saved.';
+    if (saveBeforeLeaving) continueAfterCredit();
   }
 
   async function applyReceipt(receipt: CreditCommandOutcome | null) {
@@ -724,8 +932,8 @@
 <section class="credit-panel" aria-labelledby="credits-heading">
   <h2 id="credits-heading">Cast and creators</h2>
   <p class="muted">
-    Shared person picker, Cast/Creator roles, and optional complete character
-    names. A slash inside a name is data, not a splitter.
+    Add cast members and creators one at a time. Choose a person and role, then
+    save the credit.
   </p>
 
   {#if loading}
@@ -813,7 +1021,10 @@
             </p>{/if}
           <button
             type="button"
-            disabled={credit.personArchived !== false ||
+            disabled={loadingCredits ||
+              roleBlocked ||
+              roleDirty ||
+              credit.personArchived !== false ||
               submitting ||
               !!pendingId ||
               !!creditDraftChoices.length ||
@@ -826,7 +1037,10 @@
           >
           <button
             type="button"
-            disabled={credit.personArchived === undefined ||
+            disabled={loadingCredits ||
+              roleBlocked ||
+              roleDirty ||
+              credit.personArchived === undefined ||
               submitting ||
               !!pendingId ||
               !!creditDraftChoices.length ||
@@ -845,8 +1059,17 @@
       type="button"
       disabled={submitting || !!pendingId || loadingCredits}
       onclick={() => void checkCreditReferences()}
-      >Check credit references</button
+      aria-busy={refreshingSavedCredits}
+      class="secondary"
+      >{refreshingSavedCredits
+        ? 'Refreshing…'
+        : 'Refresh saved credits'}</button
     >
+    <p class="muted">
+      Reload saved credits to see recent changes. This does not save your
+      current form.
+    </p>
+    {#if creditsFeedback}<p role="status">{creditsFeedback}</p>{/if}
     {#if creditPageError}<p role="alert">{creditPageError}</p>{/if}
     {#if nextCredits}<button
         type="button"
@@ -857,96 +1080,148 @@
         {creditPageError ? 'Retry more credits' : 'Load more credits'}
       </button>{/if}
 
-    <div class="field">
-      <label for="credit-person">Person</label>
-      <select
-        id="credit-person"
-        bind:value={personId}
-        onchange={() => {
-          creditDirty = true;
-          reviewedCredit = false;
-        }}
-        disabled={submitting ||
+    {#if !formVisible}
+      <div class="credit-actions">
+        <button
+          type="button"
+          disabled={creditFormLocked()}
+          onclick={() => addPerson('CAST')}>+ Add cast</button
+        >
+        <button
+          type="button"
+          disabled={creditFormLocked()}
+          onclick={() => addPerson('CREATOR')}>+ Add creator</button
+        >
+      </div>
+    {/if}
+    {#if formVisible}
+      <h3>
+        {editing
+          ? 'Edit credit'
+          : category === 'CAST'
+            ? 'Add cast member'
+            : category === 'CREATOR'
+              ? 'Add creator'
+              : 'Add credit'}
+      </h3>
+      <PersonSearchSelect
+        options={people}
+        selected={people.find((person) => person.id === personId) ??
+          (pickedPerson?.id === personId ? pickedPerson : null)}
+        disabled={roleBlocked ||
+          submitting ||
           !!pendingId ||
           !!editing ||
-          loadingPeople ||
           !!creditDraftChoices.length ||
           draftUnavailable}
-      >
-        <option value="">Select an active person</option>
-        {#each people as person (person.id)}
-          <option value={person.id}>{person.name}</option>
-        {/each}
-      </select>
-      {#if nextPeople}<button
-          type="button"
-          disabled={loadingPeople || submitting || !!pendingId || !!editing}
-          aria-busy={loadingPeople}
-          onclick={() => void loadMorePeople()}>Load more people</button
-        >{/if}
-    </div>
-    <div class="field">
-      <label for="credit-role">Role</label>
-      <select
-        id="credit-role"
-        bind:value={roleId}
-        onchange={() => {
+        loading={loadingPeople}
+        hasMore={!!nextPeople}
+        error={peopleError}
+        feedback={peopleFeedback ||
+          `${people.length} names available.${nextPeople ? '' : ' All results loaded.'}`}
+        onSearch={searchPeople}
+        onSelect={(person) => {
+          personId = person.id;
+          pickedPerson = person;
           creditDirty = true;
           reviewedCredit = false;
         }}
-        disabled={submitting ||
-          !!pendingId ||
-          !!creditDraftChoices.length ||
-          draftUnavailable}
-      >
-        <option value="">Select Cast or Creator role</option>
-        {#each roles as role (role.id)}
-          <option value={role.id}>{role.label} ({role.category})</option>
-        {/each}
-      </select>
-    </div>
-    <RoleCreator
-      {policy}
-      {context}
-      disabled={submitting ||
-        !!pendingId ||
-        !!creditDraftChoices.length ||
-        draftUnavailable}
-      onCreated={refreshCreatedRole}
-    />
-    {#if selectedRole?.allowsCharacters}
+        onMore={() => void loadPeople(true)}
+        onRetry={() => void loadPeople(peopleRetryAppend)}
+      />
       <div class="field">
-        <label for="credit-characters">Character names · one per line</label>
-        <textarea
-          id="credit-characters"
-          rows="3"
-          bind:value={characterText}
-          oninput={() => {
+        <label for="credit-role">Role</label>
+        <select
+          id="credit-role"
+          bind:value={roleId}
+          onchange={() => {
             creditDirty = true;
             reviewedCredit = false;
           }}
-          disabled={submitting ||
+          disabled={roleBlocked ||
+            submitting ||
             !!pendingId ||
             !!creditDraftChoices.length ||
-            draftUnavailable}></textarea>
+            draftUnavailable}
+        >
+          <option value="">Select Cast or Creator role</option>
+          {#each visibleRoles as role (role.id)}
+            <option value={role.id}>{role.label} ({role.category})</option>
+          {/each}
+        </select>
       </div>
+      <RoleCreator
+        inheritedCategory={category === 'CAST' || category === 'CREATOR'
+          ? category
+          : selectedRole?.category === 'CAST' ||
+              selectedRole?.category === 'CREATOR'
+            ? selectedRole.category
+            : null}
+        resetKey={roleResetKey}
+        onStateChange={(state) => {
+          roleDirty = state.dirty;
+          roleBlocked = state.blocked;
+        }}
+        {policy}
+        {context}
+        disabled={loadingCredits ||
+          submitting ||
+          !!pendingId ||
+          !!creditDraftChoices.length ||
+          draftUnavailable}
+        onCreated={refreshCreatedRole}
+      />
+      {#if selectedRole?.allowsCharacters}
+        <div class="field">
+          <label for="credit-characters">Character names · one per line</label>
+          <textarea
+            id="credit-characters"
+            rows="3"
+            bind:value={characterText}
+            oninput={() => {
+              creditDirty = true;
+              reviewedCredit = false;
+            }}
+            disabled={roleBlocked ||
+              submitting ||
+              !!pendingId ||
+              !!creditDraftChoices.length ||
+              draftUnavailable}></textarea>
+        </div>
+      {/if}
+      <Button
+        type="button"
+        pending={submitting}
+        disabledReason={roleBlocked
+          ? 'Resolve custom role creation first.'
+          : roleDirty
+            ? 'Create or cancel the custom role first.'
+            : loadingCredits
+              ? 'Wait for saved credits to finish loading.'
+              : !personId ||
+                  !roleId ||
+                  !!pendingId ||
+                  !!creditDraftChoices.length ||
+                  creditReviewRequired ||
+                  draftUnavailable
+                ? 'Choose a person and role first.'
+                : ''}
+        onclick={() => void submitCredit()}
+        >{editing ? 'Save credit' : 'Add credit'}</Button
+      >
+      {#if editing && !pendingId}<button
+          type="button"
+          disabled={submitting || roleBlocked}
+          onclick={cancelCreditEdit}>Cancel credit edit</button
+        >{/if}
     {/if}
-    <Button
-      type="button"
-      pending={submitting}
-      disabledReason={!personId ||
-      !roleId ||
-      !!pendingId ||
-      !!creditDraftChoices.length ||
-      creditReviewRequired ||
-      draftUnavailable
-        ? 'Choose a person and role first.'
-        : ''}
-      onclick={() => void submitCredit()}
-      >{editing ? 'Save credit' : 'Add credit'}</Button
-    >
-    {#if editing && !pendingId}<button type="button" onclick={cancelCreditEdit}
-        >Cancel credit edit</button
+    {#if formVisible && !editing && !pendingId}<button
+        type="button"
+        disabled={submitting || roleBlocked}
+        onclick={() => {
+          if (hasUnfinishedCredit()) discardingDraft = true;
+          else resetFields();
+        }}>Cancel adding credit</button
       >{/if}
     {#if pendingId}
       <button
@@ -964,8 +1239,55 @@
           before further changes.
         </p>{/if}
     {/if}
+    {#if onFinish}
+      <div class="credit-actions">
+        <button
+          type="button"
+          disabled={submitting || !!pendingId || roleBlocked || loading}
+          onclick={requestFinish}>Done</button
+        >
+        {#if showSkip}<button
+            class="secondary"
+            type="button"
+            disabled={submitting || !!pendingId || roleBlocked || loading}
+            onclick={requestFinish}>Skip for now</button
+          >{/if}
+      </div>
+    {/if}
   {/if}
 </section>
+<ConfirmDialog
+  open={leaveDialog}
+  title="Finish this credit before leaving?"
+  action="Discard and leave"
+  pending={submitting}
+  oncancel={() => {
+    leaveDialog = false;
+    finishRequested = false;
+    leaveUrl = null;
+  }}
+  onconfirm={() => void discardCreditDraft()}
+>
+  <p>
+    Save this credit, discard unfinished credit and custom-role input, or
+    continue editing.
+  </p>
+  <button
+    type="button"
+    disabled={!personId || !roleId || creditFormLocked()}
+    onclick={() => void saveAndLeave()}>Save and leave</button
+  >
+  <button
+    class="secondary"
+    type="button"
+    onclick={() => {
+      leaveDialog = false;
+      finishRequested = false;
+      leaveUrl = null;
+    }}>Continue editing</button
+  >
+  {#if message}<p role="status">{message}</p>{/if}
+</ConfirmDialog>
 <ConfirmDialog
   open={!!removing}
   title="Remove this credit?"
@@ -996,6 +1318,11 @@
 </ConfirmDialog>
 
 <style>
+  .credit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-3);
+  }
   .credit-panel {
     display: grid;
     gap: var(--primitive-space-4);

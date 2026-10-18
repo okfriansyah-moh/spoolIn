@@ -42,7 +42,7 @@ const MANAGED_TITLE_QUERY = `query ManagedTitle($id: UUID!) {
 const CREATE_MOVIE_MUTATION = `mutation CreateMovie($operationId: UUID!, $policyRevision: String!, $input: MovieInput!) {
   createMovie(operationId: $operationId, policyRevision: $policyRevision, input: $input) {
     operation { id state resultId version resultExpired problem { code retryAfterMs } }
-    problem { code retryAfterMs }
+    problem { code retryAfterMs fields { path message } }
   }
 }`;
 
@@ -61,7 +61,7 @@ const UPDATE_MOVIE_MUTATION = `mutation UpdateMovie(
     patch: $patch
   ) {
     operation { id state resultId version resultExpired problem { code retryAfterMs } }
-    problem { code retryAfterMs }
+    problem { code retryAfterMs fields { path message } }
   }
 }`;
 

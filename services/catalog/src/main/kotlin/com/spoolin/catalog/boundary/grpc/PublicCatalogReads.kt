@@ -192,6 +192,29 @@ internal class PublicCatalogReads(
         }
     }
 
+    fun catalogFilterOptions(response: StreamObserver<Spoolin.CatalogFilterOptions>) {
+        val options = taxonomy.catalogFilterOptions()
+        val result = Spoolin.CatalogFilterOptions.newBuilder()
+        options.genres.forEach { genre ->
+            result.addGenres(
+                Spoolin.Genre
+                    .newBuilder()
+                    .setId(genre.id.toString())
+                    .setLabel(genre.label),
+            )
+        }
+        options.releaseYears.forEach { date ->
+            result.addReleaseYears(
+                Spoolin.CatalogReleaseYear
+                    .newBuilder()
+                    .setYear(date.year)
+                    .addAllMonths(date.months),
+            )
+        }
+        response.onNext(result.build())
+        response.onCompleted()
+    }
+
     fun listGenres(response: StreamObserver<Genres>) {
         try {
             val builder = Genres.newBuilder()

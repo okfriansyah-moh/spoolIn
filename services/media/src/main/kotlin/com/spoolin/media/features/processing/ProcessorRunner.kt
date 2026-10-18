@@ -183,6 +183,7 @@ class ProcessorRunner(
                 ),
                 deadline,
             )
+        if (error == "INVALID_IMAGE_DIMENSIONS") return null
         if (error != null) throw CodecFailure(error)
         val header = scratch.resolve("dimensions")
         return if (!Files.isRegularFile(header) || Files.size(header) > ProcessingBounds.MAX_HEADER_BYTES) {

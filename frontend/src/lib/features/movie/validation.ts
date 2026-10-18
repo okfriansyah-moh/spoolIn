@@ -96,7 +96,7 @@ export function problemMessage(code: string | null): string {
       return 'You do not have permission to save this movie.';
     case 'FIELD_INVALID':
     case 'VALIDATION_FAILED':
-      return 'Changes were not saved. Review the highlighted fields.';
+      return 'The server rejected the movie details. Review the required fields and try again.';
     default:
       return 'Changes were not saved.';
   }

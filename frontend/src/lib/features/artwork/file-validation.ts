@@ -9,12 +9,13 @@ const formatByMime: Readonly<Record<string, string>> = Object.freeze({
 export function validateArtworkFile(
   file: Pick<File, 'size' | 'type'>,
   policy: Policy['artwork'] | undefined,
+  allowResize = false,
 ): string {
   if (!policy || !/^[1-9][0-9]*$/.test(policy.maxInputBytes))
     return 'Current artwork rules are unavailable. Refresh the page before selecting a file.';
   if (!Number.isSafeInteger(file.size) || file.size <= 0)
     return 'Select a nonempty image file.';
-  if (BigInt(file.size) > BigInt(policy.maxInputBytes))
+  if (!allowResize && BigInt(file.size) > BigInt(policy.maxInputBytes))
     return 'This file exceeds the current artwork byte limit.';
   const format = formatByMime[file.type.toLowerCase()];
   if (!format || !policy.formats.includes(format))

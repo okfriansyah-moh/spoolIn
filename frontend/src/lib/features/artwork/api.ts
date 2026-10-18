@@ -67,7 +67,8 @@ function parseUploadResponse(
   return Object.freeze({
     state: String(op.state),
     operationId,
-    problemCode,
+    problemCode:
+      problemCode ?? (op.problem ? String(record(op.problem).code) : null),
   });
 }
 
@@ -96,7 +97,24 @@ function handleArtworkUploadLoad(
       errors?: unknown;
     };
     if (parsed.errors) {
-      reject(new TransportFailure('rejected'));
+      const first = Array.isArray(parsed.errors) ? parsed.errors[0] : null;
+      const code = first ? record(record(first).extensions).code : null;
+      const known =
+        typeof code === 'string' &&
+        [
+          'RATE_LIMITED',
+          'UNAUTHENTICATED',
+          'FORBIDDEN',
+          'FIELD_INVALID',
+          'VALIDATION_FAILED',
+          'RESOURCE_EXHAUSTED',
+        ].includes(code);
+      reject(
+        new TransportFailure(
+          known && xhr.status < 500 ? 'rejected' : 'uncertain',
+          known ? code : 'UNAVAILABLE',
+        ),
+      );
       return;
     }
     if (xhr.status < 200 || xhr.status >= 300 || !parsed.data) {

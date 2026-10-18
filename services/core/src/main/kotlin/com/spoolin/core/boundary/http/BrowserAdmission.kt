@@ -16,6 +16,7 @@ private val publicRoots =
         "titleCredits",
         "personCredits",
         "genres",
+        "catalogFilterOptions",
         "creditRoles",
     )
 private val identityMutations = setOf("register", "signIn", "signOut")
