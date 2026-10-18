@@ -79,10 +79,13 @@ def verify_people_credits(manifest, database, validator):
     require(set(people) == {row['stableUUID'] for row in manifest['people']}, 'Person identity set differs')
     for person in manifest['people']:
         compare_fields(people[person['stableUUID']], {'name': person['name'], 'status': 'ACTIVE', 'version': 0}, person['stableUUID'])
-    roles = {row['label'].lower(): row for row in database['credit_role']}
+    roles = {row['id']: row for row in database['credit_role']}
+    starter_ids = dict(zip(('P161', 'P57', 'P58', 'P162'),
+                       (f'b0000001-0000-4000-8000-{number:012d}' for number in range(1, 5))))
     role_ids = {}
     for role in manifest['roles']:
-        actual = roles[role['label'].lower()]
+        expected_identity = starter_ids.get(role['externalId'], role['stableUUID'])
+        actual = roles[expected_identity]
         compare_fields(actual, {'label': role['label'], 'category': role['category'],
                                 'allows_characters': role['allowsCharacters']}, role['externalId'])
         role_ids[role['externalId']] = actual['id']

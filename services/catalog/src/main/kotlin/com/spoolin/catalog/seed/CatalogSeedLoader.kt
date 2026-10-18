@@ -168,11 +168,12 @@ class CatalogSeedLoader(
     ): Map<String, UUID> =
         seed.roles.associate { role ->
             val normalized = role["label"].asText().lowercase(Locale.ROOT)
+            val identity = SeedRoleIdentity.resolve(role["source"].asText(), role["externalId"].asText(), role["stableUUID"].asText())
             val id =
                 connection
                     .queryBound(
-                        "SELECT id,category,allows_characters FROM credit_role WHERE normalized_label=?",
-                        listOf(normalized),
+                        "SELECT id,category,allows_characters FROM credit_role WHERE id=?",
+                        listOf(identity),
                     ) {
                         require(
                             it.getString("category") == role["category"].asText() &&
@@ -181,7 +182,7 @@ class CatalogSeedLoader(
                             "Existing starter role differs from approved semantics"
                         }
                         it.getObject("id", UUID::class.java)
-                    }.singleOrNull() ?: UUID.fromString(role["stableUUID"].asText()).also { value ->
+                    }.singleOrNull() ?: identity.also { value ->
                     connection.executeBound(
                         "INSERT INTO credit_role(id,category,label,normalized_label,allows_characters) VALUES(?,?,?,?,?)",
                         value,
