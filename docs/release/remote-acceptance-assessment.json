@@ -7384,7 +7384,7 @@
       "result": "not run; remote CI required"
     }
   ],
-  "detailed_inventory": "Retained preparation inventory /tmp/movie-app-46-assessment.json; assigned IDs and task source paths are included in each row.",
+  "detailed_inventory": "docs/release/remote-obligation-results.json: durable complete obligation, parent-case, table-row and task-acceptance inventory. It retains its own source SHA and hashes; later source changes require refresh before current-input verification. Presence and counts establish no execution or acceptance.",
   "read_source_hashes": {
     "Makefile": "23a72ba6a2b158baa5686eed3c9eca936bba1ff46d9239f836e61ced54088cc4",
     "ops/compose.yaml": "444338cf045166b9ee346b62b09cbac3c6cec2adce2dca541da13f7fc3439e4e",
