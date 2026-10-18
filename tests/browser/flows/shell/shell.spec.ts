@@ -144,3 +144,38 @@ test('ATDD-321 exact text nodes, URL attributes, event absence and controlled na
   }
   await capture(page, info, 'safe-sinks');
 });
+
+test('T004-A1 session feedback keeps desktop navigation readable', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await setup(page);
+  const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+  const status = page.locator('.app-header > .session-announcement');
+  for (const feedback of [false, true]) {
+    await page.goto(feedback ? '/?session-feedback=1' : '/');
+    await expect(status).toHaveAttribute('role', 'status');
+    await expect(status).toHaveAttribute('aria-live', 'polite');
+    await expect(status).toHaveText(feedback ? 'Signed out.' : '');
+    const geometry = await navigation.boundingBox();
+    expect(geometry).not.toBeNull();
+    expect(geometry!.width).toBeGreaterThan(300);
+    expect(geometry!.height).toBeLessThan(80);
+    const placement = await status.evaluate((element) => {
+      const header = element.parentElement!;
+      return {
+        width: element.getBoundingClientRect().width,
+        available:
+          header.clientWidth -
+          parseFloat(getComputedStyle(header).paddingLeft) -
+          parseFloat(getComputedStyle(header).paddingRight),
+      };
+    });
+    if (feedback) {
+      expect(Math.abs(placement.width - placement.available)).toBeLessThan(1);
+    } else {
+      expect(placement.width).toBeLessThanOrEqual(1);
+    }
+  }
+  await assertNoOverflow(page);
+});

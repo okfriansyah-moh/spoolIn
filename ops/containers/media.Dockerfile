@@ -43,7 +43,8 @@ RUN test "$(stat -c '%u:%g:%a' /usr/bin/bwrap)" = '0:0:755' && \
     test ! -u /usr/bin/bwrap && test ! -g /usr/bin/bwrap && \
     /usr/bin/bwrap --version | grep -Fx 'bubblewrap 0.11.2' && \
     /usr/bin/bwrap --help | grep -F -- '--size'
-RUN ldconfig && /usr/local/bin/vips --version | grep -Fx 'vips-8.18.7'
+RUN ldconfig && /usr/local/bin/vips --version | grep -Fx 'vips-8.18.7' && \
+    mkdir -p /lib64
 WORKDIR /app
 COPY services/media/build/libs/*-boot.jar /app/service.jar
 RUN mkdir -p /var/spoolin/media && chown 10001:10001 /var/spoolin/media

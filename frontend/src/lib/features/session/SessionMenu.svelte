@@ -55,6 +55,7 @@
   aria-live="polite"
   aria-atomic="true"
   class="session-announcement"
+  class:idle={!announcement}
 >
   {announcement}
 </p>
@@ -90,7 +91,13 @@
     flex-basis: 100%;
     margin: 0;
   }
-  .session-announcement:empty {
-    height: 0;
+  .session-announcement.idle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 </style>

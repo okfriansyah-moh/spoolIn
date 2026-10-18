@@ -1492,6 +1492,24 @@
         "format": "junit",
         "glob": ".ai/evidence/numbering-v1/migration-regressions.xml"
       }
+    },
+    {
+      "id": "local-setup-regressions",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/local/**/*.py"
+      ],
+      "argv": [
+        "python3",
+        "ops/local/test_runner.py"
+      ],
+      "required": true,
+      "timeout_seconds": 120,
+      "test_report": {
+        "format": "junit",
+        "glob": ".ai/evidence/local-setup-tests.xml"
+      }
     }
   ],
   "coverage": [
