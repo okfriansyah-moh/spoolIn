@@ -15,7 +15,10 @@ internal class ArtworkSpool private constructor(val path: Path, val size: Long, 
             require(encoded.length.toLong() <= ((maximum + 2) / 3) * 4) { "FILE_INVALID" }
             require(encoded.length % 4 == 0) { "FILE_INVALID" }
             val padding = encoded.takeLast(2).count { it == '=' }
-            require(encoded.dropLast(padding).all { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' || it == '+' || it == '/' }) { "FILE_INVALID" }
+            require((0 until encoded.length - padding).all { index ->
+                val value = encoded[index]
+                value in 'A'..'Z' || value in 'a'..'z' || value in '0'..'9' || value == '+' || value == '/'
+            }) { "FILE_INVALID" }
             require(encoded.takeLast(padding).all { it == '=' }) { "FILE_INVALID" }
             val path = Files.createTempFile("spoolin-upload-", ".tmp", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
             try {

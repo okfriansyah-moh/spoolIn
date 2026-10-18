@@ -56,15 +56,20 @@ class ArtworkWorkHandler(
         val asset = mediaStub().getAsset(Spoolin.Id.newBuilder().setId(intent.asset.toString()).build())
         if (asset.state == "FAILED" || asset.state == "DELETED") { store.abort(claim, intent, "FILE_INVALID"); return }
         if (asset.state != "READY") { throw Status.UNAVAILABLE.withDescription("ARTWORK_PROCESSING").asRuntimeException() }
+        verifyActor(intent, payload)
+        mediaStub().reserve(hold(intent, "media-reserve", claim.correlationId, null))
+        verifyActor(intent, payload)
+        // The hold is durable before Catalog can select its immutable asset.
+        store.attach(claim, intent)
+    }
+
+    private fun verifyActor(intent: ArtworkIntent, payload: tools.jackson.databind.JsonNode) {
         val actor = identity.withDeadlineAfter(2, TimeUnit.SECONDS).checkActor(Spoolin.CheckActorRequest.newBuilder()
             .setAccountId(intent.actor.toString()).setCredentialId(payload["credentialId"].asText()).setAuthEpoch(payload["authEpoch"].asLong()).setAudience("catalog").build())
         if (actor.accountId != intent.actor.toString() || actor.authEpoch != payload["authEpoch"].asLong() ||
             actor.credentialId != payload["credentialId"].asText() || actor.expiresAt.seconds <= Instant.now().epochSecond || !Permissions.management(actor.role)) {
             throw Status.PERMISSION_DENIED.asRuntimeException()
         }
-        mediaStub().reserve(hold(intent, "media-reserve", claim.correlationId, null))
-        // The hold is durable before Catalog can select its immutable asset.
-        store.attach(claim, intent)
     }
 
     private fun hold(intent: ArtworkIntent, step: String, correlation: UUID, version: Long?): Spoolin.Hold =
