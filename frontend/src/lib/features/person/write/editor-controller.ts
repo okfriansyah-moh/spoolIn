@@ -418,6 +418,9 @@ export class PersonEditorController {
       personId,
       this.writeContext.csrf,
     );
+    if (person?.state === 'ACTIVE') {
+      await this.draftSync.completeSubmission(personToDraft(person), this.writeContext, person.version);
+    }
     this.publish({
       ...this.current,
       phase: 'saved',

@@ -135,3 +135,21 @@ describe('draft mutation identity and optimistic versions', () => {
     sync.dispose();
   });
 });
+
+describe('person draft binding after publication', () => {
+  it('clears the old Catalog intent before backing subsequent edits', async () => {
+    const source = sourceFixture();
+    const save = vi.fn<DraftSource['saveDraft']>(source.saveDraft);
+    source.saveDraft = save;
+    const sync = new PersonDraftSync(source, 'target');
+    sync.reset();
+    await sync.prepareSubmission('44444444-4444-4444-8444-444444444444', { name: 'Published' }, context, '5');
+    await sync.completeSubmission({ name: 'Published' }, context, '6');
+    await sync.save({ name: 'Unsaved next edit' }, context, '6');
+    expect(save.mock.calls[0]?.[3].operationId).toBe('44444444-4444-4444-8444-444444444444');
+    expect(save.mock.calls[1]?.[3].operationId).toBeNull();
+    expect(save.mock.calls[2]?.[3].operationId).toBeNull();
+    expect(save.mock.calls[2]?.[3].values).toEqual({ name: 'Unsaved next edit' });
+    sync.dispose();
+  });
+});

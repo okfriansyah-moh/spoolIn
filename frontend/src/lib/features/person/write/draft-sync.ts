@@ -61,6 +61,12 @@ export class PersonDraftSync {
     return this.backed && !this.pending;
   }
 
+  async completeSubmission(values: PersonDraft, context: WriteContext, baseVersion: string): Promise<void> {
+    globalThis.clearTimeout(this.timer);
+    this.catalogOperationId = null;
+    await this.save(values, context, baseVersion);
+  }
+
   save(values: PersonDraft, context: WriteContext, baseVersion: string | null): Promise<void> {
     const next = this.queue.then(() => this.saveSerial(values, context, baseVersion));
     this.queue = next.catch(() => {});
