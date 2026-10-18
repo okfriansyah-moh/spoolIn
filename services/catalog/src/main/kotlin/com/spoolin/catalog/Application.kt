@@ -711,12 +711,9 @@ class ListenerBoundary(
             val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
             val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
             val permitted =
-                if (path ==
-                    "/actuator/prometheus"
-                ) {
-                    identity == "prometheus"
-                } else {
-                    identity in setOf("operator", "core", "catalog", "media", "mcp")
+                when (path) {
+                    "/actuator/prometheus" -> identity == "prometheus"
+                    else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
                 }
             val privatePort = environment.getProperty("local.management.port", Int::class.java)
             if (!request.isSecure || request.localPort != privatePort || !permitted) {

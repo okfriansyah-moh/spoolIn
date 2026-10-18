@@ -1,4 +1,4 @@
-package com.spoolin.integration.identity.draft_recovery
+package com.spoolin.integration.identity.draftrecovery
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

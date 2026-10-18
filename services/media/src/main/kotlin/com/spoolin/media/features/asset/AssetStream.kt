@@ -30,9 +30,7 @@ internal class AssetStream(
     private fun drain() {
         if (closed) return
         try {
-            while (response.isReady && !closed) {
-                if (!emitReady()) break
-            }
+            drainReady()
         } catch (
             _: java.io.IOException,
         ) {
@@ -47,6 +45,12 @@ internal class AssetStream(
             unavailable()
         } catch (_: io.grpc.StatusRuntimeException) {
             unavailable()
+        }
+    }
+
+    private fun drainReady() {
+        while (response.isReady && !closed) {
+            if (!emitReady()) break
         }
     }
 
