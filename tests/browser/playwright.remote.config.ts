@@ -17,7 +17,7 @@ export default defineConfig({
   use: {
     baseURL: 'https://localhost:8443',
     ignoreHTTPSErrors: false,
-    screenshot: 'only-on-failure',
+    screenshot: 'off',
     trace: 'off',
     video: 'off',
   },
@@ -28,6 +28,7 @@ export default defineConfig({
         testMatch: 'catalog.spec.ts',
         use: { browserName, viewport: { width, height: 900 }, colorScheme, reducedMotion: 'reduce' as const },
       })))),
-    { name: 'account-chromium', testMatch: 'account.spec.ts', use: { browserName: 'chromium' } },
+    { name: 'functional-chromium', testMatch: /(?:account|manage|artwork|lifecycle|audit)\.spec\.ts/,
+      use: { browserName: 'chromium', viewport: { width: 1440, height: 900 }, colorScheme: 'dark' } },
   ],
 });
