@@ -70,6 +70,6 @@ describe('typed Core gateway over real mutually authenticated gRPC', () => {
     expect(observed).toContain('private-rejection-assertion');
   });
   it('redacts downstream diagnostics on failed RPCs', async () => {
-    await expect(client.operation('failure')).rejects.toThrow('Core gateway request failed');
+    await expect(client.operation('failure')).rejects.toMatchObject({ problem: { code: 'UNAVAILABLE', message: 'Try again when the service is available.' } });
   });
 });

@@ -4,7 +4,8 @@ import type http from 'node:http';
 const operations = new Set(['initialize', 'notifications/initialized', 'ping', 'tools/list', 'resources/list',
   'resources/read', 'movie_context', 'movie_operation', 'propose_movie', 'unknown']);
 const codes = new Set(['OK', 'INVALID_ARGUMENT', 'PERMISSION_DENIED', 'NOT_FOUND', 'UNAUTHENTICATED', 'RATE_LIMITED',
-  'STALE_VERSION', 'POLICY_CHANGED', 'CONFLICT', 'UNAVAILABLE', 'UNKNOWN']);
+  'STALE_VERSION', 'POLICY_CHANGED', 'CONFLICT', 'UNAVAILABLE', 'UNKNOWN', 'FIELD_INVALID', 'FORBIDDEN',
+  'IDEMPOTENCY_CONFLICT', 'RESOURCE_EXHAUSTED', 'DEADLINE_EXCEEDED']);
 const buckets = [0.01, 0.05, 0.1, 0.3, 0.5, 1, 3, 5, 15, 30];
 type Result = { outcome: 'SUCCESS' | 'DOMAIN_REJECTED' | 'SYSTEM_FAILED' | 'UNCERTAIN'; code: string };
 type RequestState = { operation: string; result?: Result };
@@ -43,7 +44,7 @@ export class McpMetrics {
     const started = process.hrtime.bigint();
     try {
       const value = await handle();
-      this.logicalResult(operation, toolResult(value), started);
+      this.logicalResult(operation, toolResult(value, operation), started);
       return value;
     } catch (failure) {
       this.logicalResult(operation, { outcome: 'UNCERTAIN', code: 'UNKNOWN' }, started);
@@ -100,15 +101,19 @@ function httpResult(status: number, finished: boolean): Result {
   return code ? { outcome: 'DOMAIN_REJECTED', code } : { outcome: 'SYSTEM_FAILED', code: 'UNAVAILABLE' };
 }
 
-function toolResult(value: unknown): Result {
+function toolResult(value: unknown, operation: string): Result {
   if (!value || typeof value !== 'object') return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
-  const result = value as { isError?: boolean; structuredContent?: { state?: string; problem?: { code?: string } } };
-  const problem = result.structuredContent?.problem;
+  const result = value as { isError?: boolean; structuredContent?: { state?: string; operationId?: string; problem?: { code?: string } } };
+  const content = result.structuredContent;
+  if (!content) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
+  if (operation === 'movie_operation' && !result.isError && typeof content.operationId === 'string' &&
+      ['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(content.state ?? '')) return { outcome: 'SUCCESS', code: 'OK' };
+  const problem = content.problem;
   if (problem) {
     if (!problem.code || problem.code === 'OK' || !codes.has(problem.code)) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
-    return { outcome: problem.code === 'UNAVAILABLE' ? 'SYSTEM_FAILED' : 'DOMAIN_REJECTED', code: problem.code };
+    return { outcome: ['UNAVAILABLE', 'DEADLINE_EXCEEDED'].includes(problem.code) ? 'SYSTEM_FAILED' : 'DOMAIN_REJECTED', code: problem.code };
   }
-  if (result.isError) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
+  if (result.isError || ['PENDING', 'FAILED', 'EXPIRED'].includes(content.state ?? '')) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
   return { outcome: 'SUCCESS', code: 'OK' };
 }
 

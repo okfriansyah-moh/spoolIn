@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { McpServer, ResourceTemplate, fromJsonSchema } from '@modelcontextprotocol/server';
 import type { JsonSchemaType } from '@modelcontextprotocol/server';
 import { McpMetrics, mcpMetrics } from '../operations/metrics.js';
+import { GatewayFailure } from '../operations/gateway-failure.js';
 import { GatewayClient } from '../operations/gateway-client.js';
 import { Proposal } from '../generated/spoolin/v1/spoolin.js';
 import { reviewHtml } from '../resources/review.js';
@@ -19,13 +20,14 @@ const input = (name: string) => fromJsonSchema<Record<string, unknown>>(inputs[n
 const output = (name: string) => fromJsonSchema<Record<string, unknown>>(outputs.$defs[name]!);
 function result(value: Record<string, unknown>) {
   const text = JSON.stringify(value);
-  if (Buffer.byteLength(text) > 128 * 1024) throw new Error('RESOURCE_EXHAUSTED');
+  if (Buffer.byteLength(text) > 128 * 1024) throw new GatewayFailure('RESOURCE_EXHAUSTED');
   return { content: [{ type: 'text' as const, text }], structuredContent: value };
 }
 function safe<T extends Record<string, unknown>>(operation: string, metrics: McpMetrics, handler: (args: T) => Promise<ReturnType<typeof result>>) {
   return async (args: T) => metrics.logical(operation, async () => {
-    try { return await handler(args); } catch {
-      return { isError: true, content: [{ type: 'text' as const, text: 'The gateway operation could not be completed.' }] };
+    try { return await handler(args); } catch (failure) {
+      const problem = failure instanceof GatewayFailure ? failure.problem : new GatewayFailure('UNAVAILABLE').problem;
+      return { isError: true, content: [{ type: 'text' as const, text: problem.message }], structuredContent: { problem } };
     }
   });
 }
@@ -60,7 +62,7 @@ export async function createSession(token: string, gateway: GatewayOperations = 
     inputSchema: input('propose_movie'), outputSchema: output('proposalReview'),
   }, safe('propose_movie', metrics, async (args) => {
     for (const [uri, entry] of proposals) if (entry.expires <= Date.now()) proposals.delete(uri);
-    if (proposals.size >= 20) throw new Error('RESOURCE_EXHAUSTED');
+    if (proposals.size >= 20) throw new GatewayFailure('RESOURCE_EXHAUSTED');
     const { operationId, proposalId, expectedRevision, sources, ...values } = args;
     const revision = await gateway.propose(Proposal.fromJSON({
       context: { operationId, correlationId: randomUUID(), policyRevision: policy.revision }, values, sources, proposalId, expectedRevision,

@@ -68,10 +68,10 @@ describe('private MCP exporter and logical observations', () => {
     await connected.callTool({ name: 'propose_movie', arguments: { operationId: id, title: 'Private title',
       synopsis: 'Private synopsis', genreIds: ['00000000-0000-4000-8000-000000000002'], release: { year: 2024 } } });
     const text = await (await fetch(`${exporter}/metrics`)).text();
-    expect(text).toContain('operation="movie_operation",boundary="owner",outcome="DOMAIN_REJECTED",code="PERMISSION_DENIED"} 1');
-    expect(text).toContain('operation="movie_operation",boundary="ingress",outcome="DOMAIN_REJECTED",code="PERMISSION_DENIED"} 1');
+    expect(text).toContain('operation="movie_operation",boundary="owner",outcome="SUCCESS",code="OK"} 1');
+    expect(text).toContain('operation="movie_operation",boundary="ingress",outcome="SUCCESS",code="OK"} 1');
     expect(text).toContain('operation="movie_context",boundary="owner",outcome="SUCCESS",code="OK"} 1');
-    expect(text).toContain('operation="propose_movie",boundary="owner",outcome="UNCERTAIN",code="UNKNOWN"} 1');
+    expect(text).toContain('operation="propose_movie",boundary="owner",outcome="SYSTEM_FAILED",code="UNAVAILABLE"} 1');
     expect(text).toContain('operation="movie_operation",boundary="owner",le="+Inf"} 1');
     [secret, id, 'private-query', 'Private title', 'private-diagnostic', 'private-client-name'].forEach((value) => expect(text).not.toContain(value));
     expect(text).toContain('spoolin_mcp_sessions{service="mcp",state="ACTIVE"} 1');
@@ -80,6 +80,16 @@ describe('private MCP exporter and logical observations', () => {
     expect(after).toContain('spoolin_mcp_sessions{service="mcp",state="ACTIVE"} 0');
     expect(after).toContain('spoolin_mcp_sessions_opened_total{service="mcp"} 1');
     expect(after).toContain('spoolin_mcp_sessions_closed_total{service="mcp"} 1');
+  });
+  it('keeps incomplete mutation results uncertain and distinguishes typed tool rejection', async () => {
+    await metrics.logical('propose_movie', async () => ({ structuredContent: { state: 'PENDING' } }));
+    await metrics.logical('propose_movie', async () => ({ structuredContent: { state: 'FAILED' } }));
+    await metrics.logical('propose_movie', async () => ({ isError: true,
+      structuredContent: { problem: { code: 'FORBIDDEN' } } }));
+    const text = metrics.render(0, 0, false);
+    expect(text).toContain('operation="propose_movie",boundary="owner",outcome="UNCERTAIN",code="UNKNOWN"} 2');
+    expect(text).toContain('operation="propose_movie",boundary="owner",outcome="DOMAIN_REJECTED",code="FORBIDDEN"} 1');
+    expect(text).not.toContain('outcome="SUCCESS"');
   });
   it('folds unknown operations and codes into finite labels and emits every approved histogram bucket', async () => {
     await metrics.logical(`private-operation-${id}`, async () => ({ structuredContent: { problem: { code: secret } } }));

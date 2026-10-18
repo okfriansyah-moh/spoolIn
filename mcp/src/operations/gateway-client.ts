@@ -1,3 +1,4 @@
+import { GatewayFailure } from './gateway-failure.js';
 import { readFileSync } from 'node:fs';
 import { credentials, Metadata } from '@grpc/grpc-js';
 import { McpGatewayServiceClient } from '../generated/spoolin/v1/spoolin.js';
@@ -26,7 +27,7 @@ export class GatewayClient {
     metadata.set('authorization', `Bearer ${this.connectorToken}`);
     if (assertion) metadata.set('mcp-ui-assertion', assertion);
     return new Promise((resolve, reject) => invoke(metadata, { deadline: new Date(Date.now() + 5000) },
-      (error, value) => error ? reject(new Error('Core gateway request failed')) : resolve(value)));
+      (error, value) => error ? reject(GatewayFailure.fromGrpc(error)) : resolve(value)));
   }
   policy(): Promise<PolicySnapshot> { return this.call((m, o, cb) => this.client.getPolicy({}, m, o, cb)); }
   context(query: string, limit: number): Promise<MovieContext> { return this.call((m, o, cb) => this.client.getMovieContext({ query, limit }, m, o, cb)); }
