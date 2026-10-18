@@ -7,8 +7,9 @@ internal fun buildTitleSearchRequest(
     first: Int,
     after: String?,
     validateSearchText: (String) -> Unit,
+    normalizeSearchText: (String) -> String? = { it },
 ): Spoolin.Search {
-    val text = (filter["text"] as? String)?.also { validateSearchText(it) }
+    val text = (filter["text"] as? String)?.also { validateSearchText(it) }?.let(normalizeSearchText)
     val kind = filter["kind"] as? String
     val genreIds = (filter["genreIds"] as? List<*>)?.map { it.toString() } ?: emptyList()
     val year = filter["year"] as? Int

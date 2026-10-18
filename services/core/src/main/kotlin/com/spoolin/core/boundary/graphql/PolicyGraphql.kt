@@ -51,7 +51,10 @@ class PolicyGraphql(
         views.artwork?.bind(wiring)
         views.lifecycle?.bind(wiring)
         views.drafts?.bind(wiring)
-        val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
+        val definitions = EffectiveReadDefaults.apply(
+            SchemaParser().parse(schema), com.spoolin.support.policy.ReadPolicy(provider.policy),
+        )
+        val executable = SchemaGenerator().makeExecutableSchema(definitions, wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }
 

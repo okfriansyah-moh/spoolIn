@@ -4,6 +4,7 @@ package com.spoolin.core.features.catalogview.read
 
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
 import spoolin.v1.CatalogServiceGrpc
@@ -13,7 +14,6 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private const val CATALOG_DEADLINE_SECONDS = 3L
-private const val SEARCH_MAX_CODE_POINTS = 200
 
 /**
  * GraphQL resolvers for public catalog read operations.
@@ -29,6 +29,8 @@ class CatalogViewGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val policy: PublicPolicy,
 ) {
+    private val reads = ReadPolicy(policy)
+
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q ->
             q
@@ -57,9 +59,9 @@ class CatalogViewGraphql(
 
     private fun titles(env: DataFetchingEnvironment): Map<String, Any?> {
         val filter = requireNotNull(env.getArgument<Map<String, Any?>>("filter"))
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
-        val request = buildTitleSearchRequest(filter, first, after, ::validateSearchText)
+        val request = buildTitleSearchRequest(filter, first, after, ::validateSearchText, reads::search)
         val result = stub().searchTitles(request)
         return titlePageMap(result)
     }
@@ -84,8 +86,8 @@ class CatalogViewGraphql(
     // ── people ────────────────────────────────────────────────────────────────
 
     private fun people(env: DataFetchingEnvironment): Map<String, Any?> {
-        val text = (env.getArgument<String>("text"))?.also { validateSearchText(it) }
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val text = reads.search(env.getArgument<String>("text"))
+        val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
 
         val request =
@@ -122,7 +124,7 @@ class CatalogViewGraphql(
     private fun titleCredits(env: DataFetchingEnvironment): Map<String, Any?> {
         val id = requireNotNull(env.getArgument<String>("id"))
         validateUuid(id)
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
 
         val request =
@@ -141,7 +143,7 @@ class CatalogViewGraphql(
     private fun personCredits(env: DataFetchingEnvironment): Map<String, Any?> {
         val id = requireNotNull(env.getArgument<String>("id"))
         validateUuid(id)
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
 
         val request =
@@ -160,7 +162,7 @@ class CatalogViewGraphql(
     private fun titleCreditsField(env: DataFetchingEnvironment): Map<String, Any?> {
         val source = env.getSource<Map<String, Any?>>()
         val id = source?.get("id") as? String ?: return emptyCreditPage()
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
 
         val request =
@@ -320,12 +322,7 @@ class CatalogViewGraphql(
     // ── validation ────────────────────────────────────────────────────────────
 
     private fun validateSearchText(text: String) {
-        val maxCodePoints =
-            policy.requestLimits.getOrDefault("maxSearchCodePoints", SEARCH_MAX_CODE_POINTS) as? Int
-                ?: SEARCH_MAX_CODE_POINTS
-        if (text.codePointCount(0, text.length) > maxCodePoints) {
-            throw InputViolation("text", "Search text exceeds the maximum length of $maxCodePoints code points.")
-        }
+        reads.search(text)
     }
 
     private fun validateUuid(id: String) {
@@ -335,8 +332,4 @@ class CatalogViewGraphql(
 
     private fun stub() = catalog.withDeadlineAfter(CATALOG_DEADLINE_SECONDS, TimeUnit.SECONDS)
 
-    companion object {
-        private const val DEFAULT_FIRST = 24
-        private const val MAX_PAGE = 100
-    }
 }

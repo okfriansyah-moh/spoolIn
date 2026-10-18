@@ -9,6 +9,9 @@ import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.features.ratelimit.RateUnavailable
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.ReadPolicy
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
 import io.grpc.Metadata
@@ -19,12 +22,11 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private const val DEADLINE_SECONDS = 5L
-private const val DEFAULT_FIRST = 24
-private const val MAX_PAGE = 100
 
 class ManagedCreditGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q ->
@@ -45,7 +47,7 @@ class ManagedCreditGraphql(
         val titleId = env.getArgument<String>("titleId")
         val personId = env.getArgument<String>("personId")
         if ((titleId == null) == (personId == null)) throw InputViolation("selector", "Choose a title or person.")
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = ReadPolicy(policy()).pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
         val opId = UUID.randomUUID()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/ManagedCredits", opId, context.correlation)

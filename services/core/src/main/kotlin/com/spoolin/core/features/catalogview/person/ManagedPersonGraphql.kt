@@ -9,6 +9,9 @@ import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.features.ratelimit.RateUnavailable
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.ReceiptState
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
@@ -20,8 +23,6 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private const val DEADLINE_SECONDS = 5L
-private const val DEFAULT_FIRST = 24
-private const val MAX_PAGE = 100
 
 /**
  * GraphQL resolvers for Maintainer-only person mutations and managed reads.
@@ -39,6 +40,7 @@ private const val MAX_PAGE = 100
 class ManagedPersonGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q ->
@@ -129,7 +131,7 @@ class ManagedPersonGraphql(
         val context = context(env)
         val principal = context.principal ?: throw CredentialRejected()
         val state = requireNotNull(env.getArgument<String>("state"))
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = ReadPolicy(policy()).pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
         val opId = UUID.randomUUID()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/ManagedPeople", opId, context.correlation)

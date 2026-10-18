@@ -2,6 +2,11 @@
 
 package com.spoolin.catalog.features.credit
 
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.ReadPolicy
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
@@ -16,14 +21,14 @@ import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val DEFAULT_FIRST = 24
-private const val MAX_PAGE = 100
 
 /**
  * Maintainer managed credit reads — includes retained archived-person credits on active movies.
  */
 class ManagedCreditReads(
     private val dataSource: DataSource,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
+    private val cursors: ManagedReadCursors = ManagedReadCursors.ephemeral(),
 ) {
     fun managedCredits(
         request: PageRequest,
@@ -42,17 +47,25 @@ class ManagedCreditReads(
             if (titleId == null && personId == null) {
                 throw Status.INVALID_ARGUMENT.withDescription("INVALID_SELECTOR").asRuntimeException()
             }
-            val first = if (request.first > 0) request.first.coerceAtMost(MAX_PAGE) else DEFAULT_FIRST
-            val after = request.after.takeIf { it.isNotEmpty() }?.let { parseId(it) }
+            val first = ReadPolicy(policy()).rpcPageSize(request.first)
+            val scope = cursors.scope(ReadPolicy(policy()), "managed-credits", first,
+                mapOf("kind" to kind, "target" to targetId.toString()))
+            val after = cursors.title(request.after.takeIf { it.isNotEmpty() }, scope)?.id
             val page = listCredits(titleId, personId, first, after)
             val builder = CreditPage.newBuilder()
             page.rows.forEach { builder.addNodes(creditProto(it)) }
-            page.endCursor?.let { builder.endCursor = it.toString() }
+            page.endCursor?.let {
+                builder.endCursor = cursors.titles.encode(
+                    com.spoolin.catalog.features.search.CatalogCursor.Keyset(null, null, null, it), scope, cursors.now(),
+                )
+            }
             builder.hasNextPage = page.hasNextPage
             response.onNext(builder.build())
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: InputViolation) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 

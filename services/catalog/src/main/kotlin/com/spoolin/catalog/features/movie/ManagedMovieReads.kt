@@ -6,6 +6,11 @@ import com.spoolin.catalog.boundary.grpc.ProtoHelpers
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.ReadPolicy
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
@@ -22,8 +27,6 @@ import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val DEFAULT_FIRST = 24
-private const val MAX_PAGE = 100
 
 /**
  * Managed (Maintainer-only) catalog read operations.
@@ -40,6 +43,8 @@ class ManagedMovieReads(
     private val provenance: ProvenanceReads,
     private val titleSearch: TitleSearchSql,
     private val auditReads: AuditReads,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
+    private val cursors: ManagedReadCursors = ManagedReadCursors.ephemeral(),
 ) {
     fun managedTitle(
         request: Id,
@@ -60,6 +65,8 @@ class ManagedMovieReads(
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: InputViolation) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 
@@ -75,9 +82,10 @@ class ManagedMovieReads(
             if (state !in setOf("ACTIVE", "ARCHIVED")) {
                 throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
             }
-            val first = if (request.first > 0) request.first.coerceAtMost(MAX_PAGE) else DEFAULT_FIRST
-            val after = request.after.takeIf { it.isNotEmpty() }
-            val page = listManagedTitles(state, first, after)
+            val first = ReadPolicy(policy()).rpcPageSize(request.first)
+            val scope = cursors.scope(ReadPolicy(policy()), "managed-titles", first, mapOf("state" to state))
+            val after = cursors.title(request.after.takeIf { it.isNotEmpty() }, scope)
+            val page = listManagedTitles(state, first, after, scope)
             val builder = TitlePage.newBuilder()
             page.rows.forEach { row ->
                 val genreIds = titleSearch.findGenreIds(row.id)
@@ -90,6 +98,8 @@ class ManagedMovieReads(
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: InputViolation) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 
@@ -100,8 +110,10 @@ class ManagedMovieReads(
         try {
             requireMaintainer()
             val subjectId = request.targetId.takeIf { it.isNotEmpty() }?.let { parseId(it) }
-            val first = if (request.first > 0) request.first.coerceAtMost(MAX_PAGE) else DEFAULT_FIRST
-            val after = parseAuditCursor(request.after)
+            val first = ReadPolicy(policy()).rpcPageSize(request.first)
+            val scope = cursors.scope(ReadPolicy(policy()), "managed-audit", first,
+                mapOf("subject" to subjectId?.toString()))
+            val after = cursors.audit(request.after.takeIf { it.isNotEmpty() }, scope)
             val page = auditReads.list(subjectId, first, after)
             val builder = AuditPage.newBuilder()
             page.rows.forEach { row ->
@@ -126,13 +138,18 @@ class ManagedMovieReads(
                 builder.addNodes(event)
             }
             page.keyset?.let { ks ->
-                builder.endCursor = "${ks.createdAt.toEpochMilli()}:${ks.id}"
+                builder.endCursor = cursors.people.encode(
+                    com.spoolin.catalog.features.search.PeopleCursor.Keyset(ks.createdAt.toString(), ks.id),
+                    scope, cursors.now(),
+                )
             }
             builder.hasNextPage = page.hasNextPage
             response.onNext(builder.build())
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: InputViolation) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 
@@ -185,20 +202,11 @@ class ManagedMovieReads(
     private fun listManagedTitles(
         state: String,
         first: Int,
-        after: String?,
+        after: com.spoolin.catalog.features.search.CatalogCursor.Keyset?,
+        scope: String,
     ): ManagedPage {
         val params = mutableListOf<Any?>(state)
-        var keyset = ""
-        if (after != null) {
-            val parts = after.split(":")
-            if (parts.size >= 2) {
-                val millis = parts[0].toLongOrNull()
-                val uuid = runCatching { UUID.fromString(parts.drop(1).joinToString(":")) }.getOrNull()
-                if (millis != null && uuid != null) {
-                    keyset = " AND (t.release_year < ? OR t.release_year IS NULL OR (t.release_year = ? AND t.id > ?))"
-                }
-            }
-        }
+        val keyset = after?.let { " AND " + titleSearch.keysetCondition(it, params) } ?: ""
         val sql =
             "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.status = ? $keyset " +
                 "ORDER BY t.release_year DESC NULLS LAST, t.release_month DESC NULLS LAST, " +
@@ -206,7 +214,13 @@ class ManagedMovieReads(
         val rows = dataSource.connection.use { conn -> conn.queryBound(sql, params) { mapManagedRow(it) } }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
-        val cursor = page.lastOrNull()?.let { "${it.releaseYear ?: "null"}:${it.id}" }
+        val cursor = page.lastOrNull()?.let {
+            cursors.titles.encode(
+                com.spoolin.catalog.features.search.CatalogCursor.Keyset(
+                    it.releaseYear, it.releaseMonth, it.releaseDay, it.id,
+                ), scope, cursors.now(),
+            )
+        }
         return ManagedPage(page, cursor, hasNext)
     }
 
@@ -280,16 +294,6 @@ class ManagedMovieReads(
             "HUMAN" -> actorId?.toString() ?: "UNKNOWN"
             else -> actorKind
         }
-
-    private fun parseAuditCursor(raw: String): AuditReads.Keyset? {
-        if (raw.isEmpty()) return null
-        return runCatching {
-            val parts = raw.split(":")
-            val millis = parts[0].toLong()
-            val uuid = UUID.fromString(parts.drop(1).joinToString(":"))
-            AuditReads.Keyset(java.time.Instant.ofEpochMilli(millis), uuid)
-        }.getOrNull()
-    }
 
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }

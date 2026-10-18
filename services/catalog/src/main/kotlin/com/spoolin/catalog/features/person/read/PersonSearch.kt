@@ -1,13 +1,14 @@
 package com.spoolin.catalog.features.person.read
 
 import com.spoolin.catalog.features.search.CatalogCursor
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val MAX_PAGE = 100
-private const val SEARCH_MAX_CODE_POINTS = 200
 
 /**
  * Person and credit reads for the public catalog.
@@ -18,6 +19,7 @@ private const val SEARCH_MAX_CODE_POINTS = 200
  */
 class PersonSearch(
     private val dataSource: DataSource,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
 ) {
     data class PersonRow(
         val id: UUID,
@@ -67,16 +69,16 @@ class PersonSearch(
         first: Int,
         after: PersonKeyset?,
     ): PersonPage {
-        val limit = first.coerceIn(1, MAX_PAGE)
+        val limit = ReadPolicy(policy()).pageSize(first)
         val params = mutableListOf<Any?>()
         val where = mutableListOf<String>("p.status = 'ACTIVE'")
 
-        if (!text.isNullOrEmpty()) {
-            validateSearchLength(text)
-            val pattern = "%" + CatalogCursor.escapeWildcards(text) + "%"
+        val normalized = ReadPolicy(policy()).search(text)
+        if (normalized != null) {
+            val pattern = "%" + CatalogCursor.escapeWildcards(normalized) + "%"
             where.add(
-                "casefold(p.name) " +
-                    "LIKE casefold(?) ESCAPE '\\'",
+                "casefold(p.name COLLATE pg_unicode_fast) " +
+                    "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\'",
             )
             params.add(pattern)
         }
@@ -163,7 +165,7 @@ class PersonSearch(
         after: CreditKeyset?,
         first: Int,
     ): CreditPage {
-        val limit = first.coerceIn(1, MAX_PAGE)
+        val limit = ReadPolicy(policy()).pageSize(first)
         val mutableWhere = where.toMutableList()
         val mutableParams = params.toMutableList()
         if (after != null) {
@@ -217,9 +219,5 @@ class PersonSearch(
         )
     }
 
-    private fun validateSearchLength(text: String) {
-        require(text.codePointCount(0, text.length) <= SEARCH_MAX_CODE_POINTS) {
-            "Search text exceeds maximum length"
-        }
-    }
+
 }

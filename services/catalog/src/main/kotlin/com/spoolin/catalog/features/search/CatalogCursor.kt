@@ -25,7 +25,7 @@ private const val CURSOR_TTL_SECONDS = 900L // 15 minutes
  * hmac_bytes = HMAC-SHA256(payload_bytes, key) — 32 bytes
  *
  * The key is injected; tests use a fixed key for determinism.
- * Scope hash = SHA-256 of the canonical query parameters.
+ * Scope hash = SHA-256 of the typed query parameters.
  */
 class CatalogCursor(
     private val key: ByteArray = newRandomKey(),
@@ -171,7 +171,7 @@ class CatalogCursor(
 
         /**
          * Compute a scope hash from the search parameters.
-         * Order-stable, canonical hex digest used in cursor binding.
+         * Order-stable, deterministic hex digest used in cursor binding.
          */
         fun scopeHash(
             text: String?,
@@ -181,19 +181,11 @@ class CatalogCursor(
             month: Int?,
             visibility: String,
         ): String {
-            val canonical =
-                buildString {
-                    append("v=").append(visibility).append(';')
-                    append("t=").append(text.orEmpty()).append(';')
-                    append("k=").append(kind.orEmpty()).append(';')
-                    append("g=").append(genreIds.sorted().joinToString(",")).append(';')
-                    append("y=").append(year ?: "").append(';')
-                    append("m=").append(month ?: "")
-                }
-            val digest =
-                java.security.MessageDigest.getInstance("SHA-256").digest(
-                    canonical.toByteArray(Charsets.UTF_8),
-                )
+            val serialized = com.spoolin.support.policy.PolicyJson.encode(
+                listOf("catalog-scope-v2", visibility, text, kind, genreIds.distinct().sorted(), year, month),
+            )
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(serialized.toByteArray(Charsets.UTF_8))
             return digest.joinToString("") { "%02x".format(it) }
         }
 
@@ -202,5 +194,50 @@ class CatalogCursor(
          * Escapes \, %, _ so they are treated as literals.
          */
         fun escapeWildcards(text: String): String = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    }
+}
+
+/** Shared signing material; scope requires the freshly admitted managed reader on every request. */
+class ManagedReadCursors(
+    key: ByteArray,
+    private val clock: java.time.Clock = java.time.Clock.systemUTC(),
+) {
+    val titles = CatalogCursor(key)
+    val people = PeopleCursor(key)
+    fun now(): Instant = clock.instant()
+
+    fun scope(reads: com.spoolin.support.policy.ReadPolicy, surface: String, first: Int,
+              criteria: Map<String, Any?>): String {
+        val actor = com.spoolin.support.identity.ActorRpc.current()
+            ?: throw io.grpc.Status.PERMISSION_DENIED.asRuntimeException()
+        return reads.cursorScope(surface, first, mapOf(
+            "criteria" to criteria,
+            "reader" to listOf(actor.accountId.toString(), actor.credentialId.toString(), actor.authEpoch,
+                actor.role, actor.clientKind, actor.audience),
+        ))
+    }
+
+    fun title(raw: String?, scope: String): CatalogCursor.Keyset? = raw?.let {
+        titles.decode(it, scope, now()) ?: invalid()
+    }
+
+    fun person(raw: String?, scope: String): PeopleCursor.Keyset? = raw?.let {
+        people.decode(it, scope, now()) ?: invalid()
+    }
+
+    fun audit(raw: String?, scope: String): com.spoolin.catalog.operations.audit.AuditReads.Keyset? =
+        person(raw, scope)?.let { key ->
+            val at = try { Instant.parse(key.name) } catch (_: java.time.format.DateTimeParseException) { invalid() }
+            com.spoolin.catalog.operations.audit.AuditReads.Keyset(at, key.id)
+        }
+
+    private fun invalid(): Nothing = throw io.grpc.Status.INVALID_ARGUMENT
+        .withDescription("INVALID_CURSOR").asRuntimeException()
+
+    companion object {
+        private const val SIGNING_KEY_BYTES = 32
+        fun ephemeral(): ManagedReadCursors = ManagedReadCursors(
+            ByteArray(SIGNING_KEY_BYTES).also { SecureRandom().nextBytes(it) },
+        )
     }
 }
