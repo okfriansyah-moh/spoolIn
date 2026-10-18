@@ -47,8 +47,8 @@ class WorkRecoveryDestination(
         val expectedVersion = when (work.kind) {
             "ARTWORK_CONFIRM" -> Math.addExact(target.expectedVersion, 1)
             "ARTWORK_RELEASE" -> payload["catalogVersion"].let { version ->
-                require(version.isIntegralNumber && version.canConvertToLong())
-                version.asLong().also { require(it >= 0) }
+                require(version.isIntegralNumber)
+                version.asText().toLong().also { require(it >= 0) }
             }
             else -> null
         }
