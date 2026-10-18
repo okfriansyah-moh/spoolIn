@@ -2,6 +2,7 @@
 
 package com.spoolin.catalog.operations.audit
 
+import tools.jackson.databind.json.JsonMapper
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
@@ -17,6 +18,8 @@ private const val CHANGES_BYTE_LIMIT = 65536
  * Private/unlisted fields are filtered before any processing.
  */
 object AuditDiff {
+    private val json = JsonMapper.builder().build()
+
     // Safe domain fields for movie change records (no credentials, tokens or private state).
     val MOVIE_PATHS: Set<String> =
         setOf(
@@ -140,5 +143,5 @@ object AuditDiff {
             else -> jsonStr(value.toString())
         }
 
-    internal fun jsonStr(value: String): String = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+    internal fun jsonStr(value: String): String = json.writeValueAsString(value)
 }
