@@ -75,7 +75,7 @@ export async function fetchTitleCredits(
   );
   const page = record(data.managedCredits);
   const nodes = page.nodes;
-  if (!Array.isArray(nodes)) return Object.freeze([]);
+  if (!Array.isArray(nodes)) throw new Error('Credit data unavailable.');
   return Object.freeze(
     nodes.map((node) => mapCredit(node as Record<string, unknown>)),
   );
@@ -87,7 +87,7 @@ export async function fetchCreditRoles(
 ): Promise<readonly CreditRoleOption[]> {
   const data = record(await request(CREDIT_ROLES, {}, withSignal(signal)));
   const roles = data.creditRoles;
-  if (!Array.isArray(roles)) return Object.freeze([]);
+  if (!Array.isArray(roles)) throw new Error('Credit roles unavailable.');
   return Object.freeze(
     roles.map((role) => {
       const node = role as Record<string, unknown>;
@@ -115,7 +115,7 @@ export async function fetchActivePeople(
   );
   const page = record(data.managedPeople);
   const nodes = page.nodes;
-  if (!Array.isArray(nodes)) return Object.freeze([]);
+  if (!Array.isArray(nodes)) throw new Error('Credit data unavailable.');
   return Object.freeze(
     nodes.map((node) => {
       const row = node as Record<string, unknown>;

@@ -50,6 +50,7 @@
   let editing = $state<ManagedCredit | null>(null);
   let removing = $state<ManagedCredit | null>(null);
   let pendingId = $state<string | null>(null);
+  let pendingKind: 'save' | 'remove' = 'save';
   let retryOriginal: (() => Promise<IdentityOutcome>) | null = null;
 
   const selectedRole = $derived(
@@ -92,6 +93,8 @@
         credits = loadedCredits;
         roles = loadedRoles;
         people = loadedPeople;
+      } catch {
+        if (!abort.signal.aborted) message = 'Credits could not be loaded. Reload before making changes.';
       } finally {
         if (!abort.signal.aborted) loading = false;
       }
@@ -148,7 +151,7 @@
     pendingId = null;
     retryOriginal = null;
     resetFields();
-    message = 'Credit saved.';
+    message = pendingKind === 'remove' ? 'Credit removed.' : 'Credit saved.';
   }
 
   async function executeOriginal() {
@@ -187,11 +190,14 @@
     const input = { personId, roleId, characters };
     const selected = editing;
     const originalTitleVersion = titleVersion;
+    const originalTitleId = titleId;
+    const { policyRevision, csrf } = context;
+    pendingKind = 'save';
     pendingId = operationId;
     retryOriginal = selected
-      ? () => updateCredit(transport, operationId, selected.id, selected.version, context.policyRevision,
-        { roleId: input.roleId, characters: input.characters }, context.csrf, signal)
-      : () => addCredit(transport, operationId, titleId, originalTitleVersion, context.policyRevision, input, context.csrf, signal);
+      ? () => updateCredit(transport, operationId, selected.id, selected.version, policyRevision,
+        { roleId: input.roleId, characters: input.characters }, csrf, signal)
+      : () => addCredit(transport, operationId, originalTitleId, originalTitleVersion, policyRevision, input, csrf, signal);
     await executeOriginal();
   }
 
@@ -202,8 +208,10 @@
     const operationId = globalThis.crypto.randomUUID();
     const transport = createTransport();
     const signal = new AbortController().signal;
+    const originalCsrf = context.csrf;
+    pendingKind = 'remove';
     pendingId = operationId;
-    retryOriginal = () => removeCredit(transport, operationId, selected.id, selected.version, context.csrf, signal);
+    retryOriginal = () => removeCredit(transport, operationId, selected.id, selected.version, originalCsrf, signal);
     await executeOriginal();
   }
 
