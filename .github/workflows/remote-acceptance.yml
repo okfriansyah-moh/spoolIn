@@ -292,6 +292,16 @@ jobs:
           else
             npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --max-failures=1
           fi
+      - name: Retain browser assertions and application captures immediately
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: browser-boundaries-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/browser
+          retention-days: 14
+          if-no-files-found: error
       - name: Retain safe owner diagnostics after browser journeys
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/ci/capture-runtime-diagnostics.py --phase after-browser
