@@ -30,5 +30,4 @@ class AlertManagementConfiguration {
         environment: Environment,
         recorder: AlertRecorder,
     ): AlertIngress = AlertIngress(environment, recorder, AlertPolicy.fromEnvironment(environment))
-
 }

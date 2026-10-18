@@ -118,12 +118,27 @@ export function uniqueName(kind: string) {
 const backupRejection =
   'Changes are not backed up yet. Retry after the original draft save is confirmed.';
 const publicDraftCodes = new Set([
-  'FIELD_INVALID', 'NOT_FOUND', 'STALE_VERSION', 'POLICY_CHANGED',
-  'DRAFT_QUOTA_EXCEEDED', 'QUOTA_EXCEEDED', 'UNAVAILABLE', 'FORBIDDEN',
-  'UNAUTHENTICATED', 'IDEMPOTENCY_CONFLICT', 'RATE_LIMITED',
-  'RPC_DATA_LOSS', 'VALIDATION_FAILED', 'INTERNAL_ERROR',
+  'FIELD_INVALID',
+  'NOT_FOUND',
+  'STALE_VERSION',
+  'POLICY_CHANGED',
+  'DRAFT_QUOTA_EXCEEDED',
+  'QUOTA_EXCEEDED',
+  'UNAVAILABLE',
+  'FORBIDDEN',
+  'UNAUTHENTICATED',
+  'IDEMPOTENCY_CONFLICT',
+  'RATE_LIMITED',
+  'RPC_DATA_LOSS',
+  'VALIDATION_FAILED',
+  'INTERNAL_ERROR',
 ]);
-const publicOperationStates = new Set(['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED']);
+const publicOperationStates = new Set([
+  'PENDING',
+  'SUCCEEDED',
+  'FAILED',
+  'EXPIRED',
+]);
 
 type DraftObservation = {
   field: 'saveDraft' | 'operation';
@@ -146,19 +161,37 @@ async function observeDraftResponse(
   response: Response,
   field: DraftObservation['field'],
 ): Promise<DraftObservation> {
-  const observation: DraftObservation = { field, status: response.status(), codes: [] };
+  const observation: DraftObservation = {
+    field,
+    status: response.status(),
+    codes: [],
+  };
   try {
     const body = await response.json();
     const result = body.data?.[field];
     const operation = field === 'saveDraft' ? result?.operation : result;
     const codes: unknown[] = [result?.problem?.code, operation?.problem?.code];
     if (Array.isArray(body.errors)) {
-      codes.push(...body.errors.map((error: { extensions?: { code?: unknown } }) => error.extensions?.code));
+      codes.push(
+        ...body.errors.map(
+          (error: { extensions?: { code?: unknown } }) =>
+            error.extensions?.code,
+        ),
+      );
     }
-    observation.codes = [...new Set(codes.filter((code) => code != null).map((code) =>
-      typeof code === 'string' && publicDraftCodes.has(code) ? code : 'UNCLASSIFIED',
-    ))];
-    if (publicOperationStates.has(operation?.state)) observation.state = operation.state;
+    observation.codes = [
+      ...new Set(
+        codes
+          .filter((code) => code != null)
+          .map((code) =>
+            typeof code === 'string' && publicDraftCodes.has(code)
+              ? code
+              : 'UNCLASSIFIED',
+          ),
+      ),
+    ];
+    if (publicOperationStates.has(operation?.state))
+      observation.state = operation.state;
   } catch {
     observation.codes = ['UNREADABLE_RESPONSE'];
   }
@@ -182,20 +215,28 @@ async function saveCreated(page: Page, mutation: string, button: string) {
     const responsePromise = page.waitForResponse((response) =>
       graphqlQuery(response).includes(`mutation ${mutation}`),
     );
-    const rejected = page.getByRole('alert').filter({ hasText: backupRejection });
+    const rejected = page
+      .getByRole('alert')
+      .filter({ hasText: backupRejection });
     const outcome = Promise.race([
       responsePromise.then((response) => ({ response })),
-      rejected.waitFor({ state: 'visible', timeout: 0 }).then(() => ({ response: null })),
+      rejected
+        .waitFor({ state: 'visible', timeout: 0 })
+        .then(() => ({ response: null })),
     ]);
     await page.getByRole('button', { name: button, exact: true }).click();
     const { response } = await outcome;
     if (!response) {
-      throw new Error(`Create submission rejected by required draft backup gate: ${JSON.stringify(await Promise.all(observations))}`);
+      throw new Error(
+        `Create submission rejected by required draft backup gate: ${JSON.stringify(await Promise.all(observations))}`,
+      );
     }
     expect(response.ok(), `Create HTTP status ${response.status()}`).toBe(true);
     const body = await response.json();
     expect(body.errors).toBeUndefined();
-    const operation = body.data[mutation === 'CreateMovie' ? 'createMovie' : 'createPerson'].operation;
+    const operation =
+      body.data[mutation === 'CreateMovie' ? 'createMovie' : 'createPerson']
+        .operation;
     expect(operation.state).toBe('SUCCEEDED');
     expect(operation.resultId).toMatch(/^[a-f0-9-]{36}$/i);
     return String(operation.resultId);

@@ -80,19 +80,22 @@ class DraftArgumentRulesTest {
         PolicyScalars.all().forEach(wiring::scalar)
         // Observe real coercion before persistence; this deliberately supplies no successful write receipt.
         wiring.type("Mutation") {
-            it.dataFetcher("saveDraft") { env ->
-                val input = parseDraftGraphqlInput(requireNotNull(env.getArgument<Map<String, Any?>>("input")))
-                throw ObservedVersion(draftExpectedVersion(env), input.baseVersion)
-            }.dataFetcher("discardDraft") { env -> throw ObservedVersion(draftExpectedVersion(env)) }
+            it
+                .dataFetcher("saveDraft") { env ->
+                    val input = parseDraftGraphqlInput(requireNotNull(env.getArgument<Map<String, Any?>>("input")))
+                    throw ObservedVersion(draftExpectedVersion(env), input.baseVersion)
+                }.dataFetcher("discardDraft") { env -> throw ObservedVersion(draftExpectedVersion(env)) }
         }
         val engine =
-            GraphQL.newGraphQL(
-                SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build()),
-            ).build()
+            GraphQL
+                .newGraphQL(
+                    SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build()),
+                ).build()
         val document = Files.readString(Path.of("../../frontend/src/lib/features/draft/$documentName"))
         val result =
             engine.execute(
-                ExecutionInput.newExecutionInput()
+                ExecutionInput
+                    .newExecutionInput()
                     .query(document)
                     .variables(variables() + extra)
                     .build(),
