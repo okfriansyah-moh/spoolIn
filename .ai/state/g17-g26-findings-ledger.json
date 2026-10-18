@@ -1187,6 +1187,31 @@
       ],
       "configuration_diagnosis": "Pinned Spring Boot 4.1.1 spring-boot-grpc-client metadata and tagged upstream GrpcClientProperties bind spring.grpc.client.channel, singular. All three owner YAML files used channels, so their declared targets and mutual-TLS settings were ignored. Corrected source and actual-YAML Binder regression are prepared; behavior awaits current remote rerun.",
       "configuration_primary_source": "https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-grpc-client/src/main/java/org/springframework/boot/grpc/client/autoconfigure/GrpcClientProperties.java"
+    },
+    {
+      "id": "F-049",
+      "required": true,
+      "status": "open",
+      "area": "Catalog page query bounds",
+      "summary": "Public and managed title lists issued one genre and one provenance query per returned title. This violates the approved TD 7.4 no-N+1 obligation; a nearby passing functional read does not establish bounded query count.",
+      "requirement_ids": [
+        "T013",
+        "T045",
+        "TD section 7.4"
+      ],
+      "assessed_revision": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/boundary/grpc/PublicCatalogReads.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/movie/ManagedMovieReads.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/provenance/ProvenanceReads.kt"
+      ],
+      "source_corrections": [
+        "fe3ab578"
+      ],
+      "source_disposition": "Prepared bounded parameterized genre/provenance batches of 100 IDs. Both actual list handlers prefetch once per page; detail paths retain their existing behavior.",
+      "runtime_proof": "Pending corrected remote catalogReadsTest real PostgreSQL/mTLS successful-query counts for page sizes 1/20, managed/empty pages and 201-ID helper boundaries, plus actual completed-query deltas in the owned capacity installation. No runtime acceptance is inferred from these authored tests.",
+      "owner": "remote-media-implementer; coordinator retains closure authority"
     }
   ],
   "pending_acceptance": [
@@ -1687,11 +1712,35 @@
       {
         "run_id": 39098324998,
         "tested_sha": "69d27ed551f1b02ba1adce112c29c212eafa87a0",
-        "result": "in_progress",
-        "detail": "Focused runtime rerun includes corrected actual Boot gRPC client configuration, accessible field names, typed MCP refusals and precise production Media profiles. Scoped policy provisioning failed early; actual diagnostics pending artifact retention. No runtime pass is inferred.",
+        "result": "cancelled-after-failures",
+        "detail": "Strict production build passed; three sandbox source tests and three safe MCP diagnostic tests passed. Actual AppArmor parser failed at line 9 because the non-executable file permission rule omitted its path. Frontend source check failed on unsupported exact options in new ByRole test queries; corrected without weakening exact name assertions. Obsolete run cancelled after source evidence artifact retention, before application startup. The corrected profile subsequently compiled/loaded on run 39098772763.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098324998",
         "artifact_retention_days": 14,
-        "inspected_artifact_ids": []
+        "inspected_artifact_ids": [
+          12125348852
+        ]
+      },
+      {
+        "run_id": 39098772763,
+        "tested_sha": "10dcb129c13bdd35dc461bd42998e6822b62f66c",
+        "result": "passed-policy-provisioning-only",
+        "detail": "Actual source policy tests, AppArmor compilation/loading and protected installed-profile check passed on GitHub-hosted Ubuntu24.04 image20261012.334.1. Inspected artifact records exact seccomp/AppArmor hashes. No container codec execution or task acceptance claimed.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098772763",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12125322783
+        ]
+      },
+      {
+        "run_id": 39098882348,
+        "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+        "result": "in_progress",
+        "detail": "Full composed verification dispatched. Protected Media policy, strict bootJar/contracts, source check/build, 380 frontend tests and 76 MCP tests passed; inspected source logs and MCP JUnit show zero failures. Native owner suites and actual application/browser/operations/gates remain pending. Later batching correction fe3ab578 is outside this run and needs separate corrected proof.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12125867168
+        ]
       }
     ],
     "progress_checkpoints": [
