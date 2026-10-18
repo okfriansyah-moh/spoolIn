@@ -162,6 +162,7 @@ class Application {
 
     @Bean(destroyMethod = "close")
     fun mediaWorker(
+        environment: Environment,
         dataSource: DataSource,
         schema: SchemaReadiness,
         quarantineStore: QuarantineStore,
@@ -170,6 +171,7 @@ class Application {
             dataSource, schema,
             com.spoolin.media.features.processing.MediaProcessingHandler(dataSource, quarantineStore),
             { quarantineStore.sweepAbandonedScratch() },
+            com.spoolin.support.notifications.ExhaustionNotifications.configured(dataSource, "media") { environment.getProperty(it) },
         )
 
     @Bean

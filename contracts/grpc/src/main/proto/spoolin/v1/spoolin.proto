@@ -258,7 +258,6 @@ message ProposalRevision {
   string content_hash = 4;
   google.protobuf.Timestamp expires_at = 5;
   optional bytes ui_challenge = 6;
-  optional string ui_binding_token = 7;
 }
 
 message ApprovalInput {
