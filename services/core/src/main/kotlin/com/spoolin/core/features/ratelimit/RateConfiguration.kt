@@ -65,7 +65,7 @@ class RateConfiguration {
 
     @Bean
     fun admissionHealth(
-        dataSource: DataSource,
+        @org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource,
         agreement: RateAgreement,
     ): RateMaintenance = RateMaintenance(dataSource, agreement)
 

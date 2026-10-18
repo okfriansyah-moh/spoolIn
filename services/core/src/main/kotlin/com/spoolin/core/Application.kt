@@ -71,11 +71,20 @@ private val serviceNames = listOf("spoolin.v1.IdentityService", "spoolin.v1.McpG
 @EnableScheduling
 class Application {
     @Bean(destroyMethod = "close")
+    @org.springframework.context.annotation.Primary
     fun dataSource(environment: Environment): HikariDataSource {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
+
+    @Bean("maintenanceDataSource")
+    fun maintenanceDataSource(environment: Environment): DataSource =
+        com.spoolin.support.maintenance.MaintenanceDataSources.open(
+            OWNER,
+            environment.getRequiredProperty("CORE_DB_URL"),
+            Path.of(environment.getRequiredProperty("CORE_DB_MAINTENANCE_PASSWORD_FILE")),
+        )
 
     @Bean
     fun schema(
@@ -380,7 +389,7 @@ fun certificateIdentity(certificate: X509Certificate): String? {
             .orEmpty()
             .filter { it[0] == 2 }
             .mapNotNull { it[1] as? String }
-    val identities = names.filter { it in setOf("core", "catalog", "media", "mcp", "operator", "prometheus") }
+    val identities = names.filter { it in setOf("core", "catalog", "media", "mcp", "operator", "prometheus", "alertmanager") }
     return identities.singleOrNull()
 }
 
@@ -441,20 +450,20 @@ class ListenerBoundary(
         chain: FilterChain,
     ) {
         val path = request.requestURI
-        if (path.startsWith("/actuator")) {
+        if (path.startsWith("/actuator") || path == "/internal/alerts") {
             val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
             val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
             val permitted =
-                if (path ==
-                    "/actuator/prometheus"
-                ) {
+                if (path == "/internal/alerts") {
+                    identity == "alertmanager"
+                } else if (path == "/actuator/prometheus") {
                     identity == "prometheus"
                 } else {
                     identity in setOf("operator", "core", "catalog", "media", "mcp")
                 }
             val privatePort = environment.getProperty("local.management.port", Int::class.java)
             if (!request.isSecure || request.localPort != privatePort || !permitted) {
-                response.sendError(HTTP_FORBIDDEN)
+                response.sendError(if (path == "/internal/alerts" && request.localPort != privatePort) 404 else HTTP_FORBIDDEN)
                 return
             }
         }

@@ -72,11 +72,26 @@ private val serviceNames = listOf("spoolin.v1.CatalogService")
 @EnableScheduling
 class Application {
     @Bean(destroyMethod = "close")
+    @org.springframework.context.annotation.Primary
     fun dataSource(environment: Environment): HikariDataSource {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
+
+    @Bean("maintenanceDataSource")
+    fun maintenanceDataSource(environment: Environment): DataSource =
+        com.spoolin.support.maintenance.MaintenanceDataSources.open(
+            OWNER,
+            environment.getRequiredProperty("CATALOG_DB_URL"),
+            Path.of(environment.getRequiredProperty("CATALOG_DB_MAINTENANCE_PASSWORD_FILE")),
+        )
+
+    @Bean
+    fun receiptExpiry(
+        @org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource,
+    ): com.spoolin.catalog.operations.maintenance.ReceiptExpiry =
+        com.spoolin.catalog.operations.maintenance.ReceiptExpiry(dataSource)
 
     @Bean
     fun schema(

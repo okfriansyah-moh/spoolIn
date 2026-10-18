@@ -14,7 +14,7 @@ class ReceiptConfiguration {
     fun operationComparisonKeys(environment: Environment): IntentHashes = ComparisonKeySettings.load(environment)
 
     @Bean
-    fun receiptExpiry(dataSource: DataSource): com.spoolin.core.operations.maintenance.ReceiptExpiry =
+    fun receiptExpiry(@org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource): com.spoolin.core.operations.maintenance.ReceiptExpiry =
         com.spoolin.core.operations.maintenance
             .ReceiptExpiry(dataSource)
 

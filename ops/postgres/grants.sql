@@ -22,6 +22,7 @@ BEGIN
     names := names || ARRAY['asset','asset_reference'];
   END IF;
   EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA appdata FROM %I', runtime_role);
+  EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA appdata FROM %I', maintenance_role);
   FOREACH table_name IN ARRAY names LOOP
     IF to_regclass(format('appdata.%I',table_name)) IS NOT NULL THEN
       EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON appdata.%I TO %I',table_name,runtime_role);
@@ -33,7 +34,8 @@ BEGIN
   END IF;
   IF to_regclass('appdata.operation_receipt') IS NOT NULL THEN
     EXECUTE format('REVOKE DELETE ON appdata.operation_receipt FROM %I',runtime_role);
-    EXECUTE format('GRANT SELECT,UPDATE ON appdata.operation_receipt TO %I',maintenance_role);
+    EXECUTE format('GRANT SELECT ON appdata.operation_receipt TO %I',maintenance_role);
+    EXECUTE format('GRANT UPDATE(result) ON appdata.operation_receipt TO %I',maintenance_role);
   END IF;
   IF db = 'spoolin_core' AND to_regclass('appdata.crypto_key_version') IS NOT NULL THEN
     EXECUTE format('GRANT SELECT,INSERT,UPDATE ON appdata.crypto_key_version TO %I',runtime_role);
@@ -49,6 +51,20 @@ BEGIN
   END LOOP;
   IF to_regclass('appdata.flyway_schema_history') IS NOT NULL THEN
     EXECUTE format('GRANT SELECT ON appdata.flyway_schema_history TO %I',runtime_role);
+  END IF;
+  IF to_regclass('appdata.durable_work') IS NOT NULL THEN
+    EXECUTE format('GRANT SELECT,DELETE ON appdata.durable_work TO %I',maintenance_role);
+    EXECUTE format('GRANT UPDATE(payload) ON appdata.durable_work TO %I',maintenance_role);
+  END IF;
+  IF db = 'spoolin_core' THEN
+    FOREACH table_name IN ARRAY ARRAY['browser_session','mcp_credential','form_draft','request_rate_window'] LOOP
+      IF to_regclass(format('appdata.%I',table_name)) IS NOT NULL THEN
+        EXECUTE format('GRANT SELECT,DELETE ON appdata.%I TO %I',table_name,maintenance_role);
+      END IF;
+    END LOOP;
+  ELSIF db = 'spoolin_media' AND to_regclass('appdata.asset') IS NOT NULL THEN
+    EXECUTE format('GRANT SELECT ON appdata.asset,appdata.asset_reference TO %I',maintenance_role);
+    EXECUTE format('GRANT UPDATE(processing_work_id,processing_staging_key,processing_input_hash,processing_created_at) ON appdata.asset TO %I',maintenance_role);
   END IF;
   EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA appdata TO %I',backup_role);
 END
