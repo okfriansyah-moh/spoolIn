@@ -1294,10 +1294,54 @@
       {
         "run_id": 39090751636,
         "tested_sha": "97bd5270acdb68c47e4769e01862810bb841af90",
-        "result": "in_progress",
-        "detail": "Composed strict build, real owner boundaries, make start, full seed/browser/Make/operations and required gates dispatched; no result yet.",
+        "result": "cancelled",
+        "detail": "Strict all-owner build/contracts and FE/MCP check/build passed; actual reports show75 MCP tests and297 frontend tests passed without skips. Host codec preflight failed bwrap RTM_NEWADDR permission; mechanism unproved. Owner integration failed WorkRecoveryBoundaryTest initialization/Flyway; native failure XML subsequently lost to gate cleanup, retention corrected. Compose helper lacked seed profile; actual make start inserted200 titles but readiness failed host connectivity. No browser or task acceptance. Network/private-health/classpath/helper corrections pending current rerun.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39090751636",
-        "artifact_retention_days": 14
+        "artifact_retention_days": 14,
+        "history": [
+          {
+            "result": "in_progress",
+            "detail": "Composed strict build, real owner boundaries, make start, full seed/browser/Make/operations and required gates dispatched; no result yet."
+          }
+        ],
+        "job_id": 117566791924,
+        "runner_os": "Ubuntu24.04 GitHub-hosted Linux",
+        "runner_image": "20261012.334.1",
+        "inspected_artifact_ids": [
+          12122273871,
+          12122547785
+        ]
+      },
+      {
+        "run_id": 39092411186,
+        "tested_sha": "5812f287772ef208214e5f1be1d767104acc6aba",
+        "result": "succeeded-preparation",
+        "detail": "Hosted source formatting passed; inspected128KiB patch applied26files; three newer credit/browser sources preserved. No runtime acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39092411186",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12122823208
+        ]
+      },
+      {
+        "run_id": 39092493474,
+        "tested_sha": "3f263b76e404955e6a8ab156993b5fe9bffa1ada",
+        "result": "failed",
+        "detail": "Actual all-project detekt and ktlint checks failed. Complete1485line report inspected; Core rotation/nonrotation corrections delegated with exact claims, other violations remain required. No threshold changes or acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39092493474",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12123242902
+        ]
+      },
+      {
+        "run_id": 39092813499,
+        "tested_sha": "0c641608e6149ecc5acf07734601c3379f27266b",
+        "result": "in_progress",
+        "detail": "Dispatched composed verification including actual make start, full browser/seed/Make/recovery checks and restricted Media codec container probe. No result yet.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39092813499",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": []
       }
     ],
     "progress_checkpoints": [
