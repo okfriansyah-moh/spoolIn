@@ -10,7 +10,7 @@ internal fun draftGraphqlProjection(draft: DraftProjection): Map<String, Any?> =
         "targetKind" to draft.targetKind,
         "targetId" to draft.targetId?.toString(),
         "baseVersion" to draft.baseVersion?.toString(),
-        "values" to draft.values,
+        "values" to ObjectMapper().readValue(draft.values, Map::class.java),
         "operationId" to draft.operationId?.toString(),
         "version" to draft.version.toString(),
         "expiresAt" to draft.expiresAt.toString(),
