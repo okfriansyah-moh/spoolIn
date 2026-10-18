@@ -1,29 +1,35 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { resolve } from '$app/paths';
+  import Button from '../../../lib/components/Button.svelte';
   import Notice from '../../../lib/components/Notice.svelte';
   import { createTransport } from '../../../lib/transport/graphql';
   import { createMovieListController } from '../../../lib/features/movie/list-controller';
   import { loadWriteContext } from '../../../lib/features/movie/write-context';
   import type { ListState } from '../../../lib/features/movie/types';
 
+  let controller: ReturnType<typeof createMovieListController> | null = null;
+  let csrf = '';
+  let signal: AbortSignal | null = null;
   let listState = $state<ListState>({ kind: 'loading' });
 
   onMount(() => {
     const transport = createTransport();
-    const controller = createMovieListController(transport);
+    controller = createMovieListController(transport);
     const unsubscribe = controller.subscribe((next) => {
       listState = next;
     });
     const abort = new AbortController();
+    signal = abort.signal;
     void loadWriteContext(abort.signal).then((context) => {
       if (!context || abort.signal.aborted) return;
-      void controller.load(context.csrf, abort.signal);
+      csrf = context.csrf;
+      void controller?.load(context.csrf, abort.signal);
     });
     return () => {
       abort.abort();
       unsubscribe();
-      controller.dispose();
+      controller?.dispose();
     };
   });
 </script>
@@ -37,6 +43,7 @@
 {:else if listState.kind === 'failure'}
   <Notice title="Movies could not be loaded" tone="error">
     <p>Try again after confirming your Maintainer session.</p>
+    <Button variant="secondary" onclick={() => signal && controller?.load(csrf, signal)}>Retry movies</Button>
   </Notice>
 {:else}
   <div class="table-wrap">
@@ -76,6 +83,10 @@
       </tbody>
     </table>
   </div>
+  {#if listState.pagingError}<p role="alert">More movies could not be loaded. Retry the same page.</p>{/if}
+  {#if listState.next}
+    <Button variant="secondary" pending={listState.loadingMore} onclick={() => signal && controller?.loadMore(csrf, signal)}>Load more movies</Button>
+  {/if}
 {/if}
 
 <Notice title="TV entries are read-only" tone="info">

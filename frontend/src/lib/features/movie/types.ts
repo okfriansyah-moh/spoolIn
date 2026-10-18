@@ -46,6 +46,9 @@ export type ListState =
   | {
       kind: 'ready';
       titles: readonly ManagedTitleRow[];
+      next: string | null;
+      loadingMore: boolean;
+      pagingError: boolean;
     };
 
 export type SavePhase =
