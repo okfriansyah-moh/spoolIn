@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import CreatedRecordNotice from '../../../lib/features/management/CreatedRecordNotice.svelte';
   import { resolve } from '$app/paths';
   import Button from '../../../lib/components/Button.svelte';
   import Notice from '../../../lib/components/Notice.svelte';
@@ -61,6 +62,8 @@
   </div>
   <a class="button" href={resolve('/manage/movies/new')}>Create movie</a>
 </header>
+
+<CreatedRecordNotice kind="movie" />
 
 <form class="list-search" role="search" onsubmit={submitSearch}>
   <label for="managed-movies-search">Search movies</label>

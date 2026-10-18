@@ -1,6 +1,8 @@
 <script lang="ts">
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
@@ -25,6 +27,7 @@
   let ready = $state(false);
   let controller: ReturnType<typeof createMovieEditorController> | null = null;
   const movieId = $derived(page.params.id ?? '');
+  const creditsStep = $derived(page.url.searchParams.get('step') === 'credits');
 
   $effect(() => {
     const selectedId = movieId;
@@ -86,8 +89,12 @@
     <EditorPageHeading
       sectionLabel="Movies"
       sectionHref="manage/movies"
-      title={editorState?.saved?.title ?? 'Edit movie'}
-      description="Update the details people use to recognize and find this film."
+      title={creditsStep
+        ? 'Add cast and creators'
+        : (editorState?.saved?.title ?? 'Edit movie')}
+      description={creditsStep
+        ? 'Movie created. Add the people behind it, or skip this step for now.'
+        : 'Update the details people use to recognize and find this film.'}
       actionHref={editorState?.saved
         ? `titles/${encodeURIComponent(editorState.saved.id)}`
         : undefined}
@@ -97,39 +104,52 @@
     {#if !isRecordId(movieId)}
       <p role="alert">This movie link is not valid.</p>
     {:else if ready && editorState && sessionCtl.snapshot.policy}
-      <MovieEditorForm
-        state={editorState}
-        policy={sessionCtl.snapshot.policy}
-        disabled={editorState.phase === 'target-changed'}
-        onSubmit={() => void controller?.submit()}
-        onCheckOriginal={() => void controller?.checkOriginalResult()}
-        onReviewStale={() => controller?.toggleStaleReview()}
-        onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
-        onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
-        onStartNewDraft={() => controller?.startNewDraft()}
-        onDraftChange={draftChange}
-        onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
-        onDiscardOpen={() => controller?.openDiscardDialog()}
-      />
-      {#if editorState.saved && writeContext && sessionCtl.snapshot.policy}
-        <ArtworkUploadField
-          request={createTransport()}
-          csrf={writeContext.csrf}
-          titleId={editorState.saved.id}
-          expectedVersion={editorState.saved.version}
-          policyRevision={sessionCtl.snapshot.policy.revision}
-          artworkPolicy={sessionCtl.snapshot.policy.artwork}
-          disabled={editorState.phase === 'target-changed' ||
-            editorState.phase === 'stale'}
-          onAttached={async () => {
-            await controller?.refreshExternalChange();
-            creditTitleVersion = null;
-          }}
+      {#if !creditsStep}
+        <MovieEditorForm
+          state={editorState}
+          policy={sessionCtl.snapshot.policy}
+          disabled={editorState.phase === 'target-changed'}
+          onSubmit={() => void controller?.submit()}
+          onCheckOriginal={() => void controller?.checkOriginalResult()}
+          onReviewStale={() => controller?.toggleStaleReview()}
+          onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+          onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+          onStartNewDraft={() => controller?.startNewDraft()}
+          onDraftChange={draftChange}
+          onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
+          onDiscardOpen={() => controller?.openDiscardDialog()}
         />
+      {/if}
+      {#if editorState.saved && writeContext && sessionCtl.snapshot.policy}
+        {#if !creditsStep}
+          <ArtworkUploadField
+            request={createTransport()}
+            csrf={writeContext.csrf}
+            titleId={editorState.saved.id}
+            expectedVersion={editorState.saved.version}
+            policyRevision={sessionCtl.snapshot.policy.revision}
+            artworkPolicy={sessionCtl.snapshot.policy.artwork}
+            disabled={editorState.phase === 'target-changed' ||
+              editorState.phase === 'stale'}
+            onAttached={async () => {
+              await controller?.refreshExternalChange();
+              creditTitleVersion = null;
+            }}
+          />
+        {/if}
         {@const version = creditTitleVersion ?? editorState.saved.version}
         <CreditPanel
           titleId={editorState.saved.id}
           titleVersion={version}
+          onFinish={creditsStep
+            ? () => {
+                void goto(
+                  resolve('/manage/movies') +
+                    '?created=' +
+                    encodeURIComponent(movieId),
+                );
+              }
+            : undefined}
           policy={sessionCtl.snapshot.policy}
           context={writeContext}
           draftSource={createDraftSource(createTransport())}
@@ -139,7 +159,7 @@
           }}
         />
       {/if}
-      {#if editorState.saved?.state === 'ACTIVE'}
+      {#if !creditsStep && editorState.saved?.state === 'ACTIVE'}
         <ArchiveAction
           kind="movie"
           id={editorState.saved.id}

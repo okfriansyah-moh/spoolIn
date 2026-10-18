@@ -3,7 +3,7 @@ import { fetchManagedMovie } from '../movie/api';
 import { record } from '../session/parse';
 import { operation } from '../session/outcome';
 import { FOREGROUND_POLL_CAP_MS, pollDelayMs } from './polling';
-import { stageLabel } from './progress';
+import { stageLabel, artworkFailureMessage } from './progress';
 import type { ArtworkUploadView } from './upload-controller';
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
@@ -24,7 +24,13 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
-type ArtworkPollStep = 'continue' | 'success' | 'failure' | 'stale' | 'expired';
+type ArtworkPollStep =
+  | 'continue'
+  | 'success'
+  | 'failure'
+  | 'stale'
+  | 'expired'
+  | `failure:${string}`;
 
 async function artworkPollStep(
   request: GraphqlRequest,
@@ -47,7 +53,8 @@ async function artworkPollStep(
   if (data.operation === null) return 'continue';
   const receipt = operation(data.operation, operationId);
   if (receipt.resultExpired || receipt.state === 'EXPIRED') return 'expired';
-  if (receipt.state === 'FAILED') return 'failure';
+  if (receipt.state === 'FAILED')
+    return `failure:${receipt.problem?.code ?? 'FILE_INVALID'}`;
   if (receipt.state !== 'SUCCEEDED') return 'continue';
   const committedVersion = attachedVersion(data.operation, titleId);
   const movie = await fetchManagedMovie(request, titleId, csrf, signal);
@@ -82,10 +89,12 @@ function terminalPollFailure(
   step: ArtworkPollStep,
   onUpdate: (view: Partial<ArtworkUploadView>) => void,
 ): boolean {
-  if (step === 'failure') {
+  if (step === 'failure' || step.startsWith('failure:')) {
     onUpdate({
       stage: 'failed',
-      message: 'Upload failed',
+      message: artworkFailureMessage(
+        step.startsWith('failure:') ? step.slice(8) : null,
+      ),
       canCancel: false,
       canResumeCheck: false,
     });

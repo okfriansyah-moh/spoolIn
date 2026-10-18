@@ -6,7 +6,10 @@
     INITIAL_ARTWORK_UPLOAD_VIEW,
   } from './upload-controller';
   import type { Policy } from '../../policy/types';
-  import { validateArtworkFile } from './file-validation';
+  import {
+    validateArtworkFile,
+    validateArtworkDimensions,
+  } from './file-validation';
   import type { GraphqlRequest } from '../../transport/graphql';
 
   let {
@@ -32,6 +35,7 @@
   const inputId = $props.id();
   let validationMessage = $state('');
   let refreshing = $state(false);
+  let validating = $state(false);
   let refreshNeeded = $state(false);
   let notifiedOperation: string | null = null;
   let mounted = false;
@@ -39,6 +43,7 @@
   let controller: ArtworkUploadController | null = null;
   const uploadBlocked = $derived(
     disabled ||
+      validating ||
       refreshing ||
       refreshNeeded ||
       ['transferring', 'processing', 'uncertain'].includes(view.stage),
@@ -92,6 +97,13 @@
     if (!file || uploadBlocked || !controller) return;
     validationMessage = validateArtworkFile(file, artworkPolicy);
     if (validationMessage) {
+      input.value = '';
+      return;
+    }
+    validating = true;
+    validationMessage = await validateArtworkDimensions(file);
+    validating = false;
+    if (!mounted || disabled || validationMessage) {
       input.value = '';
       return;
     }

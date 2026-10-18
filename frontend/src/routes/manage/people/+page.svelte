@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import CreatedRecordNotice from '../../../lib/features/management/CreatedRecordNotice.svelte';
   import { resolve } from '$app/paths';
   import Notice from '../../../lib/components/Notice.svelte';
   import { createTransport } from '../../../lib/transport/graphql';
@@ -74,6 +75,8 @@
   </div>
   <a class="button" href={resolve('/manage/people/new')}>Create person</a>
 </header>
+
+<CreatedRecordNotice kind="person" />
 
 <form class="list-search" role="search" onsubmit={submitSearch}>
   <label for="managed-people-search">Search people</label>

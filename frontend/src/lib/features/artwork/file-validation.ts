@@ -21,3 +21,21 @@ export function validateArtworkFile(
     return 'Choose an image format allowed by the current artwork rules.';
   return '';
 }
+
+export async function validateArtworkDimensions(file: File): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    if (image.naturalWidth > 8192 || image.naturalHeight > 8192)
+      return 'Artwork must be at most 8192 pixels wide and tall. Resize this image and select it again.';
+    if (image.naturalWidth * image.naturalHeight > 40_000_000)
+      return 'Artwork must contain at most 40 million pixels. Resize this image and select it again.';
+    return '';
+  } catch {
+    return 'This image could not be read. Choose a valid JPEG, PNG, or WebP image.';
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}

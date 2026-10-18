@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
@@ -24,8 +26,23 @@
       'create',
       null,
     );
+    let navigating = false;
     const unsubscribe = controller.subscribe((next) => {
       editorState = next;
+      if (
+        !navigating &&
+        next.saved &&
+        (next.phase === 'saved' || next.phase === 'resolved')
+      ) {
+        navigating = true;
+        const destination =
+          resolve('/manage/people') +
+          '?created=' +
+          encodeURIComponent(next.saved.id);
+        void goto(destination, { replaceState: true }).catch(() => {
+          navigating = false;
+        });
+      }
     });
     const abort = new AbortController();
     retryBootstrap = async () => {

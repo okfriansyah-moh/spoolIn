@@ -1,11 +1,15 @@
-import type { GraphqlRequest } from '../../transport/graphql';
+import { TransportFailure, type GraphqlRequest } from '../../transport/graphql';
 import {
   cancelArtwork,
   uploadArtworkWithProgress,
   type UploadArtworkInput,
 } from './api';
 import { transferPercent } from './polling';
-import { stageLabel, type ArtworkStage } from './progress';
+import {
+  stageLabel,
+  artworkFailureMessage,
+  type ArtworkStage,
+} from './progress';
 import { pollUntilArtworkAttached } from './upload-poll';
 
 export type ArtworkUploadView = Readonly<{
@@ -89,7 +93,7 @@ export class ArtworkUploadController {
       this.activeXhr = null;
       if (generation !== this.generation) return;
       if (mutation.problemCode) {
-        this.publishFailed(operationId);
+        this.publishFailed(operationId, mutation.problemCode);
         return;
       }
       this.publishProcessing(operationId);
@@ -255,6 +259,10 @@ export class ArtworkUploadController {
     operationId: string,
   ): void {
     if (generation !== this.generation) return;
+    if (error instanceof TransportFailure && error.kind === 'rejected') {
+      this.publishFailed(operationId, error.code);
+      return;
+    }
     if (error instanceof DOMException && error.name === 'AbortError') {
       this.publish({
         stage: 'uncertain',
@@ -306,14 +314,14 @@ export class ArtworkUploadController {
     });
   }
 
-  private publishFailed(operationId: string): void {
+  private publishFailed(operationId: string, code: string | null = null): void {
     this.publish({
       stage: 'failed',
       transferPercent: this.view.transferPercent,
-      message: stageLabel('failed'),
+      message: artworkFailureMessage(code),
       operationId,
       canCancel: false,
-      canResumeCheck: Boolean(operationId),
+      canResumeCheck: false,
     });
   }
 
