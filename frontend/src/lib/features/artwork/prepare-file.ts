@@ -1,5 +1,6 @@
 import type { Policy } from '../../policy/types';
 import { validateArtworkFile } from './file-validation';
+import { decodeArtworkFile } from './decode-file';
 
 const MAX_SIDE = 8192;
 const MAX_PIXELS = 40_000_000;
@@ -25,7 +26,7 @@ function encode(canvas: HTMLCanvasElement, mime: string): Promise<Blob> {
 type PreparedArtwork = { file: File; message: string };
 
 async function resizeArtwork(
-  image: HTMLImageElement,
+  image: ImageBitmap,
   file: File,
   policy: NonNullable<Policy['artwork']>,
   initialScale: number,
@@ -36,8 +37,8 @@ async function resizeArtwork(
     if (!context) throw new Error('This browser could not resize the image.');
     let scale = initialScale;
     for (let attempt = 0; attempt < 12; attempt += 1) {
-      canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
-      canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
+      canvas.width = Math.max(1, Math.floor(image.width * scale));
+      canvas.height = Math.max(1, Math.floor(image.height * scale));
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
       const blob = await encode(canvas, file.type.toLowerCase());
       const prepared = new File([blob], file.name, {
@@ -68,19 +69,10 @@ export async function prepareArtworkFile(
   const invalid = validateArtworkFile(file, policy, true);
   if (invalid || !policy)
     throw new Error(invalid || 'Artwork rules unavailable.');
-  const url = URL.createObjectURL(file);
+  const image = await decodeArtworkFile(file);
   try {
-    const image = new Image();
-    image.src = url;
-    try {
-      await image.decode();
-    } catch {
-      throw new Error(
-        'This image could not be read. Choose a valid JPEG, PNG, or WebP image.',
-      );
-    }
-    const width = image.naturalWidth;
-    const height = image.naturalHeight;
+    const width = image.width;
+    const height = image.height;
     if (!width || !height)
       throw new Error('This image has no readable dimensions.');
     const scale = Math.min(
@@ -93,6 +85,6 @@ export async function prepareArtworkFile(
       return { file, message: '' };
     return await resizeArtwork(image, file, policy, scale);
   } finally {
-    URL.revokeObjectURL(url);
+    image.close();
   }
 }
