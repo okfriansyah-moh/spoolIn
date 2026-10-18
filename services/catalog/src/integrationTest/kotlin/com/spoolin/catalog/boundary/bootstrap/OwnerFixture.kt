@@ -43,6 +43,7 @@ class OwnerFixture(
         private set
 
     init {
+        require(evidenceName.matches(Regex("[a-z0-9][a-z0-9-]{0,119}\\.json"))) { "Unsafe fixture evidence filename" }
         val suppliedNamespace = System.getenv("SPOOLIN_TEST_NAMESPACE")
         val suppliedConfig = System.getenv("SPOOLIN_TEST_CONFIG")
         require((suppliedNamespace == null) == (suppliedConfig == null)) { "Incomplete protected fixture handoff" }
@@ -173,7 +174,6 @@ class OwnerFixture(
     }
 
     override fun close() {
-        require(evidenceName.matches(Regex("t(?:003|007)-[a-z-]+\\.json")))
         val evidence = repository.resolve(".ai/evidence/numbering-v1/$evidenceName")
         Files.createDirectories(evidence.parent)
         if (::postgres.isInitialized && postgres.isRunning) {

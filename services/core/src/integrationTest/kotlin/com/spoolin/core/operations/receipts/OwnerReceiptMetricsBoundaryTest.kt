@@ -230,10 +230,11 @@ class OwnerReceiptMetricsBoundaryTest {
                 MigrationRunner(it).migrate()
                 it.connection.use { connection ->
                     connection.executeBound("CREATE TABLE owner_metric_effect(id uuid PRIMARY KEY)")
-                    connection.executeBound("GRANT SELECT,INSERT ON owner_metric_effect TO spoolin_core_runtime")
                 }
             }
             fixture.grants("core")
+            // Production grants reset runtime privileges; only this synthetic effect table needs its own grant.
+            fixture.sql("core", "GRANT SELECT,INSERT ON appdata.owner_metric_effect TO spoolin_core_runtime")
             fixture.membership("core", "revoke")
             fixture.pool("core").use(action)
         }

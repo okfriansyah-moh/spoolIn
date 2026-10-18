@@ -74,7 +74,7 @@ class OwnerReceiptBoundaryTest {
             assertThrows(ReceiptConflict::class.java) {
                 receipts.execute(intent.copy(policyRevision = "p2"), UUID.randomUUID(), true) { error("Conflict mutated") }
             }
-            expireAndReplay(fixture, intent, hashes, now)
+            expireAndReplay(fixture, intent, hashes)
         } finally {
             release.countDown()
             executor.shutdownNow()
@@ -142,11 +142,26 @@ class OwnerReceiptBoundaryTest {
         fixture: OwnerFixture,
         intent: OperationIntent,
         hashes: IntentHashes,
-        now: Instant,
     ) {
+        // Retention uses the database clock. Backdate only this synthetic row through fixture administration.
+        fixture.sql(
+            "core",
+            "UPDATE appdata.operation_receipt SET created_at=clock_timestamp()-interval '8 days'," +
+                "expires_at=clock_timestamp()-interval '1 second' WHERE id='${intent.id}'::uuid",
+        )
+        fixture.pool("core", "maintenance").use { maintenance ->
+            assertEquals(1, ReceiptExpiry(maintenance).purgeBodies())
+            assertEquals(0, ReceiptExpiry(maintenance).purgeBodies())
+        }
         fixture.pool("core").use { pool ->
-            val clock = Clock.fixed(now.plusSeconds(604800), ZoneOffset.UTC)
-            assertEquals(1, ReceiptExpiry(pool, clock).purgeBodies())
+            pool.connection.use { connection ->
+                val bodyPurged = connection.queryBound(
+                    "SELECT result IS NULL FROM operation_receipt WHERE id=?",
+                    listOf(intent.id),
+                ) { it.getBoolean(1) }.single()
+                assertTrue(bodyPurged)
+            }
+            val clock = Clock.systemUTC()
             pool.connection.use { it.executeBound("DELETE FROM receipt_domain") }
             val expired =
                 OwnerReceipts(pool, hashes, clock).execute(intent, UUID.randomUUID(), true) {

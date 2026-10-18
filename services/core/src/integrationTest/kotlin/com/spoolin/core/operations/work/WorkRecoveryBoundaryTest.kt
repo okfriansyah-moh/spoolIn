@@ -24,6 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions
 import java.sql.Connection
+import java.sql.SQLException
 import java.util.UUID
 
 /** Synthetic account metadata isolates this operator boundary; it does not establish login or PII proof. */
@@ -239,5 +240,15 @@ class WorkRecoveryBoundaryTest {
     private fun mutate(
         sql: String,
         id: UUID,
-    ) = fixture.connection("core").use { it.executeBound(sql, id) }
+    ) {
+        // Explicit fixture corruption exercises recovery refusal; the runtime audit permissions stay unchanged.
+        require(sql.count { it == '?' } == 1)
+        if (sql.contains("operational_event")) {
+            val denied = assertThrows(SQLException::class.java) {
+                fixture.connection("core").use { it.executeBound(sql, id) }
+            }
+            assertEquals("42501", denied.sqlState)
+        }
+        fixture.sql("core", sql.replace("?", "'$id'::uuid"))
+    }
 }
