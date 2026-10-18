@@ -30,7 +30,7 @@
     onSelectDraft: (id: string) => void;
     onStartNewDraft: () => void;
     onDraftChange: (
-      field: import('$lib/features/movie/draft-field-update').MovieDraftField,
+      field: import('./draft-field-update').MovieDraftField,
       value: string,
     ) => void;
     onGenreToggle: (genreId: string, checked: boolean) => void;

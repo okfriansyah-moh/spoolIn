@@ -59,7 +59,7 @@
   });
 
   function draftChange(
-    field: import('$lib/features/movie/draft-field-update').MovieDraftField,
+    field: import('../../../../lib/features/movie/draft-field-update').MovieDraftField,
     value: string,
   ) {
     if (!controller || !editorState) return;
