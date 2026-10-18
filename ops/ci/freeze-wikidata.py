@@ -148,7 +148,7 @@ def main():
     people = [{'kind': 'PERSON', 'source': SOURCE, 'externalId': item, 'stableUUID': identity('PERSON', item), 'name': label(linked[item]), 'sources': source(item, retrieved, ['name'])} for item in sorted(used_people)]
     for person in people:
         person['contentSHA256'] = digest(person)
-    roles = [{'kind': 'ROLE', 'source': SOURCE, 'externalId': property_id, 'stableUUID': identity('ROLE', property_id), 'label': name, 'category': name.upper(), 'allowsCharacters': characters} for property_id, (name, characters) in ROLES.items()]
+    roles = [{'kind': 'ROLE', 'source': SOURCE, 'externalId': property_id, 'stableUUID': identity('ROLE', property_id), 'label': name, 'category': 'CAST' if characters else 'CREATOR', 'allowsCharacters': characters} for property_id, (name, characters) in ROLES.items()]
     distribution = {'years': dict(sorted(Counter(str(row['normalized']['release']['year']) for row in records).items())), 'months': dict(sorted(Counter(str(row['normalized']['release']['month'] or 'unknown') for row in records).items()))}
     manifest = {'schemaVersion': 2, 'manifestVersion': 'wikidata-2026-10-v1', 'sourcePolicyVersion': 'TD10.1-CC0-v1', 'namespaceUUID': str(NAMESPACE), 'generatedAt': retrieved, 'licenseSummary': 'Wikidata structured facts CC0-1.0; original factual synopses; no licensed artwork bundled; application placeholders are intentional.', 'expectedMovieCount': 100, 'expectedTVCount': 100, 'distribution': distribution, 'records': records, 'people': people, 'roles': roles, 'files': []}
     manifest['snapshotSHA256'] = digest(manifest)
