@@ -40,6 +40,10 @@ async function compareRepresentative(page: Page, info: TestInfo, screen: string,
   if (!route) throw new Error('Representative production route missing.');
   await page.goto(route);
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+  if (screen === 'discovery') await expect(page.locator('.title-card')).not.toHaveCount(0);
+  if (screen === 'people') await expect(page.getByRole('list', { name: 'People', exact: true })).toBeVisible();
+  if (screen === 'management' || screen === 'audit') await expect(page.getByRole('table')).toBeVisible();
+  if (screen === 'archives') await expect(page.getByText('Loading archives…', { exact: true })).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
   const actual = await page.screenshot();
   const comparison = await pixelDifference(page, reference, actual);

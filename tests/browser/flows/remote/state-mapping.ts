@@ -25,6 +25,8 @@ const boundaries: Record<string, { route: string; source: string; case: string }
 export const statesByStep: Record<string, string[]> = {
   catalog: ['catalog'], detail: [], 'no-match': ['catalog-no-match'],
   'signed-in-catalog': ['viewer'], 'signed-out': ['signed-out'],
+  'empty-sign-in': ['login'], 'empty-registration': ['register'], 'viewer-audit-denied': ['audit-denied'],
+  'impact-changed-real-credit': ['impact-changed'],
   'person-persisted': ['person'], 'movie-persisted': ['movie'],
   'credit-persisted': ['credits'], 'credit-removed': ['credits'],
   'conflict-retained': ['editor'], 'conflict-rebased': [],
