@@ -1,8 +1,8 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-ch.qos.logback:logback-classic:1.5.38=compileClasspath,ktlint
-ch.qos.logback:logback-core:1.5.38=compileClasspath,ktlint
+ch.qos.logback:logback-classic:1.5.38=compileClasspath,ktlint,testCompileClasspath,testRuntimeClasspath
+ch.qos.logback:logback-core:1.5.38=compileClasspath,ktlint,testCompileClasspath,testRuntimeClasspath
 com.fasterxml.jackson.core:jackson-annotations:2.21=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.github.ajalt.clikt:clikt-jvm:5.0.3=ktlint
 com.github.ajalt.clikt:clikt:5.0.3=ktlint
@@ -136,7 +136,7 @@ org.junit.platform:junit-platform-launcher:6.0.3=testRuntimeClasspath
 org.junit:junit-bom:6.0.3=testCompileClasspath,testRuntimeClasspath
 org.opentest4j:opentest4j:1.3.0=testCompileClasspath,testRuntimeClasspath
 org.slf4j:slf4j-api:2.0.17=ktlint
-org.slf4j:slf4j-api:2.0.18=compileClasspath
+org.slf4j:slf4j-api:2.0.18=compileClasspath,testCompileClasspath,testRuntimeClasspath
 org.snakeyaml:snakeyaml-engine:2.7=detekt
 org.springframework.boot:spring-boot-dependencies:4.1.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 tools.jackson.core:jackson-core:3.1.7=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
