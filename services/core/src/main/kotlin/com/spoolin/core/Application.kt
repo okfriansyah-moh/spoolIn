@@ -80,6 +80,10 @@ class Application {
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
 
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class ObservabilityConfiguration {
     @Bean(initMethod = "start", destroyMethod = "close")
     fun notificationDispatcher(
         dataSource: DataSource,
@@ -153,6 +157,10 @@ class Application {
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
 
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class RuntimeConfiguration {
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
         com.spoolin.support.maintenance.MaintenanceDataSources.open(
@@ -206,6 +214,10 @@ class Application {
         metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class OwnerServiceConfiguration {
     @Bean
     fun identityService(
         sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
