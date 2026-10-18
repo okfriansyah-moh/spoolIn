@@ -10,9 +10,8 @@ import tools.jackson.databind.json.JsonMapper
 import java.sql.SQLException
 
 class BrowserDiagnosticRulesTest {
-    @Test
-    fun `boundary failures retain fixed classifications and exclude exception bodies and arguments`() {
-        val events = listOf(
+    private val events =
+        listOf(
             Triple(
                 "com.spoolin.core.boundary.graphql.PolicyGraphql",
                 "Graphql execution failed",
@@ -39,14 +38,18 @@ class BrowserDiagnosticRulesTest {
                 "browser_admission_unavailable",
             ),
         )
+
+    @Test
+    fun `boundary failures retain fixed classifications and exclude exception bodies and arguments`() {
         for ((logger, message, expected) in events) {
-            val event = LoggingEvent().also {
-                it.loggerName = logger
-                it.message = message
-                it.level = Level.WARN
-                it.argumentArray = arrayOf("private-secret")
-                it.setThrowableProxy(ThrowableProxy(SQLException("private-secret", "42501")))
-            }
+            val event =
+                LoggingEvent().also {
+                    it.loggerName = logger
+                    it.message = message
+                    it.level = Level.WARN
+                    it.argumentArray = arrayOf("private-secret")
+                    it.setThrowableProxy(ThrowableProxy(SQLException("private-secret", "42501")))
+                }
             val raw = DiagnosticEnvelope("core", "test", "test").encode(
                 DiagnosticLevel.WARNING, 0, DiagnosticEvents.classify(event),
             ).toString(Charsets.UTF_8)
@@ -56,15 +59,20 @@ class BrowserDiagnosticRulesTest {
             assertFalse(raw.contains("private-secret") || raw.contains("42501"))
         }
     }
+
     @Test
     fun `RPC failures retain only the fixed status and never descriptions or metadata`() {
-        val event = LoggingEvent().also {
-            it.loggerName = "com.spoolin.core.boundary.graphql.PolicyGraphql"
-            it.message = "Graphql execution failed"
-            it.level = Level.WARN
-            it.setThrowableProxy(ThrowableProxy(io.grpc.Status.UNAVAILABLE
-                .withDescription("private-secret").asRuntimeException()))
-        }
+        val event =
+            LoggingEvent().also {
+                it.loggerName = "com.spoolin.core.boundary.graphql.PolicyGraphql"
+                it.message = "Graphql execution failed"
+                it.level = Level.WARN
+                it.setThrowableProxy(
+                    ThrowableProxy(
+                        io.grpc.Status.UNAVAILABLE.withDescription("private-secret").asRuntimeException(),
+                    ),
+                )
+            }
         val raw = DiagnosticEnvelope("core", "test", "test").encode(
             DiagnosticLevel.WARNING, 0, DiagnosticEvents.classify(event),
         ).toString(Charsets.UTF_8)

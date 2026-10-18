@@ -34,11 +34,12 @@ class GrpcClientConfigurationRulesTest {
                 assertEquals(true, channel.ssl.enabled)
                 assertEquals("service", channel.ssl.bundle)
                 assertFalse(channel.isBypassCertificateValidation)
-                val seconds = when {
-                    owner == "core" || owner == "media" -> 2L
-                    peer == "core" -> 1L
-                    else -> 5L
-                }
+                val seconds =
+                    when {
+                        owner == "core" || owner == "media" -> 2L
+                        peer == "core" -> 1L
+                        else -> 5L
+                    }
                 assertEquals(Duration.ofSeconds(seconds), channel.default.deadline)
             }
         }
