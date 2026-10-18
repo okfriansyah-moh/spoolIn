@@ -26,6 +26,7 @@ class OperatorRuntime:
         self.compose = require_owned_runner()
         self.invoke = invoke
         self.record = record
+        self.current_step = "owned-stack-setup"
 
     def database(self, owner, sql, role="runtime", expected=0):
         if owner not in OWNERS or role not in {"runtime", "maintenance", "backup", "postgres"}:
@@ -54,7 +55,7 @@ class OperatorRuntime:
             try:
                 self.record(name, action())
             except Exception:
-                self.record(name, {"result": "FAIL", "reason": "actual-command-or-state-assertion-failed", "rawOutput": "withheld"})
+                self.record(name, {"result": "FAIL", "reason": "actual-command-or-state-assertion-failed", "step": self.current_step, "rawOutput": "withheld"})
         self.degraded_status()
         self.record("finalState", {"result": "OBSERVED", "writers": "STOPPED", "retainedFaults": True,
                                    "reason": "preserve unresolved evidence and prevent synthetic provider sends"})
@@ -77,10 +78,12 @@ class OperatorRuntime:
         assert completed.returncode == 2
 
     def migrations(self):
+        self.current_step = "migration-preconditions"
         self.invoke("migrate.sh", expected=2)
         self.invoke("migrate.sh", "other", expected=2)
         owners = {}
         for owner in OWNERS:
+            self.current_step = "migration-idempotence-" + owner
             before = self.history(owner)
             self.invoke("migrate.sh", owner, timeout=160)
             self.invoke("migrate.sh", owner, timeout=160)
@@ -97,6 +100,7 @@ class OperatorRuntime:
         return self.value(owner, "SELECT json_agg(json_build_array(installed_rank,version,checksum,success) ORDER BY installed_rank) AS rows FROM appdata.flyway_schema_history")
 
     def migration_drift(self):
+        self.current_step = "migration-checksum-drift"
         original = self.value("catalog", "SELECT installed_rank,checksum FROM appdata.flyway_schema_history WHERE checksum IS NOT NULL ORDER BY installed_rank LIMIT 1")
         rank, checksum = int(original["installed_rank"]), int(original["checksum"])
         try:
@@ -108,6 +112,7 @@ class OperatorRuntime:
         self.invoke("migrate.sh", "catalog", timeout=160)
 
     def migration_lock(self):
+        self.current_step = "migration-installation-lock-timeout"
         lock = Path(os.environ["SPOOLIN_LOCK_DIR"]) / ("migration-" + os.environ["SPOOLIN_INSTALLATION"] + ".lock")
         lock.mkdir(mode=0o700)
         started = time.monotonic()
@@ -133,12 +138,14 @@ class OperatorRuntime:
                            "--reason", "Controlled CI confirmed failed-before-acceptance recovery", expected=expected)
 
     def recovery(self):
+        self.current_step = "recovery-synthetic-setup"
         operation, identifier, sql = recovery_fixture()
         self.database("core", sql)
         before = self.events("core", identifier)
         receipt_before = self.value("core", f"SELECT id,state,request_hash,result FROM appdata.operation_receipt WHERE id='{operation}'")
         arguments = ("--service", "core", "--work-id", identifier)
         self.operator_authority(arguments)
+        self.current_step = "recovery-inspection-and-preconditions"
         inspected, _ = self.invoke("recover-work.sh", *arguments, "--inspect")
         value = json.loads(inspected)
         assert value["generation"] == 0 and value["leaseEpoch"] == 1 and value["state"] == "EXHAUSTED"
@@ -146,11 +153,13 @@ class OperatorRuntime:
         self.invoke("recover-work.sh", *arguments, "--execute", "--expected-generation", "0", "--expected-epoch", "1", expected=2)
         self.recover("core", identifier, generation="1", expected=4)
         self.recover("core", identifier, epoch="2", expected=4)
+        self.current_step = "recovery-current-fence-commit"
         self.recover("core", identifier)
         after = self.work("core", identifier)
         assert after["id"] == identifier and after["operation_id"] == operation and after["state"] == "READY"
         assert after["generation"] == 1 and after["lease_epoch"] == 1 and after["attempt_count"] == 0 and after["live_deadline"]
         assert after["notification_state"] == "PENDING"
+        self.current_step = "recovery-history-original-receipt-and-replay"
         self.recover("core", identifier, expected=4)
         events = self.events("core", identifier)["rows"]
         assert [row for row in events if row["event_type"] != "RECOVERY"] == before["rows"]
@@ -173,6 +182,7 @@ class OperatorRuntime:
                 os.environ["SPOOLIN_LOCK_DIR"] = previous
 
     def unknown_recovery(self):
+        self.current_step = "recovery-unknown-provider-refusal"
         operation, identifier, sql = recovery_fixture()
         sql = sql.replace("'FAILED'", "'UNKNOWN'", 1)
         self.database("core", sql)
@@ -189,6 +199,7 @@ class OperatorRuntime:
                 "remaining": ["draft-save/purge concurrency", "proposal redaction", "Media processing-block/output preservation"]}
 
     def maintain_owner(self, owner):
+        self.current_step = "maintenance-setup-" + owner
         entries, expired, sql = retention_fixture()
         assert self.value(owner, "SELECT current_user AS role", "maintenance")["role"] == "spoolin_" + owner + "_maintenance"
         initializers = self.value(owner, "SELECT COALESCE(json_agg(row_to_json(r) ORDER BY id),'[]') AS rows FROM appdata.operation_receipt r WHERE receipt_type<>'REQUEST'")
@@ -196,6 +207,7 @@ class OperatorRuntime:
         self.database(owner, sql)
         guarded = {label: (self.work(owner, value), self.events(owner, value))
                    for label, value in entries.items() if label != "eligible"}
+        self.current_step = "maintenance-hourly-bounds-" + owner
         before = self.remaining_bodies(owner, expired)
         inspected, _ = self.invoke("maintenance.sh", "--service", owner, "--schedule", "hourly")
         assert json.loads(inspected)["executed"] is False and before == self.remaining_bodies(owner, expired)
@@ -207,6 +219,7 @@ class OperatorRuntime:
             assert self.remaining_bodies(owner, expired) == remaining
         assert self.value(owner, "SELECT count(*) AS count FROM appdata.operation_receipt WHERE id IN (" +
                           ",".join("'" + item + "'" for item in expired) + ")")["count"] == 101
+        self.current_step = "maintenance-daily-preservation-" + owner
         daily, _ = self.invoke("maintenance.sh", "--service", owner, "--schedule", "daily", "--execute")
         counts = json.loads(daily)["counts"]
         assert 0 <= counts["work"] <= 100 and 0 <= counts["payloads"] <= 100
@@ -217,6 +230,7 @@ class OperatorRuntime:
                 assert (self.work(owner, identifier), self.events(owner, identifier)) == guarded[label]
         assert self.value(owner, "SELECT COALESCE(json_agg(row_to_json(r) ORDER BY id),'[]') AS rows FROM appdata.operation_receipt r WHERE receipt_type<>'REQUEST'") == initializers
         assert self.lifetime_ledgers(owner) == lifetime
+        self.current_step = "maintenance-role-denials-" + owner
         _, error = self.database(owner, "CREATE TABLE appdata.ci_forbidden_ddl(id integer);", "maintenance", expected=3)
         assert "42501" in error
         _, error = self.database(owner, "DELETE FROM appdata.operation_receipt WHERE false;", "maintenance", expected=3)
