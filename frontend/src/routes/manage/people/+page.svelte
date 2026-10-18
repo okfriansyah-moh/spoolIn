@@ -1,5 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import {
+    readPersonListReturn,
+    rememberPersonList,
+    type PersonListReturn,
+  } from '../../../lib/features/person/write/list-return';
   import CreatedRecordNotice from '../../../lib/features/management/CreatedRecordNotice.svelte';
   import { resolve } from '$app/paths';
   import Notice from '../../../lib/components/Notice.svelte';
@@ -15,6 +21,43 @@
   let searchText = $state('');
   let appliedSearch = $state('');
   let search = () => {};
+  let returnToken = $state('');
+  let restoring = $state(false);
+
+  function rememberList() {
+    rememberPersonList(returnToken, {
+      searchText,
+      appliedSearch,
+      scrollY: window.scrollY,
+      rowCount: listState.kind === 'ready' ? listState.people.length : 0,
+    });
+  }
+
+  async function restoreDepth(
+    controller: ReturnType<typeof createPersonListController>,
+    saved: PersonListReturn,
+    csrf: string,
+    signal: AbortSignal,
+  ) {
+    while (!signal.aborted && controller.snapshot.kind === 'ready') {
+      const before = controller.snapshot;
+      if (
+        before.people.length >= saved.rowCount ||
+        !before.pageInfo?.hasNextPage ||
+        before.pageError
+      )
+        break;
+      await controller.loadMore(csrf, signal);
+      const after = controller.snapshot;
+      if (
+        after.kind !== 'ready' ||
+        after.pageError ||
+        after.people.length <= before.people.length
+      )
+        break;
+    }
+    if (!signal.aborted) restoring = false;
+  }
 
   function submitSearch(event: SubmitEvent) {
     event.preventDefault();
@@ -29,6 +72,15 @@
   }
 
   onMount(() => {
+    returnToken = crypto.randomUUID();
+    const saved = readPersonListReturn(
+      page.url.searchParams.get('restore') ?? '',
+    );
+    if (saved) {
+      searchText = saved.searchText;
+      appliedSearch = saved.appliedSearch;
+      restoring = true;
+    }
     const transport = createTransport();
     const controller = createPersonListController(transport);
     const unsubscribe = controller.subscribe((next) => {
@@ -44,15 +96,25 @@
         const context = cachedContext ?? (await loadWriteContext(abort.signal));
         if (abort.signal.aborted || generation !== reloadGeneration) return;
         if (!context) {
+          restoring = false;
           listState = { kind: 'failure' };
           return;
         }
         cachedContext = context;
         loadMore = () => controller.loadMore(context.csrf, abort.signal);
         await controller.load(context.csrf, abort.signal, appliedSearch);
+        if (
+          !abort.signal.aborted &&
+          generation === reloadGeneration &&
+          saved &&
+          restoring
+        )
+          await restoreDepth(controller, saved, context.csrf, abort.signal);
       } catch {
-        if (!abort.signal.aborted && generation === reloadGeneration)
+        if (!abort.signal.aborted && generation === reloadGeneration) {
+          restoring = false;
           listState = { kind: 'failure' };
+        }
       }
     };
     search = () => {
@@ -76,7 +138,12 @@
   <a class="button" href={resolve('/manage/people/new')}>Create person</a>
 </header>
 
-<CreatedRecordNotice kind="person" />
+<CreatedRecordNotice
+  kind="person"
+  readyToFocus={!restoring}
+  {returnToken}
+  onOpenManagement={rememberList}
+/>
 
 <form class="list-search" role="search" onsubmit={submitSearch}>
   <label for="managed-people-search">Search people</label>
@@ -85,11 +152,15 @@
       id="managed-people-search"
       type="search"
       bind:value={searchText}
+      disabled={restoring}
       placeholder="Person name"
     />
-    <button type="submit">Search</button>
-    <button class="secondary" type="button" onclick={clearSearch}
-      >Clear search</button
+    <button type="submit" disabled={restoring}>Search</button>
+    <button
+      class="secondary"
+      type="button"
+      disabled={restoring}
+      onclick={clearSearch}>Clear search</button
     >
   </div>
 </form>
@@ -125,7 +196,10 @@
             <td data-label="Actions">
               <a
                 class="button secondary"
-                href={resolve('/manage/people/[id]', { id: row.id })}>Edit</a
+                href={resolve('/manage/people/[id]', { id: row.id }) +
+                  '?return=' +
+                  returnToken}
+                onclick={rememberList}>Edit</a
               >
               <a
                 class="button secondary"
@@ -144,7 +218,10 @@
         <div class="record-actions">
           <a
             class="button secondary"
-            href={resolve('/manage/people/[id]', { id: row.id })}>Edit</a
+            href={resolve('/manage/people/[id]', { id: row.id }) +
+              '?return=' +
+              returnToken}
+            onclick={rememberList}>Edit</a
           >
           <a
             class="button secondary"
@@ -157,7 +234,7 @@
   {#if listState.pageError}<p role="alert">{listState.pageError}</p>{/if}
   {#if listState.pageInfo?.hasNextPage}<button
       type="button"
-      disabled={listState.loadingMore}
+      disabled={listState.loadingMore || restoring}
       onclick={() => void loadMore()}
     >
       {listState.pageError ? 'Retry more people' : 'Load more people'}

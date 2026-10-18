@@ -2,6 +2,9 @@
   import { onMount } from 'svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
+  import { resolve } from '$app/paths';
+  import Notice from '../../../../lib/components/Notice.svelte';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
@@ -17,6 +20,39 @@
   let ready = $state(false);
   let controller: ReturnType<typeof createPersonEditorController> | null = null;
   const personId = $derived(page.params.id ?? '');
+  const personReturnToken = $derived(page.url.searchParams.get('return') ?? '');
+  let finishing = $state(false);
+  let finishRequested = false;
+  let completionError = $state('');
+
+  async function finishPerson() {
+    if (!controller || finishing) return;
+    finishing = true;
+    finishRequested = true;
+    completionError = '';
+    try {
+      const result = await controller.finishEditing();
+      if (result === 'blocked') return;
+      const params = new URLSearchParams({ saved: personId });
+      if (isRecordId(personReturnToken))
+        params.set('restore', personReturnToken);
+      await goto(resolve('/manage/people') + '?' + params.toString());
+    } catch {
+      completionError =
+        'Person completion could not finish. Retry Save person to confirm the saved record.';
+    } finally {
+      finishing = false;
+    }
+  }
+
+  async function checkSavedResult() {
+    await controller?.checkOriginalResult();
+    if (
+      finishRequested &&
+      (editorState?.phase === 'resolved' || editorState?.phase === 'saved')
+    )
+      await finishPerson();
+  }
 
   let mounted = $state(false);
   let bootstrapError = $state('');
@@ -34,6 +70,8 @@
     ready = false;
     editorState = null;
     bootstrapError = '';
+    finishRequested = false;
+    completionError = '';
     if (!isRecordId(id)) {
       ready = true;
       return;
@@ -102,12 +140,15 @@
     {#if !isRecordId(personId)}
       <p role="alert">This person link is not valid.</p>
     {:else if ready && editorState && sessionCtl.snapshot.policy}
+      {#if completionError}<Notice title="Person completion" tone="error"
+          ><p>{completionError}</p></Notice
+        >{/if}
       <PersonEditorForm
         state={editorState}
         policy={sessionCtl.snapshot.policy}
-        disabled={editorState.phase === 'target-changed'}
-        onSubmit={() => void controller?.submit()}
-        onCheckOriginal={() => void controller?.checkOriginalResult()}
+        disabled={editorState.phase === 'target-changed' || finishing}
+        onSubmit={() => void finishPerson()}
+        onCheckOriginal={() => void checkSavedResult()}
         onReviewStale={() => controller?.toggleStaleReview()}
         onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
         onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}

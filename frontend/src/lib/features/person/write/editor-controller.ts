@@ -622,6 +622,119 @@ export class PersonEditorController {
     }
   }
 
+  async finishEditing(): Promise<'saved' | 'unchanged' | 'blocked'> {
+    if (
+      this.mode !== 'edit' ||
+      this.current.discardPending ||
+      this.submissionBlocked() ||
+      !this.current.saved ||
+      !this.writeContext ||
+      !this.personId
+    )
+      return 'blocked';
+    if (Object.keys(this.personUpdatePatch()).length) {
+      await this.submit();
+      if (!['saved', 'resolved'].includes(this.current.phase)) return 'blocked';
+      return this.confirmCompletion('saved');
+    }
+    return this.confirmCompletion('unchanged');
+  }
+
+  private completionRecord(
+    latest: ManagedPerson | null,
+    saved: ManagedPerson,
+  ): latest is ManagedPerson {
+    if (latest?.id !== saved.id || latest.state !== 'ACTIVE') {
+      this.publish({
+        ...this.current,
+        phase: 'target-changed',
+        current: latest,
+        message:
+          'This person is now archived or unavailable. Your draft is retained.',
+      });
+      return false;
+    }
+    if (latest.version !== saved.version) {
+      this.publish({
+        ...this.current,
+        phase: 'stale',
+        current: latest,
+        staleReviewOpen: false,
+        message:
+          'The person changed. Review the current version before finishing.',
+      });
+      return false;
+    }
+    return true;
+  }
+
+  private async confirmCompletion(
+    result: 'saved' | 'unchanged',
+  ): Promise<'saved' | 'unchanged' | 'blocked'> {
+    if (!this.writeContext || !this.personId || !this.current.saved)
+      return 'blocked';
+    const saved = this.current.saved;
+    const generation = ++this.writeGeneration;
+    this.active?.abort();
+    this.active = new AbortController();
+    this.publish({
+      ...this.current,
+      phase: 'submitting',
+      message: 'Confirming saved person.',
+    });
+    try {
+      const latest = await fetchManagedPerson(
+        this.request,
+        this.personId,
+        this.writeContext.csrf,
+        this.active.signal,
+      );
+      if (generation !== this.writeGeneration) return 'blocked';
+      if (!this.completionRecord(latest, saved)) return 'blocked';
+      if (!(await this.completeDraft(latest, generation))) return 'blocked';
+      return result;
+    } catch {
+      if (generation === this.writeGeneration)
+        this.publish({
+          ...this.current,
+          phase: 'failed',
+          message:
+            'The saved person could not be confirmed. Select Save person again before leaving.',
+        });
+      return 'blocked';
+    }
+  }
+
+  private async completeDraft(
+    latest: ManagedPerson,
+    generation: number,
+  ): Promise<boolean> {
+    if (!this.writeContext) return false;
+    const discarded = await this.draftSync.discard(this.writeContext);
+    if (generation !== this.writeGeneration) return false;
+    if (!discarded) {
+      this.publish({
+        ...this.current,
+        phase: 'failed',
+        message:
+          'Person details are saved, but draft cleanup is not confirmed. Select Save person again before leaving.',
+      });
+      return false;
+    }
+    this.publish({
+      ...this.current,
+      phase: 'saved',
+      saved: latest,
+      current: latest,
+      draft: personToDraft(latest),
+      fieldErrors: Object.freeze([]),
+      pendingOperationId: null,
+      message: '',
+      summaryTitle: latest.name,
+    });
+    return true;
+  }
+
   async checkOriginalResult(): Promise<void> {
     const operationId = this.current.pendingOperationId ?? this.pendingWriteId;
     if (!operationId || !this.writeContext) return;
@@ -766,6 +879,7 @@ export class PersonEditorController {
   }
 
   dispose(): void {
+    ++this.writeGeneration;
     this.active?.abort();
     this.draftSync.dispose();
     this.listeners.clear();

@@ -21,7 +21,7 @@
     onOpenManagement?: () => void;
   } = $props();
   const savedRecord = $derived(
-    kind === 'movie' && isRecordId(page.url.searchParams.get('saved') ?? ''),
+    isRecordId(page.url.searchParams.get('saved') ?? ''),
   );
   const id = $derived(
     (savedRecord
@@ -106,11 +106,17 @@
       bind:this={panel}
       tabindex="-1"
       class:saved-record={savedRecord}
-      aria-label={savedRecord ? 'Movie saved' : 'Created record'}
+      aria-label={savedRecord
+        ? kind === 'movie'
+          ? 'Movie saved'
+          : 'Person saved'
+        : 'Created record'}
     >
       <Notice
         title={savedRecord
-          ? 'Movie saved'
+          ? kind === 'movie'
+            ? 'Movie saved'
+            : 'Person saved'
           : kind === 'movie'
             ? 'Movie created'
             : 'Person created'}
@@ -122,7 +128,7 @@
             class="button secondary"
             href={kind === 'movie'
               ? resolve('/manage/movies/[id]', { id }) + returnSuffix
-              : resolve('/manage/people/[id]', { id })}
+              : resolve('/manage/people/[id]', { id }) + returnSuffix}
             onclick={onOpenManagement}>Edit {kind}</a
           >
           <a
@@ -131,7 +137,7 @@
               ? resolve('/titles/[id]', { id })
               : resolve('/people/[id]', { id })}>Review public record</a
           >
-          {#if savedRecord}
+          {#if savedRecord && kind === 'movie'}
             <a
               class="button secondary"
               href={resolve('/manage/movies/[id]', { id }) +

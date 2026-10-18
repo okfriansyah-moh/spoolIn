@@ -12,6 +12,10 @@ export class PersonListController {
 
   constructor(private readonly request: GraphqlRequest) {}
 
+  get snapshot(): ListState {
+    return this.current;
+  }
+
   subscribe(listener: (state: ListState) => void): () => void {
     this.listeners.add(listener);
     listener(this.current);
