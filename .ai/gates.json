@@ -698,6 +698,10 @@
         "1",
         "--config",
         ".ai/security/gitleaks.toml",
+        "--report-format",
+        "json",
+        "--report-path",
+        "artifacts/source-checks/gitleaks.json",
         "."
       ],
       "required": true
