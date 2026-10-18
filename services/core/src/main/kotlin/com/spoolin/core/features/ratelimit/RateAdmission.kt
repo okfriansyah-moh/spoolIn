@@ -41,6 +41,7 @@ class RateAdmission(
     secret: ByteArray,
     private val agreement: () -> Unit = { throw RateUnavailable() },
 ) {
+    private val logger = org.slf4j.LoggerFactory.getLogger(RateAdmission::class.java)
     private val key = secret.copyOf().also { require(it.size == RATE_KEY_BYTES) }
 
     fun admit(demands: List<RateDemand>) {
@@ -49,7 +50,8 @@ class RateAdmission(
         val retry =
             try {
                 dataSource.committed { connection -> consume(connection, demands) }
-            } catch (_: Exception) {
+            } catch (failure: Exception) {
+                logger.warn("Rate admission failed", failure)
                 throw RateUnavailable()
             }
         if (retry > 0) throw RateLimited(retry)

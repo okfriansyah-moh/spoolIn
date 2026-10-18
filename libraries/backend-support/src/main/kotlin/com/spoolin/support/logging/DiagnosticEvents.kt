@@ -7,6 +7,9 @@ import ch.qos.logback.classic.spi.ThrowableProxy
 import java.sql.SQLException
 
 private const val MAX_CAUSES = 16
+private const val BROWSER_GRAPHQL_LOGGER = "com.spoolin.core.boundary.http.BrowserGraphql"
+private const val BROWSER_REQUESTS_LOGGER = "com.spoolin.core.boundary.http.BrowserRequests"
+private const val RATE_LOGGER = "com.spoolin.core.features.ratelimit.RateAdmission"
 private const val DRAFT_LOGGER = "com.spoolin.core.features.draft.SaveDraft"
 
 internal data class DiagnosticDetails(
@@ -48,10 +51,21 @@ internal object DiagnosticEvents {
         event.loggerName == "org.springframework.boot.SpringApplication" &&
             event.message == "Application run failed" && event.level == Level.ERROR
 
+    private val boundaryEvents = mapOf(
+        (RATE_LOGGER to "Rate admission failed") to "rate_admission_failed",
+        (BROWSER_REQUESTS_LOGGER to "Browser execution failed") to "browser_execution_failed",
+        (BROWSER_GRAPHQL_LOGGER to "Browser identity unavailable") to "browser_identity_unavailable",
+        (BROWSER_GRAPHQL_LOGGER to "Browser admission unavailable") to "browser_admission_unavailable",
+    )
+
     private fun source(
         logger: String?,
         message: String?,
-    ): DiagnosticDetails =
+    ): DiagnosticDetails = boundaryEvents[logger to message]?.let {
+        DiagnosticDetails("Browser boundary unavailable", mapOf("event" to it))
+    } ?: knownSource(logger, message)
+
+    private fun knownSource(logger: String?, message: String?): DiagnosticDetails =
         when {
             logger == DRAFT_LOGGER && SafeJsonDiagnostics.isDraftFailure(message) ->
                 DiagnosticDetails(

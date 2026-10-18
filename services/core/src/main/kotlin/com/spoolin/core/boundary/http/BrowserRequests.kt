@@ -41,7 +41,9 @@ class BrowserRequests {
                         Runnable {
                             try {
                                 result.setResult(action(deadline))
-                            } catch (_: Exception) {
+                            } catch (failure: Exception) {
+                                org.slf4j.LoggerFactory.getLogger(BrowserRequests::class.java)
+                                    .warn("Browser execution failed", failure)
                                 result.setResult(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "UNAVAILABLE"))
                             }
                         },

@@ -214,6 +214,12 @@ jobs:
         id: application
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: bash ops/ci/run-application.sh
+      - name: Probe actual public policy and catalog GraphQL after readiness
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/probe-browser-api.py
+      - name: Retain safe owner diagnostics before browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/capture-runtime-diagnostics.py --phase before-browser
       - name: Retain actual startup and readiness evidence before browser journeys
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -233,6 +239,17 @@ jobs:
       - name: Probe actual restricted production Media codec container
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/ci/probe-media-codec.py
+      - name: Retain actual seed and codec boundary outcomes before browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: runtime-boundaries-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/runtime
+            artifacts/codec-container
+          retention-days: 14
+          if-no-files-found: error
       - name: Exercise real production application in browsers
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         env:
@@ -243,6 +260,9 @@ jobs:
           else
             npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
           fi
+      - name: Retain safe owner diagnostics after browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/capture-runtime-diagnostics.py --phase after-browser
       - name: Verify actual monitoring and alert persistence
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/monitoring/verify.py --report artifacts/runtime/monitoring.json
