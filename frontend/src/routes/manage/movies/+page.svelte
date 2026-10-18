@@ -13,6 +13,22 @@
   let signal: AbortSignal | null = null;
   let listState = $state<ListState>({ kind: 'loading' });
 
+  let searchText = $state('');
+  let appliedSearch = $state('');
+  let search = () => {};
+
+  function submitSearch(event: SubmitEvent) {
+    event.preventDefault();
+    appliedSearch = searchText.trim();
+    search();
+  }
+
+  function clearSearch() {
+    searchText = '';
+    appliedSearch = '';
+    search();
+  }
+
   onMount(() => {
     const transport = createTransport();
     controller = createMovieListController(transport);
@@ -24,7 +40,10 @@
     void loadWriteContext(abort.signal).then((context) => {
       if (!context || abort.signal.aborted) return;
       csrf = context.csrf;
-      void controller?.load(context.csrf, abort.signal);
+      search = () => {
+        void controller?.load(csrf, abort.signal, appliedSearch);
+      };
+      search();
     });
     return () => {
       abort.abort();
@@ -43,6 +62,22 @@
   <a class="button" href={resolve('/manage/movies/new')}>Create movie</a>
 </header>
 
+<form class="list-search" role="search" onsubmit={submitSearch}>
+  <label for="managed-movies-search">Search movies</label>
+  <div class="search-controls">
+    <input
+      id="managed-movies-search"
+      type="search"
+      bind:value={searchText}
+      placeholder="Movie title"
+    />
+    <button type="submit">Search</button>
+    <button class="secondary" type="button" onclick={clearSearch}
+      >Clear search</button
+    >
+  </div>
+</form>
+
 {#if listState.kind === 'loading'}
   <p role="status">Loading managed titles…</p>
 {:else if listState.kind === 'failure'}
@@ -53,6 +88,14 @@
       onclick={() => signal && controller?.load(csrf, signal)}
       >Retry movies</Button
     >
+  </Notice>
+{:else if !listState.titles.length}
+  <Notice title="No movies found" tone="info">
+    <p>
+      {appliedSearch
+        ? 'No active movie titles match your search. Try another title or clear the search.'
+        : 'No active movies are available.'}
+    </p>
   </Notice>
 {:else}
   <div class="table-wrap">
@@ -141,6 +184,19 @@
 </Notice>
 
 <style>
+  .list-search {
+    margin-bottom: var(--primitive-space-6);
+  }
+  .search-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-2);
+  }
+  .search-controls input {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
   .list-page-heading {
     display: flex;
     align-items: end;

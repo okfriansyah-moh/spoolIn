@@ -1,3 +1,4 @@
+import { matchingPage } from '../../state/search-page';
 import type { GraphqlRequest } from '../../transport/graphql';
 import { fetchManagedTitlesPage } from './api';
 import { appendDistinct } from '../../state/pagination';
@@ -5,6 +6,7 @@ import type { ListState } from './types';
 
 export class MovieListController {
   private generation = 0;
+  private query = '';
   private current: ListState = { kind: 'loading' };
   private readonly listeners = new Set<(state: ListState) => void>();
 
@@ -20,15 +22,21 @@ export class MovieListController {
     return () => this.listeners.delete(listener);
   }
 
-  async load(csrf: string, signal: AbortSignal): Promise<void> {
+  async load(
+    csrf: string,
+    signal: AbortSignal,
+    query = this.query,
+  ): Promise<void> {
+    this.query = query.trim();
     const generation = ++this.generation;
     this.publish({ kind: 'loading' });
     try {
-      const page = await fetchManagedTitlesPage(
-        this.request,
-        csrf,
+      const page = await matchingPage(
+        (after) => fetchManagedTitlesPage(this.request, csrf, after, signal),
         null,
-        signal,
+        this.query,
+        (row) => row.title,
+        () => !signal.aborted && generation === this.generation,
       );
       if (signal.aborted || generation !== this.generation) return;
       this.publish({
@@ -51,11 +59,12 @@ export class MovieListController {
     const generation = this.generation;
     this.publish({ ...current, loadingMore: true, pagingError: false });
     try {
-      const page = await fetchManagedTitlesPage(
-        this.request,
-        csrf,
+      const page = await matchingPage(
+        (after) => fetchManagedTitlesPage(this.request, csrf, after, signal),
         current.next,
-        signal,
+        this.query,
+        (row) => row.title,
+        () => !signal.aborted && generation === this.generation,
       );
       if (signal.aborted || generation !== this.generation) return;
       this.publish({

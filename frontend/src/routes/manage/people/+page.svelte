@@ -11,6 +11,22 @@
   let reload = async () => {};
   let loadMore = async () => {};
 
+  let searchText = $state('');
+  let appliedSearch = $state('');
+  let search = () => {};
+
+  function submitSearch(event: SubmitEvent) {
+    event.preventDefault();
+    appliedSearch = searchText.trim();
+    search();
+  }
+
+  function clearSearch() {
+    searchText = '';
+    appliedSearch = '';
+    search();
+  }
+
   onMount(() => {
     const transport = createTransport();
     const controller = createPersonListController(transport);
@@ -18,19 +34,28 @@
       listState = next;
     });
     const abort = new AbortController();
+    let reloadGeneration = 0;
+    let cachedContext: Awaited<ReturnType<typeof loadWriteContext>> = null;
     reload = async () => {
+      const generation = ++reloadGeneration;
+      listState = { kind: 'loading' };
       try {
-        const context = await loadWriteContext(abort.signal);
-        if (abort.signal.aborted) return;
+        const context = cachedContext ?? (await loadWriteContext(abort.signal));
+        if (abort.signal.aborted || generation !== reloadGeneration) return;
         if (!context) {
           listState = { kind: 'failure' };
           return;
         }
+        cachedContext = context;
         loadMore = () => controller.loadMore(context.csrf, abort.signal);
-        await controller.load(context.csrf, abort.signal);
+        await controller.load(context.csrf, abort.signal, appliedSearch);
       } catch {
-        if (!abort.signal.aborted) listState = { kind: 'failure' };
+        if (!abort.signal.aborted && generation === reloadGeneration)
+          listState = { kind: 'failure' };
       }
+    };
+    search = () => {
+      void reload();
     };
     void reload();
     return () => {
@@ -50,6 +75,22 @@
   <a class="button" href={resolve('/manage/people/new')}>Create person</a>
 </header>
 
+<form class="list-search" role="search" onsubmit={submitSearch}>
+  <label for="managed-people-search">Search people</label>
+  <div class="search-controls">
+    <input
+      id="managed-people-search"
+      type="search"
+      bind:value={searchText}
+      placeholder="Person name"
+    />
+    <button type="submit">Search</button>
+    <button class="secondary" type="button" onclick={clearSearch}
+      >Clear search</button
+    >
+  </div>
+</form>
+
 {#if listState.kind === 'loading'}
   <p role="status">Loading people…</p>
 {:else if listState.kind === 'failure'}
@@ -59,7 +100,11 @@
   </Notice>
 {:else if !listState.people.length}
   <Notice title="No people available" tone="info">
-    <p>No active catalog people match the current managed list.</p>
+    <p>
+      {appliedSearch
+        ? 'No active people match your search. Try another name or clear the search.'
+        : 'No active catalog people are available.'}
+    </p>
   </Notice>
 {:else}
   <div class="table-wrap">
@@ -117,6 +162,19 @@
 {/if}
 
 <style>
+  .list-search {
+    margin-bottom: var(--primitive-space-6);
+  }
+  .search-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-2);
+  }
+  .search-controls input {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
   .list-page-heading {
     display: flex;
     align-items: end;
