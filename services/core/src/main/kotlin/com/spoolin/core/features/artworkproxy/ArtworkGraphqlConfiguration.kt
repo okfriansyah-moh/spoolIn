@@ -22,11 +22,13 @@ class ArtworkGraphqlConfiguration {
         channels: GrpcChannelFactory,
         issuerProvider: ObjectProvider<ActorIssuer>,
         policy: com.spoolin.core.features.policy.PolicyProvider,
+        reads: ArtworkReadProxy,
     ): ArtworkGraphql =
         ArtworkGraphql(
             catalog = CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
             media = MediaServiceGrpc.newStub(channels.createChannel("media")),
             issuer = issuerProvider.ifAvailable,
             maximumBytes = policy.policy.artwork.maxInputBytes,
+            reads = reads,
         )
 }

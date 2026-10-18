@@ -25,7 +25,7 @@ class ArtworkReadProxy(
         override fun close() { ArtworkScratch.delete(path) }
     }
 
-    fun read(assetId: UUID, management: Boolean, context: BrowserContext): VerifiedAsset {
+    private fun request(assetId: UUID, management: Boolean, context: BrowserContext): Spoolin.AssetReadRequest {
         val request = Spoolin.ArtworkAccessRequest.newBuilder().setAssetId(assetId.toString()).setManagement(management).build()
         val principal = context.principal
         val metadata = Metadata()
@@ -42,18 +42,31 @@ class ArtworkReadProxy(
                 UUID.fromString(grant.titleId).toString() == grant.titleId }.getOrDefault(false).not()) {
             throw Status.DATA_LOSS.asRuntimeException()
         }
-        val read = Spoolin.AssetReadRequest.newBuilder().setAssetId(grant.assetId).setHoldId(grant.holdId)
+        return Spoolin.AssetReadRequest.newBuilder().setAssetId(grant.assetId).setHoldId(grant.holdId)
             .setCatalogVersion(grant.catalogVersion).build()
+    }
+
+    fun metadata(assetId: UUID, management: Boolean, context: BrowserContext): ArtworkMetadata {
+        val read = request(assetId, management, context)
+        val cancellation = io.grpc.Context.current().withCancellation()
+        return try {
+            cancellation.call(java.util.concurrent.Callable {
+                val chunks = media.withDeadlineAfter(3, TimeUnit.SECONDS).readAsset(read)
+                val header = header(chunks)
+                ArtworkMetadata(assetId, management, header.width, header.height)
+            })
+        } finally { cancellation.cancel(null) }
+    }
+
+    fun read(assetId: UUID, management: Boolean, context: BrowserContext): VerifiedAsset {
+        val read = request(assetId, management, context)
         val cancellation = io.grpc.Context.current().withCancellation()
         return try { cancellation.call(java.util.concurrent.Callable { receive(media.withDeadlineAfter(10, TimeUnit.SECONDS).readAsset(read)) }) }
         finally { cancellation.cancel(null) }
     }
 
     private fun receive(chunks: Iterator<Spoolin.AssetReadChunk>): VerifiedAsset {
-        if (!chunks.hasNext()) throw Status.DATA_LOSS.asRuntimeException()
-        val first = chunks.next()
-        if (!first.hasHeader()) throw Status.DATA_LOSS.asRuntimeException()
-        val header = first.header
+        val header = header(chunks)
         val contentType = contentType(header)
         val path = ArtworkScratch.create()
         try {
@@ -73,6 +86,14 @@ class ArtworkReadProxy(
             if (bytes != header.outputBytes || !MessageDigest.isEqual(hash.digest(), header.contentHash.toByteArray())) throw Status.DATA_LOSS.asRuntimeException()
             return VerifiedAsset(path, contentType, bytes)
         } catch (failure: Exception) { ArtworkScratch.delete(path); throw failure }
+    }
+
+    private fun header(chunks: Iterator<Spoolin.AssetReadChunk>): Spoolin.AssetReadHeader {
+        if (!chunks.hasNext()) throw Status.DATA_LOSS.asRuntimeException()
+        val first = chunks.next()
+        if (!first.hasHeader()) throw Status.DATA_LOSS.asRuntimeException()
+        contentType(first.header)
+        return first.header
     }
 
     private fun contentType(header: Spoolin.AssetReadHeader): String {

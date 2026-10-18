@@ -29,13 +29,23 @@ class ArtworkGraphql(
     private val media: MediaServiceGrpc.MediaServiceStub,
     private val issuer: ActorIssuer?,
     private val maximumBytes: Long = MAX_BYTES,
+    private val reads: ArtworkReadProxy? = null,
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
+        wiring.type("Title") { title -> title.dataFetcher("artwork") { env -> artwork(env) } }
         wiring.type("Mutation") { m ->
             m
                 .dataFetcher("uploadArtwork") { env -> uploadArtwork(env) }
                 .dataFetcher("cancelArtwork") { env -> cancelArtwork(env) }
         }
+    }
+
+    private fun artwork(env: DataFetchingEnvironment): Map<String, Any>? {
+        val source = env.getSource<Map<String, Any?>>() ?: return null
+        val raw = source["_artworkAssetId"] as? String ?: return null
+        val asset = UUID.fromString(raw).also { require(it.toString() == raw) }
+        val proxy = reads ?: throw RateUnavailable()
+        return proxy.metadata(asset, source["_artworkManagement"] == true, browser(env)).fields()
     }
 
     private fun uploadArtwork(env: DataFetchingEnvironment): Map<String, Any?> {

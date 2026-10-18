@@ -195,7 +195,8 @@ class ManagedCatalogGraphql(
             "tvEnd" to partialDateMap(t.tvEnd),
             "releaseContext" to t.releaseContext.takeIf { it.isNotEmpty() },
             "provenance" to t.provenanceList.map { provenanceMap(it) },
-            "artwork" to null,
+            "_artworkAssetId" to t.assetId.takeIf { it.isNotBlank() },
+            "_artworkManagement" to true,
             "version" to t.version.toString(),
         )
 

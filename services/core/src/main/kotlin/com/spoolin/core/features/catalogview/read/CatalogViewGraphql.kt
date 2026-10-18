@@ -227,7 +227,8 @@ class CatalogViewGraphql(
             "tvEnd" to partialDateMap(t.tvEnd),
             "releaseContext" to t.releaseContext.takeIf { it.isNotEmpty() },
             "provenance" to t.provenanceList.map { provenanceMap(it) },
-            "artwork" to null, // artwork enrichment deferred to T013 (Media integration)
+            "_artworkAssetId" to t.assetId.takeIf { it.isNotBlank() },
+            "_artworkManagement" to false,
             "version" to t.version.toString(),
             // credits is a lazy field resolved by titleCreditsField
         )
