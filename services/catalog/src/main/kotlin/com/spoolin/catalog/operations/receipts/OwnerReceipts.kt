@@ -51,6 +51,51 @@ class OwnerReceipts(
             locked(connection, intent.id).outcome
         }
 
+    fun defer(
+        intent: OperationIntent,
+        correlationId: UUID,
+        privateInput: Boolean,
+        work: List<WorkRequest> = emptyList(),
+        beforeReserve: (Connection) -> Unit = {},
+        prepare: (Connection) -> Unit,
+    ): ReceiptOutcome =
+        dataSource.committed { connection ->
+            beforeReserve(connection)
+            val inserted = reserve(connection, intent, correlationId, privateInput)
+            val existing = locked(connection, intent.id)
+            when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
+                Comparison.HIDDEN -> throw ReceiptHidden()
+                Comparison.CONFLICT -> throw ReceiptConflict()
+                Comparison.REPLAY -> Unit
+            }
+            if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
+            prepare(connection)
+            work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
+            locked(connection, intent.id).outcome
+        }
+
+    fun completePending(
+        connection: Connection,
+        id: UUID,
+        result: SafeResult,
+        errorCode: String? = null,
+    ) {
+        val updated = connection.executeBound(
+            "UPDATE operation_receipt SET state=?,result=?::jsonb,error_code=? WHERE id=? AND state='PENDING'",
+            if (errorCode == null) "SUCCEEDED" else "FAILED",
+            if (errorCode == null) result.json() else null,
+            errorCode,
+            id,
+        )
+        check(updated == 1) { "Operation completion failed" }
+        if (errorCode == null) {
+            val correlation = connection.queryBound(
+                "SELECT correlation_id FROM operation_receipt WHERE id=?", listOf(id),
+            ) { it.getObject("correlation_id", UUID::class.java) }.single()
+            ReceiptActivity.append(connection, id, correlation, result.resultId)
+        }
+    }
+
     fun find(
         id: UUID,
         actorScope: String,
