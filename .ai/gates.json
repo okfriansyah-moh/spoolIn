@@ -643,7 +643,7 @@
         "tests/browser/flows/policy/**/*.ts",
         "tests/browser/playwright.policy.config.ts",
         ".ai/gates.json",
-        ".ai/bundles/1.1.1/profiles/security/semgrep.yml"
+        ".ai/bundles/1.2.1/profiles/security/semgrep.yml"
       ],
       "argv": [
         "semgrep",
@@ -691,7 +691,7 @@
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
         ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
-        ".ai/bundles/1.1.1/docs/verification-tools.json"
+        ".ai/bundles/1.2.1/docs/verification-tools.json"
       ],
       "argv": [
         "gitleaks",
@@ -763,7 +763,7 @@
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
         ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
-        ".ai/bundles/1.1.1/docs/verification-tools.json"
+        ".ai/bundles/1.2.1/docs/verification-tools.json"
       ],
       "argv": [
         "python3",
