@@ -116,6 +116,8 @@ jobs:
         run: |
           python3 ops/ci/readiness-helper-test.py
           python3 ops/ci/operational-status-test.py
+          python3 build-tools/verification-tests/test_harness.py
+          python3 -m unittest discover -s build-tools/validate-seed -p 'test_*.py'
       - name: Provision pinned production codec prerequisites
         id: codec
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
@@ -169,7 +171,9 @@ jobs:
         run: bash ops/ci/run-application.sh
       - name: Verify complete loaded seed and restart persistence
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
-        run: python3 ops/ci/verify-seed-runtime.py
+        run: |
+          bash ops/bin/seed.sh --validate-only
+          python3 ops/ci/verify-seed-runtime.py
       - name: Exercise real production application in browsers
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         env:
