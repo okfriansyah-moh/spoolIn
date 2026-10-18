@@ -10,6 +10,8 @@ internal class GraphqlObservation(
     private val metrics: LogicalMetrics?,
     private val started: Long,
 ) {
+    private val timing = CoreRequestTiming.beginIfEnabled()
+
     @Volatile var roots: Set<String> = emptySet()
 
     fun attach(deferred: DeferredResult<ResponseEntity<Map<String, Any?>>>) {
@@ -20,6 +22,7 @@ internal class GraphqlObservation(
                 response?.body as? Map<*, *>, response?.statusCode?.value() ?: 0, roots,
             )
             metrics?.complete(operation, "ingress", result, started)
+            timing?.complete(operation, result, started)
         }
     }
 }
