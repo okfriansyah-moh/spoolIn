@@ -98,10 +98,13 @@ export async function signInMaintainer(page: Page) {
     page.getByRole('button', { name: 'Sign out', exact: true }),
   ).toBeVisible();
   const response = await page.request.post('/graphql', {
-    headers: { 'X-Spoolin-Client': 'web' },
+    headers: {
+      'X-Spoolin-Client': 'web',
+      Origin: new URL(page.url()).origin,
+    },
     data: { query: 'query { session { authenticated role } }' },
   });
-  expect(response.ok()).toBe(true);
+  expect(response.status(), 'Maintainer session read HTTP status').toBe(200);
   expect(await response.json()).toEqual({
     data: { session: { authenticated: true, role: 'MAINTAINER' } },
   });
