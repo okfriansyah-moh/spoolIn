@@ -173,6 +173,13 @@
             "line": 105
           },
           "runtime_accepted": false
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "source_correction_and_runtime_boundary": "All200 frozen database+HTTPSAPI records, exact counts/relationships/provenance, repeat-safe loading and restart persistence pass. Suppliedoptionalartwork0 is permitted; uploadedartwork pipeline separate.",
+          "runtime_accepted": false,
+          "formal_acceptance": "pending independent combined review and complete assigned obligations"
         }
       ]
     },
@@ -202,6 +209,13 @@
             "line": 13
           },
           "runtime_accepted": false
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "source_correction_and_runtime_boundary": "15actualMake exact-exit checks match but complete targets/suites interrupted; no complete operations acceptance.",
+          "runtime_accepted": false,
+          "formal_acceptance": "pending independent combined review and complete assigned obligations"
         }
       ]
     },
@@ -312,6 +326,13 @@
             "line": 20
           },
           "runtime_accepted": false
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "source_correction_and_runtime_boundary": "All7actual monitoring checks pass, including real delivery, duplicate coalescing and durable firing/resolved episodes.",
+          "runtime_accepted": false,
+          "formal_acceptance": "pending independent combined review and complete assigned obligations"
         }
       ]
     },
@@ -339,6 +360,13 @@
           "assessed_revision": "d6162618d3b568a5f3360eaf2220c4a7e2ddd949",
           "source": "Actual SDK sessions, live gateway/stdin bridge and private readiness/metrics implemented; runtime proof pending.",
           "runtime_accepted": false
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "source_correction_and_runtime_boundary": "Actualproduction SDKsessions/stdio/livegateway positive,reconnect,revoked403 andstdio refusal pass. Actual requiredhosts and trustedhost assertion/delivery remain pending.",
+          "runtime_accepted": false,
+          "formal_acceptance": "pending independent combined review and complete assigned obligations"
         }
       ]
     },
@@ -758,7 +786,16 @@
       ],
       "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
       "required_correction": "Implement typed MEDIA_PROCESS worker and sandboxed pinned processor environment; stable asset output publication and fenced atomic asset+receipt+work completion; bounded header/error IO and kill/wait on timeout.",
-      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance",
+      "continuation_assessments": [
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "source_correction_and_runtime_boundary": "Actualrestricted Media process settings observed but pipeline exits126 duringversions. Narrow explicitcompoundlabel correctiona60695ce committed; fresh kernel/codec proof pending.",
+          "runtime_accepted": false,
+          "formal_acceptance": "pending independent combined review and complete assigned obligations"
+        }
+      ]
     },
     {
       "id": "F-032",
@@ -1297,6 +1334,13 @@
           "runtime_accepted": false,
           "detail": "Real GraphQL engine draft cases5/5 and Long coercion3/3 pass; complete rendered creation/persistence journey still pending.",
           "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "source_correction_and_runtime_boundary": "Actualbrowser stillfails requiredbackupFIELD_INVALID beforeCreateMovie. Mandatory DraftConfiguration and requiredGraphQL resolver injection287c0505 nowcommitted; freshmakeStart/UIpersistedproof pending.",
+          "runtime_accepted": false,
+          "formal_acceptance": "pending independent combined review and complete assigned obligations"
         }
       ]
     },
@@ -1952,9 +1996,11 @@
           "public_api_probes": "policy200 and first1 title200",
           "seed": "PASS: every200 database/HTTPS API record,100MOVIE/100TV/1213people/1475credits/3057members;202requests0throttles; repeat-safe and restart persistence PASS",
           "codec": "FAIL exit126 in versions after vips and bwrap; actual UID/GID10001,zero capabilities,NNP1,Seccomp2,Media profile observed; pipeline not executed",
-          "browser": "FAIL completed; actual report inspection pending",
-          "monitoring": "completed; actual artifact inspection pending",
-          "make_lifecycle": "interrupted; not pass"
+          "browser": "FAIL inspected actual JSON/JUnit/context/PNG:0passed/1failed/763skipped; requiredsaveDraft HTTP200 FIELD_INVALID before CreateMovie dispatch. Mandatory draft wiring correction287c0505 pending remote.",
+          "monitoring": "PASS all7 cases: actual Alertmanager notifications2/failed0; firing1/resolved1/keys2 RECORDED true; controlled owned synthetic episode setup retained.",
+          "make_lifecycle": "15 exact-exit matches: helper/argument regressions,status,logs/logs-core,seedwithoutapply2/seedapply0,snapshot,restart,persistence,status,stop,stoppedhealth1/stoppedstatusMake2. CompleteMake interrupted; not pass.",
+          "mcp_protocol": "PASS production SDKstdio\u2192HTTPMCP\u2192mTLSCore\u2192Catalog\u2192PG, context/policy/proposal/replay/revision2/privacy/directpublication denial/ownerreceipt/reconnect; revoked connector actualHTTP403 andstdio initialization refusal.",
+          "connector_cli": "PASS7commands exits0/0/2/0/0/0/0; issue,private0600ownerfile,redactedmetadata,list,existingfile refusal,repeatedrevoke,clientbinding,actualownerDB."
         },
         "artifacts": [
           {
@@ -1980,7 +2026,7 @@
           {
             "id": 12127518388,
             "boundary": "final browser/monitoring/partialMake",
-            "inspected": false
+            "inspected": true
           }
         ]
       },
