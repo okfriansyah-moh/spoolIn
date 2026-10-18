@@ -6,6 +6,7 @@ import {
   createPerson,
   capture,
   uniqueName,
+  readApi,
 } from './helpers';
 
 test('ATDD-016/017/023: movie and person writes survive public-route reload', async ({
@@ -238,4 +239,151 @@ test('ATDD-260 partial: explicit retained-draft picker preserves the selected or
     page.getByLabel('Title · Required', { exact: true }),
   ).toHaveValue(firstTitle);
   await discardVisibleDraft(page);
+});
+
+
+async function currentCredits(page: import('@playwright/test').Page, titleId: string) {
+  const data = await readApi(page, `query BrowserCredits($titleId: UUID!) {
+    managedCredits(titleId: $titleId, first: 48) {
+      nodes { id personId personName characters version role { id label category allowsCharacters } }
+    }
+  }`, { titleId });
+  return data.managedCredits.nodes as Array<{
+    id: string; personId: string; personName: string; characters: string[];
+    role: { id: string; label: string; category: string; allowsCharacters: boolean };
+  }>;
+}
+
+async function addActorCredit(page: import('@playwright/test').Page, personId: string, names: string[]) {
+  await page.getByLabel('Person', { exact: true }).selectOption(personId);
+  await page.getByLabel('Role', { exact: true }).selectOption({ label: 'Actor (CAST)' });
+  await page.getByLabel('Character names · one per line').fill(names.join('\n'));
+  await page.getByRole('button', { name: 'Add credit', exact: true }).click();
+  await expect(page.getByText('Credit saved.', { exact: true })).toBeVisible();
+  await page.reload();
+}
+
+async function removeCreditAfterCancel(page: import('@playwright/test').Page, credit: import('@playwright/test').Locator) {
+  await credit.getByRole('button', { name: 'Remove credit', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(credit).toHaveCount(1);
+  await credit.getByRole('button', { name: 'Remove credit', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Remove credit', exact: true }).click();
+  await expect(credit).toHaveCount(0);
+  await page.reload();
+}
+
+test('ATDD-026/027/028 partial: update ordered complete character names without cloning a shared person', async ({ page }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const movie = await createMovie(page);
+  const names = ['Maya', 'Young Maya', 'Maya / Echo'];
+  await addActorCredit(page, person.id, names);
+  const credit = page.locator('.credit-list li').filter({ hasText: person.name });
+  await expect(credit).toHaveCount(1);
+  const original = (await currentCredits(page, movie.id)).find((row) => row.personId === person.id);
+  expect(original?.characters).toEqual(names);
+  await credit.getByRole('button', { name: 'Edit credit', exact: true }).click();
+  await expect(page.getByLabel('Person', { exact: true })).toBeDisabled();
+  await expect(page.getByLabel('Character names · one per line')).toHaveValue(names.join('\n'));
+  const reordered = ['Maya / Echo', 'Maya', 'Young Maya'];
+  await page.getByLabel('Character names · one per line').fill(reordered.join('\n'));
+  await capture(page, info, ['ATDD-026'], 'credit-edit-ordered-names');
+  await page.getByRole('button', { name: 'Save credit', exact: true }).click();
+  await expect(page.getByText('Credit saved.', { exact: true })).toBeVisible();
+  await page.reload();
+  const updated = (await currentCredits(page, movie.id)).filter((row) => row.personId === person.id);
+  expect(updated).toHaveLength(1);
+  expect(updated[0].id).toBe(original?.id);
+  expect(updated[0].characters).toEqual(reordered);
+  await expect(credit).toContainText('Maya / Echo, Maya, Young Maya');
+  await capture(page, info, ['ATDD-026'], 'credit-updated-persisted');
+  await page.getByLabel('Person', { exact: true }).selectOption(person.id);
+  await page.getByLabel('Role', { exact: true }).selectOption({ label: 'Actor (CAST)' });
+  await page.getByRole('button', { name: 'Add credit', exact: true }).click();
+  await expect(page.getByText('Review the credit — no duplicate added.', { exact: true })).toBeVisible();
+  await expect(credit).toHaveCount(1);
+  expect((await currentCredits(page, movie.id)).filter((row) => row.personId === person.id)).toHaveLength(1);
+  await capture(page, info, ['ATDD-027'], 'credit-duplicate-rejected');
+  await page.reload();
+  await removeCreditAfterCancel(page, credit);
+  expect((await currentCredits(page, movie.id)).filter((row) => row.personId === person.id)).toHaveLength(0);
+  await page.goto(`/people/${person.id}`);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(person.name);
+  await capture(page, info, ['ATDD-028'], 'credit-removed-person-preserved');
+});
+
+async function backPersonDraft(
+  page: import('@playwright/test').Page,
+  label: string,
+  field: 'name' | 'biography',
+  value: string,
+  expectedId?: string,
+) {
+  const saved = page.waitForResponse((response) => {
+    if (new URL(response.url()).pathname !== '/graphql') return false;
+    const request = response.request().postDataJSON();
+    return request?.query?.includes('mutation SavePersonDraft') &&
+      request?.variables?.input?.targetKind === 'PERSON' &&
+      request?.variables?.input?.values?.[field] === value &&
+      (!expectedId || request?.variables?.id === expectedId);
+  });
+  await page.getByLabel(label, { exact: true }).fill(value);
+  const response = await saved;
+  expect(response.ok()).toBe(true);
+  const body = await response.json();
+  expect(body.errors).toBeUndefined();
+  expect(body.data.saveDraft.operation.state).toBe('SUCCEEDED');
+  return String(body.data.saveDraft.operation.resultId);
+}
+
+test('ATDD-179/261 partial: person backed biography reloads under the original draft and saves to the same identity', async ({ page }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const biography = 'This retained person biography survives a real full reload.';
+  const draftId = await backPersonDraft(page, 'Biography · Optional', 'biography', biography);
+  await page.reload();
+  await expect(page.getByLabel('Biography · Optional')).toHaveValue(biography);
+  await expect(page.getByLabel('Professional name · Required')).toHaveValue(person.name);
+  await capture(page, info, ['ATDD-179', 'ATDD-261'], 'person-draft-reloaded');
+  const revision = biography + ' Reviewed after recovery.';
+  await backPersonDraft(page, 'Biography · Optional', 'biography', revision, draftId);
+  await page.getByRole('button', { name: 'Save person', exact: true }).click();
+  await expect(page.getByText('Person saved', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Review public record', exact: true }).click();
+  await page.reload();
+  await expect(page).toHaveURL(new RegExp(`/people/${person.id}$`));
+  await expect(page.getByText(revision, { exact: true })).toBeVisible();
+  const drafts = await readApi(page, 'query { drafts { id } }');
+  expect(drafts.drafts.some((draft: { id: string }) => draft.id === draftId)).toBe(false);
+  await capture(page, info, ['ATDD-179', 'ATDD-261'], 'person-recovered-draft-committed');
+});
+
+test('ATDD-025/261 partial: person conflict preserves biography until explicit current-value review', async ({ page, context }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const competing = await context.newPage();
+  await competing.goto(page.url());
+  await page.getByLabel('Biography · Optional').fill('My permitted retained biography.');
+  await competing.getByLabel('Biography · Optional').fill('Other editor committed biography.');
+  await competing.getByRole('button', { name: 'Save person', exact: true }).click();
+  await expect(competing.getByText('Person saved', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Save person', exact: true }).click();
+  await expect(page.getByText('This person changed', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Biography · Optional')).toHaveValue('My permitted retained biography.');
+  await page.getByRole('button', { name: 'Review current record', exact: true }).click();
+  await expect(page.getByText('Other editor committed biography.', { exact: true })).toBeVisible();
+  const proceed = page.getByRole('button', { name: 'Use reviewed version for my edits', exact: true });
+  await expect(proceed).toBeDisabled();
+  await capture(page, info, ['ATDD-025', 'ATDD-261'], 'person-conflict-review-required');
+  await page.getByLabel('I reviewed the current values and my retained edits.').check();
+  await proceed.click();
+  await page.getByRole('button', { name: 'Save person', exact: true }).click();
+  await expect(page.getByText('Person saved', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Review public record', exact: true }).click();
+  await page.reload();
+  await expect(page).toHaveURL(new RegExp(`/people/${person.id}$`));
+  await expect(page.getByText('My permitted retained biography.', { exact: true })).toBeVisible();
+  await capture(page, info, ['ATDD-025', 'ATDD-261'], 'person-conflict-reviewed-persisted');
+  await competing.close();
 });
