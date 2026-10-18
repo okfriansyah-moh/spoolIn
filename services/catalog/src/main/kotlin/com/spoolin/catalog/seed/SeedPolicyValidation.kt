@@ -71,7 +71,9 @@ class SeedPolicyValidation(
         require(names == raw) { "Seed characters must already be normalized" }
         if (names.isNotEmpty()) coverage(node, setOf("characters"))
         CreditValidation.validateCharactersForRole(
-            role["allowsCharacters"].asBoolean(), role["category"].asText(), names,
+            role["allowsCharacters"].asBoolean(),
+            role["category"].asText(),
+            names,
         )
         sources(node)
     }

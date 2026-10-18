@@ -56,23 +56,34 @@ internal class PublicReadContext(
         return PersonSearch.CreditKeyset(ks.id)
     }
 
-    fun titleAfter(raw: String, scope: String): CatalogCursor.Keyset? =
+    fun titleAfter(
+        raw: String,
+        scope: String,
+    ): CatalogCursor.Keyset? =
         raw.takeIf { it.isNotEmpty() }?.let {
             titleCursor.decode(it, scope, clock.instant())
                 ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
         }
 
-    fun peopleScope(request: Search, text: String?, first: Int): String {
+    fun peopleScope(
+        request: Search,
+        text: String?,
+        first: Int,
+    ): String {
         require(!request.hasKind() && request.genreIdsCount == 0 && !request.hasYear() && !request.hasMonth()) {
             "Title filters are not valid for people search"
         }
         return ReadPolicy(policy()).cursorScope("public-people", first, mapOf("text" to text))
     }
 
-    fun peopleAfter(raw: String, scope: String): PersonSearch.PersonKeyset? =
+    fun peopleAfter(
+        raw: String,
+        scope: String,
+    ): PersonSearch.PersonKeyset? =
         raw.takeIf { it.isNotEmpty() }?.let {
-            val keyset = peopleCursor.decode(it, scope, clock.instant())
-                ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
+            val keyset =
+                peopleCursor.decode(it, scope, clock.instant())
+                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_CURSOR").asRuntimeException()
             PersonSearch.PersonKeyset(keyset.name, keyset.id)
         }
 

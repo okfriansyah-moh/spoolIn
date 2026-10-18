@@ -17,7 +17,9 @@ internal object SeedRecords {
             val normalized = role["label"].asText().lowercase(Locale.ROOT)
             val identity =
                 SeedRoleIdentity.resolve(
-                    role["source"].asText(), role["externalId"].asText(), role["stableUUID"].asText(),
+                    role["source"].asText(),
+                    role["externalId"].asText(),
+                    role["stableUUID"].asText(),
                 )
             val id =
                 connection

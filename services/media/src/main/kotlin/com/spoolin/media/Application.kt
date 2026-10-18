@@ -124,8 +124,11 @@ class ObservabilityConfiguration {
     fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
         TraceServerInterceptor(tracing) { attributes ->
             runCatching {
-                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)
-                    ?.peerCertificates?.firstOrNull() as? X509Certificate
+                val certificate =
+                    attributes
+                        .get(Grpc.TRANSPORT_ATTR_SSL_SESSION)
+                        ?.peerCertificates
+                        ?.firstOrNull() as? X509Certificate
                 certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
             }.getOrDefault(false)
         }
@@ -147,9 +150,7 @@ class ObservabilityConfiguration {
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    fun logicalRpcMetrics(
-        metrics: LogicalMetrics,
-    ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+    fun logicalRpcMetrics(metrics: LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
 }

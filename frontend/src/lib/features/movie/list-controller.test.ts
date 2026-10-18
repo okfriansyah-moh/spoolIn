@@ -60,14 +60,12 @@ it('uses actual cursor and retains existing rows when a repeated page must be re
 });
 
 it('rejects claimed next-page availability without a usable cursor', async () => {
-  const request = vi
-    .fn()
-    .mockResolvedValue({
-      managedTitles: {
-        nodes: [],
-        pageInfo: { endCursor: null, hasNextPage: true },
-      },
-    });
+  const request = vi.fn().mockResolvedValue({
+    managedTitles: {
+      nodes: [],
+      pageInfo: { endCursor: null, hasNextPage: true },
+    },
+  });
   const controller = new MovieListController(request);
   await controller.load('csrf', new AbortController().signal);
   expect(controller.snapshot).toEqual({ kind: 'failure' });

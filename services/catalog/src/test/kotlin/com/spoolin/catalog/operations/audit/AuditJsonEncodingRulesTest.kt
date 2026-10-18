@@ -21,8 +21,22 @@ class AuditJsonEncodingRulesTest {
         val text = "First line\nSecond\tline\r\n\"quoted\" \\ café 🎬"
         val movie = json.readTree(AuditDiff.movie(emptyMap(), mapOf("synopsis" to text, "password" to "private")))
         val person = json.readTree(AuditDiff.person(emptyMap(), mapOf("biography" to text)))
-        assertEquals(text, movie.path("changes").get(0).path("after").stringValue())
-        assertEquals(text, person.path("changes").get(0).path("after").stringValue())
+        assertEquals(
+            text,
+            movie
+                .path("changes")
+                .get(0)
+                .path("after")
+                .stringValue(),
+        )
+        assertEquals(
+            text,
+            person
+                .path("changes")
+                .get(0)
+                .path("after")
+                .stringValue(),
+        )
         assertEquals(1, movie.path("changes").size())
         assertFalse(movie.toString().contains("private"))
     }
@@ -32,7 +46,9 @@ class AuditJsonEncodingRulesTest {
         val text = "\n".repeat(40000)
         val encoded = "\"" + "\\n".repeat(40000) + "\""
         val expectedDigest =
-            MessageDigest.getInstance("SHA-256").digest(encoded.toByteArray(Charsets.UTF_8))
+            MessageDigest
+                .getInstance("SHA-256")
+                .digest(encoded.toByteArray(Charsets.UTF_8))
                 .joinToString("") { "%02x".format(it) }
         val result = json.readTree(AuditDiff.movie(mapOf("synopsis" to text), mapOf("synopsis" to "changed")))
         val change = result.path("changes").get(0)

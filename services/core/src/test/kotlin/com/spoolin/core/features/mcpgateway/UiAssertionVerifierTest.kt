@@ -36,9 +36,8 @@ class UiAssertionVerifierTest {
             .build()
     private val method = "/spoolin.v1.McpGatewayService/ApproveMovie"
 
-    private fun verifier(enabled: Boolean = true): UiAssertionVerifier {
-        return UiAssertionVerifier(enabled, "test-v1", key, mapper, Clock.fixed(now, ZoneOffset.UTC))
-    }
+    private fun verifier(enabled: Boolean = true): UiAssertionVerifier =
+        UiAssertionVerifier(enabled, "test-v1", key, mapper, Clock.fixed(now, ZoneOffset.UTC))
 
     private fun claims(): MutableMap<String, Any> =
         sortedMapOf(

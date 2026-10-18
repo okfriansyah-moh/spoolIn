@@ -191,9 +191,7 @@ internal class PublicCatalogReads(
         }
     }
 
-    fun listGenres(
-        response: StreamObserver<Genres>,
-    ) {
+    fun listGenres(response: StreamObserver<Genres>) {
         try {
             val builder = Genres.newBuilder()
             taxonomy.listGenres().forEach { g ->
@@ -212,9 +210,7 @@ internal class PublicCatalogReads(
         }
     }
 
-    fun listRoles(
-        response: StreamObserver<Roles>,
-    ) {
+    fun listRoles(response: StreamObserver<Roles>) {
         try {
             val builder = Roles.newBuilder()
             taxonomy.listRoles().forEach { r ->

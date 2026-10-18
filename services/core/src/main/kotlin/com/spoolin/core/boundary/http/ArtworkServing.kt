@@ -84,7 +84,6 @@ class ArtworkServing(
         }
     }
 
-
     private fun admit(
         context: BrowserContext,
         management: Boolean,

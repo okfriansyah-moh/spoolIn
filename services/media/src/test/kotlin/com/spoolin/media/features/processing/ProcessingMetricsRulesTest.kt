@@ -50,13 +50,19 @@ class ProcessingMetricsRulesTest {
     private fun assertFixedLabels(registry: SimpleMeterRegistry) {
         val limits = setOf(0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 3.0, 5.0, 15.0, 30.0)
         registry.meters.forEach { meter ->
-            val expected = when (meter.id.name) {
-                "spoolin.media.processing" -> setOf("service", "outcome")
-                "spoolin.media.processing.duration" -> setOf("service")
-                "spoolin.media.processing.duration.histogram" -> setOf("service", "le")
-                else -> error("Unexpected processing meter")
-            }
-            assertEquals(expected, meter.id.tags.map { it.key }.toSet())
+            val expected =
+                when (meter.id.name) {
+                    "spoolin.media.processing" -> setOf("service", "outcome")
+                    "spoolin.media.processing.duration" -> setOf("service")
+                    "spoolin.media.processing.duration.histogram" -> setOf("service", "le")
+                    else -> error("Unexpected processing meter")
+                }
+            assertEquals(
+                expected,
+                meter.id.tags
+                    .map { it.key }
+                    .toSet(),
+            )
             if ("le" in expected) {
                 val boundary = requireNotNull(meter.id.getTag("le")).toDouble()
                 assertTrue(boundary in limits)

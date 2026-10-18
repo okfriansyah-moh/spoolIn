@@ -12,13 +12,15 @@ import spoolin.v1.Spoolin.Provenance
 import spoolin.v1.Spoolin.Title
 import java.util.UUID
 
-internal class PublicReadProjection(private val context: PublicReadContext) {
+internal class PublicReadProjection(
+    private val context: PublicReadContext,
+) {
     fun titleProto(
         row: TitleSearchSql.TitleRow,
         genreIds: List<UUID>,
         provenanceRows: List<ProvenanceReads.ProvenanceRow>,
-    ): Title {
-        return Title
+    ): Title =
+        Title
             .newBuilder()
             .setId(row.id.toString())
             .setKind(row.kind)
@@ -32,7 +34,6 @@ internal class PublicReadProjection(private val context: PublicReadContext) {
                 row.tvStatus?.let { b.tvStatus = it }
                 row.releaseContext?.let { b.releaseContext = it }
             }.build()
-    }
 
     private fun movieValues(
         row: TitleSearchSql.TitleRow,

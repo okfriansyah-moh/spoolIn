@@ -308,9 +308,7 @@ class ManagedCatalogGraphql(
             .setPolicyRevision(policyRevision)
             .build()
 
-    private fun context(env: DataFetchingEnvironment): BrowserContext {
-        return requireNotNull(env.graphQlContext.get("browser"))
-    }
+    private fun context(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 

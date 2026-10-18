@@ -452,7 +452,6 @@ class CatalogServiceRpc(
 
     // ── credit cursor ────────────────────────────────────────────────────────
 
-
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }

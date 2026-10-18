@@ -276,8 +276,7 @@ class LogicalRpcMetricsBoundaryTest {
         error("Expected actual completed RPC measurement was not observed")
     }
 
-    private fun stub(channel: ManagedChannel) =
-        CatalogServiceGrpc.newBlockingStub(channel).withDeadlineAfter(3, TimeUnit.SECONDS)
+    private fun stub(channel: ManagedChannel) = CatalogServiceGrpc.newBlockingStub(channel).withDeadlineAfter(3, TimeUnit.SECONDS)
 
     private fun close(channel: ManagedChannel) {
         channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)

@@ -71,11 +71,9 @@ describe('audit api', () => {
 });
 
 it('refuses malformed rows and repeated cursors rather than presenting incomplete history', async () => {
-  const request = vi
-    .fn()
-    .mockResolvedValue({
-      audit: { nodes: null, pageInfo: { hasNextPage: false } },
-    });
+  const request = vi.fn().mockResolvedValue({
+    audit: { nodes: null, pageInfo: { hasNextPage: false } },
+  });
   await expect(
     fetchAuditPage(request, 'csrf', new AbortController().signal),
   ).rejects.toThrow('rows');
@@ -99,11 +97,9 @@ it('the emitted audit document validates against the actual approved SDL', async
       'utf8',
     ),
   );
-  const request = vi
-    .fn()
-    .mockResolvedValue({
-      audit: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
-    });
+  const request = vi.fn().mockResolvedValue({
+    audit: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
+  });
   await fetchAuditPage(request, 'csrf', new AbortController().signal);
   expect(validate(schema, parse(request.mock.calls[0]?.[0]))).toEqual([]);
 });

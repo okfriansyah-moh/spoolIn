@@ -123,9 +123,7 @@ class ObservabilityConfiguration {
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
-    fun traceServer(
-        tracing: com.spoolin.support.tracing.OwnerTracing,
-    ): com.spoolin.support.tracing.TraceServerInterceptor =
+    fun traceServer(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceServerInterceptor =
         com.spoolin.support.tracing.TraceServerInterceptor(tracing) { attributes ->
             runCatching {
                 val certificate =
@@ -136,16 +134,12 @@ class ObservabilityConfiguration {
 
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
-    fun traceClient(
-        tracing: com.spoolin.support.tracing.OwnerTracing,
-    ): com.spoolin.support.tracing.TraceClientInterceptor =
+    fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
         com.spoolin.support.tracing
             .TraceClientInterceptor(tracing)
 
     @Bean
-    fun logicalMetrics(
-        registry: io.micrometer.core.instrument.MeterRegistry,
-    ): com.spoolin.support.observability.LogicalMetrics {
+    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
         com.spoolin.support.logging.DiagnosticDropMetrics.shared
             .bind("catalog", registry)
         return com.spoolin.support.observability
@@ -349,7 +343,12 @@ class CatalogWriteConfiguration {
         val titleSearch = TitleSearchSql(dataSource, policy)
         val auditReads = AuditReads(dataSource)
         return ManagedMovieReads(
-            dataSource, provenance, titleSearch, auditReads, policy = policy, cursors = ManagedReadCursors(cursorKey),
+            dataSource,
+            provenance,
+            titleSearch,
+            auditReads,
+            policy = policy,
+            cursors = ManagedReadCursors(cursorKey),
         )
     }
 
@@ -421,7 +420,9 @@ class CatalogWriteConfiguration {
         environment: Environment,
     ): ManagedPersonReads =
         ManagedPersonReads(
-            dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey),
+            dataSource,
+            policy = effectiveReadPolicy(environment),
+            cursors = ManagedReadCursors(cursorKey),
         )
 
     @Bean
@@ -448,7 +449,9 @@ class CatalogWriteConfiguration {
     ): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
             .ManagedCreditReads(
-                dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey),
+                dataSource,
+                policy = effectiveReadPolicy(environment),
+                cursors = ManagedReadCursors(cursorKey),
             )
 
     @Bean

@@ -115,9 +115,10 @@
     };
   });
 
-  function archivePageReady(
-    state: ArchiveListState,
-  ): state is Extract<ArchiveListState, { kind: 'ready' }> & {
+  function archivePageReady(state: ArchiveListState): state is Extract<
+    ArchiveListState,
+    { kind: 'ready' }
+  > & {
     pageInfo: PageInfo;
   } {
     return (

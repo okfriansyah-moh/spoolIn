@@ -139,7 +139,10 @@ object MovieValidation {
         )
     }
 
-    private fun validateReleaseMask(mask: Set<String>, values: MovieValues) {
+    private fun validateReleaseMask(
+        mask: Set<String>,
+        values: MovieValues,
+    ) {
         if (mask.any { it.startsWith("values.release.") }) {
             throw InputViolation("release", "Replace the complete release date.")
         }
