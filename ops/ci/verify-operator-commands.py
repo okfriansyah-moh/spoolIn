@@ -24,6 +24,16 @@ def checked_metadata(output, secret):
     return json.loads(output)
 
 
+def protocol(mode, token_file):
+    output = Path('artifacts/runtime') / ('mcp-' + mode + '.json')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(['node', 'ops/ci/verify-mcp-runtime.mjs', mode, str(token_file), str(output)],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=150, check=False)
+    if result.returncode:
+        raise RuntimeError('Actual production MCP protocol assertions failed; inspect redacted report')
+    return str(output)
+
+
 def connector(account, parent):
     secret_file = parent / "operator-connector"
     base = ("--account", account, "--client", "CLAUDE")
@@ -41,6 +51,7 @@ def connector(account, parent):
                for row in checked_metadata(listing, secret)["credentials"])
     invoke("connector.sh", "issue", *base, "--output-file", str(secret_file), expected=2)
     assert secret_file.read_text() == secret
+    protocol_report = protocol('positive', secret_file)
     for _ in range(2):
         revoked, _ = invoke("connector.sh", "revoke", *base, "--credential-id", credential)
         assert checked_metadata(revoked, secret)["revoked"] is True
@@ -49,10 +60,11 @@ def connector(account, parent):
                for row in checked_metadata(listing, secret)["credentials"])
     other, _ = invoke("connector.sh", "list", "--account", account, "--client", "CHATGPT")
     assert all(row["id"] != credential for row in checked_metadata(other, secret)["credentials"])
+    revoked_report = protocol('revoked', secret_file)
     secret_file.unlink()
     return {"result": "PASS", "boundary": "actual protected CLI and owner database",
             "checks": ["issue", "0600/owner", "metadata redaction", "list", "existing-file refusal",
-                       "repeated revoke", "client binding"], "hostCompatibility": "PENDING"}
+                       "repeated revoke", "client binding"], "hostCompatibility": "PENDING", "protocolReports": [protocol_report, revoked_report]}
 
 
 def tunnel():
@@ -68,7 +80,7 @@ def main():
     if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("RUNNER_ENVIRONMENT") != "github-hosted":
         raise RuntimeError("Requires a verified GitHub-hosted disposable runner")
     account = str(uuid.UUID(os.environ["SPOOLIN_OPERATOR_ACCOUNT_ID"]))
-    report = {"sha": os.environ["GITHUB_SHA"], "runId": os.environ["GITHUB_RUN_ID"],
+    report = {"sha": os.environ["TESTED_SHA"], "runId": os.environ["GITHUB_RUN_ID"],
               "runnerOS": os.environ["RUNNER_OS"], "connector": None, "tunnel": None}
     with tempfile.TemporaryDirectory(prefix="operator-check-", dir=os.environ["RUNNER_TEMP"]) as temporary:
         parent = Path(temporary)
