@@ -324,3 +324,12 @@ val alertIntegrationTest by tasks.registering(Test::class) {
     maxHeapSize = "768m"
 }
 tasks.named("koverXmlReport") { dependsOn(alertUnitTest, alertIntegrationTest) }
+
+val mcpGatewayUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter { includeTestsMatching("com.spoolin.core.features.mcpgateway.*") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+tasks.named("koverXmlReport") { dependsOn(mcpGatewayUnitTest) }
