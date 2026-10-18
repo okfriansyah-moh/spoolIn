@@ -13,7 +13,7 @@ import time
 
 STATUS_FIELDS = {'CapEff', 'CapBnd', 'NoNewPrivs', 'Seccomp'}
 NAMESPACES = ('user', 'mnt', 'net', 'pid', 'ipc', 'uts', 'cgroup')
-OPERATIONS = {'userns_create', 'capable', 'create', 'bind', 'sendmsg', 'receive', 'open', 'mount', 'pivotroot', 'change_profile'}
+OPERATIONS = {'userns_create', 'capable', 'create', 'bind', 'sendmsg', 'receive', 'open', 'mount', 'pivotroot', 'change_profile', 'exec'}
 CAPABILITIES = set(('chown dac_override dac_read_search fowner fsetid kill setgid setuid setpcap linux_immutable '
                     'net_bind_service net_broadcast net_admin net_raw ipc_lock ipc_owner sys_module sys_rawio sys_chroot '
                     'sys_ptrace sys_pacct sys_admin sys_boot sys_nice sys_resource sys_time sys_tty_config mknod lease '
@@ -23,10 +23,11 @@ SYSCTLS = ('kernel/apparmor_restrict_unprivileged_userns', 'kernel/apparmor_rest
            'kernel/unprivileged_userns_clone', 'user/max_user_namespaces')
 
 
-def bounded_command(command, limit=131072, seconds=5):
+def bounded_command(command, limit=131072, seconds=5, include_stderr=False):
     started = time.monotonic()
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT if include_stderr else subprocess.DEVNULL)
     except OSError:
         return {'exit': None, 'available': False, 'truncated': False, 'timedOut': False}, ''
     content = bytearray()
@@ -83,7 +84,8 @@ def status_fields(value):
 
 def profile_name(value):
     raw = value.strip().split(' ', 1)[0]
-    if raw in ('unconfined', 'docker-default', 'unprivileged_userns'):
+    if raw in ('unconfined', 'docker-default', 'unprivileged_userns', 'spoolin-media', 'spoolin-media-codec',
+               'spoolin-media//&spoolin-media-codec'):
         return raw
     if raw in ('bwrap', '/usr/bin/bwrap', 'bubblewrap', '/usr/bin/bubblewrap'):
         return 'bwrap'

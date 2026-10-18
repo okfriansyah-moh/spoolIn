@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Unchanged nonroot production Media container boundary; no database or UI effects."""
 import hashlib
+from datetime import datetime, timezone
 import importlib.util
 import json
 import os
@@ -28,9 +29,19 @@ def compose(*arguments):
     return ['docker', 'compose', '--project-name', os.environ['SPOOLIN_INSTALLATION'], '-f', str(ROOT / 'ops/compose.yaml'), *arguments]
 
 
-def checked(command, limit=16384, seconds=20):
-    state, output = DIAG.bounded_command(command, limit, seconds)
-    require(state['exit'] == 0 and not state['truncated'] and not state['timedOut'], 'Required bounded container command failed')
+class ProbeCommandFailure(RuntimeError):
+    def __init__(self, boundary, state, diagnostic):
+        super().__init__('Required bounded container command failed')
+        self.report = {'boundary': boundary, 'state': state}
+        if diagnostic:
+            self.report['diagnostic'] = diagnostic[:4096]
+            self.report['retainedByteLimit'] = 4096
+
+
+def checked(command, limit=16384, seconds=20, boundary='bounded-command', diagnostic=False):
+    state, output = DIAG.bounded_command(command, limit, seconds, include_stderr=diagnostic)
+    if state['exit'] != 0 or state['truncated'] or state['timedOut']:
+        raise ProbeCommandFailure(boundary, state, output if diagnostic else '')
     return output.strip()
 
 
@@ -60,7 +71,8 @@ def context(container):
 awk '/^(CapEff|CapBnd|NoNewPrivs|Seccomp):/' /proc/self/status
 printf 'profile='; cat /proc/self/attr/current
 for kind in user mnt net pid ipc uts cgroup; do printf 'ns.%s=' "$kind"; readlink "/proc/self/ns/$kind"; done'''
-    value = checked(['docker', 'exec', container, '/bin/sh', '-ec', script], limit=4096)
+    value = checked(['docker', 'exec', container, '/bin/sh', '-ec', script], limit=4096,
+                    boundary='process-context-command', diagnostic=True)
     output = {'status': DIAG.status_fields(value), 'namespaces': {}}
     for line in value.splitlines():
         key, separator, raw = line.partition('=')
@@ -174,13 +186,17 @@ def main():
               'imageVersion': os.environ.get('ImageVersion'), 'result': 'FAIL', 'hostPrerequisiteResult': 'Separate report; no inherited pass'}
     launched = False
     stages = []
+    diagnostic_since = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    record['stage'] = 'source-fixture'
     try:
         with (ROOT / 'docs/design-system/mockup/assets/letters.png').open('rb') as fixture:
             source = fixture.read(5242881)
         require(source.startswith(b'\x89PNG\r\n\x1a\n') and len(source) <= 5242880, 'Invalid fixed public input fixture')
         expected_dimensions = struct.unpack('>II', source[16:24])
+        record['stage'] = 'running-media'
         primary = checked(compose('ps', '--status', 'running', '--quiet', 'media'))
         require(re.fullmatch('[0-9a-f]{12,64}', primary), 'Exactly one actual running Media container required')
+        record['stage'] = 'fixture-files'
         media_write(workspace, 'input', source)
         script, stages = pipeline(workspace)
         media_write(workspace, 'pipeline.sh', script.encode())
@@ -189,24 +205,40 @@ def main():
         require(actual_input == hashlib.sha256(source).hexdigest(), 'Actual mounted input differs')
         require(ownership.splitlines() == ['10001 10001 700', '10001 10001 600', '10001 10001 600'], 'Fixture directory/files ownership differs')
         wait = 'while [ ! -f ' + shlex.quote(workspace + '/go') + ' ]; do sleep 1; done; exec /usr/bin/timeout --signal=KILL 10s /bin/sh -e ' + shlex.quote(workspace + '/pipeline.sh')
+        record['stage'] = 'one-off-launch'
         launched = True
         checked(compose('run', '-d', '--no-deps', '--name', name, '--entrypoint', '/bin/sh', 'media', '-ec', wait), seconds=60)
+        record['stage'] = 'effective-configuration'
         record['configuration'] = effective_configuration(inspect(primary), inspect(name))
+        record['stage'] = 'process-context'
         record['processContext'] = context(name)
         record['input'] = {'sha256': hashlib.sha256(source).hexdigest(), 'bytes': len(source), 'width': expected_dimensions[0], 'height': expected_dimensions[1]}
+        record['stage'] = 'start-pipeline'
         media_write(workspace, 'go', b'go\n')
+        record['stage'] = 'wait-pipeline'
         code = checked(['docker', 'wait', name], seconds=20)
         record['containerExit'] = int(code)
+        record['stage'] = 'pipeline-output'
         logs = checked(['docker', 'logs', name], limit=4096).splitlines()
         record['versions'] = [line for line in logs if re.fullmatch(r'(vips-[0-9.]+|bubblewrap [0-9.]+|prlimit from util-linux [0-9.]+)', line)]
         record['stages'] = [line[6:] for line in logs
                             if re.fullmatch(r'stage=(versions|header-input|encode-(jpeg|png|webp)|header-(jpeg|png|webp)|completed)', line)]
         require(code == '0' and record['stages'][-1:] == ['completed'], 'Actual container sandbox/codec pipeline failed')
         require('vips-8.18.7' in record['versions'], 'Actual container codec pin differs')
+        record['stage'] = 'validate-outputs'
         dimensions = read_file(workspace, 'dimensions', 64).split()
         require(len(dimensions) == 3 and tuple(map(int, dimensions[:2])) == expected_dimensions and 1 <= int(dimensions[2]) <= 4, 'Input header dimensions differ')
         record['outputs'] = [output_metadata(workspace, kind, expected_dimensions) for kind in ('jpeg', 'png', 'webp')]
         record['result'] = 'PASS'
+        record['stage'] = 'completed'
+    except ProbeCommandFailure as failure:
+        record['failureType'] = 'bounded-command-failed'
+        record['failedCommand'] = failure.report
+        raise
+    except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as failure:
+        record['failureType'] = type(failure).__name__
+        record['reason'] = 'Boundary assertion or fixture operation failed; inspect stage and sanitized kernel observations'
+        raise
     finally:
         if launched:
             record['namespaceObservations'] = {}
@@ -239,6 +271,10 @@ def main():
         if cleanup['exit'] != 0 or cleanup['timedOut']:
             record['result'] = 'FAIL'
             record['cleanupFailure'] = 'owned-fixture-removal-unconfirmed'
+        try:
+            record['hostDiagnostics'] = DIAG.host_diagnostics(diagnostic_since)
+        except (OSError, ValueError, subprocess.SubprocessError):
+            record['hostDiagnostics'] = {'status': 'unavailable', 'interpretation': 'No control attributed'}
         (reports / 'summary.json').write_text(json.dumps(record, indent=2) + '\n')
     require(record['result'] == 'PASS', 'Actual Media container codec proof failed')
 

@@ -51,6 +51,29 @@ class DiagnosticRules(unittest.TestCase):
         self.assertNotEqual(0, state['exit'])
         self.assertEqual('', content)
 
+    def test_failed_context_command_retains_bounded_actual_stderr(self):
+        command = [sys.executable, '-c', 'import sys;sys.stderr.write("Permission denied");sys.exit(7)']
+        with self.assertRaises(PROBE.ProbeCommandFailure) as raised:
+            PROBE.checked(command, limit=64, boundary='process-context-command', diagnostic=True)
+        self.assertEqual('process-context-command', raised.exception.report['boundary'])
+        self.assertEqual(7, raised.exception.report['state']['exit'])
+        self.assertEqual('Permission denied', raised.exception.report['diagnostic'])
+        state, output = DIAG.bounded_command(
+            [sys.executable, '-c', 'import sys;sys.stderr.write("x"*10000)'], limit=64, include_stderr=True)
+        self.assertTrue(state['truncated'])
+        self.assertEqual(64, len(output))
+
+    def test_media_profiles_and_exec_denials_remain_finite_without_paths(self):
+        self.assertEqual('spoolin-media', DIAG.profile_name('spoolin-media (enforce)'))
+        self.assertEqual('spoolin-media//&spoolin-media-codec',
+                         DIAG.profile_name('spoolin-media//&spoolin-media-codec (enforce)'))
+        result = DIAG.denied_fields(
+            'apparmor="DENIED" operation="exec" profile="spoolin-media" name="/private/path/credential"')
+        self.assertEqual([{'operation': 'exec', 'profile': 'spoolin-media', 'capability': 'none', 'count': 1}],
+                         result['events'])
+        self.assertNotIn('private', json.dumps(result))
+        self.assertNotIn('credential', json.dumps(result))
+
     def fixture(self):
         return {'image': 'sha256:' + 'a' * 64, 'user': '10001:10001', 'readOnly': True, 'capDrop': ['ALL'], 'capAdd': None,
                 'privileged': False, 'securityOpt': ['no-new-privileges:true'], 'apparmor': 'docker-default',
