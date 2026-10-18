@@ -309,9 +309,12 @@ class SelectionTests(unittest.TestCase):
     def test_make_passes_task_argument_without_shell_evaluation(self):
         with tempfile.TemporaryDirectory() as directory:
             sentinel = Path(directory) / "must-not-exist"
-            result = subprocess.run(["make", "test-unit", f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True, timeout=15)
-            self.assertEqual(result.returncode, 2)
-            self.assertFalse(sentinel.exists())
+            for target in ("test-unit", "test-integration"):
+                with self.subTest(target=target):
+                    result = subprocess.run(["make", target, f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True, timeout=15)
+                    self.assertEqual(result.returncode, 2)
+                    self.assertIn(b"Unknown task: T999; touch", result.stderr)
+                    self.assertFalse(sentinel.exists())
 
 
 class JunitAdapterTests(unittest.TestCase):
