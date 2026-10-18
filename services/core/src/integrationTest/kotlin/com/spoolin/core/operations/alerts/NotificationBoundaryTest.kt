@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.TrustManagerFactory
 
@@ -69,8 +68,23 @@ class NotificationBoundaryTest {
                     NotificationDispatcher(pool, transport(server, mode)).use { assertTrue(it.runOnce()); assertFalse(it.runOnce()) }
                     row(id, if (outcome == "ACCEPT") "DONE" else "EXHAUSTED", if (outcome == "ACCEPT") "ACCEPTED" else "FAILED")
                     assertEquals(1, server.sends.get())
-                    assertFalse(server.received.toString().contains("secret-do-not-forward"))
+                    assertFalse(server.messageText().contains("secret-do-not-forward"))
+                    if (outcome == "ACCEPT") assertTrue(server.messageText().contains("notificationWorkId"))
                 }
+            } }
+        }
+    }
+
+    @Test
+    fun `SMTP upgrades verified STARTTLS before AUTH and honors explicit authentication rejection`() {
+        listOf("ACCEPT", "AUTH_REJECT").forEach { outcome ->
+            ProviderServer(ssl, "smtp", outcome, startTls = true).use { server -> fixture.pool("core").use { pool ->
+                val id = enqueue("smtp")
+                val sender = SmtpTransport("localhost", server.port, "starttls", "ops@example.invalid",
+                    "fixed@example.invalid", "fixture-user", "fixture-password", ssl)
+                NotificationDispatcher(pool, sender).use { assertTrue(it.runOnce()); assertFalse(it.runOnce()) }
+                row(id, if (outcome == "ACCEPT") "DONE" else "EXHAUSTED", if (outcome == "ACCEPT") "ACCEPTED" else "FAILED")
+                assertEquals(if (outcome == "ACCEPT") 1 else 0, server.sends.get())
             } }
         }
     }
@@ -179,8 +193,9 @@ class NotificationBoundaryTest {
     }
 }
 
-private class ProviderServer(ssl: SSLContext, private val mode: String, private val outcome: String) : AutoCloseable {
-    private val server = (ssl.serverSocketFactory.createServerSocket() as SSLServerSocket).apply {
+private class ProviderServer(private val ssl: SSLContext, private val mode: String, private val outcome: String,
+    private val startTls: Boolean = false) : AutoCloseable {
+    private val server = (if (startTls) java.net.ServerSocket() else ssl.serverSocketFactory.createServerSocket()).apply {
         bind(InetSocketAddress(InetAddress.getLoopbackAddress(), 0)); soTimeout = 5000
     }
     val port: Int get() = server.localPort
@@ -188,13 +203,13 @@ private class ProviderServer(ssl: SSLContext, private val mode: String, private 
     val received = StringBuilder()
     private val executor = Executors.newSingleThreadExecutor()
     private val future = executor.submit {
-        try { (server.accept() as SSLSocket).use { socket ->
+        try { server.accept().use { socket ->
             socket.soTimeout = 3000
             if (mode == "smtp") smtp(socket) else http(socket)
         } } catch (_: java.io.IOException) { /* Expected TLS rejection or lost acknowledgements. */ }
     }
 
-    private fun http(socket: SSLSocket) {
+    private fun http(socket: java.net.Socket) {
         val input = BufferedInputStream(socket.inputStream)
         val headers = mutableListOf<String>()
         while (true) { val next = line(input); if (next.isEmpty()) break; headers.add(next); require(headers.size <= 64) }
@@ -208,18 +223,33 @@ private class ProviderServer(ssl: SSLContext, private val mode: String, private 
         socket.outputStream.flush()
     }
 
-    private fun smtp(socket: SSLSocket) {
-        val input = BufferedInputStream(socket.inputStream)
-        fun reply(text: String) { socket.outputStream.write((text + "\r\n").toByteArray()); socket.outputStream.flush() }
+    private fun smtp(socket: java.net.Socket) {
+        var input: InputStream = BufferedInputStream(socket.inputStream)
+        var output = socket.outputStream
+        var secure = !startTls
+        fun reply(text: String) { output.write((text + "\r\n").toByteArray()); output.flush() }
         reply("220 fixture SMTP")
         while (true) {
             val command = line(input)
             when {
                 command.startsWith("EHLO") -> reply("250 fixture")
-                command.startsWith("MAIL") || command.startsWith("RCPT") -> reply("250 accepted")
+                command == "STARTTLS" -> {
+                    assertFalse(secure); reply("220 upgrade")
+                    val upgraded = ssl.socketFactory.createSocket(socket, "localhost", port, true) as SSLSocket
+                    upgraded.useClientMode = false; upgraded.startHandshake()
+                    input = BufferedInputStream(upgraded.inputStream); output = upgraded.outputStream; secure = true
+                }
+                command.startsWith("AUTH PLAIN ") -> {
+                    assertTrue(secure)
+                    val credentials = Base64.getDecoder().decode(command.substringAfter("AUTH PLAIN ")).toString(Charsets.UTF_8)
+                    assertEquals("\u0000fixture-user\u0000fixture-password", credentials)
+                    reply(if (outcome == "AUTH_REJECT") "535 rejected" else "235 authenticated")
+                    if (outcome == "AUTH_REJECT") return
+                }
+                command.startsWith("MAIL") || command.startsWith("RCPT") -> { assertTrue(secure); reply("250 accepted") }
                 command == "DATA" -> {
-                    reply("354 send content")
-                    while (true) { val next = line(input); if (next == ".") break; received.append(next); require(received.length <= 16384) }
+                    assertTrue(secure); reply("354 send content")
+                    while (true) { val next = line(input); if (next == ".") break; received.append(next).append('\n'); require(received.length <= 16384) }
                     sends.incrementAndGet()
                     if (outcome == "TIMEOUT") { Thread.sleep(1000); return }
                     reply(if (outcome == "REJECT") "550 rejected" else "250 accepted fixture-message")
@@ -239,6 +269,10 @@ private class ProviderServer(ssl: SSLContext, private val mode: String, private 
         }
         error("Provider fixture line exceeded bounds")
     }
+
+    fun messageText(): String = if (mode == "smtp")
+        Base64.getMimeDecoder().decode(received.toString().substringAfter("\n\n")).toString(Charsets.UTF_8)
+        else received.toString()
 
     override fun close() {
         server.close()

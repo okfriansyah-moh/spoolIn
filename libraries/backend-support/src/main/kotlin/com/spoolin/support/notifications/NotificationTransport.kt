@@ -24,7 +24,7 @@ class WebhookTransport(override val mode: String, private val endpoint: URI, all
 
     override fun send(item: NotificationClaim, timeoutMs: Long): NotificationResult {
         val body = try { mapper.writeValueAsBytes(mapOf("text" to notificationText(item))) }
-            catch (_: IllegalArgumentException) { return NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_INVALID_SUMMARY") }
+            catch (_: Exception) { return NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_INVALID_SUMMARY") }
         var attempted = false
         return try {
             TimedConnection(endpoint.host, if (endpoint.port < 0) 443 else endpoint.port, timeoutMs).use { connection ->
@@ -105,7 +105,9 @@ internal fun notificationText(item: NotificationClaim): String {
         val value = node.get(key); require(value.isString && value.asString().length <= 1024 && value.asString().none(Char::isISOControl))
         "$key: ${value.asString()}"
     }
-    return (listOf("notification: ${item.work.workId}", "attempt: ${item.work.attemptCount}") + values).joinToString("\n")
+    val context = listOfNotNull("notificationWorkId: ${item.work.workId}",
+        item.work.operationId?.let { "operationId: $it" }, "attemptSummary: ${item.work.attemptCount} of ${item.work.maxAttempts}")
+    return (context + values).joinToString("\n")
 }
 
 internal fun boundedLine(input: InputStream): String {

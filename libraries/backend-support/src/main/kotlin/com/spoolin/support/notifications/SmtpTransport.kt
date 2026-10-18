@@ -22,7 +22,7 @@ class SmtpTransport(private val host: String, private val port: Int, private val
     override val mode = "smtp"
 
     override fun send(item: NotificationClaim, timeoutMs: Long): NotificationResult {
-        val body = try { message(item) } catch (_: IllegalArgumentException) {
+        val body = try { message(item) } catch (_: Exception) {
             return NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_INVALID_SUMMARY")
         }
         var dataStarted = false
@@ -67,6 +67,7 @@ class SmtpTransport(private val host: String, private val port: Int, private val
     private fun message(item: NotificationClaim): ByteArray {
         val text = Base64.getMimeEncoder(76, "\r\n".toByteArray()).encodeToString(notificationText(item).toByteArray(Charsets.UTF_8))
         return ("From: <$from>\r\nTo: <$to>\r\nSubject: Spoolin operational notification\r\n" +
+            "Date: ${java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))}\r\n" +
             "Message-ID: <${item.work.workId}.${item.work.generation}@spoolin.local>\r\n" +
             "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" +
             text + "\r\n.\r\n").toByteArray(StandardCharsets.US_ASCII)
