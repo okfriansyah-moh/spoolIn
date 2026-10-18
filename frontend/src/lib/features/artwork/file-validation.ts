@@ -1,5 +1,4 @@
 import type { Policy } from '../../policy/types';
-import { decodeArtworkFile } from './decode-file';
 
 const formatByMime: Readonly<Record<string, string>> = Object.freeze({
   'image/jpeg': 'JPEG',
@@ -22,22 +21,4 @@ export function validateArtworkFile(
   if (!format || !policy.formats.includes(format))
     return 'Choose an image format allowed by the current artwork rules.';
   return '';
-}
-
-export async function validateArtworkDimensions(file: File): Promise<string> {
-  let image: ImageBitmap | null = null;
-  try {
-    image = await decodeArtworkFile(file);
-    if (image.width > 8192 || image.height > 8192)
-      return 'Artwork must be at most 8192 pixels wide and tall. Resize this image and select it again.';
-    if (image.width * image.height > 40_000_000)
-      return 'Artwork must contain at most 40 million pixels. Resize this image and select it again.';
-    return '';
-  } catch (error) {
-    return error instanceof Error
-      ? error.message
-      : 'This image could not be read. Choose a valid JPEG, PNG, or WebP image.';
-  } finally {
-    image?.close();
-  }
 }
