@@ -75,7 +75,7 @@ class AuditJsonEncodingRulesTest {
                 paths.sorted(),
                 parsed
                     .path("changes")
-                    .elements()
+                    .iterator()
                     .asSequence()
                     .map { it.path("path").stringValue() }
                     .toList(),
