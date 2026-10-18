@@ -8,5 +8,10 @@ if [[ -z "${SPOOLIN_ACCOUNT_INITIALIZATION_FILE:-}" ]]; then
   exit 2
 fi
 [[ "$SPOOLIN_ACCOUNT_INITIALIZATION_FILE" == /run/spoolin-config/* ]] || exit 2
-compose_common_run "$root_dir" run --rm --no-deps core \
+read_keys=()
+if [[ -n "${ACCOUNT_READ_KEYS_FILE+x}" ]]; then
+  [[ "$ACCOUNT_READ_KEYS_FILE" == /run/spoolin-config/* ]] || exit 2
+  read_keys=(--env "ACCOUNT_READ_KEYS_FILE=$ACCOUNT_READ_KEYS_FILE")
+fi
+compose_common_run "$root_dir" run --rm --no-deps "${read_keys[@]}" core \
   "--initialize-accounts=$SPOOLIN_ACCOUNT_INITIALIZATION_FILE"

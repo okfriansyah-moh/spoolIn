@@ -36,7 +36,11 @@ private fun initializeFromFile(path: Path) {
     val config = InitializationConfiguration.load(path, rules)
     val passwords = policy.textBounds.getValue("password")
     DatabaseSettings.load(environment, "core", false).pool().use { source ->
-        MountedKeys(config.keys).use { keys ->
+        val readKeys = System.getenv("ACCOUNT_READ_KEYS_FILE")?.let { value ->
+            require(value.isNotBlank()) { "Initialization read key configuration is empty" }
+            Path.of(value).also { require(it.isAbsolute) }
+        }
+        MountedKeys(InitializationReadKeys.merge(config.keys, readKeys)).use { keys ->
             PasswordHasher(Argon2Engine(), NewPasswordPolicy(passwords.minCodePoints, passwords.maxCodePoints)).use { hasher ->
                 val registry = KeyRegistry(source)
                 val alerts = ProtectionAlert { throw IllegalStateException("Prepared account identity unavailable") }
