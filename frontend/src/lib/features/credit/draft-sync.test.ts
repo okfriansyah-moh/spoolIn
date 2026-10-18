@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CreditDraftSync } from './draft-sync';
+import type { DraftSource } from '../draft/types';
 
 describe('CreditDraftSync', () => {
   afterEach(() => {
@@ -8,7 +9,10 @@ describe('CreditDraftSync', () => {
 
   it('autosaves credit draft values through DraftSource', async () => {
     vi.useFakeTimers();
-    const saveDraft = vi.fn(async () => undefined);
+    const saveDraft = vi.fn<DraftSource['saveDraft']>(async (operationId, draftId) => ({
+      receipt: { operationId, state: 'SUCCEEDED', resultId: draftId, version: '1', resultExpired: false },
+      problemCode: null,
+    }));
     const source = {
       recoverOperation: vi.fn(),
       listDrafts: vi.fn(),
@@ -33,9 +37,9 @@ describe('CreditDraftSync', () => {
     );
     await vi.runAllTimersAsync();
     expect(saveDraft).toHaveBeenCalledTimes(1);
-    const payload = saveDraft.mock.calls[0]?.[3] as { targetKind: string; values: { personId: string } };
-    expect(payload.targetKind).toBe('CREDIT');
-    expect(payload.values.personId).toBe('person-1');
+    const payload = saveDraft.mock.calls[0]?.[3];
+    expect(payload?.targetKind).toBe('CREDIT');
+    expect(payload?.values).toMatchObject({ personId: 'person-1' });
     sync.dispose();
   });
 });

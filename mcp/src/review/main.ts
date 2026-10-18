@@ -2,17 +2,21 @@ import { App } from '@modelcontextprotocol/ext-apps';
 import { renderReview } from './review-state.js';
 import type { ReviewModel } from './review-state.js';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 const root = document.querySelector<HTMLElement>('#app');
 const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});
 app.ontoolresult = (result) => {
-  if (!root || !result.structuredContent) return;
+  if (!root || !isRecord(result.structuredContent)) return;
   const proposal = result.structuredContent;
   if (typeof proposal.proposalId !== 'string' || typeof proposal.contentHash !== 'string' || typeof proposal.revision !== 'number') return;
   const values = proposal.normalizedMovie;
-  if (!values || typeof values !== 'object' || Array.isArray(values)) return;
+  if (!isRecord(values)) return;
   const model: ReviewModel = {
     proposalId: proposal.proposalId, revision: proposal.revision, contentHash: proposal.contentHash,
-    values: values as Record<string, unknown>, sources: Array.isArray(proposal.sources) ? proposal.sources : [],
+    values, sources: Array.isArray(proposal.sources) ? proposal.sources : [],
     unknowns: Array.isArray(proposal.unknowns) ? proposal.unknowns.filter((value): value is string => typeof value === 'string') : [],
   };
   renderReview(root, model);

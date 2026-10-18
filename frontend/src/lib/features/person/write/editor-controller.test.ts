@@ -116,7 +116,9 @@ describe('draft mutation identity and optimistic versions', () => {
     const original = save.mock.calls[0];
     expect(sync.snapshot.pendingOperationId).toBe(original?.[0]);
     await sync.save({ name: 'Second' }, context, null);
-    expect(save.mock.calls[1]).toEqual(original);
+    expect(save.mock.calls[1]?.slice(0, 5)).toEqual(original?.slice(0, 5));
+    expect(original?.[5]).toBeInstanceOf(AbortSignal);
+    expect(save.mock.calls[1]?.[5]).toBeInstanceOf(AbortSignal);
     expect(save.mock.calls[2]?.[0]).not.toBe(original?.[0]);
     expect(save.mock.calls[2]?.[2]).toBe('1');
     expect(save.mock.calls[2]?.[3].values).toEqual({ name: 'Second' });
