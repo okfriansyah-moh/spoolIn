@@ -64,6 +64,7 @@ class ProtectedAccounts(
         connection: Connection,
         prepared: PreparedAccount,
     ): AccountProjection {
+        registry.requireCurrentWrite(connection, prepared.envelope.keyId, com.spoolin.core.features.crypto.KeyPurpose.PII)
         val lookupKeys = registry.lookupKeys(connection)
         if (lookupKeys.none { it.state == KeyState.WRITE }) throw ProtectionUnavailable()
         val aliases = lookupKeys.map { it.id to crypto.lookupDigest(it, prepared.normalizedEmail) }

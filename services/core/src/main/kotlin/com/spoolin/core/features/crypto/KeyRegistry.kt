@@ -23,6 +23,13 @@ class KeyRegistry(
                 }.singleOrNull() ?: throw ProtectionUnavailable()
         }
 
+    fun requireCurrentWrite(connection: Connection, id: String, purpose: KeyPurpose) {
+        val active = connection.queryBound(
+            "SELECT id FROM appdata.crypto_key_version WHERE purpose=? AND state='WRITE' FOR SHARE", listOf(purpose.name),
+        ) { it.getString("id") }.singleOrNull()
+        if (active != id) throw ProtectionUnavailable()
+    }
+
     fun readable(
         id: String,
         purpose: KeyPurpose,

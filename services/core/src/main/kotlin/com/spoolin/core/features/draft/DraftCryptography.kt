@@ -43,6 +43,10 @@ class DraftCryptography(
         }
     }
 
+    fun requireCurrentWrite(connection: java.sql.Connection, envelope: ProtectedEnvelope) {
+        registry.requireCurrentWrite(connection, envelope.keyId, KeyPurpose.DRAFT)
+    }
+
     /**
      * Decrypts [envelope] for [rowId].  Returns [ProtectedRead.Unavailable] when the key is
      * unreadable or authentication fails; never falls back to plaintext.

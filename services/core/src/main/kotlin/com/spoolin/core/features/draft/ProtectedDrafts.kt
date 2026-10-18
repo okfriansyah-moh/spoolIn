@@ -92,6 +92,7 @@ class ProtectedDrafts(
         connection: Connection,
         command: DraftPersistCommand,
     ): Long {
+        crypto.requireCurrentWrite(connection, command.envelope)
         lockAccount(connection, command.accountId)
         val now = Timestamp.from(clock.instant())
         val expiresAt = Timestamp.from(clock.instant().plus(Duration.ofHours(DRAFT_TTL_HOURS)))
