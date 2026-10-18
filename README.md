@@ -2,8 +2,13 @@
 
 SpoolIn is a movie catalog for people who want to discover films and maintain the information behind them. Browse movies and TV entries, search titles and people, explore cast and creator credits, and sign in as a Maintainer to update the catalog.
 
+## Why SpoolIn?
+
+SpoolIn takes its name from the spool that holds a length of film. Unspooling reveals a story frame by frame; “In” invites you to explore the films and people behind those stories. The name was adopted on 11 October 2026. Read the [brand history](docs/design-system/brand-history.md) for the original naming and visual identity notes.
+
 ## Contents
 
+- [Why SpoolIn?](#why-spoolin)
 - [What you can do](#what-you-can-do)
 - [Run SpoolIn on your computer](#run-spoolin-on-your-computer)
   - [Before you start](#before-you-start)
@@ -26,6 +31,7 @@ SpoolIn is a movie catalog for people who want to discover films and maintain th
   - [Maintainer example: manage credits](#maintainer-example-manage-credits)
   - [Maintainer example: upload artwork](#maintainer-example-upload-artwork)
   - [Maintainer example: archive and delete records](#maintainer-example-archive-and-delete-records)
+  - [Maintainer example: review History](#maintainer-example-review-history)
   - [Understand feedback](#understand-feedback)
   - [Use a smaller screen](#use-a-smaller-screen)
 - [How it works](#how-it-works)
@@ -505,6 +511,21 @@ Archiving removes a record from public browsing and retains a recovery path. Per
 *Deletion example: the confirmation identifies the fictional record before the irreversible action.*
 
 For a movie, open its management page, choose **Archive movie**, then use the **Movies** tab in **Archives** for restoration or permanent deletion. For a person with credits, review the displayed impact on linked movies before deleting. **History** records catalog changes.
+
+### Maintainer example: review History
+
+**History** lets Maintainers review catalog changes without editing the records. It retains entries for archived and permanently deleted records too.
+
+1. Sign in as a **Maintainer**, then select **History** in the main navigation.
+2. Read the newest entries first. **Time** shows the UTC timestamp; **Actor** identifies the account by its reference; **Action** describes the change. **Affected record** shows the record type and ID, and **Outcome** shows the recorded result.
+3. For example, find a `CREATE_PERSON` entry from the disposable-person walkthrough above and select **Inspect changes**. Review the recorded name and biography under **Before** and **After**. On a phone, use **Review changes** on the entry's card.
+4. To match an entry to a movie or person you manage, compare its record ID with the last part of that record's management URL. Select **Load more history** when it appears to read older entries.
+
+![Maintainer History page with catalog audit entries and expanded changes for the fictional Example Person to Remove](docs/assets/spoolin/maintainer-history.png)
+
+*History example: the expanded CREATE_PERSON entry shows the fictional person's recorded values, even after that disposable record was deleted. Account and record references identify who made the change and what it affected.*
+
+Some entries have no field changes to display. If a large value was omitted, the entry shows its retained summary. History is a read-only record of activity; use the relevant movie, person, or Archives page to make a change.
 
 ### Understand feedback
 
