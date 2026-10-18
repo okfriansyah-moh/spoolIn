@@ -164,7 +164,12 @@ class OwnerFixture(
         name: String,
         values: Map<String, Any>,
     ) {
-        observed += mapOf("name" to name, "namespace" to namespace) + values
+        observed += mapOf(
+            "name" to name,
+            "namespace" to namespace,
+            "assessedSha" to (System.getenv("TESTED_SHA") ?: "UNVERIFIED"),
+            "runId" to (System.getenv("GITHUB_RUN_ID") ?: "UNVERIFIED"),
+        ) + values
     }
 
     override fun close() {

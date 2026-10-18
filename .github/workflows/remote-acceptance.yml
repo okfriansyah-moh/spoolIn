@@ -139,6 +139,9 @@ jobs:
         run: |
           mkdir -p artifacts/source-checks
           ./gradlew --no-daemon --console plain --continue :libraries:backend-support:test :services:core:workIntegrationTest :services:catalog:workIntegrationTest :services:media:workIntegrationTest :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:core:alertUnitTest :services:core:mcpGatewayUnitTest :services:core:alertIntegrationTest :services:core:artworkProxyUnitTest :services:core:artworkProxyIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :services:catalog:catalogProposalIntegrationTest :tests:integration:leasesTest :tests:integration:policyIntegrationTest :tests:integration:seedIntegrationTest :tests:integration:catalogReadsTest :tests:integration:logicalMetricsTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
+      - name: Collect revision-bound owner observations
+        if: ${{ !cancelled() && inputs.mode == 'verify' }}
+        run: python3 ops/ci/collect-owner-evidence.py
       - name: Retain prerequisite execution reports before application startup
         if: ${{ !cancelled() && inputs.mode == 'verify' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
