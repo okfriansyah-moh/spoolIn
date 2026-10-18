@@ -33,7 +33,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
+import org.springframework.core.Ordered
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ClassPathResource
 import org.springframework.grpc.server.GlobalServerInterceptor
@@ -250,7 +252,12 @@ class RuntimeConfiguration {
     fun listenerBoundary(
         environment: Environment,
         metrics: ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
-    ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
+    ): FilterRegistrationBean<ListenerBoundary> =
+        FilterRegistrationBean(ListenerBoundary(environment, metrics.ifAvailable)).apply {
+            setName("applicationListenerBoundary")
+            order = Ordered.HIGHEST_PRECEDENCE
+            addUrlPatterns("/*")
+        }
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)

@@ -39,7 +39,7 @@ class AlertBoundaryTest {
             assertEquals(202, send(client, uri, payload()).statusCode())
             assertEquals(400, send(client, uri, payload().replace("core", "foreign")).statusCode())
             assertEquals(413, send(client, uri, " ".repeat(65537)).statusCode())
-            assertEquals(404, send(client, fixture.origin + "/internal/alerts", payload()).statusCode())
+            assertPublicAlertHidden(fixture, client)
             fixture.crypto.pool.connection.use { connection ->
                 connection.createStatement().use { statement ->
                     statement
@@ -66,6 +66,17 @@ class AlertBoundaryTest {
             concurrentDuplicate(fixture)
             atomicRollback(fixture)
         }
+    }
+
+    private fun assertPublicAlertHidden(
+        fixture: IdentityHttpFixture,
+        alertmanager: HttpClient,
+    ) {
+        val uri = fixture.origin + "/internal/alerts"
+        assertEquals(404, send(alertmanager, uri, payload()).statusCode())
+        assertEquals(404, send(fixture.client, uri, payload()).statusCode())
+        val request = HttpRequest.newBuilder(URI(uri)).timeout(Duration.ofSeconds(5)).GET().build()
+        assertEquals(404, alertmanager.send(request, HttpResponse.BodyHandlers.discarding()).statusCode())
     }
 
     private fun assertUnrelatedCsrf(
