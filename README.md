@@ -494,71 +494,88 @@ You can also open **People** and search for either name directly. People with id
 
 ### Maintainer example: create and edit a movie
 
-1. Sign in as a Maintainer and open **Movies** in the navigation.
-2. Choose **Create movie**. For a fictional example, enter `Letters from Tomorrow` as the title and `A lighthouse keeper receives letters dated one day ahead.` as the synopsis. Complete the other required fields; add release details and genres where available.
-3. Read any field errors and correct the named inputs. The form displays the current limits; don't shorten content based on an old screenshot's limits.
-4. Save and wait for confirmation. The app opens **Cast and creators** for the saved movie. Add credits as described below, then select **Done**, or choose **Skip for now**. Both return to **Movies**, where a success panel shows the newly created movie with **Edit movie** and **Review public record** links.
-5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, then select **Save movie** below **Poster artwork**. After confirmed completion, Movies retains your previous search and focuses a highlighted **Movie saved** panel with **Edit movie**, **Review public record**, and **Cast and creators** actions. The panel shows the saved movie even when it does not match your search.
+Sign in as a Maintainer and open **Movies**. Use **Search movies** with **Search** or Enter to find a title across the catalog. **Clear search** restores the unfiltered list; **Load more movies** retrieves the next page. Each active movie has **Edit**, **Review**, and **Cast and creators** actions. TV entries remain read-only.
 
-![Signed-in Maintainer managing movies, with Letters from Tomorrow and Create movie and Edit controls visible](docs/assets/spoolin/manage-movies.png)
+![Maintainer Movies list filtered to Letters from Tomorrow, with Edit, Review, and Cast and creators actions](docs/assets/spoolin/manage-movies.png)
 
-*Maintainer example: the saved fictional movie appears in Movies, with editing controls. The header displays Maintainer and includes management navigation.*
+*Movies: search for a title, then choose the action for that record.*
 
-If someone else saves the record while you're editing, SpoolIn asks you to review the current saved values. Compare them with your retained changes before continuing. If the connection drops during a save, use **Check original result** when offered. Repeatedly submitting an uncertain save can make it harder to tell which operation completed.
+Use the existing fictional examples below when they are already present; create them only if missing.
 
-Use **Search movies** and select **Search**, or press Enter, to find a title. Search includes records beyond the first loaded page. **Clear search** restores the unfiltered list; **Load more movies** retrieves further results.
+1. Select **Create movie**. For a fictional example, enter `Letters from Tomorrow` and the synopsis `A lighthouse keeper receives letters dated one day ahead.` Complete the required fields and choose genres and release details as appropriate. The form shows the current limits and field corrections.
+2. Select **Create movie** and wait for confirmation. The app opens **Cast and creators** for the saved movie. Add contributions as described below, then select **Done**, or choose **Skip for now**. Movies shows a **Movie created** panel with links to the saved record.
+3. To change an existing movie, choose **Edit** in Movies. Edit the details, optionally upload a poster, then select **Save movie** below **Poster artwork**. After confirmed completion, Movies keeps your previous search and focuses a highlighted **Movie saved** panel with **Edit movie**, **Review public record**, and **Cast and creators** actions. The panel identifies the saved movie even when it falls outside your search results.
 
-The seeded catalog also contains TV titles. Those entries are read-only in the movie management list.
+![Maintainer Create movie form ready for title, synopsis, genres, and release details](docs/assets/spoolin/maintainer-create-movie.png)
+
+*Create movie: enter the details first; confirmed creation continues to credits.*
+
+![Maintainer Edit movie page for Letters from Tomorrow with its saved movie details](docs/assets/spoolin/maintainer-edit-movie.png)
+
+*Edit movie: details and artwork share one completion action at the bottom. Credits have their own page.*
+
+Validation errors keep you in the editor with your input. If another edit changed the saved record, compare the newer values with your retained changes before continuing. For an uncertain save, use **Check original result** when offered before submitting again.
 
 ### Maintainer example: manage cast and creators
 
-Cast and creators use shared person records. Add the person first, then describe their contribution with a movie credit.
+Cast and creators use shared person records. Create a person once, then link that person to movies through credits.
 
-1. Sign in as a Maintainer and open **Manage people** → **Create person**.
-2. Enter `A. Rivers` as the professional name and `Fictional director of Letters from Tomorrow.` as the biography. Select **Save person**. After confirmed success, the app returns to **Manage people** with a **Person created** panel and links to edit or review that person.
-3. Create another person named `Mira Vale`, with the biography `Fictional actor playing the lighthouse keeper.`
-4. To update either biography, open **Manage people**, find the person, choose **Edit**, change the biography, and select **Save person**. After confirmed completion, the app returns to Manage people with your search text and submitted search preserved, and focuses a highlighted **Person saved** panel with edit and public-review links. The panel shows the person even if their updated name no longer matches your search; unchanged details finish without a redundant update. Validation errors, conflicts, and uncertain saves remain in the editor for resolution. Use **Search people** and select **Search**, or press Enter, to find records beyond the first page. **Clear search** restores the list, and **Load more people** retrieves further matches.
+Open **Manage people**. **Search people** with **Search** or Enter finds records beyond the first page; **Clear search** restores the list and **Load more people** retrieves further results.
 
-![Maintainer editing the fictional creator A. Rivers, with professional name, biography, and Save person controls](docs/assets/spoolin/maintainer-person.png)
+![Maintainer Manage people list filtered to A. Rivers, with Edit and Review actions](docs/assets/spoolin/maintainer-people.png)
 
-*People example: the editor keeps the professional name and biography together. Credits link this shared person record to their work on individual movies.*
+*Manage people: find a person before creating another record with the same name.*
 
-Editing a person updates that identity across its credits. It doesn't merge different people who happen to share a name.
+1. Select **Create person**, enter `A. Rivers` as the professional name and `Fictional director of Letters from Tomorrow.` as the biography, then select **Save person**. Confirmed creation returns to Manage people with a **Person created** panel and edit and public-review links.
+2. Create `Mira Vale` with the biography `Fictional actor playing the lighthouse keeper.` for the cast example below.
+3. To update a person, choose **Edit**, change the name or biography, and select **Save person**. Confirmed completion returns to Manage people, preserves your search, and focuses a highlighted **Person saved** panel. It identifies the person even if their new name no longer matches your search. Unchanged details finish without a redundant update; validation errors, conflicts, and uncertain saves remain in the editor for resolution.
+
+![Maintainer editing A. Rivers's professional name and biography](docs/assets/spoolin/maintainer-person.png)
+
+*Person editor: changes apply to this shared identity wherever its credits appear. People with identical names remain separate records.*
 
 ### Maintainer example: manage credits
 
-Open **Movies** and select **Cast and creators** beside `Letters from Tomorrow`. This opens a separate page with the movie title, existing credits, and buttons to add cast or creators. The action is available in both desktop and mobile lists. **Edit** opens movie details, artwork, and archive controls; credits are managed separately.
+In **Movies**, select **Cast and creators** beside `Letters from Tomorrow`. This separate page shows the movie title, existing credits, **+ Add cast**, **+ Add creator**, and **Done**. The same actions are available on smaller screens.
 
-1. Select **+ Add creator** to reveal the form. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
-2. Select **+ Add cast**, then choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use the single **Person** search selection: open it, type a name, then select a matching person. Typing searches beyond the first page; scroll the open list or choose **Show more results** for additional matches. Use arrow keys to move through names, Enter to select the highlighted name, and Escape or an outside click to close. Searching does not change the selected person until you choose a name.
-3. Wait for confirmation. The form collapses after a successful save; use either plus button to add another credit. The same movie can have both cast and creator credits. Select **Done** when finished to return to Movies. When you opened credits from the movie list, your previous search text, submitted search, loaded results, and scroll position are restored. **Skip for now** appears only during the new-movie creation step; that flow also shows the newly created movie when you return. Unfinished credit input must be saved or discarded before leaving; use **Continue editing** to keep working. If a save result is unknown, check the original result before leaving.
-4. To change a credit, select its **Edit credit** control, update the role or supported character names, and select **Save credit**.
-5. To remove a contribution, choose **Remove credit** on that row and review its confirmation. Removing a credit removes the relationship; the shared person remains available.
+![Separate Cast and creators page with existing contributions, add buttons, and Done](docs/assets/spoolin/maintainer-credits.png)
 
-**Refresh saved credits** reloads saved contributions without saving your form. It retains your unfinished input and loaded credit depth, reports when nothing changed, and offers a retry message if loading fails.
+*Credits: manage contributions here while keeping Edit movie focused on details and artwork.*
 
-If the needed role is missing, open **Need another role?**. A custom role is a reusable contribution label, such as Stunt performer or Historical adviser; creating it does not add a movie credit. The form inherits Cast or Creator from the credit you are adding, and asks for a category only when it is unknown. Custom roles do not accept character names; choose **Actor** when character names are needed. After **Create role**, wait for **Role ready**, choose a person if needed, then select **Add credit**. **Cancel custom role** clears unfinished role input.
+1. Select **+ Add creator**, choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
+2. Select **+ Add cast**, choose **Mira Vale** and **Actor**, and enter `The Keeper` in **Character names · one per line**. Select **Add credit**.
+3. Wait for the **Credit saved** confirmation; the form collapses. Select **Load more credits** if the contribution is beyond the currently loaded list. Use either plus button to add another contribution.
+4. Use **Edit credit** to change a contribution, then **Save credit**. **Remove credit** opens a confirmation; it removes the relationship while keeping the shared person available.
+5. Select **Done** to return to Movies. When you opened credits from Movies, the previous search, loaded results, and scroll position return. **Skip for now** appears only after new-movie creation; returning from that flow shows the created movie.
 
-If role creation is unconfirmed, use **Check creation status** or **Safely retry creation**, which reuses the same request. Resolve it before leaving or saving another credit. If creation succeeded but refreshing the dropdown failed, use **Refresh role list**; do not create the role again. Known rejections let you correct the form, while unfinished role input must be discarded or completed before leaving.
+The **Person** field is one searchable selection. Open it and type a name to search beyond the first loaded page, then choose a result. Scroll the open list or select **Show more results** to see additional matches. Arrow keys move through names, Enter selects the highlighted person, and Escape or an outside click closes the list. Typing does not replace your selected person until you choose a name.
 
-![Maintainer credit panel with A. Rivers as Director and Mira Vale as Actor playing The Keeper, plus editing and removal controls](docs/assets/spoolin/maintainer-credits.png)
+![Person search selection open with matching names for Mira](docs/assets/spoolin/maintainer-person-select.png)
 
-*Credits example: the movie links one creator and one cast member to their existing person records. These screenshots predate the direct **Cast and creators** list action, separate credits page, plus buttons, single Person search selection, refresh feedback, optional custom-role form, and creation-step navigation described above.*
+*Person selection: search and choose a name in the same control.*
+
+**Refresh saved credits** reloads contributions without saving your form. It retains unfinished input and loaded credit depth, reports completion even when nothing changed, and explains how to retry a failed refresh.
+
+If the role you need is missing, open **Need another role?**. A custom role is a reusable contribution label, such as Stunt performer or Historical adviser. Creating the label does not add a person to the movie: after **Create role** confirms **Role ready**, choose the person and select **Add credit**. The category follows the Cast or Creator form you opened; the app asks for it only when unknown. Custom roles do not accept character names; choose **Actor** when you need them. **Cancel custom role** clears unfinished role input.
+
+![Optional Need another role section expanded within the credit form](docs/assets/spoolin/maintainer-custom-role.png)
+
+*Custom role: create a contribution label only when the existing Role choices do not fit.*
+
+Before leaving unfinished credit or role input, save or discard it, or choose **Continue editing**. Unknown save results must be resolved first. For unconfirmed role creation, use **Check creation status** or **Safely retry creation**, which reuses the original request. If the role was created but the choices could not refresh, select **Refresh role list** instead of creating it again. A definite rejection lets you correct the form.
 
 ### Maintainer example: upload artwork
 
-For the fictional movie, use the repository's sample lighthouse poster:
+1. Open **Movies** → **Edit** for `Letters from Tomorrow`, then find **Poster artwork**. Choose the sample `docs/design-system/mockup/assets/letters.png`, or another JPEG, PNG, or WebP image you have permission to use.
+2. The browser reads the local file directly and prepares a smaller copy if it exceeds the dimension or upload byte limit. It preserves the aspect ratio and your original file. The prepared copy fits within 8192 pixels per side, 40 million pixels, and the current upload byte limit. Images already within those limits upload unchanged.
+3. Keep the page open during preparation, transfer, and processing. A complete transfer percentage does not mean the poster is attached. Wait for **Artwork saved. Select Save movie below to finish.**
+4. Select **Save movie** below the artwork to finish any movie-detail edits and return to Movies with your previous search and a highlighted saved-movie panel. Artwork-only completion confirms the current record without another metadata update.
 
-1. Open **Movies** → **Edit** for `Letters from Tomorrow`.
-2. Find **Poster artwork** and choose `docs/design-system/mockup/assets/letters.png` from this checkout. You can also use a PNG, JPEG, or WebP image you have permission to use. If it exceeds the dimension or upload byte limit, the browser automatically prepares a smaller copy before transfer, preserving its aspect ratio and leaving your original file unchanged. The prepared image fits within 8192 pixels per side, 40 million pixels, and the current upload byte limit. Images already within those limits upload unchanged.
-3. Keep the page open while the file transfers and the server processes it. A complete transfer percentage doesn't mean the poster is attached yet.
-4. Wait for **Artwork saved. Select Save movie below to finish.** Artwork is already attached at this point; the app keeps you in the editor so you can finish any movie-detail changes. Select **Save movie** below the artwork to return to Movies with your previous search intact and the saved movie highlighted. If only artwork changed, completion confirms the current record without another metadata update.
+![Edit movie Poster artwork chooser and the bottom Save movie and Leave draft actions](docs/assets/spoolin/maintainer-artwork.png)
 
-![Maintainer Poster artwork field with the file chooser ready for an image](docs/assets/spoolin/maintainer-artwork.png)
+*Artwork: choose a file, wait for attachment confirmation, then use Save movie to finish. This image shows the controls before an upload.*
 
-*Artwork example: choose an image in the Poster artwork field. The public movie page above shows the lighthouse poster already attached to this record. This screenshot predates the bottom Save movie action and completion feedback.*
-
-Completion stays unavailable during artwork preparation, transfer, processing, or an uncertain result. If the artwork attached but details could not refresh, select **Retry movie details** before finishing. Local movie-detail edits remain in the form; if saved metadata changed elsewhere, review the conflict before saving. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or unreadable files explain what to change. If the browser cannot prepare a copy within the limits, choose a smaller image. Server validation still applies to every upload.
+Completion remains unavailable during preparation, transfer, processing, or an uncertain result. If attachment succeeded but details could not refresh, use **Retry movie details**. Unsaved movie details stay in the form; review conflicts if saved metadata changed elsewhere. Use **Cancel upload** while available, or the offered status check when the outcome is uncertain. Unsupported or unreadable files explain what to change; choose a smaller image if a copy cannot be prepared within the limits. Server validation applies to every upload.
 
 ### Maintainer example: archive and delete records
 
