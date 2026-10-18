@@ -38,20 +38,31 @@ class McpGatewayConfiguration {
     }
 
     @Bean
+    fun mcpGatewaySecurity(
+        issuer: McpActorIssuer?,
+        uiChallenges: ProposalUiChallengeStore,
+        uiAssertions: UiAssertionVerifier,
+    ): McpGatewaySecurity = McpGatewaySecurity(issuer, uiChallenges, uiAssertions)
+
+    @Bean
     fun mcpGatewayRpc(
         connectors: ConnectorStore,
         policy: PolicyProvider,
         channels: GrpcChannelFactory,
-        issuer: McpActorIssuer?,
-        uiChallenges: ProposalUiChallengeStore,
-        uiAssertions: UiAssertionVerifier,
+        security: McpGatewaySecurity,
     ): McpGatewayRpc =
         McpGatewayRpc(
             connectors,
             policy,
             CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
-            issuer,
-            uiChallenges,
-            uiAssertions,
+            security.issuer,
+            security.challenges,
+            security.assertions,
         )
 }
+
+data class McpGatewaySecurity(
+    val issuer: McpActorIssuer?,
+    val challenges: ProposalUiChallengeStore,
+    val assertions: UiAssertionVerifier,
+)

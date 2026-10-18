@@ -3,156 +3,93 @@ package com.spoolin.core.features.mcpgateway
 import com.google.protobuf.Empty
 import com.spoolin.core.features.connector.ConnectorStore
 import com.spoolin.core.features.policy.PolicyProvider
-import com.spoolin.support.identity.ActorRpc
-import com.spoolin.support.identity.Permissions
-import io.grpc.Metadata
 import io.grpc.Status
-import io.grpc.stub.MetadataUtils
+import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.McpGatewayServiceGrpc
 import spoolin.v1.Spoolin
 import java.util.UUID
-import java.util.concurrent.TimeUnit
+
+private const val MAX_CONTEXT_TITLES = 20
+private const val CATALOG_SERVICE = "/spoolin.v1.CatalogService/"
+private const val GATEWAY_SERVICE = "/spoolin.v1.McpGatewayService/"
 
 class McpGatewayRpc(
-    private val connectors: ConnectorStore,
+    connectors: ConnectorStore,
     private val policy: PolicyProvider,
-    private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
-    private val issuer: McpActorIssuer?,
+    catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
+    issuer: McpActorIssuer?,
     private val uiChallenges: ProposalUiChallengeStore,
     private val uiAssertions: UiAssertionVerifier? = null,
 ) : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {
-    override fun getPolicy(
-        request: Empty,
-        response: StreamObserver<Spoolin.PolicySnapshot>,
-    ) {
-        val connector = currentConnector() ?: return deny(response)
-        if (!Permissions.management(roleFor(connector))) return deny(response)
-        response.onNext(policy.protobuf())
-        response.onCompleted()
+    private val access = McpCatalogAccess(connectors, catalog, issuer)
+
+    override fun getPolicy(request: Empty, response: StreamObserver<Spoolin.PolicySnapshot>) {
+        if (access.managementConnector() == null) {
+            response.onError(Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException())
+        } else {
+            response.onNext(policy.protobuf())
+            response.onCompleted()
+        }
     }
 
-    override fun getMovieContext(
-        request: Spoolin.MovieContextRequest,
-        response: StreamObserver<Spoolin.MovieContext>,
-    ) {
-        val connector = currentConnector() ?: return deny(response)
-        if (!Permissions.management(roleFor(connector))) return deny(response)
+    override fun getMovieContext(request: Spoolin.MovieContextRequest, response: StreamObserver<Spoolin.MovieContext>) {
         val correlation = UUID.randomUUID()
-        val token =
-            issuer?.issue(
-                connector,
-                roleFor(connector),
-                "/spoolin.v1.CatalogService/SearchTitles",
-                null,
-                correlation,
-            ) ?: return deny(response)
-        val titles =
-            catalogStub(token)
-                .searchTitles(
-                    Spoolin.Search
-                        .newBuilder()
-                        .setText(request.query)
-                        .setFirst(request.limit.coerceIn(1, 20))
-                        .build(),
-                )
-        val genres = catalogStub(token).listGenres(Empty.getDefaultInstance())
-        val roles = catalogStub(token).listRoles(Empty.getDefaultInstance())
-        response.onNext(
-            Spoolin.MovieContext
-                .newBuilder()
-                .setTitles(titles)
-                .setGenres(genres)
-                .setRoles(roles)
-                .setPolicy(policy.protobuf())
-                .build(),
-        )
-        response.onCompleted()
+        access.forward(McpCatalogInvocation(CATALOG_SERVICE + "SearchTitles", null, correlation), response) { stub ->
+            val titles = stub.searchTitles(Spoolin.Search.newBuilder().setText(request.query)
+                .setFirst(request.limit.coerceIn(1, MAX_CONTEXT_TITLES)).build())
+            val genres = access.invoke(McpCatalogInvocation(CATALOG_SERVICE + "ListGenres", null, correlation)) {
+                it.listGenres(Empty.getDefaultInstance())
+            }
+            val roles = access.invoke(McpCatalogInvocation(CATALOG_SERVICE + "ListRoles", null, correlation)) {
+                it.listRoles(Empty.getDefaultInstance())
+            }
+            Spoolin.MovieContext.newBuilder().setTitles(titles).setGenres(genres).setRoles(roles)
+                .setPolicy(policy.protobuf()).build()
+        }
     }
 
-    override fun proposeMovie(
-        request: Spoolin.Proposal,
-        response: StreamObserver<Spoolin.ProposalRevision>,
-    ) {
-        forwardCatalog(
-            connector = currentConnector(),
-            catalogMethod = "/spoolin.v1.CatalogService/ProposeMovie",
-            response = response,
-            operationId = UUID.fromString(request.context.operationId),
-            correlationId = UUID.fromString(request.context.correlationId),
-        ) { token ->
-            val revision = catalogStub(token).proposeMovie(request)
+    override fun proposeMovie(request: Spoolin.Proposal, response: StreamObserver<Spoolin.ProposalRevision>) {
+        val invocation = McpCatalogInvocation(CATALOG_SERVICE + "ProposeMovie",
+            UUID.fromString(request.context.operationId), UUID.fromString(request.context.correlationId))
+        access.forward(invocation, response) { stub ->
+            val revision = stub.proposeMovie(request)
             if (revision.hasUiChallenge() && !revision.uiChallenge.isEmpty) {
                 uiChallenges.put(
-                    revision.proposalId,
-                    revision.revision,
-                    revision.contentHash,
-                    revision.uiChallenge.toStringUtf8(),
+                    revision.proposalId, revision.revision, revision.contentHash, revision.uiChallenge.toStringUtf8(),
                 )
             }
-            // Adapter relocates ui_challenge into MCP _meta.ui and omits it from model content.
+            // Adapter relocates ui_challenge into private UI metadata and omits model content.
             revision
         }
     }
 
-    override fun approveMovie(
-        request: Spoolin.ApprovalInput,
-        response: StreamObserver<Spoolin.Outcome>,
-    ) {
-        requireTrustedUi(request, "/spoolin.v1.McpGatewayService/ApproveMovie", response) ?: return
-        forwardCatalog(
-            connector = currentConnector(),
-            catalogMethod = "/spoolin.v1.CatalogService/ApproveAndCreate",
-            response = response,
-        ) { token ->
-            catalogStub(token).approveAndCreate(request)
+    override fun approveMovie(request: Spoolin.ApprovalInput, response: StreamObserver<Spoolin.Outcome>) {
+        if (requireTrustedUi(request, GATEWAY_SERVICE + "ApproveMovie", response)) {
+            access.forward(McpCatalogInvocation(CATALOG_SERVICE + "ApproveAndCreate"), response) {
+                it.approveAndCreate(request)
+            }
         }
     }
 
     fun approveMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
-        forwardTrustedCatalogBlocking(
-            request,
-            "/spoolin.v1.McpGatewayService/ApproveMovie",
-            "/spoolin.v1.CatalogService/ApproveAndCreate",
-        ) { token ->
-            catalogStub(token).approveAndCreate(request)
-        }
+        forwardTrustedCatalogBlocking(request, "ApproveMovie", "ApproveAndCreate") { it.approveAndCreate(request) }
 
-    override fun rejectMovie(
-        request: Spoolin.ApprovalInput,
-        response: StreamObserver<Spoolin.Outcome>,
-    ) {
-        requireTrustedUi(request, "/spoolin.v1.McpGatewayService/RejectMovie", response) ?: return
-        forwardCatalog(
-            connector = currentConnector(),
-            catalogMethod = "/spoolin.v1.CatalogService/RejectProposal",
-            response = response,
-        ) { token ->
-            catalogStub(token).rejectProposal(request)
+    override fun rejectMovie(request: Spoolin.ApprovalInput, response: StreamObserver<Spoolin.Outcome>) {
+        if (requireTrustedUi(request, GATEWAY_SERVICE + "RejectMovie", response)) {
+            access.forward(McpCatalogInvocation(CATALOG_SERVICE + "RejectProposal"), response) {
+                it.rejectProposal(request)
+            }
         }
     }
 
     fun rejectMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
-        forwardTrustedCatalogBlocking(
-            request,
-            "/spoolin.v1.McpGatewayService/RejectMovie",
-            "/spoolin.v1.CatalogService/RejectProposal",
-        ) { token ->
-            catalogStub(token).rejectProposal(request)
-        }
+        forwardTrustedCatalogBlocking(request, "RejectMovie", "RejectProposal") { it.rejectProposal(request) }
 
-    override fun getMovieOperation(
-        request: Spoolin.Id,
-        response: StreamObserver<Spoolin.Outcome>,
-    ) {
-        forwardCatalog(
-            connector = currentConnector(),
-            catalogMethod = "/spoolin.v1.CatalogService/GetOperation",
-            response = response,
-            operationId = UUID.fromString(request.id),
-        ) { token ->
-            catalogStub(token).getOperation(request)
+    override fun getMovieOperation(request: Spoolin.Id, response: StreamObserver<Spoolin.Outcome>) {
+        access.forward(McpCatalogInvocation(CATALOG_SERVICE + "GetOperation", UUID.fromString(request.id)), response) {
+            it.getOperation(request)
         }
     }
 
@@ -160,93 +97,26 @@ class McpGatewayRpc(
         request: Spoolin.ApprovalInput,
         method: String,
         response: StreamObserver<T>,
-    ): Boolean? =
+    ): Boolean =
         try {
-            val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            val verifier = uiAssertions ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+            val connector = access.currentConnector() ?: denied()
+            val verifier = uiAssertions ?: denied()
             verifier.requireTrustedUi(connector, request, method)
             true
-        } catch (failure: io.grpc.StatusRuntimeException) {
+        } catch (failure: StatusRuntimeException) {
             response.onError(failure)
-            null
+            false
         }
 
     private fun <T> forwardTrustedCatalogBlocking(
         request: Spoolin.ApprovalInput,
         method: String,
         catalogMethod: String,
-        call: (String) -> T,
+        call: (CatalogServiceGrpc.CatalogServiceBlockingStub) -> T,
     ): T {
-        val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        val verifier = uiAssertions ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        verifier.requireTrustedUi(connector, request, method)
-        return forwardCatalogBlocking(catalogMethod, call)
-    }
-
-    private fun <T> forwardCatalogBlocking(
-        catalogMethod: String,
-        call: (String) -> T,
-    ): T {
-        val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException()
-        if (issuer == null) throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException()
-        if (!Permissions.management(roleFor(connector))) {
-            throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException()
-        }
-        val operationId = UUID.randomUUID()
-        val token =
-            issuer.issue(
-                connector,
-                roleFor(connector),
-                catalogMethod,
-                operationId,
-                UUID.randomUUID(),
-            )
-        return call(token)
-    }
-
-    private fun <T> forwardCatalog(
-        connector: com.spoolin.core.features.connector.ConnectorRecord?,
-        catalogMethod: String,
-        response: StreamObserver<T>,
-        operationId: UUID = UUID.randomUUID(),
-        correlationId: UUID = UUID.randomUUID(),
-        call: (String) -> T,
-    ) {
-        if (connector == null || issuer == null) return deny(response)
-        if (!Permissions.management(roleFor(connector))) return deny(response)
-        val token =
-            issuer.issue(
-                connector,
-                roleFor(connector),
-                catalogMethod,
-                operationId,
-                correlationId,
-            )
-        try {
-            response.onNext(call(token))
-            response.onCompleted()
-        } catch (failure: io.grpc.StatusRuntimeException) {
-            response.onError(failure)
-        }
-    }
-
-    private fun catalogStub(token: String): CatalogServiceGrpc.CatalogServiceBlockingStub {
-        val metadata = Metadata().apply { put(ActorRpc.metadata, token) }
-        return catalog
-            .withDeadlineAfter(5, TimeUnit.SECONDS)
-            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
-    }
-
-    private fun currentConnector(): com.spoolin.core.features.connector.ConnectorRecord? {
-        val hash = ConnectorRpcContext.current() ?: return null
-        val record = connectors.findByTokenHash(hash) ?: return null
-        return if (connectors.live(record)) record else null
-    }
-
-    private fun roleFor(connector: com.spoolin.core.features.connector.ConnectorRecord): String =
-        connectors.accountRole(connector.accountId) ?: "VIEWER"
-
-    private fun <T> deny(response: StreamObserver<T>) {
-        response.onError(Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException())
+        val connector = access.currentConnector() ?: denied()
+        val verifier = uiAssertions ?: denied()
+        verifier.requireTrustedUi(connector, request, GATEWAY_SERVICE + method)
+        return access.invoke(McpCatalogInvocation(CATALOG_SERVICE + catalogMethod), call)
     }
 }
