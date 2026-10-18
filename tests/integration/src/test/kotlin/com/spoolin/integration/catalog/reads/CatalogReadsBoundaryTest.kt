@@ -56,40 +56,7 @@ class CatalogReadsBoundaryTest {
             org.junit.jupiter.api.Assertions
                 .assertFalse(title.toString().contains("must-not-leak"))
             assertEquals("", stub.getTitle(Id.newBuilder().setId(proof.archived.toString()).build()).id)
-            assertEquals(
-                "Boundary drama",
-                stub
-                    .listGenres(
-                        com.google.protobuf.Empty
-                            .getDefaultInstance(),
-                    ).nodesList
-                    .single()
-                    .label,
-            )
-            assertEquals(
-                "Boundary person",
-                stub.getPerson(Id.newBuilder().setId(proof.person.toString()).build()).values.name,
-            )
-            assertEquals(
-                1,
-                stub
-                    .searchPeople(
-                        spoolin.v1.Spoolin.Search
-                            .newBuilder()
-                            .setFirst(24)
-                            .build(),
-                    ).nodesCount,
-            )
-            assertEquals(0, stub.titleCredits(page(proof.title)).nodesCount)
-            assertEquals(0, stub.personCredits(page(proof.person)).nodesCount)
-            org.junit.jupiter.api.Assertions
-                .assertTrue(
-                    stub
-                        .listRoles(
-                            com.google.protobuf.Empty
-                                .getDefaultInstance(),
-                        ).nodesCount > 0,
-                )
+            assertPublicPeopleAndRoles(stub, proof)
             val denied =
                 org.junit.jupiter.api.Assertions.assertThrows(io.grpc.StatusRuntimeException::class.java) {
                     CatalogServiceGrpc
@@ -99,6 +66,46 @@ class CatalogReadsBoundaryTest {
                 }
             assertEquals(io.grpc.Status.Code.PERMISSION_DENIED, denied.status.code)
         }
+    }
+
+    private fun assertPublicPeopleAndRoles(
+        stub: CatalogServiceGrpc.CatalogServiceBlockingStub,
+        proof: PublicCatalogReadFixture,
+    ) {
+        assertEquals(
+            "Boundary drama",
+            stub
+                .listGenres(
+                    com.google.protobuf.Empty
+                        .getDefaultInstance(),
+                ).nodesList
+                .single()
+                .label,
+        )
+        assertEquals(
+            "Boundary person",
+            stub.getPerson(Id.newBuilder().setId(proof.person.toString()).build()).values.name,
+        )
+        assertEquals(
+            1,
+            stub
+                .searchPeople(
+                    spoolin.v1.Spoolin.Search
+                        .newBuilder()
+                        .setFirst(24)
+                        .build(),
+                ).nodesCount,
+        )
+        assertEquals(0, stub.titleCredits(page(proof.title)).nodesCount)
+        assertEquals(0, stub.personCredits(page(proof.person)).nodesCount)
+        org.junit.jupiter.api.Assertions
+            .assertTrue(
+                stub
+                    .listRoles(
+                        com.google.protobuf.Empty
+                            .getDefaultInstance(),
+                    ).nodesCount > 0,
+            )
     }
 
     @Test
@@ -155,12 +162,20 @@ class CatalogReadsBoundaryTest {
             val server =
                 transport.server(proof.fixture.owner.root, "core", rpc, com.spoolin.core.ServiceIdentityInterceptor())
             try {
-                listOf("core", "catalog", "media", "mcp").forEach { identity ->
-                    denyResolveActor(transport, proof.fixture.owner.root, identity, server.port)
-                }
+                denyServiceCallers(transport, proof.fixture.owner.root, server.port)
             } finally {
                 server.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
             }
+        }
+    }
+
+    private fun denyServiceCallers(
+        transport: com.spoolin.integration.identity.ScopedActorTest,
+        root: java.nio.file.Path,
+        port: Int,
+    ) {
+        listOf("core", "catalog", "media", "mcp").forEach { identity ->
+            denyResolveActor(transport, root, identity, port)
         }
     }
 

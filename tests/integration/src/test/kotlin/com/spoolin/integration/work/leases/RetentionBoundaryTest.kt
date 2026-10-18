@@ -370,32 +370,41 @@ class RetentionBoundaryTest {
         try {
             pool.connection.use { operator ->
                 operator.autoCommit = false
-                operator.prepareStatement("SELECT id FROM asset WHERE id=? FOR UPDATE").use {
-                    it.setObject(1, asset)
-                    it.executeQuery().close()
-                }
+                lockRetentionRow(operator, "SELECT id FROM asset WHERE id=? FOR UPDATE", asset)
                 val pending = executor.submit<Map<String, Int>> { maintenance.daily() }
-                val deadline =
-                    System.nanoTime() +
-                        java.util.concurrent.TimeUnit.SECONDS
-                            .toNanos(1)
-                while (
-                    scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") == 0 &&
-                    System.nanoTime() < deadline
-                ) {
-                    Thread.sleep(5)
-                }
-                assertTrue(scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") > 0)
-                operator.prepareStatement("SELECT id FROM durable_work WHERE id=? FOR UPDATE NOWAIT").use {
-                    it.setObject(1, work)
-                    it.executeQuery().close()
-                }
+                awaitRetentionWaiter(pool)
+                lockRetentionRow(operator, "SELECT id FROM durable_work WHERE id=? FOR UPDATE NOWAIT", work)
                 operator.executeBound("UPDATE durable_work SET state='EXHAUSTED' WHERE id=?", work)
                 operator.commit()
                 assertEquals(0, pending.get(5, java.util.concurrent.TimeUnit.SECONDS).getValue("work"))
             }
         } finally {
             executor.shutdownNow()
+        }
+    }
+
+    private fun awaitRetentionWaiter(pool: DataSource) {
+        val deadline =
+            System.nanoTime() +
+                java.util.concurrent.TimeUnit.SECONDS
+                    .toNanos(1)
+        while (
+            scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") == 0 &&
+            System.nanoTime() < deadline
+        ) {
+            Thread.sleep(5)
+        }
+        assertTrue(scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") > 0)
+    }
+
+    private fun lockRetentionRow(
+        connection: java.sql.Connection,
+        sql: String,
+        id: UUID,
+    ) {
+        connection.prepareStatement(sql).use { statement ->
+            statement.setObject(1, id)
+            statement.executeQuery().close()
         }
     }
 

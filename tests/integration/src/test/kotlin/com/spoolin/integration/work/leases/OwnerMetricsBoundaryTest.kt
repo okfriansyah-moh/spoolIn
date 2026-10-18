@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.util.UUID
+import javax.sql.DataSource
 
 class OwnerMetricsBoundaryTest {
     @TempDir lateinit var directory: Path
@@ -20,29 +21,7 @@ class OwnerMetricsBoundaryTest {
     fun `real work state oldest due pool disk and notification measurements retain distinct meanings`() =
         fixture { owner ->
             owner.pool("media").use { pool ->
-                pool.connection.use { connection ->
-                    connection.createStatement().executeUpdate(
-                        """
-                        INSERT INTO durable_work(id,kind,payload,state,max_attempts,deadline_at,correlation_id,
-                          base_delay_ms,cap_delay_ms,backoff_multiplier,next_attempt_at)
-                        VALUES ('${UUID.randomUUID()}','MEDIA_PROCESS','{}','READY',3,CURRENT_TIMESTAMP,
-                          '${UUID.randomUUID()}',500,5000,2,CURRENT_TIMESTAMP-INTERVAL '150 seconds')
-                        """.trimIndent(),
-                    )
-                    for ((mode, state) in listOf("database" to "RECORDED", "smtp" to "UNKNOWN")) {
-                        connection.createStatement().executeUpdate(
-                            """
-                            INSERT INTO durable_work(id,kind,payload,state,max_attempts,deadline_at,correlation_id,
-                              base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode,
-                              notification_state,notification_summary)
-                            VALUES ('${UUID.randomUUID()}','NOTIFICATION','{}',
-                              '${if (mode == "database") "DONE" else "EXHAUSTED"}',
-                              3,CURRENT_TIMESTAMP,'${UUID.randomUUID()}',500,5000,2,
-                              '${UUID.randomUUID()}','$mode','$state','{}')
-                            """.trimIndent(),
-                        )
-                    }
-                }
+                seedMeasurements(pool)
                 SimpleMeterRegistry().useRegistry { registry ->
                     val metrics =
                         OwnerMetrics(
@@ -53,31 +32,7 @@ class OwnerMetricsBoundaryTest {
                             mapOf("artwork" to directory),
                         )
                     assertTrue(metrics.prepareScrape())
-                    assertEquals(
-                        1.0,
-                        registry
-                            .get("spoolin.work.items")
-                            .tag("state", "READY")
-                            .gauge()
-                            .value(),
-                    )
-                    assertEquals(
-                        1.0,
-                        registry
-                            .get("spoolin.work.items")
-                            .tag("state", "EXHAUSTED")
-                            .gauge()
-                            .value(),
-                    )
-                    assertEquals(
-                        0.0,
-                        registry
-                            .get("spoolin.work.items")
-                            .tag("state", "DONE")
-                            .gauge()
-                            .value(),
-                    )
-                    assertTrue(registry.get("spoolin.oldest.due.work.seconds").gauge().value() >= 150)
+                    assertWorkMeasurements(registry)
                     assertEquals(
                         1.0,
                         registry
@@ -147,6 +102,60 @@ class OwnerMetricsBoundaryTest {
                 }
             }
         }
+
+    private fun seedMeasurements(pool: DataSource) {
+        pool.connection.use { connection ->
+            connection.createStatement().executeUpdate(
+                """
+                INSERT INTO durable_work(id,kind,payload,state,max_attempts,deadline_at,correlation_id,
+                  base_delay_ms,cap_delay_ms,backoff_multiplier,next_attempt_at)
+                VALUES ('${UUID.randomUUID()}','MEDIA_PROCESS','{}','READY',3,CURRENT_TIMESTAMP,
+                  '${UUID.randomUUID()}',500,5000,2,CURRENT_TIMESTAMP-INTERVAL '150 seconds')
+                """.trimIndent(),
+            )
+            for ((mode, state) in listOf("database" to "RECORDED", "smtp" to "UNKNOWN")) {
+                connection.createStatement().executeUpdate(
+                    """
+                    INSERT INTO durable_work(id,kind,payload,state,max_attempts,deadline_at,correlation_id,
+                      base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode,
+                      notification_state,notification_summary)
+                    VALUES ('${UUID.randomUUID()}','NOTIFICATION','{}',
+                      '${if (mode == "database") "DONE" else "EXHAUSTED"}',
+                      3,CURRENT_TIMESTAMP,'${UUID.randomUUID()}',500,5000,2,
+                      '${UUID.randomUUID()}','$mode','$state','{}')
+                    """.trimIndent(),
+                )
+            }
+        }
+    }
+
+    private fun assertWorkMeasurements(registry: SimpleMeterRegistry) {
+        assertEquals(
+            1.0,
+            registry
+                .get("spoolin.work.items")
+                .tag("state", "READY")
+                .gauge()
+                .value(),
+        )
+        assertEquals(
+            1.0,
+            registry
+                .get("spoolin.work.items")
+                .tag("state", "EXHAUSTED")
+                .gauge()
+                .value(),
+        )
+        assertEquals(
+            0.0,
+            registry
+                .get("spoolin.work.items")
+                .tag("state", "DONE")
+                .gauge()
+                .value(),
+        )
+        assertTrue(registry.get("spoolin.oldest.due.work.seconds").gauge().value() >= 150)
+    }
 
     private fun fixture(block: (OwnerFixture) -> Unit) {
         OwnerFixture("owner-metrics.json").start().use { owner ->

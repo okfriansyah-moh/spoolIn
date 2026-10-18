@@ -447,10 +447,17 @@ private class CancellationFixture : AutoCloseable {
         proof.fixture.owner.membership("catalog", "grant")
         proof.fixture.owner.pool("catalog", "migrator").use { migration ->
             migration.connection.use { connection ->
-                connection.createStatement().use { statement ->
-                    toggleCancellationAudit(statement, enabled)
-                }
+                configureCancellationAudit(connection, enabled)
             }
+        }
+    }
+
+    private fun configureCancellationAudit(
+        connection: java.sql.Connection,
+        enabled: Boolean,
+    ) {
+        connection.createStatement().use { statement ->
+            toggleCancellationAudit(statement, enabled)
         }
     }
 

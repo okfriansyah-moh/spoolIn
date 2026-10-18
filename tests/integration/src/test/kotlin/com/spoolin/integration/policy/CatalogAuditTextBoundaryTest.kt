@@ -17,7 +17,8 @@ class CatalogAuditTextBoundaryTest {
             val result = fixture.movie(request)
             assertEquals("SUCCEEDED", result.state)
             assertEquals(multiline, fixture.text("SELECT synopsis FROM title WHERE id=?", result.resultId))
-            val audit = fixture.text("SELECT changes::text FROM catalog_audit_event WHERE subject_id=?", result.resultId)
+            val audit =
+                fixture.text("SELECT changes::text FROM catalog_audit_event WHERE subject_id=?", result.resultId)
             val change =
                 json.readTree(audit).path("changes").single { it.path("path").stringValue() == "synopsis" }
             assertEquals(multiline, change.path("after").stringValue())
@@ -34,7 +35,8 @@ class CatalogAuditTextBoundaryTest {
             val result = fixture.person(request)
             assertEquals("SUCCEEDED", result.state)
             assertEquals(multiline, fixture.text("SELECT biography FROM person WHERE id=?", result.resultId))
-            val audit = fixture.text("SELECT changes::text FROM catalog_audit_event WHERE subject_id=?", result.resultId)
+            val audit =
+                fixture.text("SELECT changes::text FROM catalog_audit_event WHERE subject_id=?", result.resultId)
             val change =
                 json.readTree(audit).path("changes").single { it.path("path").stringValue() == "biography" }
             assertEquals(multiline, change.path("after").stringValue())

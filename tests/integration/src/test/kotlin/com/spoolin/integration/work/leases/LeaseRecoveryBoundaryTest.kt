@@ -123,24 +123,7 @@ class LeaseRecoveryBoundaryTest {
     fun `authorized recovery restores bounded claimability and retains original effect and attempts`() {
         fixture("recovery") { pool ->
             val first = claim(pool)
-            assertTrue(
-                pool.committed {
-                    WorkSql.completeAttempt(
-                        it,
-                        first,
-                        WorkAttemptCompletion(AttemptOutcome.PERMANENT, "PERMISSION_DENIED", "EXHAUSTED"),
-                        databaseNow(pool),
-                    )
-                },
-            )
-            val now = databaseNow(pool)
-            pool.committed {
-                it.executeBound(
-                    "UPDATE durable_work SET deadline_at=? WHERE id=?",
-                    Timestamp.from(now.minusSeconds(1)),
-                    first.workId,
-                )
-            }
+            val now = exhaustForRecovery(pool, first)
             val recovery =
                 WorkRecoveryCommit(
                     "verified-operator",
@@ -173,6 +156,31 @@ class LeaseRecoveryBoundaryTest {
             val audit = recoveryChanges(pool, first.workId)
             assertEquals(listOf(recovery.reason, now.minusSeconds(1).toString(), now.plusSeconds(60).toString()), audit)
         }
+    }
+
+    private fun exhaustForRecovery(
+        pool: DataSource,
+        first: WorkClaim,
+    ): Instant {
+        assertTrue(
+            pool.committed {
+                WorkSql.completeAttempt(
+                    it,
+                    first,
+                    WorkAttemptCompletion(AttemptOutcome.PERMANENT, "PERMISSION_DENIED", "EXHAUSTED"),
+                    databaseNow(pool),
+                )
+            },
+        )
+        val now = databaseNow(pool)
+        pool.committed {
+            it.executeBound(
+                "UPDATE durable_work SET deadline_at=? WHERE id=?",
+                Timestamp.from(now.minusSeconds(1)),
+                first.workId,
+            )
+        }
+        return now
     }
 
     @Test
