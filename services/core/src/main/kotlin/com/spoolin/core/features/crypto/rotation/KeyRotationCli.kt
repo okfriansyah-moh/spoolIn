@@ -44,7 +44,7 @@ private fun arguments(args: Array<String>): Arguments {
         index += 1
     }
     if (from.isBlank() || to.isBlank() || keyFile.isNullOrBlank()) usage()
-    return Arguments(from, to, purpose, Path.of(keyFile), dryRun, register, batches)
+    return Arguments(from, to, purpose, Path.of(requireNotNull(keyFile)), dryRun, register, batches)
 }
 
 private fun usage(): Nothing {

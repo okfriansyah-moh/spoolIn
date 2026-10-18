@@ -23,6 +23,9 @@ class RotationRetirement(private val dataSource: DataSource, private val custody
             if (old.second != "READ" || old.third == null || java.time.Instant.now().isBefore(old.third)) {
                 return@committed RotationOutcome(false, "Retirement blocked by key state or earliest review time")
             }
+            val encrypted = connection.queryBound("SELECT (SELECT count(*) FROM appdata.user_account WHERE pii_key_id=?) + " +
+                "(SELECT count(*) FROM appdata.form_draft WHERE body_key_id=?) AS total", listOf(id, id)) { it.getLong("total") }.single()
+            if (encrypted != 0L) return@committed RotationOutcome(false, "Retirement blocked by live encrypted references", remaining = encrypted)
             if (purpose == KeyPurpose.EMAIL_LOOKUP) {
                 val active = keys.singleOrNull { it.second == "WRITE" } ?: return@committed RotationOutcome(false, "Active lookup key is unavailable")
                 val missing = connection.queryBound("SELECT count(*) AS total FROM appdata.user_account a WHERE NOT EXISTS(" +
