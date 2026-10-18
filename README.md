@@ -383,7 +383,7 @@ The following examples use the fictional movie and people created in the [Mainta
 
 ![Signed-in Viewer reading Letters from Tomorrow with its lighthouse poster, synopsis, release details, and public credits](docs/assets/spoolin/viewer-movie-details.png)
 
-*Movie details example: the header identifies the Viewer account, while the page presents the movie's public information.*
+*Movie details example: the poster sits beside the title and release information. Public credits appear below, while the header identifies the Viewer account.*
 
 Missing optional information can appear as unknown. Artwork can show a placeholder until a Maintainer uploads a poster.
 
@@ -391,13 +391,13 @@ Missing optional information can appear as unknown. Artwork can show a placehold
 
 On the `Letters from Tomorrow` details page, find **Credits**:
 
-1. Read `Mira Vale — Actor as The Keeper` to identify the cast member and character.
-2. Read `A. Rivers — Director` to identify the creator's contribution.
+1. Find **Mira Vale** and read the **Actor** credit and **The Keeper** character name.
+2. Find **A. Rivers** and read the **Director** credit to identify the creator's contribution.
 3. Select a person's name to open their public profile. If a longer credits list offers **Load more credits**, use it to continue browsing.
 
 ![Viewer-facing movie credits listing Mira Vale as Actor playing The Keeper and A. Rivers as Director](docs/assets/spoolin/viewer-credits.png)
 
-*Credits example: cast entries can include character names; creator entries show contributions such as directing. Viewers browse these links; Maintainers edit the relationships.*
+*Credits example: each person has a linked name and contribution. Cast credits can include character names; creator credits show contributions such as directing.*
 
 ### Viewer example: explore cast and creator profiles
 
@@ -407,21 +407,21 @@ A person has one shared profile, with credits describing their contributions to 
 
 1. In the movie's **Credits**, select **Mira Vale**.
 2. Read the biography, `Fictional actor playing the lighthouse keeper.`
-3. Under **Credits**, find `Letters from Tomorrow — Actor as The Keeper`. Select the movie title to return to its details.
+3. Under **Credits**, find **Letters from Tomorrow**, with **Actor** and **The Keeper** in its contribution row. Select the movie title to return to its details.
 
 ![Signed-in Viewer reading Mira Vale's cast profile, biography, and Actor credit for Letters from Tomorrow](docs/assets/spoolin/viewer-cast-profile.png)
 
-*Cast profile example: Mira Vale's biography and linked movie credit are available without editing controls.*
+*Cast profile example: Mira Vale's biography sits above the credits list, where the movie title links back to its details.*
 
 #### Creator profile
 
 1. Back on the movie page, select **A. Rivers** in **Credits**.
 2. Read the biography, `Fictional director of Letters from Tomorrow.`
-3. Under **Credits**, find `Letters from Tomorrow — Director`. Select the movie title to return to its details.
+3. Under **Credits**, find **Letters from Tomorrow**, with **Director** in its contribution row. Select the movie title to return to its details.
 
 ![Signed-in Viewer reading A. Rivers's creator profile, biography, and Director credit for Letters from Tomorrow](docs/assets/spoolin/viewer-creator-profile.png)
 
-*Creator profile example: A. Rivers's profile connects the person to their directing contribution.*
+*Creator profile example: the credits list connects A. Rivers to the movie and their directing contribution.*
 
 You can also open **People** and search for either name directly. People with identical names can have separate profiles, so use their biographies and credits to identify the intended person. Longer profile credits lists provide **Load more credits** when more entries are available.
 
@@ -450,9 +450,9 @@ Cast and creators use shared person records. Add the person first, then describe
 3. Create another person named `Mira Vale`, with the biography `Fictional actor playing the lighthouse keeper.`
 4. To update either biography, open **Manage people**, find the person, choose **Edit**, change the biography, and select **Save person**. Use **Load more people** if the record is beyond the first page.
 
-![Maintainer saving the fictional creator A. Rivers, with professional name, biography, and Person saved feedback](docs/assets/spoolin/maintainer-person.png)
+![Maintainer editing the fictional creator A. Rivers, with professional name, biography, and Save person controls](docs/assets/spoolin/maintainer-person.png)
 
-*People example: A. Rivers has been saved as a shared person record. A credit will identify their directing work on the movie.*
+*People example: the editor keeps the professional name and biography together. Credits link this shared person record to their work on individual movies.*
 
 Editing a person updates that identity across its credits. It doesn't merge different people who happen to share a name.
 
@@ -479,9 +479,9 @@ For the fictional movie, use the repository's sample lighthouse poster:
 3. Keep the page open while the file transfers and the server processes it. A complete transfer percentage doesn't mean the poster is attached yet.
 4. Wait for **Saved**, then open the movie's public page to see its poster.
 
-![Maintainer poster artwork field showing Saved after uploading the lighthouse poster](docs/assets/spoolin/maintainer-artwork.png)
+![Maintainer Poster artwork field with the file chooser ready for an image](docs/assets/spoolin/maintainer-artwork.png)
 
-*Artwork example: the lighthouse poster has finished uploading and attaching to the movie.*
+*Artwork example: choose an image in the Poster artwork field. The public movie page above shows the lighthouse poster already attached to this record.*
 
 If the artwork attached but details couldn't refresh, retry the details read before uploading again. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or oversized files should explain what to change.
 
