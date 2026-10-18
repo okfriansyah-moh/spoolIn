@@ -33,7 +33,7 @@ for line in result.stdout.splitlines():
     attributes = value.get('attributes') or {}
     safe = {key: item for key, item in attributes.items() if key in ('event', 'code', 'error_class', 'operation')
             and isinstance(item, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}', item)}
-    records.append({'service': service, 'level': value.get('level') if value.get('level') in ('debug', 'info', 'warn', 'error', 'fatal') else 'unknown', 'attributes': safe})
+    records.append({'service': service, 'level': value.get('level') if value.get('level') in ('debug', 'info', 'warning', 'error', 'fatal') else 'unknown', 'attributes': safe})
 output = Path('artifacts/runtime/owner-diagnostics-' + phase + '.json')
 output.parent.mkdir(parents=True, exist_ok=True)
 output.write_text(json.dumps({'testedSha': os.environ['TESTED_SHA'], 'runId': os.environ['GITHUB_RUN_ID'],

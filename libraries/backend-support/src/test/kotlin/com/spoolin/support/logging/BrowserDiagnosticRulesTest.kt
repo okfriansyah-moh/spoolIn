@@ -13,10 +13,26 @@ class BrowserDiagnosticRulesTest {
     @Test
     fun `boundary failures retain fixed classifications and exclude exception bodies and arguments`() {
         val events = listOf(
-            Triple("com.spoolin.core.features.ratelimit.RateAdmission", "Rate admission failed", "rate_admission_failed"),
-            Triple("com.spoolin.core.boundary.http.BrowserRequests", "Browser execution failed", "browser_execution_failed"),
-            Triple("com.spoolin.core.boundary.http.BrowserGraphql", "Browser identity unavailable", "browser_identity_unavailable"),
-            Triple("com.spoolin.core.boundary.http.BrowserGraphql", "Browser admission unavailable", "browser_admission_unavailable"),
+            Triple(
+                "com.spoolin.core.features.ratelimit.RateAdmission",
+                "Rate admission failed",
+                "rate_admission_failed",
+            ),
+            Triple(
+                "com.spoolin.core.boundary.http.BrowserRequests",
+                "Browser execution failed",
+                "browser_execution_failed",
+            ),
+            Triple(
+                "com.spoolin.core.boundary.http.BrowserGraphql",
+                "Browser identity unavailable",
+                "browser_identity_unavailable",
+            ),
+            Triple(
+                "com.spoolin.core.boundary.http.BrowserGraphql",
+                "Browser admission unavailable",
+                "browser_admission_unavailable",
+            ),
         )
         for ((logger, message, expected) in events) {
             val event = LoggingEvent().also {
@@ -27,7 +43,7 @@ class BrowserDiagnosticRulesTest {
                 it.setThrowableProxy(ThrowableProxy(SQLException("private-secret", "42501")))
             }
             val raw = DiagnosticEnvelope("core", "test", "test").encode(
-                DiagnosticLevel.WARN, 0, DiagnosticEvents.classify(event),
+                DiagnosticLevel.WARNING, 0, DiagnosticEvents.classify(event),
             ).toString(Charsets.UTF_8)
             val node = JsonMapper.builder().build().readTree(raw)
             assertEquals(expected, node["attributes"]["event"].asString())
