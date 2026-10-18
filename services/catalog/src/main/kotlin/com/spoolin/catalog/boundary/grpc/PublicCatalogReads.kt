@@ -35,11 +35,12 @@ internal class PublicCatalogReads(
     ) {
         try {
             val (page, scopeHash) = findTitles(request)
+            val ids = page.rows.map { it.id }
+            val genres = titleSearch.findGenresForTitles(ids)
+            val sources = provenance.forSubjects(ids, "TITLE")
             val builder = TitlePage.newBuilder()
             page.rows.forEach { row ->
-                val genreRows = titleSearch.findGenreIds(row.id)
-                val provenanceRows = provenance.forSubject(row.id, "TITLE")
-                builder.addNodes(projection.titleProto(row, genreRows, provenanceRows))
+                builder.addNodes(projection.titleProto(row, genres[row.id].orEmpty(), sources[row.id].orEmpty()))
             }
             page.keyset?.let { ks ->
                 builder.endCursor = context.titleCursor.encode(ks, scopeHash, context.clock.instant())

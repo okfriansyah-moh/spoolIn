@@ -11,6 +11,8 @@ import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
+private const val GENRE_BATCH_SIZE = 100
+
 /**
  * Native SQL title search with pg_unicode_fast casefold matching.
  *
@@ -152,6 +154,22 @@ class TitleSearchSql(
         val sql = "SELECT genre_id FROM title_genre WHERE title_id = ? ORDER BY genre_id"
         return dataSource.connection.use { conn ->
             conn.queryBound(sql, listOf(titleId)) { rs -> rs.getObject("genre_id", UUID::class.java) }
+        }
+    }
+
+    fun findGenresForTitles(titleIds: List<UUID>): Map<UUID, List<UUID>> {
+        if (titleIds.isEmpty()) return emptyMap()
+        return dataSource.connection.use { connection ->
+            titleIds.distinct().chunked(GENRE_BATCH_SIZE).flatMap { batch ->
+                val placeholders = batch.joinToString(",") { "?" }
+                connection.queryBound(
+                    "SELECT title_id,genre_id FROM title_genre WHERE title_id IN ($placeholders) " +
+                        "ORDER BY title_id,genre_id",
+                    batch,
+                ) { row ->
+                    row.getObject("title_id", UUID::class.java) to row.getObject("genre_id", UUID::class.java)
+                }
+            }.groupBy({ it.first }, { it.second })
         }
     }
 

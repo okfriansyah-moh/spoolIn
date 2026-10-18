@@ -25,6 +25,7 @@ internal class PublicCatalogReadFixture(
             )
     },
     private val proof: com.spoolin.integration.identity.SignedReceiptFixture? = null,
+    observe: (javax.sql.DataSource) -> javax.sql.DataSource = { it },
 ) : AutoCloseable {
     val fixture = proof?.fixture ?: CryptoFixture("catalog-public-read-boundary.json")
     private val transport = ScopedActorTest()
@@ -35,37 +36,38 @@ internal class PublicCatalogReadFixture(
     val person = UUID.randomUUID()
     val genre = UUID.randomUUID()
     private val cursor = ByteArray(32) { 17 }
+    private val readSource = observe(pool)
     private val rpc =
         CatalogServiceRpc(
-            TitleSearchSql(pool, policy),
-            PersonSearch(pool, policy),
-            TaxonomyReads(pool),
-            ProvenanceReads(pool),
-            OwnerReceiptReads(pool),
+            TitleSearchSql(readSource, policy),
+            PersonSearch(readSource, policy),
+            TaxonomyReads(readSource),
+            ProvenanceReads(readSource),
+            OwnerReceiptReads(readSource),
             ReceiptAuthority { null },
             CatalogCursor(cursor),
             PeopleCursor(cursor),
             managedReads =
                 com.spoolin.catalog.features.movie.ManagedMovieReads(
-                    pool,
-                    ProvenanceReads(pool),
-                    TitleSearchSql(pool, policy),
+                    readSource,
+                    ProvenanceReads(readSource),
+                    TitleSearchSql(readSource, policy),
                     com.spoolin.catalog.operations.audit
-                        .AuditReads(pool),
+                        .AuditReads(readSource),
                     policy,
                     com.spoolin.catalog.features.search
                         .ManagedReadCursors(cursor),
                 ),
             managedPersonReads =
                 com.spoolin.catalog.features.person.read.ManagedPersonReads(
-                    pool,
+                    readSource,
                     policy,
                     com.spoolin.catalog.features.search
                         .ManagedReadCursors(cursor),
                 ),
             managedCreditReads =
                 com.spoolin.catalog.features.credit.ManagedCreditReads(
-                    pool,
+                    readSource,
                     policy,
                     com.spoolin.catalog.features.search
                         .ManagedReadCursors(cursor),

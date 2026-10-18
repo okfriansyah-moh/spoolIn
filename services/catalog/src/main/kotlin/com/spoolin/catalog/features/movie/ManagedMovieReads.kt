@@ -85,11 +85,12 @@ class ManagedMovieReads(
             val scope = cursors.scope(ReadPolicy(policy()), "managed-titles", first, mapOf("state" to state))
             val after = cursors.title(request.after.takeIf { it.isNotEmpty() }, scope)
             val page = listManagedTitles(state, first, after, scope)
+            val ids = page.rows.map { it.id }
+            val genres = titleSearch.findGenresForTitles(ids)
+            val sources = provenance.forSubjects(ids, "TITLE")
             val builder = TitlePage.newBuilder()
             page.rows.forEach { row ->
-                val genreIds = titleSearch.findGenreIds(row.id)
-                val provenanceRows = provenance.forSubject(row.id, "TITLE")
-                builder.addNodes(titleProto(row, genreIds, provenanceRows))
+                builder.addNodes(titleProto(row, genres[row.id].orEmpty(), sources[row.id].orEmpty()))
             }
             page.endCursor?.let { builder.endCursor = it }
             builder.hasNextPage = page.hasNextPage
