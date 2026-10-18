@@ -67,9 +67,9 @@ def health_observation(service, body, expected):
 
 
 def https_probe(service, port, expected, directory):
-    required = ["SERVICE_CA_FILE"]
     if service != "grafana":
-        required += ["SPOOLIN_OPERATOR_CERT_FILE", "SPOOLIN_OPERATOR_KEY_FILE"]
+        raise ValueError("Host HTTPS health probe is restricted to Grafana")
+    required = ["SERVICE_CA_FILE"]
     missing = [name for name in required if not os.environ.get(name)]
     if missing:
         return {"service": service, "probe": "https-readiness", "result": "FAIL", "missingConfiguration": missing}
@@ -78,9 +78,7 @@ def https_probe(service, port, expected, directory):
     path = directory / service
     command = ["curl", "--silent", "--show-error", "--fail", "--connect-timeout", "2", "--max-time", "5",
                "--max-filesize", "65536", "--proto", "=https", "--cacert", os.environ["SERVICE_CA_FILE"]]
-    if service != "grafana":
-        command += ["--cert", os.environ["SPOOLIN_OPERATOR_CERT_FILE"], "--key", os.environ["SPOOLIN_OPERATOR_KEY_FILE"]]
-    route = "/api/health" if service == "grafana" else "/actuator/health/readiness"
+    route = "/api/health"
     command += ["--output", str(path), "--write-out", "%{http_code}", f"https://localhost:{port}{route}"]
     completed = subprocess.run(command, capture_output=True, timeout=8, check=False)
     code = completed.stdout.decode("ascii", errors="replace")
@@ -100,12 +98,40 @@ def observe_https(service, port, expected, directory):
         return {"service": service, "probe": "https-readiness", "result": "FAIL", "reason": "probe-unavailable"}
 
 
+def private_https(compose, service):
+    if service not in {"core", "catalog", "media"}:
+        raise ValueError("Private health owner is unsupported")
+    failed = {"service": service, "probe": "https-readiness", "boundary": "private-network-mtls", "result": "FAIL"}
+    try:
+        completed = subprocess.run([*compose, "exec", "-T", "mcp", "node", "/app/private-readiness.mjs", service],
+                                   capture_output=True, timeout=6, check=False)
+        if completed.returncode not in {0, 1} or len(completed.stdout) > 4096:
+            return dict(failed, reason="private-probe-process-failed")
+        value = json.loads(completed.stdout)
+        if value.get("service") != service or value.get("boundary") != "private-network-mtls":
+            return dict(failed, reason="private-probe-response-invalid")
+        result = dict(failed, observed=safe_status(value.get("observed")))
+        if value.get("connectionCode") in {"ECONNREFUSED", "ENOTFOUND", "CERT_HAS_EXPIRED", "ERR_TLS_CERT_ALTNAME_INVALID",
+                                            "DEPTH_ZERO_SELF_SIGNED_CERT", "UNABLE_TO_VERIFY_LEAF_SIGNATURE", "SELF_SIGNED_CERT_IN_CHAIN",
+                                            "ECONNRESET", "ETIMEDOUT", "ERR_SSL_TLSV13_ALERT_CERTIFICATE_REQUIRED", "TLS_CONNECTION_FAILED"}:
+            result["connectionCode"] = value["connectionCode"]
+        components = value.get("components")
+        if isinstance(components, dict):
+            result["components"] = {name: safe_status(status) for name, status in components.items()
+                                    if name in {"readinessState", "schema", "rateReadiness", "db"}}
+        if completed.returncode == 0 and value.get("result") == "PASS" and result["observed"] == "UP":
+            result["result"] = "PASS"
+        return result
+    except (OSError, ValueError, AttributeError, subprocess.TimeoutExpired):
+        return dict(failed, reason="private-probe-unavailable")
+
+
 def observations(root):
     installation = os.environ.get("SPOOLIN_INSTALLATION", "")
     if not re.fullmatch(r"[a-z][a-z0-9-]{2,63}", installation) or os.environ.get("SPOOLIN_SKIP_COMPOSE") == "1":
         return [{"probe": "configuration", "result": "FAIL", "reason": "owned-compose-installation-required"}]
-    command = ["docker", "compose", "--project-name", installation, "-f", str(root / "ops/compose.yaml"),
-               "ps", "--all", "--format", "json", *SERVICES]
+    compose = ["docker", "compose", "--project-name", installation, "-f", str(root / "ops/compose.yaml")]
+    command = [*compose, "ps", "--all", "--format", "json", *SERVICES]
     try:
         completed = subprocess.run(command, capture_output=True, timeout=15, check=False)
         if completed.returncode:
@@ -116,9 +142,8 @@ def observations(root):
         results = [{"probe": "compose", "result": "FAIL", "reason": "unavailable-or-malformed"}]
     with tempfile.TemporaryDirectory(prefix="spoolin-readiness-") as temporary:
         directory = Path(temporary)
-        for service, default in (("core", "18443"), ("catalog", "18444"), ("media", "18445")):
-            results.append(observe_https(service, os.environ.get(service.upper() + "_MANAGEMENT_PORT", default),
-                                       ("status", "UP"), directory))
+        for service in ("core", "catalog", "media"):
+            results.append(private_https(compose, service))
         results.append(observe_https("grafana", os.environ.get("GRAFANA_HTTPS_PORT", "3000"), ("database", "ok"), directory))
     return results
 

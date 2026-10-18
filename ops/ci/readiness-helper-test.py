@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("readiness", Path(__file__).resolve().parents[1] / "bin/readiness.py")
 readiness = importlib.util.module_from_spec(spec)
@@ -45,6 +46,22 @@ class ReadinessDiagnosticTest(unittest.TestCase):
             self.assertEqual("FAIL", readiness.health_observation("core", value, ("status", "UP"))["result"])
         self.assertEqual("PASS", readiness.health_observation("core", '{"status":"UP"}', ("status", "UP"))["result"])
         self.assertEqual("PASS", readiness.health_observation("grafana", '{"database":"ok"}', ("database", "ok"))["result"])
+
+    def test_owner_health_executes_private_mtls_helper_and_reprojects_only_safe_fields(self):
+        payload = {"service": "core", "boundary": "private-network-mtls", "result": "PASS", "observed": "UP",
+                   "components": {"schema": "UP", "password": "never-publish"}, "private": "never-publish"}
+        with patch.object(readiness.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            run.return_value.stdout = json.dumps(payload).encode()
+            result = readiness.private_https(["docker", "compose"], "core")
+            self.assertEqual("PASS", result["result"])
+            self.assertEqual({"schema": "UP"}, result["components"])
+            self.assertNotIn("never-publish", json.dumps(result))
+            command = run.call_args.args[0]
+            self.assertIn("/app/private-readiness.mjs", command)
+            self.assertNotIn("18443", " ".join(command))
+            run.return_value.returncode = 1
+            self.assertEqual("FAIL", readiness.private_https(["docker", "compose"], "core")["result"])
 
 
 if __name__ == "__main__":

@@ -122,7 +122,7 @@ services:
       - core-cert
       - core-key
       - service-ca
-    ports: ["127.0.0.1:${CORE_HTTPS_PORT:-8443}:8443", "127.0.0.1:${CORE_MANAGEMENT_PORT:-18443}:8081"]
+    ports: ["127.0.0.1:${CORE_HTTPS_PORT:-8443}:8443"]
   core-migrator:
     build:
       context: ..
@@ -178,7 +178,6 @@ services:
       - catalog-cert
       - catalog-key
       - service-ca
-    ports: ["127.0.0.1:${CATALOG_MANAGEMENT_PORT:-18444}:8081"]
   catalog-migrator:
     build:
       context: ..
@@ -235,7 +234,6 @@ services:
       - media-cert
       - media-key
       - service-ca
-    ports: ["127.0.0.1:${MEDIA_MANAGEMENT_PORT:-18445}:8081"]
   media-migrator:
     build:
       context: ..
@@ -312,6 +310,7 @@ services:
       retries: 30
 
   prometheus:
+    ports: ["127.0.0.1:${PROMETHEUS_HTTP_PORT:-9090}:9090"]
     image: spoolin-prometheus:3.15.0
     build:
       context: ..
@@ -351,6 +350,7 @@ services:
       timeout: 4s
       retries: 30
   alertmanager:
+    ports: ["127.0.0.1:${ALERTMANAGER_HTTP_PORT:-9093}:9093"]
     image: spoolin-alertmanager:0.34.1
     build:
       context: ..
@@ -431,7 +431,9 @@ services:
 
 networks:
   private:
-    internal: true
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
 volumes:
   media:
   database:

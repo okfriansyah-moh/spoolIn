@@ -6,5 +6,6 @@ COPY tests/browser/package.json tests/browser/package.json
 COPY mcp/package.json mcp/package.json
 RUN npm install --global npm@11.19.0 && npm ci --omit=dev --ignore-scripts --workspace mcp
 COPY mcp/dist mcp/dist
+COPY ops/containers/private-readiness.mjs /app/private-readiness.mjs
 USER 10001:10001
 ENTRYPOINT ["node", "mcp/dist/server.js"]
