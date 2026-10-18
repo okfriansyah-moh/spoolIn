@@ -30,7 +30,7 @@ class AccountStorageMetricsBoundaryTest {
     @Test
     fun `stale prepared account write key fails the actual insertion boundary without storage effects`() {
         CryptoFixture("account-storage-metrics-cas.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val accounts = accounts(fixture, metrics)
                 val id = UUID.randomUUID()
                 val prepared = accounts.prepare(id, identity, password, AccountRole.VIEWER)
@@ -51,7 +51,7 @@ class AccountStorageMetricsBoundaryTest {
     @Test
     fun `missing active lookup key keeps public unavailable results distinct from ordinary missing credentials`() {
         CryptoFixture("account-storage-metrics-lookup.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val accounts = accounts(fixture, metrics)
                 assertSame(ProtectedRead.Unavailable, accounts.credential("absent@example.invalid"))
                 assertTrue(metrics.meters.isEmpty())
@@ -73,7 +73,7 @@ class AccountStorageMetricsBoundaryTest {
     @Test
     fun `key validation on an unavailable connection still throws SQL rather than inventing a domain rejection`() {
         CryptoFixture("account-storage-metrics-database.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val accounts = accounts(fixture, metrics)
                 val prepared = accounts.prepare(UUID.randomUUID(), identity, password, AccountRole.VIEWER)
                 val closed = fixture.pool.connection
@@ -88,7 +88,7 @@ class AccountStorageMetricsBoundaryTest {
     @Test
     fun `authenticated but malformed stored identity retains unavailable read and original alert`() {
         CryptoFixture("account-storage-metrics-payload.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val id = UUID.randomUUID()
                 // Controlled corruption uses valid AEAD so this test reaches the persisted payload decoder.
                 val malformed = fixture.crypto.encrypt(id, "{}".toByteArray())
@@ -140,3 +140,10 @@ class AccountStorageMetricsBoundaryTest {
         code: String,
     ): Double = registry.get("spoolin_crypto_failures_total").tag("code", code).counter().count()
 }
+
+private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =
+    try {
+        action(this)
+    } finally {
+        close()
+    }

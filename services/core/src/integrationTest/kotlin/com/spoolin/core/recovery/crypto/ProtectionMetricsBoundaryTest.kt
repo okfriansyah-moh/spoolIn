@@ -25,7 +25,7 @@ class ProtectionMetricsBoundaryTest {
     @Test
     fun `successful account draft and lookup protection does not create failure series`() {
         CryptoFixture("protection-metrics-success.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val observer = ProtectionMetrics(metrics).observing(fixture.alert)
                 val account = account(fixture, fixture.keys, observer)
                 val draft = DraftCryptography(fixture.registry, fixture.keys, fixture.allocator, AeadCipher(), observer)
@@ -45,7 +45,7 @@ class ProtectionMetricsBoundaryTest {
     @Test
     fun `authentication and missing keys retain unavailable reads and original account alerts`() {
         CryptoFixture("protection-metrics-authentication.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val observer = ProtectionMetrics(metrics).observing(fixture.alert)
                 val account = account(fixture, fixture.keys, observer)
                 val draft = DraftCryptography(fixture.registry, fixture.keys, fixture.allocator, AeadCipher(), observer)
@@ -87,7 +87,7 @@ class ProtectionMetricsBoundaryTest {
     @Test
     fun `database confirmed exhausted nonce counters fail writes without changing stored counters`() {
         CryptoFixture("protection-metrics-nonce.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val observer = ProtectionMetrics(metrics).observing(fixture.alert)
                 fixture.owner.connection("core").use { connection ->
                     connection.createStatement().use {
@@ -123,7 +123,7 @@ class ProtectionMetricsBoundaryTest {
     @Test
     fun `unavailable owner pool preserves the SQL error and records infrastructure failure`() {
         CryptoFixture("protection-metrics-unavailable.json").use { fixture ->
-            SimpleMeterRegistry().use { metrics ->
+            SimpleMeterRegistry().useRegistry { metrics ->
                 val observer = ProtectionMetrics(metrics).observing(fixture.alert)
                 val account = account(fixture, fixture.keys, observer)
                 fixture.pool.close()
@@ -149,3 +149,10 @@ class ProtectionMetricsBoundaryTest {
         assertInstanceOf(ProtectedRead.Unavailable::class.java, result)
     }
 }
+
+private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =
+    try {
+        action(this)
+    } finally {
+        close()
+    }

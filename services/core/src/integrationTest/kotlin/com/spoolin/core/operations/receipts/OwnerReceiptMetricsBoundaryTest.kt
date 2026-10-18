@@ -30,7 +30,7 @@ class OwnerReceiptMetricsBoundaryTest {
 
     @Test
     fun `ordinary and audited owner executions expose success only after actual receipt and effect commit`() = fixture { pool ->
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val receipts = OwnerReceipts(pool, hashes, Clock.systemUTC(), LogicalMetrics(registry, "core"))
             for ((kind, operation) in owners) {
                 val intent = intent(kind)
@@ -52,7 +52,7 @@ class OwnerReceiptMetricsBoundaryTest {
 
     @Test
     fun `rolled back effect and receipt never emit success and preserve original typed failure`() = fixture { pool ->
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val receipts = OwnerReceipts(pool, hashes, metrics = LogicalMetrics(registry, "core"))
             val intent = intent("DRAFT_SAVE")
             assertThrows(ReceiptConflict::class.java) {
@@ -75,7 +75,7 @@ class OwnerReceiptMetricsBoundaryTest {
 
     @Test
     fun `resolve and find are excluded while execution replay preserves one effect and one event`() = fixture { pool ->
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val receipts = OwnerReceipts(pool, hashes, metrics = LogicalMetrics(registry, "core"))
             val intent = intent("SignOut")
             receipts.execute(intent, UUID.randomUUID(), true) { connection ->
@@ -96,7 +96,7 @@ class OwnerReceiptMetricsBoundaryTest {
 
     @Test
     fun `committed PENDING and FAILED rows retain actual outcome semantics without another mutation`() = fixture { pool ->
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val receipts = OwnerReceipts(pool, hashes, metrics = LogicalMetrics(registry, "core"))
             for ((state, code) in listOf("PENDING" to null, "FAILED" to "FIELD_INVALID")) {
                 val intent = intent("DRAFT_SAVE")
@@ -113,7 +113,7 @@ class OwnerReceiptMetricsBoundaryTest {
 
     @Test
     fun `actual meter registration failure cannot replace the committed product result`() = fixture { pool ->
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             Gauge.builder("spoolin.operation.duration") { 1.0 }
                 .tags("service", "core", "operation", "register", "boundary", "owner").register(registry)
             val receipts = OwnerReceipts(pool, hashes, metrics = LogicalMetrics(registry, "core"))
@@ -164,3 +164,10 @@ class OwnerReceiptMetricsBoundaryTest {
         }
     }
 }
+
+private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =
+    try {
+        action(this)
+    } finally {
+        close()
+    }

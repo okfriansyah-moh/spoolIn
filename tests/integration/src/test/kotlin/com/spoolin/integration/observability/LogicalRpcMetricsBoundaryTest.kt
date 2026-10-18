@@ -73,7 +73,7 @@ class LogicalRpcMetricsBoundaryTest {
 
     @Test
     fun `streamed response followed by actual terminal deadline is failed rather than counted as early success`() {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val metrics = LogicalMetrics(registry, "media")
             val media = object : MediaServiceGrpc.MediaServiceImplBase() {
                 override fun readAsset(request: Spoolin.AssetReadRequest, response: StreamObserver<Spoolin.AssetReadChunk>) {
@@ -97,7 +97,7 @@ class LogicalRpcMetricsBoundaryTest {
 
     @Test
     fun `actual client cancellation closes one measured streaming request without early success`() {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val media = object : MediaServiceGrpc.MediaServiceImplBase() {
                 override fun readAsset(request: Spoolin.AssetReadRequest, response: StreamObserver<Spoolin.AssetReadChunk>) {
                     response.onNext(Spoolin.AssetReadChunk.newBuilder().setHeader(
@@ -141,7 +141,7 @@ class LogicalRpcMetricsBoundaryTest {
 
     @Test
     fun `ingress cannot masquerade as Core owner and arbitrary operation labels are rejected`() {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val metrics = LogicalMetrics(registry, "core")
             val start = System.nanoTime()
             assertFalse(metrics.complete("createMovie", "owner", LogicalResult.success(), start))
@@ -170,7 +170,7 @@ class LogicalRpcMetricsBoundaryTest {
     private fun close(channel: ManagedChannel) { channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS) }
 
     private fun fixture(action: (SimpleMeterRegistry, ManagedChannel, CatalogProbe) -> Unit) {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val probe = CatalogProbe()
             val server = NettyServerBuilder.forAddress(InetSocketAddress("127.0.0.1", 0)).addService(probe)
                 .intercept(LogicalRpcMetricsInterceptor(LogicalMetrics(registry, "catalog"))).build().start()
@@ -194,3 +194,10 @@ class LogicalRpcMetricsBoundaryTest {
         }
     }
 }
+
+private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =
+    try {
+        action(this)
+    } finally {
+        close()
+    }

@@ -13,7 +13,7 @@ import java.sql.SQLException
 class ProtectionMetricsRulesTest {
     @Test
     fun `only actual failures create series with the two approved labels`() {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val alert = ProtectionMetrics(registry).observing(ProtectionAlert { })
             assertTrue(registry.meters.isEmpty())
             ProtectionFailure.entries.forEach { alert.recordFailure(it) }
@@ -28,7 +28,7 @@ class ProtectionMetricsRulesTest {
 
     @Test
     fun `observations preserve exact original failures and distinguish database unavailability`() {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val alert = ProtectionMetrics(registry).observing(ProtectionAlert { })
             val database = SQLException("synthetic connection failure")
             assertSame(
@@ -58,7 +58,7 @@ class ProtectionMetricsRulesTest {
 
     @Test
     fun `input validation remains its original rejection and is not reported as a crypto fault`() {
-        SimpleMeterRegistry().use { registry ->
+        SimpleMeterRegistry().useRegistry { registry ->
             val alert = ProtectionMetrics(registry).observing(ProtectionAlert { })
             val invalid = IllegalArgumentException("synthetic invalid caller input")
             assertSame(
@@ -110,3 +110,10 @@ class ProtectionMetricsRulesTest {
         assertSame(ProtectedRead.Unavailable, decryptProtected(broken, null) { error("Key must not be used") })
     }
 }
+
+private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =
+    try {
+        action(this)
+    } finally {
+        close()
+    }

@@ -40,7 +40,7 @@ class OwnerMetricsBoundaryTest {
                         )
                     }
                 }
-                SimpleMeterRegistry().use { registry ->
+                SimpleMeterRegistry().useRegistry { registry ->
                     val metrics = OwnerMetrics(registry, pool, "media", { 2 }, { 8 }, { true }, mapOf("artwork" to directory))
                     assertTrue(metrics.prepareScrape())
                     assertEquals(
@@ -97,7 +97,7 @@ class OwnerMetricsBoundaryTest {
     fun `actual database permission failure fails scrape and invalidates prior measurements instead of returning zero`() =
         fixture { owner ->
             owner.pool("media").use { pool ->
-                SimpleMeterRegistry().use { registry ->
+                SimpleMeterRegistry().useRegistry { registry ->
                     val metrics = OwnerMetrics(registry, pool, "media", { 0 }, { 8 }, { true })
                     assertTrue(metrics.prepareScrape())
                     assertEquals(
@@ -128,7 +128,7 @@ class OwnerMetricsBoundaryTest {
     fun `unready service differs from unreachable exporter and no due work has measured zero age`() =
         fixture { owner ->
             owner.pool("media").use { pool ->
-                SimpleMeterRegistry().use { registry ->
+                SimpleMeterRegistry().useRegistry { registry ->
                     val metrics = OwnerMetrics(registry, pool, "media", { 1 }, { 8 }, { false })
                     assertTrue(metrics.prepareScrape())
                     assertEquals(0.0, registry.get("spoolin.service.ready").gauge().value())
@@ -147,3 +147,10 @@ class OwnerMetricsBoundaryTest {
         }
     }
 }
+
+private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =
+    try {
+        action(this)
+    } finally {
+        close()
+    }
