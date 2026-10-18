@@ -392,13 +392,25 @@ The catalog screenshots and seeded movie/TV examples show the updated real catal
 
 ### Choose the right account
 
-| Account | Access |
-| --- | --- |
-| Visitor | Browse and search public movies, people, and credits |
-| Viewer | Browse with a signed-in account |
-| Maintainer | Maintain movies, people, credits, artwork, and archived records |
+The local setup creates two ready-to-use accounts. After completing [Start and sign in](#start-and-sign-in), choose the role you want to try:
 
-Follow the [initial sign-in steps](#start-and-sign-in) to use the local accounts. **Register** creates a Viewer account; catalog editing requires a Maintainer.
+| Account | Email | Password | Access |
+| --- | --- | --- | --- |
+| Visitor | No account needed | No password needed | Browse and search public movies, people, and credits |
+| Viewer | `viewer@example.invalid` | Generated locally; use the Viewer line in `.local/accounts.txt` | Browse with a signed-in account |
+| Maintainer | `maintainer@example.invalid` | Generated locally; use the Maintainer line in `.local/accounts.txt` | Maintain movies, people, credits, artwork, and archived records; review History |
+
+To get the actual email and password pairs, run this from the repository folder. On Windows, use the Ubuntu terminal from the setup guide; the same command works on macOS and Linux:
+
+```bash
+cat .local/accounts.txt
+```
+
+Each line contains `email: password`. Open `https://localhost:8443`, select **Sign in**, enter an email from the table, and copy the password after the colon on its matching line. Choose Maintainer to try editing, artwork uploads, Archives, and History; choose Viewer to try signed-in browsing.
+
+There is no shared default password. Setup generates random passwords for your installation and preserves them across repeated setup and restarts. On a fresh clone, run `make local-setup` first, then `make local-start` before signing in. Keep the displayed credentials private.
+
+**Register** creates an additional Viewer account; catalog editing requires a Maintainer.
 
 When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.
 
