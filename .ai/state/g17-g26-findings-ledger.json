@@ -1452,10 +1452,51 @@
       {
         "run_id": 39093336453,
         "tested_sha": "648cb660afb86f2b9a745431f8b44ad91fc68e32",
-        "result": "in_progress",
-        "detail": "Actualcomposedverificationdispatchedafterseedcompilefix; laterMakeexportandqualityrefactorsnotinthisSHA.",
+        "result": "cancelled",
+        "detail": "Hosted strictbuild failed Core Int/Long byte-limit comparison; corrected9d8bf53. Frontendcheck failed unconfigured $lib alias; corrected890ff3d. Actual frontend331passed/2failed in333; already corrected credit nullcursor/retainedresult parsing. Artifacts inspected; no runtime acceptance.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39093336453",
-        "artifact_retention_days": 14
+        "artifact_retention_days": 14,
+        "history": [
+          {
+            "result": "in_progress",
+            "detail": "Actualcomposedverificationdispatchedafterseedcompilefix; laterMakeexportandqualityrefactorsnotinthisSHA."
+          }
+        ],
+        "inspected_artifact_ids": [
+          12124295009,
+          12123926318
+        ]
+      },
+      {
+        "run_id": 39093635908,
+        "tested_sha": "890ff3d807fb2c90e6adf102495b836fe6d0daf2",
+        "result": "cancel-requested",
+        "detail": "Strict all-owner build/contracts passed;339 frontend tests passed. FEcheck failed pinnedKit goto options, corrected38efa19/4456499. Actual retained native XML totals686tests/41failures/0skips; shared testcompile also failed, so totals do not include unexecuted obligations. Host codec AppArmor denial observed and pinned restrictive profile support added, not yet remotely proved. Cancel requested during obsolete gates to prioritize user-directed real startup/browser run. No application readiness/browser/task acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39093635908",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12124312646,
+          12123976433,
+          12123318182
+        ]
+      },
+      {
+        "run_id": 39094030592,
+        "tested_sha": "4456499a19440c79a2a6cd9b6fd02051b427f5a7",
+        "result": "cancelled",
+        "detail": "Queued formatting cancelled before execution to prioritize fresh actual application proof; no pass claimed.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39094030592",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": []
+      },
+      {
+        "run_id": 39095266826,
+        "tested_sha": "9ca527329756295a84af98246e1953d6b6c94550",
+        "result": "pending",
+        "detail": "Focused hosted runtime run dispatched following explicit user direction to prioritize actual make start, seed, real browsers/design and monitoring. Broad suites and final gates remain separately required; focused runtime cannot establish complete acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095266826",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": []
       }
     ],
     "progress_checkpoints": [
@@ -1535,6 +1576,12 @@
         ],
         "checks": "Hosted39092813499 cancelled after actual Catalog seed compilation failure and2of312 frontend tests failed (310 passed); inspected artifact12123199476 and strict-build12122709083. Helper log exposed recursive Make selection; TASK export correction7d2db4b pending remote rerun. Hosted39093336453 active648cb660afb86f2b9a745431f8b44ad91fc68e32. No new application readiness/browser acceptance.",
         "remaining": "All46tasks In progress. Source-complete established0; runtime task acceptance0; formal0. Finish fresh remote checks/source corrections, clients/readers/host proof, allMake/seed/design/ops proof and one final combined review. Prior counters and findings preserved."
+      }
+    ],
+    "prioritization_history": [
+      {
+        "at": "2026-10-18T03:55:00Z",
+        "direction": "User prefers speed and actual make start/browser/design verification with usage remaining; focused runtime mode added, final gates and one combined review remain required."
       }
     ]
   }
