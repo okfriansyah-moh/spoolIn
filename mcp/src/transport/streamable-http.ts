@@ -3,6 +3,7 @@ import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node';
 import { createSession } from '../gateway/session.js';
 import { connectorTokenDigest } from '../identity/connector.js';
+import { ReadAdmission, ReadLimited } from './read-admission.js';
 export { composeProposeMovieToolResult } from '../tools/propose-movie-result.js';
 export { buildProposeMovieCallToolResult } from './propose-tool-result.js';
 
@@ -11,7 +12,7 @@ const MAX_SESSIONS = 100;
 const SESSION_IDLE_MS = 15 * 60_000;
 
 export class StreamableHttpTransport {
-  constructor(private readonly sessionFactory = createSession) {}
+  constructor(private readonly sessionFactory = createSession, private readonly admission = new ReadAdmission()) {}
   get port(): number {
     const address = this.listener?.address();
     if (!address || typeof address === 'string') throw new Error('MCP listener unavailable');
@@ -27,7 +28,7 @@ export class StreamableHttpTransport {
     const hosts = new Set((process.env.MCP_ALLOWED_HOSTS ?? 'localhost,127.0.0.1,mcp').split(','));
     this.listener = http.createServer((req, res) => {
       void this.handle(req, res, options.httpPath, origins, hosts).catch(() => {
-        if (!res.headersSent) res.writeHead(502);
+        if (!res.headersSent) res.writeHead(503);
         res.end();
       });
     });
@@ -60,17 +61,22 @@ export class StreamableHttpTransport {
     if (typeof id === 'string') {
       const session = this.sessions.get(id);
       if (!session || !timingSafeEqual(session.digest, digest)) { res.writeHead(404).end(); return; }
+      const body = await this.body(req, res);
+      if (res.writableEnded || !this.admit(req, res, digest, body, true)) return;
       session.touched = Date.now();
-      await session.transport.handleRequest(req, res);
+      await session.transport.handleRequest(req, res, body);
       return;
     }
-    if (req.method !== 'POST' || this.sessions.size + this.initializing >= MAX_SESSIONS) { res.writeHead(req.method === 'POST' ? 429 : 400).end(); return; }
+    if (req.method !== 'POST' || this.sessions.size + this.initializing >= MAX_SESSIONS) { res.writeHead(req.method === 'POST' ? 429 : 400, req.method === 'POST' ? { 'Retry-After': '1' } : {}).end(); return; }
+    const body = await this.body(req, res);
+    if (res.writableEnded) return;
     // Core validates the live credential before an MCP session or any tool is allocated.
     this.initializing += 1;
-    try { await this.initialize(req, res, token, digest); } finally { this.initializing -= 1; }
+    try { await this.initialize(req, res, token, digest, body); } finally { this.initializing -= 1; }
   }
-  private async initialize(req: http.IncomingMessage, res: http.ServerResponse, token: string, digest: Buffer): Promise<void> {
+  private async initialize(req: http.IncomingMessage, res: http.ServerResponse, token: string, digest: Buffer, body: unknown): Promise<void> {
     const service = await this.sessionFactory(token);
+    if (!this.admit(req, res, digest, body, false)) { await service.close(); return; }
     let sessionId: string | undefined;
     const transport = new NodeStreamableHTTPServerTransport({
       sessionIdGenerator: randomUUID,
@@ -83,9 +89,43 @@ export class StreamableHttpTransport {
     });
     try {
       await service.server.connect(transport);
-      await transport.handleRequest(req, res);
+      await transport.handleRequest(req, res, body);
     } finally {
       if (!sessionId) await service.close();
+    }
+  }
+  private async body(req: http.IncomingMessage, res: http.ServerResponse): Promise<unknown> {
+    if (req.method !== 'POST') return undefined;
+    const chunks: Buffer[] = [];
+    let bytes = 0;
+    for await (const chunk of req) {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      bytes += buffer.length;
+      if (bytes > 128 * 1024) { res.writeHead(413).end(); return undefined; }
+      chunks.push(buffer);
+    }
+    try {
+      const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid request');
+      return parsed;
+    } catch { res.writeHead(400).end(); return undefined; }
+  }
+  private admit(req: http.IncomingMessage, res: http.ServerResponse, digest: Buffer, body: unknown, established: boolean): boolean {
+    const message = body as { method?: unknown; id?: unknown } | undefined;
+    if (established && req.method === 'POST' && message?.method === 'tools/call') return true;
+    try { this.admission.admit(digest); return true; }
+    catch (failure) {
+      const limited = failure instanceof ReadLimited;
+      const retryAfterMs = limited ? failure.retryAfterMs : undefined;
+      const status = limited ? 429 : 503;
+      const problem = limited ? { code: 'RATE_LIMITED', retryAfterMs } : { code: 'UNAVAILABLE' };
+      res.writeHead(status, { 'content-type': 'application/json',
+        ...(limited ? { 'Retry-After': String(Math.max(1, Math.ceil(failure.retryAfterMs / 1000))) } : {}) });
+      res.end(JSON.stringify(established && req.method === 'POST' ? {
+        jsonrpc: '2.0', id: typeof message?.id === 'string' || typeof message?.id === 'number' ? message.id : null,
+        error: { code: -32000, message: limited ? 'Request limit reached.' : 'Service unavailable.', data: problem },
+      } : { problem }));
+      return false;
     }
   }
   async close(): Promise<void> {
