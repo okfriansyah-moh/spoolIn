@@ -43,7 +43,7 @@ trap 'exit 143' TERM
 printf '%s' "$reason" > "$temporary/reason"
 chmod 600 "$temporary/reason"
 command=(docker compose --project-name "$SPOOLIN_INSTALLATION" -f "$root_dir/ops/compose.yaml" run --rm --no-deps -T
-  --user 0:0 --volume "$SPOOLIN_LOCK_DIR:/run/spoolin-operator-authority:ro"
+  --user 0:0 --cap-add DAC_OVERRIDE --volume "$SPOOLIN_LOCK_DIR:/run/spoolin-operator-authority:ro"
   --volume "$temporary/reason:/run/spoolin-operator-reason:ro" --env "SPOOLIN_OPERATOR_UID=$(id -u)"
   --entrypoint java "$service" -Dloader.main=com.spoolin.support.work.WorkRecoveryCli
   -cp /app/service.jar org.springframework.boot.loader.launch.PropertiesLauncher

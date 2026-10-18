@@ -50,7 +50,7 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 docker compose --project-name "$SPOOLIN_INSTALLATION" -f "$root_dir/ops/compose.yaml" run --rm --no-deps -T \
-  --user "$(id -u):$(id -g)" --volume "$SPOOLIN_LOCK_DIR:/run/spoolin-operator-authority:ro" "${mounts[@]}" \
+  --user 0:0 --cap-add DAC_OVERRIDE --cap-add CHOWN --volume "$SPOOLIN_LOCK_DIR:/run/spoolin-operator-authority:ro" "${mounts[@]}" \
   --env "SPOOLIN_OPERATOR_UID=$(id -u)" --entrypoint java core \
   -Dloader.main=com.spoolin.core.features.connector.ConnectorOperatorCli \
   -cp /app/service.jar org.springframework.boot.loader.launch.PropertiesLauncher "${args[@]}"

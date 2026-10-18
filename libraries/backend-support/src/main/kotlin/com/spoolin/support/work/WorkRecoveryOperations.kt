@@ -117,6 +117,9 @@ object WorkRecoveryOperations {
         val started = work.phaseHistory.filter { it["event_type"] == "ATTEMPT_STARTED" }
         val finished = work.phaseHistory.filter { it["event_type"] == "ATTEMPT_FINISHED" }
         require(started.size == finished.size && (started.isNotEmpty() || work.attempts == 0))
+        require(started.count { it["generation"] == work.generation.toString() } == work.attempts) {
+            "Current generation attempt evidence is incomplete"
+        }
         started.forEach { start ->
             val end = finished.singleOrNull { sameAttempt(start, it) }
             requireNotNull(end) { "Uncertain attempt lacks destination evidence" }

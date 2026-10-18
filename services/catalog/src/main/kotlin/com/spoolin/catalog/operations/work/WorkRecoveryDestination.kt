@@ -20,6 +20,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private const val RPC_SECONDS = 5L
+private const val MEDIA_RPC_PORT = 9090
 
 /** Read-only destination reconciliation; the worker retains its original child request and repeats live checks. */
 class WorkRecoveryDestination(
@@ -34,7 +35,8 @@ class WorkRecoveryDestination(
         val payload = connection.queryBound("SELECT payload::text FROM durable_work WHERE id=?", listOf(work.id)) {
             JsonMapper.builder().build().readTree(it.getString(1))
         }.single()
-        val hold = UUID.fromString(payload["subjectId"].asText())
+        val subject = payload["subjectId"].asText()
+        val hold = UUID.fromString(subject).also { require(it.toString() == subject) }
         val target = target(connection, hold)
         val step = when (work.kind) {
             "ARTWORK_ATTACH" -> { preparing(connection, work, target); "media-reserve" }
@@ -44,7 +46,10 @@ class WorkRecoveryDestination(
         val original = WorkRequest(step, "ARTWORK", hold, Instant.MAX).id(hold)
         val expectedVersion = when (work.kind) {
             "ARTWORK_CONFIRM" -> Math.addExact(target.expectedVersion, 1)
-            "ARTWORK_RELEASE" -> payload["catalogVersion"].asLong().also { require(it >= 0) }
+            "ARTWORK_RELEASE" -> payload["catalogVersion"].let { version ->
+                require(version.isIntegralNumber && version.canConvertToLong())
+                version.asLong().also { require(it >= 0) }
+            }
             else -> null
         }
         reconcile(original, hold, expectedVersion)
@@ -110,7 +115,7 @@ class WorkRecoveryDestination(
         OperatorAccess.protectedFile(key)
         val tls = GrpcSslContexts.forClient().trustManager(Path.of(OperatorAccess.required("SERVICE_CA_FILE")).toFile())
             .keyManager(Path.of(OperatorAccess.required("SERVICE_CERT_FILE")).toFile(), key.toFile()).build()
-        return NettyChannelBuilder.forAddress("media", 9090).sslContext(tls).build()
+        return NettyChannelBuilder.forAddress("media", MEDIA_RPC_PORT).sslContext(tls).build()
     }
 
     override fun close() {
