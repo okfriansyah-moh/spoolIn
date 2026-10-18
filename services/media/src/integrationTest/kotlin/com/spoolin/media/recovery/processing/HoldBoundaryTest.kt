@@ -223,7 +223,7 @@ class HoldBoundaryTest {
     }
 
     private fun database(action: (OwnerFixture, DataSource) -> Unit) {
-        OwnerFixture("media-hold-boundary.json").start().use { fixture ->
+        OwnerFixture("t022-media-hold-boundary.json").start().use { fixture ->
             fixture.membership("media", "grant")
             fixture.pool("media", "migrator").use { MigrationRunner(it).migrate() }
             fixture.grants("media"); fixture.membership("media", "revoke")

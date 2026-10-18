@@ -104,7 +104,7 @@ class ProcessingWorkerBoundaryTest {
     }
 
     private fun database(action: (DataSource) -> Unit) {
-        OwnerFixture("media-worker-processing.json").start().use { fixture ->
+        OwnerFixture("t022-media-worker-processing.json").start().use { fixture ->
             fixture.membership("media", "grant")
             fixture.pool("media", "migrator").use { MigrationRunner(it).migrate() }
             fixture.grants("media")

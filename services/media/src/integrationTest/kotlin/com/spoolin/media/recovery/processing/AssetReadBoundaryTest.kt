@@ -47,7 +47,7 @@ class AssetReadBoundaryTest {
 
     @Test
     fun `real stream rechecks current Catalog tuple before header and hides stale grants and foreign services`() {
-        OwnerFixture("media-asset-stream.json").start().use { fixture ->
+        OwnerFixture("t022-media-asset-stream.json").start().use { fixture ->
             fixture.membership("media", "grant")
             fixture.pool("media", "migrator").use { MigrationRunner(it).migrate() }
             fixture.grants("media")
