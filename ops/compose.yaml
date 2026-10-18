@@ -264,6 +264,7 @@ services:
       <<: *owner-settings
       CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CATALOG_DB_USER: spoolin_catalog_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/catalog.json[.yaml]
       CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
       CATALOG_DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/catalog-maintenance-password
       SPOOLIN_SEED_ID: wikidata-2026-10-v1
@@ -273,7 +274,9 @@ services:
     tmpfs: [/tmp]
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    volumes: [../data/seed:/app/seed:ro]
+    volumes:
+      - ../data/seed:/app/seed:ro
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
     secrets: [catalog-runtime-password, service-ca]
 
   mcp:

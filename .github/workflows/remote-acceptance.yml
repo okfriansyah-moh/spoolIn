@@ -117,8 +117,20 @@ jobs:
           python3 ops/ci/readiness-helper-test.py
           python3 ops/ci/operational-status-test.py
       - name: Provision pinned production codec prerequisites
+        id: codec
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
         run: bash ops/ci/prepare-codec-fixture.sh
+      - name: Retain failed codec prerequisite diagnostics immediately
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.codec.outcome == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: codec-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/source-checks/codec-environment.txt
+            artifacts/source-checks/codec-sandbox-preflight.log
+          retention-days: 14
+          if-no-files-found: error
       - name: Exercise real owner and cross-service boundaries
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
         run: |
