@@ -21,9 +21,10 @@ SpoolIn is a movie catalog for people who want to discover films and maintain th
   - [Explore a movie](#explore-a-movie)
   - [Find cast and creators](#find-cast-and-creators)
   - [Maintainer example: create and edit a movie](#maintainer-example-create-and-edit-a-movie)
-  - [Manage people and credits](#manage-people-and-credits)
-  - [Upload artwork](#upload-artwork)
-  - [Archive and recover records](#archive-and-recover-records)
+  - [Maintainer example: manage cast and creators](#maintainer-example-manage-cast-and-creators)
+  - [Maintainer example: manage credits](#maintainer-example-manage-credits)
+  - [Maintainer example: upload artwork](#maintainer-example-upload-artwork)
+  - [Maintainer example: archive and delete records](#maintainer-example-archive-and-delete-records)
   - [Understand feedback](#understand-feedback)
   - [Use a smaller screen](#use-a-smaller-screen)
 - [How it works](#how-it-works)
@@ -398,34 +399,70 @@ If someone else saves the record while you're editing, SpoolIn asks you to revie
 
 The seeded catalog also contains TV titles. Those entries are read-only in the movie management list.
 
-### Manage people and credits
+### Maintainer example: manage cast and creators
 
-Open **Manage people** in the navigation and choose **Create person** to add a professional name and biography, or **Edit** on an existing record to change it. Save the person before using them in a movie credit.
+Cast and creators use shared person records. Add the person first, then describe their contribution with a movie credit.
 
-In a movie's **Cast and creators** section, choose an existing **Person** and **Role**, then select **Add credit**. Cast roles can include **Character names · one per line** when the selected role supports them. Creator roles describe contributions such as directing. Existing rows have **Edit credit** and **Remove credit** controls; editing uses **Save credit**. Review the selected person, role, and character names before saving. Editing a person updates that identity across its credits; it doesn't merge other people with the same name.
+1. Sign in as a Maintainer and open **Manage people** → **Create person**.
+2. Enter `A. Rivers` as the professional name and `Fictional director of Letters from Tomorrow.` as the biography. Select **Save person** and wait for **Person saved**.
+3. Create another person named `Mira Vale`, with the biography `Fictional actor playing the lighthouse keeper.`
+4. To update either biography, open **Manage people**, find the person, choose **Edit**, change the biography, and select **Save person**. Use **Load more people** if the record is beyond the first page.
 
-### Upload artwork
+![Maintainer saving the fictional creator A. Rivers, with professional name, biography, and Person saved feedback](docs/assets/spoolin/maintainer-person.png)
 
-Open a saved movie's management page and find **Poster artwork**. Choose a PNG, JPEG, or WebP image that meets the limits shown by the application. Use artwork you have permission to use.
+*People example: A. Rivers has been saved as a shared person record. A credit will identify their directing work on the movie.*
 
-The upload first transfers the file, then processes it on the server. A complete transfer percentage doesn't mean the poster is attached yet. Wait for the saved confirmation and check the refreshed artwork. If the page says the artwork attached but details couldn't refresh, retry the details read before uploading again.
+Editing a person updates that identity across its credits. It doesn't merge different people who happen to share a name.
 
-Cancel applies to an active operation where the control is available. When the outcome is uncertain, use the offered status check. Unsupported or oversized files should show an explanation so you can choose another file.
+### Maintainer example: manage credits
 
-![Artwork upload showing the saved confirmation](docs/assets/spoolin/artwork.png)
+Open **Movies**, choose **Edit** for `Letters from Tomorrow`, and scroll to **Cast and creators**.
 
-### Archive and recover records
+1. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
+2. Choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Load more people** to find a person beyond the current options.
+3. Wait for the saved credit to appear in the list. The same movie can have both cast and creator credits.
+4. To change a credit, select its **Edit credit** control, update the role or supported character names, and select **Save credit**.
+5. To remove a contribution, choose **Remove credit** on that row and review its confirmation. Removing a credit removes the relationship; the shared person remains available.
 
-Archiving removes a movie or person from active catalog browsing while retaining a recovery path. Open the record's management page, choose its archive action, and read the confirmation before proceeding. Inspect affected credits and the impact information shown for the operation.
+![Maintainer credit panel with A. Rivers as Director and Mira Vale as Actor playing The Keeper, plus editing and removal controls](docs/assets/spoolin/maintainer-credits.png)
 
-To restore or permanently delete an archived record:
+*Credits example: the movie links one creator and one cast member to their existing person records.*
 
-1. Sign in as a Maintainer and open **Archives**.
-2. Choose the **Movies** or **People** tab and find the record.
-3. Select **Restore** to return it to the active catalog, or **Delete permanently** to open its deletion confirmation.
-4. Read the displayed impact information before choosing **Permanently delete**. Permanent deletion is irreversible.
+### Maintainer example: upload artwork
 
-Open **History** to inspect recorded catalog changes.
+For the fictional movie, use the repository's sample lighthouse poster:
+
+1. Open **Movies** → **Edit** for `Letters from Tomorrow`.
+2. Find **Poster artwork** and choose `docs/design-system/mockup/assets/letters.png` from this checkout. You can also use a PNG, JPEG, or WebP image you have permission to use that meets the displayed limits.
+3. Keep the page open while the file transfers and the server processes it. A complete transfer percentage doesn't mean the poster is attached yet.
+4. Wait for **Saved**, then open the movie's public page to see its poster.
+
+![Maintainer poster artwork field showing Saved after uploading the lighthouse poster](docs/assets/spoolin/maintainer-artwork.png)
+
+*Artwork example: the lighthouse poster has finished uploading and attaching to the movie.*
+
+If the artwork attached but details couldn't refresh, retry the details read before uploading again. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or oversized files should explain what to change.
+
+### Maintainer example: archive and delete records
+
+Archiving removes a record from public browsing and retains a recovery path. Permanent deletion is irreversible. Use a disposable fictional record when following this example.
+
+1. Under **Manage people**, create `Example Person to Remove` with the biography `Disposable fictional record for the archive and deletion walkthrough.` Save it and choose **Edit saved person**.
+2. Select **Archive person**, read the confirmation, and confirm **Archive person**. The application opens **Archives**.
+3. Choose the **People** tab and find `Example Person to Remove`. **Restore** returns it to the active catalog if you want to keep it.
+
+![Maintainer Archives People tab showing the disposable Example Person to Remove with Restore and Delete permanently controls](docs/assets/spoolin/maintainer-archives.png)
+
+*Archive example: the person is retained privately, with recovery and permanent deletion available as separate actions.*
+
+4. To discard the disposable record, select **Delete permanently**. Read the record name and impact information in **Confirm permanent deletion**.
+5. Choose **Permanently delete** only for the intended record. Wait for **The change is confirmed.** before continuing.
+
+![Maintainer reviewing the permanent deletion confirmation for Example Person to Remove](docs/assets/spoolin/maintainer-delete.png)
+
+*Deletion example: the confirmation identifies the fictional record before the irreversible action.*
+
+For a movie, open its management page, choose **Archive movie**, then use the **Movies** tab in **Archives** for restoration or permanent deletion. For a person with credits, review the displayed impact on linked movies before deleting. **History** records catalog changes.
 
 ### Understand feedback
 
