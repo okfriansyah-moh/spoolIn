@@ -1,6 +1,8 @@
 package com.spoolin.catalog.seed
 
 import com.spoolin.support.receipts.executeBound
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
 import com.spoolin.support.receipts.queryBound
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -13,6 +15,7 @@ import javax.sql.DataSource
 /** Applies one validated frozen snapshot atomically; successful reruns verify retained evidence. */
 class CatalogSeedLoader(
     private val dataSource: DataSource,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
 ) {
     private val mapper = JsonMapper.builder().build()
 
@@ -45,13 +48,15 @@ class CatalogSeedLoader(
             if (existing(connection, seed, version)) {
                 0
             } else {
+                val effective = policy()
+                SeedPolicyValidation(effective).validate(seed)
                 pending(connection, seed, version)
                 val roleIds = roles(connection, seed, provenance)
                 seed.people.forEach { person(connection, it, provenance) }
                 val genreIds = genres(connection, seed, provenance)
                 val plan = TitlePlan(seed, genreIds, roleIds)
                 seed.records.forEach { title(connection, it, provenance, plan) }
-                complete(connection, seed, version)
+                complete(connection, seed, version, effective.revision)
                 seed.records.size
             }
         provenance.verify()
@@ -141,11 +146,13 @@ class CatalogSeedLoader(
         connection: Connection,
         seed: SeedManifest,
         version: String,
+        policyRevision: String,
     ) {
         val summary =
             mapOf(
                 "manifestVersion" to seed.version,
                 "validationRevision" to "TD10.1-v2",
+                "policyRevision" to policyRevision,
                 "source" to "wikidata",
                 "distribution" to mapper.convertValue(seed.root["distribution"], Map::class.java),
                 "people" to seed.people.size,
@@ -203,9 +210,10 @@ class CatalogSeedLoader(
     ) {
         val id = UUID.fromString(node["stableUUID"].asText())
         connection.executeBound(
-            "INSERT INTO person(id,name,status,version) VALUES(?,?,'ACTIVE',0)",
+            "INSERT INTO person(id,name,biography,status,version) VALUES(?,?,?,'ACTIVE',0)",
             id,
             node["name"].asText(),
+            optionalText(node, "biography"),
         )
         provenance.member(node, "PERSON")
         provenance.source(node, "PERSON", id)
@@ -251,11 +259,12 @@ class CatalogSeedLoader(
         }
         node["credits"].forEach { credit ->
             connection.executeBound(
-                "INSERT INTO credit(id,title_id,person_id,role_id,version) VALUES(?,?,?,?,0)",
+                "INSERT INTO credit(id,title_id,person_id,role_id,characters,version) VALUES(?,?,?,?,?::text[],0)",
                 UUID.fromString(credit["stableUUID"].asText()),
                 id,
                 SeedIdentities.record(plan.seed.namespace, "wikidata", "PERSON", credit["personExternalId"].asText()),
                 plan.roles.getValue(credit["roleExternalId"].asText()),
+                connection.createArrayOf("text", credit["characters"].map { it.asText() }.toTypedArray()),
             )
             provenance.member(credit, "CREDIT")
         }
@@ -275,8 +284,9 @@ class CatalogSeedLoader(
         val status = values.path("tvStatus").takeUnless { it.isMissingNode || it.isNull }?.asText()
         connection.executeBound(
             "INSERT INTO title(id,kind,status,display_title,synopsis,synopsis_language,release_year," +
-                "release_month,release_day,release_context,tv_status,end_year,end_month,end_day,version) " +
-                "VALUES(?,?,'ACTIVE',?,?,?,?,?,?,?,?,?,?,?,0)",
+                "release_month,release_day,release_context,tv_status,end_year,end_month,end_day," +
+                "original_title,original_language,countries,runtime_minutes,version) " +
+                "VALUES(?,?,'ACTIVE',?,?,?,?,?,?,?,?,?,?,?,?,?,?::text[],?,0)",
             id,
             node["kind"].asText(),
             values["title"].asText(),
@@ -290,8 +300,15 @@ class CatalogSeedLoader(
             integer(end, "year"),
             integer(end, "month"),
             integer(end, "day"),
+            optionalText(values, "originalTitle"),
+            optionalText(values, "originalLanguage"),
+            connection.createArrayOf("text", values["countries"].map { it.asText() }.toTypedArray()),
+            integer(values, "runtimeMinutes"),
         )
     }
+
+    private fun optionalText(node: JsonNode, field: String): String? =
+        node.path(field).takeUnless { it.isNull || it.isMissingNode }?.asText()
 
     private fun integer(
         node: JsonNode,

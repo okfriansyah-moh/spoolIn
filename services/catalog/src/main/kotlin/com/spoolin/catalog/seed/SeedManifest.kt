@@ -1,6 +1,10 @@
 package com.spoolin.catalog.seed
 
 import tools.jackson.databind.JsonNode
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.TextRules
+import com.spoolin.support.policy.PartialDate
 import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Path
 import java.time.LocalDate
@@ -53,7 +57,7 @@ class SeedManifest private constructor(
         identity(person, "PERSON")
         checksum(person)
         sources(person, setOf("name"))
-        text(person, "name", SeedLimits.LABEL_CODE_POINTS)
+        text(person, "name")
     }
 
     private fun validateRole(role: JsonNode) {
@@ -82,8 +86,8 @@ class SeedManifest private constructor(
         checksum(record)
         sources(record, setOf("title", "synopsis", "release", "genres"))
         val values = record["normalized"]
-        text(values, "title", SeedLimits.LABEL_CODE_POINTS)
-        text(values, "synopsis", SeedLimits.SYNOPSIS_CODE_POINTS)
+        text(values, "title")
+        text(values, "synopsis")
         require(values.path("synopsisLanguage").asText() == "en")
         date(values["release"])
         if (kind == "TV") validateSeries(values)
@@ -95,7 +99,10 @@ class SeedManifest private constructor(
     private fun validateSeries(values: JsonNode) {
         require(values.path("tvStatus").asText() in setOf("CONTINUING", "ENDED", "CANCELLED", "UNKNOWN"))
         val end = values.path("end")
-        if (!end.isNull && !end.isMissingNode) date(end)
+        if (!end.isNull && !end.isMissingNode) {
+            date(end)
+            require(PartialDate.ordered(partial(values["release"]), partial(end)) != false) { "Series ends before its known start" }
+        }
     }
 
     private fun validateGenres(record: JsonNode) {
@@ -156,11 +163,18 @@ class SeedManifest private constructor(
     private fun text(
         node: JsonNode,
         field: String,
-        maximum: Int,
+        maximum: Int? = null,
     ) {
         val value = node.path(field).asText()
-        require(value.isNotBlank() && value.codePointCount(0, value.length) <= maximum)
+        require(node.path(field).isString && !TextRules.blank(value))
+        TextRules.scalars(value, field)
+        require(maximum == null || value.codePointCount(0, value.length) <= maximum)
     }
+
+    private fun partial(node: JsonNode): PartialDate = PartialDate.of(
+        node["year"].asInt(), node.path("month").takeUnless { it.isNull || it.isMissingNode }?.asInt(),
+        node.path("day").takeUnless { it.isNull || it.isMissingNode }?.asInt(), requireYear = true,
+    )
 
     private fun date(node: JsonNode) {
         val year = node.path("year").asInt()
@@ -181,5 +195,8 @@ class SeedManifest private constructor(
 
     companion object {
         fun read(path: Path): SeedManifest = SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
+
+        fun prepare(path: Path, policy: PublicPolicy = PolicyEnvironment.resolve(System::getenv)): SeedManifest =
+            read(path).also { SeedPolicyValidation(policy).validate(it) }
     }
 }

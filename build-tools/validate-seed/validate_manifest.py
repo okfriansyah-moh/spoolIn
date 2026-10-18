@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Validate the complete frozen CC0 seed, deterministic identities, hashes and relationships."""
+"""Structural preflight for frozen seed identities, hashes, source rules and relationships.
+
+Current effective input policy is enforced by CatalogSeedLoader for fresh application
+and by the Catalog CLI --validate-only mode for preparation, never by guessed defaults here.
+"""
 from __future__ import annotations
 import hashlib
 import json
@@ -38,6 +42,11 @@ def require(condition, reason):
         raise ValueError(reason)
 
 
+def text(value):
+    require(isinstance(value, str) and bool(value.strip()), 'Missing seed text')
+    require(not any(ord(char) == 0 or 0xD800 <= ord(char) <= 0xDFFF for char in value), 'Invalid seed Unicode')
+
+
 def sources(node, expected):
     rows = node.get('sources', [])
     require(set(row['field'] for row in rows) >= expected, 'Missing field provenance')
@@ -66,8 +75,9 @@ def validate_record(root, row, people, roles):
     require(row['contentSHA256'] == checksum(row), 'Record checksum mismatch')
     sources(row, {'title', 'synopsis', 'release', 'genres'})
     fields = row['normalized']
-    require(0 < len(fields['title'].strip()) <= 255, 'Invalid title')
-    require(0 < len(fields['synopsis'].strip()) <= 5000 and fields['synopsisLanguage'] == 'en', 'Invalid original synopsis/language')
+    text(fields['title'])
+    text(fields['synopsis'])
+    require(fields['synopsisLanguage'] == 'en', 'Invalid original synopsis language')
     validate_date(fields['release'])
     if row['kind'] == 'TV':
         require(fields['tvStatus'] in {'CONTINUING', 'ENDED', 'CANCELLED', 'UNKNOWN'}, 'Invalid TV status')
@@ -103,7 +113,8 @@ def validate(root):
     require({role['label'] for role in roles.values()} == {'Actor', 'Director', 'Writer', 'Producer'}, 'Incorrect starter roles')
     for person in people.values():
         validate_identity(root, person, 'PERSON')
-        require(person['contentSHA256'] == checksum(person) and person['name'].strip(), 'Invalid person')
+        require(person['contentSHA256'] == checksum(person), 'Person checksum mismatch')
+        text(person['name'])
         sources(person, {'name'})
     for role in roles.values():
         validate_identity(root, role, 'ROLE')
@@ -114,11 +125,15 @@ def validate(root):
     expected = {'years': dict(sorted(Counter(str(row['normalized']['release']['year']) for row in records).items())), 'months': dict(sorted(Counter(str(row['normalized']['release']['month'] or 'unknown') for row in records).items()))}
     require(root['distribution'] == expected, 'Distribution does not match complete dataset')
     require(root['files'] == [], 'Unreviewed artwork cannot be bundled')
-    return {'movies': 100, 'series': 100, 'people': len(people), 'credits': sum(len(row['credits']) for row in records), 'artworkFiles': 0, 'snapshotSHA256': root['snapshotSHA256'], 'distribution': expected}
+    return {'movies': 100, 'series': 100, 'people': len(people), 'credits': sum(len(row['credits']) for row in records), 'artworkFiles': 0, 'snapshotSHA256': root['snapshotSHA256'], 'distribution': expected, 'validationScope': 'structure_provenance_hash', 'effectivePolicyVerified': False}
 
 
 def main():
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[2] / 'data/seed/manifest.json'
+    arguments = [argument for argument in sys.argv[1:] if argument != '--structural-only']
+    path = Path(arguments[0]) if arguments else Path(__file__).resolve().parents[2] / 'data/seed/manifest.json'
+    if len(arguments) > 1:
+        print('Seed structural preflight accepts one manifest path', file=sys.stderr)
+        return 2
     try:
         result = validate(json.loads(path.read_text(encoding='utf-8')))
     except (ValueError, KeyError, TypeError) as failure:
