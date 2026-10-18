@@ -149,6 +149,38 @@ def graphql(query, variables):
     raise RuntimeError('Seed API request did not complete')
 
 
+def verify_api_credits(actual, node, manifest, role_ids):
+    people = {row['externalId']: row for row in manifest['people']}
+    credits = {row['id']: row for row in actual['credits']['nodes']}
+    require(not actual['credits']['pageInfo']['hasNextPage'], 'Seed credits require additional API pagination')
+    require(set(credits) == {row['stableUUID'] for row in node['credits']}, 'API complete credit set differs')
+    roles = {row['externalId']: row for row in manifest['roles']}
+    for expected in node['credits']:
+        person = people[expected['personExternalId']]
+        role = roles[expected['roleExternalId']]
+        compare_fields(credits[expected['stableUUID']], {'personId': person['stableUUID'], 'personName': person['name'],
+                       'titleId': node['stableUUID'], 'titleName': node['normalized']['title'], 'characters': [],
+                       'role': {'id': role_ids[expected['roleExternalId']], 'label': role['label'],
+                                'category': role['category'], 'allowsCharacters': role['allowsCharacters']}}, expected['stableUUID'])
+
+
+def verify_api_order(manifest):
+    actual = []
+    cursor = None
+    while True:
+        query = 'query SeedOrder($after:Cursor){titles(filter:{},first:100,after:$after){nodes{id} pageInfo{endCursor hasNextPage}}}'
+        page = graphql(query, {'after': cursor})['titles']
+        actual.extend(row['id'] for row in page['nodes'])
+        require(len(actual) <= 200, 'Unexpected duplicate or extra API page results')
+        if not page['pageInfo']['hasNextPage']:
+            break
+        require(page['pageInfo']['endCursor'] != cursor, 'API cursor did not advance')
+        cursor = page['pageInfo']['endCursor']
+    expected = sorted(manifest['records'], key=lambda row: tuple(-(row['normalized']['release'].get(part) or 0)
+                      for part in ('year', 'month', 'day')) + (row['stableUUID'],))
+    require(actual == [row['stableUUID'] for row in expected], 'Complete discovery ordering differs from release-date/UUID contract')
+
+
 def verify_api(manifest, role_ids):
     results = []
     query = 'query SeedTitle($id:UUID!){title(id:$id){' + TITLE_FIELDS + '}}'
@@ -157,14 +189,16 @@ def verify_api(manifest, role_ids):
         values = node['normalized']
         compare_fields(actual, {'id': node['stableUUID'], 'kind': node['kind'], 'state': 'ACTIVE',
                        'title': values['title'], 'synopsis': values['synopsis'], 'synopsisLanguage': values['synopsisLanguage'],
-                       'release': values['release'], 'tvStatus': values.get('tvStatus'), 'artwork': None}, node['stableUUID'])
+                       'release': values['release'], 'tvStatus': values.get('tvStatus'), 'artwork': None,
+                       'originalTitle': values.get('originalTitle'), 'originalLanguage': values.get('originalLanguage'),
+                       'runtimeMinutes': values.get('runtimeMinutes'), 'countries': values.get('countries', [])}, node['stableUUID'])
         require({row['id'] for row in actual['genres']} == set(values['genreIds']), 'API genre identities differ')
-        require(not actual['credits']['pageInfo']['hasNextPage'], 'Seed credits require additional API pagination')
-        expected_credits = {row['stableUUID'] for row in node['credits']}
-        require({row['id'] for row in actual['credits']['nodes']} == expected_credits, 'API complete credit set differs')
+        verify_api_credits(actual, node, manifest, role_ids)
         require(len(actual['provenance']) == 1, 'API seed provenance missing')
+        compare_fields(actual['provenance'][0], {'source': node['source'], 'externalId': node['externalId'],
+                       'fieldSources': {row['field']: row for row in node['sources']}, 'locallyChanged': []}, node['stableUUID'])
         results.append({'id': node['stableUUID'], 'kind': node['kind'], 'database': 'pass', 'https_api': 'pass',
-                        'credit_count': len(expected_credits), 'artwork': 'not supplied; approved optional placeholders'})
+                        'credit_count': len(node['credits']), 'artwork': 'not supplied; approved optional placeholders'})
         time.sleep(0.6)
     return results
 
@@ -184,6 +218,7 @@ def main():
         verify_titles(manifest, before)
         roles = verify_people_credits(manifest, before, validator)
         verify_provenance(manifest, before, validator, roles)
+        verify_api_order(manifest)
         report['records'] = verify_api(manifest, roles)
         for label, arguments in (('repeat-seed', ['seed']), ('seed-restart', ['restart'])):
             with (output.parent / (label + '.log')).open('w') as log:
