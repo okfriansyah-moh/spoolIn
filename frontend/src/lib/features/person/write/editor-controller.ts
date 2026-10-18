@@ -501,7 +501,7 @@ export class PersonEditorController {
     );
     if (generation !== this.writeGeneration) return;
     await this.finishWrite(
-      outcome.receipt.state,
+      outcome.receipt.resultExpired ? 'EXPIRED' : outcome.receipt.state,
       outcome.problemCode,
       operationId,
       outcome.resultPersonId,
@@ -551,7 +551,7 @@ export class PersonEditorController {
     );
     if (generation !== this.writeGeneration) return;
     await this.finishWrite(
-      outcome.receipt.state,
+      outcome.receipt.resultExpired ? 'EXPIRED' : outcome.receipt.state,
       outcome.problemCode,
       operationId,
       outcome.resultPersonId ?? this.personId,

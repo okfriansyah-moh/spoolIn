@@ -98,3 +98,17 @@ it('conceals an expired session and cancels an older account expiry', async () =
     vi.useRealTimers();
   }
 });
+
+it('an expired successful registration receipt stays uncertain without announcing a new account', async () => {
+  const current = response();
+  const anonymous: SessionBootstrap = { ...current, session: { ...current.session, authenticated: false,
+    role: null, accountId: null, displayName: null, expiresAt: null } };
+  const controller = new SessionController({ bootstrap: async () => anonymous,
+    submit: async (_input, operationId) => ({ operationId, state: 'SUCCEEDED', resultExpired: true, problem: null }) });
+  await controller.check();
+  const outcome = await controller.submit({ kind: 'register', name: 'A Person', email: 'a@example.invalid', password: 'A sufficiently long password' });
+  expect(outcome.kind).toBe('uncertain');
+  expect(controller.hasPendingIdentity).toBe(true);
+  expect(controller.snapshot.identity).toBeNull();
+  controller.dispose();
+});

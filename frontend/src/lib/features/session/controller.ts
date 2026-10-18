@@ -136,6 +136,7 @@ export class SessionController {
     result: IdentityOutcome | null,
     attempt: IdentityAttempt,
   ): Promise<FormOutcome> {
+    if (result?.resultExpired) return this.uncertain(attempt);
     if (result?.state === 'SUCCEEDED') return this.confirmed(attempt);
     if (result?.state === 'FAILED')
       return this.failed(attempt, result.problem?.retryAfterMs ?? 0);
@@ -279,7 +280,8 @@ export class SessionController {
     try {
       const result = await source.signOut(attempt.id, csrf, attempt.signal);
       if (generation !== this.generation) return;
-      if (result.state === 'SUCCEEDED') this.endLogout(attempt);
+      if (result.resultExpired) this.uncertainLogout(attempt);
+      else if (result.state === 'SUCCEEDED') this.endLogout(attempt);
       else if (result.state === 'FAILED') this.restoreLogout(attempt);
       else this.uncertainLogout(attempt);
     } catch (error) {
@@ -316,6 +318,7 @@ export class SessionController {
       );
       const current = await this.source.bootstrap(attempt.signal);
       if (generation !== this.generation) return;
+      if (result?.resultExpired) { this.uncertainLogout(attempt); return; }
       if (result?.state === 'SUCCEEDED' && !current.session.authenticated)
         this.endLogout(attempt);
       else this.reconcileActiveLogout(attempt, result?.state, current);
