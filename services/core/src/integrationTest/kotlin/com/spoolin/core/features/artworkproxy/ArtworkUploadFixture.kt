@@ -25,7 +25,11 @@ import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.logging.Handler
+import java.util.logging.LogRecord
+import java.util.logging.Logger
 
 private const val NONCE_BYTES = 16
 private const val ASSERTION_SECONDS = 30L
@@ -35,7 +39,7 @@ private const val STOP_SECONDS = 5L
 internal class ArtworkUploadFixture(
     private val mode: Mode,
 ) : AutoCloseable {
-    enum class Mode { NORMAL, DUPLICATE, MISMATCH, HOLD }
+    enum class Mode { NORMAL, DUPLICATE, MISMATCH, HOLD, VALUE_ERROR, VALUE_HOLD }
 
     private val fixture = OwnerFixture("t007-artwork-upload.json").start()
     private val actor = UUID.randomUUID()
@@ -47,6 +51,25 @@ internal class ArtworkUploadFixture(
     val intent: UUID = UUID.randomUUID()
     val correlation: UUID = UUID.randomUUID()
     val cancelled = CountDownLatch(1)
+    val received = CountDownLatch(1)
+    val attemptedResponses = AtomicInteger()
+    val protocolFailure = AtomicReference<io.grpc.Status>()
+    private val protocolLogger = Logger.getLogger("io.grpc.internal.ServerCallImpl")
+    private val protocolLog =
+        object : Handler() {
+            override fun publish(record: LogRecord) {
+                val failure = record.thrown as? io.grpc.StatusRuntimeException ?: return
+                if (failure.status.code == io.grpc.Status.Code.INTERNAL &&
+                    failure.status.description == "Too many responses" &&
+                    com.spoolin.support.identity.ActorRpc.current()?.accountId == actor
+                ) {
+                    protocolFailure.compareAndSet(null, failure.status)
+                }
+            }
+
+            override fun flush() = Unit
+            override fun close() = Unit
+        }
     val header = AtomicReference<Spoolin.UploadHeader>()
     val bytes = ByteArrayOutputStream()
     private val server: io.grpc.Server
@@ -74,7 +97,7 @@ internal class ArtworkUploadFixture(
             NettyServerBuilder
                 .forAddress(InetSocketAddress("127.0.0.1", 0))
                 .sslContext(tls)
-                .addService(ServerInterceptors.intercept(service(), actors))
+                .addService(ServerInterceptors.intercept(serviceDefinition(), actors))
                 .build()
                 .start()
         val clientTls =
@@ -89,6 +112,7 @@ internal class ArtworkUploadFixture(
                 .overrideAuthority("media")
                 .sslContext(clientTls)
                 .build()
+        protocolLogger.addHandler(protocolLog)
     }
 
     fun request(spool: ArtworkSpool): ArtworkUploadRequest {
@@ -116,7 +140,7 @@ internal class ArtworkUploadFixture(
                 operation,
             )
         return ArtworkUploadRequest(
-            MediaServiceGrpc.newStub(channel),
+            MediaServiceGrpc.newStub(io.grpc.ClientInterceptors.intercept(channel, responseObserver())),
             signer.sign(claims),
             principal,
             operation,
@@ -127,6 +151,45 @@ internal class ArtworkUploadFixture(
             spool,
         )
     }
+
+    private fun serviceDefinition(): io.grpc.ServerServiceDefinition {
+        val service = service().bindService()
+        if (mode !in setOf(Mode.VALUE_ERROR, Mode.VALUE_HOLD)) return service
+        // Only terminal-lifecycle faults need streaming flush; duplicate rejection retains the actual unary server.
+        val streaming = MediaServiceGrpc.getUploadMethod().toBuilder()
+            .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING).build()
+        val handler = io.grpc.stub.ServerCalls.asyncBidiStreamingCall<Spoolin.UploadChunk, Spoolin.Outcome> {
+            response -> service().upload(response)
+        }
+        return io.grpc.ServerServiceDefinition.builder(MediaServiceGrpc.SERVICE_NAME)
+            .addMethod(streaming, handler).build()
+    }
+
+    private fun responseObserver(): io.grpc.ClientInterceptor =
+        object : io.grpc.ClientInterceptor {
+            override fun <ReqT : Any, RespT : Any> interceptCall(
+                method: io.grpc.MethodDescriptor<ReqT, RespT>,
+                options: io.grpc.CallOptions,
+                next: io.grpc.Channel,
+            ): io.grpc.ClientCall<ReqT, RespT> =
+                object : io.grpc.ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(
+                    next.newCall(method, options),
+                ) {
+                    override fun start(listener: io.grpc.ClientCall.Listener<RespT>, headers: io.grpc.Metadata) {
+                        super.start(
+                            object : io.grpc.ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
+                                listener,
+                            ) {
+                                override fun onMessage(message: RespT) {
+                                    received.countDown()
+                                    super.onMessage(message)
+                                }
+                            },
+                            headers,
+                        )
+                    }
+                }
+        }
 
     private fun service(): MediaServiceGrpc.MediaServiceImplBase =
         object : MediaServiceGrpc.MediaServiceImplBase() {
@@ -158,12 +221,22 @@ internal class ArtworkUploadFixture(
                 .setOperationId(id.toString())
                 .setState("PENDING")
                 .build()
+        attemptedResponses.incrementAndGet()
         response.onNext(outcome)
-        if (mode == Mode.DUPLICATE) response.onNext(outcome)
-        response.onCompleted()
+        when (mode) {
+            Mode.DUPLICATE -> {
+                attemptedResponses.incrementAndGet()
+                response.onNext(outcome)
+                response.onCompleted()
+            }
+            Mode.VALUE_ERROR -> response.onError(io.grpc.Status.UNAVAILABLE.asRuntimeException())
+            Mode.VALUE_HOLD -> Unit
+            else -> response.onCompleted()
+        }
     }
 
     override fun close() {
+        protocolLogger.removeHandler(protocolLog)
         channel.shutdownNow().awaitTermination(STOP_SECONDS, TimeUnit.SECONDS)
         server.shutdownNow().awaitTermination(STOP_SECONDS, TimeUnit.SECONDS)
         fixture.close()

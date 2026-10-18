@@ -47,7 +47,13 @@ class ArtworkUploadBoundaryTest {
         ArtworkUploadFixture(ArtworkUploadFixture.Mode.DUPLICATE).use { f ->
             spool().use { spool ->
                 val error = assertThrows(StatusRuntimeException::class.java) { ArtworkUpload.upload(f.request(spool)) }
-                assertTrue(error.status.code in setOf(Status.Code.INTERNAL, Status.Code.DATA_LOSS))
+                // Pinned grpc-java sends HTTP/2 CANCEL when its unary server rejects the second response.
+                // Pinned transport source: grpc-java v1.83.1 NettyServerHandler.cancelStream (HTTP/2 reset).
+                assertEquals(Status.Code.CANCELLED, error.status.code)
+                assertEquals(2, f.attemptedResponses.get())
+                assertEquals(Status.Code.INTERNAL, requireNotNull(f.protocolFailure.get()).code)
+                assertEquals("Too many responses", requireNotNull(f.protocolFailure.get()).description)
+                assertTrue(f.cancelled.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
             }
         }
     }
@@ -65,6 +71,29 @@ class ArtworkUploadBoundaryTest {
     @Test
     fun `parent request expiry cancels actual hanging downstream stream and releases scratch`() {
         ArtworkUploadFixture(ArtworkUploadFixture.Mode.HOLD).use { assertCancellation(it) }
+    }
+
+    @Test
+    fun `first response received over TLS does not hide a later terminal error`() {
+        ArtworkUploadFixture(ArtworkUploadFixture.Mode.VALUE_ERROR).use { fixture ->
+            spool().use { saved ->
+                val failure = assertThrows(StatusRuntimeException::class.java) {
+                    ArtworkUpload.upload(fixture.request(saved))
+                }
+                assertEquals(Status.Code.UNAVAILABLE, failure.status.code)
+                assertTrue(fixture.received.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
+                assertEquals(1, fixture.attemptedResponses.get())
+            }
+        }
+    }
+
+    @Test
+    fun `first response received over TLS without completion still waits for cancellation`() {
+        ArtworkUploadFixture(ArtworkUploadFixture.Mode.VALUE_HOLD).use { fixture ->
+            assertCancellation(fixture)
+            assertTrue(fixture.received.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
+            assertEquals(1, fixture.attemptedResponses.get())
+        }
     }
 
     private fun assertCancellation(fixture: ArtworkUploadFixture) {
