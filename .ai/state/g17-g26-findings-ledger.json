@@ -1629,11 +1629,26 @@
       {
         "run_id": 39096924829,
         "tested_sha": "b770a87454511098de5e9002c30ae746dab741df",
-        "result": "in_progress",
-        "detail": "Focused runtime dispatched with management child guards, pinned production Bubblewrap, safe public API/owner/browser diagnostics and current quality corrections. Actual result pending.",
+        "result": "failed",
+        "detail": "Strict bootJar/contracts and frontend/MCP checks passed. Pinned Bubblewrap 0.11.2 image build failed because Jammy GCC 11 treated upstream nullable-format warnings as errors; actual make start consequently failed at the same image build. No application readiness or browser journeys ran. Inspected source diagnostics artifact 12124698820. Correction fadcf404 selects the upstream-tested Clang 14 toolchain while retaining warning-as-error and sandbox controls; actual rerun pending.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39096924829",
         "artifact_retention_days": 14,
-        "inspected_artifact_ids": []
+        "inspected_artifact_ids": [
+          12124698820
+        ]
+      },
+      {
+        "run_id": 39097374811,
+        "tested_sha": "fadcf404c1a763be68b9b2cc84a251b062eafa00",
+        "result": "failed",
+        "detail": "Actual make start readiness passed on fadcf404. Policy HTTPS probe HTTP200; titles HTTP503, full seed verifier stopped at HTTPS ordering. Protected connector issue/list/invalid input passed but SDK stdio positive flow failed. Actual nonroot Media uses Bubblewrap 0.11.2 and failed namespace permission with CapEff/Bnd0, NNP1, Seccomp2, docker-default. Monitoring config, isolation, all four mTLS scrapes, MCP identity denials and authenticated Grafana API passed; durable alert episode failed. Actual browser form/inputs/assets/policy rendered; exact accessible names included requirement markers, causing unchanged Email locator timeout. No accepted browser journeys. Sources prepared: singular Boot gRPC channel bindings, accessible labels, precise Media policy, typed MCP errors and safe boundary diagnostics; rerun pending.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39097374811",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12124764445,
+          12124754598,
+          12124799587
+        ]
       }
     ],
     "progress_checkpoints": [

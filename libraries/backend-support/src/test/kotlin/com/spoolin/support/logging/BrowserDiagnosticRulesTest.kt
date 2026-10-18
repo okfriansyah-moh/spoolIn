@@ -14,6 +14,11 @@ class BrowserDiagnosticRulesTest {
     fun `boundary failures retain fixed classifications and exclude exception bodies and arguments`() {
         val events = listOf(
             Triple(
+                "com.spoolin.core.boundary.graphql.PolicyGraphql",
+                "Graphql execution failed",
+                "graphql_execution_failed",
+            ),
+            Triple(
                 "com.spoolin.core.features.ratelimit.RateAdmission",
                 "Rate admission failed",
                 "rate_admission_failed",
@@ -50,5 +55,21 @@ class BrowserDiagnosticRulesTest {
             assertEquals("DATABASE_ACCESS_DENIED", node["attributes"]["code"].asString())
             assertFalse(raw.contains("private-secret") || raw.contains("42501"))
         }
+    }
+    @Test
+    fun `RPC failures retain only the fixed status and never descriptions or metadata`() {
+        val event = LoggingEvent().also {
+            it.loggerName = "com.spoolin.core.boundary.graphql.PolicyGraphql"
+            it.message = "Graphql execution failed"
+            it.level = Level.WARN
+            it.setThrowableProxy(ThrowableProxy(io.grpc.Status.UNAVAILABLE
+                .withDescription("private-secret").asRuntimeException()))
+        }
+        val raw = DiagnosticEnvelope("core", "test", "test").encode(
+            DiagnosticLevel.WARNING, 0, DiagnosticEvents.classify(event),
+        ).toString(Charsets.UTF_8)
+        val node = JsonMapper.builder().build().readTree(raw)
+        assertEquals("RPC_UNAVAILABLE", node["attributes"]["code"].asString())
+        assertFalse(raw.contains("private-secret"))
     }
 }

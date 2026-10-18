@@ -22,6 +22,7 @@ val foundationTestRuntime =
     )
 
 tasks.named<Test>("test") {
+    systemProperty("spoolin.repository-root", rootProject.projectDir.absolutePath)
     testClassesDirs = coreTests.output.classesDirs + bootstrapTests.output.classesDirs
     classpath =
         files(coreTests.runtimeClasspath, bootstrapTests.output.classesDirs, configurations["integrationTestRuntimeClasspath"])

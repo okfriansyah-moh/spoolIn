@@ -27,7 +27,7 @@ spring:
             certificate: ${SERVICE_CA_FILE}
   grpc:
     client:
-      channels:
+      channel:
         catalog:
           target: ${CATALOG_GRPC_TARGET:dns:///catalog:9090}
           ssl:

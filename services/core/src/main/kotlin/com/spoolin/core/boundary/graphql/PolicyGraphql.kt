@@ -21,6 +21,7 @@ class PolicyGraphql(
     operations: ScopedOperationQuery? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
+    private val logger = org.slf4j.LoggerFactory.getLogger(PolicyGraphql::class.java)
     private val envelope = GraphqlEnvelope(provider.policy)
     private val engine: GraphQL
 
@@ -63,6 +64,7 @@ class PolicyGraphql(
 
     private fun failureCode(errors: List<graphql.GraphQLError>): String {
         val failure = errors.filterIsInstance<graphql.ExceptionWhileDataFetching>().firstOrNull()?.exception
+        if (failure != null) logger.warn("Graphql execution failed", failure)
         return when (failure) {
             null -> "FIELD_INVALID"
             is com.spoolin.core.operations.receipts.AmbiguousOperation -> "AMBIGUOUS_OPERATION"
@@ -118,7 +120,7 @@ class PolicyGraphql(
                         parsed.transform { it.graphQLContext(mapOf("browser" to context)) }
                     }
                 engine.execute(execution)
-            }.getOrNull()
+            }.onFailure { logger.warn("Graphql execution failed", it) }.getOrNull()
         if (result == null || result.errors.isNotEmpty()) {
             return mapOf(
                 "data" to null,

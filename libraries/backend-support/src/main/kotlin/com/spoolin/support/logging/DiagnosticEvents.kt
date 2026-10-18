@@ -53,6 +53,8 @@ internal object DiagnosticEvents {
 
     private val boundaryEvents = mapOf(
         (RATE_LOGGER to "Rate admission failed") to "rate_admission_failed",
+        ("com.spoolin.core.boundary.graphql.PolicyGraphql" to "Graphql execution failed") to
+            "graphql_execution_failed",
         (BROWSER_REQUESTS_LOGGER to "Browser execution failed") to "browser_execution_failed",
         (BROWSER_GRAPHQL_LOGGER to "Browser identity unavailable") to "browser_identity_unavailable",
         (BROWSER_GRAPHQL_LOGGER to "Browser admission unavailable") to "browser_admission_unavailable",
@@ -87,17 +89,20 @@ internal object DiagnosticEvents {
         var current = first
         var selected = KnownFailure("unclassified", "UNCLASSIFIED_FAILURE")
         repeat(MAX_CAUSES) {
-            knownFailures[current.className]?.let { selected = it.copy(code = sqlCode(current, it.code)) }
+            knownFailures[current.className]?.let { selected = it.copy(code = failureCode(current, it.code)) }
             current = current.cause ?: return selected
         }
         return selected
     }
 
-    private fun sqlCode(
+    private fun failureCode(
         proxy: IThrowableProxy,
         default: String,
     ): String {
-        val failure = (proxy as? ThrowableProxy)?.throwable as? SQLException ?: return default
+        val throwable = (proxy as? ThrowableProxy)?.throwable
+        if (throwable is io.grpc.StatusRuntimeException) return "RPC_" + throwable.status.code.name
+        if (throwable is io.grpc.StatusException) return "RPC_" + throwable.status.code.name
+        val failure = throwable as? SQLException ?: return default
         return when (failure.sqlState) {
             "28P01", "28000" -> "DATABASE_AUTHENTICATION_FAILED"
             "42501" -> "DATABASE_ACCESS_DENIED"
@@ -127,6 +132,10 @@ private val knownFailures =
             "CONFIGURATION_INVALID",
         "org.springframework.boot.web.server.WebServerException" to "WEB_SERVER_FAILED",
         "java.net.BindException" to "PORT_UNAVAILABLE",
+        "java.net.ConnectException" to "CONNECTION_REFUSED",
+        "java.net.UnknownHostException" to "HOST_UNRESOLVED",
+        "io.grpc.StatusRuntimeException" to "RPC_FAILED",
+        "io.grpc.StatusException" to "RPC_FAILED",
         "java.sql.SQLException" to "DATABASE_FAILURE",
         "java.sql.SQLTransientConnectionException" to "DATABASE_CONNECTION_UNAVAILABLE",
         "java.sql.SQLInvalidAuthorizationSpecException" to "DATABASE_AUTHENTICATION_FAILED",

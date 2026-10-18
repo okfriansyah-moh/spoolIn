@@ -17,7 +17,7 @@ installation = 'ci-' + os.environ['GITHUB_RUN_ID'] + '-' + os.environ['GITHUB_RU
 if os.environ.get('SPOOLIN_INSTALLATION') != installation:
     raise SystemExit('Exact owned primary installation required')
 result = subprocess.run(['docker', 'compose', '--project-name', installation, '-f', 'ops/compose.yaml',
-                         'logs', '--no-color', '--tail', '120', 'core', 'catalog', 'media'],
+                         'logs', '--no-color', '--tail', '5000', 'core', 'catalog', 'media'],
                         capture_output=True, text=True, timeout=45, check=False)
 records = []
 for line in result.stdout.splitlines():
@@ -33,6 +33,8 @@ for line in result.stdout.splitlines():
     attributes = value.get('attributes') or {}
     safe = {key: item for key, item in attributes.items() if key in ('event', 'code', 'error_class', 'operation')
             and isinstance(item, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}', item)}
+    if not safe or safe == {'event': 'diagnostic'}:
+        continue
     records.append({'service': service, 'level': value.get('level') if value.get('level') in ('debug', 'info', 'warning', 'error', 'fatal') else 'unknown', 'attributes': safe})
 output = Path('artifacts/runtime/owner-diagnostics-' + phase + '.json')
 output.parent.mkdir(parents=True, exist_ok=True)
