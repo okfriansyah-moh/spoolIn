@@ -82,70 +82,78 @@
     >
   </div>
   <div class="filter-categories">
-  <div class="field">
-  <label for={`${id}-kind`}>Title type</label><select
-    id={`${id}-kind`}
-    bind:value={criteria.kind}
-    ><option value="">All titles</option><option value="MOVIE">Movies</option
-    ><option value="TV">TV</option></select
-  >
-  </div>
-  <fieldset class="genre-choice">
-    <legend>Genres · match any selected</legend>
-    <div class="genre-options" role="region" aria-label="Genre choices"
-      aria-describedby={`${id}-genres-help`} tabindex="0">
-    {#each genres as genre (genre.id)}<label class="check"
-        ><input
-          type="checkbox"
-          value={genre.id}
-          checked={criteria.genres.includes(genre.id)}
-          onchange={(event) =>
-            toggleGenre(genre.id, event.currentTarget.checked)}
-        />{genre.name}</label
-      >{/each}
+    <div class="field">
+      <label for={`${id}-kind`}>Title type</label><select
+        id={`${id}-kind`}
+        bind:value={criteria.kind}
+        ><option value="">All titles</option><option value="MOVIE"
+          >Movies</option
+        ><option value="TV">TV</option></select
+      >
     </div>
-    <small id={`${id}-genres-help`}>Scroll or use the keyboard to reach every genre.</small>
-  </fieldset>
-  <div class="field">
-  <label for={`${id}-year`}>Release year</label><select
-    id={`${id}-year`}
-    value={selectedYear}
-    onchange={yearChanged}
-    ><option value="">All years</option>{#each years as year (year)}<option
-        value={year}>{year}</option
-      >{/each}<option value="other">Choose another year…</option></select
-  >
-  {#if selectedYear === 'other'}
-    <label for={`${id}-other-year`}>Other release year</label>
-    <input
-      id={`${id}-other-year`}
-      inputmode="numeric"
-      value={customYear ? customYearText : criteria.year}
-      aria-invalid={!!yearError}
-      aria-describedby={`${id}-year-help`}
-      oninput={otherYearChanged}
-    />
-    <small id={`${id}-year-help`}
-      >{yearError ||
-        'Enter any known release year from 1 to 9999, or clear it for all years.'}</small
-    >
-  {/if}
-  </div>
-  <div class="field">
-  <label for={`${id}-month`}>Month</label><select
-    id={`${id}-month`}
-    bind:value={criteria.month}
-    disabled={!criteria.year}
-    aria-describedby={`${id}-month-help`}
-    ><option value="">All months</option
-    >{#each ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as month, i (month)}<option
-        value={String(i + 1)}>{month}</option
-      >{/each}</select
-  ><small id={`${id}-month-help`}
-    >Choose a year first. Clearing it also clears month. Other categories
-    combine with AND.</small
-  >
-  </div>
+    <fieldset class="genre-choice">
+      <legend>Genres · match any selected</legend>
+      <div
+        class="genre-options"
+        role="region"
+        aria-label="Genre choices"
+        aria-describedby={`${id}-genres-help`}
+        tabindex="0"
+      >
+        {#each genres as genre (genre.id)}<label class="check"
+            ><input
+              type="checkbox"
+              value={genre.id}
+              checked={criteria.genres.includes(genre.id)}
+              onchange={(event) =>
+                toggleGenre(genre.id, event.currentTarget.checked)}
+            />{genre.name}</label
+          >{/each}
+      </div>
+      <small id={`${id}-genres-help`}
+        >Scroll or use the keyboard to reach every genre.</small
+      >
+    </fieldset>
+    <div class="field">
+      <label for={`${id}-year`}>Release year</label><select
+        id={`${id}-year`}
+        value={selectedYear}
+        onchange={yearChanged}
+        ><option value="">All years</option>{#each years as year (year)}<option
+            value={year}>{year}</option
+          >{/each}<option value="other">Choose another year…</option></select
+      >
+      {#if selectedYear === 'other'}
+        <label for={`${id}-other-year`}>Other release year</label>
+        <input
+          id={`${id}-other-year`}
+          inputmode="numeric"
+          value={customYear ? customYearText : criteria.year}
+          aria-invalid={!!yearError}
+          aria-describedby={`${id}-year-help`}
+          oninput={otherYearChanged}
+        />
+        <small id={`${id}-year-help`}
+          >{yearError ||
+            'Enter any known release year from 1 to 9999, or clear it for all years.'}</small
+        >
+      {/if}
+    </div>
+    <div class="field">
+      <label for={`${id}-month`}>Month</label><select
+        id={`${id}-month`}
+        bind:value={criteria.month}
+        disabled={!criteria.year}
+        aria-describedby={`${id}-month-help`}
+        ><option value="">All months</option
+        >{#each ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as month, i (month)}<option
+            value={String(i + 1)}>{month}</option
+          >{/each}</select
+      ><small id={`${id}-month-help`}
+        >Choose a year first. Clearing it also clears month. Other categories
+        combine with AND.</small
+      >
+    </div>
   </div>
 </div>
 

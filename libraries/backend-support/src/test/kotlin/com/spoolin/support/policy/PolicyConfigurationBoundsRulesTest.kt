@@ -92,7 +92,10 @@ class PolicyConfigurationBoundsRulesTest {
             }
         }
 
-    private fun minimumUpper(field: String, maximum: Int): Int =
+    private fun minimumUpper(
+        field: String,
+        maximum: Int,
+    ): Int =
         when (field) {
             "personName" -> 21793
             "title", "synopsis" -> 21777

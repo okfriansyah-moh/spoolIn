@@ -113,7 +113,10 @@ internal object DiagnosticEvents {
         }
     }
 
-    private fun databaseFailureCode(failure: SQLException, default: String): String =
+    private fun databaseFailureCode(
+        failure: SQLException,
+        default: String,
+    ): String =
         when (failure.sqlState) {
             "28P01", "28000" -> "DATABASE_AUTHENTICATION_FAILED"
             "42501" -> "DATABASE_ACCESS_DENIED"

@@ -204,19 +204,31 @@ test('ATDD-011/012 partial: an older known release year is selectable and invali
 });
 
 async function assertGenreRegion(page: Page) {
-  const group = page.getByRole('group', { name: 'Genres · match any selected', exact: true });
-  const region = group.getByRole('region', { name: 'Genre choices', exact: true });
+  const group = page.getByRole('group', {
+    name: 'Genres · match any selected',
+    exact: true,
+  });
+  const region = group.getByRole('region', {
+    name: 'Genre choices',
+    exact: true,
+  });
   const choices = region.locator('input[type="checkbox"]');
   const data = await readApi(page, 'query { genres { id } }');
   expect(Array.isArray(data.genres)).toBe(true);
   expect(data.genres.length).toBeGreaterThan(0);
   await expect(choices).toHaveCount(data.genres.length);
-  expect(await choices.evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value).sort()))
-    .toEqual(data.genres.map((genre: { id: string }) => genre.id).sort());
+  expect(
+    await choices.evaluateAll((inputs) =>
+      inputs.map((input) => (input as HTMLInputElement).value).sort(),
+    ),
+  ).toEqual(data.genres.map((genre: { id: string }) => genre.id).sort());
   await expect(region).toHaveCSS('overflow-y', 'auto');
   const geometry = await region.evaluate((element) => ({
-    height: element.clientHeight, total: element.scrollHeight, width: element.getBoundingClientRect().width,
-    viewport: window.innerWidth, viewportHeight: window.innerHeight,
+    height: element.clientHeight,
+    total: element.scrollHeight,
+    width: element.getBoundingClientRect().width,
+    viewport: window.innerWidth,
+    viewportHeight: window.innerHeight,
   }));
   expect(geometry.height).toBeLessThanOrEqual(geometry.viewportHeight / 2);
   expect(geometry.width).toBeLessThanOrEqual(geometry.viewport);
@@ -224,9 +236,13 @@ async function assertGenreRegion(page: Page) {
   await expect(region).toBeFocused();
   if (geometry.total > geometry.height) {
     await page.keyboard.press('End');
-    await expect.poll(() => region.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect
+      .poll(() => region.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(0);
     await page.keyboard.press('Home');
-    await expect.poll(() => region.evaluate((element) => element.scrollTop)).toBe(0);
+    await expect
+      .poll(() => region.evaluate((element) => element.scrollTop))
+      .toBe(0);
   }
   await page.keyboard.press('Tab');
   await expect(choices.first()).toBeFocused();

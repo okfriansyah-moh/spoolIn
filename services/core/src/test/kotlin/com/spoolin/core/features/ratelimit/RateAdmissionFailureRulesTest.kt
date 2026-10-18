@@ -42,11 +42,19 @@ class RateAdmissionFailureRulesTest {
         assertSame(agreementFailure, assertThrows(IllegalStateException::class.java) { admission.admit(demand) })
     }
 
-    private fun admission(agreement: () -> Unit = {}, connect: () -> Connection): RateAdmission {
-        val provider = object : AbstractDataSource() {
-            override fun getConnection(): Connection = connect()
-            override fun getConnection(username: String, password: String): Connection = connect()
-        }
+    private fun admission(
+        agreement: () -> Unit = {},
+        connect: () -> Connection,
+    ): RateAdmission {
+        val provider =
+            object : AbstractDataSource() {
+                override fun getConnection(): Connection = connect()
+
+                override fun getConnection(
+                    username: String,
+                    password: String,
+                ): Connection = connect()
+            }
         return RateAdmission(provider, RateProfiles(ConfigurationSources()), ByteArray(32) { 17 }, agreement)
     }
 }

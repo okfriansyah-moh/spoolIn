@@ -154,9 +154,7 @@ class ObservabilityConfiguration {
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    fun logicalRpcMetrics(
-        metrics: LogicalMetrics,
-    ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+    fun logicalRpcMetrics(metrics: LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
 }

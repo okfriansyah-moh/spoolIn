@@ -24,7 +24,11 @@ class GrpcClientConfigurationRulesTest {
         for ((owner, expected) in peers) assertOwner(root, owner, expected)
     }
 
-    private fun assertOwner(root: Path, owner: String, expected: Set<String>) {
+    private fun assertOwner(
+        root: Path,
+        owner: String,
+        expected: Set<String>,
+    ) {
         val environment = StandardEnvironment()
         val resource = FileSystemResource(root.resolve("services/$owner/src/main/resources/application.yaml"))
         YamlPropertySourceLoader().load(owner, resource).reversed().forEach {
@@ -41,7 +45,10 @@ class GrpcClientConfigurationRulesTest {
         }
     }
 
-    private fun deadline(owner: String, peer: String): Long =
+    private fun deadline(
+        owner: String,
+        peer: String,
+    ): Long =
         when {
             owner == "core" || owner == "media" -> 2L
             peer == "core" -> 1L
