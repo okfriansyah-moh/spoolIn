@@ -23,6 +23,7 @@ private const val DEADLINE_SECONDS = 5L
 class LifecycleGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
+    private val policyRevision: () -> String = { com.spoolin.support.policy.PolicyEnvironment.resolve(System::getenv).revision },
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q -> q.dataFetcher("deletionImpact") { env -> deletionImpact(env) } }
@@ -93,7 +94,7 @@ class LifecycleGraphql(
                 .newBuilder()
                 .setOperationId(operationId.toString())
                 .setCorrelationId(context.correlation.toString())
-                .setPolicyRevision("")
+                .setPolicyRevision(policyRevision())
                 .build()
         val versioned =
             Spoolin.VersionedId

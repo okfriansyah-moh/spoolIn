@@ -241,18 +241,23 @@ class CatalogWriteConfiguration {
             })
 
     @Bean
-    fun movieLifecycle(receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+    fun movieLifecycle(receipts: OwnerReceipts, environment: Environment): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
         com.spoolin.catalog.features.lifecycle
-            .MovieLifecycle(receipts)
+            .MovieLifecycle(receipts, policyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+            })
 
     @Bean
     fun personLifecycle(
         dataSource: DataSource,
         receipts: OwnerReceipts,
         tokens: com.spoolin.catalog.features.lifecycle.ImpactToken,
+        environment: Environment,
     ): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
         com.spoolin.catalog.features.lifecycle
-            .PersonLifecycle(dataSource, receipts, tokens)
+            .PersonLifecycle(dataSource, receipts, tokens, policyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+            })
 
     @Bean
     fun impactToken(environment: Environment): com.spoolin.catalog.features.lifecycle.ImpactToken =

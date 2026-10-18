@@ -43,6 +43,7 @@ services:
     environment:
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_runtime
+      ROTATION_KEYS_FILE: ${ROTATION_KEYS_FILE-/run/spoolin-config/rotation-keys.json}
       SPRING_CONFIG_IMPORT: file:/run/spoolin-config/core.json[.yaml]
       CORE_DB_PASSWORD_FILE: /run/secrets/core-runtime-password
       SERVICE_CERT_FILE: /run/secrets/core-cert
