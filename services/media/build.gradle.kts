@@ -103,7 +103,7 @@ tasks.named("koverXmlReport") { dependsOn(artworkIntegrationTest) }
 
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/media/operations/receipts"))
-    config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
+    config.setFrom(rootProject.file(".ai/bundles/1.2.1/profiles/kotlin/detekt.yml"))
     buildUponDefaultConfig = false
     ignoreFailures = false
     reports {

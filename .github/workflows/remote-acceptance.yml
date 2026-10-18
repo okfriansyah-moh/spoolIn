@@ -69,9 +69,11 @@ jobs:
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/install-gates.sh
       - name: Strict build and contract generation
-        if: ${{ inputs.mode == 'verify' }}
+        id: build
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
       - name: Check production frontend and MCP
+        id: frontend
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: npm run check && npm run build
       - name: Production MCP coverage and transport checks
@@ -81,10 +83,10 @@ jobs:
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: npm run test:coverage --workspace frontend
       - name: Provision isolated synthetic environment
-        if: ${{ inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: python3 ops/ci/prepare-environment.py
       - name: Install pinned browser engines and trust the isolated CA
-        if: ${{ inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: |
           npm exec --workspace tests/browser -- playwright install --with-deps chromium firefox webkit
           sudo apt-get install --no-install-recommends -y libnss3-tools
@@ -94,15 +96,16 @@ jobs:
           certutil -N --empty-password -d sql:"$HOME/.pki/nssdb"
           certutil -A -d sql:"$HOME/.pki/nssdb" -n spoolin-ci -t 'C,,' -i "$SERVICE_CA_FILE"
       - name: Start documented application
-        if: ${{ inputs.mode == 'verify' }}
+        id: application
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: bash ops/ci/run-application.sh
       - name: Exercise real production application in browsers
-        if: ${{ inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         env:
           NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
         run: npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
       - name: Verify documented Make lifecycle and suites
-        if: ${{ inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: bash ops/ci/verify-make-targets.sh
       - name: Configured delivery gates
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
