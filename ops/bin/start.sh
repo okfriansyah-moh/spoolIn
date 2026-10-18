@@ -7,12 +7,13 @@ source "$bin/_compose_common.sh"
 : "${SPOOLIN_INSTALLATION:?Set installation identifier}"
 : "${SPOOLIN_LOCK_DIR:?Set protected migration lock directory}"
 [[ "$SPOOLIN_INSTALLATION" =~ ^[a-z][a-z0-9-]{2,63}$ ]] || exit 2
-if [[ -e "${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision protected runtime configuration}/restore-pending-validation" ]]; then
-  printf '%s\n' 'start: restored installation requires validated fresh keys, nonce epoch and revoked credentials' >&2
-  exit 4
-fi
 # Building is a separate bounded stage; initialization starts only after PostgreSQL is ready.
 timeout 900 docker compose --project-name "$SPOOLIN_INSTALLATION" -f "$root_dir/ops/compose.yaml" build || exit 3
+compose_common_run "$root_dir" run --rm --no-deps --entrypoint /bin/sh core -c \
+  'test -r /run/spoolin-config/core.json && test ! -e /run/spoolin-config/restore-pending-validation' || {
+  printf '%s\n' 'start: protected runtime configuration or restored installation validation is incomplete' >&2
+  exit 4
+}
 compose_common_run "$root_dir" up -d --wait --wait-timeout 120 postgres || exit 5
 for owner in core catalog media; do
   "$bin/migrate.sh" "$owner" || exit 4
