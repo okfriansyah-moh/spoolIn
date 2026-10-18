@@ -6,8 +6,8 @@ import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
-import com.spoolin.support.policy.TextBound
 import com.spoolin.support.policy.TextRules
+import com.spoolin.support.policy.TextBound
 import spoolin.v1.Spoolin.CreditWrite
 
 
@@ -31,7 +31,7 @@ object CreditValidation {
         return ValidatedCreditCreate(
             personId = request.personId,
             roleId = request.roleId,
-            characters = normalizeCharacters(request.charactersList, "characters", policy.textBounds.getValue("characterName")),
+            characters = TextRules.characters(request.charactersList, policy.textBounds.getValue("characterName")),
         )
     }
 
@@ -75,7 +75,7 @@ object CreditValidation {
         bound: TextBound,
     ): PatchValue<List<String>> =
         when {
-            "characters" in mask -> PatchValue.Value(normalizeCharacters(raw, "characters", bound))
+            "characters" in mask -> PatchValue.Value(TextRules.characters(raw, bound))
             else -> PatchValue.Omitted
         }
 
@@ -96,18 +96,4 @@ object CreditValidation {
                 .toString()
         }.getOrElse { throw InputViolation(path, "Supply a lowercase, hyphenated UUID.") }
 
-    private fun normalizeCharacters(
-        values: List<String>,
-        path: String,
-        bound: TextBound,
-    ): List<String> {
-        val trimmed = values.map { TextRules.ordinary(it, bound, path) }
-        val seen = mutableSetOf<String>()
-        for (name in trimmed) {
-            val key = name.trim()
-            if (key in seen) throw InputViolation(path, "Remove duplicate character names.")
-            seen.add(key)
-        }
-        return trimmed
-    }
 }

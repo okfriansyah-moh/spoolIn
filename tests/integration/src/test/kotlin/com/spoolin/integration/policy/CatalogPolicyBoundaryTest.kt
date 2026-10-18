@@ -115,6 +115,32 @@ class CatalogPolicyBoundaryTest {
     }
 
     @Test
+    fun `real credit write removes blank entries and all-blank update persists empty array after reload`() {
+        CatalogPolicyFixture().use { fixture ->
+            fixture.policy = configured(mapOf("CHARACTER_NAME_MIN_CODE_POINTS" to "3", "CHARACTER_NAME_MAX_CODE_POINTS" to "4"))
+            val title = fixture.movie(fixture.movie("Movie"))
+            val person = fixture.person(fixture.person("Person"))
+            val role = fixture.characterRole()
+            val request = fixture.credit(title.resultId, person.resultId, role, " ").toBuilder()
+                .addCharacters(" ABC ").addCharacters("\u00a0").addCharacters("Name").build()
+            val created = fixture.credit(request)
+            assertEquals("SUCCEEDED", created.state)
+            assertEquals("ABC|Name", fixture.text("SELECT array_to_string(characters,'|') FROM credit WHERE id=?", created.resultId))
+            val clear = fixture.credit(title.resultId, person.resultId, role, "\u00a0\t ").toBuilder()
+                .setId(created.resultId).setExpectedVersion(0)
+                .setUpdateMask(FieldMask.newBuilder().addPaths("characters")).build()
+            assertEquals(1, fixture.credit(clear).version)
+            assertEquals(0, fixture.count("SELECT cardinality(characters) FROM credit"))
+            val duplicate = clear.toBuilder().setContext(fixture.context()).setExpectedVersion(1)
+                .clearCharacters().addCharacters("Name").addCharacters(" Name ").build()
+            assertEquals("FIELD_INVALID", fixture.credit(duplicate).problem.code)
+            assertEquals(0, fixture.count("SELECT cardinality(characters) FROM credit"))
+            assertEquals(2, fixture.count("SELECT count(*) FROM catalog_audit_event WHERE subject_kind='CREDIT'"))
+            assertEquals(1, fixture.lookup(clear.context.operationId).version)
+        }
+    }
+
+    @Test
     fun `frozen proposal publisher uses the same effective owner validator inside its transaction`() {
         CatalogPolicyFixture().use { fixture ->
             fixture.policy = configured(mapOf("TITLE_MIN_CODE_POINTS" to "2", "TITLE_MAX_CODE_POINTS" to "2"))
