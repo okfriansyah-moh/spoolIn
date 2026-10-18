@@ -3258,13 +3258,27 @@
       "source": "docs/plan/26-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
       "test_paths": [
         "tests/integration/src/test/kotlin/com/spoolin/integration/performance/",
-        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/release/"
+        "tests/integration/src/test/kotlin/com/spoolin/integration/operations/release/",
+        "ops/ci/verify-capacity-test.py"
       ],
       "unit": [
         {
+          "id": "t045-measurement-rules",
+          "argv": [
+            "python3",
+            "ops/ci/verify-capacity-test.py"
+          ],
+          "timeout": 120,
+          "required_paths": [
+            "ops/ci/verify-capacity-test.py"
+          ],
+          "report": "artifacts/capacity/rules.json",
+          "proof_boundary": "Measurement accounting, strict budgets, scope oracle, privacy and hosted-runner guards; no workload or full ATDD-211 acceptance claim"
+        },
+        {
           "id": "t045-unit-blocked",
           "kind": "blocked",
-          "reason": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests.",
+          "reason": "Remaining ATDD-211 obligations require actual capacity, resource, recovery, artwork and emitted-SQL evidence; measurement-rule unit checks establish only their own boundary.",
           "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
         }
       ],
@@ -3284,7 +3298,11 @@
         ],
         "source_reference": "docs/plan/26-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
         "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
-        "remaining_obligation": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests."
+        "remaining_obligation": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests.",
+        "runtime_commands": [
+          "python3 ops/ci/verify-capacity.py --phase startup|reader|writer --repetition 1|2|3",
+          "python3 ops/ci/verify-capacity.py --phase plans --repetition 1"
+        ]
       },
       "pending_reason": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests."
     },

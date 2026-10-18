@@ -132,6 +132,7 @@ jobs:
         timeout-minutes: 10
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: |
+          python3 ops/ci/verify-capacity-test.py
           python3 ops/ci/test-codec-profile-package.py
           python3 ops/ci/codec-diagnostics-test.py
           python3 ops/ci/readiness-helper-test.py
@@ -228,6 +229,41 @@ jobs:
       - name: Verify actual operator connector and recovery entry points
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: python3 ops/ci/verify-operator-commands.py
+      - name: Stop the source installation before isolated capacity repetitions
+        id: capacity_ready
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: make stop
+      - name: Measure actual independent startup capacity repetitions
+        timeout-minutes: 80
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: |
+          result=0
+          for repetition in 1 2 3; do
+            python3 ops/ci/verify-capacity.py --phase startup --repetition "$repetition" || result=$?
+          done
+          exit "$result"
+      - name: Measure actual independent reader capacity repetitions
+        timeout-minutes: 80
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: |
+          result=0
+          for repetition in 1 2 3; do
+            python3 ops/ci/verify-capacity.py --phase reader --repetition "$repetition" || result=$?
+          done
+          exit "$result"
+      - name: Measure actual independent writer capacity repetitions
+        timeout-minutes: 80
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: |
+          result=0
+          for repetition in 1 2 3; do
+            python3 ops/ci/verify-capacity.py --phase writer --repetition "$repetition" || result=$?
+          done
+          exit "$result"
+      - name: Capture actual baseline and stress plans with pending inventory obligations
+        timeout-minutes: 40
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: python3 ops/ci/verify-capacity.py --phase plans --repetition 1
       - name: Retain bounded check reports before delivery gates
         if: ${{ !cancelled() && inputs.mode == 'verify' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -240,6 +276,7 @@ jobs:
             artifacts/recovery
             artifacts/key-rotation
             artifacts/codec-container
+            artifacts/capacity
           retention-days: 14
           if-no-files-found: error
       - name: Configured delivery gates
@@ -261,6 +298,7 @@ jobs:
             artifacts/recovery
             artifacts/key-rotation
             artifacts/codec-container
+            artifacts/capacity
             artifacts/make
             artifacts/browser
             mcp/coverage
