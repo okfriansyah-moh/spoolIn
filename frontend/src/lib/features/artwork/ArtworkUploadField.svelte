@@ -17,6 +17,7 @@
     policyRevision,
     disabled = false,
     artworkPolicy,
+    onAttached,
   }: {
     request: GraphqlRequest;
     csrf: string;
@@ -25,26 +26,51 @@
     policyRevision: string;
     disabled?: boolean;
     artworkPolicy?: Policy['artwork'];
+    onAttached?: () => Promise<void>;
   } = $props();
 
   const inputId = $props.id();
   let validationMessage = $state('');
+  let refreshing = $state(false);
+  let refreshNeeded = $state(false);
+  let notifiedOperation: string | null = null;
+  let mounted = false;
   let view = $state(INITIAL_ARTWORK_UPLOAD_VIEW);
   let controller: ArtworkUploadController | null = null;
   const uploadBlocked = $derived(
-    disabled || ['transferring', 'processing', 'uncertain'].includes(view.stage),
+    disabled || refreshing || refreshNeeded || ['transferring', 'processing', 'uncertain'].includes(view.stage),
   );
 
   onMount(() => {
+    mounted = true;
     controller = new ArtworkUploadController(request, csrf);
     const unsubscribe = controller.subscribe((next) => {
       view = next;
+      if (next.stage === 'saved' && next.operationId && next.operationId !== notifiedOperation) {
+        notifiedOperation = next.operationId;
+        void refreshParent();
+      }
     });
     return () => {
+      mounted = false;
       unsubscribe();
       controller?.dispose();
     };
   });
+
+  async function refreshParent() {
+    if (!onAttached || refreshing) return;
+    refreshing = true;
+    try {
+      await onAttached();
+      if (mounted) { refreshNeeded = false; validationMessage = ''; }
+    } catch {
+      if (mounted) {
+        refreshNeeded = true;
+        validationMessage = 'Artwork attached. Current movie details could not be refreshed. Retry details before another upload.';
+      }
+    } finally { if (mounted) refreshing = false; }
+  }
 
   async function onFileChange(event: Event) {
     const input = event.currentTarget;
@@ -84,6 +110,9 @@
     ></progress>
   {/if}
   <p role="status">{validationMessage || view.message || stageLabel(view.stage)}</p>
+  {#if refreshNeeded}
+    <button type="button" class="secondary" disabled={refreshing} onclick={() => void refreshParent()}>Retry movie details</button>
+  {/if}
   {#if view.canCancel}
     <button type="button" class="secondary" onclick={onCancel}
       >Cancel upload</button

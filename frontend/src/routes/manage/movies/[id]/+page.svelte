@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
@@ -27,8 +26,13 @@
   let controller: ReturnType<typeof createMovieEditorController> | null = null;
   const movieId = $derived(page.params.id ?? '');
 
-  onMount(() => {
-    if (!isRecordId(movieId)) {
+  $effect(() => {
+    const selectedId = movieId;
+    ready = false;
+    editorState = null;
+    writeContext = null;
+    creditTitleVersion = null;
+    if (!isRecordId(selectedId)) {
       ready = true;
       return;
     }
@@ -37,7 +41,7 @@
       transport,
       createDraftSource(transport),
       'edit',
-      movieId,
+      selectedId,
     );
     const unsubscribe = controller.subscribe((next) => {
       editorState = next;
