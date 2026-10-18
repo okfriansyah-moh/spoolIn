@@ -20,6 +20,13 @@ SPEC.loader.exec_module(DIAG)
 INSPECT = '{"id":{{json .Id}},"image":{{json .Image}},"user":{{json .Config.User}},"readOnly":{{json .HostConfig.ReadonlyRootfs}},"capDrop":{{json .HostConfig.CapDrop}},"capAdd":{{json .HostConfig.CapAdd}},"privileged":{{json .HostConfig.Privileged}},"securityOpt":{{json .HostConfig.SecurityOpt}},"apparmor":{{json .AppArmorProfile}},"networkMode":{{json .HostConfig.NetworkMode}},"mounts":{{json .Mounts}}}'
 
 
+STATUS_READER = """while IFS=: read -r key value; do
+  case "$key" in
+    CapEff|CapBnd|NoNewPrivs|Seccomp) printf '%s:%s\n' "$key" "$value" ;;
+  esac
+done"""
+
+
 def require(value, message):
     if not value:
         raise RuntimeError(message)
@@ -68,7 +75,7 @@ def effective_configuration(primary, probe):
 
 def context(container):
     script = '''printf 'uid=%s\ngid=%s\n' "$(id -u)" "$(id -g)"
-awk '/^(CapEff|CapBnd|NoNewPrivs|Seccomp):/' /proc/self/status
+''' + STATUS_READER + ''' < /proc/self/status
 printf 'profile='; cat /proc/self/attr/current
 for kind in user mnt net pid ipc uts cgroup; do printf 'ns.%s=' "$kind"; readlink "/proc/self/ns/$kind"; done'''
     value = checked(['docker', 'exec', container, '/bin/sh', '-ec', script], limit=4096,

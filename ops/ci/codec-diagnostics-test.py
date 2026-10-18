@@ -5,6 +5,8 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import os
+import subprocess
 import unittest
 
 
@@ -73,6 +75,17 @@ class DiagnosticRules(unittest.TestCase):
                          result['events'])
         self.assertNotIn('private', json.dumps(result))
         self.assertNotIn('credential', json.dumps(result))
+
+    def test_context_status_reader_uses_only_builtins_and_preserves_all_required_fields(self):
+        source = 'Name:\tprivate-process\nCapEff:\t0000\nCapBnd:\t0000\nNoNewPrivs:\t1\nSeccomp:\t2\nUid:\t123\n'
+        environment = dict(os.environ, PATH='/nonexistent')
+        result = subprocess.run(['/bin/sh', '-ec', PROBE.STATUS_READER], input=source, text=True,
+                                capture_output=True, timeout=5, check=True, env=environment)
+        self.assertEqual({'CapEff': '0000', 'CapBnd': '0000', 'NoNewPrivs': '1', 'Seccomp': '2'},
+                         DIAG.status_fields(result.stdout))
+        self.assertNotIn('private', result.stdout)
+        self.assertNotIn('Uid', result.stdout)
+        self.assertEqual('', result.stderr)
 
     def fixture(self):
         return {'image': 'sha256:' + 'a' * 64, 'user': '10001:10001', 'readOnly': True, 'capDrop': ['ALL'], 'capAdd': None,
