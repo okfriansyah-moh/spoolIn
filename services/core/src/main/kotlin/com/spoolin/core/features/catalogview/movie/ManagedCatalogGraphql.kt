@@ -246,12 +246,12 @@ class ManagedCatalogGraphql(
             "action" to e.action,
             "outcome" to e.outcome,
             "subjectKind" to e.subjectKind,
-            "subjectId" to e.subjectId.takeIf { e.hasSubjectId() }?.let { UUID.fromString(it) },
+            "subjectId" to e.subjectId.takeIf { e.hasSubjectId() }?.let { UUID.fromString(it).toString() },
             "changes" to
                 e.changesList.associate {
                     it.path to ManagedAuditValues.change(it)
                 },
-            "operationId" to e.operationId.takeIf { e.hasOperationId() }?.let { UUID.fromString(it) },
+            "operationId" to e.operationId.takeIf { e.hasOperationId() }?.let { UUID.fromString(it).toString() },
             "at" to Instant.ofEpochSecond(e.at.seconds, e.at.nanos.toLong()).toString(),
         )
 

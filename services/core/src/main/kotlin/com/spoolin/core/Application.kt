@@ -667,6 +667,7 @@ class FrontendNavigation {
         "/manage/people/new",
         "/manage/archives",
         "/manage/audit",
+        "/manage/{*section}",
         produces = [MediaType.TEXT_HTML_VALUE],
     )
     fun navigation(): ResponseEntity<ByteArray> {
