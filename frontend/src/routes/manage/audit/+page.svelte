@@ -6,67 +6,103 @@
 
   let rows = $state<readonly AuditRow[]>([]);
   let message = $state('Loading history…');
+  let loading = $state(false);
+  let endCursor = $state<string | null>(null);
+  let hasNextPage = $state(false);
+  let permitted = $state(false);
+  let loadPage: () => Promise<void> = async () => {};
+
   onMount(() => {
     const transport = createTransport();
     const abort = new AbortController();
-    void (async () => {
-      const context = await loadWriteContext(abort.signal);
-      if (!context) {
-        message = 'Sign in as a Maintainer to review history.';
-        return;
-      }
+    loadPage = async () => {
+      if (loading) return;
+      loading = true;
       try {
-        rows = await fetchAuditPage(transport, context.csrf, abort.signal);
+        const context = await loadWriteContext(abort.signal);
+        if (!context) {
+          message = 'Sign in as a Maintainer to review history.';
+          return;
+        }
+        permitted = true;
+        const page = await fetchAuditPage(transport, context.csrf, abort.signal, endCursor);
+        if (abort.signal.aborted) return;
+        rows = [...rows, ...page.nodes];
+        endCursor = page.endCursor;
+        hasNextPage = page.hasNextPage;
         message = rows.length ? '' : 'No history entries yet.';
       } catch {
-        message = 'History could not be loaded.';
+        if (!abort.signal.aborted) message = 'History could not be loaded. Retry the read.';
+      } finally {
+        loading = false;
       }
-    })();
+    };
+    void loadPage();
     return () => abort.abort();
   });
+
+  function displayChange(value: unknown): string {
+    return typeof value === 'string' ? value : JSON.stringify(value) ?? '—';
+  }
 </script>
 
 <svelte:head><title>Audit history · SpoolIn</title></svelte:head>
 <h1 tabindex="-1">Audit history</h1>
 <p class="muted">Read-only catalog and approval outcomes.</p>
+<p role="status" aria-live="polite">{loading ? 'Loading history…' : message}</p>
 
-{#if message}
-  <p role="status">{message}</p>
-{:else}
-  <table>
-    <thead>
-      <tr>
-        <th scope="col">When</th>
-        <th scope="col">Actor</th>
-        <th scope="col">Action</th>
-        <th scope="col">Outcome</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each rows as row}
+{#if rows.length}
+  <div class="table-wrap" tabindex="0" role="region" aria-label="Catalog history" aria-busy={loading}>
+    <table>
+      <thead>
         <tr>
-          <td>{row.createdAt}</td>
-          <td>{row.actorRef ?? '—'}</td>
-          <td>{row.action}</td>
-          <td>{row.outcome}</td>
+          <th scope="col">Time</th>
+          <th scope="col">Actor</th>
+          <th scope="col">Action</th>
+          <th scope="col">Affected record</th>
+          <th scope="col">Outcome</th>
+          <th scope="col">Changes</th>
         </tr>
-      {/each}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {#each rows as row (row.id)}
+          <tr>
+            <td><time datetime={row.at}>{row.at}</time></td>
+            <td>{row.actorRef ?? '—'}</td>
+            <td>{row.action}</td>
+            <td>{row.subjectKind} {row.subjectId ?? '—'}</td>
+            <td>{row.outcome}</td>
+            <td>
+              <details>
+                <summary>Inspect changes</summary>
+                {#each Object.entries(row.changes) as [field, change]}
+                  <p><strong>{field}</strong>: {displayChange(change)}</p>
+                {:else}
+                  <p>No field changes recorded.</p>
+                {/each}
+              </details>
+            </td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/if}
+{#if permitted && (hasNextPage || message.includes('Retry'))}
+  <button type="button" class="secondary" disabled={loading} onclick={() => void loadPage()}>
+    {message.includes('Retry') ? 'Retry history' : 'Load more history'}
+  </button>
 {/if}
 
 <style>
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th,
-  td {
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
     text-align: left;
-    padding: 0.5rem;
-    border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    vertical-align: top;
+    padding: var(--space-2, 0.5rem);
+    border-bottom: 1px solid var(--border, currentColor);
+    overflow-wrap: anywhere;
   }
-  .muted {
-    margin-bottom: 1rem;
-  }
+  .muted { margin-bottom: var(--space-4, 1rem); }
 </style>
