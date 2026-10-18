@@ -69,7 +69,8 @@ function consume(response, service, finish, abort) {
   response.on('aborted', () => finish(failure('health-response-interrupted')));
   response.on('error', () => finish(failure('health-response-interrupted')));
   response.on('end', () => finish(response.statusCode === 200
-    ? summary(service, Buffer.concat(chunks).toString('utf8')) : failure('health-http-status-failed')));
+    ? { ...summary(service, Buffer.concat(chunks).toString('utf8')), httpStatus: 200 }
+    : { ...failure('health-http-status-failed'), httpStatus: Number.isInteger(response.statusCode) ? response.statusCode : null }));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

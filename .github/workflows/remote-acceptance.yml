@@ -115,6 +115,8 @@ jobs:
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: |
           python3 ops/ci/readiness-helper-test.py
+          python3 ops/ci/ports-test.py
+          node --test ops/ci/private-readiness-test.mjs
           python3 ops/ci/operational-status-test.py
           python3 ops/ci/operator-runtime-test.py
           python3 build-tools/verification-tests/test_harness.py
