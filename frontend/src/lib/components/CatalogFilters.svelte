@@ -16,6 +16,28 @@
   const id = $props.id();
   let genreOpen = $state(false);
   let genreSearch = $state('');
+  let genreDisclosure = $state<HTMLDetailsElement>();
+
+  function dismissGenres(event: MouseEvent): void {
+    if (
+      genreOpen &&
+      genreDisclosure &&
+      !event.composedPath().includes(genreDisclosure)
+    )
+      genreOpen = false;
+  }
+
+  function closeGenres(): void {
+    genreOpen = false;
+    genreDisclosure?.querySelector('summary')?.focus({ preventScroll: true });
+  }
+
+  function genreKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && genreOpen) {
+      event.preventDefault();
+      closeGenres();
+    }
+  }
   const selectedGenres = $derived(
     genres.filter((genre) => criteria.genres.includes(genre.id)),
   );
@@ -54,6 +76,8 @@
     criteria = { ...criteria, genres: next };
   }
 </script>
+
+<svelte:window onclick={dismissGenres} onkeydown={genreKeydown} />
 
 <div class="catalog-controls stack">
   <form
@@ -116,7 +140,11 @@
           {/each}
         </ul>
       {/if}
-      <details class="genre-filter-disclosure" bind:open={genreOpen}>
+      <details
+        class="genre-filter-disclosure"
+        bind:this={genreDisclosure}
+        bind:open={genreOpen}
+      >
         <summary>
           {criteria.genres.length ? 'Change genres' : 'Choose genres'}
           <span>{criteria.genres.length} selected</span>
@@ -155,6 +183,9 @@
           </div>
           <small id={`${id}-genres-help`}
             >Genres with available titles are listed. Scroll or search by name.</small
+          >
+          <button type="button" class="secondary" onclick={closeGenres}
+            >Close genres</button
           >
         </div>
       </details>

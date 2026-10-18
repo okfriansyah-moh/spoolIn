@@ -3,7 +3,7 @@
  * Wraps the typed document nodes so callers never see raw query strings.
  */
 import { readPageInfo } from '../../state/pagination';
-import type { GraphqlRequest } from '../../transport/graphql';
+import { TransportFailure, type GraphqlRequest } from '../../transport/graphql';
 import { withSignal } from '../../transport/request-options';
 import type {
   TitlesQuery,
@@ -75,16 +75,39 @@ function record(value: unknown): Record<string, unknown> {
   return Object.fromEntries(Object.entries(value));
 }
 
+async function readCatalog(
+  request: GraphqlRequest,
+  query: string,
+  variables: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<unknown> {
+  try {
+    return await request(query, variables, withSignal(signal));
+  } catch (error) {
+    if (
+      signal?.aborted ||
+      !(error instanceof TransportFailure) ||
+      error.code !== 'UNAVAILABLE'
+    )
+      throw error;
+    // A cold service or interrupted read may recover; never retry rejected access or rate limits.
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 150));
+    if (signal?.aborted) throw error;
+    return request(query, variables, withSignal(signal));
+  }
+}
+
 export async function fetchTitles(
   request: GraphqlRequest,
   variables: TitlesQueryVariables,
   signal?: AbortSignal,
 ): Promise<TitlesQuery['titles']> {
   const data = record(
-    await request(
+    await readCatalog(
+      request,
       TITLES_QUERY,
       variables as Record<string, unknown>,
-      withSignal(signal),
+      signal,
     ),
   );
   return (data as { titles: TitlesQuery['titles'] }).titles;
@@ -149,12 +172,13 @@ export async function fetchCatalogFilterOptions(
   signal?: AbortSignal,
 ): Promise<CatalogFilterOptions> {
   const data = record(
-    await request(
+    await readCatalog(
+      request,
       `query CatalogFilterOptions {
       catalogFilterOptions { genres { id label } releaseYears { year months } }
     }`,
       {},
-      withSignal(signal),
+      signal,
     ),
   );
   const options = record(data.catalogFilterOptions);

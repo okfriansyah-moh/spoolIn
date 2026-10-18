@@ -15,7 +15,10 @@ class CatalogMetadataProjection(
     }
 
     private fun label(env: DataFetchingEnvironment): String {
-        val id = env.getSource<Map<String, Any?>>()?.get("id") as? String
+        val source = env.getSource<Map<String, Any?>>()
+        val supplied = source?.get("label") as? String
+        if (!supplied.isNullOrBlank()) return supplied
+        val id = source?.get("id") as? String
         val labels =
             synchronized(env.graphQlContext) {
                 env.graphQlContext.get<Map<String, String>>(GENRE_CACHE) ?: loadGenres()
