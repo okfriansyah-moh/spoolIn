@@ -25,9 +25,9 @@ class SeedManifest private constructor(val root: JsonNode) {
         require(people.map { it.path("externalId").asText() }.distinct().size == people.size)
         records.forEach(::validateRecord)
         people.forEach { identity(it, "PERSON"); checksum(it); sources(it, setOf("name")); text(it, "name", 255) }
-        roles.forEach { identity(it, "ROLE"); require(it.path("category").asText() in setOf("CAST", "CREATOR")) }
+        roles.forEach { identity(it, "ROLE"); sources(it, setOf("label", "category", "allowsCharacters")); require(it.path("category").asText() in setOf("CAST", "CREATOR")) }
         require(roles.map { it.path("label").asText() }.toSet() == setOf("Actor", "Director", "Writer", "Producer"))
-        require(root.path("files").isArray && root.path("files").isEmpty) { "Unreviewed seed artwork is prohibited" }
+        require(root.path("files").isArray && root.path("files").size() == 0) { "Unreviewed seed artwork is prohibited" }
     }
 
     private fun validateRecord(record: JsonNode) {
@@ -45,7 +45,7 @@ class SeedManifest private constructor(val root: JsonNode) {
         }
         val genres = record["genres"].toList()
         require(genres.size in 1..20 && genres.map { it["stableUUID"].asText() }.distinct().size == genres.size)
-        genres.forEach { identity(it, "GENRE"); text(it, "label", 255) }
+        genres.forEach { identity(it, "GENRE"); sources(it, setOf("label")); text(it, "label", 255) }
         require(values["genreIds"].map { it.asText() } == genres.map { it["stableUUID"].asText() })
         record["credits"].forEach(::validateCredit)
         require(record.path("artwork").isNull) { "Artwork requires a separately reviewed file license" }

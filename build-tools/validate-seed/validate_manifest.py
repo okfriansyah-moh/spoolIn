@@ -79,6 +79,7 @@ def validate_record(root, row, people, roles):
     require(len(set(fields['genreIds'])) == len(genres), 'Duplicate genre')
     for genre in genres:
         validate_identity(root, genre, 'GENRE')
+        sources(genre, {'label'})
         require(bool(genre['label'].strip()), 'Missing genre label')
     for credit in row['credits']:
         validate_identity(root, credit, 'CREDIT')
@@ -106,6 +107,7 @@ def validate(root):
         sources(person, {'name'})
     for role in roles.values():
         validate_identity(root, role, 'ROLE')
+        sources(role, {'label', 'category', 'allowsCharacters'})
         require(role['category'] == ('CAST' if role['allowsCharacters'] else 'CREATOR'), 'Invalid contribution category')
     for row in records:
         validate_record(root, row, people, roles)
