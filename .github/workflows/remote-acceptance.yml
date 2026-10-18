@@ -9,7 +9,7 @@ on:
       mode:
         description: Dependency preparation or strict acceptance
         type: choice
-        options: [verify, dependencies, seed, format]
+        options: [verify, dependencies, seed, format, quality]
         default: verify
 permissions:
   contents: read
@@ -74,6 +74,11 @@ jobs:
       - name: Prepare source formatting patch
         if: ${{ inputs.mode == 'format' }}
         run: python3 ops/ci/format-selection.py
+      - name: Inspect all configured Kotlin source quality rules
+        if: ${{ inputs.mode == 'quality' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          ./gradlew --no-daemon --console plain --continue detekt ktlintCheck 2>&1 | tee artifacts/source-checks/kotlin-quality.log
       - name: Install pinned delivery scanners
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/install-gates.sh
