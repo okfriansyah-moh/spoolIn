@@ -21,7 +21,7 @@ record seed-apply 0 env SPOOLIN_SEED_APPLY=1 make seed
 record restart 0 make restart
 record post-restart-status 0 make status
 record stop 0 make stop
-record stopped-status 2 make status
+record stopped-status 1 make status
 record start 0 make start
 record final-status 0 make status
 # Execute the real repository-selected suites; missing selections retain their nonzero exits.

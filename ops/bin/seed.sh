@@ -5,7 +5,10 @@ manifest="$root_dir/data/seed/manifest.json"
 validator="$root_dir/build-tools/validate-seed/validate_manifest.py"
 apply=0
 for arg in "$@"; do
-  if [[ "$arg" == "--apply" ]]; then apply=1; fi
+  case "$arg" in
+    --apply) apply=1 ;;
+    *) printf 'seed: unsupported argument: %s\n' "$arg" >&2; exit 2 ;;
+  esac
 done
 if [[ "${SPOOLIN_SEED_APPLY:-}" == "1" ]]; then apply=1; fi
 test -f "$manifest" || { printf '%s\n' "missing $manifest" >&2; exit 2; }
