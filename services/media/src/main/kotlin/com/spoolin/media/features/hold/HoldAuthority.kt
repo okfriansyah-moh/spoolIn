@@ -15,6 +15,7 @@ internal class HoldAuthority(private val catalog: CatalogAttachments?) {
         val exact = current.holdId == command.hold.toString() && current.assetId == command.asset.toString() &&
             current.titleId == command.title.toString() && current.hasActorId() && current.actorId == command.actor.toString()
         if (!exact) throw Status.PERMISSION_DENIED.withDescription("HOLD_TUPLE_INVALID").asRuntimeException()
+        if (current.state !in setOf("PREPARING", "ACTIVE", "RELEASED")) throw Status.UNAVAILABLE.asRuntimeException()
         if (!current.hasCatalogVersion() || current.catalogVersion < 0) throw Status.UNAVAILABLE.asRuntimeException()
         return current
     }

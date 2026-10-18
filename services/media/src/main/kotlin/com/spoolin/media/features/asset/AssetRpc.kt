@@ -37,19 +37,34 @@ class AssetRpc(
     fun receiptScope(operation: UUID): String {
         val row = dataSource.connection.use { connection -> connection.queryBound(
             "SELECT * FROM asset WHERE upload_operation_id=?", listOf(operation),
-        ) { AssetRow.decode(it) }.singleOrNull() } ?: holdReceiptAsset(operation)
+        ) { AssetRow.decode(it) }.singleOrNull() } ?: return holdReceiptScope(operation)
         authorize(row)
         return "account:${row.actorId}"
     }
 
-    private fun holdReceiptAsset(operation: UUID): AssetRow = dataSource.connection.use { connection ->
-        connection.queryBound(
-            "SELECT a.* FROM operation_receipt r JOIN asset_reference h " +
-                "ON h.id::text=r.result->>'resultId' JOIN asset a ON a.id=h.asset_id " +
+    private fun holdReceiptScope(operation: UUID): String {
+        val stored = dataSource.connection.use { connection -> connection.queryBound(
+            "SELECT a.*,h.id AS receipt_hold,h.title_id AS receipt_title FROM operation_receipt r " +
+                "JOIN asset_reference h ON h.id::text=r.result->>'resultId' JOIN asset a ON a.id=h.asset_id " +
                 "WHERE r.id=? AND r.kind IN ('HOLD_RESERVE','HOLD_CONFIRM','HOLD_RELEASE') " +
                 "AND r.actor_scope='account:'||a.actor_id::text AND r.state='SUCCEEDED'",
             listOf(operation),
-        ) { AssetRow.decode(it) }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+        ) { Triple(AssetRow.decode(it), it.getObject("receipt_hold", UUID::class.java),
+            it.getObject("receipt_title", UUID::class.java)) }.singleOrNull() }
+            ?: throw Status.NOT_FOUND.asRuntimeException()
+        val (asset, hold, title) = stored
+        val allowed = when (MediaPeer.current()) {
+            "core" -> ActorRpc.current()?.accountId == asset.actorId
+            "catalog" -> {
+                val current = access.current(hold)
+                current.holdId == hold.toString() && current.assetId == asset.id.toString() &&
+                    current.titleId == title.toString() && current.hasActorId() &&
+                    current.actorId == asset.actorId.toString() && current.state in setOf("PREPARING", "ACTIVE", "RELEASED")
+            }
+            else -> false
+        }
+        if (!allowed) throw Status.NOT_FOUND.asRuntimeException()
+        return "account:${asset.actorId}"
     }
 
     fun readAsset(request: AssetReadRequest, response: StreamObserver<AssetReadChunk>) {
