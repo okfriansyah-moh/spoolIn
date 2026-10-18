@@ -179,18 +179,21 @@ jobs:
         env:
           NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
         run: npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
-      - name: Verify actual operator connector and recovery entry points
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
-        run: python3 ops/ci/verify-operator-commands.py
       - name: Verify actual monitoring and alert persistence
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: python3 ops/monitoring/verify.py --report artifacts/runtime/monitoring.json
       - name: Verify documented Make lifecycle and suites
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: bash ops/ci/verify-make-targets.sh
+      - name: Verify actual protected key rotation and restart
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/verify-key-rotation.py
       - name: Verify actual coordinated backup restore and recovery restart
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: python3 ops/ci/verify-recovery.py
+      - name: Verify actual operator connector and recovery entry points
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/verify-operator-commands.py
       - name: Retain bounded check reports before delivery gates
         if: ${{ !cancelled() && inputs.mode == 'verify' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

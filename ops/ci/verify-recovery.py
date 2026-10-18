@@ -59,6 +59,9 @@ def main():
     destination['SPOOLIN_RESTORE_CANARY_PASSWORD_FILE'] = source['SPOOLIN_RESTORE_CANARY_PASSWORD_FILE']
     invoke('restored-restart', ['make', 'restart'], destination, reports)
     invoke('restored-status', ['make', 'status'], destination, reports)
+    # Preserve completed restore evidence, then free its resources before resuming the source.
+    invoke('stop-restored', ['make', 'stop'], destination, reports)
+    invoke('resume-source', ['make', 'start'], source, reports)
     record = {'testedSha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
               'runId': source['GITHUB_RUN_ID'], 'attempt': source['GITHUB_RUN_ATTEMPT'],
               'runner': source['RUNNER_ENVIRONMENT'], 'runnerOS': source['RUNNER_OS'],
