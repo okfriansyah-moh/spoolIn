@@ -12,6 +12,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / '.local'
 SPEC = importlib.util.spec_from_file_location('prepare', ROOT / 'ops/ci/prepare-environment.py')
+LOCAL_DEMO_PASSWORDS = {'viewer': 'SpoolInViewer123!', 'maintainer': 'SpoolInMaintainer123!'}
+
 PREPARE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PREPARE)
 
@@ -63,6 +65,8 @@ def initialize_runtime(runtime):
     PREPARE.protected(runtime / 'actor-trust', json.dumps({'active': base64.b64encode(public).decode()}))
     PREPARE.runtime_config(runtime)
     PREPARE.prepared_accounts(runtime)
+    for role, password in LOCAL_DEMO_PASSWORDS.items():
+        PREPARE.protected(runtime / (role + "-password"), password)
     PREPARE.rate_agreement(runtime)
 
 

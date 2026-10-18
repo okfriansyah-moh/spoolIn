@@ -234,17 +234,17 @@ The `main` branch includes the local setup helpers and packaged catalog describe
    make local-start
    ```
 
-   Wait for readiness checks to finish. Open `https://localhost:8443` after startup succeeds. Initial credentials are stored in `.local/accounts.txt`: `maintainer@example.invalid` can edit the catalog, and `viewer@example.invalid` has Viewer access. Their random passwords persist across repeated setup. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
+   Wait for readiness checks to finish. Open `https://localhost:8443` after startup succeeds. Initial credentials are stored in `.local/accounts.txt`: `maintainer@example.invalid` can edit the catalog, and `viewer@example.invalid` has Viewer access. Fresh local installations use the [demo passwords listed below](#choose-the-right-account). Existing credentials persist across repeated setup. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
 
 3. Trust the generated public local certificate using [the Firefox steps below](#trust-the-local-certificate), then open `https://localhost:8443`. Don't import a private key or turn off certificate validation.
 
-4. In the project terminal, read your initial account details:
+4. Use the [local demo accounts](#choose-the-right-account) to sign in. You can also display the credentials saved for this installation:
 
    ```bash
    cat .local/accounts.txt
    ```
 
-   Choose **Sign in** and enter the Maintainer email and generated password from that file. Keep the terminal output private and out of screenshots, issues, and commits. Registration creates a Viewer; it doesn't grant catalog editing permissions.
+   Choose **Sign in** and enter the Maintainer email and password. Older local installations keep their previous passwords; use the values in that file if they differ from the demo defaults. Registration creates a Viewer; it doesn't grant catalog editing permissions.
 
 #### Trust the local certificate
 
@@ -373,7 +373,7 @@ Type `DELETE` at the prompt only when you intend to discard the local installati
 | Build download fails | Check your connection, proxy, free disk space, and registry access; retry setup. |
 | Page can't be reached | Run `make local-status`, inspect `make local-logs`, and use the exact printed HTTPS address. |
 | Artwork codec isolation fails | Preserve the diagnostic. Check Docker's Linux security support and the repository's Media policy; don't disable the sandbox to force a successful start. |
-| Sign-in fails | Use the generated local credentials. Registration creates a Viewer, while editing requires a Maintainer. |
+| Sign-in fails | Use the local demo credentials below, or `.local/accounts.txt` for an older installation. Registration creates a Viewer, while editing requires a Maintainer. |
 | Save outcome is uncertain | Use the page's original-result check before submitting again. |
 
 The [Media isolation policy](docs/release/media-sandbox-policy.md) describes deployment enforcement. The local Media profile uses `systempaths=unconfined` to let Bubblewrap mount a fresh private `/proc`: Docker Desktop's inherited process-filesystem masks blocked that mount in the macOS check. This setting applies only to Media. It retains non-root execution, dropped capabilities, a read-only filesystem, seccomp, and the codec worker's network, PID, user, and mount isolation. Local startup must still verify the codec boundary.
@@ -397,18 +397,20 @@ The local setup creates two ready-to-use accounts. After completing [Start and s
 | Account | Email | Password | Access |
 | --- | --- | --- | --- |
 | Visitor | No account needed | No password needed | Browse and search public movies, people, and credits |
-| Viewer | `viewer@example.invalid` | Generated locally; use the Viewer line in `.local/accounts.txt` | Browse with a signed-in account |
-| Maintainer | `maintainer@example.invalid` | Generated locally; use the Maintainer line in `.local/accounts.txt` | Maintain movies, people, credits, artwork, and archived records; review History |
+| Viewer | `viewer@example.invalid` | `SpoolInViewer123!` | Browse with a signed-in account |
+| Maintainer | `maintainer@example.invalid` | `SpoolInMaintainer123!` | Maintain movies, people, credits, artwork, and archived records; review History |
 
-To get the actual email and password pairs, run this from the repository folder. On Windows, use the Ubuntu terminal from the setup guide; the same command works on macOS and Linux:
+After `make local-setup` and `make local-start`, open `https://localhost:8443`, select **Sign in**, and enter an email and password from the table. Choose Maintainer to try editing, artwork uploads, Archives, and History; choose Viewer for signed-in browsing.
+
+These published demo passwords apply only to fresh local installations. Deployment provisioning continues to use generated credentials. Keep the local demo environment on localhost.
+
+If you set up SpoolIn before these defaults were added, your existing accounts and passwords stay unchanged. Read their credentials from the repository folder with:
 
 ```bash
 cat .local/accounts.txt
 ```
 
-Each line contains `email: password`. Open `https://localhost:8443`, select **Sign in**, enter an email from the table, and copy the password after the colon on its matching line. Choose Maintainer to try editing, artwork uploads, Archives, and History; choose Viewer to try signed-in browsing.
-
-There is no shared default password. Setup generates random passwords for your installation and preserves them across repeated setup and restarts. On a fresh clone, run `make local-setup` first, then `make local-start` before signing in. Keep the displayed credentials private.
+On Windows, run this in the Ubuntu terminal from the setup guide. The same command works on macOS and Linux. Each line contains `email: password`; use the password after the colon for the matching email. Repeating setup and restarting preserve existing credentials and catalog data. You don't need to reset your installation.
 
 **Register** creates an additional Viewer account; catalog editing requires a Maintainer.
 
