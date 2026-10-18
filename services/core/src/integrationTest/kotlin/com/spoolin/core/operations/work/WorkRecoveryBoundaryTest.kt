@@ -250,6 +250,6 @@ class WorkRecoveryBoundaryTest {
                 }
             assertEquals("42501", denied.sqlState)
         }
-        fixture.sql("core", sql.replace("?", "'$id'::uuid"))
+        fixture.sql("core", "SET search_path=appdata; " + sql.replace("?", "'$id'::uuid"))
     }
 }

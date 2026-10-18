@@ -34,6 +34,7 @@ class PolicyConfigurationBoundsRulesTest {
             "characterName",
             "biography",
             "password",
+            "search",
         )
 
     @TestFactory
@@ -83,7 +84,7 @@ class PolicyConfigurationBoundsRulesTest {
                                 "synopsis" -> movieSiblingBounds("TITLE")
                                 else -> emptyMap()
                             }
-                    if (value in 1..upper) {
+                    if (value in (if (field == "search") 0 else 1)..upper) {
                         assertEquals(
                             value,
                             PolicySettings

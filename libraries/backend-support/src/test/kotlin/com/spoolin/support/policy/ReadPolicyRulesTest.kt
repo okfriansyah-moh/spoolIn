@@ -45,6 +45,26 @@ class ReadPolicyRulesTest {
     }
 
     @Test
+    fun `property resolver delivers configured search minimum and keeps blank clearing`() {
+        val configured = PolicyEnvironment.resolve(mapOf(
+            "SEARCH_MIN_CODE_POINTS" to "2", "SEARCH_MAX_CODE_POINTS" to "4",
+        )::get)
+        val reads = ReadPolicy(configured)
+        assertEquals(2, configured.textBounds.getValue("search").minCodePoints)
+        assertThrows(InputViolation::class.java) { reads.search("a") }
+        assertEquals("ab", reads.search(" ab "))
+        assertNull(reads.search(" "))
+        assertEquals(0, PolicySettings.resolve(ConfigurationSources(mapOf(
+            "SEARCH_MIN_CODE_POINTS" to "0",
+        ))).textBounds.getValue("search").minCodePoints)
+        listOf("", " ", "-1", "201").forEach { minimum ->
+            assertThrows(ConfigurationViolation::class.java) {
+                PolicyEnvironment.resolve(mapOf("SEARCH_MIN_CODE_POINTS" to minimum)::get)
+            }
+        }
+    }
+
+    @Test
     fun `scope binds typed criteria page and policy without delimiter collisions`() {
         val first = policy.cursorScope("people", 2, mapOf("text" to "a;k=;g=;y=;m="))
         assertNotEquals(first, policy.cursorScope("people", 2, mapOf("text" to "a", "k" to "")))

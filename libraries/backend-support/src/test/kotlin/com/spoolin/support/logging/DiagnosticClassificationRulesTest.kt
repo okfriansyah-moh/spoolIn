@@ -131,9 +131,13 @@ class DiagnosticClassificationRulesTest {
     fun `legacy message conversion uses fixed event summary and never formatted private framework text`() {
         val event = startup()
         assertEquals("\"Application startup failed\"", JsonLogMessageConverter().convert(event))
-        event.message = "private user={}\nforged"
-        event.argumentArray = arrayOf("secret")
-        assertEquals("\"Diagnostic event\"", JsonLogMessageConverter().convert(event))
+        val privateEvent = LoggingEvent().also {
+            it.loggerName = "org.springframework.boot.SpringApplication"
+            it.level = Level.ERROR
+            it.message = "private user={}\nforged"
+            it.argumentArray = arrayOf("secret")
+        }
+        assertEquals("\"Diagnostic event\"", JsonLogMessageConverter().convert(privateEvent))
     }
 
     @Test

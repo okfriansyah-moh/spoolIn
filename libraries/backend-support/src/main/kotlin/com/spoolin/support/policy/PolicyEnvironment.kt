@@ -12,10 +12,10 @@ object PolicyEnvironment {
             "CHARACTER_NAME",
             "BIOGRAPHY",
             "PASSWORD",
+            "SEARCH",
         ).flatMap { listOf("${it}_MIN_CODE_POINTS", "${it}_MAX_CODE_POINTS") } +
             listOf(
                 "EMAIL_MAX_CODE_POINTS",
-                "SEARCH_MAX_CODE_POINTS",
                 "SOURCE_URL_MAX_CODE_POINTS",
                 "REUSE_BASIS_MAX_CODE_POINTS",
                 "ARTWORK_MAX_INPUT_BYTES",
