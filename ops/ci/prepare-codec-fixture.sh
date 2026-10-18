@@ -22,7 +22,7 @@ cleanup() {
 trap cleanup EXIT
 mkdir -p artifacts/source-checks
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends bubblewrap util-linux \
+sudo apt-get install -y --no-install-recommends bubblewrap util-linux ripgrep \
   libglib2.0-0t64 libexif12 libexpat1 libjpeg-turbo8 libpng16-16t64 libwebp7 libwebpmux3 libwebpdemux2
 bash ops/ci/prepare-codec-profile.sh 2>&1 | tee artifacts/source-checks/codec-profile-setup.log
 # Build the production Dockerfile's pinned, checksum-verified codec and header helper.

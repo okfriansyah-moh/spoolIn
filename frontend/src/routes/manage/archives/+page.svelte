@@ -299,7 +299,7 @@
     </button>
   </div>
 
-  <section id="archives-panel" role="tabpanel" aria-labelledby={`archives-tab-${tab}`} tabindex="0">
+  <div id="archives-panel" role="tabpanel" aria-labelledby={`archives-tab-${tab}`} tabindex="0">
   {#if listState.kind === 'loading'}
     <p role="status">Loading archives…</p>
   {:else if listState.kind === 'denied'}
@@ -333,7 +333,7 @@
     </button>{/if}
   {/if}
 
-  </section>
+  </div>
   <p role="status">{message}</p>
   {#if intent}
     <div class="actions">

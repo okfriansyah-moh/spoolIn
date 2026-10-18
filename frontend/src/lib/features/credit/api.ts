@@ -111,7 +111,10 @@ async function withCurrentPeople(
     }
   }
   if (signal?.aborted) throw new Error('Credit reference read cancelled.');
-  return Object.freeze(nodes.map((credit) => Object.freeze({ ...credit, personArchived: states.get(credit.personId) })));
+  return Object.freeze(nodes.map((credit) => {
+    const personArchived = states.get(credit.personId);
+    return Object.freeze({ ...credit, ...(personArchived === undefined ? {} : { personArchived }) });
+  }));
 }
 
 export async function fetchTitleCreditsPage(
