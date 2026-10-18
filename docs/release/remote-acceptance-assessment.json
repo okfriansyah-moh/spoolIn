@@ -70,7 +70,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Pinned dependencies and generators execute in strict hosted build. Locks and verification metadata are prepared remotely; twice-clean reproducibility, complete harness and configured gates still require current proof.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T002",
@@ -148,7 +160,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Strict hosted protobuf/TypeScript generation passed on0fd4297. Current optional version/language presence changes regenerate all selected consumers; current native round-trip and every wire projection remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T003",
@@ -208,7 +232,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Real make start migrated each owned PostgreSQL database before initialization on0fd4297. Complete runtime role/grant denial and cross-owner mTLS execution remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T004",
@@ -281,7 +317,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Core boot jar includes built Svelte shell and production route fallback. FE297 tests/check/build passed on1a57827; actual rendered browser/theme/focus acceptance has not run.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T005",
@@ -380,7 +428,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Prepared synthetic accounts now initialize protected Core rows; production crypto/key/nonce beans are enabled in isolated configuration. Actual crypto fault and durable storage tests are authored but await current remote execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T006",
@@ -470,7 +530,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Live effective policy now reaches authoritative Catalog writers, request masks and native optional presence. Compose forwarding corrected609481b; actual nondefault/empty/zero owner and policy boundary checks await execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T007",
@@ -555,7 +627,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Owner receipts wrap real mutations and audit in transactions; complete Catalog write fingerprints preserve legacy original outcomes. Atomicity/concurrent retry/receipt expiry tests await current execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T008",
@@ -679,7 +763,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Production GraphQL resolves account/session services with cookies and CSRF; synthetic account initialization actually ran. Real registration/sign-in/sign-out/session revocation browser/API obligations remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T009",
@@ -801,7 +897,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Production exact mTLS service allowlists and signed actor claims remain in owner registration; SDK tracing retains trusted peer boundaries. Full admission/replica/token replay and denial suite remains pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T010",
@@ -987,7 +1095,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Production account routes use actual GraphQL/session endpoints. Real-browser account project exists on the make-start stack; it has not executed and does not establish the complete required environment matrix.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T011",
@@ -1170,7 +1290,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Actual fenced workers, owner recovery CLIs and safe retained-attempt reconciliation are now wired. Unknown external webhook outcomes refuse unsafe resend; lease/crash/operator recovery cases await runtime proof.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T012",
@@ -1329,7 +1461,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Core public GraphQL calls real Catalog gRPC and owned read queries; full200-title API verifier compares identities, fields, credits, provenance and ordering. No complete live read comparison has executed.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T013",
@@ -1554,7 +1698,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Production discovery routes call actual API; remote catalog journeys have explicit assertions and no successful response interception. Initial real seed insertion is not catalog display or complete artwork proof.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T014",
@@ -1671,7 +1827,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Core encrypted drafts use durable owner receipts and nonce allocation; actual storage/fault tests now cover crypto observation paths. Full version/expiry/account isolation/uncertainty cases await execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T015",
@@ -1742,7 +1910,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Draft GraphQL is connected to real encrypted owner storage and editors retain returned draft identities/versions. Complete ordering/account isolation/reload uncertainty still requires real browser/API proof.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T016",
@@ -1873,7 +2053,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Core GraphQL writer reaches authorized Catalog MovieWrites with current policy, complete intent hash, masks and version presence. Actual signed mTLS/PostgreSQL policy/concurrency/rollback tests are authored; not yet executed.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T017",
@@ -1987,7 +2179,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Movie editor uses actual managed GraphQL, production deep links and retained conflict/draft controls. Real remote create/edit/reload/conflict journeys exist but have not run.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T018",
@@ -2051,7 +2255,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Person GraphQL reaches authoritative PersonWrites with current biography/name policy and complete fingerprints. Real persisted create/update and lost-response tests await current execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T019",
@@ -2154,7 +2370,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "People management uses actual shared person records and public projection. Remote create/edit/reload journeys are authored; all assigned recovery and role behaviors remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T020",
@@ -2228,7 +2456,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Role/credit owner writes now bind full intent, policy and required version; Unicodeblank character entries clear according to contract. Signed mTLS/PostgreSQL persisted-array/rollback/replay tests await current execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T021",
@@ -2338,7 +2578,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Credit editors call actual GraphQL/RPC and retain shared identities/order and original draft/operation state. Complete visible edit/remove/conflict/recovery proof remains pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T022",
@@ -2434,7 +2686,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Core authenticated bounded byte proxy reaches actual Media gRPC stream, validating length/hash/header and cancellation. Media codec source builds, but host fixture copy failed before sandbox preflight; correction6263b27 awaits runtime.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T023",
@@ -2549,7 +2813,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Catalog hold/attach/release and Media reservation use durable work, transactional evidence and bounded authenticated calls. Real race/atomic cancellation tests are authored; current execution remains pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T024",
@@ -2639,7 +2915,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Actual lifecycle owner validates complete deletion impact and mutates domain/audit/receipt atomically. Current version-presence correction and real lifecycle integration cases await execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T025",
@@ -2881,7 +3169,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Movie/person archive, restore and irreversible confirmation controls call actual lifecycle API and original-receipt lookup. Browser reload/conflict/delete/cancel evidence has not executed.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T026",
@@ -3137,7 +3437,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Artwork UI reaches actual upload/proxy/progress owner paths and reconciles original outcomes. Full format/size/retry/progress/attachment/accessibility cases require actual running application.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T027",
@@ -3230,7 +3542,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Movie/person/credit editors now use backed drafts, retained original IDs, explicit picker/discard and review-before-rebase. Component tests passed at older SHA; complete live reload/account-switch/uncertainty obligations remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T028",
@@ -3309,7 +3633,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Actual MCP SDK HTTP sessions, stdio bridge and live mTLS gateway client are implemented; old stub diagnosis is superseded in source. Current actual stdio-to-production-gateway-to-Catalog/DB verifier is authored but has not executed; installed client compatibility remains pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T029",
@@ -3421,7 +3757,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Proposal owner binds actor/connector/client/policy/revision/hash/challenge/expiry and original terminal receipt. UI assertion signing/validation exists, but verified-host issuance is still disconnected and remains a production gap; no approval acceptance claimed.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T030",
@@ -3482,7 +3830,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Review resource uses the actual MCP Apps SDK and safe text rendering, with publication disabled until an authenticated supported host private channel exists. Challenge/bearer host delivery and actual host UI isolation remain incomplete.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T031",
@@ -3634,7 +3994,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Audit UI/API now project affected subjects, changes and pagination through actual owner reads. Viewer denial and rendered read-only navigation/assertions await real browser execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T032",
@@ -3689,7 +4061,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Frozen permitted CC0 facts replace synthetic seed data:100distinctMOVIE/100distinctTV,1213people1475credits,1578sources. Original synopses and optional0artwork are explicit. Manifest correctness does not establish loaded/displayed correctness.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T033",
@@ -3865,7 +4249,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Actual seed initialization inserted200titles in run39089177637. Stable identities/provenance/receipt replay and full database/API/restart verifier are implemented; complete comparisons, repeat-safe behavior and current-policy seed correction remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T034",
@@ -3972,7 +4368,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Actual worker exhaustion and authenticated alert ingress persist owner notification work; selected provider transports distinguish recorded/accepted/unknown/failed. Current episode/delivery/fault and operator evidence remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T035",
@@ -4082,7 +4490,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Bounded JSON appender/queue/drop metrics and SDK trace binding replace generic text output; startup error classifications are now allowlisted without raw private messages. Current logging tests and actual log-viewer assertions remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T036",
@@ -4197,7 +4617,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Private pinned Prometheus/Alertmanager/Grafana containers actually started on0fd4297. Owner exporters, real logical observations and rendered numeric panel assertions are implemented; no full scrape/alert/dashboard acceptance yet.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T037",
@@ -4431,7 +4863,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Documented make start now builds, migrates, initializes and polls real trusted readiness. First actual start timed out; bounded probe diagnostics, exact argument validation, JSON logs and read-only owner status corrections await rerun. Every actual Make target remains required.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T038",
@@ -4556,7 +5000,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Real stdio/HTTP protocol support is implemented, but no installed Claude host/version/private-channel/model-versus-UI observation is available. Harness evidence cannot satisfy these actual host cases.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T039",
@@ -4726,7 +5182,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "No registered pinned tunnel runner or actual ChatGPT host observation is available. Protocol harness and SDK support do not prove authenticated host isolation or publication; client obligations remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T040",
@@ -4798,7 +5266,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Protected key rotation now performs canary validation, resumable bounded row backfill, fresh nonce allocation, CAS and retained-key retirement checks. Actual isolated operator/restart/restore evidence remains pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T041",
@@ -4906,7 +5386,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Coordinated encrypted all-owner/artwork checkpoint, isolated restore, new write material, credential invalidation and bounded maintenance are implemented. Actual backup/restore/recovery CLI execution has not occurred.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T042",
@@ -5548,7 +6040,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Production registered RPC/GraphQL owner chains and native presence were corrected; current integration tasks cover selected real boundaries. Every assigned storage/field/RPC/transport contract still requires current attributable execution.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T043",
@@ -5812,7 +6316,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Real effective policy, authorization, hostile input and privacy enforcement paths are implemented in selected owner boundaries. Full injection/role/replay/oversize/storage matrix remains pending; nearby passing cases cannot close it.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T044",
@@ -6146,7 +6662,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Approved independent static mockups/tokens and actual/reference/diff tooling are retained. Real three-engine/theme/width and touch projects are authored but not executed; native reader/voice/zoom and equivalent-rendering limits remain explicit.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T045",
@@ -6215,7 +6743,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Bounded workers, codec limits, owned resource isolation, restart and coordinated restore orchestration are implemented. No measured complete capacity/recovery result exists; source changes do not establish performance bounds.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     },
     {
       "task_id": "T046",
@@ -6354,7 +6894,19 @@
       "runtime_verified": false,
       "formally_accepted": false,
       "assessed_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
-      "evidence_links": []
+      "evidence_links": [],
+      "current_status": "In progress",
+      "continuation_assessments": [
+        {
+          "assessed_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "All46rows and assigned IDs remain retained with separate current source/runtime/formal states. Prior findings/review counters preserved; one final independent combined review and supported formal selection acceptance have not occurred.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
+          "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        }
+      ]
     }
   ],
   "source_findings": [
@@ -6885,5 +7437,7 @@
     "tests/browser/playwright.app.config.ts": "f8c57cc93bd64498b0af7d95d3cc0ba8ebf24b2c05f277021b27cc2ecb60ad8c",
     "data/seed/manifest.json": "e6b45414eadccc4cefa297e0f8e5f3d100404783827ceeb79364a24de042e78d",
     "ops/monitoring/alerts.yml": "6195c88b22fb321e514631046b0117705982d3d28b19f31c42a98d9e66553300"
-  }
+  },
+  "latest_continuation_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
+  "latest_continuation_scope": "Every task row assessed for current corrections and known remaining obligations; no exhaustive source-complete or runtime acceptance claim. Initial assessment and all histories remain intact."
 }
