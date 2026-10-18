@@ -6,6 +6,7 @@
   import Notice from '../../components/Notice.svelte';
   import Button from '../../components/Button.svelte';
   import RoleCreator from './RoleCreator.svelte';
+  import PersonSearchSelect from './PersonSearchSelect.svelte';
   import ConfirmDialog from '../../components/ConfirmDialog.svelte';
   import { fetchManagedMovie } from '../movie/api';
   import { createTransport } from '../../transport/graphql';
@@ -52,7 +53,6 @@
   let people = $state<readonly PersonOption[]>([]);
   let loading = $state(true);
   let loadingPeople = $state(false);
-  let peopleSearch = $state('');
   let appliedPeopleSearch = $state('');
   let peopleFeedback = $state('');
   let peopleError = $state('');
@@ -64,11 +64,6 @@
   let roleDirty = $state(false);
   let roleBlocked = $state(false);
   let roleResetKey = $state(0);
-  const personOptions = $derived(
-    personId && pickedPerson && !people.some((person) => person.id === personId)
-      ? [pickedPerson, ...people]
-      : people,
-  );
   let loadingCredits = $state(false);
   let refreshingSavedCredits = $state(false);
   let nextCredits = $state<string | null>(null);
@@ -469,9 +464,8 @@
     }
   }
 
-  function searchPeople(event?: SubmitEvent) {
-    event?.preventDefault();
-    appliedPeopleSearch = peopleSearch.trim();
+  function searchPeople(query: string) {
+    appliedPeopleSearch = query.trim();
     void loadPeople(false);
   }
 
@@ -483,7 +477,7 @@
     const added = page.nodes.filter((person) => !known.has(person.id));
     people = [...previous, ...added];
     nextPeople = page.next;
-    peopleFeedback = `${added.length} names added. ${people.length} ${appliedPeopleSearch ? 'matching names' : 'names'} available in the dropdown.${nextPeople ? '' : ' All results loaded.'}`;
+    peopleFeedback = `${added.length} names added. ${people.length} ${appliedPeopleSearch ? 'matching names' : 'names'} available.${nextPeople ? '' : ' All results loaded.'}`;
     if (!people.length)
       peopleFeedback =
         'No matching people. Try another name or clear the search.';
@@ -1110,84 +1104,31 @@
               ? 'Add creator'
               : 'Add credit'}
       </h3>
-      <form class="people-search" role="search" onsubmit={searchPeople}>
-        <label for="credit-person-search">Search people</label>
-        <input
-          id="credit-person-search"
-          type="search"
-          bind:value={peopleSearch}
-          disabled={submitting || !!pendingId || !!editing || roleBlocked}
-          placeholder="Person name"
-        />
-        <div class="credit-actions">
-          <button
-            type="submit"
-            disabled={submitting || !!pendingId || !!editing || roleBlocked}
-            >Search</button
-          >
-          <button
-            class="secondary"
-            type="button"
-            disabled={submitting || !!pendingId || !!editing || roleBlocked}
-            onclick={() => {
-              peopleSearch = '';
-              searchPeople();
-            }}>Clear search</button
-          >
-        </div>
-      </form>
-      <div class="field">
-        <label for="credit-person">Person</label>
-        <select
-          id="credit-person"
-          bind:value={personId}
-          onchange={() => {
-            pickedPerson =
-              personOptions.find((person) => person.id === personId) ?? null;
-            creditDirty = true;
-            reviewedCredit = false;
-          }}
-          disabled={roleBlocked ||
-            submitting ||
-            !!pendingId ||
-            !!editing ||
-            loadingPeople ||
-            !!creditDraftChoices.length ||
-            draftUnavailable}
-        >
-          <option value="">Select an active person</option>
-          {#each personOptions as person (person.id)}
-            <option value={person.id}>{person.name}</option>
-          {/each}
-        </select>
-        <p role="status">
-          {peopleFeedback ||
-            `${people.length} names available in the dropdown.${nextPeople ? '' : ' All results loaded.'}`}
-        </p>
-        {#if pickedPerson && personId && !people.some((person) => person.id === personId)}<p
-          >
-            Your selected person remains available above even when outside these
-            search results.
-          </p>{/if}
-        {#if peopleError}<p role="alert">{peopleError}</p>
-          <button
-            type="button"
-            disabled={loadingPeople}
-            onclick={() => void loadPeople(peopleRetryAppend)}
-            >Retry names</button
-          >{/if}
-        {#if nextPeople}<button
-            type="button"
-            disabled={loadingPeople || submitting || !!pendingId || !!editing}
-            aria-busy={loadingPeople}
-            onclick={() => void loadPeople(true)}
-            >{loadingPeople
-              ? 'Loading names…'
-              : appliedPeopleSearch
-                ? 'Find more matches'
-                : 'Load more names'}</button
-          >{/if}
-      </div>
+      <PersonSearchSelect
+        options={people}
+        selected={people.find((person) => person.id === personId) ??
+          (pickedPerson?.id === personId ? pickedPerson : null)}
+        disabled={roleBlocked ||
+          submitting ||
+          !!pendingId ||
+          !!editing ||
+          !!creditDraftChoices.length ||
+          draftUnavailable}
+        loading={loadingPeople}
+        hasMore={!!nextPeople}
+        error={peopleError}
+        feedback={peopleFeedback ||
+          `${people.length} names available.${nextPeople ? '' : ' All results loaded.'}`}
+        onSearch={searchPeople}
+        onSelect={(person) => {
+          personId = person.id;
+          pickedPerson = person;
+          creditDirty = true;
+          reviewedCredit = false;
+        }}
+        onMore={() => void loadPeople(true)}
+        onRetry={() => void loadPeople(peopleRetryAppend)}
+      />
       <div class="field">
         <label for="credit-role">Role</label>
         <select
