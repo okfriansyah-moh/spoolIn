@@ -116,7 +116,20 @@ jobs:
         run: |
           mkdir -p artifacts/source-checks
           npm run test:coverage --workspace frontend 2>&1 | tee artifacts/source-checks/frontend-tests.log
+      - name: Retain production behavior reports before helper checks
+        if: ${{ !cancelled() && inputs.mode == 'verify' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: production-behavior-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/source-checks
+            mcp/coverage/junit.xml
+            frontend/coverage/results.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Readiness parser and redaction regression checks
+        timeout-minutes: 10
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: |
           python3 ops/ci/codec-diagnostics-test.py
