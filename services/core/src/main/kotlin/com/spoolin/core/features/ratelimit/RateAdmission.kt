@@ -50,8 +50,9 @@ class RateAdmission(
         val retry =
             try {
                 dataSource.committed { connection -> consume(connection, demands) }
-            } catch (failure: Exception) {
-                logger.warn("Rate admission failed", failure)
+            } catch (expectedDependencyFailure: Exception) {
+                // The admission boundary rejects every dependency failure rather than admitting without accounting.
+                logger.warn("Rate admission failed", expectedDependencyFailure)
                 throw RateUnavailable()
             }
         if (retry > 0) throw RateLimited(retry)

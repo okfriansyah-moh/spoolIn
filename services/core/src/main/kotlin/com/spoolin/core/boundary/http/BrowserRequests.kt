@@ -41,10 +41,11 @@ class BrowserRequests {
                         Runnable {
                             try {
                                 result.setResult(action(deadline))
-                            } catch (failure: Exception) {
+                            } catch (expectedExecutionFailure: Exception) {
+                                // The executor boundary must finish the deferred response even when an action throws.
                                 org.slf4j.LoggerFactory
                                     .getLogger(BrowserRequests::class.java)
-                                    .warn("Browser execution failed", failure)
+                                    .warn("Browser execution failed", expectedExecutionFailure)
                                 result.setResult(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "UNAVAILABLE"))
                             }
                         },
