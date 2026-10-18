@@ -7,7 +7,7 @@ import java.nio.file.Path
 
 /** CLI entry for ops/bin/seed.sh --apply (T033). */
 fun runSeedCli(args: Array<String>) {
-    applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), "catalog")
     val manifestArg = args.firstOrNull { it.startsWith("--seed-manifest=") } ?: usage()
     val manifest = Path.of(manifestArg.removePrefix("--seed-manifest="))
     val seedVersion =

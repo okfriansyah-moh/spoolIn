@@ -31,6 +31,9 @@ internal class DiagnosticEnvelope(val service: String, version: String, environm
 
     fun invalid(timestamp: Long): ByteArray = record(DiagnosticLevel.ERROR, timestamp, "Logger contract invalid")
 
+    fun invalidLogLevel(timestamp: Long): ByteArray =
+        record(DiagnosticLevel.FATAL, timestamp, "LOG_LEVEL must be info or debug")
+
     private fun record(level: DiagnosticLevel, timestamp: Long, message: String): ByteArray {
         val fields = linkedMapOf<String, Any>(
             "level" to level.label, "timestamp" to Instant.ofEpochMilli(timestamp).toString(),
