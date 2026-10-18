@@ -11,8 +11,8 @@
     sectionHref: string;
     title: string;
     description: string;
-    actionHref?: string;
-    actionLabel?: string;
+    actionHref?: string | undefined;
+    actionLabel?: string | undefined;
   } = $props();
 </script>
 

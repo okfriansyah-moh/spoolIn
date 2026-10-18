@@ -5,6 +5,7 @@ import {
   createMovie,
   createPerson,
   capture,
+  uniqueName,
 } from './helpers';
 
 test('Responsive route review: production pages reflow across approved widths and themes', async ({
@@ -185,6 +186,41 @@ test('Responsive route review: production pages reflow across approved widths an
   await page.evaluate(() => {
     document.documentElement.style.zoom = '';
   });
+
+  await page.goto('/manage/movies/new');
+  await page
+    .getByLabel('Title · Required', { exact: true })
+    .fill(uniqueName('Validation'));
+  await page
+    .getByLabel('Synopsis · Required', { exact: true })
+    .fill('A movie used to check the optional detail validation flow.');
+  await page.getByLabel('Release year · Required').fill('2025');
+  await page.getByText('Choose genres', { exact: true }).click();
+  await page.locator('#movie-genres input[type="checkbox"]').first().check();
+  await page.getByText('More movie details', { exact: true }).click();
+  await page.getByLabel('Release month', { exact: true }).fill('2');
+  await page.getByLabel('Release day', { exact: true }).fill('30');
+  await page.getByText('More movie details', { exact: true }).click();
+  const optionalDetails = page.locator('.optional-details');
+  await expect(optionalDetails).not.toHaveAttribute('open', '');
+  await expect(page.locator('#movie-releaseDay')).toHaveValue('30');
+  await page.getByRole('button', { name: 'Create movie', exact: true }).click();
+  await expect(optionalDetails).toHaveAttribute('open', '');
+  await expect(page.locator('#movie-releaseDay')).toBeFocused();
+  await expect(page.locator('#movie-releaseDay-error')).toContainText(
+    'Enter a valid day',
+  );
+  await page.getByText('More movie details', { exact: true }).click();
+  await expect(optionalDetails).not.toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'Create movie', exact: true }).click();
+  await expect(optionalDetails).toHaveAttribute('open', '');
+  await expect(page.locator('#movie-releaseDay')).toBeFocused();
+  await capture(
+    page,
+    info,
+    ['ATDD-017'],
+    'optional-metadata-validation-revealed',
+  );
 
   await info.attach('responsive-route-observations', {
     body: JSON.stringify({

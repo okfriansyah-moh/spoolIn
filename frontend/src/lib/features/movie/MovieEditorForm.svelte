@@ -71,7 +71,7 @@
   let genreSearch = $state('');
   let genreOpen = $state(false);
   let detailsOpen = $state(false);
-  let lastErrorSignature = '';
+  let lastFieldErrors: EditorState['fieldErrors'] | null = null;
   const optionalFieldErrorIds = new Set([
     'movie-originalTitle',
     'movie-releaseMonth',
@@ -101,11 +101,11 @@
     const first = errors[0];
     const signature = errors.map((error) => error.id).join('|');
     if (!signature) {
-      lastErrorSignature = '';
+      lastFieldErrors = null;
       return;
     }
-    if (!first || signature === lastErrorSignature) return;
-    lastErrorSignature = signature;
+    if (!first || errors === lastFieldErrors) return;
+    lastFieldErrors = errors;
     if (errors.some((error) => error.id === 'movie-genres')) genreOpen = true;
     if (errors.some((error) => optionalFieldErrorIds.has(error.id)))
       detailsOpen = true;

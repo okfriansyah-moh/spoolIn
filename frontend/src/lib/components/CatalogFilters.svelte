@@ -136,6 +136,7 @@
             {visibleGenres.length}
             {visibleGenres.length === 1 ? 'genre' : 'genres'}
           </small>
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users can focus and scroll this bounded long options region.) -->
           <div
             class="genre-options"
             role="region"
