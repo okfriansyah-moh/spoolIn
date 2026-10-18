@@ -20,6 +20,8 @@ function initialState(
 ): EditorState {
   return Object.freeze({
     phase: 'idle',
+    draftChoices: Object.freeze([]),
+    draftBaseKnown: true,
     mode,
     personId,
     saved: null,
@@ -139,7 +141,7 @@ export class PersonEditorController {
   }
 
   updateDraft(next: PersonDraft): void {
-    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain') return;
+    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain' || this.current.draftChoices.length) return;
     this.publish({ ...this.current, draft: Object.freeze({ ...next }) });
     if (this.writeContext && this.current.saved) {
       this.draftSync.schedule(
@@ -164,7 +166,9 @@ export class PersonEditorController {
       const drafts = await this.draftSync.load(context, signal);
       if (signal.aborted || drafts.length === 0) return;
       if (drafts.length > 1) {
-        this.publish({ ...this.current, phase: 'failed', message: 'Several saved drafts are retained. This form starts a new draft; no saved draft was selected automatically.' });
+        this.publish({ ...this.current, phase: 'idle', draftChoices: Object.freeze(drafts.map((draft) => ({
+        id: draft.id, label: (draft.values as PersonDraft).name || 'Untitled person draft', expiresAt: draft.expiresAt,
+      }))), message: 'Choose a retained draft or deliberately start a new draft. No saved draft was selected automatically.' });
         return;
       }
       const draft = drafts[0];
@@ -175,6 +179,7 @@ export class PersonEditorController {
   }
 
   private async applyBackedDraft(draft: DraftRecord, signal: AbortSignal): Promise<void> {
+    this.publish({ ...this.current, draftChoices: Object.freeze([]) });
     this.draftSync.adopt(draft);
     if (draft.operationId) {
       this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: draft.operationId,
@@ -184,9 +189,69 @@ export class PersonEditorController {
     }
     const stale = this.current.saved && draft.baseVersion !== this.current.saved.version;
     this.publish({ ...this.current, draft: draft.values as PersonDraft,
-      phase: stale ? 'stale' : 'idle', pendingOperationId: null,
+      phase: stale ? 'stale' : 'idle', pendingOperationId: null, draftBaseKnown: !stale,
       message: stale ? 'The saved person changed. Compare its current values with the retained draft.' : 'Saved draft recovered.',
       staleReviewOpen: !!stale });
+  }
+
+  async selectRetainedDraft(id: string): Promise<void> {
+    if (!this.writeContext || this.current.phase === 'uncertain' || this.current.phase === 'submitting') return;
+    const signal = this.active?.signal ?? new AbortController().signal;
+    try {
+      const drafts = await this.draftSync.load(this.writeContext, signal);
+      const selected = drafts.find((draft) => draft.id === id);
+      if (!selected || signal.aborted) {
+        this.publish({ ...this.current, message: 'That retained draft is no longer available. Choose another draft or start again.' });
+        return;
+      }
+      await this.applyBackedDraft(selected, signal);
+    } catch {
+      this.publish({ ...this.current, message: 'The retained draft could not be checked. Retry before continuing.' });
+    }
+  }
+
+  startNewDraft(): void {
+    if (!this.current.draftChoices.length || this.current.phase === 'uncertain') return;
+    this.draftSync.reset();
+    this.publish({ ...this.current, draftChoices: Object.freeze([]), draftBaseKnown: true, phase: 'idle',
+      draft: this.current.saved ? personToDraft(this.current.saved) : EMPTY_PERSON_DRAFT,
+      message: 'Started a new draft. Other retained drafts remain available after reload.' });
+  }
+
+  async rebaseAfterReview(reviewed: boolean): Promise<void> {
+    if (!reviewed || this.current.phase !== 'stale' || !this.current.staleReviewOpen || !this.writeContext || !this.personId) return;
+    const reviewedVersion = this.current.current?.version;
+    try {
+      const latest = await fetchManagedPerson(this.request, this.personId, this.writeContext.csrf);
+      if (!latest || latest.state !== 'ACTIVE') {
+        this.publish({ ...this.current, phase: 'target-changed', current: latest,
+          message: 'This person is no longer available for editing. The draft is retained.' });
+        return;
+      }
+      if (latest.version !== reviewedVersion) {
+        this.publish({ ...this.current, current: latest, message: 'Current values changed again. Review the new values before continuing.' });
+        return;
+      }
+      const draft = this.rebaseDraft(latest);
+      this.pendingWriteId = null;
+      this.publish({ ...this.current, saved: latest, current: latest, draft, draftBaseKnown: true, phase: 'idle',
+        pendingOperationId: null, staleReviewOpen: false,
+        message: 'Current values reviewed. Your draft is retained; save when ready to apply it.' });
+      this.draftSync.schedule(this.current.draft, this.writeContext, latest.version);
+    } catch {
+      this.publish({ ...this.current, message: 'The current record could not be checked. Review again before continuing.' });
+    }
+  }
+
+  private rebaseDraft(latest: ManagedPerson): PersonDraft {
+    const base = this.current.saved;
+    const draft = this.current.draft;
+    if (!base || !this.current.draftBaseKnown) return draft;
+    return {
+      name: draft.name !== undefined && draft.name !== base.name ? draft.name ?? '' : latest.name,
+      biography: draft.biography !== undefined && draft.biography !== base.biography
+        ? draft.biography ?? null : latest.biography,
+    };
   }
 
   private async backSubmission(operationId: string): Promise<boolean> {
@@ -207,6 +272,7 @@ export class PersonEditorController {
   } | null {
     if (
       this.pendingWriteId ||
+      this.current.draftChoices.length > 0 ||
       this.current.phase === 'submitting' ||
       this.current.phase === 'uncertain' ||
       this.current.phase === 'stale' ||

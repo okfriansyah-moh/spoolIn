@@ -196,7 +196,7 @@ describe('backed movie draft reload', () => {
     const controller = new MovieEditorController(vi.fn(), source, 'create', null);
     await controller.bootstrap(policy, context, new AbortController().signal);
     expect(controller.snapshot.draft.title).toBe('');
-    expect(controller.snapshot.message).toMatch(/no saved draft was selected automatically/);
+    expect(controller.snapshot.message).toMatch(/No saved draft was selected automatically/);
     controller.dispose();
   });
 
@@ -212,6 +212,70 @@ describe('backed movie draft reload', () => {
     const before = vi.mocked(api.createMovie).mock.calls.length;
     await controller.submit();
     expect(vi.mocked(api.createMovie).mock.calls.length).toBe(before);
+    controller.dispose();
+  });
+});
+
+describe('explicit movie recovery decisions', () => {
+  it('resumes the chosen retained draft with its original Core identity', async () => {
+    const source = draftSource();
+    const first = retainedMovieDraft(null);
+    const second = { ...first, id: '33333333-3333-4333-8333-333333333333',
+      version: '23', values: { ...first.values, title: 'Chosen draft' } };
+    source.listDrafts = async () => [first, second];
+    const save = vi.fn<DraftSource['saveDraft']>(source.saveDraft);
+    source.saveDraft = save;
+    const controller = new MovieEditorController(vi.fn(), source, 'create', null);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    expect(controller.snapshot.draftChoices).toHaveLength(2);
+    controller.updateDraft({ title: 'Must not overwrite an unselected draft' });
+    expect(controller.snapshot.draft.title).toBe('');
+    await controller.selectRetainedDraft(second.id);
+    expect(controller.snapshot.draft.title).toBe('Chosen draft');
+    expect(controller.snapshot.draftChoices).toHaveLength(0);
+    await controller.submit();
+    expect(save.mock.calls[0]?.[1]).toBe(second.id);
+    expect(save.mock.calls[0]?.[2]).toBe('23');
+    controller.dispose();
+  });
+
+  it('requires deliberate review and preserves concurrent edits to untouched fields', async () => {
+    const original = activeMovie();
+    const latest = { ...original, title: 'Concurrent title', version: '6' };
+    vi.mocked(api.fetchManagedMovie).mockResolvedValueOnce(original).mockResolvedValue(latest);
+    vi.mocked(api.updateMovie).mockResolvedValueOnce({ receipt: { operationId: 'failed',
+      state: 'FAILED', resultExpired: false, problem: { code: 'STALE_VERSION', retryAfterMs: 0 } },
+      problemCode: 'STALE_VERSION', resultMovieId: original.id, resultVersion: null });
+    const controller = new MovieEditorController(vi.fn(), draftSource(), 'edit', original.id);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    controller.updateDraft({ ...controller.snapshot.draft, synopsis: 'My synopsis edit' });
+    await controller.submit();
+    expect(controller.snapshot.phase).toBe('stale');
+    await controller.rebaseAfterReview(true);
+    expect(controller.snapshot.phase).toBe('stale');
+    controller.toggleStaleReview();
+    await controller.rebaseAfterReview(false);
+    expect(controller.snapshot.phase).toBe('stale');
+    await controller.rebaseAfterReview(true);
+    expect(controller.snapshot.phase).toBe('idle');
+    expect(controller.snapshot.draft.title).toBe('Concurrent title');
+    expect(controller.snapshot.draft.synopsis).toBe('My synopsis edit');
+    expect(controller.snapshot.saved?.version).toBe('6');
+    controller.dispose();
+  });
+
+  it('refuses a rebase if the reviewed version has already changed again', async () => {
+    const movie = activeMovie();
+    const source = draftSource();
+    source.listDrafts = async () => [retainedMovieDraft(movie.id, '3')];
+    vi.mocked(api.fetchManagedMovie).mockResolvedValueOnce(movie).mockResolvedValue({ ...movie, version: '6' });
+    const controller = new MovieEditorController(vi.fn(), source, 'edit', movie.id);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    await controller.rebaseAfterReview(true);
+    expect(controller.snapshot.phase).toBe('stale');
+    expect(controller.snapshot.current?.version).toBe('6');
+    expect(controller.snapshot.saved?.version).toBe('5');
+    expect(controller.snapshot.message).toMatch(/changed again/);
     controller.dispose();
   });
 });

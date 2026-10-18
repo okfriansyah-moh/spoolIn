@@ -70,6 +70,9 @@
     onSubmit={() => void controller?.submit()}
     onCheckOriginal={() => void controller?.checkOriginalResult()}
     onReviewStale={() => controller?.toggleStaleReview()}
+    onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+    onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+    onStartNewDraft={() => controller?.startNewDraft()}
     onDraftChange={(field, value) => {
       if (!controller || !editorState) return;
       controller.updateDraft({ ...editorState.draft, [field]: value });

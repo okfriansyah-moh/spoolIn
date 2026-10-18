@@ -37,7 +37,11 @@ export type EditorPhase =
   | 'resolved'
   | 'target-changed';
 
+export type RetainedDraftChoice = Readonly<{ id: string; label: string; expiresAt: string }>;
+
 export type EditorState = Readonly<{
+  draftChoices: readonly RetainedDraftChoice[];
+  draftBaseKnown: boolean;
   phase: EditorPhase;
   mode: 'create' | 'edit';
   personId: string | null;

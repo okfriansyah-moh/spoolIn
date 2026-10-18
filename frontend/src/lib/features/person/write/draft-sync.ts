@@ -17,6 +17,7 @@ export class PersonDraftSync {
   private catalogOperationId: string | null = null;
   private timer: ReturnType<typeof globalThis.setTimeout> | undefined;
   private pending: PendingDraft | null = null;
+  private pendingDiscard: { operationId: string; draftId: string; expectedVersion: string } | null = null;
   private backed = false;
   private unbacked = false;
   private queue: Promise<void> = Promise.resolve();
@@ -25,7 +26,7 @@ export class PersonDraftSync {
 
   reset(options: { draftId?: string; catalogOperationId?: string | null; expectedVersion?: string | null } = {}): void {
     globalThis.clearTimeout(this.timer);
-    if (this.pending) return;
+    if (this.pending || this.pendingDiscard) return;
     this.draftId = options.draftId ?? globalThis.crypto.randomUUID();
     this.catalogOperationId = options.catalogOperationId ?? null;
     this.expectedVersion = options.expectedVersion ?? null;
@@ -63,6 +64,7 @@ export class PersonDraftSync {
 
   async completeSubmission(values: PersonDraft, context: WriteContext, baseVersion: string): Promise<void> {
     globalThis.clearTimeout(this.timer);
+    if (this.targetId === null) { await this.discard(context); return; }
     this.catalogOperationId = null;
     await this.save(values, context, baseVersion);
   }
@@ -75,6 +77,7 @@ export class PersonDraftSync {
 
   private async saveSerial(values: PersonDraft, context: WriteContext, baseVersion: string | null): Promise<void> {
     this.backed = false;
+    if (this.pendingDiscard) { this.unbacked = true; return; }
     try {
       if (this.pending && !await this.reconcile(context)) { this.unbacked = true; return; }
       this.backed = false;
@@ -115,6 +118,25 @@ export class PersonDraftSync {
     if (receipt) return this.accept(receipt);
     const outcome = await this.sendPending(context);
     return this.accept(outcome.receipt);
+  }
+
+  async discard(context: WriteContext): Promise<boolean> {
+    globalThis.clearTimeout(this.timer);
+    await this.queue;
+    if (this.pending && !await this.reconcile(context)) return false;
+    if (!this.expectedVersion) return true;
+    this.pendingDiscard ??= { operationId: globalThis.crypto.randomUUID(), draftId: this.draftId, expectedVersion: this.expectedVersion };
+    const pending = this.pendingDiscard;
+    try {
+      const outcome = await this.source.discardDraft(pending.operationId, pending.draftId,
+        pending.expectedVersion, context.csrf, new AbortController().signal);
+      if (outcome.receipt.operationId !== pending.operationId || outcome.receipt.resultExpired) return false;
+      if (outcome.receipt.state === 'FAILED') { this.pendingDiscard = null; return false; }
+      if (outcome.receipt.state !== 'SUCCEEDED') return false;
+      this.pendingDiscard = null;
+      this.reset();
+      return true;
+    } catch { return false; }
   }
 
   dispose(): void { globalThis.clearTimeout(this.timer); }

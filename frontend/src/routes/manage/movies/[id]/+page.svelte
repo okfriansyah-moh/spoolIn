@@ -92,6 +92,9 @@
     onSubmit={() => void controller?.submit()}
     onCheckOriginal={() => void controller?.checkOriginalResult()}
     onReviewStale={() => controller?.toggleStaleReview()}
+    onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+    onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+    onStartNewDraft={() => controller?.startNewDraft()}
     onDraftChange={draftChange}
     onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
     onDiscardOpen={() => controller?.openDiscardDialog()}
