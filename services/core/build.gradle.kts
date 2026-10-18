@@ -1,26 +1,30 @@
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 
+val coreMain = sourceSets["main"]
+val coreTests = sourceSets["test"]
 val bootstrapTests = sourceSets["integrationTest"]
+val productionJar = tasks.named<Jar>("jar")
 bootstrapTests.resources.srcDir("src/integrationTest/kotlin/com/spoolin/core/boundary/bootstrap/fixtures")
 
 val bootstrapRuntimeResources by tasks.registering(Sync::class) {
-    from(sourceSets["main"].resources) { exclude("db/migration/**") }
+    from(coreMain.resources) { exclude("db/migration/**") }
     from(bootstrapTests.resources)
     into(layout.buildDirectory.dir("bootstrap-runtime-resources"))
 }
 val foundationTestRuntime =
     files(
         bootstrapTests.output.classesDirs,
-        sourceSets["main"].output.classesDirs,
+        coreMain.output.classesDirs,
         configurations["integrationTestRuntimeClasspath"],
         bootstrapRuntimeResources,
     )
 
 tasks.named<Test>("test") {
-    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs + bootstrapTests.output.classesDirs
     classpath =
-        files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
+        files(coreTests.runtimeClasspath, bootstrapTests.output.classesDirs, configurations["integrationTestRuntimeClasspath"])
     filter { includeTestsMatching("*RulesTest") }
 }
 
@@ -36,7 +40,7 @@ val cryptoIntegrationTest by tasks.registering(Test::class) {
     classpath =
         files(
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.recovery.crypto.*") }
@@ -67,7 +71,7 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 tasks.register<JavaExec>("keyRotationCli") {
     group = "application"
     description = "Execute Core KeyRotationPlan (ops/bin/rotate-keys.sh --execute)"
-    classpath = sourceSets["main"].runtimeClasspath
+    classpath = coreMain.runtimeClasspath
     mainClass.set("com.spoolin.core.features.crypto.rotation.KeyRotationCliKt")
 }
 
@@ -77,7 +81,7 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
     classpath =
         files(
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.operations.receipts.*") }
@@ -89,14 +93,14 @@ val receiptIntegrationTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
 
 val workIntegrationTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs + bootstrapTests.output.classesDirs
     dependsOn("testClasses", "integrationTestClasses")
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
+            coreTests.output.classesDirs,
             configurations["testRuntimeClasspath"],
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.operations.work.*") }
@@ -108,11 +112,11 @@ val workIntegrationTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(workIntegrationTest) }
 
 val catalogViewUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
-            sourceSets["main"].output,
+            coreTests.output.classesDirs,
+            coreMain.output,
             configurations["testRuntimeClasspath"],
         )
     filter {
@@ -125,11 +129,11 @@ val catalogViewUnitTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(catalogViewUnitTest) }
 
 val managedCatalogUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
-            sourceSets["main"].output,
+            coreTests.output.classesDirs,
+            coreMain.output,
             configurations["testRuntimeClasspath"],
         )
     filter {
@@ -142,11 +146,11 @@ val managedCatalogUnitTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(managedCatalogUnitTest) }
 
 val artworkProxyUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
-            sourceSets["main"].output,
+            coreTests.output.classesDirs,
+            coreMain.output,
             configurations["testRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.features.artworkproxy.*RulesTest") }
@@ -157,11 +161,11 @@ val artworkProxyUnitTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(artworkProxyUnitTest) }
 
 val lifecycleProjectionUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
-            sourceSets["main"].output,
+            coreTests.output.classesDirs,
+            coreMain.output,
             configurations["testRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.features.catalogview.lifecycle.*RulesTest") }
@@ -172,11 +176,11 @@ val lifecycleProjectionUnitTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(lifecycleProjectionUnitTest) }
 
 val managedPersonUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
-            sourceSets["main"].output,
+            coreTests.output.classesDirs,
+            coreMain.output,
             configurations["testRuntimeClasspath"],
         )
     filter {
@@ -189,11 +193,11 @@ val managedPersonUnitTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(managedPersonUnitTest) }
 
 val managedCreditUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
+    testClassesDirs = coreTests.output.classesDirs
     classpath =
         files(
-            sourceSets["test"].output.classesDirs,
-            sourceSets["main"].output,
+            coreTests.output.classesDirs,
+            coreMain.output,
             configurations["testRuntimeClasspath"],
         )
     filter {
@@ -211,7 +215,7 @@ val accountIntegrationTest by tasks.registering(Test::class) {
     classpath =
         files(
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter {
@@ -227,7 +231,7 @@ tasks.named("koverXmlReport") { dependsOn(accountIntegrationTest) }
 val admissionIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
-    classpath = files(bootstrapTests.output.classesDirs, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
+    classpath = files(bootstrapTests.output.classesDirs, coreMain.output, configurations["integrationTestRuntimeClasspath"])
     filter { includeTestsMatching("com.spoolin.core.boundary.admission.*") }
     useJUnitPlatform()
     maxHeapSize = "768m"
@@ -259,7 +263,7 @@ val accountBrowserFixture by tasks.registering(Test::class) {
         files(
             stageAccountFrontend,
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.browser.AccountBrowserFixtureTest") }
@@ -275,7 +279,7 @@ val draftIntegrationTest by tasks.registering(Test::class) {
     classpath =
         files(
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.recovery.drafts.*") }
@@ -309,8 +313,8 @@ val accountIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
 }
 
 val alertUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = sourceSets["test"].runtimeClasspath
+    testClassesDirs = coreTests.output.classesDirs
+    classpath = coreTests.runtimeClasspath
     filter { includeTestsMatching("com.spoolin.core.features.alerts.*") }
     useJUnitPlatform()
     maxHeapSize = "512m"
@@ -322,7 +326,7 @@ val alertIntegrationTest by tasks.registering(Test::class) {
     classpath =
         files(
             bootstrapTests.output.classesDirs,
-            sourceSets["main"].output,
+            coreMain.output,
             configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.core.operations.alerts.*") }
@@ -332,8 +336,8 @@ val alertIntegrationTest by tasks.registering(Test::class) {
 tasks.named("koverXmlReport") { dependsOn(alertUnitTest, alertIntegrationTest) }
 
 val mcpGatewayUnitTest by tasks.registering(Test::class) {
-    testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = sourceSets["test"].runtimeClasspath
+    testClassesDirs = coreTests.output.classesDirs
+    classpath = coreTests.runtimeClasspath
     filter { includeTestsMatching("com.spoolin.core.features.mcpgateway.*") }
     useJUnitPlatform()
     maxHeapSize = "512m"
@@ -343,7 +347,7 @@ tasks.named("koverXmlReport") { dependsOn(mcpGatewayUnitTest) }
 val artworkProxyIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
-    classpath = files(bootstrapTests.output.classesDirs, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
+    classpath = files(bootstrapTests.output.classesDirs, coreMain.output, configurations["integrationTestRuntimeClasspath"])
     filter { includeTestsMatching("com.spoolin.core.features.artworkproxy.*BoundaryTest") }
     useJUnitPlatform()
     maxHeapSize = "768m"
@@ -352,3 +356,12 @@ tasks.named("koverXmlReport") { dependsOn(artworkProxyIntegrationTest) }
 
 // Managed by the pinned Boot BOM; used only for servlet async boundary tests.
 dependencies { testImplementation("org.springframework:spring-test") }
+
+// Only the foundation boundary fixture replaces production Flyway resources.
+// Keep the ordinary jar explicit for all other suites, including custom Test tasks.
+tasks.withType<Test>().configureEach {
+    if (name != "integrationTest") {
+        dependsOn(productionJar)
+        classpath = classpath.filter { it != bootstrapTests.output.resourcesDir } + files(productionJar)
+    }
+}

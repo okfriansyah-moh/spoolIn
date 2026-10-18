@@ -156,7 +156,8 @@ class DiagnosticClassificationRulesTest {
 
     @Test
     fun `loss of a classified fatal record counts its encoded level rather than its original framework level`() {
-        SimpleMeterRegistry().use { registry ->
+        val registry = SimpleMeterRegistry()
+        try {
             DiagnosticDropMetrics.shared.bind("core", registry)
             val previous = fatalLoss(registry)
             val failed =
@@ -169,6 +170,8 @@ class DiagnosticClassificationRulesTest {
             appender.doAppend(startup())
             appender.stop()
             assertEquals(previous + 1.0, fatalLoss(registry))
+        } finally {
+            registry.close()
         }
     }
 
