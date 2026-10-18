@@ -89,6 +89,16 @@ jobs:
       - name: Install pinned delivery scanners
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/install-gates.sh
+      - name: Provision scoped production Media sandbox policy
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          python3 ops/ci/test-media-sandbox-policy.py
+          sudo bash ops/bin/provision-media-sandbox.sh --install > artifacts/source-checks/media-sandbox-policy.json
+          sudo bash ops/bin/provision-media-sandbox.sh --check
+      - name: Check safe MCP runtime diagnostic classifications
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        run: node --test ops/ci/mcp-runtime-diagnostics.test.mjs
       - name: Strict build and contract generation
         id: build
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
