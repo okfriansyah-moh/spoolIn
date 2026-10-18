@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import { page } from '$app/state';
+  import {
+    readMovieListReturn,
+    rememberMovieList,
+    type MovieListReturn,
+  } from '../../../lib/features/movie/list-return';
   import CreatedRecordNotice from '../../../lib/features/management/CreatedRecordNotice.svelte';
   import { resolve } from '$app/paths';
   import Button from '../../../lib/components/Button.svelte';
@@ -17,6 +23,43 @@
   let searchText = $state('');
   let appliedSearch = $state('');
   let search = () => {};
+  let returnToken = $state('');
+  let restoring = $state(false);
+
+  function rememberList() {
+    rememberMovieList(returnToken, {
+      searchText,
+      appliedSearch,
+      scrollY: window.scrollY,
+      rowCount: listState.kind === 'ready' ? listState.titles.length : 0,
+    });
+  }
+
+  async function restoreList(state: MovieListReturn, abort: AbortSignal) {
+    if (!controller) return;
+    while (!abort.aborted && controller.snapshot.kind === 'ready') {
+      const before = controller.snapshot;
+      if (
+        before.titles.length >= state.rowCount ||
+        !before.next ||
+        before.pagingError
+      )
+        break;
+      await controller.loadMore(csrf, abort);
+      const after = controller.snapshot;
+      if (
+        after.kind !== 'ready' ||
+        after.pagingError ||
+        after.titles.length <= before.titles.length
+      )
+        break;
+    }
+    if (abort.aborted) return;
+    restoring = false;
+    await tick();
+    if (!abort.aborted)
+      window.scrollTo({ top: state.scrollY, behavior: 'instant' });
+  }
 
   function submitSearch(event: SubmitEvent) {
     event.preventDefault();
@@ -30,7 +73,40 @@
     search();
   }
 
+  function loadInitialList(saved: MovieListReturn | null, abort: AbortSignal) {
+    void loadWriteContext(abort)
+      .then(async (context) => {
+        if (abort.aborted) return;
+        if (!context) {
+          restoring = false;
+          listState = { kind: 'failure' };
+          return;
+        }
+        csrf = context.csrf;
+        search = () => {
+          void controller?.load(csrf, abort, appliedSearch);
+        };
+        await controller?.load(csrf, abort, appliedSearch);
+        if (saved) await restoreList(saved, abort);
+      })
+      .catch(() => {
+        if (!abort.aborted) {
+          restoring = false;
+          listState = { kind: 'failure' };
+        }
+      });
+  }
+
   onMount(() => {
+    returnToken = crypto.randomUUID();
+    const saved = readMovieListReturn(
+      page.url.searchParams.get('restore') ?? '',
+    );
+    if (saved) {
+      searchText = saved.searchText;
+      appliedSearch = saved.appliedSearch;
+      restoring = true;
+    }
     const transport = createTransport();
     controller = createMovieListController(transport);
     const unsubscribe = controller.subscribe((next) => {
@@ -38,14 +114,7 @@
     });
     const abort = new AbortController();
     signal = abort.signal;
-    void loadWriteContext(abort.signal).then((context) => {
-      if (!context || abort.signal.aborted) return;
-      csrf = context.csrf;
-      search = () => {
-        void controller?.load(csrf, abort.signal, appliedSearch);
-      };
-      search();
-    });
+    loadInitialList(saved, abort.signal);
     return () => {
       abort.abort();
       unsubscribe();
@@ -72,11 +141,15 @@
       id="managed-movies-search"
       type="search"
       bind:value={searchText}
+      disabled={restoring}
       placeholder="Movie title"
     />
-    <button type="submit">Search</button>
-    <button class="secondary" type="button" onclick={clearSearch}
-      >Clear search</button
+    <button type="submit" disabled={restoring}>Search</button>
+    <button
+      class="secondary"
+      type="button"
+      disabled={restoring}
+      onclick={clearSearch}>Clear search</button
     >
   </div>
 </form>
@@ -132,7 +205,9 @@
                 <a
                   class="button secondary"
                   href={resolve('/manage/movies/[id]', { id: row.id }) +
-                    '?step=credits'}>Cast and creators</a
+                    '?step=credits&return=' +
+                    returnToken}
+                  onclick={rememberList}>Cast and creators</a
                 >
               {:else}
                 <span class="muted">Read-only TV</span>
@@ -167,7 +242,9 @@
             <a
               class="button secondary"
               href={resolve('/manage/movies/[id]', { id: row.id }) +
-                '?step=credits'}>Cast and creators</a
+                '?step=credits&return=' +
+                returnToken}
+              onclick={rememberList}>Cast and creators</a
             >
           {:else}
             <span class="muted">Read-only TV</span>
@@ -182,7 +259,7 @@
   {#if listState.next}
     <Button
       variant="secondary"
-      pending={listState.loadingMore}
+      pending={listState.loadingMore || restoring}
       onclick={() => signal && controller?.loadMore(csrf, signal)}
       >Load more movies</Button
     >

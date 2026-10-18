@@ -27,6 +27,7 @@
   let ready = $state(false);
   let controller: ReturnType<typeof createMovieEditorController> | null = null;
   const movieId = $derived(page.params.id ?? '');
+  const movieReturnToken = $derived(page.url.searchParams.get('return') ?? '');
   const creditsStep = $derived(page.url.searchParams.get('step') === 'credits');
   const createdFlow = $derived(
     creditsStep && page.url.searchParams.get('created') === '1',
@@ -153,7 +154,9 @@
                 resolve('/manage/movies') +
                   (createdFlow
                     ? '?created=' + encodeURIComponent(movieId)
-                    : ''),
+                    : isRecordId(movieReturnToken)
+                      ? '?restore=' + encodeURIComponent(movieReturnToken)
+                      : ''),
               );
             }}
             policy={sessionCtl.snapshot.policy}
