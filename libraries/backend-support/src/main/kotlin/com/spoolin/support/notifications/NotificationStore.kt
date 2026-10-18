@@ -32,10 +32,11 @@ class NotificationStore(private val dataSource: DataSource) {
         WorkSql.commitClaim(connection, selected.work, UUID.randomUUID(), now)?.let { selected.copy(work = it) }
     }
 
-    fun eligible(claim: WorkClaim): Boolean = dataSource.connection.use { connection ->
-        WorkSql.leaseStatus(connection, claim.workId)?.let {
-            WorkFence.isEligible(it, claim.leaseOwner, claim.leaseEpoch, databaseNow(connection))
-        } == true
+    fun budgetMs(claim: WorkClaim): Long = dataSource.connection.use { connection ->
+        val now = databaseNow(connection)
+        val status = WorkSql.leaseStatus(connection, claim.workId)
+        if (status == null || !WorkFence.isEligible(status, claim.leaseOwner, claim.leaseEpoch, now)) 0
+        else java.time.Duration.between(now, minOf(status.deadlineAt, status.leaseUntil!!)).toMillis().coerceAtMost(14000)
     }
 
     fun finish(claim: WorkClaim, result: NotificationResult) = dataSource.committed { connection ->

@@ -1,8 +1,6 @@
 package com.spoolin.support.notifications
 
 import com.spoolin.support.work.AttemptOutcome
-import java.time.Duration
-import java.time.Instant
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -21,8 +19,7 @@ class NotificationDispatcher(dataSource: DataSource, private val transport: Noti
 
     fun runOnce(): Boolean {
         val item = store.claim() ?: return false
-        if (!store.eligible(item.work)) return false
-        val remaining = Duration.between(Instant.now(), item.work.deadlineAt).toMillis().coerceAtMost(14000)
+        val remaining = store.budgetMs(item.work)
         val result = if (remaining <= 0) NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_DEADLINE")
             else if (item.mode != transport.mode) NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_MODE_CHANGED")
             else transport.send(item, remaining)
