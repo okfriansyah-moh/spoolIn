@@ -5,29 +5,38 @@ import com.spoolin.support.identity.Permissions
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import spoolin.v1.Spoolin
+import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
 class ArtworkReads(private val dataSource: DataSource) {
     fun attachment(id: UUID): Spoolin.Attachment = dataSource.connection.use { connection ->
         connection.queryBound(
-            "SELECT a.*,t.attachment_id AS selected_hold,t.version AS selected_version,t.id AS surviving_title,t.status AS title_status " +
+            "SELECT a.*,t.attachment_id AS selected_hold,t.version AS selected_version," +
+                "t.id AS surviving_title,t.status AS title_status " +
                 "FROM artwork_attachment_request a LEFT JOIN title t ON t.id=a.title_id WHERE a.id=?", listOf(id),
-        ) { row ->
-            val selected = row.getObject("selected_hold", UUID::class.java) == id
-            val survives = row.getObject("surviving_title", UUID::class.java) != null
-            if (!survives) throw Status.FAILED_PRECONDITION.withDescription("REFERENCE_VERSION_UNAVAILABLE").asRuntimeException()
-            val state = when {
-                row.getString("state") == "PREPARING" && row.getString("title_status") != "DELETED" -> "PREPARING"
-                row.getString("state") == "ATTACHED" && selected && row.getString("title_status") != "DELETED" -> "ACTIVE"
-                else -> "RELEASED"
-            }
-            Spoolin.Attachment.newBuilder().setHoldId(id.toString()).setState(state)
-                .setAssetId(row.getObject("asset_id", UUID::class.java).toString())
-                .setTitleId(row.getObject("title_id", UUID::class.java).toString())
-                .setActorId(row.getObject("actor_id", UUID::class.java).toString())
-                .setCatalogVersion(row.getLong("selected_version")).build()
-        }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+        ) { row -> attachment(row, id) }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+    }
+
+    private fun attachment(row: ResultSet, id: UUID): Spoolin.Attachment {
+        if (row.getObject("surviving_title", UUID::class.java) == null) {
+            throw Status.FAILED_PRECONDITION.withDescription("REFERENCE_VERSION_UNAVAILABLE").asRuntimeException()
+        }
+        return Spoolin.Attachment.newBuilder().setHoldId(id.toString()).setState(attachmentState(row, id))
+            .setAssetId(row.getObject("asset_id", UUID::class.java).toString())
+            .setTitleId(row.getObject("title_id", UUID::class.java).toString())
+            .setActorId(row.getObject("actor_id", UUID::class.java).toString())
+            .setCatalogVersion(row.getLong("selected_version")).build()
+    }
+
+    private fun attachmentState(row: ResultSet, id: UUID): String {
+        val survives = row.getString("title_status") != "DELETED"
+        val selected = row.getObject("selected_hold", UUID::class.java) == id
+        return when {
+            row.getString("state") == "PREPARING" && survives -> "PREPARING"
+            row.getString("state") == "ATTACHED" && selected && survives -> "ACTIVE"
+            else -> "RELEASED"
+        }
     }
 
     fun access(request: Spoolin.ArtworkAccessRequest): Spoolin.ArtworkGrant {
@@ -42,7 +51,8 @@ class ArtworkReads(private val dataSource: DataSource) {
                 listOf(asset),
             ) { row -> Spoolin.ArtworkGrant.newBuilder().setAssetId(asset.toString())
                 .setHoldId(row.getObject("attachment_id", UUID::class.java).toString())
-                .setTitleId(row.getObject("id", UUID::class.java).toString()).setCatalogVersion(row.getLong("version")).build()
+                .setTitleId(row.getObject("id", UUID::class.java).toString())
+                .setCatalogVersion(row.getLong("version")).build()
             }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
         }
     }
