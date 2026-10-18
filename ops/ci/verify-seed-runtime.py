@@ -136,7 +136,7 @@ def graphql(query, variables):
     context = ssl.create_default_context(cafile=os.environ['SERVICE_CA_FILE'])
     endpoint = 'https://localhost:' + os.environ.get('CORE_HTTPS_PORT', '8443') + '/graphql'
     payload = json.dumps({'query': query, 'variables': variables}).encode()
-    request = urllib.request.Request(endpoint, data=payload, headers={'Content-Type': 'application/json'})
+    request = urllib.request.Request(endpoint, data=payload, headers={'Content-Type': 'application/json', 'Origin': endpoint.removesuffix('/graphql'), 'X-Spoolin-Client': 'web'})
     for attempt in range(3):
         try:
             with urllib.request.urlopen(request, context=context, timeout=20) as response:

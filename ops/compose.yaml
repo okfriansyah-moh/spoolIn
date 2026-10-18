@@ -96,6 +96,7 @@ services:
     environment:
       <<: *owner-settings
       JAVA_TOOL_OPTIONS: ${CORE_JAVA_TOOL_OPTIONS-}
+      BROWSER_ORIGIN: https://localhost:${CORE_HTTPS_PORT:-8443}
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_runtime
       ROTATION_KEYS_FILE: ${ROTATION_KEYS_FILE-/run/spoolin-config/rotation-keys.json}
@@ -132,6 +133,7 @@ services:
     profiles: [migration]
     environment:
       JAVA_TOOL_OPTIONS: ${CORE_JAVA_TOOL_OPTIONS-}
+      BROWSER_ORIGIN: https://localhost:${CORE_HTTPS_PORT:-8443}
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_migrator
       CORE_DB_PASSWORD_FILE: /run/secrets/core-migrator-password

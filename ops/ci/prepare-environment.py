@@ -44,7 +44,7 @@ def runtime_config(directory):
         protected(directory / f"{owner}.json", json.dumps(config))
 
 
-def rate_agreement(directory):
+def rate_agreement(directory, overrides=None):
     # Derive defaults from the approved configuration source, retaining its exact revision calculation.
     import re
     source = Path("libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/Configuration.kt").read_text()
@@ -57,6 +57,10 @@ def rate_agreement(directory):
     values["MCP_RATE_LIMIT_MAX_BINDINGS"] = constants["MCP_RATE_LIMIT_MAX_BINDINGS_DEFAULT"]
     if len(values) != 11:
         raise RuntimeError("Expected all five rate profiles")
+    if overrides:
+        if set(overrides) - set(values):
+            raise RuntimeError("Unknown isolated rate profile override")
+        values.update(overrides)
     revision = hashlib.sha256("\n".join(f"{key}={values[key]}" for key in sorted(values)).encode()).hexdigest()
     canary = hmac.new((directory / "rate").read_bytes(), b"spoolin-rate-agreement-v1", hashlib.sha256).hexdigest()
     protected(directory / "rate-agreement", json.dumps({"profileRevision": revision, "keyCanary": canary}))
@@ -109,9 +113,10 @@ def main():
     if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("RUNNER_ENVIRONMENT") != "github-hosted" or os.uname().sysname != "Linux":
         raise SystemExit("Refusing credentials provisioning outside GitHub-hosted Linux")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--namespace", choices=("primary", "restore"), default="primary")
+    capacity = tuple(f"capacity-{phase}-{repetition}" for phase in ("startup", "reader", "writer") for repetition in (1, 2, 3)) + ("capacity-plans-1",)
+    parser.add_argument("--namespace", choices=("primary", "restore", *capacity), default="primary")
     namespace = parser.parse_args().namespace
-    suffix = "" if namespace == "primary" else "-restore"
+    suffix = "" if namespace == "primary" else "-" + namespace
     base = Path(os.environ["RUNNER_TEMP"]) / ("spoolin-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"] + suffix)
     base.mkdir(mode=0o700)
     runtime = base / "runtime"
@@ -119,6 +124,13 @@ def main():
     exports = {"SPOOLIN_INSTALLATION": "ci-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"] + suffix, "SPOOLIN_LOCK_DIR": str(base / "locks"), "SPOOLIN_RUNTIME_CONFIG_DIR": str(runtime)}
     if namespace == "restore":
         exports.update({"CORE_HTTPS_PORT": "9443", "CORE_MANAGEMENT_PORT": "19443", "CATALOG_MANAGEMENT_PORT": "19444", "MEDIA_MANAGEMENT_PORT": "19445", "MCP_HTTP_PORT": "9787", "GRAFANA_HTTPS_PORT": "13000", "PROMETHEUS_HTTP_PORT": "11090", "ALERTMANAGER_HTTP_PORT": "11093"})
+    if namespace in capacity:
+        exports.update({"CORE_HTTPS_PORT": "10443", "MCP_HTTP_PORT": "10787", "GRAFANA_HTTPS_PORT": "13300",
+                        "PROMETHEUS_HTTP_PORT": "12090", "ALERTMANAGER_HTTP_PORT": "12093"})
+        exports.update({f"RATE_LIMIT_{profile}_{field}": value for profile in ("READ", "MUTATION")
+                        for field, value in (("MAX_REQUESTS", "1000000"), ("WINDOW_SECONDS", "60"))})
+        if namespace.startswith(("capacity-reader-", "capacity-writer-")):
+            exports["CORE_JAVA_TOOL_OPTIONS"] = "-XX:StartFlightRecording=settings=/app/core-timing.jfc,filename=/tmp/core-timing.jfr,dumponexit=true"
     (base / "locks").mkdir(mode=0o700)
     command("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "2", "-subj", "/CN=Spoolin disposable CI CA", "-keyout", str(base / "ca-key"), "-out", str(base / "service-ca"))
     (base / "ca-key").chmod(0o600)
@@ -136,7 +148,7 @@ def main():
     exports["SPOOLIN_ACCOUNT_INITIALIZATION_FILE"] = "/run/spoolin-config/account-initialization.json"
     exports["SPOOLIN_RESTORE_CANARY_PASSWORD_FILE"] = exports["SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE"]
     exports["SPOOLIN_RESTORE_CANARY_EMAIL"] = "maintainer@example.invalid"
-    rate_agreement(runtime)
+    rate_agreement(runtime, {key: value for key, value in exports.items() if key.startswith("RATE_LIMIT_")})
     for file in runtime.iterdir():
         file.chmod(0o600)
     command("sudo", "chown", "-R", "10001:10001", str(runtime))
