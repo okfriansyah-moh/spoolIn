@@ -5,6 +5,8 @@ import com.spoolin.media.MigrationRunner
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
+import com.spoolin.support.work.WorkRecoveryAction
+import com.spoolin.support.work.WorkRecoveryCommit
 import com.spoolin.support.work.WorkRecoveryOperations
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -51,7 +53,8 @@ class OperatorRecoveryBoundaryTest {
         fixture("operator-refused-recovery") { pool ->
             val changed = setup(pool)
             assertThrows(IllegalArgumentException::class.java) {
-                pool.committed { WorkRecoveryOperations.recover(it, changed.id, 1, 1, "local-uid:1001", "Review", directory) }
+                pool.committed { WorkRecoveryOperations.recover(it, WorkRecoveryAction(changed.id, 1, 1,
+                    WorkRecoveryCommit("local-uid:1001", "Review", UUID.randomUUID())), directory) }
             }
             val unsupported = setup(pool)
             pool.committed { it.executeBound("UPDATE appdata.durable_work SET kind='UNSUPPORTED' WHERE id=?", unsupported.id) }
@@ -164,7 +167,8 @@ class OperatorRecoveryBoundaryTest {
         work: Pending,
     ): Boolean =
         pool.committed {
-            WorkRecoveryOperations.recover(it, work.id, 0, 1, "local-uid:1001", "Inspected local processing destination", directory)
+            WorkRecoveryOperations.recover(it, WorkRecoveryAction(work.id, 0, 1,
+                WorkRecoveryCommit("local-uid:1001", "Inspected local processing destination", UUID.randomUUID())), directory)
         }
 
     private fun count(

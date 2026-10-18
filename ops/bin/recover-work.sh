@@ -23,7 +23,6 @@ done
 python3 -c 'import os,pathlib,stat,sys; p=pathlib.Path(sys.argv[1]); s=p.lstat(); sys.exit(0 if stat.S_ISDIR(s.st_mode) and stat.S_IMODE(s.st_mode)==0o700 and s.st_uid==os.getuid() else 2)' "$SPOOLIN_LOCK_DIR"
 if [[ "$mode" == execute ]]; then
   [[ "$generation" =~ ^[0-9]{1,9}$ && "$epoch" =~ ^[0-9]{1,19}$ && -n "$reason" ]] || exit 2
-  [[ "$service" == media ]] || { printf '%s\n' 'recover-work: destination reconciliation for this owner is unavailable; recovery refused' >&2; exit 4; }
 fi
 lock="$SPOOLIN_LOCK_DIR/operator-$SPOOLIN_INSTALLATION.lock"
 start=$SECONDS

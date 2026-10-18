@@ -1,14 +1,10 @@
 package com.spoolin.support.work
 
 import tools.jackson.databind.json.JsonMapper
-import java.net.URI
 import java.nio.file.Files
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermissions
 import java.sql.Connection
-import java.sql.DriverManager
-import java.util.Properties
 import java.util.UUID
 import kotlin.system.exitProcess
 
@@ -40,8 +36,8 @@ object WorkRecoveryCli {
         )
         val owner = requireNotNull(values["--owner"]).also { require(it in setOf("core", "catalog", "media")) }
         val id = UUID.fromString(values.getValue("--work-id"))
-        val operator = operatorIdentity()
-        connection(owner).use { connection ->
+        val operator = OperatorAccess.operatorIdentity()
+        OperatorAccess.connection(owner).use { connection ->
             val mode = values.getValue("--mode")
             when (mode) {
                 "inspect" ->
@@ -63,25 +59,25 @@ object WorkRecoveryCli {
         operator: String,
         values: Map<String, String>,
     ) {
-        require(owner == "media") { "Destination reconciliation is not implemented for this owner" }
         val reasonPath = Path.of("/run/spoolin-operator-reason")
-        protectedFile(reasonPath)
+        OperatorAccess.protectedFile(reasonPath)
         require(
-            Files.getAttribute(reasonPath, "unix:uid", NOFOLLOW_LINKS).toString() == required("SPOOLIN_OPERATOR_UID"),
+            Files.getAttribute(reasonPath, "unix:uid", NOFOLLOW_LINKS).toString() == OperatorAccess.required("SPOOLIN_OPERATOR_UID"),
         )
         connection.autoCommit = false
         try {
-            check(
-                WorkRecoveryOperations.recover(
-                    connection,
-                    id,
-                    values.getValue("--expected-generation").toInt(),
-                    values.getValue("--expected-epoch").toLong(),
-                    operator,
-                    Files.readString(reasonPath),
-                    Path.of(System.getenv("SPOOLIN_MEDIA_VOLUME") ?: "/var/spoolin/media"),
-                ),
+            val action = WorkRecoveryAction(
+                id, values.getValue("--expected-generation").toInt(), values.getValue("--expected-epoch").toLong(),
+                WorkRecoveryCommit(operator, Files.readString(reasonPath), UUID.randomUUID()),
             )
+            val destination = java.util.ServiceLoader.load(WorkRecoveryDestination::class.java)
+                .singleOrNull { it.owner == owner }
+            try {
+                check(WorkRecoveryOperations.recover(
+                    connection, action,
+                    Path.of(System.getenv("SPOOLIN_MEDIA_VOLUME") ?: "/var/spoolin/media"), destination,
+                ))
+            } finally { destination?.close() }
             connection.commit()
             println("Work recovery committed; original effect identity and attempt evidence retained")
         } finally {
@@ -89,49 +85,4 @@ object WorkRecoveryCli {
         }
     }
 
-    private fun operatorIdentity(): String {
-        val uid = required("SPOOLIN_OPERATOR_UID").also { require(it.matches(Regex("[0-9]{1,12}"))) }
-        val directory = Path.of("/run/spoolin-operator-authority")
-        require(Files.isDirectory(directory, NOFOLLOW_LINKS))
-        require(Files.getPosixFilePermissions(directory) == PosixFilePermissions.fromString("rwx------"))
-        require(Files.getAttribute(directory, "unix:uid", NOFOLLOW_LINKS).toString() == uid)
-        return "local-uid:$uid"
-    }
-
-    private fun connection(owner: String): Connection {
-        val prefix = owner.uppercase() + "_DB_"
-        val url = required(prefix + "URL")
-        val uri = URI(url.removePrefix("jdbc:"))
-        require(url.startsWith("jdbc:postgresql://") && uri.userInfo == null && uri.path == "/spoolin_$owner")
-        val parameters =
-            uri.rawQuery
-                .orEmpty()
-                .split('&')
-                .map { it.split('=', limit = 2) }
-        require(
-            parameters.count { it.first() == "sslmode" } == 1 &&
-                parameters.any { it == listOf("sslmode", "verify-full") },
-        )
-        require(parameters.all { it.size == 2 && it.first() in setOf("sslmode", "sslrootcert", "connectTimeout") })
-        val user = required(prefix + "USER").also { require(it == "spoolin_${owner}_runtime") }
-        val password = Path.of(required(prefix + "PASSWORD_FILE"))
-        protectedFile(password)
-        return DriverManager.getConnection(
-            url,
-            Properties().apply {
-                setProperty("user", user)
-                setProperty("password", Files.readString(password).trimEnd('\n', '\r'))
-                setProperty("connectTimeout", "2")
-                setProperty("options", "-c search_path=appdata -c statement_timeout=5000 -c lock_timeout=2000")
-            },
-        )
-    }
-
-    private fun protectedFile(path: Path) {
-        require(Files.isRegularFile(path, NOFOLLOW_LINKS) && Files.size(path) in 1..4096)
-        require(Files.getPosixFilePermissions(path) == PosixFilePermissions.fromString("rw-------"))
-    }
-
-    private fun required(name: String): String =
-        requireNotNull(System.getenv(name)) { "Protected configuration missing" }
 }

@@ -311,6 +311,20 @@ object WorkSql {
         commit: WorkRecoveryCommit,
         now: Instant,
     ): Boolean {
+        return recoverLocked(connection, workId, commit, now, false)
+    }
+
+    fun recoverNotificationWork(connection: Connection, workId: UUID, commit: WorkRecoveryCommit, now: Instant): Boolean {
+        require(!connection.autoCommit)
+        val inspected = requireNotNull(WorkRecoveryOperations.inspect(connection, workId, true))
+        WorkRecoveryOperations.validateNotification(inspected, connection)
+        return recoverLocked(connection, workId, commit, now, true)
+    }
+
+    private fun recoverLocked(
+        connection: Connection, workId: UUID, commit: WorkRecoveryCommit, now: Instant, notification: Boolean,
+    ): Boolean {
+        val kind = if (notification) "kind='NOTIFICATION' AND notification_state='FAILED'" else "kind<>'NOTIFICATION'"
         require(!connection.autoCommit) { "Work recovery requires an explicit transaction" }
         val recoveryDeadlineAt = now.plusSeconds(RECOVERY_DEADLINE_SECONDS)
         WorkRecoveryRequest(workId, commit.operatorId, commit.reason, commit.correlationId)
@@ -318,7 +332,7 @@ object WorkSql {
             connection
                 .queryBound(
                     "SELECT generation,lease_epoch,operation_id,deadline_at FROM durable_work " +
-                        "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' FOR UPDATE",
+                        "WHERE id=? AND state='EXHAUSTED' AND $kind FOR UPDATE",
                     listOf(workId),
                 ) { row ->
                     RecoveryRow(
@@ -331,8 +345,9 @@ object WorkSql {
         val updated =
             connection.executeBound(
                 "UPDATE durable_work SET state='READY', generation=generation+1, attempt_count=0," +
-                    "lease_owner=NULL,lease_until=NULL,last_error=NULL,next_attempt_at=?,deadline_at=?,updated_at=? " +
-                    "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' AND generation=? AND lease_epoch=? " +
+                    "lease_owner=NULL,lease_until=NULL,last_error=NULL,next_attempt_at=?,deadline_at=?,updated_at=?," +
+                    "notification_state=CASE WHEN kind='NOTIFICATION' THEN 'PENDING' ELSE notification_state END " +
+                    "WHERE id=? AND state='EXHAUSTED' AND $kind AND generation=? AND lease_epoch=? " +
                     "AND ? > clock_timestamp()",
                 Timestamp.from(now),
                 Timestamp.from(recoveryDeadlineAt),
