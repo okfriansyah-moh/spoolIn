@@ -408,6 +408,14 @@ cat .local/accounts.txt
 
 On Windows, run this in the Ubuntu terminal from the setup guide. The same command works on macOS and Linux. Each line contains `email: password`; use the password after the colon for the matching email. Repeating setup and restarting preserve existing credentials and catalog data. You don't need to reset your installation.
 
+To replace an older local Maintainer password with the published `SpoolInMaintainer123!` password, run:
+
+```bash
+make local-repair-maintainer
+```
+
+This explicit recovery command changes only the prepared Maintainer password and revokes its existing sessions. It updates `.local/accounts.txt` and preserves the account, Viewer credentials, catalog edits, and artwork. Normal startup continues to preserve passwords.
+
 **Register** creates an additional Viewer account; catalog editing requires a Maintainer.
 
 When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.
