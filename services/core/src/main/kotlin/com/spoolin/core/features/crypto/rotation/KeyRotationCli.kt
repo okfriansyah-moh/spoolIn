@@ -1,31 +1,77 @@
 package com.spoolin.core.features.crypto.rotation
 
 import com.spoolin.core.DatabaseSettings
+import com.spoolin.core.features.account.persistence.AccountProtectionSettings
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
+import com.spoolin.core.features.crypto.MountedKeys
+import com.spoolin.support.logging.applyNormalizedLogLevel
+import com.spoolin.support.work.OperatorAccess
+import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor
+import org.springframework.boot.context.properties.bind.Bindable
+import org.springframework.boot.context.properties.bind.Binder
+import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.StandardEnvironment
+import tools.jackson.databind.json.JsonMapper
+import java.nio.file.Files
 import java.nio.file.Path
+import java.security.MessageDigest
+import kotlin.system.exitProcess
 
-/** Operator entry; protected key files are required even when only validating a dry run. */
+/** Protected operator command; results contain no key material, database addresses or exception messages. */
 fun main(args: Array<String>) {
-    val options = arguments(args)
-    val dataSource = DatabaseSettings.load(StandardEnvironment(), "core", false).pool()
-    dataSource.use { pool ->
-        RotationKeys.load(options.keys).use { keys ->
+    applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), "core")
+    val code = try {
+        OperatorAccess.operatorIdentity()
+        val options = RotationCliOptions.parse(args, System.getenv("ROTATION_KEYS_FILE"))
+        val environment = StandardEnvironment()
+        ConfigDataEnvironmentPostProcessor.applyTo(environment)
+        executeRotation(options, environment)
+    } catch (_: IllegalArgumentException) {
+        refusal("ROTATION_INPUT_OR_CONFIGURATION_INVALID")
+    } catch (_: java.io.IOException) {
+        refusal("ROTATION_PROTECTED_INPUT_UNAVAILABLE")
+    } catch (_: java.sql.SQLException) {
+        refusal("ROTATION_DATABASE_UNAVAILABLE")
+    } catch (_: RuntimeException) {
+        // The process boundary must also redact framework/provider exceptions carrying connection or file details.
+        refusal("ROTATION_REFUSED")
+    }
+    if (code != 0) exitProcess(code)
+}
+
+private fun executeRotation(options: RotationCliOptions, environment: ConfigurableEnvironment): Int {
+    val configured = Path.of(environment.getRequiredProperty("ROTATION_KEYS_FILE"))
+    require(Files.isSameFile(configured, options.keys)) { "Use the application's configured rotation map" }
+    val settings = Binder.get(environment).bind("spoolin.account-protection", Bindable.of(AccountProtectionSettings::class.java)).get()
+    RotationKeys.load(configured).use { keys ->
+        MountedKeys(settings.keys, null).use { application -> validateApplicationMaterial(application, keys, options) }
+        DatabaseSettings.load(environment, "core", false).pool().use { pool ->
             if (options.register && !options.dryRun) RotationKeys.registerTarget(pool, keys, options.to, options.purpose)
-            val result =
-                KeyRotationPlan(
-                    options.from,
-                    options.to,
-                    options.purpose,
-                ).rotate(pool, KeyRegistry(pool), options.dryRun, keys, options.maxBatches)
-            println("${result.message}; backfilled=${result.backfilled}; remaining=${result.remaining}")
-            if (!result.ok) kotlin.system.exitProcess(1)
+            val result = KeyRotationPlan(options.from, options.to, options.purpose)
+                .rotate(pool, KeyRegistry(pool), options.dryRun, keys, options.maxBatches)
+            println(JsonMapper.builder().build().writeValueAsString(mapOf(
+                "ok" to result.ok, "purpose" to options.purpose.name, "dryRun" to options.dryRun,
+                "backfilled" to result.backfilled, "remaining" to result.remaining, "message" to result.message,
+            )))
+            return if (result.ok) 0 else 1
         }
     }
 }
 
-private data class Arguments(
+/** The mounted application registry must survive restart and agree with the reload map before WRITE activation. */
+internal fun validateApplicationMaterial(application: MountedKeys, rotation: MountedKeys, options: RotationCliOptions) {
+    listOf(options.from, options.to).forEach { id ->
+        val actual = application.key(id, options.purpose) ?: error("Application material missing")
+        try {
+            val proposed = rotation.key(id, options.purpose) ?: error("Rotation material missing")
+            try { check(MessageDigest.isEqual(actual, proposed)) { "Mounted material differs" } }
+            finally { proposed.fill(0) }
+        } finally { actual.fill(0) }
+    }
+}
+
+internal data class RotationCliOptions(
     val from: String,
     val to: String,
     val purpose: KeyPurpose,
@@ -33,39 +79,40 @@ private data class Arguments(
     val dryRun: Boolean,
     val register: Boolean,
     val maxBatches: Int,
-)
-
-private fun arguments(args: Array<String>): Arguments {
-    var from = ""
-    var to = ""
-    var purpose = KeyPurpose.DRAFT
-    var keyFile = System.getenv("ROTATION_KEYS_FILE")
-    var dryRun = false
-    var register = false
-    var batches = 100
-    var index = 0
-
-    fun value(): String = args.getOrElse(++index) { usage() }
-    while (index < args.size) {
-        when (args[index]) {
-            "--from" -> from = value()
-            "--to" -> to = value()
-            "--purpose" -> purpose = KeyPurpose.valueOf(value().uppercase(java.util.Locale.ROOT))
-            "--keys" -> keyFile = value()
-            "--max-batches" -> batches = value().toInt()
-            "--dry-run" -> dryRun = true
-            "--register-target" -> register = true
-            else -> usage()
+) {
+    companion object {
+        fun parse(args: Array<String>, defaultFile: String?): RotationCliOptions {
+            val values = mutableMapOf<String, String>()
+            val flags = mutableSetOf<String>()
+            var index = 0
+            while (index < args.size) {
+                val name = args[index++]
+                if (name in setOf("--dry-run", "--register-target")) {
+                    require(flags.add(name)) { "Duplicate option" }
+                } else {
+                    require(name in setOf("--from", "--to", "--purpose", "--keys", "--max-batches")) { "Unknown option" }
+                    require(index < args.size && !args[index].startsWith("--")) { "Missing option value" }
+                    require(values.put(name, args[index++]) == null) { "Duplicate option" }
+                }
+            }
+            return checked(values, flags, defaultFile)
         }
-        index += 1
+
+        private fun checked(values: Map<String, String>, flags: Set<String>, defaultFile: String?): RotationCliOptions {
+            val from = requireNotNull(values["--from"])
+            val to = requireNotNull(values["--to"])
+            require(from != to && listOf(from, to).all { it.matches(Regex("[A-Za-z0-9_-]{1,64}")) })
+            val purpose = KeyPurpose.valueOf(values["--purpose"] ?: "DRAFT")
+            val keys = Path.of(requireNotNull(values["--keys"] ?: defaultFile))
+            require(keys.isAbsolute && keys.normalize() == keys)
+            val batches = values["--max-batches"] ?: "100"
+            require(batches.matches(Regex("[1-9][0-9]{0,4}")) && batches.toInt() in 1..10000)
+            return RotationCliOptions(from, to, purpose, keys, "--dry-run" in flags, "--register-target" in flags, batches.toInt())
+        }
     }
-    if (from.isBlank() || to.isBlank() || keyFile.isNullOrBlank()) usage()
-    return Arguments(from, to, purpose, Path.of(requireNotNull(keyFile)), dryRun, register, batches)
 }
 
-private fun usage(): Nothing {
-    System.err.println(
-        "usage: KeyRotationCli --from ID --to ID --purpose DRAFT|PII|EMAIL_LOOKUP --keys /protected/map.json [--register-target] [--max-batches 100] [--dry-run]",
-    )
-    kotlin.system.exitProcess(2)
+private fun refusal(code: String): Int {
+    System.err.println("rotation: $code; verify operator authority, mounted source/target material, registration and database readiness")
+    return 4
 }
