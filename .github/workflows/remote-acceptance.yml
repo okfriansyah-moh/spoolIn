@@ -92,6 +92,11 @@ jobs:
         run: |
           mkdir -p artifacts/source-checks
           npm run test:coverage --workspace frontend 2>&1 | tee artifacts/source-checks/frontend-tests.log
+      - name: Exercise real owner and cross-service boundaries
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          ./gradlew --no-daemon --console plain :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :tests:integration:leasesTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
       - name: Provision isolated synthetic environment
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: python3 ops/ci/prepare-environment.py
