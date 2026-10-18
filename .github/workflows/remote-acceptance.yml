@@ -1,0 +1,406 @@
+name: Remote application acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      tested_ref:
+        description: Full application SHA to assess
+        required: true
+        default: '2764ca8bcdb5ee182852e2bdb26c95247c81c5ed'
+      mode:
+        description: Full acceptance, focused real runtime proof, or source preparation
+        type: choice
+        options: [verify, runtime, dependencies, seed, format, quality, sandbox]
+        default: verify
+permissions:
+  contents: read
+concurrency:
+  group: movie-app-remote-acceptance
+  cancel-in-progress: false
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      TESTED_REF: ${{ inputs.tested_ref || github.sha }}
+      CI: 'true'
+      ACCEPTANCE_MODE: ${{ inputs.mode }}
+      GRADLE_OPTS: '-Dorg.gradle.daemon=false'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.TESTED_REF }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify hosted runner and record assessed inputs
+        shell: bash
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          mkdir -p artifacts/provenance
+          python3 - <<'PY'
+          import json, os, platform, subprocess
+          from pathlib import Path
+          record = {k: os.environ.get(k) for k in ['GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'GITHUB_JOB', 'RUNNER_OS', 'RUNNER_ARCH', 'RUNNER_ENVIRONMENT', 'ImageOS', 'ImageVersion']}
+          record['tested_sha'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          record['platform'] = platform.platform()
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('TESTED_SHA=' + record['tested_sha'] + '\n')
+          Path('artifacts/provenance/runner.json').write_text(json.dumps(record, indent=2) + '\n')
+          PY
+      - name: Inventory every assigned obligation against the actual checked-out source
+        if: ${{ inputs.mode == 'verify' || inputs.mode == 'runtime' }}
+        run: |
+          mkdir -p artifacts/assessment
+          python3 build-tools/verification-tests/obligation_inventory.py --output artifacts/assessment/obligations.json
+          python3 build-tools/verification-tests/obligation_inventory.py --check --output artifacts/assessment/obligations.json
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21.0.12+1'
+          cache: gradle
+      - name: Freeze permitted seed facts
+        timeout-minutes: 20
+        if: ${{ inputs.mode == 'seed' }}
+        run: python3 ops/ci/freeze-wikidata.py
+      - name: Prepare npm lock metadata
+        if: ${{ inputs.mode == 'dependencies' }}
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Install locked npm dependencies
+        id: dependencies
+        if: ${{ inputs.mode != 'seed' && inputs.mode != 'sandbox' }}
+        run: npm ci
+      - name: Prepare dependency locks and verification entries
+        if: ${{ (inputs.mode || 'dependencies') == 'dependencies' }}
+        run: ./gradlew --no-daemon --console plain --write-verification-metadata sha256 --write-locks resolveLocks
+      - name: Prepare source formatting patch
+        if: ${{ inputs.mode == 'format' }}
+        run: python3 ops/ci/format-selection.py
+      - name: Inspect all configured Kotlin source quality rules
+        if: ${{ inputs.mode == 'quality' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          ./gradlew --no-daemon --console plain --continue detekt ktlintCheck 2>&1 | tee artifacts/source-checks/kotlin-quality.log
+      - name: Install pinned delivery scanners
+        if: ${{ inputs.mode == 'verify' }}
+        run: bash ops/ci/install-gates.sh
+      - name: Provision scoped production Media sandbox policy
+        id: sandbox
+        if: ${{ !cancelled() && (inputs.mode == 'sandbox' || ((inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success')) }}
+        run: |
+          mkdir -p artifacts/source-checks
+          python3 ops/ci/test-media-sandbox-policy.py
+          sudo bash ops/bin/provision-media-sandbox.sh --install 2>&1 | tee artifacts/source-checks/media-sandbox-policy.log
+          sudo bash ops/bin/provision-media-sandbox.sh --check 2>&1 | tee -a artifacts/source-checks/media-sandbox-policy.log
+      - name: Retain actual Media policy provisioning outcome immediately
+        if: ${{ !cancelled() && (inputs.mode == 'sandbox' || inputs.mode == 'verify' || inputs.mode == 'runtime') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: media-policy-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/source-checks/media-sandbox-policy.log
+          retention-days: 14
+          if-no-files-found: error
+      - name: Check safe MCP runtime diagnostic classifications
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        run: node --test ops/ci/mcp-runtime-diagnostics.test.mjs
+      - name: Strict build and contract generation
+        id: build
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar 2>&1 | tee artifacts/source-checks/strict-build.log
+      - name: Retain failed strict build diagnostics immediately
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: strict-build-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/assessment
+            artifacts/source-checks/strict-build.log
+            **/build/reports/dependency-verification
+          retention-days: 14
+          if-no-files-found: error
+      - name: Check production frontend and MCP
+        id: frontend
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          npm run check 2>&1 | tee artifacts/source-checks/check.log
+          npm run build 2>&1 | tee artifacts/source-checks/build.log
+      - name: Production MCP coverage and transport checks
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          npm run test:coverage --workspace mcp 2>&1 | tee artifacts/source-checks/mcp-tests.log
+      - name: Production frontend behavior checks
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          npm run test:coverage --workspace frontend 2>&1 | tee artifacts/source-checks/frontend-tests.log
+      - name: Retain production behavior reports before helper checks
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: production-behavior-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/assessment
+            artifacts/source-checks
+            mcp/coverage/junit.xml
+            frontend/coverage/test-results.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Readiness parser and redaction regression checks
+        timeout-minutes: 10
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        run: |
+          python3 ops/ci/verify-capacity-test.py
+          python3 ops/monitoring/verify_test.py
+          python3 ops/ci/test-codec-profile-package.py
+          python3 ops/ci/codec-diagnostics-test.py
+          python3 ops/ci/verify-seed-runtime-test.py
+          python3 ops/ci/readiness-helper-test.py
+          python3 ops/ci/ports-test.py
+          node --test ops/ci/private-readiness-test.mjs
+          python3 ops/ci/operational-status-test.py
+          python3 ops/ci/operator-runtime-test.py
+          if [[ "$ACCEPTANCE_MODE" == verify ]]; then
+            python3 build-tools/verification-tests/test_harness.py
+          fi
+          python3 -m unittest discover -s build-tools/validate-seed -p 'test_*.py'
+      - name: Provision pinned production codec prerequisites
+        id: codec
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' }}
+        run: bash ops/ci/prepare-codec-fixture.sh
+      - name: Retain failed codec prerequisite diagnostics immediately
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.codec.outcome == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: codec-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/assessment
+            artifacts/source-checks/codec-profile-prerequisite.json
+            artifacts/source-checks/codec-profile-setup.log
+            artifacts/source-checks/codec-host-before.json
+            artifacts/source-checks/codec-host-after.json
+            artifacts/source-checks/codec-environment.txt
+            artifacts/source-checks/codec-sandbox-preflight.log
+          retention-days: 14
+          if-no-files-found: error
+      - name: Exercise real owner and cross-service boundaries
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p artifacts/source-checks
+          ./gradlew --no-daemon --console plain --continue :libraries:backend-support:test :services:core:test :services:catalog:test :services:media:test :services:core:workIntegrationTest :services:catalog:workIntegrationTest :services:media:workIntegrationTest :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:core:alertUnitTest :services:core:mcpGatewayUnitTest :services:core:alertIntegrationTest :services:core:artworkProxyUnitTest :services:core:artworkProxyIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :services:catalog:catalogProposalIntegrationTest :tests:integration:leasesTest :tests:integration:policyIntegrationTest :tests:integration:seedIntegrationTest :tests:integration:catalogReadsTest :tests:integration:logicalMetricsTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
+      - name: Collect revision-bound owner observations
+        if: ${{ !cancelled() && inputs.mode == 'verify' }}
+        run: python3 ops/ci/collect-owner-evidence.py
+      - name: Retain prerequisite execution reports before application startup
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prerequisites-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/assessment
+            artifacts/source-checks
+            **/build/test-results/**/*.xml
+          retention-days: 14
+          if-no-files-found: error
+      - name: Provision isolated synthetic environment
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        run: |
+          python3 ops/ci/prepare-environment.py
+      - name: Verify actual Compose policy forwarding
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        run: python3 ops/ci/verify-compose-settings.py
+      - name: Install pinned browser engines and trust the isolated CA
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        run: |
+          if [[ "$ACCEPTANCE_MODE" == runtime ]]; then
+            npm exec --workspace tests/browser -- playwright install --with-deps chromium
+          else
+            npm exec --workspace tests/browser -- playwright install --with-deps chromium firefox webkit
+          fi
+          sudo apt-get install --no-install-recommends -y libnss3-tools
+          sudo cp "$SERVICE_CA_FILE" /usr/local/share/ca-certificates/spoolin-ci.crt
+          sudo update-ca-certificates
+          mkdir -p "$HOME/.pki/nssdb"
+          certutil -N --empty-password -d sql:"$HOME/.pki/nssdb"
+          certutil -A -d sql:"$HOME/.pki/nssdb" -n spoolin-ci -t 'C,,' -i "$SERVICE_CA_FILE"
+      - name: Start documented application
+        id: application
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        run: bash ops/ci/run-application.sh
+      - name: Probe actual public policy and catalog GraphQL after readiness
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/probe-browser-api.py
+      - name: Retain safe owner diagnostics before browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/capture-runtime-diagnostics.py --phase before-browser
+      - name: Retain actual startup and readiness evidence before browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: application-readiness-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/assessment
+            artifacts/runtime
+          retention-days: 14
+          if-no-files-found: error
+      - name: Verify complete loaded seed and restart persistence
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: |
+          bash ops/bin/seed.sh --validate-only
+          python3 ops/ci/verify-seed-runtime.py
+      - name: Exercise actual protected connector and SDK stdio gateway flow
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
+        run: python3 ops/ci/verify-connector-runtime.py
+      - name: Probe actual restricted production Media codec container
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/probe-media-codec.py
+      - name: Retain actual seed and codec boundary outcomes before browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: runtime-boundaries-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/runtime
+            artifacts/codec-container
+          retention-days: 14
+          if-no-files-found: error
+      - name: Exercise real production application in browsers
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
+        run: |
+          if [[ "$ACCEPTANCE_MODE" == runtime ]]; then
+            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --project chromium-1440-dark --project chromium-390-light --project chromium-responsive-matrix --project account-chromium --project operations-chromium --max-failures=1
+          else
+            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --max-failures=1
+          fi
+      - name: Retain browser assertions and application captures immediately
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: browser-boundaries-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/browser
+          retention-days: 14
+          if-no-files-found: error
+      - name: Retain safe owner diagnostics after browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/capture-runtime-diagnostics.py --phase after-browser
+      - name: Verify actual monitoring and alert persistence
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        run: python3 ops/monitoring/verify.py --report artifacts/runtime/monitoring.json
+      - name: Verify documented Make lifecycle and suites
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: bash ops/ci/verify-make-targets.sh
+      - name: Verify actual protected key rotation and restart
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/verify-key-rotation.py
+      - name: Verify actual coordinated backup restore and recovery restart
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/verify-recovery.py
+      - name: Verify actual operator connector and recovery entry points
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/verify-operator-commands.py
+      - name: Stop the source installation before isolated capacity repetitions
+        id: capacity_ready
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: make stop
+      - name: Measure actual independent startup capacity repetitions
+        timeout-minutes: 80
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: |
+          result=0
+          for repetition in 1 2 3; do
+            python3 ops/ci/verify-capacity.py --phase startup --repetition "$repetition" || result=$?
+          done
+          exit "$result"
+      - name: Measure actual independent reader capacity repetitions
+        timeout-minutes: 80
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: |
+          result=0
+          for repetition in 1 2 3; do
+            python3 ops/ci/verify-capacity.py --phase reader --repetition "$repetition" || result=$?
+          done
+          exit "$result"
+      - name: Measure actual independent writer capacity repetitions
+        timeout-minutes: 80
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: |
+          result=0
+          for repetition in 1 2 3; do
+            python3 ops/ci/verify-capacity.py --phase writer --repetition "$repetition" || result=$?
+          done
+          exit "$result"
+      - name: Capture actual baseline and stress plans with pending inventory obligations
+        timeout-minutes: 40
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
+        run: python3 ops/ci/verify-capacity.py --phase plans --repetition 1
+      - name: Retain bounded check reports before delivery gates
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: source-checks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/source-checks
+            artifacts/runtime
+            artifacts/make
+            artifacts/recovery
+            artifacts/key-rotation
+            artifacts/codec-container
+            artifacts/capacity
+          retention-days: 14
+          if-no-files-found: error
+      - name: Configured delivery gates
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        run: python3 .ai/bin/agent-workflow gate --repo . --stage delivery --base 2764ca8bcdb5ee182852e2bdb26c95247c81c5ed
+      - name: Retain reports including failed baseline
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/assessment
+            artifacts/source-formatting.patch
+            artifacts/source-checks
+            data/seed/manifest.json
+            data/seed/sources
+            package-lock.json
+            artifacts/runtime
+            artifacts/recovery
+            artifacts/key-rotation
+            artifacts/codec-container
+            artifacts/capacity
+            artifacts/make
+            artifacts/browser
+            mcp/coverage
+            frontend/coverage
+            gradle/verification-metadata.xml
+            gradle/locks
+            contracts/grpc/gradle.lockfile
+            .ai/reports
+            **/build/reports/dependency-verification
+            **/build/test-results
+          retention-days: 14
+          if-no-files-found: error
+          include-hidden-files: true

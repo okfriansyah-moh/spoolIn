@@ -30,9 +30,13 @@
 </script>
 
 <div class="field">
-  <label for={id}>{label}{required ? ' · Required' : ' · Optional'}</label
+  <label for={id}
+    ><span id={`${id}-label`}>{label}</span><span aria-hidden="true"
+      >{required ? ' · Required' : ' · Optional'}</span
+    ></label
   >{#if multiline}<textarea
       {id}
+      aria-labelledby={`${id}-label`}
       bind:value
       {required}
       {disabled}
@@ -40,6 +44,7 @@
       aria-describedby={describedBy}
       rows="4"></textarea>{:else}<input
       {id}
+      aria-labelledby={`${id}-label`}
       {type}
       bind:value
       {required}

@@ -22,8 +22,19 @@ class MediaServiceImpl(
     private val upload: UploadRpc,
     private val holds: com.spoolin.media.features.hold.HoldRpc,
     private val receiptReads: OwnerReceiptReads,
+    private val assets: com.spoolin.media.features.asset.AssetRpc,
 ) : MediaServiceGrpc.MediaServiceImplBase() {
     override fun upload(response: StreamObserver<Outcome>): StreamObserver<UploadChunk> = upload.upload(response)
+
+    override fun getAsset(
+        request: Id,
+        response: StreamObserver<spoolin.v1.Spoolin.Asset>,
+    ) = assets.getAsset(request, response)
+
+    override fun readAsset(
+        request: spoolin.v1.Spoolin.AssetReadRequest,
+        response: StreamObserver<spoolin.v1.Spoolin.AssetReadChunk>,
+    ) = assets.readAsset(request, response)
 
     override fun reserve(
         request: spoolin.v1.Spoolin.Hold,
@@ -45,10 +56,10 @@ class MediaServiceImpl(
         response: StreamObserver<Outcome>,
     ) {
         try {
-            val actor = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             val id = parseUuid(request.id)
+            val scope = assets.receiptScope(id)
             val receipt =
-                receiptReads.find(id, "account:${actor.accountId}")
+                receiptReads.find(id, scope)
                     ?: throw Status.NOT_FOUND.asRuntimeException()
             response.onNext(operationOutcome(receipt))
             response.onCompleted()

@@ -1,25 +1,26 @@
 package com.spoolin.core.operations.maintenance
 
-import java.sql.Timestamp
+import com.spoolin.support.maintenance.RetentionMaintenance
 import java.time.Clock
 import javax.sql.DataSource
 
-private const val BODY_PURGE_INTERVAL_MS = 3600000L
-
 class ReceiptExpiry(
-    private val maintenance: DataSource,
-    private val clock: Clock = Clock.systemUTC(),
+    maintenance: DataSource,
+    @Suppress("UNUSED_PARAMETER") clock: Clock = Clock.systemUTC(),
 ) {
-    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = BODY_PURGE_INTERVAL_MS)
+    private val log =
+        java.util.logging.Logger
+            .getLogger(ReceiptExpiry::class.java.name)
+    private val retention = RetentionMaintenance(maintenance, "core")
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "PT1H")
     fun purgeBodies(): Int =
-        maintenance.connection.use { connection ->
-            connection
-                .prepareStatement(
-                    "UPDATE operation_receipt SET result=NULL WHERE receipt_type='REQUEST' " +
-                        "AND state IN ('SUCCEEDED','FAILED','EXPIRED') AND expires_at<=? AND result IS NOT NULL",
-                ).use { statement ->
-                    statement.setTimestamp(1, Timestamp.from(clock.instant()))
-                    statement.executeUpdate()
-                }
-        }
+        retention
+            .hourly()
+            .also { log.info("Hourly retention counts: $it") }
+            .values
+            .sum()
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "P1D")
+    fun purgeHistory(): Map<String, Int> = retention.daily().also { log.info("Daily retention counts: $it") }
 }

@@ -1,0 +1,118 @@
+rule_files:
+  - /etc/prometheus/alerts.yml
+evaluation_interval: 1m
+tests:
+  - name: absent measurements never become synthetic healthy zeros
+    interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: WorkQueueBacklog
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: PoolPressure
+        exp_alerts: []
+  - name: bounded backlog threshold and resolved state
+    interval: 1m
+    input_series:
+      - series: 'spoolin_work_pending{service="core"}'
+        values: '101 101 101 101 101 101 0 0'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: WorkQueueBacklog
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: WorkQueueBacklog
+        exp_alerts:
+          - exp_labels: {service: core, severity: warning, class: work}
+            exp_annotations: {summary: Durable work backlog elevated}
+      - eval_time: 6m
+        alertname: WorkQueueBacklog
+        exp_alerts: []
+  - name: low traffic system failures do not alert
+    interval: 1m
+    input_series:
+      - series: 'spoolin_operation_results_total{service="catalog",operation="WriteMovie",boundary="owner",outcome="SYSTEM_FAILED",code="UNAVAILABLE"}'
+        values: '0+1x12'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: SystemMutationFailure
+        exp_alerts: []
+  - name: domain failures and reset system counters are separate outcomes
+    interval: 1m
+    input_series:
+      - series: 'spoolin_operation_results_total{service="catalog",operation="WriteMovie",boundary="owner",outcome="DOMAIN_REJECTED",code="CONFLICT"}'
+        values: '0+100x12'
+      - series: 'spoolin_operation_results_total{service="catalog",operation="WriteMovie",boundary="owner",outcome="SYSTEM_FAILED",code="UNAVAILABLE"}'
+        values: '0 0 0 0 0 0 0 0 0 0 0 0 0'
+      - series: 'spoolin_operation_results_total{service="catalog",operation="WriteMovie",boundary="owner",outcome="SUCCESS",code="OK"}'
+        values: '0 100 200 0 100 200 300 400 500 600 700 800 900'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: SystemMutationFailure
+        exp_alerts: []
+  - name: sustained high traffic mutation failures alert
+    interval: 1m
+    input_series:
+      - series: 'spoolin_operation_results_total{service="catalog",operation="WriteMovie",boundary="owner",outcome="SYSTEM_FAILED",code="UNAVAILABLE"}'
+        values: '0+10x12'
+      - series: 'spoolin_operation_results_total{service="catalog",operation="WriteMovie",boundary="owner",outcome="SUCCESS",code="OK"}'
+        values: '0+90x12'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: SystemMutationFailure
+        exp_alerts:
+          - exp_labels: {service: catalog, severity: warning, class: mutation}
+            exp_annotations: {summary: System mutation failure ratio elevated}
+  - name: pool pressure requires sustained threshold
+    interval: 1m
+    input_series:
+      - series: 'spoolin_pool_active_connections{service="core"}'
+        values: '9+0x8'
+      - series: 'spoolin_pool_max_connections{service="core"}'
+        values: '10+0x8'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: PoolPressure
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: PoolPressure
+        exp_alerts:
+          - exp_labels: {service: core, severity: warning, class: database}
+            exp_annotations: {summary: Database pool pressure elevated}
+  - name: unknown notification evidence remains actionable
+    interval: 1m
+    input_series:
+      - series: 'spoolin_notification_events{service="core",mode="smtp",state="UNKNOWN"}'
+        values: '1+0x3'
+    alert_rule_test:
+      - eval_time: 0m
+        alertname: NotificationUnresolved
+        exp_alerts:
+          - exp_labels: {service: core, mode: smtp, state: UNKNOWN, severity: warning, class: notification}
+            exp_annotations: {summary: Notification requires reconciliation}
+  - name: processing low traffic and disabled tunnel are not failures
+    interval: 1m
+    input_series:
+      - series: 'spoolin_media_processing_total{service="media",outcome="FAILED"}'
+        values: '0+1x12'
+      - series: 'spoolin_tunnel_connected{client="CHATGPT"}'
+        values: '0+0x12'
+      - series: 'spoolin_tunnel_enabled{client="CHATGPT"}'
+        values: '0+0x12'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ProcessingFailures
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: TunnelUnavailable
+        exp_alerts: []
+  - name: read-only failures never count as mutation failures
+    interval: 1m
+    input_series:
+      - series: 'spoolin_operation_results_total{service="catalog",operation="SearchTitles",boundary="owner",outcome="SYSTEM_FAILED",code="UNAVAILABLE"}'
+        values: '0+100x12'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: SystemMutationFailure
+        exp_alerts: []

@@ -3,8 +3,6 @@ package com.spoolin.core.operations.work
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.work.WorkRecoveryCommit
 import com.spoolin.support.work.WorkRecoveryRequest
-import com.spoolin.support.work.WorkSql
-import java.time.Clock
 import javax.sql.DataSource
 
 /**
@@ -24,7 +22,6 @@ import javax.sql.DataSource
  */
 class WorkRecovery(
     private val dataSource: DataSource,
-    private val clock: Clock = Clock.systemUTC(),
 ) {
     /**
      * Attempts to recover [request.workId].
@@ -34,15 +31,29 @@ class WorkRecovery(
      */
     fun recover(request: WorkRecoveryRequest): Boolean =
         dataSource.committed { connection ->
-            WorkSql.recoverWork(
-                connection,
-                request.workId,
-                WorkRecoveryCommit(
-                    operatorId = request.operatorId,
-                    reason = request.reason,
-                    correlationId = request.correlationId,
-                ),
-                clock.instant(),
-            )
+            val inspected =
+                com.spoolin.support.work.WorkRecoveryOperations
+                    .inspect(connection, request.workId, true)
+                    ?: return@committed false
+            val destination =
+                java.util.ServiceLoader
+                    .load(com.spoolin.support.work.WorkRecoveryDestination::class.java)
+                    .singleOrNull { it.owner == "core" }
+            try {
+                com.spoolin.support.work.WorkRecoveryOperations.recover(
+                    connection,
+                    com.spoolin.support.work.WorkRecoveryAction(
+                        request.workId,
+                        inspected.generation,
+                        inspected.leaseEpoch,
+                        WorkRecoveryCommit(request.operatorId, request.reason, request.correlationId),
+                    ),
+                    java.nio.file.Path
+                        .of("/var/spoolin/media"),
+                    destination,
+                )
+            } finally {
+                destination?.close()
+            }
         }
 }

@@ -1,6 +1,18 @@
 import { TransportFailure } from '../../transport/graphql';
 import type { IdentityOutcome, SafeProblem } from './commands';
 import { record, uuid } from './parse';
+function retryAfter(value: unknown): number {
+  if (value === null || value === undefined) return 0;
+  if (
+    typeof value !== 'number' ||
+    !Number.isInteger(value) ||
+    value < 0 ||
+    value > 2147483647
+  )
+    throw new TransportFailure('unavailable');
+  return value;
+}
+
 export function safeProblem(value: unknown): SafeProblem | null {
   if (value === null) return null;
   const input = record(value);
@@ -9,15 +21,7 @@ export function safeProblem(value: unknown): SafeProblem | null {
     !/^[A-Z][A-Z0-9_]{0,63}$/.test(input.code)
   )
     throw new TransportFailure('unavailable');
-  const retry = input.retryAfterMs;
-  if (
-    retry !== null &&
-    (typeof retry !== 'number' ||
-      !Number.isInteger(retry) ||
-      retry < 0 ||
-      retry > 2147483647)
-  )
-    throw new TransportFailure('unavailable');
+  const retry = retryAfter(input.retryAfterMs);
   return Object.freeze({ code: input.code, retryAfterMs: retry ?? 0 });
 }
 export function operation(value: unknown, expected: string): IdentityOutcome {

@@ -24,8 +24,8 @@
     catalogOperationId?: string | null;
     initialName?: string;
   } = $props();
-  let draftView = $state<DraftViewState>(controller.snapshot);
-  let localName = $state(initialName);
+  let draftView = $state<DraftViewState>(untrack(() => controller.snapshot));
+  let localName = $state(untrack(() => initialName));
   $effect(() => {
     controller.bindSession(session);
   });
@@ -61,7 +61,6 @@
   {:else}
     <DraftNotice state={draftView} />
     <form
-      role="form"
       aria-label="Person draft"
       onsubmit={(event) => event.preventDefault()}
     >

@@ -1,23 +1,631 @@
-# SpoolIn movie-app
+# SpoolIn
 
-Maintainer-facing catalog for movies, people, credits, artwork, and AI-assisted movie proposals with trusted in-chat approval.
+SpoolIn is a movie catalog for people who want to discover films and maintain the information behind them. Browse movies and TV entries, search titles and people, explore cast and creator credits, and sign in as a Maintainer to update the catalog.
 
-## Components
+## Why SpoolIn?
 
-| Area | Path |
-|------|------|
-| Core (identity, drafts, MCP gateway) | `services/core` |
-| Catalog (writes, proposals, audit) | `services/catalog` |
-| Media (artwork upload/processing) | `services/media` |
-| Web UI (SvelteKit) | `frontend` |
-| MCP adapter + review resource | `mcp` |
-| Contracts (gRPC, JSON schemas) | `contracts` |
-| Ops scripts & compose | `ops` |
+SpoolIn takes its name from the spool that holds a length of film. Unspooling reveals a story frame by frame; “In” invites you to explore the films and people behind those stories. The name was adopted on 11 October 2026. Read the [brand history](docs/design-system/brand-history.md) for the original naming and visual identity notes.
 
-## Local workflow (source)
+## Contents
 
-1. Configure toolchain via `ops/bin/toolchain-env.sh`.
-2. Validate seed manifest: `python3 build-tools/validate-seed/validate_manifest.py`.
-3. Use `ops/bin/start.sh` / `stop.sh` / `status.sh` / `logs.sh` as compose wrappers (require `SPOOLIN_INSTALLATION`).
+- [Why SpoolIn?](#why-spoolin)
+- [What you can do](#what-you-can-do)
+- [Run SpoolIn on your computer](#run-spoolin-on-your-computer)
+  - [Before you start](#before-you-start)
+  - [Windows](#windows)
+  - [macOS](#macos)
+  - [Ubuntu Linux](#ubuntu-linux)
+  - [Download SpoolIn](#download-spoolin)
+  - [Start and sign in](#start-and-sign-in)
+  - [Everyday commands](#everyday-commands)
+  - [Troubleshooting](#troubleshooting)
+  - [Verification limits](#verification-limits)
+- [Use SpoolIn](#use-spoolin)
+  - [Choose the right account](#choose-the-right-account)
+  - [Viewer example: find a movie](#viewer-example-find-a-movie)
+  - [Viewer example: explore movie details](#viewer-example-explore-movie-details)
+  - [Viewer example: read movie credits](#viewer-example-read-movie-credits)
+  - [Viewer example: explore cast and creator profiles](#viewer-example-explore-cast-and-creator-profiles)
+  - [Maintainer example: create and edit a movie](#maintainer-example-create-and-edit-a-movie)
+  - [Maintainer example: manage cast and creators](#maintainer-example-manage-cast-and-creators)
+  - [Maintainer example: manage credits](#maintainer-example-manage-credits)
+  - [Maintainer example: upload artwork](#maintainer-example-upload-artwork)
+  - [Maintainer example: archive and delete records](#maintainer-example-archive-and-delete-records)
+  - [Maintainer example: review History](#maintainer-example-review-history)
+  - [Understand feedback](#understand-feedback)
+  - [Use a smaller screen](#use-a-smaller-screen)
+- [How it works](#how-it-works)
+- [Develop and test](#develop-and-test)
+  - [Source development](#source-development)
+  - [Test scope](#test-scope)
+- [AI assistance](#ai-assistance)
+- [Project references](#project-references)
 
-Runtime proof (integration, browser, real ChatGPT/Claude) remains release-owned; see `docs/release/handoff.md`.
+![SpoolIn movie catalog with artwork and browsing controls](docs/assets/spoolin/catalog.png)
+
+## What you can do
+
+Visitors can browse movies and people without an account. Movie pages bring together the synopsis, artwork, release information, cast, and creators. Maintainers can create and edit movies and people, manage credits, upload poster artwork, and archive records. Archives retain a recovery path instead of making a mistaken removal immediately permanent.
+
+SpoolIn also has account registration, retained editing drafts, conflict review when another edit changes a record, and an audit view for catalog changes. Forms show validation errors and save outcomes. Artwork uploads distinguish transfer progress from server processing.
+
+## Run SpoolIn on your computer
+
+Use this guide if you're starting from a computer that doesn't have development tools installed. Commands go in a terminal, one block at a time. Don't type the ``` marks around a block. When `sudo` asks for your computer password, the terminal may show nothing as you type; press Enter when you're done.
+
+### Before you start
+
+You need an internet connection for the first download, permission to install software, and enough free storage for container images and build dependencies. Docker runs Linux containers, including on macOS and Windows. Check Docker's linked requirements for your operating system and hardware before installing it. Local startup was exercised with 8 GiB of Docker memory, 8 CPUs, and about 15 GiB of free storage before builds. These are observed development resources, not established minimum requirements. Container builds can need additional disk space as caches grow.
+
+| Tool | Why you need it |
+| --- | --- |
+| Git | Downloads the repository and later updates |
+| Docker and Compose | Builds and runs the database and application services |
+| Make | Gives the setup commands short, consistent names |
+| Python 3.10 or newer | Runs the local setup helper |
+| A browser | Opens the application |
+
+Java, Node.js, npm, an editor, and Mermaid preview tools are optional for this container workflow. Docker builds the required application toolchains inside containers and starts PostgreSQL, so you don't need a separate database installation.
+
+### Windows
+
+Use Windows PowerShell for the first step, then Ubuntu for all project commands. WSL2 provides the Linux terminal that the setup scripts expect.
+
+1. Open Start, search for **PowerShell**, and select **Run as administrator**. Install Ubuntu in WSL:
+
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+
+   Restart Windows if prompted. Open **Ubuntu** from Start and create the Linux username and password it requests. This is a separate account from your Windows account. Microsoft's [WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install) covers installation failures and virtualization requirements.
+
+2. In PowerShell, update WSL and check the installed distribution:
+
+   ```powershell
+   wsl --update
+   wsl --list --verbose
+   ```
+
+   Ubuntu should show version `2`. If it shows `1`, run `wsl --set-version Ubuntu 2`.
+
+3. Download and run [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/). Select the WSL2 backend when offered, launch Docker Desktop, and wait until the engine is running. In **Settings > Resources > WSL Integration**, enable Ubuntu and apply the change. See [Docker's WSL guide](https://docs.docker.com/desktop/features/wsl/).
+
+4. Open **Ubuntu**, then install the remaining tools:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y git make python3 ca-certificates curl
+   ```
+
+5. In that same Ubuntu terminal, check the tools:
+
+   ```bash
+   git --version
+   make --version
+   python3 --version
+   docker version
+   docker compose version
+   ```
+
+   `docker version` must show both Client and Server. Keep Docker Desktop running. Continue to [Download SpoolIn](#download-spoolin) inside Ubuntu. Store the checkout under your Ubuntu home directory, not `/mnt/c`, to avoid Windows file permission and filesystem performance problems.
+
+### macOS
+
+1. Open **Terminal** from Applications > Utilities. Install Apple's command line tools:
+
+   ```bash
+   xcode-select --install
+   ```
+
+   Complete the installation dialog. If macOS says the tools are already installed, continue.
+
+2. Install Homebrew, which installs command line software. This command downloads and runs Homebrew's installer; inspect [the Homebrew installation instructions](https://brew.sh/) first:
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+   Follow the installer's **Next steps**, including its `brew shellenv` instructions, then reopen Terminal. The exact Homebrew path differs between Apple silicon and Intel Macs.
+
+3. Install the tools and Docker Desktop:
+
+   ```bash
+   brew install git make python
+   brew install --cask docker
+   open -a Docker
+   ```
+
+   Finish Docker Desktop's first-run setup and wait for the engine. Docker's [Mac installation guide](https://docs.docker.com/desktop/setup/install/mac-install/) explains supported hardware and system requirements. Homebrew installs GNU Make as `gmake`; the macOS `make` command also supports this project's targets.
+
+4. Check the tools:
+
+   ```bash
+   git --version
+   make --version
+   python3 --version
+   docker version
+   docker compose version
+   ```
+
+   `docker version` must include a Server section. Continue to [Download SpoolIn](#download-spoolin).
+
+### Ubuntu Linux
+
+These steps use Ubuntu 22.04 or newer with Docker Engine and Docker's Compose plugin. If you already use Docker Desktop on Ubuntu, keep that installation and verify its active context before continuing; don't install a second engine just for SpoolIn.
+
+1. Open **Terminal** and install basic tools:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y git make python3 ca-certificates curl
+   ```
+
+2. If Docker is already installed, check [Docker's Ubuntu instructions](https://docs.docker.com/engine/install/ubuntu/) for conflicting packages before changing it. For a fresh machine, add Docker's package signing key and repository:
+
+   ```bash
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+   sudo chmod a+r /etc/apt/keyrings/docker.asc
+   . /etc/os-release
+   sudo tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF_DOCKER
+   Types: deb
+   URIs: https://download.docker.com/linux/ubuntu
+   Suites: ${UBUNTU_CODENAME:-$VERSION_CODENAME}
+   Components: stable
+   Architectures: $(dpkg --print-architecture)
+   Signed-By: /etc/apt/keyrings/docker.asc
+   EOF_DOCKER
+   sudo apt update
+   sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   sudo systemctl enable --now docker
+   ```
+
+   When copying the heredoc block, keep `EOF_DOCKER` on its own line without leading spaces. The package setup follows [Docker's official Ubuntu installation guide](https://docs.docker.com/engine/install/ubuntu/).
+
+3. Allow your account to use Docker, then log out of Ubuntu and log back in:
+
+   ```bash
+   sudo usermod -aG docker "$USER"
+   ```
+
+   Membership in the Docker group grants privileges comparable to root. Use this on a machine where you control that access. See [Docker's Linux post-installation guide](https://docs.docker.com/engine/install/linux-postinstall/).
+
+4. In a new terminal, check the tools:
+
+   ```bash
+   git --version
+   make --version
+   python3 --version
+   docker version
+   docker compose version
+   docker run --rm hello-world
+   ```
+
+   Resolve any permission error before continuing. Run SpoolIn's commands as your normal user so generated files belong to your account.
+
+### Download SpoolIn
+
+Use Ubuntu on Windows, Terminal on macOS, or your Linux terminal:
+
+```bash
+mkdir -p ~/projects
+cd ~/projects
+git clone https://github.com/okfriansyah-moh/spoolIn.git
+cd spoolIn
+git switch codex/remote-acceptance-closure
+```
+
+The `codex/remote-acceptance-closure` branch includes the local setup helpers used here. `git clone` creates the `spoolIn` folder. You only need it once. If you already have this repository, open its folder with `cd` and continue. Every `make local-*` command below runs from the folder containing `Makefile`.
+
+### Start and sign in
+
+1. Prepare the local environment:
+
+   ```bash
+   make local-setup
+   ```
+
+   Setup generates protected local configuration, certificates, and account secrets. Repeating setup preserves existing secrets and data.
+
+2. Start the services:
+
+   ```bash
+   make local-start
+   ```
+
+   Wait for readiness checks to finish. Open `https://localhost:8443` after startup succeeds. Initial credentials are stored in `.local/accounts.txt`: `maintainer@example.invalid` can edit the catalog, and `viewer@example.invalid` has Viewer access. Their random passwords persist across repeated setup. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
+
+3. Trust the generated public local certificate using [the Firefox steps below](#trust-the-local-certificate), then open `https://localhost:8443`. Don't import a private key or turn off certificate validation.
+
+4. In the project terminal, read your initial account details:
+
+   ```bash
+   cat .local/accounts.txt
+   ```
+
+   Choose **Sign in** and enter the Maintainer email and generated password from that file. Keep the terminal output private and out of screenshots, issues, and commits. Registration creates a Viewer; it doesn't grant catalog editing permissions.
+
+#### Trust the local certificate
+
+Firefox provides the same certificate import route on Windows, macOS, and Linux. You can install it from [Mozilla's download page](https://www.mozilla.org/firefox/new/) if your usual browser's certificate settings are unfamiliar. This changes trust in that Firefox profile.
+
+1. Locate `.local/local-ca.crt` inside your project. `.local` is a hidden folder. From the project terminal, open it with the command for your platform:
+
+   Windows, inside Ubuntu:
+
+   ```bash
+   explorer.exe "$(wslpath -w .local)"
+   ```
+
+   macOS:
+
+   ```bash
+   open .local
+   ```
+
+   Linux:
+
+   ```bash
+   xdg-open .local
+   ```
+
+   In a Linux file picker, press `Ctrl+H` to show hidden folders. On macOS use `Command+Shift+G` and paste the project folder path followed by `/.local` if needed. In Windows, copy the folder address from Explorer into the import dialog.
+
+2. In Firefox open **Settings**, search for **certificates**, and choose **View Certificates**. Select **Authorities**, then **Import**.
+3. Select only the generated public `local-ca.crt` file. Confirm trust for identifying websites when Firefox asks. Never import `.local` private key files or share the folder. Mozilla documents [manual certificate import and trust settings](https://wiki.mozilla.org/CA/Changing_Trust_Settings).
+4. Open `https://localhost:8443` again. If a warning remains, check that you imported the certificate from this checkout and that the address is exactly `localhost`. Resolve the warning before signing in.
+
+Local certificates expire after 365 days. Renewal needs manual attention; don't delete valued data just to renew a certificate. If you reset the installation, it creates a new local CA, so remove the old SpoolIn local authority from Firefox and repeat the import. Remove that authority when you're finished using this local installation.
+
+Seed data provides 100 movies and 100 TV entries, plus people, genres, and credits for browsing. The frozen package includes a genuine poster for every title and records each poster's public source link. Setup imports those local files through Media; startup does not contact external data providers. Changes you make locally stay in Docker volumes across normal stops and restarts. The [stakeholder guide](#use-spoolin) explains the first journeys to try.
+
+### Everyday commands
+
+Run these commands from the repository folder when you need the corresponding action:
+
+| Command | What it does |
+| --- | --- |
+| `make local-setup` | Prepares configuration and preserves existing credentials |
+| `make local-start` | Builds and starts services, loads seed data, and checks readiness and codec isolation |
+| `make local-status` | Checks container state, service readiness, and codec isolation |
+| `make local-logs` | Prints the latest 200 log lines per service, then returns to the terminal |
+| `make local-stop` | Stops the services while retaining data and artwork |
+| `make local-test` | Runs the container-based checks described in [Test scope](#test-scope) |
+| `make local-reset` | Requests confirmation before deleting local data, credentials, and build caches |
+
+Container builds keep Linux dependencies in dedicated Docker volumes, preserving Node dependencies installed on your host. Stop and start reuse the same installation.
+
+To update your checkout when you have no local source edits:
+
+```bash
+make local-stop
+git pull --ff-only
+make local-setup
+make local-start
+```
+
+If Git reports local modifications, preserve or commit them before updating. Don't use a forced reset to fix an update error.
+
+#### Delete local data and start again
+
+`make local-reset` removes this local installation's stored data after its confirmation prompt. This includes accounts, catalog edits, and uploaded artwork. It isn't necessary for a normal restart.
+
+```bash
+make local-reset
+make local-setup
+make local-start
+```
+
+Type `DELETE` at the prompt only when you intend to discard the local installation. Keep a backup if the data matters to you.
+
+### Troubleshooting
+
+| What you see | What to check |
+| --- | --- |
+| `make: command not found` | Install Make for your platform and reopen the terminal. On Windows use Ubuntu. |
+| `python3: command not found` | Install Python 3 using your platform steps above. |
+| Cannot connect to Docker daemon | Start Docker Desktop, or run `sudo systemctl start docker` on Ubuntu Engine. Check `docker version`. |
+| Docker permission denied on Ubuntu | Finish the Docker group step, then log out and back in. |
+| `docker` missing inside WSL | Enable Docker Desktop's Ubuntu integration and reopen Ubuntu. |
+| Port already in use | Stop the other service using the printed port, then start SpoolIn again. |
+| Another local command is running | Wait for the current setup, start, or test command. After an interruption, confirm no local command remains before removing only the empty `.local/action.lock` directory with `rmdir .local/action.lock`. |
+| Build download fails | Check your connection, proxy, free disk space, and registry access; retry setup. |
+| Page can't be reached | Run `make local-status`, inspect `make local-logs`, and use the exact printed HTTPS address. |
+| Artwork codec isolation fails | Preserve the diagnostic. Check Docker's Linux security support and the repository's Media policy; don't disable the sandbox to force a successful start. |
+| Sign-in fails | Use the generated local credentials. Registration creates a Viewer, while editing requires a Maintainer. |
+| Save outcome is uncertain | Use the page's original-result check before submitting again. |
+
+The [Media isolation policy](docs/release/media-sandbox-policy.md) describes deployment enforcement. The local Media profile uses `systempaths=unconfined` to let Bubblewrap mount a fresh private `/proc`: Docker Desktop's inherited process-filesystem masks blocked that mount in the macOS check. This setting applies only to Media. It retains non-root execution, dropped capabilities, a read-only filesystem, seccomp, and the codec worker's network, PID, user, and mount isolation. Local startup must still verify the codec boundary.
+
+The local profile does not load the production AppArmor policy and is not equivalent to the production environment. Use trusted sample images on your development computer. Local helpers keep deployment configuration separate; don't substitute deployment `make start` for `make local-start`.
+
+### Verification limits
+
+The local workflow and browser walkthrough were exercised on macOS with Docker Desktop and Docker Engine `29.8.2`, running Linux ARM64 containers. Installer commands were checked against the linked vendor guides; this was not a fresh operating-system installation. Windows/WSL2 and native Ubuntu instructions received source inspection only.
+
+Platform instructions follow the linked vendor installation guides. Successful tool installation depends on your OS version, virtualization settings, and Docker security support. Historical results and outstanding browser, accessibility, external-client, and production verification are recorded in [the release handoff](docs/release/handoff.md) and [release verification record](docs/release/remote-acceptance-assessment.json).
+
+## Use SpoolIn
+
+The screenshots show fictional walkthrough records alongside the seeded catalog. The lighthouse poster was uploaded through the application.
+
+### Choose the right account
+
+| Account | Access |
+| --- | --- |
+| Visitor | Browse and search public movies, people, and credits |
+| Viewer | Browse with a signed-in account |
+| Maintainer | Maintain movies, people, credits, artwork, and archived records |
+
+Follow the [initial sign-in steps](#start-and-sign-in) to use the local accounts. **Register** creates a Viewer account; catalog editing requires a Maintainer.
+
+When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.
+
+### Viewer example: find a movie
+
+A Viewer can browse and search movies, people, and credits. Catalog editing, artwork uploads, archives, and history require a Maintainer.
+
+For example, find a seeded film and explore its credits:
+
+1. Sign in with the Viewer account from [Start and sign in](#start-and-sign-in). The header displays **Viewer** beside your account name.
+2. Open **Catalog** and enter `Star Wars` in **Search titles**. Wait for the results to load.
+3. Open **Star Wars: Episode VII – The Force Awakens** to read its synopsis and available credits.
+4. Select a credited person, or open **People** and search for a cast member or creator by name.
+
+![Signed-in Viewer searching Star Wars, with Viewer role and Catalog and People navigation visible](docs/assets/spoolin/viewer-catalog.png)
+
+*Viewer example: the header identifies the account role. This search shows a seeded movie; this screenshot predates the packaged seed posters. Current seed titles include posters and source links.*
+
+Filters help narrow the catalog. If no titles match, clear the search or broaden the filters to return to browsing.
+
+### Viewer example: explore movie details
+
+The following examples use the fictional movie and people created in the [Maintainer walkthrough](#maintainer-example-create-and-edit-a-movie). On a fresh installation, ask a Maintainer to add those examples, or follow the same steps with a seeded movie and its credited people.
+
+1. Sign in as a Viewer, open **Catalog**, and search for `Letters from Tomorrow`.
+2. Select the movie to open its public details page.
+3. Read the synopsis, release information, genres, and poster. This example shows a 2026 movie about a lighthouse keeper receiving letters dated one day ahead.
+4. Scroll to **Credits** to see the people involved. Use **← Catalog** to return to browsing.
+
+![Signed-in Viewer reading Letters from Tomorrow with its lighthouse poster, synopsis, release details, and public credits](docs/assets/spoolin/viewer-movie-details.png)
+
+*Movie details example: the poster sits beside the title and release information. Public credits appear below, while the header identifies the Viewer account.*
+
+Missing optional information can appear as unknown. Seed titles include packaged posters. A title without selected artwork can show a placeholder until a Maintainer uploads a poster.
+
+### Viewer example: read movie credits
+
+On the `Letters from Tomorrow` details page, find **Credits**:
+
+1. Find **Mira Vale** and read the **Actor** credit and **The Keeper** character name.
+2. Find **A. Rivers** and read the **Director** credit to identify the creator's contribution.
+3. Select a person's name to open their public profile. If a longer credits list offers **Load more credits**, use it to continue browsing.
+
+![Viewer-facing movie credits listing Mira Vale as Actor playing The Keeper and A. Rivers as Director](docs/assets/spoolin/viewer-credits.png)
+
+*Credits example: each person has a linked name and contribution. Cast credits can include character names; creator credits show contributions such as directing.*
+
+### Viewer example: explore cast and creator profiles
+
+A person has one shared profile, with credits describing their contributions to individual movies.
+
+#### Cast profile
+
+1. In the movie's **Credits**, select **Mira Vale**.
+2. Read the biography, `Fictional actor playing the lighthouse keeper.`
+3. Under **Credits**, find **Letters from Tomorrow**, with **Actor** and **The Keeper** in its contribution row. Select the movie title to return to its details.
+
+![Signed-in Viewer reading Mira Vale's cast profile, biography, and Actor credit for Letters from Tomorrow](docs/assets/spoolin/viewer-cast-profile.png)
+
+*Cast profile example: Mira Vale's biography sits above the credits list, where the movie title links back to its details.*
+
+#### Creator profile
+
+1. Back on the movie page, select **A. Rivers** in **Credits**.
+2. Read the biography, `Fictional director of Letters from Tomorrow.`
+3. Under **Credits**, find **Letters from Tomorrow**, with **Director** in its contribution row. Select the movie title to return to its details.
+
+![Signed-in Viewer reading A. Rivers's creator profile, biography, and Director credit for Letters from Tomorrow](docs/assets/spoolin/viewer-creator-profile.png)
+
+*Creator profile example: the credits list connects A. Rivers to the movie and their directing contribution.*
+
+You can also open **People** and search for either name directly. People with identical names can have separate profiles, so use their biographies and credits to identify the intended person. Longer profile credits lists provide **Load more credits** when more entries are available.
+
+### Maintainer example: create and edit a movie
+
+1. Sign in as a Maintainer and open **Movies** in the navigation.
+2. Choose **Create movie**. For a fictional example, enter `Letters from Tomorrow` as the title and `A lighthouse keeper receives letters dated one day ahead.` as the synopsis. Complete the other required fields; add release details and genres where available.
+3. Read any field errors and correct the named inputs. The form displays the current limits; don't shorten content based on an old screenshot's limits.
+4. Save and wait for confirmation. Open the saved movie to check the displayed information.
+5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, and save again.
+
+![Signed-in Maintainer managing movies, with Letters from Tomorrow and Create movie and Edit controls visible](docs/assets/spoolin/manage-movies.png)
+
+*Maintainer example: the saved fictional movie appears in Movies, with editing controls. The header displays Maintainer and includes management navigation.*
+
+If someone else saves the record while you're editing, SpoolIn asks you to review the current saved values. Compare them with your retained changes before continuing. If the connection drops during a save, use **Check original result** when offered. Repeatedly submitting an uncertain save can make it harder to tell which operation completed.
+
+The seeded catalog also contains TV titles. Those entries are read-only in the movie management list.
+
+### Maintainer example: manage cast and creators
+
+Cast and creators use shared person records. Add the person first, then describe their contribution with a movie credit.
+
+1. Sign in as a Maintainer and open **Manage people** → **Create person**.
+2. Enter `A. Rivers` as the professional name and `Fictional director of Letters from Tomorrow.` as the biography. Select **Save person** and wait for **Person saved**.
+3. Create another person named `Mira Vale`, with the biography `Fictional actor playing the lighthouse keeper.`
+4. To update either biography, open **Manage people**, find the person, choose **Edit**, change the biography, and select **Save person**. Use **Load more people** if the record is beyond the first page.
+
+![Maintainer editing the fictional creator A. Rivers, with professional name, biography, and Save person controls](docs/assets/spoolin/maintainer-person.png)
+
+*People example: the editor keeps the professional name and biography together. Credits link this shared person record to their work on individual movies.*
+
+Editing a person updates that identity across its credits. It doesn't merge different people who happen to share a name.
+
+### Maintainer example: manage credits
+
+Open **Movies**, choose **Edit** for `Letters from Tomorrow`, and scroll to **Cast and creators**.
+
+1. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
+2. Choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Load more people** to find a person beyond the current options.
+3. Wait for the saved credit to appear in the list. The same movie can have both cast and creator credits.
+4. To change a credit, select its **Edit credit** control, update the role or supported character names, and select **Save credit**.
+5. To remove a contribution, choose **Remove credit** on that row and review its confirmation. Removing a credit removes the relationship; the shared person remains available.
+
+![Maintainer credit panel with A. Rivers as Director and Mira Vale as Actor playing The Keeper, plus editing and removal controls](docs/assets/spoolin/maintainer-credits.png)
+
+*Credits example: the movie links one creator and one cast member to their existing person records.*
+
+### Maintainer example: upload artwork
+
+For the fictional movie, use the repository's sample lighthouse poster:
+
+1. Open **Movies** → **Edit** for `Letters from Tomorrow`.
+2. Find **Poster artwork** and choose `docs/design-system/mockup/assets/letters.png` from this checkout. You can also use a PNG, JPEG, or WebP image you have permission to use that meets the displayed limits.
+3. Keep the page open while the file transfers and the server processes it. A complete transfer percentage doesn't mean the poster is attached yet.
+4. Wait for **Saved**, then open the movie's public page to see its poster.
+
+![Maintainer Poster artwork field with the file chooser ready for an image](docs/assets/spoolin/maintainer-artwork.png)
+
+*Artwork example: choose an image in the Poster artwork field. The public movie page above shows the lighthouse poster already attached to this record.*
+
+If the artwork attached but details couldn't refresh, retry the details read before uploading again. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or oversized files should explain what to change.
+
+### Maintainer example: archive and delete records
+
+Archiving removes a record from public browsing and retains a recovery path. Permanent deletion is irreversible. Use a disposable fictional record when following this example.
+
+1. Under **Manage people**, create `Example Person to Remove` with the biography `Disposable fictional record for the archive and deletion walkthrough.` Save it and choose **Edit saved person**.
+2. Select **Archive person**, read the confirmation, and confirm **Archive person**. The application opens **Archives**.
+3. Choose the **People** tab and find `Example Person to Remove`. **Restore** returns it to the active catalog if you want to keep it.
+
+![Maintainer Archives People tab showing the disposable Example Person to Remove with Restore and Delete permanently controls](docs/assets/spoolin/maintainer-archives.png)
+
+*Archive example: the person is retained privately, with recovery and permanent deletion available as separate actions.*
+
+4. To discard the disposable record, select **Delete permanently**. Read the record name and impact information in **Confirm permanent deletion**.
+5. Choose **Permanently delete** only for the intended record. Wait for **The change is confirmed.** before continuing.
+
+![Maintainer reviewing the permanent deletion confirmation for Example Person to Remove](docs/assets/spoolin/maintainer-delete.png)
+
+*Deletion example: the confirmation identifies the fictional record before the irreversible action.*
+
+For a movie, open its management page, choose **Archive movie**, then use the **Movies** tab in **Archives** for restoration or permanent deletion. For a person with credits, review the displayed impact on linked movies before deleting. **History** records catalog changes.
+
+### Maintainer example: review History
+
+**History** lets Maintainers review catalog changes without editing the records. It retains entries for archived and permanently deleted records too.
+
+1. Sign in as a **Maintainer**, then select **History** in the main navigation.
+2. Read the newest entries first. **Time** shows the UTC timestamp; **Actor** identifies the account by its reference; **Action** describes the change. **Affected record** shows the record type and ID, and **Outcome** shows the recorded result.
+3. For example, find a `CREATE_PERSON` entry from the disposable-person walkthrough above and select **Inspect changes**. Review the recorded name and biography under **Before** and **After**. On a phone, use **Review changes** on the entry's card.
+4. To match an entry to a movie or person you manage, compare its record ID with the last part of that record's management URL. Select **Load more history** when it appears to read older entries.
+
+![Maintainer History page with catalog audit entries and expanded changes for the fictional Example Person to Remove](docs/assets/spoolin/maintainer-history.png)
+
+*History example: the expanded CREATE_PERSON entry shows the fictional person's recorded values, even after that disposable record was deleted. Account and record references identify who made the change and what it affected.*
+
+Some entries have no field changes to display. If a large value was omitted, the entry shows its retained summary. History is a read-only record of activity; use the relevant movie, person, or Archives page to make a change.
+
+### Understand feedback
+
+| Message or state | What to do |
+| --- | --- |
+| Loading | Wait for the requested page or operation to finish |
+| Field validation error | Correct the named field; the form keeps your other input |
+| Saved | Check the resulting record before starting another change |
+| Stale record or changed target | Review the newer saved values and reconcile your edit |
+| Uncertain result | Check the original operation before submitting again |
+| Upload transferring | Keep the page open while bytes are sent |
+| Upload processing | Wait for server processing and attachment confirmation |
+| Permission or session problem | Sign in with the correct account role |
+| Read failure | Retry the read when offered; a read failure isn't proof that a write failed |
+
+### Use a smaller screen
+
+Navigation links wrap for narrow screens. Select the same labeled links used on desktop, and scroll to reach form actions and credit sections. Loading, error, and upload feedback remain part of the same journey.
+
+![SpoolIn catalog on a narrow mobile viewport](docs/assets/spoolin/mobile.png)
+
+## How it works
+
+The web interface uses Svelte 5, SvelteKit, and TypeScript. Three Kotlin/Spring Boot services handle application responsibilities:
+
+| Component | Responsibility |
+| --- | --- |
+| Core | Browser entry point, GraphQL, accounts, sessions, and drafts |
+| Catalog | Movies, people, credits, catalog changes, and audit history |
+| Media | Artwork upload, image processing, and stored artwork |
+| PostgreSQL | Persistent service data |
+| MCP adapter | Optional in-chat proposal integration, outside the local startup stack |
+
+```mermaid
+flowchart LR
+    Browser["Browser: Svelte and TypeScript"] -->|HTTPS / GraphQL| Core["Core: Kotlin / Spring Boot"]
+    Core -->|gRPC with service authentication| Catalog["Catalog: Kotlin / Spring Boot"]
+    Core -->|gRPC with service authentication| Media["Media: Kotlin / Spring Boot"]
+    Catalog -->|gRPC artwork reservations| Media
+    Catalog --> Database[(PostgreSQL)]
+    Core --> Database
+    Media --> Database
+    Media --> Files["Artwork storage and isolated codec worker"]
+```
+
+GraphQL carries browser queries and application mutations. Artwork uploads send Base64 image content in an `uploadArtwork` mutation to `/graphql`; the browser tracks transfer progress for that JSON request. Core streams the decoded bytes to Media over gRPC. Services communicate over gRPC, and each service has its own PostgreSQL database. Shared schemas live in `contracts`, and generated clients keep service and frontend contracts consistent.
+
+GitHub renders the Mermaid diagram above automatically. For a local preview, install [Visual Studio Code](https://code.visualstudio.com/download), open this folder, open `README.md`, and select **Open Preview** from the editor's context menu. Current VS Code includes Mermaid Markdown support; older versions can install **Markdown Preview Mermaid Support** from Extensions. See [VS Code's Markdown instructions](https://code.visualstudio.com/docs/languages/markdown). Neither VS Code nor Mermaid is needed to run SpoolIn.
+
+Local startup keeps browser access on your computer, disables external tunnel and in-chat publication, and omits deployment monitoring services. The [deployment and maintenance documents](docs/operations/maintenance.md) describe the separate operational environment.
+
+## Develop and test
+
+### Source development
+
+You can run the whole application in Docker while editing source files. Rerun `make local-start` to build source changes and start the updated services. `make local-setup` prepares configuration; it doesn't build source. For checks directly on the host, install Node.js `24.21.0`, npm `11.19.0`, and Java 21. Kotlin and Spring Boot versions are pinned in [the Gradle version catalog](gradle/libs.versions.toml); frontend versions are pinned in [frontend/package.json](frontend/package.json). Use `./gradlew` to run the repository's Gradle wrapper without installing Gradle separately. The repository helper `ops/bin/toolchain-env.sh` recognizes the documented local tool locations; it doesn't install missing toolchains.
+
+From the repository root:
+
+```bash
+npm ci
+npm run generate
+npm run check
+npm run build
+npm run test:coverage --workspace frontend
+./gradlew test
+```
+
+Contract generation requires Java and Node; generated interfaces must match the checked-in schemas. `npm run dev --workspace frontend` starts only Vite, not the backend or database. Use the Docker workflow for the complete application.
+
+`make test-unit` and `make test-integration` use the repository's task-aware verification runners. Integration checks require isolated fixture configuration; follow the [verification workflow](docs/07-harness-workflow.md) and never point test helpers at data you want to keep. Running the application doesn't require installing AI clients, workflow hooks, or external chat integrations.
+
+### Test scope
+
+`make local-test` builds the app and runs the setup-helper regressions, npm type checks, frontend and MCP coverage tests, and Gradle `test` tasks. Its temporary backend test container receives access to the local Docker engine so Testcontainers can manage isolated PostgreSQL fixtures. Application containers do not receive this socket; remote Docker endpoints are unsupported.
+
+The separately named `integrationTest` tasks and browser acceptance suites need their own runtime prerequisites and are not included in `make local-test`. See the [verification workflow](docs/07-harness-workflow.md) for those runners.
+
+Existing unit tests cover successful operations and failure boundaries. Examples include:
+
+| Area | Examples in the repository |
+| --- | --- |
+| Artwork file validation | [Allowed formats and byte limits](frontend/src/lib/features/artwork/file-validation.test.ts) |
+| Upload feedback | [Uncertain cancellation, rejected cancellation, and failed result lookup](frontend/src/lib/features/artwork/upload-controller.test.ts) |
+| Recovered drafts | [Editable person values, movie arrays, and nullable fields](services/core/src/test/kotlin/com/spoolin/core/features/draft/DraftProjectionRulesTest.kt) |
+| Media upload streams | [Valid headers and chunks, empty or oversized files, checksum mismatch, and cancellation](services/media/src/test/kotlin/com/spoolin/media/features/upload/ChunkSinkRulesTest.kt) |
+
+The [acceptance specification](docs/05-atdd.md) defines the wider expected behavior. These examples and unit-test results do not establish complete scenario, browser, accessibility, or integration coverage.
+
+## AI assistance
+
+AI coding assistance was used for code changes, local setup scripts, documentation, and review notes. The project retains instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits.
+
+OpenAI image generation produced four fictional prototype artwork assets. Their purpose and provenance are recorded in [the artwork record](docs/design-system/mockup/assets/artwork-provenance.json); they are separate from production catalog seed data. The screenshots in [Use SpoolIn](#use-spoolin) show the running application.
+
+## Project references
+
+- [Product behavior](docs/02-PRD.md)
+- [Design system](docs/03-design-system.md)
+- [Engineering design](docs/04-spoolin-techdoc.md)
+- [Acceptance scenarios](docs/05-atdd.md)
+- [Implementation plan](docs/06-PLAN.md)
+- [Media isolation policy](docs/release/media-sandbox-policy.md)

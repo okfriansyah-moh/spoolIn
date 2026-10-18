@@ -3,6 +3,7 @@
 import argparse
 import json
 import re
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -32,6 +33,11 @@ def selected_entries(mapping, level, tasks):
 
 
 def execute(entry, cwd=ROOT):
+    if entry.get("kind") == "blocked":
+        return 2, {"selected": 1, "executed": 0, "failed": 0, "blocked_reason": entry["reason"]}
+    if entry.get("kind") == "native":
+        import run_declared_suite
+        return run_declared_suite.execute(entry, cwd)
     report = cwd / entry["report"]
     report.unlink(missing_ok=True)
     for pattern in entry.get("required_paths", []):
@@ -66,21 +72,43 @@ def save_report(counts, entries, exit_code, report, level):
         **counts, "exit_code": exit_code, "entries": entries,
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
         "level": level, "proof_boundary": "selected task suites at their declared boundaries",
+        "sha": os.environ.get("TESTED_SHA", os.environ.get("GITHUB_SHA")),
+        "run_id": os.environ.get("GITHUB_RUN_ID"),
+        "blocked_obligations": [entry for entry in entries if entry.get("blocked_reason")],
+        "counts_scope": "per mapping entry; explicitly reused native cases are not unique-case totals",
     }, indent=2) + "\n")
+
+
+def native_identity(entry):
+    if entry.get("kind") != "native":
+        return None
+    return json.dumps({key: entry.get(key) for key in
+                       ("argv", "native_format", "native_reports", "required_paths", "timeout")}, sort_keys=True)
 
 
 def run(entries, report, level):
     counts = {"selected": 0, "executed": 0, "failed": 0}
     results = []
     exit_code = 0
+    reusable = {}
     for entry in entries:
-        code, result = execute(entry)
-        results.append({"id": entry["id"], "argv": entry["argv"], "exit_code": code, **result})
+        key = native_identity(entry)
+        if key is not None and key in reusable:
+            source, original = reusable[key]
+            code, result = 0, {**original, "reused_from": source, "command_executed_for_this_entry": False}
+            target = ROOT / entry["report"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(result, indent=2) + "\n")
+        else:
+            code, result = execute(entry)
+            if key is not None and code == 0:
+                reusable[key] = (entry["id"], result)
+        results.append({"id": entry["id"], "argv": entry.get("argv"), "exit_code": code,
+                        "proof_boundary": entry.get("proof_boundary"), **result})
         for key in counts:
             counts[key] += result[key]
         if code:
-            exit_code = code
-            break
+            exit_code = 1 if code == 1 or exit_code == 1 else 2
     save_report(counts, results, exit_code, report, level)
     return exit_code
 
@@ -91,13 +119,15 @@ def main():
     parser.add_argument("--task", action="append")
     arguments = parser.parse_args()
     report = report_path(arguments.level, arguments.task)
+    report.unlink(missing_ok=True)
     try:
         mapping = json.loads(MAP.read_text())
         entries = selected_entries(mapping, arguments.level, arguments.task)
     except (ValueError, OSError) as error:
         print(f"Setup unavailable: {error}", file=sys.stderr)
+        save_report({"selected": 1, "executed": 0, "failed": 0},
+                    [{"id": "selection-prerequisite", "blocked_reason": str(error)}], 2, report, arguments.level)
         return 2
-    report.unlink(missing_ok=True)
     return run(entries, report, arguments.level)
 
 

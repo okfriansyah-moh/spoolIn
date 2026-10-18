@@ -1,56 +1,50 @@
-import { buildApprovalBody, assertManualApproval } from './approval-binding.js';
-import { isTrustedReviewOrigin, parseReviewQuery, renderReview, wireTrustedApproval } from './review-state.js';
+import { App } from '@modelcontextprotocol/ext-apps';
+import { renderReview } from './review-state.js';
+import type { ReviewModel } from './review-state.js';
 
-const root = document.querySelector('#app');
-const query = parseReviewQuery(globalThis.location.search);
-if (root && query) {
-  let connectorBearer = '';
-  let model = {
-    proposalId: query.proposalId,
-    revision: query.revision,
-    contentHash: query.contentHash,
-    values: {} as Record<string, unknown>,
-    sources: [] as readonly unknown[],
-    unknowns: [] as readonly string[],
-    challenge: '',
-  };
-  const approvalHeaders = (): HeadersInit => {
-    const headers: Record<string, string> = { 'content-type': 'application/json' };
-    if (connectorBearer.trim()) {
-      headers.authorization = `Bearer ${connectorBearer.trim()}`;
-    }
-    return headers;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+const root = document.querySelector<HTMLElement>('#app');
+const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});
+app.ontoolresult = (result) => {
+  if (!root || !isRecord(result.structuredContent)) return;
+  const proposal = result.structuredContent;
+  if (
+    typeof proposal.proposalId !== 'string' ||
+    typeof proposal.contentHash !== 'string' ||
+    typeof proposal.revision !== 'number'
+  )
+    return;
+  const values = proposal.normalizedMovie;
+  if (!isRecord(values)) return;
+  const model: ReviewModel = {
+    proposalId: proposal.proposalId,
+    revision: proposal.revision,
+    contentHash: proposal.contentHash,
+    values,
+    sources: Array.isArray(proposal.sources) ? proposal.sources : [],
+    unknowns: Array.isArray(proposal.unknowns)
+      ? proposal.unknowns.filter(
+          (value): value is string => typeof value === 'string',
+        )
+      : [],
   };
   renderReview(root, model);
-  wireTrustedApproval(root, () => model, async (action, binding) => {
-    assertManualApproval(binding.challenge ?? '');
-    const body = buildApprovalBody({
-      proposalId: binding.proposalId,
-      revision: binding.revision,
-      contentHash: binding.contentHash,
-      challenge: binding.challenge ?? '',
-    });
-    const path = action === 'approve' ? '/gateway/approve_movie' : '/gateway/reject_movie';
-    await fetch(path, { method: 'POST', headers: approvalHeaders(), body: JSON.stringify(body) });
-  });
-  globalThis.addEventListener('message', (event) => {
-    if (!isTrustedReviewOrigin(event.origin)) return;
-    const data = event.data;
-    if (typeof data !== 'object' || data === null) return;
-    if ('values' in data && typeof data.values === 'object' && data.values) {
-      model = { ...model, values: data.values as Record<string, unknown> };
-      renderReview(root, model);
-    }
-    if ('sources' in data && Array.isArray(data.sources)) {
-      model = { ...model, sources: data.sources as readonly unknown[] };
-      renderReview(root, model);
-    }
-    if ('connectorToken' in data && typeof data.connectorToken === 'string' && data.connectorToken.trim()) {
-      connectorBearer = data.connectorToken;
-    }
-    if ('challenge' in data && typeof data.challenge === 'string' && data.challenge.trim()) {
-      model = { ...model, challenge: data.challenge };
-      renderReview(root, model);
-    }
-  });
-}
+  // Display capability is separate from authenticated host approval enforcement (G-03).
+  // Neither tool metadata nor a parent-window message establishes trusted human intent.
+  for (const button of root.querySelectorAll('button')) button.disabled = true;
+  const status = document.createElement('p');
+  status.setAttribute('role', 'status');
+  status.textContent =
+    'Approval is unavailable until this chat host has verified private review controls.';
+  root.append(status);
+};
+app.ontoolcancelled = () => {
+  if (root) root.textContent = 'Proposal review cancelled.';
+};
+app.onteardown = async () => ({});
+void app.connect().catch(() => {
+  if (root) root.textContent = 'The review host connection is unavailable.';
+});

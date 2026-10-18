@@ -8,6 +8,8 @@ import javax.sql.DataSource
 @Configuration(proxyBeanMethods = false)
 class ConnectorConfiguration {
     @Bean
-    fun connectorStore(dataSource: DataSource, clock: Clock = Clock.systemUTC()): ConnectorStore =
-        ConnectorStore(dataSource, clock)
+    fun connectorStore(
+        dataSource: DataSource,
+        clock: org.springframework.beans.factory.ObjectProvider<Clock>,
+    ): ConnectorStore = ConnectorStore(dataSource, clock.ifAvailable ?: Clock.systemUTC())
 }

@@ -1,17 +1,25 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import Button from '../../../components/Button.svelte';
+  import ConfirmDialog from '../../../components/ConfirmDialog.svelte';
   import type { Policy } from '../../../policy/types';
   import type { EditorState } from './types';
   import PersonSaveFeedback from './PersonSaveFeedback.svelte';
   import { boundFor } from '../../../policy/rules';
 
   let {
-    state,
+    state: editorState,
     policy,
     disabled = false,
     onSubmit,
     onCheckOriginal,
     onReviewStale,
+    onRebase,
+    onSelectDraft,
+    onStartNewDraft,
+    onDiscardOpen,
+    onDiscardClose,
+    onDiscardConfirm,
     onDraftChange,
   }: {
     state: EditorState;
@@ -20,29 +28,152 @@
     onSubmit: () => void;
     onCheckOriginal: () => void;
     onReviewStale: () => void;
+    onRebase: (reviewed: boolean) => void;
+    onSelectDraft: (id: string) => void;
+    onStartNewDraft: () => void;
+    onDiscardOpen: () => void;
+    onDiscardClose: () => void;
+    onDiscardConfirm: () => void;
     onDraftChange: (field: 'name' | 'biography', value: string) => void;
   } = $props();
 
   const nameBound = $derived(boundFor(policy, 'personName'));
   const errorFor = (id: string) =>
-    state.fieldErrors.find((error) => error.id === id)?.message ?? '';
+    editorState.fieldErrors.find((error) => error.id === id)?.message ?? '';
   const submitLabel = $derived(
-    state.mode === 'create' ? 'Save person' : 'Save person',
+    editorState.mode === 'create' ? 'Save person' : 'Save person',
   );
   const submitDisabled = $derived(
     disabled ||
-      state.phase === 'submitting' ||
-      state.phase === 'uncertain' ||
-      state.phase === 'stale' ||
-      state.phase === 'target-changed',
+      editorState.discardPending ||
+      editorState.phase === 'submitting' ||
+      editorState.phase === 'uncertain' ||
+      editorState.phase === 'stale' ||
+      editorState.phase === 'target-changed' ||
+      (editorState.mode === 'create' && editorState.saved !== null),
+  );
+  const savedCreate = $derived(
+    editorState.mode === 'create' && editorState.saved !== null,
+  );
+  const submitDisabledReason = $derived(
+    savedCreate
+      ? 'This person is saved. Use one of the links above to continue.'
+      : submitDisabled
+        ? 'Review the current changes before saving again.'
+        : '',
+  );
+  const reviewId = $props.id();
+  let reviewedCurrent = $state(false);
+  $effect(() => {
+    const version = editorState.current?.version;
+    const open = editorState.staleReviewOpen;
+    void version;
+    void open;
+    reviewedCurrent = false;
+  });
+  const inputDisabled = $derived(
+    disabled ||
+      editorState.discardPending ||
+      editorState.draftChoices.length > 0 ||
+      editorState.phase === 'submitting' ||
+      editorState.phase === 'uncertain' ||
+      editorState.phase === 'target-changed' ||
+      (editorState.mode === 'create' && editorState.saved !== null),
   );
 </script>
 
-<PersonSaveFeedback {state} {onCheckOriginal} {onReviewStale} />
+<PersonSaveFeedback state={editorState} {onCheckOriginal} {onReviewStale} />
+
+{#if editorState.phase === 'idle' && editorState.message && !editorState.draftChoices.length}<p
+    role="status"
+  >
+    {editorState.message}
+  </p>{/if}
+{#if editorState.draftChoices.length}
+  <section class="recovery-panel" aria-labelledby="{reviewId}-drafts">
+    <h2 id="{reviewId}-drafts">Choose a retained draft</h2>
+    <p role="status">{editorState.message}</p>
+    <ul>
+      {#each editorState.draftChoices as choice (choice.id)}
+        <li>
+          <Button
+            type="button"
+            variant="secondary"
+            onclick={() => onSelectDraft(choice.id)}
+            >Resume {choice.label}</Button
+          >
+          <small
+            >Available until <time datetime={choice.expiresAt}
+              >{choice.expiresAt}</time
+            ></small
+          >
+        </li>
+      {/each}
+    </ul>
+    <Button type="button" variant="secondary" onclick={onStartNewDraft}
+      >Start a new draft from current values</Button
+    >
+  </section>
+{/if}
+{#if editorState.phase === 'stale' && editorState.staleReviewOpen && editorState.current}
+  <section class="recovery-panel" aria-labelledby="{reviewId}-current">
+    <h2 id="{reviewId}-current">Review current saved person values</h2>
+    <dl>
+      <dt>Professional name</dt>
+      <dd>{editorState.current.name}</dd>
+      <dt>Biography</dt>
+      <dd>{editorState.current.biography ?? 'Unknown'}</dd>
+    </dl>
+    {#if editorState.draftBaseKnown}
+      <p>
+        Compare these values with your retained form edits. Continuing keeps
+        your changed fields and adopts current values for fields you did not
+        change.
+      </p>
+    {:else}
+      <p>
+        The older base values are unavailable after reload. Continuing applies
+        every field shown in your retained form. Review each field carefully.
+      </p>
+    {/if}
+    <label class="review-check" for="{reviewId}-reviewed"
+      ><input
+        id="{reviewId}-reviewed"
+        type="checkbox"
+        bind:checked={reviewedCurrent}
+      />I reviewed the current values and my retained edits.</label
+    >
+    <Button
+      type="button"
+      variant="secondary"
+      disabledReason={reviewedCurrent ? '' : 'Review the current values first.'}
+      onclick={() => onRebase(reviewedCurrent)}
+      >Use reviewed version for my edits</Button
+    >
+  </section>
+{/if}
+{#if editorState.mode === 'create' && editorState.saved}
+  <section
+    class="recovery-panel saved-person-actions"
+    aria-label="Continue with this person"
+  >
+    <a
+      class="button secondary"
+      href={resolve('/manage/people/[id]', { id: editorState.saved.id })}
+      >Edit saved person</a
+    >
+    <a
+      class="button secondary"
+      href={resolve('/people/[id]', { id: editorState.saved.id })}
+      >Review public record</a
+    >
+  </section>
+{/if}
 
 <form
   id="person-editor-form"
-  aria-label={state.mode === 'create' ? 'Create person' : 'Edit person'}
+  class="person-editor-form"
+  aria-label={editorState.mode === 'create' ? 'Create person' : 'Edit person'}
   onsubmit={(event) => {
     event.preventDefault();
     onSubmit();
@@ -52,9 +183,9 @@
     <label for="person-name">Professional name · Required</label>
     <input
       id="person-name"
-      value={state.draft.name ?? ''}
+      value={editorState.draft.name ?? ''}
       required
-      disabled={disabled || submitDisabled}
+      disabled={inputDisabled}
       aria-invalid={!!errorFor('person-name')}
       aria-describedby="person-name-help person-name-error"
       oninput={(event) => onDraftChange('name', event.currentTarget.value)}
@@ -72,29 +203,131 @@
     <textarea
       id="person-biography"
       rows="4"
-      disabled={disabled || submitDisabled}
+      disabled={inputDisabled}
       aria-invalid={!!errorFor('person-biography')}
-      value={state.draft.biography ?? ''}
+      value={editorState.draft.biography ?? ''}
       oninput={(event) => onDraftChange('biography', event.currentTarget.value)}
     ></textarea>
     {#if errorFor('person-biography')}<p class="field-error">
         {errorFor('person-biography')}
       </p>{/if}
   </div>
-  <Button
-    type="submit"
-    pending={state.phase === 'submitting'}
-    disabledReason={submitDisabled
-      ? 'Review current changes before saving again.'
-      : ''}>{submitLabel}</Button
-  >
+  <div class="editor-actions">
+    <Button
+      type="button"
+      variant="secondary"
+      disabledReason={editorState.phase === 'uncertain' ||
+      editorState.phase === 'submitting' ||
+      editorState.discardPending
+        ? 'Check the original result before leaving.'
+        : ''}
+      onclick={onDiscardOpen}>Leave draft</Button
+    >
+    <Button
+      type="submit"
+      pending={editorState.phase === 'submitting'}
+      disabledReason={submitDisabledReason}>{submitLabel}</Button
+    >
+  </div>
 </form>
 
+<ConfirmDialog
+  open={editorState.discardDialogOpen}
+  title="Discard this unsaved person draft?"
+  action="Discard draft"
+  pending={editorState.discardPending}
+  onconfirm={onDiscardConfirm}
+  oncancel={onDiscardClose}
+>
+  <p>
+    The unsaved person draft is cleared. Saved person information and shared
+    credits stay unchanged.
+  </p>
+  {#if editorState.message}<p role="status">{editorState.message}</p>{/if}
+</ConfirmDialog>
+
 <style>
+  .recovery-panel {
+    display: grid;
+    gap: var(--primitive-space-3);
+    padding: var(--primitive-space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-block: var(--primitive-space-4);
+  }
+  .recovery-panel ul {
+    display: grid;
+    gap: var(--primitive-space-3);
+    padding-inline-start: var(--primitive-space-6);
+  }
+  .recovery-panel li {
+    display: grid;
+    gap: var(--primitive-space-2);
+  }
+  .recovery-panel dl {
+    margin: 0;
+  }
+  .recovery-panel dd {
+    margin-inline-start: 0;
+    margin-block-end: var(--primitive-space-3);
+    white-space: pre-wrap;
+  }
+  .review-check {
+    display: flex;
+    gap: var(--primitive-space-2);
+    align-items: start;
+  }
+  .review-check input {
+    width: auto;
+  }
+
+  form {
+    display: grid;
+    gap: var(--primitive-space-6);
+    width: 100%;
+    max-width: 48rem;
+    padding-block: var(--primitive-space-2) var(--primitive-space-6);
+  }
+  .saved-person-actions,
+  .editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--primitive-space-3);
+  }
+  .editor-actions {
+    justify-content: space-between;
+    padding-top: var(--primitive-space-6);
+    border-top: 1px solid var(--line);
+  }
   .field {
-    margin-bottom: 1rem;
+    margin: 0;
+  }
+  .field label {
+    display: block;
+    margin-bottom: var(--primitive-space-2);
+    font-size: 14px;
+  }
+  .field small {
+    display: block;
+    margin-top: var(--primitive-space-2);
+    color: var(--muted);
   }
   .field-error {
-    color: var(--color-danger, #c0392b);
+    color: var(--danger);
+  }
+  @media (max-width: 699px) {
+    form {
+      padding-inline: 0;
+    }
+    .editor-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .editor-actions :global(.button-group),
+    .editor-actions :global(button),
+    .saved-person-actions :global(.button) {
+      width: 100%;
+    }
   }
 </style>

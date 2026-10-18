@@ -7,7 +7,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: Done
+status: In progress
 risk: medium
 test_strategy: alongside
 visual_review: required

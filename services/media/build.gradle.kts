@@ -25,6 +25,9 @@ tasks.named<Test>("test") {
 
 tasks.named<Test>("integrationTest") {
     classpath = foundationTestRuntime
+    doFirst {
+        classpath = classpath.filter { it != sourceSets["main"].output.resourcesDir }
+    }
     dependsOn("integrationTestClasses")
     filter { includeTestsMatching("com.spoolin.media.boundary.bootstrap.*BoundaryTest") }
 }
@@ -58,7 +61,7 @@ tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
 
 val workIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
-    dependsOn("testClasses")
+    dependsOn("testClasses", "integrationTestClasses")
     classpath =
         files(
             sourceSets["test"].output.classesDirs,
@@ -103,7 +106,7 @@ tasks.named("koverXmlReport") { dependsOn(artworkIntegrationTest) }
 
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/media/operations/receipts"))
-    config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
+    config.setFrom(rootProject.file(".ai/bundles/1.2.1/profiles/kotlin/detekt.yml"))
     buildUponDefaultConfig = false
     ignoreFailures = false
     reports {
@@ -113,4 +116,8 @@ val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
         sarif.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.sarif"))
         md.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.md"))
     }
+}
+
+dependencies {
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 }

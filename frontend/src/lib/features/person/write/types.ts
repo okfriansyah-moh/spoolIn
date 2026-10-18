@@ -25,7 +25,13 @@ export type PersonListRow = Readonly<{
 export type ListState =
   | { kind: 'loading' }
   | { kind: 'failure' }
-  | { kind: 'ready'; people: readonly PersonListRow[] };
+  | {
+      kind: 'ready';
+      people: readonly PersonListRow[];
+      pageInfo?: import('../../../state/pagination').PageInfo;
+      loadingMore?: boolean;
+      pageError?: string | null;
+    };
 
 export type EditorPhase =
   | 'idle'
@@ -37,7 +43,15 @@ export type EditorPhase =
   | 'resolved'
   | 'target-changed';
 
+export type RetainedDraftChoice = Readonly<{
+  id: string;
+  label: string;
+  expiresAt: string;
+}>;
+
 export type EditorState = Readonly<{
+  draftChoices: readonly RetainedDraftChoice[];
+  draftBaseKnown: boolean;
   phase: EditorPhase;
   mode: 'create' | 'edit';
   personId: string | null;
@@ -49,6 +63,8 @@ export type EditorState = Readonly<{
   message: string;
   pendingOperationId: string | null;
   staleReviewOpen: boolean;
+  discardDialogOpen: boolean;
+  discardPending: boolean;
 }>;
 
 export const EMPTY_PERSON_DRAFT: PersonDraft = Object.freeze({

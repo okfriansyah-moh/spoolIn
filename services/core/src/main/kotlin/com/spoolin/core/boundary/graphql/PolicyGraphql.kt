@@ -21,6 +21,7 @@ class PolicyGraphql(
     operations: ScopedOperationQuery? = null,
     operation: (UUID, OperationOwner?) -> Map<String, Any?>? = { _, _ -> null },
 ) {
+    private val logger = org.slf4j.LoggerFactory.getLogger(PolicyGraphql::class.java)
     private val envelope = GraphqlEnvelope(provider.policy)
     private val engine: GraphQL
 
@@ -51,12 +52,19 @@ class PolicyGraphql(
         views.artwork?.bind(wiring)
         views.lifecycle?.bind(wiring)
         views.drafts?.bind(wiring)
-        val executable = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())
+        val definitions =
+            EffectiveReadDefaults.apply(
+                SchemaParser().parse(schema),
+                com.spoolin.support.policy
+                    .ReadPolicy(provider.policy),
+            )
+        val executable = SchemaGenerator().makeExecutableSchema(definitions, wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }
 
     private fun failureCode(errors: List<graphql.GraphQLError>): String {
         val failure = errors.filterIsInstance<graphql.ExceptionWhileDataFetching>().firstOrNull()?.exception
+        if (failure != null) logger.warn("Graphql execution failed", failure)
         return when (failure) {
             null -> "FIELD_INVALID"
             is com.spoolin.core.operations.receipts.AmbiguousOperation -> "AMBIGUOUS_OPERATION"
@@ -70,10 +78,22 @@ class PolicyGraphql(
         when (failure) {
             is com.spoolin.core.features.ratelimit.RateLimited -> "RATE_LIMITED"
             is com.spoolin.core.features.account.application.CredentialRejected -> "UNAUTHENTICATED"
+            is io.grpc.StatusRuntimeException -> grpcFailureCode(failure)
             is com.spoolin.core.features.account.persistence.AccountIdentityConflict -> "FIELD_INVALID"
             is IllegalArgumentException -> "FIELD_INVALID"
             is com.spoolin.core.features.crypto.HashingBusy -> "RESOURCE_EXHAUSTED"
             is com.spoolin.core.features.account.application.AuthenticationDeadlineExceeded -> "DEADLINE_EXCEEDED"
+            else -> "UNAVAILABLE"
+        }
+
+    private fun grpcFailureCode(failure: io.grpc.StatusRuntimeException): String =
+        when (failure.status.code) {
+            io.grpc.Status.Code.INVALID_ARGUMENT -> "FIELD_INVALID"
+            io.grpc.Status.Code.UNAUTHENTICATED -> "UNAUTHENTICATED"
+            io.grpc.Status.Code.PERMISSION_DENIED -> "FORBIDDEN"
+            io.grpc.Status.Code.NOT_FOUND -> "NOT_FOUND"
+            io.grpc.Status.Code.RESOURCE_EXHAUSTED -> "RESOURCE_EXHAUSTED"
+            io.grpc.Status.Code.DEADLINE_EXCEEDED -> "DEADLINE_EXCEEDED"
             else -> "UNAVAILABLE"
         }
 
@@ -100,7 +120,7 @@ class PolicyGraphql(
                         parsed.transform { it.graphQLContext(mapOf("browser" to context)) }
                     }
                 engine.execute(execution)
-            }.getOrNull()
+            }.onFailure { logger.warn("Graphql execution failed", it) }.getOrNull()
         if (result == null || result.errors.isNotEmpty()) {
             return mapOf(
                 "data" to null,
@@ -126,9 +146,7 @@ class PolicyGraphqlConfiguration {
         catalog: org.springframework.beans.factory.ObjectProvider<
             com.spoolin.core.features.catalogview.read.CatalogViewGraphql,
         >,
-        drafts: org.springframework.beans.factory.ObjectProvider<
-            com.spoolin.core.features.draft.DraftGraphql,
-        >,
+        drafts: com.spoolin.core.features.draft.DraftGraphql,
         managedCatalog: org.springframework.beans.factory.ObjectProvider<
             com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql,
         >,

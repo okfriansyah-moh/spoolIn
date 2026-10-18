@@ -1,11 +1,13 @@
-@file:Suppress("TooManyFunctions")
-
 package com.spoolin.media
 
 import com.spoolin.media.features.upload.MediaServiceImpl
 import com.spoolin.media.features.upload.QuarantineStore
 import com.spoolin.media.features.upload.UploadRpc
 import com.spoolin.media.operations.maintenance.ReceiptExpiry
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.tracing.OwnerTracing
+import com.spoolin.support.tracing.TraceClientInterceptor
+import com.spoolin.support.tracing.TraceServerInterceptor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -16,11 +18,13 @@ import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.protobuf.services.HealthStatusManager
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -58,6 +62,7 @@ private const val SECRET_SIZE_LIMIT = 4096L
 private const val TLS_KEY_SIZE_LIMIT = 16384L
 private const val MIGRATION_LOCK_SECONDS = 120L
 private const val LOCK_POLL_MS = 20L
+private const val HTTP_UNAVAILABLE = 503
 private const val HTTP_FORBIDDEN = 403
 private const val HTTP_INTERNAL_ERROR = 500
 
@@ -68,11 +73,97 @@ private val serviceNames = listOf("spoolin.v1.MediaService")
 @EnableScheduling
 class Application {
     @Bean(destroyMethod = "close")
+    @org.springframework.context.annotation.Primary
     fun dataSource(environment: Environment): HikariDataSource {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class ObservabilityConfiguration {
+    @Bean(initMethod = "start", destroyMethod = "close")
+    fun notificationDispatcher(
+        dataSource: DataSource,
+        environment: Environment,
+    ): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings
+            .transport { environment.getProperty(it) }
+            ?.let {
+                com.spoolin.support.notifications
+                    .NotificationDispatcher(dataSource, it)
+            }
+
+    @Bean
+    fun ownerMetrics(
+        registry: MeterRegistry,
+        dataSource: HikariDataSource,
+        schema: SchemaReadiness,
+    ): com.spoolin.support.observability.OwnerMetrics =
+        com.spoolin.support.observability.OwnerMetrics(
+            registry,
+            dataSource,
+            "media",
+            com.spoolin.support.observability.OwnerMetricRuntime(
+                { dataSource.hikariPoolMXBean.activeConnections },
+                { dataSource.maximumPoolSize },
+                { schema.ready() },
+            ),
+            mapOf("artwork" to Path.of("/var/spoolin/media")),
+        )
+
+    @Bean(destroyMethod = "close")
+    fun ownerTracing(): OwnerTracing =
+        com.spoolin.support.tracing
+            .OwnerTracing("media")
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
+    fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
+        TraceServerInterceptor(tracing) { attributes ->
+            runCatching {
+                val certificate =
+                    attributes
+                        .get(Grpc.TRANSPORT_ATTR_SSL_SESSION)
+                        ?.peerCertificates
+                        ?.firstOrNull() as? X509Certificate
+                certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
+            }.getOrDefault(false)
+        }
+
+    @Bean
+    @org.springframework.grpc.client.GlobalClientInterceptor
+    fun traceClient(tracing: OwnerTracing): TraceClientInterceptor =
+        com.spoolin.support.tracing
+            .TraceClientInterceptor(tracing)
+
+    @Bean
+    fun logicalMetrics(registry: MeterRegistry): LogicalMetrics {
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared
+            .bind("media", registry)
+        return com.spoolin.support.observability
+            .LogicalMetrics(registry, "media")
+    }
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+    fun logicalRpcMetrics(metrics: LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability
+            .LogicalRpcMetricsInterceptor(metrics)
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class RuntimeConfiguration {
+    @Bean("maintenanceDataSource")
+    fun maintenanceDataSource(environment: Environment): DataSource =
+        com.spoolin.support.maintenance.MaintenanceDataSources.open(
+            OWNER,
+            environment.getRequiredProperty("MEDIA_DB_URL"),
+            Path.of(environment.getRequiredProperty("MEDIA_DB_MAINTENANCE_PASSWORD_FILE")),
+        )
 
     @Bean
     fun schema(
@@ -115,8 +206,14 @@ class Application {
     }
 
     @Bean
-    fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
+    fun listenerBoundary(
+        environment: Environment,
+        metrics: ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
+    ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
+}
 
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class OwnerServiceConfiguration {
     @Bean
     fun quarantineStore(environment: Environment): QuarantineStore {
         val volumePath =
@@ -131,29 +228,70 @@ class Application {
         dataSource: DataSource,
         environment: Environment,
         quarantineStore: QuarantineStore,
+        channels: org.springframework.grpc.client.GrpcChannelFactory,
     ): io.grpc.BindableService {
         val reads =
             com.spoolin.media.operations.receipts
                 .OwnerReceiptReads(dataSource)
-        val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
-        val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision)
+        val policyRevision =
+            com.spoolin.support.policy.PolicyEnvironment
+                .resolve { environment.getProperty(it) }
+                .revision
+        val catalog =
+            com.spoolin.media.features.asset.CatalogAttachments(
+                spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
+            )
         val holdRpc =
             com.spoolin.media.features.hold
-                .HoldRpc(dataSource)
-        return MediaServiceImpl(uploadRpc, holdRpc, reads)
+                .HoldRpc(dataSource, catalog)
+        val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision, catalog = catalog)
+        val assets =
+            com.spoolin.media.features.asset
+                .AssetRpc(dataSource, quarantineStore, catalog)
+        return MediaServiceImpl(uploadRpc, holdRpc, reads, assets)
     }
 
+    @Bean(destroyMethod = "close")
+    fun mediaWorker(
+        environment: Environment,
+        dataSource: DataSource,
+        schema: SchemaReadiness,
+        quarantineStore: QuarantineStore,
+        registry: MeterRegistry,
+    ): com.spoolin.media.operations.work.MediaWorkDispatcher =
+        com.spoolin.media.operations.work.MediaWorkDispatcher(
+            dataSource,
+            schema,
+            com.spoolin.media.features.processing
+                .MediaProcessingHandler(
+                    dataSource,
+                    quarantineStore,
+                    metrics =
+                        com.spoolin.media.features.processing
+                            .ProcessingMetrics(registry),
+                ),
+            { quarantineStore.sweepAbandonedScratch() },
+            com.spoolin.support.notifications.ExhaustionNotifications
+                .configured(dataSource, "media") { environment.getProperty(it) },
+        )
+
     @Bean
-    fun receiptExpiry(dataSource: DataSource): ReceiptExpiry = ReceiptExpiry(dataSource)
+    fun receiptExpiry(
+        @org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource,
+    ): ReceiptExpiry = ReceiptExpiry(dataSource)
 }
 
 fun main(args: Array<String>) {
-    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    com.spoolin.support.logging
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), OWNER)
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env
                 .StandardEnvironment()
         DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
+    } else if (args.any { it.startsWith("--seed-artwork-manifest=") }) {
+        com.spoolin.media.seed
+            .runSeedArtworkCli(args)
     } else {
         check(args.isEmpty()) { "Use environment configuration; only --migrate is an accepted argument" }
         org.springframework.boot.SpringApplication
@@ -401,7 +539,17 @@ class ServiceIdentityInterceptor(
             return object : ServerCall.Listener<ReqT>() {}
         }
         dispatched.incrementAndGet()
-        return actors?.interceptCall(call, headers, next) ?: next.startCall(call, headers)
+        val checked =
+            ServerCallHandler<ReqT, RespT> { request, metadata ->
+                actors?.interceptCall(request, metadata, next) ?: next.startCall(request, metadata)
+            }
+        return io.grpc.Contexts.interceptCall(
+            com.spoolin.media.boundary.grpc.MediaPeer
+                .context(requireNotNull(identity)),
+            call,
+            headers,
+            checked,
+        )
     }
 
     fun allowed(
@@ -428,33 +576,62 @@ class ServiceIdentityInterceptor(
 
 class ListenerBoundary(
     private val environment: Environment,
+    private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
     ) {
-        val path = request.requestURI
-        if (path.startsWith("/actuator")) {
-            val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
-            val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
-            val permitted =
-                if (path ==
-                    "/actuator/prometheus"
-                ) {
-                    identity == "prometheus"
-                } else {
-                    identity in setOf("operator", "core", "catalog", "media", "mcp")
-                }
-            val privatePort = environment.getProperty("local.management.port", Int::class.java)
-            if (!request.isSecure || request.localPort != privatePort || !permitted) {
-                response.sendError(HTTP_FORBIDDEN)
-                return
+        val rejection = rejectionStatus(request)
+        if (rejection != null) {
+            response.sendError(rejection)
+        } else {
+            response.setHeader("X-Content-Type-Options", "nosniff")
+            response.setHeader("Cache-Control", "no-store")
+            if (request.requestURI == "/actuator/prometheus") {
+                serveMetrics(request, response, chain)
+            } else {
+                chain.doFilter(request, response)
             }
         }
-        response.setHeader("X-Content-Type-Options", "nosniff")
-        response.setHeader("Cache-Control", "no-store")
-        chain.doFilter(request, response)
+    }
+
+    private fun rejectionStatus(request: HttpServletRequest): Int? {
+        val path = request.requestURI
+        if (!(path.startsWith("/actuator"))) return null
+        val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
+        val permitted =
+            when (path) {
+                "/actuator/prometheus" -> identity == "prometheus"
+                else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
+            }
+        val privatePort = environment.getProperty("local.management.port", Int::class.java)
+        return if (request.isSecure && request.localPort == privatePort && permitted) {
+            null
+        } else {
+            HTTP_FORBIDDEN
+        }
+    }
+
+    private fun serveMetrics(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
+        val measurement = metrics
+        if (measurement == null) {
+            response.sendError(HTTP_UNAVAILABLE)
+        } else {
+            synchronized(measurement) {
+                if (measurement.prepareScrape()) {
+                    chain.doFilter(request, response)
+                } else {
+                    response.sendError(HTTP_UNAVAILABLE)
+                }
+            }
+        }
     }
 }
 

@@ -2,6 +2,7 @@
  * T013 – Public people GraphQL transport.
  * Wraps the People, Person and PersonCredits queries.
  */
+import { readPageInfo } from '../../../state/pagination';
 import type { GraphqlRequest } from '../../../transport/graphql';
 import { withSignal } from '../../../transport/request-options';
 import type {
@@ -13,7 +14,7 @@ import type {
   PersonCreditsQueryVariables,
 } from '../../../generated/graphql';
 
-const PEOPLE_QUERY = `query People($text: String, $first: Int = 24, $after: Cursor) {
+const PEOPLE_QUERY = `query People($text: String, $first: Int, $after: Cursor) {
   people(text: $text, first: $first, after: $after) {
     nodes { id name biography state version }
     pageInfo { endCursor hasNextPage }
@@ -26,7 +27,7 @@ const PERSON_QUERY = `query Person($id: UUID!) {
   }
 }`;
 
-const PERSON_CREDITS_QUERY = `query PersonCredits($id: UUID!, $first: Int = 24, $after: Cursor) {
+const PERSON_CREDITS_QUERY = `query PersonCredits($id: UUID!, $first: Int, $after: Cursor) {
   personCredits(id: $id, first: $first, after: $after) {
     nodes {
       id personId personName titleId titleName
@@ -60,7 +61,12 @@ export async function fetchPeople(
       withSignal(signal),
     ),
   );
-  return (data as { people: PeopleQuery['people'] }).people;
+  const result = (data as { people: PeopleQuery['people'] }).people;
+  if (!Array.isArray(result?.nodes)) throw new Error('People unavailable.');
+  return {
+    ...result,
+    pageInfo: readPageInfo(result.pageInfo, variables.after ?? null),
+  };
 }
 
 export async function fetchPerson(
@@ -90,6 +96,12 @@ export async function fetchPersonCredits(
       withSignal(signal),
     ),
   );
-  return (data as { personCredits: PersonCreditsQuery['personCredits'] })
-    .personCredits;
+  const result = (
+    data as { personCredits: PersonCreditsQuery['personCredits'] }
+  ).personCredits;
+  if (!Array.isArray(result?.nodes)) throw new Error('Credits unavailable.');
+  return {
+    ...result,
+    pageInfo: readPageInfo(result.pageInfo, variables.after ?? null),
+  };
 }

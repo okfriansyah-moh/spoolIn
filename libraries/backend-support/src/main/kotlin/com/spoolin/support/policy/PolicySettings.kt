@@ -105,14 +105,14 @@ object PolicySettings {
     ): TextBound {
         val prefix = key(name)
         val min =
-            if (name in setOf("email", "search", "sourceUrl", "reuseBasis")) {
+            if (name in setOf("email", "sourceUrl", "reuseBasis")) {
                 default.minCodePoints
             } else {
                 source
                     .integer(
                         "${prefix}_MIN_CODE_POINTS",
                         default.minCodePoints,
-                        if (default.required) 1 else 1,
+                        if (name == "search") 0 else 1,
                         Int.MAX_VALUE,
                     ).value
             }

@@ -25,7 +25,7 @@ function titlesResponse(nodes: unknown[] = [], hasNextPage = false) {
   return {
     titles: {
       nodes,
-      pageInfo: { endCursor: null, hasNextPage },
+      pageInfo: { endCursor: hasNextPage ? 'next' : null, hasNextPage },
     },
   };
 }
@@ -282,4 +282,64 @@ describe('CatalogController', () => {
 
     ctrl.dispose();
   });
+});
+
+it('loads the actual next cursor and preserves it when retrying or restoring public history', async () => {
+  vi.useFakeTimers();
+  const first = titlesResponse(oneTitle());
+  first.titles.pageInfo = { endCursor: 'next', hasNextPage: true };
+  const second = titlesResponse(
+    oneTitle().map((row) => ({ ...row, id: 'second' })),
+  );
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(first)
+    .mockResolvedValue(second);
+  const controller = new CatalogController(request);
+  const criteria = { text: 'Light', kind: '', genres: [], year: '', month: '' };
+  controller.load(criteria);
+  await vi.runAllTimersAsync();
+  await controller.loadMore();
+  expect(request.mock.calls[1]?.[1]).toMatchObject({
+    after: 'next',
+    filter: { text: 'Light' },
+  });
+  expect(controller.snapshot.titles.map((row) => row.id)).toEqual(['second']);
+  controller.retry();
+  await vi.runAllTimersAsync();
+  expect(request.mock.calls[2]?.[1]).toMatchObject({ after: 'next' });
+  controller.load(criteria, 'restored');
+  await vi.runAllTimersAsync();
+  expect(request.mock.calls[3]?.[1]).toMatchObject({ after: 'restored' });
+  controller.dispose();
+  vi.useRealTimers();
+});
+
+it('keeps a failed next page actionable and a newer filter cannot receive its old rows', async () => {
+  vi.useFakeTimers();
+  const first = titlesResponse(oneTitle());
+  first.titles.pageInfo = { endCursor: 'next', hasNextPage: true };
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(first)
+    .mockRejectedValueOnce(new Error('Unavailable'))
+    .mockResolvedValue(titlesResponse([]));
+  const controller = new CatalogController(request);
+  controller.load({ text: '', kind: '', genres: [], year: '', month: '' });
+  await vi.runAllTimersAsync();
+  await controller.loadMore();
+  expect(controller.snapshot.titles).toHaveLength(1);
+  expect(controller.snapshot.pageError).toContain('Retry');
+  controller.setCriteria({
+    text: 'new',
+    kind: '',
+    genres: [],
+    year: '',
+    month: '',
+  });
+  await vi.runAllTimersAsync();
+  expect(controller.snapshot.criteria.text).toBe('new');
+  expect(controller.snapshot.titles).toHaveLength(0);
+  controller.dispose();
+  vi.useRealTimers();
 });

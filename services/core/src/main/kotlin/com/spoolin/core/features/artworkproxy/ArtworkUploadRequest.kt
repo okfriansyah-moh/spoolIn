@@ -12,5 +12,6 @@ internal data class ArtworkUploadRequest(
     val correlationId: UUID,
     val policyRevision: String,
     val assetId: UUID,
-    val content: ByteArray,
+    val intentId: UUID,
+    val spool: ArtworkSpool,
 )

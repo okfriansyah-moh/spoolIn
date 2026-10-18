@@ -2,6 +2,9 @@
 
 package com.spoolin.catalog.features.movie
 
+import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.features.taxonomy.write.GenreTagging
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
@@ -43,6 +46,7 @@ private const val WRITE_KIND = "WriteMovie"
 class MovieWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
+    private val policy: CatalogWritePolicy = CatalogWritePolicy(),
 ) {
     /** Authoritative movie insert used by trusted proposal approval (same path as WriteMovie create). */
     fun publishFromProposal(
@@ -53,7 +57,7 @@ class MovieWrites(
         correlationId: UUID,
     ): SafeResult {
         val request = MovieWrite.newBuilder().setValues(values).build()
-        return create(conn, request, actorId, operationId, correlationId)
+        return create(conn, PolicyWrite(request, policy.effective()), actorId, operationId, correlationId)
     }
 
     fun writeMovie(
@@ -61,62 +65,54 @@ class MovieWrites(
         response: StreamObserver<Outcome>,
     ) {
         try {
-            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            if (!Permissions.management(claims.role)) throw ActorRejected()
-            val operationId = parseId(request.context.operationId)
-            val correlationId = parseId(request.context.correlationId)
-            val actorScope = "account:${claims.accountId}"
-            val isCreate = !request.hasId()
-            val kind = if (isCreate) "CreateMovie" else "UpdateMovie"
-            val intentFields = intentFields(request, isCreate)
-            val intent = OperationIntent(operationId, actorScope, WRITE_KIND, request.context.policyRevision, intentFields)
-            val outcome =
-                receipts.execute(intent, correlationId, true) { conn ->
-                    if (isCreate) {
-                        create(conn, request, claims.accountId, operationId, correlationId)
-                    } else {
-                        update(conn, request, claims.accountId, operationId, correlationId)
-                    }
-                }
+            val outcome = executeMovie(request)
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
+            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
+        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
+            response.onError(Status.NOT_FOUND.asRuntimeException())
         } catch (e: ActorRejected) {
             response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
         } catch (e: InputViolation) {
-            val problem =
-                spoolin.v1.Spoolin.Problem
-                    .newBuilder()
-                    .setCode("FIELD_INVALID")
-                    .addFields(
-                        spoolin.v1.Spoolin.FieldIssue
-                            .newBuilder()
-                            .setPath(e.path)
-                            .setCode("INVALID")
-                            .setMessage(e.correction)
-                            .build(),
-                    ).build()
-            response.onNext(
-                Outcome
-                    .newBuilder()
-                    .setOperationId(request.context.operationId)
-                    .setState("FAILED")
-                    .setProblem(problem)
-                    .build(),
-            )
+            response.onNext(invalidOutcome(request.context.operationId, e))
             response.onCompleted()
+        }
+    }
+
+    private fun executeMovie(request: MovieWrite): com.spoolin.support.receipts.ReceiptOutcome {
+        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (!Permissions.management(claims.role)) throw ActorRejected()
+        val operationId = parseId(request.context.operationId)
+        val correlationId = parseId(request.context.correlationId)
+        val actorScope = "account:${claims.accountId}"
+        val isCreate = !request.hasId()
+        val intentFields = CatalogWriteIntent.movie(request)
+        val intent = OperationIntent(operationId, actorScope, WRITE_KIND, request.context.policyRevision, intentFields)
+        return receipts.execute(intent, correlationId, true) { conn ->
+            val command = policy.bind(request, request.context.policyRevision)
+            if (!isCreate && (!request.hasExpectedVersion() || request.expectedVersion < 0)) {
+                throw InputViolation("expectedVersion", "Supply the current version.")
+            }
+            if (isCreate) {
+                create(conn, command, claims.accountId, operationId, correlationId)
+            } else {
+                update(conn, command, claims.accountId, operationId, correlationId)
+            }
         }
     }
 
     private fun create(
         conn: Connection,
-        request: MovieWrite,
+        command: PolicyWrite<MovieWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
-        val validated = MovieValidation.validateCreate(request.values)
+        val request = command.input
+        val validated = MovieValidation.validateCreate(request.values, command.policy)
         val genreUuids = GenreTagging.resolve(conn, validated.genreIds)
         val titleId = UUID.randomUUID()
         val now = Timestamp.from(clock.instant())
@@ -161,18 +157,19 @@ class MovieWrites(
 
     private fun update(
         conn: Connection,
-        request: MovieWrite,
+        command: PolicyWrite<MovieWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
+        val request = command.input
         val titleId = parseId(request.id)
         val expectedVersion = request.expectedVersion
         val current = lockTitle(conn, titleId) ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (current.kind != KIND_MOVIE) throw Status.PERMISSION_DENIED.withDescription("TV_WRITE_DENIED").asRuntimeException()
         if (current.status != STATUS_ACTIVE) throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         if (current.version != expectedVersion) throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
-        val patch = MovieValidation.validatePatch(request)
+        val patch = MovieValidation.validatePatch(request, command.policy)
         val currentGenres = GenreTagging.current(conn, titleId)
         val newVersion = expectedVersion + 1
         val now = Timestamp.from(clock.instant())
@@ -413,41 +410,6 @@ class MovieWrites(
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private fun intentFields(
-        request: MovieWrite,
-        isCreate: Boolean,
-    ): List<Pair<String, String?>> {
-        val fields = mutableListOf<Pair<String, String?>>()
-        if (!isCreate) fields.add(Pair("id", request.id))
-        fields.add(Pair("title", request.values.title))
-        fields.add(Pair("synopsis", request.values.synopsis))
-        fields.add(
-            Pair(
-                "genreIds",
-                request.values.genreIdsList
-                    .sorted()
-                    .joinToString(","),
-            ),
-        )
-        val year: String? =
-            if (request.values.release.hasYear()) {
-                request.values.release.year
-                    .toString()
-            } else {
-                null
-            }
-        fields.add(Pair("releaseYear", year))
-        fields.add(
-            Pair(
-                "updateMask",
-                request.updateMask.pathsList
-                    .sorted()
-                    .joinToString(","),
-            ),
-        )
-        return fields
-    }
-
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
@@ -473,3 +435,24 @@ class MovieWrites(
         return b.build()
     }
 }
+
+private fun invalidOutcome(
+    operation: String,
+    violation: InputViolation,
+): Outcome =
+    Outcome
+        .newBuilder()
+        .setOperationId(operation)
+        .setState("FAILED")
+        .setProblem(
+            spoolin.v1.Spoolin.Problem
+                .newBuilder()
+                .setCode("FIELD_INVALID")
+                .addFields(
+                    spoolin.v1.Spoolin.FieldIssue
+                        .newBuilder()
+                        .setPath(violation.path)
+                        .setCode("INVALID")
+                        .setMessage(violation.correction),
+                ),
+        ).build()

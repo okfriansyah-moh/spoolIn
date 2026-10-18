@@ -127,13 +127,17 @@ class SessionStore(
         )
     }
 
-    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "PT1H")
     fun purge(): Int =
         dataSource.committed { connection ->
             val cutoff = Timestamp.from(clock.instant().minus(Duration.ofDays(SESSION_RETENTION_DAYS)))
             connection.executeBound(
-                "DELETE FROM browser_session WHERE revoked_at<=? OR " +
-                    "LEAST(expires_at,last_seen_at + INTERVAL '30 minutes')<=?",
+                "WITH expired AS (SELECT id FROM browser_session WHERE revoked_at<=? OR " +
+                    "LEAST(expires_at,last_seen_at + INTERVAL '30 minutes')<=? " +
+                    "ORDER BY expires_at,id LIMIT 100) DELETE FROM browser_session s USING expired e " +
+                    "WHERE s.id=e.id AND (s.revoked_at<=? OR " +
+                    "LEAST(s.expires_at,s.last_seen_at + INTERVAL '30 minutes')<=?)",
+                cutoff,
+                cutoff,
                 cutoff,
                 cutoff,
             )

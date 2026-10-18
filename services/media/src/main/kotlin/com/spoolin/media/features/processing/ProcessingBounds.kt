@@ -16,6 +16,12 @@ object ProcessingBounds {
     /** Maximum decoded dimension in either axis — px (§7.6). */
     const val MAX_DIMENSION_PX: Int = 8192
 
+    /** Bounded header helper output, in bytes. */
+    const val MAX_HEADER_BYTES: Int = 64
+
+    /** Maximum supported decoded color channel count. */
+    const val MAX_COLOR_BANDS: Int = 4
+
     /** Maximum decoded total pixels (§7.6). */
     const val MAX_PIXELS: Long = 40_000_000L
 

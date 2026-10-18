@@ -4,3 +4,7 @@
 !services/media/build/
 !services/media/build/libs/
 !services/media/build/libs/*-boot.jar
+!services/media/src/
+!services/media/src/main/
+!services/media/src/main/native/
+!services/media/src/main/native/image-header.c

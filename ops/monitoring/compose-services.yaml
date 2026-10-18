@@ -1,0 +1,132 @@
+# Merge into ops/compose.yaml. Bind paths below are relative to that file.
+services:
+  prometheus:
+    image: spoolin-prometheus:3.15.0
+    build:
+      context: ..
+      dockerfile: ops/monitoring/Dockerfile
+      target: prometheus
+    user: '10001:10001'
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=1GB
+      - --web.listen-address=0.0.0.0:9090
+      - --log.format=json
+      - --log.level=info
+    networks: [private]
+    depends_on:
+      core: {condition: service_started}
+      catalog: {condition: service_started}
+      media: {condition: service_started}
+      mcp: {condition: service_healthy}
+      alertmanager: {condition: service_started}
+    volumes:
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/alert-rules.test.yaml:/etc/prometheus/alert-rules.test.yaml:ro
+      - prometheus-data:/prometheus
+    secrets: [service-ca, prometheus-key, prometheus-cert]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -T 3 -O /dev/null http://127.0.0.1:9090/-/ready']
+      interval: 5s
+      timeout: 4s
+      retries: 30
+  alertmanager:
+    image: spoolin-alertmanager:0.34.1
+    build:
+      context: ..
+      dockerfile: ops/monitoring/Dockerfile
+      target: alertmanager
+    user: '10001:10001'
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yaml
+      - --storage.path=/alertmanager
+      - --data.retention=120h
+      - --web.listen-address=0.0.0.0:9093
+      - --cluster.listen-address=
+      - --log.format=json
+      - --log.level=info
+    networks: [private]
+    volumes:
+      - ./monitoring/alertmanager.yaml:/etc/alertmanager/alertmanager.yaml:ro
+      - alertmanager-data:/alertmanager
+    secrets: [service-ca, alertmanager-key, alertmanager-cert]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.25
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -T 3 -O /dev/null http://127.0.0.1:9093/-/ready']
+      interval: 5s
+      timeout: 4s
+      retries: 30
+  grafana:
+    image: spoolin-grafana:13.2.3
+    build:
+      context: ..
+      dockerfile: ops/monitoring/Dockerfile
+      target: grafana
+    user: '10001:10001'
+    environment:
+      GF_SERVER_PROTOCOL: https
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+      GF_SERVER_HTTP_PORT: '3000'
+      GF_SERVER_MIN_TLS_VERSION: TLS1.2
+      GF_SERVER_CERT_FILE: /run/secrets/grafana-cert
+      GF_SERVER_CERT_KEY: /run/secrets/grafana-key
+      GF_SECURITY_ADMIN_USER: operator
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana-admin-password
+      GF_SECURITY_SECRET_KEY__FILE: /run/secrets/grafana-signing-key
+      GF_SECURITY_COOKIE_SECURE: 'true'
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_USERS_ALLOW_ORG_CREATE: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: 'false'
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+      GF_PLUGINS_PREINSTALL_AUTO_UPDATE: 'false'
+      GF_LOG_MODE: console
+      GF_LOG_CONSOLE_FORMAT: json
+      GF_LOG_LEVEL: info
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    networks: [private]
+    depends_on:
+      prometheus: {condition: service_healthy}
+    ports: ['127.0.0.1:${GRAFANA_HTTPS_PORT:-3000}:3000']
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/spoolin.yaml:ro
+      - ./monitoring/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/spoolin.yaml:ro
+      - ./monitoring/grafana/spoolin.json:/etc/grafana/dashboards/spoolin.json:ro
+    secrets: [grafana-key, grafana-cert, grafana-admin-password, grafana-signing-key]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 0.5
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+secrets:
+  prometheus-key: {file: '${PROMETHEUS_SERVICE_KEY_FILE:?Provision Prometheus client TLS key}'}
+  prometheus-cert: {file: '${PROMETHEUS_SERVICE_CERT_FILE:?Provision Prometheus client TLS certificate}'}
+  alertmanager-key: {file: '${ALERTMANAGER_SERVICE_KEY_FILE:?Provision Alertmanager client TLS key}'}
+  alertmanager-cert: {file: '${ALERTMANAGER_SERVICE_CERT_FILE:?Provision Alertmanager client TLS certificate}'}
+  grafana-key: {file: '${GRAFANA_SERVICE_KEY_FILE:?Provision Grafana HTTPS key}'}
+  grafana-cert: {file: '${GRAFANA_SERVICE_CERT_FILE:?Provision Grafana HTTPS certificate}'}
+  grafana-admin-password: {file: '${GRAFANA_ADMIN_PASSWORD_FILE:?Provision Grafana operator password}'}
+  grafana-signing-key: {file: '${GRAFANA_SIGNING_KEY_FILE:?Provision Grafana signing secret}'}

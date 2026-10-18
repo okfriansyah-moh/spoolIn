@@ -1,4 +1,57 @@
 name: ${SPOOLIN_INSTALLATION:?Set installation identifier}
+x-owner-settings: &owner-settings
+  # Unresolved keys stay absent; explicit empty/zero values reach strict validation.
+  REGISTRATION_NAME_MIN_CODE_POINTS:
+  REGISTRATION_NAME_MAX_CODE_POINTS:
+  PERSON_NAME_MIN_CODE_POINTS:
+  PERSON_NAME_MAX_CODE_POINTS:
+  TITLE_MIN_CODE_POINTS:
+  TITLE_MAX_CODE_POINTS:
+  ORIGINAL_TITLE_MIN_CODE_POINTS:
+  ORIGINAL_TITLE_MAX_CODE_POINTS:
+  SYNOPSIS_MIN_CODE_POINTS:
+  SYNOPSIS_MAX_CODE_POINTS:
+  CREDIT_ROLE_MIN_CODE_POINTS:
+  CREDIT_ROLE_MAX_CODE_POINTS:
+  CHARACTER_NAME_MIN_CODE_POINTS:
+  CHARACTER_NAME_MAX_CODE_POINTS:
+  BIOGRAPHY_MIN_CODE_POINTS:
+  BIOGRAPHY_MAX_CODE_POINTS:
+  EMAIL_MAX_CODE_POINTS:
+  PASSWORD_MIN_CODE_POINTS:
+  PASSWORD_MAX_CODE_POINTS:
+  SEARCH_MIN_CODE_POINTS:
+  SEARCH_MAX_CODE_POINTS:
+  SOURCE_URL_MAX_CODE_POINTS:
+  REUSE_BASIS_MAX_CODE_POINTS:
+  ARTWORK_MAX_INPUT_BYTES:
+  ARTWORK_FORMATS:
+  REQUEST_METADATA_BYTES:
+  REQUEST_UPLOAD_ENVELOPE_BYTES:
+  REQUEST_GRAPHQL_QUERY_BYTES:
+  REQUEST_MAX_DEPTH:
+  REQUEST_MAX_FIELDS:
+  REQUEST_MAX_ALIASES:
+  REQUEST_MAX_COST:
+  REQUEST_DEFAULT_PAGE:
+  REQUEST_MAX_PAGE:
+  RETRY_MAX_RETRIES:
+  RETRY_BASE_DELAY_MS:
+  RETRY_MAX_DELAY_MS:
+  RETRY_DEADLINE_MS:
+  RETRY_MULTIPLIER:
+  RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS:
+  RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS:
+  RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS:
+  RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS:
+  RATE_LIMIT_REGISTER_MAX_REQUESTS:
+  RATE_LIMIT_REGISTER_WINDOW_SECONDS:
+  RATE_LIMIT_MUTATION_MAX_REQUESTS:
+  RATE_LIMIT_MUTATION_WINDOW_SECONDS:
+  RATE_LIMIT_READ_MAX_REQUESTS:
+  RATE_LIMIT_READ_WINDOW_SECONDS:
+  MCP_RATE_LIMIT_MAX_BINDINGS:
+  LOG_LEVEL:
 services:
   postgres:
     build:
@@ -9,6 +62,11 @@ services:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
       TZ: UTC
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U postgres -d spoolin_media']
+      interval: 2s
+      timeout: 3s
+      retries: 60
     networks: [private]
     volumes: [database:/var/lib/postgresql]
     tmpfs: [/run/spoolin:mode=0700]
@@ -31,17 +89,30 @@ services:
       - media-maintenance-password
       - media-backup-password
   core:
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/core.Dockerfile
     image: spoolin-core-foundation:0.0.0
     environment:
+      <<: *owner-settings
+      JAVA_TOOL_OPTIONS: ${CORE_JAVA_TOOL_OPTIONS-}
+      BROWSER_ORIGIN: https://localhost:${CORE_HTTPS_PORT:-8443}
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_runtime
+      ROTATION_KEYS_FILE: ${ROTATION_KEYS_FILE-/run/spoolin-config/rotation-keys.json}
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/core.json[.yaml]
       CORE_DB_PASSWORD_FILE: /run/secrets/core-runtime-password
+      CORE_DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/core-maintenance-password
       SERVICE_CERT_FILE: /run/secrets/core-cert
       SERVICE_KEY_FILE: /run/secrets/core-key
       SERVICE_CA_FILE: /run/secrets/service-ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
+      - core-timing:/var/spoolin/timing
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
@@ -51,6 +122,7 @@ services:
     cpus: 1
     secrets:
       - core-runtime-password
+      - core-maintenance-password
       - core-cert
       - core-key
       - service-ca
@@ -62,6 +134,7 @@ services:
     image: spoolin-core-foundation:0.0.0
     profiles: [migration]
     environment:
+      BROWSER_ORIGIN: https://localhost:${CORE_HTTPS_PORT:-8443}
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_migrator
       CORE_DB_PASSWORD_FILE: /run/secrets/core-migrator-password
@@ -77,17 +150,26 @@ services:
       - core-migrator-password
       - service-ca
   catalog:
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/catalog.Dockerfile
     image: spoolin-catalog-foundation:0.0.0
     environment:
+      <<: *owner-settings
       CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CATALOG_DB_USER: spoolin_catalog_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/catalog.json[.yaml]
       CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
+      CATALOG_DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/catalog-maintenance-password
       SERVICE_CERT_FILE: /run/secrets/catalog-cert
       SERVICE_KEY_FILE: /run/secrets/catalog-key
       SERVICE_CA_FILE: /run/secrets/service-ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
@@ -97,6 +179,7 @@ services:
     cpus: 1
     secrets:
       - catalog-runtime-password
+      - catalog-maintenance-password
       - catalog-cert
       - catalog-key
       - service-ca
@@ -121,27 +204,41 @@ services:
     secrets:
       - catalog-migrator-password
       - service-ca
-  media:
+  media: &media-service
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/media.Dockerfile
     image: spoolin-media-foundation:0.0.0
     environment:
+      <<: *owner-settings
       MEDIA_DB_URL: jdbc:postgresql://postgres:5432/spoolin_media?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       MEDIA_DB_USER: spoolin_media_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/media.json[.yaml]
       MEDIA_DB_PASSWORD_FILE: /run/secrets/media-runtime-password
+      MEDIA_DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/media-maintenance-password
       SERVICE_CERT_FILE: /run/secrets/media-cert
       SERVICE_KEY_FILE: /run/secrets/media-key
       SERVICE_CA_FILE: /run/secrets/service-ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
+      - media:/var/spoolin/media
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
+    security_opt:
+      - no-new-privileges:true
+      - apparmor=spoolin-media
+      - seccomp=/etc/spoolin/security/media-seccomp.json
     mem_limit: 1g
     cpus: 1
     secrets:
       - media-runtime-password
+      - media-maintenance-password
       - media-cert
       - media-key
       - service-ca
@@ -166,11 +263,203 @@ services:
     secrets:
       - media-migrator-password
       - service-ca
+  media-seed:
+    <<: *media-service
+    profiles: [seed]
+    command: [--seed-artwork-manifest=/app/seed/manifest.json, --seed-artwork-output=/var/spoolin/seed-artwork/media.json]
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
+      - ../data/seed:/app/seed:ro
+      - media:/var/spoolin/media
+      - seed-artwork:/var/spoolin/seed-artwork
+  catalog-seed:
+    image: spoolin-catalog-foundation:0.0.0
+    profiles: [seed]
+    environment:
+      <<: *owner-settings
+      CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      CATALOG_DB_USER: spoolin_catalog_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/catalog.json[.yaml]
+      CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
+      CATALOG_DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/catalog-maintenance-password
+      SPOOLIN_SEED_ID: public-pages-2026-10-v2
+    command: [--seed-manifest=/app/seed/manifest.json, --seed-artwork-input=/var/spoolin/seed-artwork/media.json, --seed-artwork-output=/var/spoolin/seed-artwork/catalog.json]
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ../data/seed:/app/seed:ro
+      - seed-artwork:/var/spoolin/seed-artwork
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
+    secrets: [catalog-runtime-password, service-ca]
+
+  mcp:
+    stop_grace_period: 65s
+    build:
+      context: ..
+      dockerfile: ops/containers/mcp.Dockerfile
+    environment:
+      <<: *owner-settings
+      CORE_GRPC_TARGET: core:9090
+      GRPC_CA_FILE: /run/secrets/service-ca
+      GRPC_CLIENT_KEY_FILE: /run/secrets/mcp-key
+      GRPC_CLIENT_CERT_FILE: /run/secrets/mcp-cert
+      RATE_LIMIT_READ_MAX_REQUESTS: ${RATE_LIMIT_READ_MAX_REQUESTS-120}
+      RATE_LIMIT_READ_WINDOW_SECONDS: ${RATE_LIMIT_READ_WINDOW_SECONDS-60}
+      MCP_RATE_LIMIT_MAX_BINDINGS: ${MCP_RATE_LIMIT_MAX_BINDINGS-1024}
+      MCP_PORT: '8787'
+      MCP_HEALTH_PORT: '8788'
+      MCP_ALLOWED_HOSTS: localhost,127.0.0.1,mcp
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 1
+    secrets: [service-ca, mcp-key, mcp-cert]
+    ports: ["127.0.0.1:${MCP_HTTP_PORT:-8787}:8787"]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8788/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  prometheus:
+    ports: ["127.0.0.1:${PROMETHEUS_HTTP_PORT:-9090}:9090"]
+    image: spoolin-prometheus:3.15.0
+    build:
+      context: ..
+      dockerfile: ops/monitoring/Dockerfile
+      target: prometheus
+    user: '10001:10001'
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=1GB
+      - --web.listen-address=0.0.0.0:9090
+      - --log.format=json
+      - --log.level=info
+    networks: [private]
+    depends_on:
+      core: {condition: service_started}
+      catalog: {condition: service_started}
+      media: {condition: service_started}
+      mcp: {condition: service_healthy}
+      alertmanager: {condition: service_started}
+    volumes:
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/alert-rules.test.yaml:/etc/prometheus/alert-rules.test.yaml:ro
+      - prometheus-data:/prometheus
+    secrets: [service-ca, prometheus-key, prometheus-cert]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -T 3 -O /dev/null http://127.0.0.1:9090/-/ready']
+      interval: 5s
+      timeout: 4s
+      retries: 30
+  alertmanager:
+    ports: ["127.0.0.1:${ALERTMANAGER_HTTP_PORT:-9093}:9093"]
+    image: spoolin-alertmanager:0.34.1
+    build:
+      context: ..
+      dockerfile: ops/monitoring/Dockerfile
+      target: alertmanager
+    user: '10001:10001'
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yaml
+      - --storage.path=/alertmanager
+      - --data.retention=120h
+      - --web.listen-address=0.0.0.0:9093
+      - --cluster.listen-address=
+      - --log.format=json
+      - --log.level=info
+    networks: [private]
+    volumes:
+      - ./monitoring/alertmanager.yaml:/etc/alertmanager/alertmanager.yaml:ro
+      - alertmanager-data:/alertmanager
+    secrets: [service-ca, alertmanager-key, alertmanager-cert]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.25
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -T 3 -O /dev/null http://127.0.0.1:9093/-/ready']
+      interval: 5s
+      timeout: 4s
+      retries: 30
+  grafana:
+    image: spoolin-grafana:13.2.3
+    build:
+      context: ..
+      dockerfile: ops/monitoring/Dockerfile
+      target: grafana
+    user: '10001:10001'
+    environment:
+      GF_SERVER_PROTOCOL: https
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+      GF_SERVER_HTTP_PORT: '3000'
+      GF_SERVER_MIN_TLS_VERSION: TLS1.2
+      GF_SERVER_CERT_FILE: /run/secrets/grafana-cert
+      GF_SERVER_CERT_KEY: /run/secrets/grafana-key
+      GF_SECURITY_ADMIN_USER: operator
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana-admin-password
+      GF_SECURITY_SECRET_KEY__FILE: /run/secrets/grafana-signing-key
+      GF_SECURITY_COOKIE_SECURE: 'true'
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_USERS_ALLOW_ORG_CREATE: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: 'false'
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+      GF_PLUGINS_PREINSTALL_AUTO_UPDATE: 'false'
+      GF_LOG_MODE: console
+      GF_LOG_CONSOLE_FORMAT: json
+      GF_LOG_LEVEL: info
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    networks: [private]
+    depends_on:
+      prometheus: {condition: service_healthy}
+    ports: ['127.0.0.1:${GRAFANA_HTTPS_PORT:-3000}:3000']
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/spoolin.yaml:ro
+      - ./monitoring/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/spoolin.yaml:ro
+      - ./monitoring/grafana/spoolin.json:/etc/grafana/dashboards/spoolin.json:ro
+    secrets: [grafana-key, grafana-cert, grafana-admin-password, grafana-signing-key]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 0.5
+
 networks:
   private:
-    internal: true
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
 volumes:
+  seed-artwork:
+  core-timing:
+  media:
   database:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
 secrets:
   postgres-password:
     file: ${POSTGRES_PASSWORD_FILE:?Provision bootstrap password file}
@@ -216,3 +505,16 @@ secrets:
     file: ${MEDIA_SERVICE_KEY_FILE:?Provision owner TLS material}
   media-cert:
     file: ${MEDIA_SERVICE_CERT_FILE:?Provision owner TLS material}
+  mcp-key:
+    file: ${MCP_SERVICE_KEY_FILE:?Provision MCP TLS key}
+  mcp-cert:
+    file: ${MCP_SERVICE_CERT_FILE:?Provision MCP TLS certificate}
+
+  prometheus-key: {file: '${PROMETHEUS_SERVICE_KEY_FILE:?Provision Prometheus client TLS key}'}
+  prometheus-cert: {file: '${PROMETHEUS_SERVICE_CERT_FILE:?Provision Prometheus client TLS certificate}'}
+  alertmanager-key: {file: '${ALERTMANAGER_SERVICE_KEY_FILE:?Provision Alertmanager client TLS key}'}
+  alertmanager-cert: {file: '${ALERTMANAGER_SERVICE_CERT_FILE:?Provision Alertmanager client TLS certificate}'}
+  grafana-key: {file: '${GRAFANA_SERVICE_KEY_FILE:?Provision Grafana HTTPS key}'}
+  grafana-cert: {file: '${GRAFANA_SERVICE_CERT_FILE:?Provision Grafana HTTPS certificate}'}
+  grafana-admin-password: {file: '${GRAFANA_ADMIN_PASSWORD_FILE:?Provision Grafana operator password}'}
+  grafana-signing-key: {file: '${GRAFANA_SIGNING_KEY_FILE:?Provision Grafana signing secret}'}

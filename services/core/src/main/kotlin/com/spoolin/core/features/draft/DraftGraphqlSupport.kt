@@ -10,7 +10,7 @@ internal fun draftGraphqlProjection(draft: DraftProjection): Map<String, Any?> =
         "targetKind" to draft.targetKind,
         "targetId" to draft.targetId?.toString(),
         "baseVersion" to draft.baseVersion?.toString(),
-        "values" to draft.values,
+        "values" to ObjectMapper().readValue(draft.values, Map::class.java),
         "operationId" to draft.operationId?.toString(),
         "version" to draft.version.toString(),
         "expiresAt" to draft.expiresAt.toString(),
@@ -58,7 +58,7 @@ internal fun parseDraftGraphqlInput(raw: Map<String, Any?>): DraftInput =
     DraftInput(
         targetKind = requireNotNull(raw["targetKind"] as? String) { "targetKind is required" },
         targetId = (raw["targetId"] as? String)?.let { UUID.fromString(it) },
-        baseVersion = raw["baseVersion"] as? Long,
+        baseVersion = (raw["baseVersion"] as? String)?.toLong(),
         values =
             requireNotNull(
                 when (val v = raw["values"]) {

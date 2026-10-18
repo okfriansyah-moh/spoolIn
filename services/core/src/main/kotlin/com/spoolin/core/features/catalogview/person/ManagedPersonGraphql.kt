@@ -2,6 +2,7 @@
 
 package com.spoolin.core.features.catalogview.person
 
+import com.spoolin.core.boundary.graphql.GraphqlLongArguments
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
@@ -9,6 +10,9 @@ import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.features.ratelimit.RateUnavailable
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.ReceiptState
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
@@ -20,8 +24,6 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private const val DEADLINE_SECONDS = 5L
-private const val DEFAULT_FIRST = 24
-private const val MAX_PAGE = 100
 
 /**
  * GraphQL resolvers for Maintainer-only person mutations and managed reads.
@@ -39,6 +41,7 @@ private const val MAX_PAGE = 100
 class ManagedPersonGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q ->
@@ -83,7 +86,7 @@ class ManagedPersonGraphql(
         val operationId = id(env)
         val personId = requireNotNull(env.getArgument<String>("id"))
         validateUuid(personId)
-        val expectedVersion = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val expectedVersion = GraphqlLongArguments.required(env)
         val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
         val patch = requireNotNull(env.getArgument<Map<String, Any?>>("patch"))
         val (values, mask) = personPatch(patch)
@@ -129,7 +132,7 @@ class ManagedPersonGraphql(
         val context = context(env)
         val principal = context.principal ?: throw CredentialRejected()
         val state = requireNotNull(env.getArgument<String>("state"))
-        val first = (env.getArgument<Int>("first") ?: DEFAULT_FIRST).coerceIn(1, MAX_PAGE)
+        val first = ReadPolicy(policy()).pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
         val opId = UUID.randomUUID()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/ManagedPeople", opId, context.correlation)
@@ -247,8 +250,10 @@ class ManagedPersonGraphql(
             .setPolicyRevision(policyRevision)
             .build()
 
-    private fun context(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun context(env: DataFetchingEnvironment): BrowserContext {
+        val browser: BrowserContext? = env.graphQlContext.get("browser")
+        return requireNotNull(browser)
+    }
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 

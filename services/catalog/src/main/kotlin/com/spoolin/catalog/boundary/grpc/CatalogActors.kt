@@ -52,7 +52,7 @@ class CatalogActors(
         fun interceptor(
             environment: Environment,
             channels: GrpcChannelFactory,
-        ): ActorInterceptor {
+        ): io.grpc.ServerInterceptor {
             val enabled = environment.getProperty("spoolin.actor.enabled", Boolean::class.java, false)
             val verifier =
                 if (enabled) {
@@ -65,7 +65,27 @@ class CatalogActors(
                     null
                 }
             val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(channels.createChannel("core")))
-            return ActorInterceptor("catalog", protectedMethods, verifier, live::check)
+            val protected =
+                ActorInterceptor(
+                    "catalog",
+                    protectedMethods + "spoolin.v1.CatalogService/ResolveArtworkAccess",
+                    verifier,
+                    live::check,
+                )
+            return object : io.grpc.ServerInterceptor {
+                override fun <ReqT : Any, RespT : Any> interceptCall(
+                    call: io.grpc.ServerCall<ReqT, RespT>,
+                    headers: io.grpc.Metadata,
+                    next: io.grpc.ServerCallHandler<ReqT, RespT>,
+                ): io.grpc.ServerCall.Listener<ReqT> {
+                    if (call.methodDescriptor.fullMethodName == "spoolin.v1.CatalogService/ResolveArtworkAccess" &&
+                        headers.get(com.spoolin.support.identity.ActorRpc.metadata) == null
+                    ) {
+                        return next.startCall(call, headers)
+                    }
+                    return protected.interceptCall(call, headers, next)
+                }
+            }
         }
 
         val protectedMethods: Set<String> =

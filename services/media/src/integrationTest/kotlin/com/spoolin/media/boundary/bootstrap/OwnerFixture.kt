@@ -111,7 +111,7 @@ class OwnerFixture(
             )
 
     fun url(owner: String): String =
-        "jdbc:postgresql://localhost:${postgres.getMappedPort(
+        "jdbc:postgresql://${postgres.host}:${postgres.getMappedPort(
             5432,
         )}/spoolin_$owner?sslmode=verify-full&sslrootcert=${root.resolve("ca.crt")}"
 
@@ -164,11 +164,16 @@ class OwnerFixture(
         name: String,
         values: Map<String, Any>,
     ) {
-        observed += mapOf("name" to name, "namespace" to namespace) + values
+        observed += mapOf(
+            "name" to name,
+            "namespace" to namespace,
+            "assessedSha" to (System.getenv("TESTED_SHA") ?: "UNVERIFIED"),
+            "runId" to (System.getenv("GITHUB_RUN_ID") ?: "UNVERIFIED"),
+        ) + values
     }
 
     override fun close() {
-        require(evidenceName.matches(Regex("t(?:003|007)-[a-z-]+\\.json")))
+        require(evidenceName.matches(Regex("t(?:003|007|022)-[a-z-]+\\.json")))
         val evidence = repository.resolve(".ai/evidence/numbering-v1/$evidenceName")
         Files.createDirectories(evidence.parent)
         if (::postgres.isInitialized && postgres.isRunning) {
@@ -274,7 +279,13 @@ class OwnerFixture(
             "-subj",
             "/CN=$name",
         )
-        Files.writeString(root.resolve("$name.ext"), "subjectAltName=DNS:$name,DNS:localhost\nextendedKeyUsage=serverAuth,clientAuth\n")
+        val host = System.getenv("TESTCONTAINERS_HOST_OVERRIDE") ?: "localhost"
+        require(host.matches(Regex("[A-Za-z0-9.-]+"))) { "Unsafe fixture host" }
+        val hostName = if (host.all { it.isDigit() || it == '.' }) "IP:$host" else "DNS:$host"
+        Files.writeString(
+            root.resolve("$name.ext"),
+            "subjectAltName=DNS:$name,DNS:localhost,$hostName\nextendedKeyUsage=serverAuth,clientAuth\n",
+        )
         command(
             "openssl",
             "x509",

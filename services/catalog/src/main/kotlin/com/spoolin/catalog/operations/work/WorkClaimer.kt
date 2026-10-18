@@ -27,7 +27,13 @@ class WorkClaimer(
     fun claim(batchSize: Int = 10): List<WorkClaim> {
         val now = clock.instant()
         return dataSource.committed { connection ->
-            val candidates = WorkSql.selectForClaim(connection, now, batchSize)
+            val candidates =
+                WorkSql.selectForClaim(
+                    connection,
+                    now,
+                    batchSize,
+                    setOf("ARTWORK_ATTACH", "ARTWORK_CONFIRM", "ARTWORK_RELEASE"),
+                )
             val workerId = UUID.randomUUID()
             candidates.mapNotNull { candidate ->
                 WorkSql.commitClaim(connection, candidate, workerId, now)

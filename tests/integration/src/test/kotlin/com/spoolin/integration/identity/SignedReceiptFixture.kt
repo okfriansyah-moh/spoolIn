@@ -7,6 +7,7 @@ import com.spoolin.catalog.operations.receipts.ReceiptRpc
 import com.spoolin.core.boundary.grpc.IdentityRpc
 import com.spoolin.core.features.account.persistence.AccountRole
 import com.spoolin.core.features.account.persistence.IdentityRules
+import com.spoolin.core.features.connector.ConnectorStore
 import com.spoolin.core.features.crypto.StoredPasswordHash
 import com.spoolin.core.features.session.SessionCsrf
 import com.spoolin.core.features.session.SessionStore
@@ -49,8 +50,14 @@ internal class SignedReceiptFixture(
         }
     val sessions = SessionStore(fixture.pool, SessionCsrf(ByteArray(32) { 29 }))
     val issued = fixture.pool.committed { sessions.issue(it, account, 0, null) }
+    private val connectors = ConnectorStore(fixture.pool)
     private val core =
-        transport.server(root, "core", IdentityRpc { sessions }, com.spoolin.core.ServiceIdentityInterceptor())
+        transport.server(
+            root,
+            "core",
+            IdentityRpc(sessions = { sessions }, connectors = { connectors }),
+            com.spoolin.core.ServiceIdentityInterceptor(),
+        )
     val identity = transport.channel(root, "catalog", "core", core.port)
     private val pool = migrate().let { fixture.owner.pool("catalog") }
     val operation = UUID.randomUUID()

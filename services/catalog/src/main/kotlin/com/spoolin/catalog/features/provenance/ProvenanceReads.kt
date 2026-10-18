@@ -1,11 +1,11 @@
 package com.spoolin.catalog.features.provenance
 
 import com.spoolin.support.receipts.queryBound
-import tools.jackson.databind.json.JsonMapper
 import java.sql.ResultSet
-import java.sql.Timestamp
 import java.util.UUID
 import javax.sql.DataSource
+
+private const val PROVENANCE_BATCH_SIZE = 100
 
 /**
  * Provenance record reads for active title/person subjects.
@@ -38,8 +38,36 @@ class ProvenanceReads(
                    WHERE subject_id = ? AND subject_kind = ? AND deleted_at IS NULL
                    ORDER BY source ASC""",
                 listOf(subjectId, subjectKind),
-            ) { rs -> mapRow(rs) }
+            ) { rs -> mapRow(rs) } +
+                if (subjectKind == "TITLE") {
+                    SeedArtworkSources.read(conn, listOf(subjectId)).map { it.second }
+                } else {
+                    emptyList()
+                }
         }
+
+    fun forSubjects(
+        subjectIds: List<UUID>,
+        subjectKind: String,
+    ): Map<UUID, List<ProvenanceRow>> {
+        if (subjectIds.isEmpty()) return emptyMap()
+        return dataSource.connection.use { connection ->
+            subjectIds
+                .distinct()
+                .chunked(PROVENANCE_BATCH_SIZE)
+                .flatMap { batch ->
+                    val placeholders = batch.joinToString(",") { "?" }
+                    connection.queryBound(
+                        "SELECT subject_id,source,external_id,record_url,retrieved_at,reuse_note," +
+                            "field_sources,locally_changed FROM provenance_record " +
+                            "WHERE subject_id IN ($placeholders) AND subject_kind=? AND deleted_at IS NULL " +
+                            "ORDER BY subject_id,source ASC",
+                        batch + subjectKind,
+                    ) { row -> row.getObject("subject_id", UUID::class.java) to mapRow(row) } +
+                        if (subjectKind == "TITLE") SeedArtworkSources.read(connection, batch) else emptyList()
+                }.groupBy({ it.first }, { it.second })
+        }
+    }
 
     private fun mapRow(rs: ResultSet): ProvenanceRow {
         val rawChanged = rs.getArray("locally_changed")?.array

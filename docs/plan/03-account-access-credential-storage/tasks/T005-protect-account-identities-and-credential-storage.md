@@ -6,7 +6,7 @@ depends_on:
 - T002
 - T003
 readiness: Ready
-status: Done
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: not-applicable

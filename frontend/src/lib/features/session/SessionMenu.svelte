@@ -35,11 +35,12 @@
       }}>Sign out</button
     >
   {:else}
-    <a href={resolve('/sign-in')}
+    <a class="button secondary" href={resolve('/sign-in')}
       >{controller.hasUnconfirmedLogout ? 'Sign in again' : 'Sign in'}</a
     >
-    {#if !controller.hasUnconfirmedLogout}<a href={resolve('/register')}
-        >Register</a
+    {#if !controller.hasUnconfirmedLogout}<a
+        class="button secondary"
+        href={resolve('/register')}>Register</a
       >{/if}
     {#if session.kind === 'uncertain' && controller.hasUnconfirmedLogout}<button
         class="secondary"
@@ -54,6 +55,7 @@
   aria-live="polite"
   aria-atomic="true"
   class="session-announcement"
+  class:idle={!announcement}
 >
   {announcement}
 </p>
@@ -89,7 +91,13 @@
     flex-basis: 100%;
     margin: 0;
   }
-  .session-announcement:empty {
-    height: 0;
+  .session-announcement.idle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 </style>

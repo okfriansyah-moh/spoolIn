@@ -508,7 +508,9 @@
       "when": [
         "mcp/src/**/*.ts",
         "mcp/src/**/*.svelte",
-        "mcp/src/**/*.js"
+        "mcp/src/**/*.js",
+        "mcp/test/**/*.ts",
+        "mcp/vitest.config.ts"
       ],
       "argv": [
         "npm",
@@ -562,7 +564,9 @@
       "when": [
         "mcp/src/**/*.ts",
         "mcp/src/**/*.svelte",
-        "mcp/src/**/*.js"
+        "mcp/src/**/*.js",
+        "mcp/test/**/*.ts",
+        "mcp/vitest.config.ts"
       ],
       "argv": [
         "npm",
@@ -639,7 +643,7 @@
         "tests/browser/flows/policy/**/*.ts",
         "tests/browser/playwright.policy.config.ts",
         ".ai/gates.json",
-        ".ai/bundles/1.1.1/profiles/security/semgrep.yml"
+        ".ai/bundles/1.2.1/profiles/security/semgrep.yml"
       ],
       "argv": [
         "semgrep",
@@ -686,8 +690,8 @@
         "tests/browser/playwright.policy.config.ts",
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
-        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
-        ".ai/bundles/1.1.1/docs/verification-tools.json"
+        ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.2.1/docs/verification-tools.json"
       ],
       "argv": [
         "gitleaks",
@@ -698,6 +702,10 @@
         "1",
         "--config",
         ".ai/security/gitleaks.toml",
+        "--report-format",
+        "json",
+        "--report-path",
+        ".ai/reports/source-gitleaks.json",
         "."
       ],
       "required": true
@@ -754,8 +762,8 @@
         "build-tools/verification-tests/*.py",
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
-        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
-        ".ai/bundles/1.1.1/docs/verification-tools.json"
+        ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.2.1/docs/verification-tools.json"
       ],
       "argv": [
         "python3",
@@ -1020,7 +1028,10 @@
         "tests/browser/flows/discovery/**",
         "tests/browser/run-discovery.mjs"
       ],
-      "argv": ["node", "tests/browser/run-discovery.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-discovery.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1032,7 +1043,10 @@
         "tests/browser/flows/archives/**",
         "tests/browser/run-archives.mjs"
       ],
-      "argv": ["node", "tests/browser/run-archives.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-archives.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1044,7 +1058,10 @@
         "tests/browser/flows/artwork/**",
         "tests/browser/run-artwork.mjs"
       ],
-      "argv": ["node", "tests/browser/run-artwork.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-artwork.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1056,7 +1073,10 @@
         "tests/browser/flows/movies/**",
         "tests/browser/run-movies.mjs"
       ],
-      "argv": ["node", "tests/browser/run-movies.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-movies.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1068,7 +1088,10 @@
         "tests/browser/flows/people/**",
         "tests/browser/run-people.mjs"
       ],
-      "argv": ["node", "tests/browser/run-people.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-people.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1080,7 +1103,10 @@
         "tests/browser/flows/credits/**",
         "tests/browser/run-credits.mjs"
       ],
-      "argv": ["node", "tests/browser/run-credits.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-credits.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1092,7 +1118,10 @@
         "tests/browser/flows/draft-component/**",
         "tests/browser/run-draft-component.mjs"
       ],
-      "argv": ["node", "tests/browser/run-draft-component.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-draft-component.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
@@ -1467,6 +1496,115 @@
         "format": "junit",
         "glob": ".ai/evidence/numbering-v1/migration-regressions.xml"
       }
+    },
+    {
+      "id": "local-setup-regressions",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/local/**/*.py"
+      ],
+      "argv": [
+        "python3",
+        "ops/local/test_runner.py"
+      ],
+      "required": true,
+      "timeout_seconds": 120,
+      "test_report": {
+        "format": "junit",
+        "glob": ".ai/evidence/local-setup-tests.xml"
+      }
+    },
+    {
+      "id": "operations-python-syntax",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/bin/*.py",
+        "ops/ci/*.py",
+        "ops/monitoring/*.py",
+        "build-tools/validate-seed/*.py"
+      ],
+      "argv": [
+        "python3",
+        "-m",
+        "compileall",
+        "-q",
+        "ops/bin",
+        "ops/ci",
+        "ops/monitoring",
+        "build-tools/validate-seed"
+      ],
+      "required": true,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "browser-client-types",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "tests/browser/**/*.ts",
+        "tests/clients/**/*.ts"
+      ],
+      "argv": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--strict",
+        "--module",
+        "ESNext",
+        "--moduleResolution",
+        "Bundler",
+        "--target",
+        "ES2024",
+        "--types",
+        "node",
+        "tests/browser/flows/account/account.spec.ts",
+        "tests/browser/flows/account/boundaries.spec.ts",
+        "tests/browser/flows/account/fixture.ts",
+        "tests/browser/flows/account/guards.spec.ts",
+        "tests/browser/flows/archives/archives.spec.ts",
+        "tests/browser/flows/archives/fixture.ts",
+        "tests/browser/flows/artwork/artwork.spec.ts",
+        "tests/browser/flows/credits/credits.spec.ts",
+        "tests/browser/flows/discovery/discovery.spec.ts",
+        "tests/browser/flows/discovery/fixture.ts",
+        "tests/browser/flows/draft-component/draft-component.spec.ts",
+        "tests/browser/flows/draft-recovery/draft-recovery.spec.ts",
+        "tests/browser/flows/draft-recovery/fixture.ts",
+        "tests/browser/flows/movies/fixture.ts",
+        "tests/browser/flows/movies/movies.spec.ts",
+        "tests/browser/flows/people/fixture.ts",
+        "tests/browser/flows/people/people.spec.ts",
+        "tests/browser/flows/policy/helpers.ts",
+        "tests/browser/flows/policy/policy.spec.ts",
+        "tests/browser/flows/remote/account.spec.ts",
+        "tests/browser/flows/remote/artwork.spec.ts",
+        "tests/browser/flows/remote/audit.spec.ts",
+        "tests/browser/flows/remote/authentication.ts",
+        "tests/browser/flows/remote/catalog.spec.ts",
+        "tests/browser/flows/remote/helpers.ts",
+        "tests/browser/flows/remote/lifecycle.spec.ts",
+        "tests/browser/flows/remote/manage.spec.ts",
+        "tests/browser/flows/remote/operations.spec.ts",
+        "tests/browser/flows/remote/presentation-responsive.spec.ts",
+        "tests/browser/flows/remote/presentation.spec.ts",
+        "tests/browser/flows/remote/references.spec.ts",
+        "tests/browser/flows/remote/state-mapping.ts",
+        "tests/browser/flows/shell/helpers.ts",
+        "tests/browser/flows/shell/shell.spec.ts",
+        "tests/browser/playwright.account.config.ts",
+        "tests/browser/playwright.app.config.ts",
+        "tests/browser/playwright.config.ts",
+        "tests/browser/playwright.draft-component.config.ts",
+        "tests/browser/playwright.policy.config.ts",
+        "tests/browser/playwright.remote.config.ts",
+        "tests/browser/remote-global-setup.ts",
+        "tests/clients/chatgpt/harness.ts",
+        "tests/clients/claude/harness.ts"
+      ],
+      "required": true,
+      "timeout_seconds": 300
     }
   ],
   "coverage": [

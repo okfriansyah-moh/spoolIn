@@ -1,3 +1,4 @@
+import { readPageInfo, type PageSlice } from '../../state/pagination';
 import type { GraphqlRequest } from '../../transport/graphql';
 import { withCsrfAndSignal } from '../../transport/request-options';
 import { record } from '../session/parse';
@@ -16,8 +17,8 @@ const CATALOG_OPERATION_QUERY = `query CatalogOperation($id: UUID!) {
   }
 }`;
 
-const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: Int = 24) {
-  managedTitles(state: $state, first: $first) {
+const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: Int, $after: Cursor) {
+  managedTitles(state: $state, first: $first, after: $after) {
     nodes {
       id kind state title releaseContext version
       release { year month day }
@@ -29,6 +30,7 @@ const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: 
 const MANAGED_TITLE_QUERY = `query ManagedTitle($id: UUID!) {
   managedTitle(id: $id) {
     id kind state title originalTitle synopsis
+    runtimeMinutes originalLanguage synopsisLanguage countries
     genres { id label }
     release { year month day }
     releaseContext
@@ -68,21 +70,33 @@ export async function fetchManagedTitles(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<readonly ManagedTitleRow[]> {
+  return (await fetchManagedTitlesPage(request, csrf, null, signal)).nodes;
+}
+
+export async function fetchManagedTitlesPage(
+  request: GraphqlRequest,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
+): Promise<PageSlice<ManagedTitleRow>> {
   const data = record(
     await request(
       MANAGED_TITLES_QUERY,
-      { state: 'ACTIVE' },
+      { state: 'ACTIVE', after },
       withCsrfAndSignal(csrf, signal),
     ),
   );
   const page = record(data.managedTitles);
-  const nodes = page.nodes;
-  if (!Array.isArray(nodes)) throw new Error('Managed titles unavailable.');
-  return Object.freeze(
-    nodes.map((node) =>
-      toManagedRow(node as Parameters<typeof toManagedRow>[0]),
+  if (!Array.isArray(page.nodes))
+    throw new Error('Managed titles unavailable.');
+  return Object.freeze({
+    nodes: Object.freeze(
+      page.nodes.map((node) =>
+        toManagedRow(node as Parameters<typeof toManagedRow>[0]),
+      ),
     ),
-  );
+    pageInfo: readPageInfo(page.pageInfo, after),
+  });
 }
 
 export async function fetchManagedMovie(
@@ -159,6 +173,7 @@ export type RecoveredCatalogOperation = Readonly<{
   resultId: string | null;
   version: string | null;
   problemCode: string | null;
+  resultExpired: boolean;
 }>;
 
 export async function recoverCatalogOperation(
@@ -187,5 +202,6 @@ export async function recoverCatalogOperation(
     resultId,
     version,
     problemCode: receipt.problem?.code ?? null,
+    resultExpired: receipt.resultExpired,
   });
 }

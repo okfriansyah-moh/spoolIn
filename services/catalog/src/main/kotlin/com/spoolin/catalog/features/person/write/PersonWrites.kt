@@ -2,6 +2,9 @@
 
 package com.spoolin.catalog.features.person.write
 
+import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
@@ -16,7 +19,6 @@ import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
-import spoolin.v1.Spoolin.FieldIssue
 import spoolin.v1.Spoolin.Outcome
 import spoolin.v1.Spoolin.PersonWrite
 import spoolin.v1.Spoolin.Problem
@@ -43,76 +45,70 @@ private const val WRITE_KIND = "WritePerson"
 class PersonWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
+    private val policy: CatalogWritePolicy = CatalogWritePolicy(),
 ) {
     fun writePerson(
         request: PersonWrite,
         response: StreamObserver<Outcome>,
     ) {
         try {
-            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            if (!Permissions.management(claims.role)) throw ActorRejected()
-            val operationId = parseId(request.context.operationId)
-            val correlationId = parseId(request.context.correlationId)
-            val actorScope = "account:${claims.accountId}"
-            val isCreate = !request.hasId()
-            val intentFields = intentFields(request, isCreate)
-            val intent =
-                OperationIntent(
-                    operationId,
-                    actorScope,
-                    WRITE_KIND,
-                    request.context.policyRevision,
-                    intentFields,
-                )
-            val outcome =
-                receipts.execute(intent, correlationId, true) { conn ->
-                    if (isCreate) {
-                        create(conn, request, claims.accountId, operationId, correlationId)
-                    } else {
-                        update(conn, request, claims.accountId, operationId, correlationId)
-                    }
-                }
+            val outcome = executePerson(request)
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
+            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
+        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
+            response.onError(Status.NOT_FOUND.asRuntimeException())
         } catch (e: ActorRejected) {
             response.onError(
                 Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException(),
             )
         } catch (e: InputViolation) {
-            val problem =
-                Problem
-                    .newBuilder()
-                    .setCode("FIELD_INVALID")
-                    .addFields(
-                        FieldIssue
-                            .newBuilder()
-                            .setPath(e.path)
-                            .setCode("INVALID")
-                            .setMessage(e.correction)
-                            .build(),
-                    ).build()
-            response.onNext(
-                Outcome
-                    .newBuilder()
-                    .setOperationId(request.context.operationId)
-                    .setState("FAILED")
-                    .setProblem(problem)
-                    .build(),
-            )
+            response.onNext(invalidOutcome(request.context.operationId, e))
             response.onCompleted()
+        }
+    }
+
+    private fun executePerson(request: PersonWrite): com.spoolin.support.receipts.ReceiptOutcome {
+        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (!Permissions.management(claims.role)) throw ActorRejected()
+        val operationId = parseId(request.context.operationId)
+        val correlationId = parseId(request.context.correlationId)
+        val actorScope = "account:${claims.accountId}"
+        val isCreate = !request.hasId()
+        val intentFields = CatalogWriteIntent.person(request)
+        val intent =
+            OperationIntent(
+                operationId,
+                actorScope,
+                WRITE_KIND,
+                request.context.policyRevision,
+                intentFields,
+            )
+        return receipts.execute(intent, correlationId, true) { conn ->
+            val command = policy.bind(request, request.context.policyRevision)
+            if (!isCreate && (!request.hasExpectedVersion() || request.expectedVersion < 0)) {
+                throw InputViolation("expectedVersion", "Supply the current version.")
+            }
+            if (isCreate) {
+                create(conn, command, claims.accountId, operationId, correlationId)
+            } else {
+                update(conn, command, claims.accountId, operationId, correlationId)
+            }
         }
     }
 
     private fun create(
         conn: Connection,
-        request: PersonWrite,
+        command: PolicyWrite<PersonWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
-        val validated = PersonValidation.validateCreate(request.values)
+        val request = command.input
+        val validated = PersonValidation.validateCreate(request.values, command.policy)
         val personId = UUID.randomUUID()
         val now = Timestamp.from(clock.instant())
         conn.executeBound(
@@ -143,11 +139,12 @@ class PersonWrites(
 
     private fun update(
         conn: Connection,
-        request: PersonWrite,
+        command: PolicyWrite<PersonWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
+        val request = command.input
         val personId = parseId(request.id)
         val expectedVersion = request.expectedVersion
         val current =
@@ -162,7 +159,7 @@ class PersonWrites(
         if (current.version != expectedVersion) {
             throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
         }
-        val patch = PersonValidation.validatePatch(request)
+        val patch = PersonValidation.validatePatch(request, command.policy)
         val newVersion = expectedVersion + 1
         val now = Timestamp.from(clock.instant())
         applyPatch(conn, personId, patch, newVersion, now)
@@ -286,24 +283,6 @@ class PersonWrites(
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private fun intentFields(
-        request: PersonWrite,
-        isCreate: Boolean,
-    ): List<Pair<String, String?>> {
-        val fields = mutableListOf<Pair<String, String?>>()
-        if (!isCreate) fields.add(Pair("id", request.id))
-        fields.add(Pair("name", request.values.name))
-        fields.add(
-            Pair(
-                "updateMask",
-                request.updateMask.pathsList
-                    .sorted()
-                    .joinToString(","),
-            ),
-        )
-        return fields
-    }
-
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
@@ -323,3 +302,24 @@ class PersonWrites(
         return b.build()
     }
 }
+
+private fun invalidOutcome(
+    operation: String,
+    violation: InputViolation,
+): Outcome =
+    Outcome
+        .newBuilder()
+        .setOperationId(operation)
+        .setState("FAILED")
+        .setProblem(
+            spoolin.v1.Spoolin.Problem
+                .newBuilder()
+                .setCode("FIELD_INVALID")
+                .addFields(
+                    spoolin.v1.Spoolin.FieldIssue
+                        .newBuilder()
+                        .setPath(violation.path)
+                        .setCode("INVALID")
+                        .setMessage(violation.correction),
+                ),
+        ).build()

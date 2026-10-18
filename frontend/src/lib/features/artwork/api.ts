@@ -1,6 +1,7 @@
 import type { GraphqlRequest } from '../../transport/graphql';
 import { TransportFailure } from '../../transport/graphql';
 import { record } from '../session/parse';
+import { operation } from '../session/outcome';
 
 const UPLOAD_ARTWORK = `mutation UploadArtwork(
   $operationId: UUID!
@@ -24,8 +25,8 @@ const UPLOAD_ARTWORK = `mutation UploadArtwork(
 const CANCEL_ARTWORK = `mutation CancelArtwork($operationId: UUID!, $uploadOperationId: UUID!) {
   cancelArtwork(operationId: $operationId, uploadOperationId: $uploadOperationId) {
     cancelled
-    operation { id state }
-    uploadOperation { id state }
+    operation { id state resultExpired problem { code retryAfterMs } }
+    uploadOperation { id state resultExpired problem { code retryAfterMs } }
   }
 }`;
 
@@ -55,9 +56,17 @@ function parseUploadResponse(
       ? String(record(problem).code)
       : null;
   const op = record(result.operation);
+  if (
+    op.id !== operationId ||
+    !['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(String(op.state)) ||
+    typeof op.resultExpired !== 'boolean'
+  ) {
+    throw new TransportFailure('uncertain');
+  }
+  if (op.resultExpired) throw new TransportFailure('uncertain');
   return Object.freeze({
     state: String(op.state),
-    operationId: String(op.id ?? operationId),
+    operationId,
     problemCode,
   });
 }
@@ -68,7 +77,7 @@ function artworkUploadBody(input: UploadArtworkInput): string {
     variables: {
       operationId: input.operationId,
       titleId: input.titleId,
-      expectedVersion: Number(input.expectedVersion),
+      expectedVersion: input.expectedVersion,
       policyRevision: input.policyRevision,
       content: input.contentBase64,
     },
@@ -154,7 +163,41 @@ export async function cancelArtwork(
     ),
   );
   const result = record(data.cancelArtwork);
-  return result.cancelled === true;
+  return confirmedCancellation(result, operationId, uploadOperationId);
+}
+
+function confirmedCancellation(
+  result: Record<string, unknown>,
+  operationId: string,
+  uploadOperationId: string,
+): boolean {
+  const receipt = operation(result.operation, operationId);
+  const upload =
+    result.uploadOperation === null
+      ? null
+      : operation(result.uploadOperation, uploadOperationId);
+  if (
+    receipt.resultExpired ||
+    receipt.state === 'EXPIRED' ||
+    receipt.state === 'PENDING'
+  )
+    throw new TransportFailure('uncertain');
+  if (receipt.state === 'FAILED') return false;
+  if (typeof result.cancelled !== 'boolean')
+    throw new TransportFailure('uncertain');
+  if (!result.cancelled) return false;
+  return cancelledUpload(upload);
+}
+
+function cancelledUpload(upload: ReturnType<typeof operation> | null): boolean {
+  if (
+    !upload ||
+    upload.resultExpired ||
+    upload.state !== 'FAILED' ||
+    upload.problem?.code !== 'CANCELLED'
+  )
+    throw new TransportFailure('uncertain');
+  return true;
 }
 
 export function fileToBase64(file: File): Promise<string> {

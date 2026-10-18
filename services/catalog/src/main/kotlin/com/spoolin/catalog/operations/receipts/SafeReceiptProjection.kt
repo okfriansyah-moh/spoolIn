@@ -9,7 +9,15 @@ object SafeReceiptProjection {
         if (value == null) return null
         val allowed =
             com.spoolin.support.problem.FailureKind.entries
-                .map { it.code } + "RESULT_EXPIRED"
+                .map { it.code } +
+                setOf(
+                    "RESULT_EXPIRED",
+                    "REJECTED",
+                    "CANCELLED",
+                    "FILE_INVALID",
+                    "ARTWORK_UNAVAILABLE",
+                    "ARTWORK_RETRY_EXHAUSTED",
+                )
         check(value in allowed) { "Stored operation problem is unavailable" }
         return value
     }

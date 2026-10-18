@@ -7,8 +7,13 @@ import com.spoolin.core.features.crypto.MountedKeys
 import com.spoolin.core.features.crypto.NonceAllocator
 import com.spoolin.core.features.crypto.ProtectedEnvelope
 import com.spoolin.core.features.crypto.ProtectedRead
+import com.spoolin.core.features.crypto.ProtectionAlert
 import com.spoolin.core.features.crypto.ProtectionBinding
+import com.spoolin.core.features.crypto.ProtectionFailure
 import com.spoolin.core.features.crypto.ProtectionUnavailable
+import com.spoolin.core.features.crypto.decryptProtected
+import com.spoolin.core.features.crypto.observeProtection
+import com.spoolin.core.features.crypto.recordFailure
 import java.util.UUID
 
 /**
@@ -22,6 +27,7 @@ class DraftCryptography(
     private val keys: MountedKeys,
     private val nonces: NonceAllocator,
     private val cipher: AeadCipher,
+    private val alert: ProtectionAlert = ProtectionAlert { },
 ) {
     /**
      * Reserves a nonce, encrypts [plaintext] under the current DRAFT write key, and returns
@@ -33,13 +39,30 @@ class DraftCryptography(
         rowId: UUID,
         plaintext: ByteArray,
     ): ProtectedEnvelope {
-        val key = registry.writeKey(KeyPurpose.DRAFT)
-        val bytes = keys.key(key.id, KeyPurpose.DRAFT) ?: throw ProtectionUnavailable()
+        val key = observeProtection(alert, ProtectionFailure.KEY) { registry.writeKey(KeyPurpose.DRAFT) }
+        val bytes =
+            observeProtection(alert, ProtectionFailure.KEY) {
+                keys.key(key.id, KeyPurpose.DRAFT) ?: throw ProtectionUnavailable()
+            }
         return try {
-            val nonce = nonces.reserve(key.id, KeyPurpose.DRAFT)
-            cipher.encrypt(key.id, bytes, nonce.bytes(), binding(rowId), plaintext)
+            val nonce =
+                observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
+                    nonces.reserve(key.id, KeyPurpose.DRAFT)
+                }
+            observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
+                cipher.encrypt(key.id, bytes, nonce.bytes(), binding(rowId), plaintext)
+            }
         } finally {
             bytes.fill(0)
+        }
+    }
+
+    fun requireCurrentWrite(
+        connection: java.sql.Connection,
+        envelope: ProtectedEnvelope,
+    ) {
+        observeProtection(alert, ProtectionFailure.KEY) {
+            registry.requireCurrentWrite(connection, envelope.keyId, KeyPurpose.DRAFT)
         }
     }
 
@@ -52,19 +75,15 @@ class DraftCryptography(
         envelope: ProtectedEnvelope,
     ): ProtectedRead<ByteArray> {
         val bytes =
-            if (registry.readable(envelope.keyId, KeyPurpose.DRAFT)) {
-                keys.key(envelope.keyId, KeyPurpose.DRAFT)
-            } else {
-                null
+            observeProtection(alert, ProtectionFailure.KEY) {
+                if (registry.readable(envelope.keyId, KeyPurpose.DRAFT)) {
+                    keys.key(envelope.keyId, KeyPurpose.DRAFT)
+                } else {
+                    null
+                }
             }
-        return if (bytes == null) {
-            ProtectedRead.Unavailable
-        } else {
-            try {
-                cipher.decrypt(envelope, bytes, binding(rowId))
-            } finally {
-                bytes.fill(0)
-            }
+        return decryptProtected(alert, bytes) { key ->
+            cipher.decrypt(envelope, key, binding(rowId)) { alert.recordFailure(it) }
         }
     }
 

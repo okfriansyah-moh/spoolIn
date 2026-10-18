@@ -6,11 +6,11 @@ import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
 import com.spoolin.support.work.AttemptOutcome
+import com.spoolin.support.work.WorkAttemptCompletion
 import com.spoolin.support.work.WorkClaim
 import com.spoolin.support.work.WorkFence
-import com.spoolin.support.work.WorkSchedule
-import com.spoolin.support.work.WorkAttemptCompletion
 import com.spoolin.support.work.WorkRecoveryCommit
+import com.spoolin.support.work.WorkSchedule
 import com.spoolin.support.work.WorkSql
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

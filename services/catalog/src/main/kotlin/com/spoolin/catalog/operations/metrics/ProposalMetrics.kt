@@ -16,7 +16,8 @@ class ProposalMetrics(
         Counter.builder("spoolin.proposal.rejected").description("Trusted proposal rejections").register(registry)
 
     init {
-        Gauge.builder("spoolin.work.pending") { reviewProposalDepth(dataSource).toDouble() }
+        Gauge
+            .builder("spoolin.work.pending") { reviewProposalDepth(dataSource).toDouble() }
             .description("Pending REVIEW proposals awaiting trusted approval")
             .register(registry)
     }

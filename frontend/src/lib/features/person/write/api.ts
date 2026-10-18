@@ -1,5 +1,6 @@
 import type { GraphqlRequest } from '../../../transport/graphql';
 import { withCsrfAndSignal } from '../../../transport/request-options';
+import { readPageInfo, type PageSlice } from '../../../state/pagination';
 import { record } from '../../session/parse';
 import type { ManagedPerson, PersonListRow } from './types';
 import {
@@ -8,8 +9,8 @@ import {
   type PersonMutationOutcome,
 } from './outcome';
 
-const MANAGED_PEOPLE_QUERY = `query ManagedPeople($state: RecordState!, $first: Int = 24) {
-  managedPeople(state: $state, first: $first) {
+const MANAGED_PEOPLE_QUERY = `query ManagedPeople($state: RecordState!, $first: Int, $after: Cursor) {
+  managedPeople(state: $state, first: $first, after: $after) {
     nodes { id name state version biography }
     pageInfo { endCursor hasNextPage }
   }
@@ -76,19 +77,29 @@ export async function fetchManagedPeople(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<readonly PersonListRow[]> {
+  return (await fetchManagedPeoplePage(request, csrf, null, signal)).nodes;
+}
+
+export async function fetchManagedPeoplePage(
+  request: GraphqlRequest,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
+): Promise<PageSlice<PersonListRow>> {
   const data = record(
     await request(
       MANAGED_PEOPLE_QUERY,
-      { state: 'ACTIVE' },
+      { state: 'ACTIVE', after },
       withCsrfAndSignal(csrf, signal),
     ),
   );
   const page = record(data.managedPeople);
-  const nodes = page.nodes;
-  if (!Array.isArray(nodes)) throw new Error('Managed people unavailable.');
-  return Object.freeze(
-    nodes.map((node) => toRow(node as Record<string, unknown>)),
-  );
+  if (!Array.isArray(page.nodes))
+    throw new Error('Managed people unavailable.');
+  return Object.freeze({
+    nodes: Object.freeze(page.nodes.map((node) => toRow(record(node)))),
+    pageInfo: readPageInfo(page.pageInfo, after),
+  });
 }
 
 export async function fetchManagedPerson(
@@ -143,7 +154,7 @@ export async function updatePerson(
       {
         operationId,
         id,
-        expectedVersion: Number(expectedVersion),
+        expectedVersion,
         policyRevision,
         patch,
       },
@@ -159,6 +170,7 @@ export type RecoveredCatalogOperation = Readonly<{
   resultId: string | null;
   version: string | null;
   problemCode: string | null;
+  resultExpired: boolean;
 }>;
 
 export async function recoverCatalogOperation(
@@ -187,5 +199,6 @@ export async function recoverCatalogOperation(
     resultId,
     version,
     problemCode: receipt.problem?.code ?? null,
+    resultExpired: receipt.resultExpired,
   });
 }

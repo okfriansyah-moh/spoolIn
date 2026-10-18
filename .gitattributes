@@ -1,0 +1,2 @@
+# Bundled workflow tools are maintained separately from application code.
+.ai/bundles/** linguist-vendored

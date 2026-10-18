@@ -1,6 +1,7 @@
 package com.spoolin.core.features.catalogview.person
 
 import com.spoolin.core.boundary.grpc.ActorIssuer
+import com.spoolin.core.features.policy.PolicyProvider
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -21,9 +22,11 @@ class ManagedPersonConfiguration {
     fun managedPersonGraphql(
         channels: GrpcChannelFactory,
         issuerProvider: ObjectProvider<ActorIssuer>,
+        provider: PolicyProvider,
     ): ManagedPersonGraphql =
         ManagedPersonGraphql(
             catalog = CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
             issuer = issuerProvider.ifAvailable,
+            policy = { provider.policy },
         )
 }

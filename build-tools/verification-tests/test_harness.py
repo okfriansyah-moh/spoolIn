@@ -125,6 +125,78 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(selector.report_path("integration", ["T003"]).name, "t003-tests.json")
         self.assertEqual(selector.report_path("unit", ["../../outside"]).name, "unit-selection-tests.json")
 
+    def test_explicit_blocked_obligation_never_dispatches_a_command(self):
+        entry = {"id": "actual-host", "kind": "blocked", "reason": "Actual required host unavailable"}
+        with patch.object(selector.subprocess, "run") as command:
+            code, result = selector.execute(entry)
+        self.assertEqual(2, code)
+        self.assertEqual(0, result["executed"])
+        self.assertEqual(entry["reason"], result["blocked_reason"])
+        command.assert_not_called()
+
+    def test_blocked_obligation_does_not_hide_later_real_suite_results(self):
+        entries = [{"id": "host", "kind": "blocked", "reason": "Actual host unavailable"},
+                   {"id": "owner", "argv": ["actual-owner-command"]}]
+        observed = [(2, {"selected": 1, "executed": 0, "failed": 0, "blocked_reason": "Actual host unavailable"}),
+                    (0, {"selected": 2, "executed": 2, "failed": 0})]
+        with tempfile.TemporaryDirectory() as temporary, patch.object(selector, "execute", side_effect=observed) as execute:
+            report = Path(temporary) / "selection.json"
+            self.assertEqual(2, selector.run(entries, report, "integration"))
+            result = json.loads(report.read_text())
+            self.assertEqual(2, execute.call_count)
+            self.assertEqual(2, result["executed"])
+            self.assertEqual(1, len(result["blocked_obligations"]))
+            self.assertEqual("owner", result["entries"][1]["id"])
+
+    def test_real_failure_retains_failure_exit_alongside_blocked_required_proof(self):
+        entries = [{"id": "owner", "argv": ["owner"]}, {"id": "host", "kind": "blocked"}]
+        observed = [(1, {"selected": 1, "executed": 1, "failed": 1}),
+                    (2, {"selected": 1, "executed": 0, "failed": 0, "blocked_reason": "Missing host"})]
+        with tempfile.TemporaryDirectory() as temporary, patch.object(selector, "execute", side_effect=observed):
+            report = Path(temporary) / "selection.json"
+            self.assertEqual(1, selector.run(entries, report, "integration"))
+            self.assertEqual(1, json.loads(report.read_text())["failed"])
+
+    def test_all_46_task_rows_have_assessed_nonempty_or_explicitly_blocked_selections(self):
+        mapping = json.loads((ROOT / "build-tools/verification-map.json").read_text())
+        self.assertEqual({f"T{number:03}" for number in range(1, 47)}, set(mapping["tasks"]))
+        for task, row in mapping["tasks"].items():
+            self.assertEqual(row["source"], row["selector_assessment"]["source_reference"])
+            for level in ("unit", "integration"):
+                self.assertTrue(row[level], f"{task}/{level} silently empty")
+                for entry in row[level]:
+                    if entry.get("kind") == "blocked":
+                        self.assertTrue(entry["reason"].strip())
+                    else:
+                        self.assertTrue(entry["argv"])
+                        self.assertTrue(entry["proof_boundary"].strip())
+
+    def test_native_reuse_requires_identical_commands_formats_reports_and_timeouts(self):
+        entry = {"id": "first", "kind": "native", "argv": ["actual", "boundary"], "native_format": "junit",
+                 "native_reports": ["owner/TEST-*.xml"], "timeout": 60}
+        self.assertEqual(selector.native_identity(entry), selector.native_identity(dict(entry, id="second")))
+        self.assertNotEqual(selector.native_identity(entry), selector.native_identity(dict(entry, argv=["different"])))
+        self.assertNotEqual(selector.native_identity(entry), selector.native_identity(dict(entry, native_reports=["other.xml"])))
+        self.assertIsNone(selector.native_identity({"kind": "blocked"}))
+
+    def test_native_case_parser_keeps_skips_and_failures_out_of_success_counts(self):
+        import run_declared_suite
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "TEST-boundary.xml"
+            path.write_text('<testsuite><testcase classname="Owner" name="ok"/>'
+                            '<testcase classname="Owner" name="missing"><skipped/></testcase>'
+                            '<testcase classname="Owner" name="bad"><failure/></testcase></testsuite>')
+            cases = run_declared_suite.parse_cases([path], "junit")
+            self.assertEqual(3, len(cases))
+            self.assertEqual(2, sum(case["executed"] for case in cases))
+            self.assertEqual(1, sum(case["failed"] for case in cases))
+            path.write_text('{"testResults":[{"name":"transport","assertionResults":['
+                            '{"fullName":"passed","status":"passed"},'
+                            '{"fullName":"not run","status":"pending"}]}]}')
+            cases = run_declared_suite.parse_cases([path], "vitest")
+            self.assertEqual(1, sum(case["executed"] for case in cases))
+            self.assertEqual(0, sum(case["failed"] for case in cases))
+
     def test_missing_required_sources_refuse_execution(self):
         with tempfile.TemporaryDirectory() as directory:
             entry = {"argv": [sys.executable, "-c", "raise RuntimeError('must not execute')"],
@@ -237,9 +309,12 @@ class SelectionTests(unittest.TestCase):
     def test_make_passes_task_argument_without_shell_evaluation(self):
         with tempfile.TemporaryDirectory() as directory:
             sentinel = Path(directory) / "must-not-exist"
-            result = subprocess.run(["make", "test-unit", f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True)
-            self.assertEqual(result.returncode, 2)
-            self.assertFalse(sentinel.exists())
+            for target in ("test-unit", "test-integration"):
+                with self.subTest(target=target):
+                    result = subprocess.run(["make", target, f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True, timeout=15)
+                    self.assertEqual(result.returncode, 2)
+                    self.assertIn(b"Unknown task: T999; touch", result.stderr)
+                    self.assertFalse(sentinel.exists())
 
 
 class JunitAdapterTests(unittest.TestCase):
@@ -361,8 +436,8 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
     """Run the pinned detector on marked fragments, never a claimed workflow run."""
 
     marker = '[[allowlists]]\ndescription = "Independently verified shared policy source snapshot SHA-256 lines in workflow receipts"'
-    # cd55bc8 added two reviewed provenance blocks before this selected-policy marker.
-    baseline_sha256 = "aa3cf252a96dd98089c62d6f62b04010cd7fffaabc02b940c46c94e5c774e58b"
+    # eaa39c8 changed only the pinned bundle path in the previously reviewed policy prefix.
+    baseline_sha256 = "4e79459074b497e90b5833aa4e352ddc1583ac1a23669ee202c89b113751609d"
     shared_paths = (
         "libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules.kt",
         "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest.kt",
@@ -387,13 +462,18 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
         cls.binary = shutil.which("gitleaks")
         if not cls.binary:
             raise SetupError("Pinned Gitleaks executable is required")
-        tool = next(item for item in json.loads((ROOT / ".ai/bundles/1.1.1/docs/verification-tools.json").read_text())["tools"] if item["name"] == "gitleaks")
+        tool = next(item for item in json.loads((ROOT / ".ai" / json.loads((ROOT / ".ai/config.json").read_text())["bundle"] / "docs/verification-tools.json").read_text())["tools"] if item["name"] == "gitleaks")
         version = subprocess.run([cls.binary, "version"], capture_output=True, text=True, check=True).stdout.strip()
         if version != tool["version"].removeprefix("v"):
             raise SetupError("Gitleaks version differs from the selected tool pin")
         cls.version = version
-        cls.candidate = (ROOT / ".ai/security/gitleaks.toml").read_text()
-        cls.baseline = cls.candidate.split(cls.marker)[0].rstrip() + "\n"
+        policy = (ROOT / ".ai/security/gitleaks.toml").read_text()
+        if policy.count(cls.marker) != 1:
+            raise SetupError("Expected one selected three-path scanner policy block")
+        prefix, selected = policy.split(cls.marker)
+        cls.baseline = prefix.rstrip() + "\n"
+        selected = selected.split("\n[[allowlists]]", 1)[0].rstrip()
+        cls.candidate = cls.baseline + "\n" + cls.marker + selected + "\n"
         if hashlib.sha256(cls.baseline.encode()).hexdigest() != cls.baseline_sha256:
             raise SetupError("Existing reviewed scanner policy changed outside the selected three-path block")
         cls.policy_inputs = Path(tempfile.gettempdir()) / "spoolin-t006-scanner-policy-inputs" / cls.output.name

@@ -516,10 +516,13 @@ class OwnerBoundaryTest {
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
         val mediaVolume = Files.createDirectories(fixture.root.resolve("media-volume"))
         return app.run(
+            "--spoolin.schema.minimum=1",
+            "--spoolin.schema.maximum=1",
             "--spoolin.media.volume=$mediaVolume",
             "--${owner.uppercase()}_DB_URL=${fixture.url(owner)}",
             "--${owner.uppercase()}_DB_USER=spoolin_${owner}_runtime",
             "--${owner.uppercase()}_DB_PASSWORD_FILE=${fixture.passwords.getValue("$owner-runtime")}",
+            "--${owner.uppercase()}_DB_MAINTENANCE_PASSWORD_FILE=${fixture.passwords.getValue("$owner-maintenance")}",
             "--SERVICE_CERT_FILE=${fixture.root.resolve("$owner.crt")}",
             "--SERVICE_KEY_FILE=${fixture.root.resolve("$owner.key")}",
             "--SERVICE_CA_FILE=${fixture.root.resolve("ca.crt")}",

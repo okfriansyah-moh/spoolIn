@@ -10,8 +10,8 @@
     "skipLibCheck": false,
     "declaration": true,
     "outDir": "dist",
-    "rootDir": "../build-tools/verification-tests/mcp",
+    "rootDir": "src",
     "types": ["node"]
   },
-  "include": ["../build-tools/verification-tests/mcp/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }

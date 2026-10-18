@@ -9,6 +9,7 @@
  *   - Retry uses the current criteria and generation.
  *   - Criteria are preserved across all states so they stay editable.
  */
+import { readPageInfo } from '../../state/pagination';
 import type { GraphqlRequest } from '../../transport/graphql';
 import type { Criteria, CatalogState, TitleSummary } from './types';
 import { EMPTY_CRITERIA, MAX_SEARCH_CODE_POINTS } from './types';
@@ -43,6 +44,8 @@ function mapTitleNodes(
     title: n.title,
     releaseContext: n.releaseContext ?? formatReleaseDate(n.release),
     artworkUrl: n.artwork?.url ?? null,
+    displayRelease: formatReleaseDate(n.release),
+    genreLabels: n.genres.map((genre) => genre.label),
   }));
 }
 
@@ -56,6 +59,7 @@ function catalogResultKind(
 
 export class CatalogController {
   private generation = 0;
+  private currentAfter: string | null = null;
   private active: AbortController | null = null;
   private debounceTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
   private readonly listeners = new Set<CatalogListener>();
@@ -91,6 +95,7 @@ export class CatalogController {
     this.current = { ...this.current, criteria: safe };
 
     globalThis.clearTimeout(this.debounceTimer);
+    this.begin();
 
     if (options.debounce !== false && textChanged) {
       // Show outdated/loading transition while debouncing
@@ -105,13 +110,59 @@ export class CatalogController {
 
   /** Retry current criteria (e.g. after failure). */
   retry(): void {
-    void this.search(this.current.criteria);
+    void this.search(this.current.criteria, this.currentAfter);
   }
 
   /** Trigger initial load with the given criteria (no debounce). */
-  load(criteria: Criteria): void {
+  load(criteria: Criteria, after: string | null = null): void {
+    globalThis.clearTimeout(this.debounceTimer);
     this.current = { ...this.current, criteria };
-    void this.search(criteria);
+    void this.search(criteria, after);
+  }
+
+  private pageAvailable(current: CatalogState): boolean {
+    return (
+      current.kind === 'catalog' &&
+      !current.loadingMore &&
+      !!current.pageInfo?.hasNextPage
+    );
+  }
+
+  async loadMore(): Promise<void> {
+    const current = this.current;
+    if (!this.pageAvailable(current)) return;
+    const after = current.pageInfo?.endCursor;
+    if (!after) return;
+    const generation = this.generation;
+    const filter = buildSearchInput(current.criteria);
+    if (!filter) return;
+    this.publish({ ...current, loadingMore: true, pageError: null });
+    try {
+      const result = await fetchTitles(
+        this.request,
+        {
+          filter: filter as Parameters<typeof fetchTitles>[1]['filter'],
+          after,
+        },
+        this.active?.signal,
+      );
+      if (generation !== this.generation) return;
+      this.currentAfter = after;
+      this.publish({
+        ...current,
+        titles: mapTitleNodes(result.nodes),
+        pageInfo: readPageInfo(result.pageInfo, after),
+        loadingMore: false,
+        pageError: null,
+      });
+    } catch {
+      if (generation === this.generation)
+        this.publish({
+          ...current,
+          loadingMore: false,
+          pageError: 'More titles could not be loaded. Retry this page.',
+        });
+    }
   }
 
   dispose(): void {
@@ -120,20 +171,22 @@ export class CatalogController {
     this.listeners.clear();
   }
 
-  private async search(criteria: Criteria): Promise<void> {
-    // Validate text before issuing a query
-    const textCheck = validateText(criteria.text, MAX_SEARCH_CODE_POINTS);
-    if (!textCheck.valid) {
-      this.publish(invalidCatalogState(criteria));
-      return;
-    }
+  private validSearchInput(criteria: Criteria) {
+    if (!validateText(criteria.text, MAX_SEARCH_CODE_POINTS).valid) return null;
+    return buildSearchInput(criteria);
+  }
 
-    const input = buildSearchInput(criteria);
+  private async search(
+    criteria: Criteria,
+    after: string | null = null,
+  ): Promise<void> {
+    const input = this.validSearchInput(criteria);
     if (input === null) {
-      this.publish(invalidCatalogState(criteria));
+      this.invalidate(criteria);
       return;
     }
 
+    this.currentAfter = after;
     const generation = this.begin();
     const signal = this.active?.signal;
     if (!signal) return;
@@ -149,7 +202,10 @@ export class CatalogController {
     try {
       const result = await fetchTitles(
         this.request,
-        { filter: input as Parameters<typeof fetchTitles>[1]['filter'] },
+        {
+          filter: input as Parameters<typeof fetchTitles>[1]['filter'],
+          ...(after ? { after } : {}),
+        },
         signal,
       );
 
@@ -161,12 +217,11 @@ export class CatalogController {
         kind: catalogResultKind(criteria, titles),
         criteria,
         titles,
-        pageInfo: result.pageInfo,
+        pageInfo: readPageInfo(result.pageInfo, after),
         invalidField: null,
       });
     } catch (err) {
-      if (generation !== this.generation) return; // stale
-      if (err instanceof Error && err.name === 'AbortError') return;
+      if (this.obsoleteSearch(generation, err)) return;
       this.publish({
         kind: 'failure',
         criteria,
@@ -175,6 +230,18 @@ export class CatalogController {
         invalidField: null,
       });
     }
+  }
+
+  private obsoleteSearch(generation: number, error: unknown): boolean {
+    return (
+      generation !== this.generation ||
+      (error instanceof Error && error.name === 'AbortError')
+    );
+  }
+
+  private invalidate(criteria: Criteria): void {
+    this.begin();
+    this.publish(invalidCatalogState(criteria));
   }
 
   private begin(): number {

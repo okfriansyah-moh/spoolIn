@@ -28,7 +28,11 @@ import io.grpc.stub.MetadataUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.springframework.context.support.StaticApplicationContext
 import org.springframework.core.env.StandardEnvironment
+import org.springframework.grpc.client.ClientInterceptorsConfigurer
+import org.springframework.grpc.client.GrpcChannelBuilderCustomizer
+import org.springframework.grpc.client.NettyGrpcChannelFactory
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.IdentityServiceGrpc
 import spoolin.v1.MediaServiceGrpc
@@ -70,13 +74,48 @@ private class RotationProof(
     private val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(base.identity), clock)
     private val old = pair(root, "old")
     private val next = pair(root, "next")
+    private val clientContext = StaticApplicationContext().apply { refresh() }
+    private val channels = mediaChannels()
 
     fun run() {
-        listOf("catalog", "media").forEach { owner ->
-            migrate(base.fixture, owner)
-            base.fixture.owner
-                .pool(owner)
-                .use { pool -> ownerProof(owner, pool) }
+        try {
+            listOf("catalog", "media").forEach(::runOwner)
+        } finally {
+            try {
+                channels.destroy()
+            } finally {
+                clientContext.close()
+            }
+        }
+    }
+
+    private fun runOwner(owner: String) {
+        migrate(base.fixture, owner)
+        base.fixture.owner
+            .pool(owner)
+            .use { pool -> ownerProof(owner, pool) }
+    }
+
+    private fun mediaChannels(): NettyGrpcChannelFactory {
+        val customizer =
+            GrpcChannelBuilderCustomizer<io.grpc.netty.NettyChannelBuilder> { target, builder ->
+                require(target == "catalog")
+                builder.overrideAuthority("catalog")
+            }
+        val interceptors = ClientInterceptorsConfigurer(clientContext).apply { afterPropertiesSet() }
+        return NettyGrpcChannelFactory(listOf(customizer), interceptors).apply {
+            setVirtualTargets { target ->
+                require(target == "catalog")
+                "127.0.0.1:${base.catalog.port}"
+            }
+            setCredentialsProvider { target ->
+                require(target == "catalog")
+                io.grpc.TlsChannelCredentials
+                    .newBuilder()
+                    .trustManager(root.resolve("ca.crt").toFile())
+                    .keyManager(root.resolve("media.crt").toFile(), root.resolve("media.key").toFile())
+                    .build()
+            }
         }
     }
 
@@ -126,11 +165,34 @@ private class RotationProof(
             com.spoolin.media.operations.receipts
                 .OwnerReceipts(pool, hashes)
                 .execute(intent, UUID.randomUUID(), true) { SafeResult(intent.id) }
+            ownedMediaAsset(pool, intent.id)
             val environment = StandardEnvironment()
-            val quarantine = QuarantineStore(Files.createTempDirectory("media-actor-rotation"))
-            com.spoolin.media
-                .Application()
-                .mediaService(pool, environment, quarantine)
+            val quarantine = QuarantineStore(Files.createTempDirectory(root, "media-actor-rotation-"))
+            com.spoolin.media.OwnerServiceConfiguration().mediaService(
+                dataSource = pool,
+                environment = environment,
+                quarantineStore = quarantine,
+                channels = channels,
+            )
+        }
+    }
+
+    private fun ownedMediaAsset(
+        pool: javax.sql.DataSource,
+        operation: UUID,
+    ) {
+        pool.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    "INSERT INTO appdata.asset(id, upload_operation_id, actor_id, state, " +
+                        "input_bytes, policy_revision) " +
+                        "VALUES (?, ?, ?, 'RECEIVING', 1, 'p1')",
+                ).use { statement ->
+                    statement.setObject(1, operation)
+                    statement.setObject(2, operation)
+                    statement.setObject(3, base.account)
+                    statement.executeUpdate()
+                }
         }
     }
 
@@ -166,7 +228,7 @@ private class RotationProof(
     private fun actors(
         owner: String,
         file: Path,
-    ): ActorInterceptor {
+    ): io.grpc.ServerInterceptor {
         if (owner == "catalog") {
             return ActorInterceptor(
                 owner,

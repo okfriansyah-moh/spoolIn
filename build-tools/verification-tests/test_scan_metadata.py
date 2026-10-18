@@ -17,7 +17,7 @@ class ScanMetadataTests(unittest.TestCase):
     def scan(self, files):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name in ['.ai/security/gitleaks.toml', '.ai/bundles/1.1.0/profiles/security/gitleaks.toml']:
+            for name in ['.ai/security/gitleaks.toml', '.ai/bundles/1.2.1/profiles/security/gitleaks.toml']:
                 target = root / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / name, target)

@@ -19,6 +19,12 @@ export type ManagedMovie = Readonly<{
   synopsis: string;
   genreIds: readonly string[];
   releaseYear: string;
+  releaseMonth?: number | null;
+  releaseDay?: number | null;
+  runtimeMinutes?: number | null;
+  originalLanguage?: string | null;
+  synopsisLanguage?: string;
+  countries?: readonly string[];
   version: string;
   artworkUrl: string | null;
   artworkUnavailable: boolean;
@@ -40,6 +46,9 @@ export type ListState =
   | {
       kind: 'ready';
       titles: readonly ManagedTitleRow[];
+      next: string | null;
+      loadingMore: boolean;
+      pagingError: boolean;
     };
 
 export type SavePhase =
@@ -52,7 +61,15 @@ export type SavePhase =
   | 'stale'
   | 'target-changed';
 
+export type RetainedDraftChoice = Readonly<{
+  id: string;
+  label: string;
+  expiresAt: string;
+}>;
+
 export type EditorState = Readonly<{
+  draftChoices: readonly RetainedDraftChoice[];
+  draftBaseKnown: boolean;
   phase: SavePhase;
   mode: 'create' | 'edit';
   movieId: string | null;

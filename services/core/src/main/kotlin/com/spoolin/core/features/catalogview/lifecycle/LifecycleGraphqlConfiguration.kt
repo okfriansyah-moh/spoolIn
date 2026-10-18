@@ -15,9 +15,11 @@ class LifecycleGraphqlConfiguration {
     fun lifecycleGraphql(
         channels: GrpcChannelFactory,
         issuerProvider: ObjectProvider<ActorIssuer>,
+        policy: com.spoolin.core.features.policy.PolicyProvider,
     ): LifecycleGraphql =
         LifecycleGraphql(
             catalog = CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
             issuer = issuerProvider.ifAvailable,
+            policyRevision = { policy.policy.revision },
         )
 }

@@ -1,3 +1,5 @@
+export SERVICE TASK
+
 .PHONY: start stop restart status logs seed test-unit test-integration
 
 start:
@@ -9,10 +11,14 @@ restart:
 status:
 	@bash ops/bin/status.sh
 logs:
-	@bash ops/bin/logs.sh $(SERVICE)
+	@bash ops/bin/logs.sh "$${SERVICE}"
 seed:
 	@bash ops/bin/seed.sh
 test-unit:
 	@bash ops/bin/test-unit.sh
 test-integration:
 	@bash ops/bin/test-integration.sh
+
+.PHONY: local-setup local-start local-status local-logs local-stop local-test local-reset
+local-setup local-start local-status local-logs local-stop local-test local-reset:
+	@python3 ops/local/run.py $(patsubst local-%,%,$@)

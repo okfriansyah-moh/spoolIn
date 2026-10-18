@@ -4,6 +4,8 @@ import com.spoolin.catalog.Application
 import com.spoolin.catalog.MigrationRunner
 import com.spoolin.catalog.SchemaReadiness
 import com.spoolin.catalog.ServiceIdentityInterceptor
+import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.support.receipts.IntentHashes
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -22,8 +24,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.ssl.SslBundles
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.grpc.server.lifecycle.GrpcServerLifecycle
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.Spoolin
@@ -39,6 +44,7 @@ import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OwnerBoundaryTest {
@@ -512,12 +518,16 @@ class OwnerBoundaryTest {
     }
 
     private fun application(): ConfigurableApplicationContext {
-        val app = SpringApplication(Application::class.java)
+        val app = SpringApplication(Application::class.java, FoundationDependencies::class.java)
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
         return app.run(
+            "--spoolin.schema.minimum=1",
+            "--spoolin.schema.maximum=1",
+            "--spoolin.foundation-fixture.enabled=true",
             "--${owner.uppercase()}_DB_URL=${fixture.url(owner)}",
             "--${owner.uppercase()}_DB_USER=spoolin_${owner}_runtime",
             "--${owner.uppercase()}_DB_PASSWORD_FILE=${fixture.passwords.getValue("$owner-runtime")}",
+            "--${owner.uppercase()}_DB_MAINTENANCE_PASSWORD_FILE=${fixture.passwords.getValue("$owner-maintenance")}",
             "--SERVICE_CERT_FILE=${fixture.root.resolve("$owner.crt")}",
             "--SERVICE_KEY_FILE=${fixture.root.resolve("$owner.key")}",
             "--SERVICE_CA_FILE=${fixture.root.resolve("ca.crt")}",
@@ -569,4 +579,12 @@ class OwnerBoundaryTest {
                 .build(),
             HttpResponse.BodyHandlers.ofString(),
         )
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnProperty(name = ["spoolin.foundation-fixture.enabled"], havingValue = "true")
+    class FoundationDependencies {
+        @Bean
+        fun ownerReceipts(source: DataSource): OwnerReceipts =
+            OwnerReceipts(source, IntentHashes(mapOf("fixture" to ByteArray(32) { 7 }), "fixture"))
+    }
 }

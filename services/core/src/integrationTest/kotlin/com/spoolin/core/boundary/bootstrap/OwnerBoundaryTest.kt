@@ -4,6 +4,14 @@ import com.spoolin.core.Application
 import com.spoolin.core.MigrationRunner
 import com.spoolin.core.SchemaReadiness
 import com.spoolin.core.ServiceIdentityInterceptor
+import com.spoolin.core.features.crypto.KeyMount
+import com.spoolin.core.features.crypto.KeyPurpose
+import com.spoolin.core.features.crypto.KeyRegistry
+import com.spoolin.core.features.crypto.MountedKeys
+import com.spoolin.core.features.crypto.NonceAllocator
+import com.spoolin.core.features.crypto.ProtectionMetrics
+import com.spoolin.core.operations.receipts.OwnerReceipts
+import com.spoolin.support.receipts.IntentHashes
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -12,6 +20,7 @@ import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.health.v1.HealthGrpc
 import io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.NettyChannelBuilder
+import io.micrometer.core.instrument.MeterRegistry
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -22,9 +31,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.ssl.SslBundles
 import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.grpc.server.lifecycle.GrpcServerLifecycle
 import spoolin.v1.IdentityServiceGrpc
 import spoolin.v1.Spoolin
@@ -34,12 +46,15 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermissions
+import java.security.SecureRandom
 import java.sql.SQLException
 import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OwnerBoundaryTest {
@@ -398,7 +413,10 @@ class OwnerBoundaryTest {
             "/actuator/health/readiness",
         ).forEach { path ->
             val response = get(client, httpPort, path)
-            assertTrue(response.statusCode() in setOf(403, 404), "$path returned ${response.statusCode()}")
+            // This valid artwork resource reaches an unavailable Catalog; missing routes still reject directly.
+            val expected =
+                if (path == "/artwork/00000000-0000-4000-8000-000000000000") setOf(503) else setOf(403, 404)
+            assertTrue(response.statusCode() in expected, "$path returned ${response.statusCode()}")
             assertFalse(response.body().contains("Representative navigation fixture"))
             assertFalse(
                 response
@@ -584,12 +602,16 @@ class OwnerBoundaryTest {
     }
 
     private fun application(): ConfigurableApplicationContext {
-        val app = SpringApplication(Application::class.java)
+        val app = SpringApplication(Application::class.java, FoundationDependencies::class.java)
         app.setDefaultProperties(mapOf("spring.main.banner-mode" to "off", "logging.level.root" to "ERROR"))
         return app.run(
+            "--spoolin.schema.minimum=1",
+            "--spoolin.schema.maximum=1",
+            "--spoolin.foundation-fixture.enabled=true",
             "--${owner.uppercase()}_DB_URL=${fixture.url(owner)}",
             "--${owner.uppercase()}_DB_USER=spoolin_${owner}_runtime",
             "--${owner.uppercase()}_DB_PASSWORD_FILE=${fixture.passwords.getValue("$owner-runtime")}",
+            "--${owner.uppercase()}_DB_MAINTENANCE_PASSWORD_FILE=${fixture.passwords.getValue("$owner-maintenance")}",
             "--SERVICE_CERT_FILE=${fixture.root.resolve("$owner.crt")}",
             "--SERVICE_KEY_FILE=${fixture.root.resolve("$owner.key")}",
             "--SERVICE_CA_FILE=${fixture.root.resolve("ca.crt")}",
@@ -642,4 +664,35 @@ class OwnerBoundaryTest {
                 .build(),
             HttpResponse.BodyHandlers.ofString(),
         )
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnProperty(name = ["spoolin.foundation-fixture.enabled"], havingValue = "true")
+    class FoundationDependencies {
+        @Bean
+        fun ownerReceipts(source: DataSource): OwnerReceipts =
+            OwnerReceipts(source, IntentHashes(mapOf("fixture" to ByteArray(32) { 7 }), "fixture"))
+
+        @Bean
+        fun keyRegistry(source: DataSource): KeyRegistry = KeyRegistry(source)
+
+        @Bean
+        fun nonceAllocator(source: DataSource): NonceAllocator = NonceAllocator(source)
+
+        @Bean
+        fun protectionMetrics(registry: MeterRegistry): ProtectionMetrics = ProtectionMetrics(registry)
+
+        @Bean
+        fun mountedKeys(): MountedKeys {
+            val file = Files.createTempFile("foundation-draft-key-", ".key")
+            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-------"))
+            val bytes = ByteArray(32).also(SecureRandom()::nextBytes)
+            try {
+                Files.write(file, bytes)
+                return MountedKeys(mapOf("fixture" to KeyMount(KeyPurpose.DRAFT, file)), null)
+            } finally {
+                bytes.fill(0)
+                Files.deleteIfExists(file)
+            }
+        }
+    }
 }

@@ -1,8 +1,13 @@
 package com.spoolin.catalog.features.person.read
 
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
@@ -12,12 +17,8 @@ import spoolin.v1.Spoolin.Person
 import spoolin.v1.Spoolin.PersonPage
 import spoolin.v1.Spoolin.PersonValues
 import java.sql.ResultSet
-import java.util.Base64
 import java.util.UUID
 import javax.sql.DataSource
-
-private const val DEFAULT_FIRST = 24
-private const val MAX_PAGE = 100
 
 /**
  * Managed (Maintainer-only) person read operations for the Catalog gRPC service.
@@ -33,6 +34,8 @@ private const val MAX_PAGE = 100
  */
 class ManagedPersonReads(
     private val dataSource: DataSource,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
+    private val cursors: ManagedReadCursors = ManagedReadCursors.ephemeral(),
 ) {
     fun managedPerson(
         request: Id,
@@ -51,6 +54,8 @@ class ManagedPersonReads(
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: InputViolation) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 
@@ -66,9 +71,10 @@ class ManagedPersonReads(
             if (state !in setOf("ACTIVE", "ARCHIVED")) {
                 throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
             }
-            val first = if (request.first > 0) request.first.coerceAtMost(MAX_PAGE) else DEFAULT_FIRST
-            val after = request.after.takeIf { it.isNotEmpty() }
-            val page = listManagedPeople(state, first, after)
+            val first = ReadPolicy(policy()).rpcPageSize(request.first)
+            val scope = cursors.scope(ReadPolicy(policy()), "managed-people", first, mapOf("state" to state))
+            val after = cursors.person(request.after.takeIf { it.isNotEmpty() }, scope)
+            val page = listManagedPeople(state, first, after, scope)
             val builder = PersonPage.newBuilder()
             page.rows.forEach { builder.addNodes(personProto(it)) }
             page.endCursor?.let { builder.endCursor = it }
@@ -77,6 +83,8 @@ class ManagedPersonReads(
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: InputViolation) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 
@@ -114,16 +122,17 @@ class ManagedPersonReads(
     private fun listManagedPeople(
         state: String,
         first: Int,
-        after: String?,
+        after: com.spoolin.catalog.features.search.PeopleCursor.Keyset?,
+        scope: String,
     ): ManagedPersonPage {
         val params = mutableListOf<Any?>(state)
         var keysetClause = ""
-        val cursor = after?.let { decodePersonCursor(it) }
+        val cursor = after
         if (cursor != null) {
             keysetClause = " AND (p.name > ? OR (p.name = ? AND p.id > ?))"
-            params.add(cursor.first)
-            params.add(cursor.first)
-            params.add(cursor.second)
+            params.add(cursor.name)
+            params.add(cursor.name)
+            params.add(cursor.id)
         }
         val sql =
             "SELECT id, name, biography, status, version FROM person p" +
@@ -136,7 +145,15 @@ class ManagedPersonReads(
             }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
-        val endCursor = page.lastOrNull()?.let { encodePersonCursor(it.name, it.id) }
+        val endCursor =
+            page.lastOrNull()?.let {
+                cursors.people.encode(
+                    com.spoolin.catalog.features.search.PeopleCursor
+                        .Keyset(it.name, it.id),
+                    scope,
+                    cursors.now(),
+                )
+            }
         return ManagedPersonPage(page, endCursor, hasNext)
     }
 
@@ -162,35 +179,6 @@ class ManagedPersonReads(
             ).setState(row.status)
             .setVersion(row.version)
             .build()
-
-    // ── cursor encoding ───────────────────────────────────────────────────────
-
-    /**
-     * Cursor format: Base64Url(name):uuid
-     * URL-safe Base64 uses [A-Za-z0-9\-_] — no colons — so splitting on ':' is unambiguous.
-     */
-    private fun encodePersonCursor(
-        name: String,
-        id: UUID,
-    ): String {
-        val encoded =
-            Base64
-                .getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(name.toByteArray(Charsets.UTF_8))
-        return "$encoded:$id"
-    }
-
-    private fun decodePersonCursor(cursor: String): Pair<String, UUID>? =
-        runCatching {
-            val colonIdx = cursor.indexOf(':')
-            if (colonIdx < 0) return null
-            val encodedName = cursor.substring(0, colonIdx)
-            val uuidStr = cursor.substring(colonIdx + 1)
-            val name = String(Base64.getUrlDecoder().decode(encodedName), Charsets.UTF_8)
-            val uuid = UUID.fromString(uuidStr)
-            Pair(name, uuid)
-        }.getOrNull()
 
     private fun parseId(value: String): UUID =
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }

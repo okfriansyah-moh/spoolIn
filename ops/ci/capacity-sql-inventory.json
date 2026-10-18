@@ -1,0 +1,162 @@
+{
+  "scope": "TD7.4/7.5 plan families; actual emitted SQL and query counts retained separately",
+  "families": [
+    {
+      "id": "rare",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "common",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "unfiltered",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "multi-genre",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "unknown-date",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "people",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/person/read/PersonSearch.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "private-credit",
+      "sources": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/person/read/PersonSearch.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "worker-due",
+      "sources": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/work/WorkSql.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "worker-exhausted",
+      "sources": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/observability/OwnerMetrics.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "work-purge",
+      "sources": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/maintenance/WorkRetention.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "account-lookup",
+      "sources": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/account/persistence/ProtectedAccounts.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "nonce",
+      "sources": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/NonceAllocator.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "rate-admission",
+      "sources": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/ratelimit/RateAdmission.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "rate-purge",
+      "sources": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/maintenance/RetentionMaintenance.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    },
+    {
+      "id": "draft-purge",
+      "sources": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/maintenance/RetentionMaintenance.kt"
+      ],
+      "requiredDatasets": [
+        "200",
+        "100k"
+      ]
+    }
+  ],
+  "emittedSqlSources": [
+    "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt",
+    "services/catalog/src/main/kotlin/com/spoolin/catalog/features/provenance/ProvenanceReads.kt",
+    "services/catalog/src/main/kotlin/com/spoolin/catalog/boundary/grpc/PublicCatalogReads.kt",
+    "services/catalog/src/main/kotlin/com/spoolin/catalog/features/movie/ManagedMovieReads.kt",
+    "services/core/src/main/kotlin/com/spoolin/core/features/catalogview/read/CatalogViewGraphql.kt"
+  ]
+}

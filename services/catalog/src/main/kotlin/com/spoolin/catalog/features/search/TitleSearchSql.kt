@@ -2,14 +2,16 @@
 
 package com.spoolin.catalog.features.search
 
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val MAX_PAGE = 100
-private const val SEARCH_MAX_CODE_POINTS = 200
+private const val GENRE_BATCH_SIZE = 100
 
 /**
  * Native SQL title search with pg_unicode_fast casefold matching.
@@ -23,6 +25,7 @@ private const val SEARCH_MAX_CODE_POINTS = 200
  */
 class TitleSearchSql(
     private val dataSource: DataSource,
+    private val policy: () -> PublicPolicy = { PolicyEnvironment.resolve(System::getenv) },
 ) {
     data class TitleRow(
         val id: UUID,
@@ -62,21 +65,27 @@ class TitleSearchSql(
         first: Int,
         after: CatalogCursor.Keyset?,
     ): TitlePage {
-        val limit = first.coerceIn(1, MAX_PAGE)
+        val limit = ReadPolicy(policy()).pageSize(first)
         val params = mutableListOf<Any?>()
         val where = mutableListOf<String>("t.status = 'ACTIVE'")
 
         // Text search using pg_unicode_fast casefold + literal LIKE
-        if (!text.isNullOrEmpty()) {
-            validateSearchLength(text)
-            val pattern = "%" + CatalogCursor.escapeWildcards(text) + "%"
+        val normalized = ReadPolicy(policy()).search(text)
+        if (normalized != null) {
+            val pattern = "%" + CatalogCursor.escapeWildcards(normalized) + "%"
             val condition =
-                "(casefold(t.display_title) " +
-                    "LIKE casefold(?) ESCAPE '\\' " +
+                "(casefold(t.display_title COLLATE pg_unicode_fast) " +
+                    "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\' " +
                     "OR (t.original_title IS NOT NULL AND " +
-                    "casefold(t.original_title) " +
-                    "LIKE casefold(?) ESCAPE '\\'))"
+                    "casefold(t.original_title COLLATE pg_unicode_fast) " +
+                    "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\') " +
+                    "OR EXISTS (SELECT 1 FROM credit sc JOIN person sp ON sp.id=sc.person_id " +
+                    "JOIN credit_role sr ON sr.id=sc.role_id WHERE sc.title_id=t.id " +
+                    "AND sp.status='ACTIVE' AND sr.category IN ('CAST','CREATOR') " +
+                    "AND casefold(sp.name COLLATE pg_unicode_fast) " +
+                    "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\'))"
             where.add(condition)
+            params.add(pattern)
             params.add(pattern)
             params.add(pattern)
         }
@@ -148,6 +157,25 @@ class TitleSearchSql(
         }
     }
 
+    fun findGenresForTitles(titleIds: List<UUID>): Map<UUID, List<UUID>> {
+        if (titleIds.isEmpty()) return emptyMap()
+        return dataSource.connection.use { connection ->
+            titleIds
+                .distinct()
+                .chunked(GENRE_BATCH_SIZE)
+                .flatMap { batch ->
+                    val placeholders = batch.joinToString(",") { "?" }
+                    connection.queryBound(
+                        "SELECT title_id,genre_id FROM title_genre WHERE title_id IN ($placeholders) " +
+                            "ORDER BY title_id,genre_id",
+                        batch,
+                    ) { row ->
+                        row.getObject("title_id", UUID::class.java) to row.getObject("genre_id", UUID::class.java)
+                    }
+                }.groupBy({ it.first }, { it.second })
+        }
+    }
+
     // ── keyset continuation ───────────────────────────────────────────────────
 
     /**
@@ -164,7 +192,7 @@ class TitleSearchSql(
      * Key invariant: if a field is NULL in the cursor, all rows with that field NOT NULL
      * within the same parent context have already appeared (they sort before NULL).
      */
-    private fun keysetCondition(
+    internal fun keysetCondition(
         after: CatalogCursor.Keyset,
         params: MutableList<Any?>,
     ): String {
@@ -176,7 +204,7 @@ class TitleSearchSql(
         return when {
             y != null && m != null && d != null -> {
                 // Full-date cursor: (y0, m0, d0, id0)
-                params.addAll(listOf(y, y, y, m, y, m, y, m, d, y, m, d, id))
+                params.addAll(listOf(y, y, m, y, y, m, d, y, m, y, m, d, id))
                 """(t.release_year < ?
                    OR t.release_year IS NULL
                    OR (t.release_year = ? AND t.release_month < ?)
@@ -188,7 +216,7 @@ class TitleSearchSql(
             y != null && m != null -> {
                 // Year+month cursor, unknown day: (y0, m0, null, id0)
                 // Rows with day IS NOT NULL at (y0, m0) came before this cursor; exclude them.
-                params.addAll(listOf(y, y, m, y, m, id))
+                params.addAll(listOf(y, y, m, y, y, m, id))
                 """(t.release_year < ?
                    OR t.release_year IS NULL
                    OR (t.release_year = ? AND t.release_month < ?)
@@ -250,12 +278,6 @@ class TitleSearchSql(
             assetId = rs.getObject("asset_id")?.let { UUID.fromString(it.toString()) },
             version = rs.getLong("version"),
         )
-    }
-
-    private fun validateSearchLength(text: String) {
-        require(text.codePointCount(0, text.length) <= SEARCH_MAX_CODE_POINTS) {
-            "Search text exceeds maximum length"
-        }
     }
 
     companion object {

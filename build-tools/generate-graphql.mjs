@@ -54,7 +54,7 @@ for (const [kind, object] of [
     const name = field.name[0].toUpperCase() + field.name.slice(1);
     const definitions = field.args.map(
       (arg) =>
-        `$${arg.name}: ${arg.type}${arg.astNode.defaultValue ? ` = ${print(arg.astNode.defaultValue)}` : ''}`,
+        `$${arg.name}: ${arg.type}${arg.name !== 'first' && arg.astNode.defaultValue ? ` = ${print(arg.astNode.defaultValue)}` : ''}`,
     );
     const args = field.args.map((arg) => `${arg.name}: $${arg.name}`);
     operationDocuments.push(

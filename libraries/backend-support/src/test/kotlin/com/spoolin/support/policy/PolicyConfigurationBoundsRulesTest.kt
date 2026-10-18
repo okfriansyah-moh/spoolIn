@@ -34,6 +34,7 @@ class PolicyConfigurationBoundsRulesTest {
             "characterName",
             "biography",
             "password",
+            "search",
         )
 
     @TestFactory
@@ -61,12 +62,7 @@ class PolicyConfigurationBoundsRulesTest {
     fun minimumConfigurationBounds() =
         configurableMinima.flatMap { field ->
             val maximum = upperBounds.getValue(field)
-            val upper =
-                when (field) {
-                    "personName" -> 21793
-                    "title", "synopsis" -> 21777
-                    else -> maximum
-                }
+            val upper = minimumUpper(field, maximum)
             listOf(0, 1, 2, upper - 1, upper, upper + 1).map { value ->
                 dynamicTest(
                     "F-CONFIG $field minimum $value (max $maximum; complete siblings)",
@@ -77,13 +73,8 @@ class PolicyConfigurationBoundsRulesTest {
                             "${prefix}_MIN_CODE_POINTS" to value.toString(),
                             "${prefix}_MAX_CODE_POINTS" to maximum.toString(),
                         ) +
-                            when (field) {
-                                "personName" -> mapOf("BIOGRAPHY_MAX_CODE_POINTS" to "1")
-                                "title" -> movieSiblingBounds("SYNOPSIS")
-                                "synopsis" -> movieSiblingBounds("TITLE")
-                                else -> emptyMap()
-                            }
-                    if (value in 1..upper) {
+                            minimumSiblings(field)
+                    if (value in (if (field == "search") 0 else 1)..upper) {
                         assertEquals(
                             value,
                             PolicySettings
@@ -99,6 +90,24 @@ class PolicyConfigurationBoundsRulesTest {
                     }
                 }
             }
+        }
+
+    private fun minimumUpper(
+        field: String,
+        maximum: Int,
+    ): Int =
+        when (field) {
+            "personName" -> 21793
+            "title", "synopsis" -> 21777
+            else -> maximum
+        }
+
+    private fun minimumSiblings(field: String): Map<String, String> =
+        when (field) {
+            "personName" -> mapOf("BIOGRAPHY_MAX_CODE_POINTS" to "1")
+            "title" -> movieSiblingBounds("SYNOPSIS")
+            "synopsis" -> movieSiblingBounds("TITLE")
+            else -> emptyMap()
         }
 
     private fun movieSiblingBounds(other: String): Map<String, String> =

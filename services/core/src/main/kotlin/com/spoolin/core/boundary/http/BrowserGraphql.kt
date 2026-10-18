@@ -21,15 +21,17 @@ class BrowserGraphql(
     private val policy: PolicyProvider,
     private val graphql: PolicyGraphql,
     private val boundary: BrowserBoundary,
-    private val identity: org.springframework.beans.factory.ObjectProvider<BrowserIdentity>,
     private val requests: BrowserRequests,
-    private val admission: org.springframework.beans.factory.ObjectProvider<BrowserAdmission>,
+    private val services: BrowserServices,
 ) {
+    private val logger = org.slf4j.LoggerFactory.getLogger(BrowserGraphql::class.java)
+
     @RequestMapping("/graphql")
     fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> {
         val started = System.nanoTime()
+        val observation = GraphqlObservation(services.metrics.ifAvailable, started)
         return try {
-            submit(request, started)
+            submit(request, started, observation)
         } catch (failure: BrowserRejected) {
             BrowserResponses.complete(failure(failure.status))
         } catch (_: GraphqlSizeExceeded) {
@@ -38,16 +40,18 @@ class BrowserGraphql(
             BrowserResponses.complete(failure(BrowserBoundary.BAD_REQUEST))
         } catch (_: IllegalArgumentException) {
             BrowserResponses.complete(failure(BrowserBoundary.BAD_REQUEST))
-        }
+        }.also(observation::attach)
     }
 
     private fun submit(
         request: HttpServletRequest,
         started: Long,
+        observation: GraphqlObservation,
     ): DeferredResult<ResponseEntity<Map<String, Any?>>> {
         boundary.check(request)
         val body = body(request)
         val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
+        observation.roots = parsed.roots.toSet()
         val identity = parsed.roots.any { it in setOf("register", "signIn", "signOut", "session") }
         val budget = if (identity) IDENTITY_BUDGET_MS else METADATA_BUDGET_MS
         val elapsed =
@@ -92,9 +96,13 @@ class BrowserGraphql(
         val upload = parsed.roots.singleOrNull() == "uploadArtwork"
         val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
         if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
-        val identities = identity.ifAvailable ?: throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
+        val identities =
+            services.identity.ifAvailable ?: run {
+                logger.error("Browser identity unavailable")
+                throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
+            }
         val context =
-            admission.ifAvailable?.context(request, parsed, identities, deadline)
+            services.admission.ifAvailable?.context(request, parsed, identities, deadline)
                 ?: unavailable()
         val result = graphql.execute(body.input, context)
         val headers = HttpHeaders()
@@ -103,9 +111,11 @@ class BrowserGraphql(
         return ResponseEntity.status(status(result)).headers(headers).body(result)
     }
 
-    private fun unavailable(): Nothing =
+    private fun unavailable(): Nothing {
+        logger.error("Browser admission unavailable")
         throw com.spoolin.core.features.ratelimit
             .RateUnavailable()
+    }
 
     private fun retryAfter(result: Map<String, Any?>): String? {
         val error = (result["errors"] as? List<*>)?.firstOrNull() as? Map<*, *>

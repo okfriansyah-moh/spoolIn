@@ -4,13 +4,14 @@
   "version": "0.0.0-foundation",
   "type": "module",
   "scripts": {
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc --project tsconfig.json && node scripts/build-review.mjs",
     "check": "tsc --project tsconfig.json --noEmit",
-    "lint": "npm run lint --prefix ..",
-    "check:dependencies": "depcruise --config ../build-tools/verification-tests/dependency-cruiser.cjs ../build-tools/verification-tests/mcp",
-    "test:coverage": "node ../build-tools/verification-tests/pending.mjs mcp-unit",
+    "lint": "eslint --config ../build-tools/verification-tests/eslint.config.mjs src test scripts vitest.config.ts --max-warnings 0",
+    "check:dependencies": "depcruise --config ../build-tools/verification-tests/dependency-cruiser.cjs src",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
     "precheck": "node ../build-tools/verification-tests/production_contracts.mjs",
-    "prebuild": "node ../build-tools/verification-tests/production_contracts.mjs"
+    "prebuild": "node ../build-tools/verification-tests/production_contracts.mjs",
+    "pretest:coverage": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "2.3.1",
@@ -20,6 +21,12 @@
     "@modelcontextprotocol/server": "2.3.1",
     "zod": "4.6.7",
     "@grpc/grpc-js": "1.14.6",
-    "@bufbuild/protobuf": "2.16.0"
+    "@bufbuild/protobuf": "2.16.0",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/sdk-trace-node": "2.12.0"
+  },
+  "devDependencies": {
+    "vite": "8.3.4",
+    "jsdom": "30.1.3"
   }
 }

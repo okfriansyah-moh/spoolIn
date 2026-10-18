@@ -28,7 +28,7 @@ data class LeaseStatus(
  * 4. lease_until > now       — the lease has not expired yet
  * 5. deadline_at > now       — the work deadline has not been reached
  *
- * The SQL UPDATE WHERE clause enforces conditions 1–3 atomically; this function makes the
+ * The SQL UPDATE WHERE clause enforces all five conditions atomically; this function makes the
  * eligibility logic explicit for unit testing and pre-send checks.
  */
 object WorkFence {

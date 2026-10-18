@@ -2,6 +2,7 @@
 
 package com.spoolin.core.features.catalogview.lifecycle
 
+import com.spoolin.core.boundary.graphql.GraphqlLongArguments
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
@@ -23,6 +24,11 @@ private const val DEADLINE_SECONDS = 5L
 class LifecycleGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
+    private val policyRevision: () -> String = {
+        com.spoolin.support.policy.PolicyEnvironment
+            .resolve(System::getenv)
+            .revision
+    },
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q -> q.dataFetcher("deletionImpact") { env -> deletionImpact(env) } }
@@ -85,7 +91,7 @@ class LifecycleGraphql(
         impactToken: String?,
     ): Spoolin.Lifecycle {
         val targetId = requireNotNull(env.getArgument<String>("id"))
-        val version = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val version = GraphqlLongArguments.required(env)
         val action = requireNotNull(env.getArgument<String>("action"))
         val confirmed = env.getArgument<Boolean>("confirmed") == true
         val grpcContext =
@@ -93,7 +99,7 @@ class LifecycleGraphql(
                 .newBuilder()
                 .setOperationId(operationId.toString())
                 .setCorrelationId(context.correlation.toString())
-                .setPolicyRevision("")
+                .setPolicyRevision(policyRevision())
                 .build()
         val versioned =
             Spoolin.VersionedId
@@ -152,8 +158,10 @@ class LifecycleGraphql(
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
-    private fun browser(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun browser(env: DataFetchingEnvironment): BrowserContext {
+        val browser: BrowserContext? = env.graphQlContext.get("browser")
+        return requireNotNull(browser)
+    }
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 }

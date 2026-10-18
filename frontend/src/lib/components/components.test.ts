@@ -9,6 +9,7 @@ import Notice from './Notice.svelte';
 import OperationFeedback from './OperationFeedback.svelte';
 import SafeLink from './SafeLink.svelte';
 import ArtworkSlot from './ArtworkSlot.svelte';
+import PosterAttribution from './PosterAttribution.svelte';
 import TitleCard from './TitleCard.svelte';
 import ConfirmDialog from './ConfirmDialog.svelte';
 import Progress from './Progress.svelte';
@@ -87,6 +88,10 @@ it('fields associate exact help and errors with native controls', () => {
       required: true,
     },
   }).body;
+  expect(body).toContain('id="title-label"');
+  expect(body).toContain('aria-labelledby="title-label"');
+  expect(body).toContain('aria-hidden="true"');
+  expect(body).toContain(' · Required');
   expect(body).toContain('title-help title-error');
   expect(body).toContain('aria-invalid="true"');
   expect(body).toContain('&lt;script>');
@@ -324,4 +329,111 @@ it('shell defaults to public navigation with no demo role selection', () => {
       },
     }).body,
   ).toContain('aria-current="page"');
+  expect(
+    render(AppShell, {
+      props: {
+        children,
+        capabilities: { verified: true, manageCatalog: true },
+        currentPath: '/manage/movies/new',
+      },
+    }).body,
+  ).toMatch(/href="\/manage\/movies"[^>]*aria-current="page"/);
+});
+
+it('large genre collections retain every native choice and selection inside a labelled region', () => {
+  const genres = Array.from({ length: 120 }, (_, index) => ({
+    id: `genre-${index}`,
+    name: `Genre ${index}`,
+  }));
+  const body = render(CatalogFilters, {
+    props: {
+      criteria: {
+        text: '',
+        kind: '',
+        genres: ['genre-119'],
+        year: '',
+        month: '',
+      },
+      genres,
+      years: ['2025'],
+    },
+  }).body;
+  expect(body).toContain('role="region"');
+  expect(body).toContain('aria-label="Genre choices"');
+  expect(body).toContain(
+    'Every genre stays available. Scroll the list or search by name.',
+  );
+  expect(body.match(/type="checkbox"/g)).toHaveLength(120);
+  for (const genre of genres) expect(body).toContain(`value="${genre.id}"`);
+  expect(body.match(/ checked/g)).toHaveLength(1);
+});
+
+it('marks the catalog as current on a title detail route', () => {
+  const body = render(AppShell, {
+    props: {
+      children,
+      currentPath: '/titles/seeded-title-id',
+    },
+  }).body;
+  expect(body).toMatch(/href="\/" aria-current="page">Catalog/);
+});
+
+it('poster attribution follows the selected asset and hides removed artwork', () => {
+  const provenance = [
+    {
+      source: 'poster',
+      externalId: 'asset-one',
+      recordUrl: 'https://www.themoviedb.org/movie/1',
+      reuseNote: 'Poster source: TMDB',
+      retrievedAt: '2026-10-18T00:00:00Z',
+      fieldSources: {},
+      locallyChanged: [],
+    },
+  ];
+  const artwork = {
+    assetId: 'asset-one',
+    url: '/artwork/asset-one',
+    width: 500,
+    height: 750,
+  };
+  const body = render(PosterAttribution, {
+    props: { title: { artwork, provenance } },
+  }).body;
+  expect(body).toContain('Poster source: TMDB');
+  expect(body).toContain('https://www.themoviedb.org/movie/1');
+  expect(
+    render(PosterAttribution, {
+      props: { title: { artwork: null, provenance } },
+    }).body,
+  ).not.toContain('<a');
+  expect(
+    render(PosterAttribution, {
+      props: {
+        title: { artwork: { ...artwork, assetId: 'user-upload' }, provenance },
+      },
+    }).body,
+  ).not.toContain('<a');
+});
+it('poster attribution rejects unsafe source links', () => {
+  const artwork = {
+    assetId: 'asset-one',
+    url: '/artwork/asset-one',
+    width: 500,
+    height: 750,
+  };
+  const provenance = [
+    {
+      source: 'poster',
+      externalId: 'asset-one',
+      recordUrl: 'javascript:alert(1)',
+      reuseNote: 'Poster source: TMDB',
+      retrievedAt: '2026-10-18T00:00:00Z',
+      fieldSources: {},
+      locallyChanged: [],
+    },
+  ];
+  expect(
+    render(PosterAttribution, { props: { title: { artwork, provenance } } })
+      .body,
+  ).not.toContain('<a');
 });

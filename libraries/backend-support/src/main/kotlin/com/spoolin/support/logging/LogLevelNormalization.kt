@@ -1,8 +1,9 @@
 package com.spoolin.support.logging
 
-class InvalidLogLevelException(
-    message: String,
-) : RuntimeException(message)
+import java.io.FileDescriptor
+import java.io.FileOutputStream
+import java.io.IOException
+import kotlin.system.exitProcess
 
 /** TD-LOG-CONFIG: only info and debug are permitted; omitted defaults to info. */
 fun normalizeConfiguredLogLevel(raw: String?): String {
@@ -15,11 +16,46 @@ fun normalizeConfiguredLogLevel(raw: String?): String {
     }
 }
 
-fun applyNormalizedLogLevel(raw: String?) {
+fun applyNormalizedLogLevel(
+    raw: String?,
+    service: String,
+) {
+    applyNormalizedLogLevel(raw, service, { bytes ->
+        BoundedDiagnosticSink(
+            service,
+            FileOutputStream(FileDescriptor.err),
+            FileOutputStream(FileDescriptor.out),
+            DiagnosticDropMetrics.shared,
+        ).use { it.submit(bytes, DiagnosticLevel.FATAL) }
+    }, ::exitProcess)
+}
+
+internal fun applyNormalizedLogLevel(
+    raw: String?,
+    service: String,
+    diagnostic: (ByteArray) -> Unit,
+    terminate: (Int) -> Nothing,
+) {
+    require(service in DiagnosticDropMetrics.SERVICES)
+    val normalized =
+        try {
+            normalizeConfiguredLogLevel(raw)
+        } catch (_: InvalidLogLevelException) {
+            null
+        }
+    if (normalized != null) {
+        System.setProperty("LOG_LEVEL", normalized)
+        return
+    }
+    val environment = System.getenv("SPOOLIN_ENVIRONMENT").takeIf { it in setOf("local", "test") } ?: "local"
+    val bytes = DiagnosticEnvelope(service, "0.0.0-foundation", environment).invalidLogLevel(System.currentTimeMillis())
     try {
-        System.setProperty("LOG_LEVEL", normalizeConfiguredLogLevel(raw))
-    } catch (error: InvalidLogLevelException) {
-        System.err.println("startup: ${error.message}")
-        kotlin.system.exitProcess(78)
+        diagnostic(bytes)
+    } catch (_: IOException) {
+        DiagnosticDropMetrics.shared.record(service, DiagnosticLevel.FATAL, DiagnosticDrop.SINK_FAILED)
+    } finally {
+        terminate(INVALID_CONFIG_EXIT)
     }
 }
+
+private const val INVALID_CONFIG_EXIT = 78

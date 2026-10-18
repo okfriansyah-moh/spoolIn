@@ -1,16 +1,20 @@
 import type { GraphqlRequest, RequestOptions } from '../../transport/graphql';
+import { mutation } from '../session/outcome';
+import { readPageInfo, type PageSlice } from '../../state/pagination';
 import { record } from '../session/parse';
 import type { ArchiveListItem, ArchiveTab } from './types';
 
-const ARCHIVED_TITLES = `query ArchivedTitles($first: Int = 48) {
-  managedTitles(state: ARCHIVED, first: $first) {
+const ARCHIVED_TITLES = `query ArchivedTitles($first: Int, $after: Cursor) {
+  managedTitles(state: ARCHIVED, first: $first, after: $after) {
     nodes { id title state version }
+    pageInfo { endCursor hasNextPage }
   }
 }`;
 
-const ARCHIVED_PEOPLE = `query ArchivedPeople($first: Int = 48) {
-  managedPeople(state: ARCHIVED, first: $first) {
+const ARCHIVED_PEOPLE = `query ArchivedPeople($first: Int, $after: Cursor) {
+  managedPeople(state: ARCHIVED, first: $first, after: $after) {
     nodes { id name state version }
+    pageInfo { endCursor hasNextPage }
   }
 }`;
 
@@ -68,26 +72,38 @@ export async function fetchArchived(
   csrf: string,
   signal?: AbortSignal,
 ): Promise<readonly ArchiveRow[]> {
+  return (await fetchArchivedPage(request, tab, csrf, null, signal)).nodes;
+}
+
+function archiveRow(node: unknown, tab: ArchiveTab): ArchiveRow {
+  const row = record(node);
+  return Object.freeze({
+    id: String(row.id),
+    label: String(tab === 'movies' ? row.title : row.name),
+    state: String(row.state),
+    version: String(row.version),
+  });
+}
+
+export async function fetchArchivedPage(
+  request: GraphqlRequest,
+  tab: ArchiveTab,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
+): Promise<PageSlice<ArchiveRow>> {
   const query = tab === 'movies' ? ARCHIVED_TITLES : ARCHIVED_PEOPLE;
   const options: RequestOptions = { csrf };
   if (signal) options.signal = signal;
-  const data = record(await request(query, { first: 48 }, options));
+  const data = record(await request(query, { after }, options));
   const page = record(
     tab === 'movies' ? data.managedTitles : data.managedPeople,
   );
-  const nodes = page.nodes;
-  if (!Array.isArray(nodes)) return Object.freeze([]);
-  return Object.freeze(
-    nodes.map((node) => {
-      const row = node as Record<string, unknown>;
-      return {
-        id: String(row.id),
-        label: String(tab === 'movies' ? row.title : row.name),
-        state: String(row.state),
-        version: String(row.version),
-      };
-    }),
-  );
+  if (!Array.isArray(page.nodes)) throw new Error('Archives unavailable.');
+  return Object.freeze({
+    nodes: Object.freeze(page.nodes.map((node) => archiveRow(node, tab))),
+    pageInfo: readPageInfo(page.pageInfo, after),
+  });
 }
 
 export async function fetchDeletionImpact(
@@ -101,13 +117,26 @@ export async function fetchDeletionImpact(
 }> {
   const data = record(await request(DELETION_IMPACT, { personId }, { csrf }));
   const impact = record(data.deletionImpact);
-  return {
-    token: String(impact.token),
-    affectedCreditCount: Number(impact.affectedCreditCount),
-    affectedTitles: Array.isArray(impact.affectedTitles)
-      ? Object.freeze(impact.affectedTitles.map(String))
-      : Object.freeze([]),
-  };
+  if (
+    typeof impact.token !== 'string' ||
+    !impact.token ||
+    impact.token.length > 512 ||
+    typeof impact.affectedCreditCount !== 'number' ||
+    !Number.isInteger(impact.affectedCreditCount) ||
+    impact.affectedCreditCount < 0 ||
+    impact.affectedCreditCount > 2147483647 ||
+    !Array.isArray(impact.affectedTitles) ||
+    !impact.affectedTitles.every(
+      (title) => typeof title === 'string' && title.length > 0,
+    )
+  ) {
+    throw new Error('Complete deletion impact unavailable.');
+  }
+  return Object.freeze({
+    token: impact.token,
+    affectedCreditCount: impact.affectedCreditCount,
+    affectedTitles: Object.freeze(impact.affectedTitles as string[]),
+  });
 }
 
 export async function runMovieLifecycle(
@@ -117,20 +146,14 @@ export async function runMovieLifecycle(
     operationId: string;
     id: string;
     expectedVersion: string;
-    action: 'RESTORE' | 'DELETE';
+    action: 'ARCHIVE' | 'RESTORE' | 'DELETE';
     confirmed: boolean;
   },
 ): Promise<string> {
   const data = record(
-    await request(
-      MOVIE_LIFECYCLE,
-      { ...input, expectedVersion: Number(input.expectedVersion) },
-      { csrf },
-    ),
+    await request(MOVIE_LIFECYCLE, { ...input }, { mutation: true, csrf }),
   );
-  const result = record(data.movieLifecycle);
-  const op = record(result.operation);
-  return String(op.state);
+  return lifecycleState(data.movieLifecycle, input.operationId);
 }
 
 export async function runPersonLifecycle(
@@ -140,19 +163,28 @@ export async function runPersonLifecycle(
     operationId: string;
     id: string;
     expectedVersion: string;
-    action: 'RESTORE' | 'DELETE';
+    action: 'ARCHIVE' | 'RESTORE' | 'DELETE';
     impactToken?: string;
     confirmed: boolean;
   },
 ): Promise<string> {
   const data = record(
-    await request(
-      PERSON_LIFECYCLE,
-      { ...input, expectedVersion: Number(input.expectedVersion) },
-      { csrf },
-    ),
+    await request(PERSON_LIFECYCLE, { ...input }, { mutation: true, csrf }),
   );
-  const result = record(data.personLifecycle);
-  const op = record(result.operation);
-  return String(op.state);
+  return lifecycleState(data.personLifecycle, input.operationId);
+}
+
+export class LifecycleFailure extends Error {
+  constructor(readonly code: string) {
+    super('Lifecycle change was not confirmed.');
+  }
+}
+
+function lifecycleState(value: unknown, expected: string): string {
+  const receipt = mutation(value, expected);
+  if (receipt.resultExpired) throw new LifecycleFailure('RESULT_EXPIRED');
+  if (receipt.problem) throw new LifecycleFailure(receipt.problem.code);
+  if (receipt.state === 'FAILED' || receipt.state === 'EXPIRED')
+    throw new LifecycleFailure(receipt.state);
+  return receipt.state;
 }

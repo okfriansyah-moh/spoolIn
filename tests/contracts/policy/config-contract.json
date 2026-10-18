@@ -1271,7 +1271,7 @@
       "units": "Unicodecodepoints",
       "rule": "Empty clears only text search, preserves other filters; no wildcard/SQL execution.",
       "recipe_families": ["NUMERIC-TEXT", "PRESENCE", "REDACTION"],
-      "selected_names": ["SEARCH_MAX_CODE_POINTS"],
+      "selected_names": ["SEARCH_MIN_CODE_POINTS", "SEARCH_MAX_CODE_POINTS"],
       "execution": "Not run; source map frozen before expanded case execution",
       "correction": "Setting or descriptor name plus safe correction; raw supplied value excluded"
     },

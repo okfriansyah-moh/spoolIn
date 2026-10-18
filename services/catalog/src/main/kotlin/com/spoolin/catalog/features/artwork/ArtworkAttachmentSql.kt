@@ -1,4 +1,4 @@
-@file:Suppress("LongParameterList", "MaxLineLength")
+@file:Suppress("LongParameterList")
 
 package com.spoolin.catalog.features.artwork
 
@@ -19,7 +19,8 @@ object ArtworkAttachmentSql {
     ): Int =
         connection.executeBound(
             "INSERT INTO artwork_attachment_request" +
-                " (id, title_id, actor_id, expected_version, asset_id, old_hold_id, state, policy_revision, updated_at)" +
+                " (id, title_id, actor_id, expected_version, asset_id, old_hold_id, state, " +
+                "policy_revision, updated_at)" +
                 " VALUES (?, ?, ?, ?, ?, ?, 'PREPARING', ?, CURRENT_TIMESTAMP)",
             id,
             titleId,

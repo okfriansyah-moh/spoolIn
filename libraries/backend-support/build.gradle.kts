@@ -26,8 +26,16 @@ tasks.named("koverXmlReport") {
 }
 
 dependencies {
+    // Boot 4.1.1 BOM opentelemetry.version=1.62.0, inspected 2026-10-18; no exporter selected.
+    // Source: https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
+    // Resolved spring-boot-dependencies-4.1.1.pom supplies the imported OpenTelemetry BOM.
+    implementation("io.opentelemetry:opentelemetry-api:1.62.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.62.0")
+    testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.62.0")
+    implementation("io.micrometer:micrometer-core")
     implementation("io.grpc:grpc-api:${rootProject.libs.versions.grpc.get()}")
     implementation(rootProject.libs.protobuf)
     implementation("tools.jackson.core:jackson-databind:${rootProject.libs.versions.jackson.get()}")
     compileOnly("ch.qos.logback:logback-classic:1.5.38")
+    testImplementation("ch.qos.logback:logback-classic:1.5.38")
 }

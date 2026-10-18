@@ -1,7 +1,7 @@
 title = "Project secret scan with reviewed hash and prose exceptions"
 
 [extend]
-path = ".ai/bundles/1.1.0/profiles/security/gitleaks.toml"
+path = ".ai/bundles/1.2.1/profiles/security/gitleaks.toml"
 
 [[allowlists]]
 description = "Receipt, service-fingerprint and contract-review SHA-256 values verified independently"
@@ -89,3 +89,16 @@ paths = [
   '''(^|/)\.ai/state/host-verifications/[^/]+/.*\.json$'''
 ]
 regexes = ['''^\s*"(?:\.agents|\.ai|\.claude|\.cursor|\.github|docs|build-tools|frontend|services|tests|contracts|mcp|plan|gradle|package-lock\.json|node_modules)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Full SHA-256 source map entries in retained release and selection provenance"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''(^|/)docs/release/(remote-obligation-results|remote-acceptance-assessment)\.json$''',
+  '''(^|/)\.ai/state/g17-g26-selection-start-result\.json$''',
+  '''(^|/)\.ai/state/numbering-(migration-result|resume|registry-before|registry-after-migrate)\.json$''',
+  '''(^|/)\.ai/evidence/(account-selection-final-receipt-output\.json|run-[0-9a-f]{32}/receipt\.json)$'''
+]
+regexes = ['''^\s*"(?:\.ai|\.agents|\.claude|\.cursor|\.github|build-tools|contracts|docs|frontend|gradle|libraries|mcp|ops|services|tests)/[^"\r\n]+": "[0-9a-f]{64}",?\s*$''']

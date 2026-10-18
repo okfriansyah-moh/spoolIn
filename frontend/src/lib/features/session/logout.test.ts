@@ -220,3 +220,30 @@ it('unavailable sign-in preparation and receipt lookup preserve concealed uncert
   });
   controller.dispose();
 });
+
+it('an expired successful receipt cannot prove logout even when the current cookie is anonymous', async () => {
+  const source = vi
+    .fn<SessionSource['bootstrap']>()
+    .mockResolvedValueOnce(bootstrap())
+    .mockResolvedValue(bootstrap(false));
+  const signOut = vi.fn<AccountCommands['signOut']>(async (id) => ({
+    ...result(id),
+    resultExpired: true,
+  }));
+  const operation = vi.fn<AccountCommands['operation']>(async (id) => ({
+    ...result(id),
+    resultExpired: true,
+  }));
+  const controller = new SessionController({
+    bootstrap: source,
+    signOut,
+    operation,
+  });
+  await controller.check();
+  await controller.signOut();
+  expect(controller.snapshot.kind).toBe('uncertain');
+  expect(controller.hasUnconfirmedLogout).toBe(true);
+  await controller.reconcileSignOut();
+  expect(controller.snapshot.kind).toBe('uncertain');
+  expect(controller.snapshot.message).not.toBe('Signed out.');
+});

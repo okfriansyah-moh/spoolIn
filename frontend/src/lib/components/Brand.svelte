@@ -11,5 +11,6 @@
     height={size}
     alt="SpoolIn"
   />{:else}<span class="wordmark"
-    ><img src="/icon.svg" width={size} height={size} alt="" />SpoolIn</span
+    ><span class="brand-mark" aria-hidden="true"><i></i><i></i></span
+    >SpoolIn</span
   >{/if}

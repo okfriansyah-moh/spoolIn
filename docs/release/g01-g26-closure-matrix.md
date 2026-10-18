@@ -1,3 +1,5 @@
+> Current continuation (18 October 2026): source review is not runtime acceptance. All 46 tasks remain In progress for remote closure. The historical matrix below is retained; see [the complete task/obligation assessment](remote-acceptance-assessment.json) and the retained findings ledger for later corrections, actual remote failures and unresolved requirements.
+
 # G01–G26 source closure matrix (T001–T046)
 
 Revision: `1c0f196` on `codex/g17-g26-delivery`. Grok 4.7 re-checked F-001–F-011; required findings are resolved in source. Per-task review cells below stay “pending Grok” for the full 46-task pass except where a row names a finding. Runtime stays pending.

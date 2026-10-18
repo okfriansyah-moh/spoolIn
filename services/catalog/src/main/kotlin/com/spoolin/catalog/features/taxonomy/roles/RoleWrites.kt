@@ -2,6 +2,9 @@
 
 package com.spoolin.catalog.features.taxonomy.roles
 
+import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.ActorRejected
@@ -31,38 +34,47 @@ private const val WRITE_KIND = "CreateRole"
 class RoleWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
+    private val policy: CatalogWritePolicy = CatalogWritePolicy(),
 ) {
     fun createRole(
         request: RoleWrite,
         response: StreamObserver<Outcome>,
     ) {
         try {
-            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            if (!Permissions.management(claims.role)) throw ActorRejected()
-            val operationId = parseId(request.context.operationId)
-            val correlationId = parseId(request.context.correlationId)
-            val actorScope = "account:${claims.accountId}"
-            val validated = RoleValidation.validateCreate(request.category, request.label)
-            val intent =
-                OperationIntent(
-                    operationId,
-                    actorScope,
-                    WRITE_KIND,
-                    request.context.policyRevision,
-                    listOf("category" to validated.category, "label" to validated.label),
-                )
-            val outcome =
-                receipts.execute(intent, correlationId, true) { conn ->
-                    create(conn, validated, claims.accountId, operationId, correlationId)
-                }
+            val outcome = executeRole(request)
             response.onNext(outcomeProto(outcome))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
+        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
+            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
+        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
+            response.onError(Status.NOT_FOUND.asRuntimeException())
         } catch (e: ActorRejected) {
             response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
         } catch (e: InputViolation) {
             response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
+        }
+    }
+
+    private fun executeRole(request: RoleWrite): com.spoolin.support.receipts.ReceiptOutcome {
+        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (!Permissions.management(claims.role)) throw ActorRejected()
+        val operationId = parseId(request.context.operationId)
+        val correlationId = parseId(request.context.correlationId)
+        val actorScope = "account:${claims.accountId}"
+        val intent =
+            OperationIntent(
+                operationId,
+                actorScope,
+                WRITE_KIND,
+                request.context.policyRevision,
+                CatalogWriteIntent.role(request),
+            )
+        return receipts.execute(intent, correlationId, true) { conn ->
+            val effective = policy.bind(request, request.context.policyRevision).policy
+            val validated = RoleValidation.validateCreate(request.category, request.label, effective)
+            create(conn, validated, claims.accountId, operationId, correlationId)
         }
     }
 
@@ -94,7 +106,7 @@ class RoleWrites(
             "ROLE",
             roleId,
             "SUCCEEDED",
-            """{"changes":[{"path":"label","before":null,"after":"${validated.label}"}],"summarised":false}""",
+            AuditDiff.compute(emptyMap(), mapOf("label" to validated.label), setOf("label")),
             correlationId,
             clock.instant(),
         )

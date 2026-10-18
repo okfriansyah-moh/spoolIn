@@ -46,7 +46,7 @@ object ImageValidator {
         stream: InputStream,
         maxBytes: Long,
     ): ValidationResult {
-        val buffer = mutableListOf<Byte>()
+        val buffer = java.io.ByteArrayOutputStream()
         var totalRead = 0L
         val digest = MessageDigest.getInstance("SHA-256")
         val chunk = ByteArray(ProcessingBounds.CHUNK_BYTES)
@@ -56,16 +56,16 @@ object ImageValidator {
             if (n == -1) break
             if (totalRead + n > maxBytes) return ValidationResult.Invalid("FILE_TOO_LARGE")
             digest.update(chunk, 0, n)
-            buffer.addAll(chunk.take(n))
+            buffer.write(chunk, 0, n)
             totalRead += n
         }
 
         if (totalRead < 1L) return ValidationResult.Invalid("FILE_EMPTY")
 
-        val header = buffer.take(HEADER_BYTES).toByteArray()
+        val content = buffer.toByteArray()
+        val header = content.copyOfRange(0, minOf(HEADER_BYTES, content.size))
         val format = ImageFormat.detect(header) ?: return ValidationResult.Invalid("UNSUPPORTED_FORMAT")
 
-        val content = buffer.toByteArray()
         val animError = detectAnimation(content, format)
         if (animError != null) return ValidationResult.Invalid(animError)
 

@@ -1,7 +1,11 @@
 spring:
   application:
     name: core
+  output:
+    ansi:
+      enabled: never
   main:
+    banner-mode: off
     allow-circular-references: false
   jpa:
     open-in-view: false
@@ -23,7 +27,7 @@ spring:
             certificate: ${SERVICE_CA_FILE}
   grpc:
     client:
-      channels:
+      channel:
         catalog:
           target: ${CATALOG_GRPC_TARGET:dns:///catalog:9090}
           ssl:
@@ -68,7 +72,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus
   endpoint:
     health:
       show-details: never

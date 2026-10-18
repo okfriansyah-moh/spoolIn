@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration version="2.0" label="SpoolIn metadata timing" description="Only fixed metadata operation outcomes and monotonic Core durations" provider="SpoolIn">
+  <event name="spoolin.CoreRequestTiming">
+    <setting name="enabled">true</setting>
+    <setting name="stackTrace">false</setting>
+    <setting name="threshold">0 ns</setting>
+  </event>
+</configuration>

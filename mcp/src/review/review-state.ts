@@ -23,18 +23,36 @@ export function parseReviewQuery(search: string): ReviewQuery | null {
   const proposalId = params.get('proposalId') ?? '';
   const revision = Number(params.get('revision') ?? '0');
   const contentHash = params.get('contentHash') ?? '';
-  if (!proposalId || !Number.isFinite(revision) || revision < 1 || !contentHash) {
+  if (
+    !proposalId ||
+    !Number.isFinite(revision) ||
+    revision < 1 ||
+    !contentHash
+  ) {
     return null;
   }
   return Object.freeze({ proposalId, revision, contentHash });
 }
 
 function sourceLabel(source: unknown): string {
-  if (typeof source !== 'object' || source === null) return String(source ?? '');
+  if (typeof source !== 'object' || source === null)
+    return String(source ?? '');
   const record = source as Record<string, unknown>;
   const field = typeof record.field === 'string' ? record.field : 'field';
   const url = typeof record.url === 'string' ? record.url : '';
   return url ? `${field}: ${url}` : field;
+}
+
+function displayValue(value: unknown): string {
+  if (value === null || value === undefined) return 'Unknown';
+  if (Array.isArray(value))
+    return value.length ? value.map(displayValue).join(', ') : 'None';
+  if (typeof value === 'object') {
+    return Object.entries(value)
+      .map(([key, nested]) => `${key}: ${displayValue(nested)}`)
+      .join('; ');
+  }
+  return value === '' ? 'Not provided' : String(value);
 }
 
 export function renderReview(root: HTMLElement, model: ReviewModel): void {
@@ -47,7 +65,7 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
     const term = document.createElement('dt');
     term.append(escapeText(key));
     const detail = document.createElement('dd');
-    detail.append(escapeText(String(value ?? '')));
+    detail.append(escapeText(displayValue(value)));
     list.append(term, detail);
   }
   root.append(list);
@@ -75,6 +93,10 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
     }
     root.append(unknownList);
   }
+  renderActions(root);
+}
+
+function renderActions(root: HTMLElement): void {
   const actions = document.createElement('div');
   actions.className = 'review-actions';
   const approve = document.createElement('button');
@@ -90,9 +112,14 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
 }
 
 export function isTrustedReviewOrigin(origin: string): boolean {
-  const allowlist = globalThis.document?.documentElement?.dataset?.trustedOrigins;
+  const allowlist =
+    globalThis.document?.documentElement?.dataset?.trustedOrigins;
   if (allowlist) {
-    return allowlist.split(',').map((entry) => entry.trim()).filter(Boolean).includes(origin);
+    return allowlist
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .includes(origin);
   }
   return origin === globalThis.location.origin;
 }
@@ -109,7 +136,9 @@ export function wireTrustedApproval(
     if (action !== 'approve' && action !== 'reject') return;
     const model = readModel();
     if (!model.challenge?.trim()) {
-      globalThis.alert('Approval challenge unavailable in this review context.');
+      globalThis.alert(
+        'Approval challenge unavailable in this review context.',
+      );
       return;
     }
     void submit(action, model);

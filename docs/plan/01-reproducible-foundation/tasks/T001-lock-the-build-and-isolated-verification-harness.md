@@ -4,7 +4,7 @@ id: T001
 group: G01
 depends_on: []
 readiness: Ready
-status: Done
+status: In progress
 risk: high
 test_strategy: alongside
 visual_review: not-applicable

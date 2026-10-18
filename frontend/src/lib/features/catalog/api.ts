@@ -2,6 +2,7 @@
  * T013 – Catalog GraphQL transport.
  * Wraps the typed document nodes so callers never see raw query strings.
  */
+import { readPageInfo } from '../../state/pagination';
 import type { GraphqlRequest } from '../../transport/graphql';
 import { withSignal } from '../../transport/request-options';
 import type {
@@ -17,26 +18,9 @@ import {
   GenresDocument,
 } from '../../generated/graphql';
 
-function print(doc: { definitions: unknown[] }): string {
-  // The generated documents are AST objects; we use the graphql-tag ast → string approach.
-  // For runtime use, extract the query string directly from the document.
-  // The TypedDocumentNode stores the query as the first OperationDefinition's loc?.source.body
-  // or reconstructs it. Since this project uses codegen-produced inline ASTs, we serialise
-  // them at build time via the query field embedded in the document node.
-  // Workaround: access the printed form via the __meta__ or reconstruct.
-  // The simpler approach: import the raw .graphql files directly.
-  // Here we use the document's string representation (compatible with Apollo / urql style).
-  // We rely on the fact that createTransport accepts the query string.
-  // The TypedDocumentNode's `loc.source.body` is available when processed by graphql-tag.
-  // For safety, we fall back to JSON.stringify which works with all-operations.graphql content.
-  void doc;
-  throw new Error('Use query string imports instead');
-}
-void print;
-
 // Raw query strings – imported from the shared all-operations.graphql
 // so the transport layer receives the exact wire format.
-const TITLES_QUERY = `query Titles($filter: SearchInput!, $first: Int = 24, $after: Cursor) {
+const TITLES_QUERY = `query Titles($filter: SearchInput!, $first: Int, $after: Cursor) {
   titles(filter: $filter, first: $first, after: $after) {
     nodes {
       id kind state title originalTitle synopsis
@@ -131,3 +115,26 @@ export async function fetchGenres(
 
 // Re-export typed document nodes for tests that want to mock at the document level
 export { TitlesDocument, TitleDocument, GenresDocument };
+
+export async function fetchTitleCredits(
+  request: GraphqlRequest,
+  id: string,
+  after: string | null,
+  signal?: AbortSignal,
+): Promise<CatalogTitleDetail['credits']> {
+  const data = record(
+    await request(
+      `query TitleCredits($id: UUID!, $first: Int, $after: Cursor) {
+    titleCredits(id: $id, first: $first, after: $after) {
+      nodes { id personId personName titleId titleName role { id label category allowsCharacters } characters version }
+      pageInfo { endCursor hasNextPage }
+    }
+  }`,
+      { id, after },
+      withSignal(signal),
+    ),
+  );
+  const result = data.titleCredits as CatalogTitleDetail['credits'];
+  if (!Array.isArray(result?.nodes)) throw new Error('Credits unavailable.');
+  return { ...result, pageInfo: readPageInfo(result.pageInfo, after) };
+}

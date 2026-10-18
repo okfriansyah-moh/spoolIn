@@ -5,10 +5,17 @@ import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.features.person.read.ManagedPersonReads
 import com.spoolin.catalog.features.person.write.PersonWrites
 import com.spoolin.catalog.features.provenance.ProvenanceReads
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.receipts.ComparisonKeys
+import com.spoolin.support.tracing.OwnerTracing
+import com.spoolin.support.tracing.TraceClientInterceptor
+import com.spoolin.support.tracing.TraceServerInterceptor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -19,6 +26,7 @@ import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.protobuf.services.HealthStatusManager
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -62,6 +70,7 @@ private const val SECRET_SIZE_LIMIT = 4096L
 private const val TLS_KEY_SIZE_LIMIT = 16384L
 private const val MIGRATION_LOCK_SECONDS = 120L
 private const val LOCK_POLL_MS = 20L
+private const val HTTP_UNAVAILABLE = 503
 private const val HTTP_FORBIDDEN = 403
 private const val HTTP_INTERNAL_ERROR = 500
 
@@ -72,11 +81,100 @@ private val serviceNames = listOf("spoolin.v1.CatalogService")
 @EnableScheduling
 class Application {
     @Bean(destroyMethod = "close")
+    @org.springframework.context.annotation.Primary
     fun dataSource(environment: Environment): HikariDataSource {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class ObservabilityConfiguration {
+    @Bean(initMethod = "start", destroyMethod = "close")
+    fun notificationDispatcher(
+        dataSource: DataSource,
+        environment: Environment,
+    ): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings
+            .transport { environment.getProperty(it) }
+            ?.let {
+                com.spoolin.support.notifications
+                    .NotificationDispatcher(dataSource, it)
+            }
+
+    @Bean
+    fun ownerMetrics(
+        registry: MeterRegistry,
+        dataSource: HikariDataSource,
+        schema: SchemaReadiness,
+    ): com.spoolin.support.observability.OwnerMetrics =
+        com.spoolin.support.observability.OwnerMetrics(
+            registry,
+            dataSource,
+            "catalog",
+            com.spoolin.support.observability.OwnerMetricRuntime(
+                { dataSource.hikariPoolMXBean.activeConnections },
+                { dataSource.maximumPoolSize },
+                { schema.ready() },
+            ),
+        )
+
+    @Bean(destroyMethod = "close")
+    fun ownerTracing(): OwnerTracing =
+        com.spoolin.support.tracing
+            .OwnerTracing("catalog")
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
+    fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
+        TraceServerInterceptor(tracing) { attributes ->
+            runCatching {
+                val certificate =
+                    attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
+                certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
+            }.getOrDefault(false)
+        }
+
+    @Bean
+    @org.springframework.grpc.client.GlobalClientInterceptor
+    fun traceClient(tracing: OwnerTracing): TraceClientInterceptor =
+        com.spoolin.support.tracing
+            .TraceClientInterceptor(tracing)
+
+    @Bean
+    fun logicalMetrics(registry: MeterRegistry): LogicalMetrics {
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared
+            .bind("catalog", registry)
+        return com.spoolin.support.observability
+            .LogicalMetrics(registry, "catalog")
+    }
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+    fun logicalRpcMetrics(metrics: LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability
+            .LogicalRpcMetricsInterceptor(metrics)
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class RuntimeConfiguration {
+    @Bean("maintenanceDataSource")
+    fun maintenanceDataSource(environment: Environment): DataSource =
+        com.spoolin.support.maintenance.MaintenanceDataSources.open(
+            OWNER,
+            environment.getRequiredProperty("CATALOG_DB_URL"),
+            Path.of(environment.getRequiredProperty("CATALOG_DB_MAINTENANCE_PASSWORD_FILE")),
+        )
+
+    @Bean
+    fun receiptExpiry(
+        @org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource,
+    ): com.spoolin.catalog.operations.maintenance.ReceiptExpiry =
+        com.spoolin.catalog.operations.maintenance
+            .ReceiptExpiry(dataSource)
 
     @Bean
     fun schema(
@@ -122,8 +220,14 @@ class Application {
     }
 
     @Bean
-    fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
+    fun listenerBoundary(
+        environment: Environment,
+        metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
+    ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
+}
 
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class OwnerServiceConfiguration {
     @Bean
     fun catalogCursorKey(): ByteArray =
         com.spoolin.catalog.features.search.CatalogCursor
@@ -134,6 +238,7 @@ class Application {
     fun catalogService(
         dataSource: DataSource,
         cursorKey: ByteArray,
+        environment: Environment,
         movieWritesProvider: ObjectProvider<MovieWrites>,
         managedReadsProvider: ObjectProvider<ManagedMovieReads>,
         personWritesProvider: ObjectProvider<PersonWrites>,
@@ -147,6 +252,7 @@ class Application {
         deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
         proposalWritesProvider: ObjectProvider<com.spoolin.catalog.features.proposal.ProposalWrites>,
     ): io.grpc.BindableService {
+        val policy = effectiveReadPolicy(environment)
         val reads =
             com.spoolin.catalog.operations.receipts
                 .OwnerReceiptReads(dataSource)
@@ -165,10 +271,10 @@ class Application {
         return com.spoolin.catalog.boundary.grpc.CatalogServiceRpc(
             titleSearch =
                 com.spoolin.catalog.features.search
-                    .TitleSearchSql(dataSource),
+                    .TitleSearchSql(dataSource, policy),
             personSearch =
                 com.spoolin.catalog.features.person.read
-                    .PersonSearch(dataSource),
+                    .PersonSearch(dataSource, policy),
             taxonomy =
                 com.spoolin.catalog.features.taxonomy.read
                     .TaxonomyReads(dataSource),
@@ -191,6 +297,7 @@ class Application {
             personLifecycle = personLifecycleProvider.ifAvailable,
             deletionImpact = deletionImpactProvider.ifAvailable,
             proposalWrites = proposalWritesProvider.ifAvailable,
+            policy = policy,
         )
     }
 }
@@ -216,69 +323,149 @@ class CatalogWriteConfiguration {
     }
 
     @Bean
-    fun movieWrites(receipts: OwnerReceipts): MovieWrites = MovieWrites(receipts)
+    fun catalogWritePolicy(environment: Environment): com.spoolin.catalog.boundary.policy.CatalogWritePolicy =
+        com.spoolin.catalog.boundary.policy.CatalogWritePolicy {
+            com.spoolin.support.policy.PolicyEnvironment
+                .resolve { environment.getProperty(it) }
+        }
 
     @Bean
-    fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
+    fun movieWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): MovieWrites = MovieWrites(receipts, policy = policy)
+
+    @Bean
+    fun managedMovieReads(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        environment: Environment,
+    ): ManagedMovieReads {
+        val policy = effectiveReadPolicy(environment)
         val provenance = ProvenanceReads(dataSource)
-        val titleSearch = TitleSearchSql(dataSource)
+        val titleSearch = TitleSearchSql(dataSource, policy)
         val auditReads = AuditReads(dataSource)
-        return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads)
+        return ManagedMovieReads(
+            dataSource,
+            provenance,
+            titleSearch,
+            auditReads,
+            policy = policy,
+            cursors = ManagedReadCursors(cursorKey),
+        )
     }
 
     @Bean
-    fun personWrites(receipts: OwnerReceipts): PersonWrites = PersonWrites(receipts)
+    fun personWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): PersonWrites = PersonWrites(receipts, policy = policy)
 
     @Bean
     fun artworkRpc(
         dataSource: DataSource,
         receipts: OwnerReceipts,
+        environment: Environment,
     ): com.spoolin.catalog.features.artwork.ArtworkRpc =
         com.spoolin.catalog.features.artwork
-            .ArtworkRpc(dataSource, receipts)
+            .ArtworkRpc(dataSource, receipts, policyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
+            })
 
     @Bean
-    fun movieLifecycle(receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+    fun movieLifecycle(
+        receipts: OwnerReceipts,
+        environment: Environment,
+    ): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
         com.spoolin.catalog.features.lifecycle
-            .MovieLifecycle(receipts)
+            .MovieLifecycle(receipts, policyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
+            })
 
     @Bean
     fun personLifecycle(
         dataSource: DataSource,
         receipts: OwnerReceipts,
+        tokens: com.spoolin.catalog.features.lifecycle.ImpactToken,
+        environment: Environment,
     ): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
         com.spoolin.catalog.features.lifecycle
-            .PersonLifecycle(dataSource, receipts)
+            .PersonLifecycle(dataSource, receipts, tokens, policyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
+            })
 
     @Bean
-    fun deletionImpact(dataSource: DataSource): com.spoolin.catalog.features.lifecycle.DeletionImpact =
+    fun impactToken(environment: Environment): com.spoolin.catalog.features.lifecycle.ImpactToken =
+        com.spoolin.catalog.features.lifecycle.ImpactToken.fromKeyFile(
+            java.nio.file.Path
+                .of(environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")),
+            environment.getRequiredProperty("CATALOG_HMAC_KEY_ID"),
+        )
+
+    @Bean
+    fun deletionImpact(
+        dataSource: DataSource,
+        tokens: com.spoolin.catalog.features.lifecycle.ImpactToken,
+    ): com.spoolin.catalog.features.lifecycle.DeletionImpact =
         com.spoolin.catalog.features.lifecycle
-            .DeletionImpact(dataSource)
+            .DeletionImpact(dataSource, tokens)
 
     @Bean
-    fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
+    fun managedPersonReads(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        environment: Environment,
+    ): ManagedPersonReads =
+        ManagedPersonReads(
+            dataSource,
+            policy = effectiveReadPolicy(environment),
+            cursors = ManagedReadCursors(cursorKey),
+        )
 
     @Bean
-    fun roleWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+    fun roleWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
         com.spoolin.catalog.features.taxonomy.roles
-            .RoleWrites(receipts)
+            .RoleWrites(receipts, policy = policy)
 
     @Bean
-    fun creditWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.credit.CreditWrites =
+    fun creditWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): com.spoolin.catalog.features.credit.CreditWrites =
         com.spoolin.catalog.features.credit
-            .CreditWrites(receipts)
+            .CreditWrites(receipts, policy = policy)
 
     @Bean
-    fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
+    fun managedCreditReads(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        environment: Environment,
+    ): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
-            .ManagedCreditReads(dataSource)
+            .ManagedCreditReads(
+                dataSource,
+                policy = effectiveReadPolicy(environment),
+                cursors = ManagedReadCursors(cursorKey),
+            )
 
     @Bean
     fun proposalMetrics(
-        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        registry: org.springframework.beans.factory.ObjectProvider<MeterRegistry>,
         dataSource: DataSource,
     ): com.spoolin.catalog.operations.metrics.ProposalMetrics? =
-        registry.ifAvailable?.let { com.spoolin.catalog.operations.metrics.ProposalMetrics(it, dataSource) }
+        registry.ifAvailable?.let {
+            com.spoolin.catalog.operations.metrics
+                .ProposalMetrics(it, dataSource)
+        }
 
     @Bean
     fun proposalWrites(
@@ -293,12 +480,17 @@ class CatalogWriteConfiguration {
             receipts,
             movieWrites,
             proposalMetrics,
-            livePolicyRevision = { environment.getProperty("POLICY_REVISION", "default") ?: "default" },
+            livePolicyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
+            },
         )
 }
 
 fun main(args: Array<String>) {
-    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    com.spoolin.support.logging
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), OWNER)
     when {
         args.contentEquals(arrayOf("--migrate")) -> {
             val environment =
@@ -307,7 +499,8 @@ fun main(args: Array<String>) {
             DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
         }
         args.any { it.startsWith("--seed-manifest=") } ->
-            com.spoolin.catalog.seed.runSeedCli(args)
+            com.spoolin.catalog.seed
+                .runSeedCli(args)
         args.isEmpty() ->
             org.springframework.boot.SpringApplication
                 .run(Application::class.java)
@@ -605,33 +798,62 @@ class ServiceIdentityInterceptor(
 
 class ListenerBoundary(
     private val environment: Environment,
+    private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
     ) {
-        val path = request.requestURI
-        if (path.startsWith("/actuator")) {
-            val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
-            val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
-            val permitted =
-                if (path ==
-                    "/actuator/prometheus"
-                ) {
-                    identity == "prometheus"
-                } else {
-                    identity in setOf("operator", "core", "catalog", "media", "mcp")
-                }
-            val privatePort = environment.getProperty("local.management.port", Int::class.java)
-            if (!request.isSecure || request.localPort != privatePort || !permitted) {
-                response.sendError(HTTP_FORBIDDEN)
-                return
+        val rejection = rejectionStatus(request)
+        if (rejection != null) {
+            response.sendError(rejection)
+        } else {
+            response.setHeader("X-Content-Type-Options", "nosniff")
+            response.setHeader("Cache-Control", "no-store")
+            if (request.requestURI == "/actuator/prometheus") {
+                serveMetrics(request, response, chain)
+            } else {
+                chain.doFilter(request, response)
             }
         }
-        response.setHeader("X-Content-Type-Options", "nosniff")
-        response.setHeader("Cache-Control", "no-store")
-        chain.doFilter(request, response)
+    }
+
+    private fun rejectionStatus(request: HttpServletRequest): Int? {
+        val path = request.requestURI
+        if (!(path.startsWith("/actuator"))) return null
+        val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
+        val permitted =
+            when (path) {
+                "/actuator/prometheus" -> identity == "prometheus"
+                else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
+            }
+        val privatePort = environment.getProperty("local.management.port", Int::class.java)
+        return if (request.isSecure && request.localPort == privatePort && permitted) {
+            null
+        } else {
+            HTTP_FORBIDDEN
+        }
+    }
+
+    private fun serveMetrics(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
+        val measurement = metrics
+        if (measurement == null) {
+            response.sendError(HTTP_UNAVAILABLE)
+        } else {
+            synchronized(measurement) {
+                if (measurement.prepareScrape()) {
+                    chain.doFilter(request, response)
+                } else {
+                    response.sendError(HTTP_UNAVAILABLE)
+                }
+            }
+        }
     }
 }
 
@@ -650,3 +872,6 @@ class BoundaryErrors : org.springframework.boot.webmvc.error.ErrorController {
             )
     }
 }
+
+private fun effectiveReadPolicy(environment: Environment): () -> PublicPolicy =
+    { PolicyEnvironment.resolve { environment.getProperty(it) } }

@@ -8,22 +8,28 @@
     kind,
     date,
     artwork,
+    genres = [],
   }: {
     id: string;
     title: string;
     kind: 'Movie' | 'TV';
     date?: string | null;
     artwork?: string | null;
+    genres?: readonly string[];
   } = $props();
 </script>
 
 <article class="title-card">
-  <ArtworkSlot src={artwork ?? null} />
+  <div class="card-poster">
+    <ArtworkSlot src={artwork ?? null} />
+    <span class="title-kind-badge">{kind}</span>
+  </div>
   <h3>
     {#if isRecordId(id)}
       <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- T013 owns the title route; preserve its contract and base until it is generated. -->
       <a href={`${resolve('/')}titles/${encodeURIComponent(id)}`}>{title}</a>
     {:else}{title}{/if}
   </h3>
-  <p>{kind} · {date ?? 'Release date unknown'}</p>
+  <p>{date ?? 'Release date unknown'}</p>
+  {#if genres.length}<p class="card-genres">{genres.join(', ')}</p>{/if}
 </article>

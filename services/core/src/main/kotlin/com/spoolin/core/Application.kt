@@ -1,7 +1,15 @@
 package com.spoolin.core
 
+import com.spoolin.core.boundary.http.BrowserTraceFilter
+import com.spoolin.core.features.connector.ConnectorStore
+import com.spoolin.core.features.mcpgateway.McpGatewayRpc
 import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.core.features.ratelimit.RateMaintenance
+import com.spoolin.core.operations.metrics.WorkPendingMetrics
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.tracing.OwnerTracing
+import com.spoolin.support.tracing.TraceClientInterceptor
+import com.spoolin.support.tracing.TraceServerInterceptor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -12,6 +20,7 @@ import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.protobuf.services.HealthStatusManager
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -24,7 +33,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
+import org.springframework.core.Ordered
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ClassPathResource
 import org.springframework.grpc.server.GlobalServerInterceptor
@@ -34,6 +45,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
@@ -61,6 +73,8 @@ private const val SECRET_SIZE_LIMIT = 4096L
 private const val TLS_KEY_SIZE_LIMIT = 16384L
 private const val MIGRATION_LOCK_SECONDS = 120L
 private const val LOCK_POLL_MS = 20L
+private const val HTTP_UNAVAILABLE = 503
+private const val HTTP_NOT_FOUND = 404
 private const val HTTP_FORBIDDEN = 403
 private const val HTTP_INTERNAL_ERROR = 500
 
@@ -71,11 +85,103 @@ private val serviceNames = listOf("spoolin.v1.IdentityService", "spoolin.v1.McpG
 @EnableScheduling
 class Application {
     @Bean(destroyMethod = "close")
+    @org.springframework.context.annotation.Primary
     fun dataSource(environment: Environment): HikariDataSource {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class ObservabilityConfiguration {
+    @Bean(initMethod = "start", destroyMethod = "close")
+    fun notificationDispatcher(
+        dataSource: DataSource,
+        environment: Environment,
+    ): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings
+            .transport { environment.getProperty(it) }
+            ?.let {
+                com.spoolin.support.notifications
+                    .NotificationDispatcher(dataSource, it)
+            }
+
+    @Bean
+    fun ownerMetrics(
+        registry: MeterRegistry,
+        dataSource: HikariDataSource,
+        schema: SchemaReadiness,
+        rate: ObjectProvider<com.spoolin.core.features.ratelimit.RateMaintenance>,
+    ): com.spoolin.support.observability.OwnerMetrics =
+        com.spoolin.support.observability.OwnerMetrics(
+            registry,
+            dataSource,
+            "core",
+            com.spoolin.support.observability.OwnerMetricRuntime(
+                { dataSource.hikariPoolMXBean.activeConnections },
+                { dataSource.maximumPoolSize },
+                { schema.ready() && (rate.ifAvailable?.ready() ?: true) },
+            ),
+        )
+
+    @Bean(destroyMethod = "close")
+    fun ownerTracing(): OwnerTracing =
+        com.spoolin.support.tracing
+            .OwnerTracing("core")
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
+    fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
+        TraceServerInterceptor(tracing) { attributes ->
+            runCatching {
+                val certificate =
+                    attributes
+                        .get(Grpc.TRANSPORT_ATTR_SSL_SESSION)
+                        ?.peerCertificates
+                        ?.firstOrNull() as? X509Certificate
+                certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
+            }.getOrDefault(false)
+        }
+
+    @Bean
+    @org.springframework.grpc.client.GlobalClientInterceptor
+    fun traceClient(tracing: OwnerTracing): TraceClientInterceptor =
+        com.spoolin.support.tracing
+            .TraceClientInterceptor(tracing)
+
+    @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+    fun browserTrace(tracing: OwnerTracing): BrowserTraceFilter =
+        com.spoolin.core.boundary.http
+            .BrowserTraceFilter(tracing)
+
+    @Bean
+    fun logicalMetrics(registry: MeterRegistry): LogicalMetrics {
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared
+            .bind("core", registry)
+        return com.spoolin.support.observability
+            .LogicalMetrics(registry, "core")
+    }
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+    fun logicalRpcMetrics(metrics: LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability
+            .LogicalRpcMetricsInterceptor(metrics)
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class RuntimeConfiguration {
+    @Bean("maintenanceDataSource")
+    fun maintenanceDataSource(environment: Environment): DataSource =
+        com.spoolin.support.maintenance.MaintenanceDataSources.open(
+            OWNER,
+            environment.getRequiredProperty("CORE_DB_URL"),
+            Path.of(environment.getRequiredProperty("CORE_DB_MAINTENANCE_PASSWORD_FILE")),
+        )
 
     @Bean
     fun schema(
@@ -110,19 +216,56 @@ class Application {
     fun serviceIdentity(): ServiceIdentityInterceptor = ServiceIdentityInterceptor()
 
     @Bean
-    fun httpSecurity(http: HttpSecurity): SecurityFilterChain {
+    fun httpSecurity(
+        http: HttpSecurity,
+        environment: Environment,
+    ): SecurityFilterChain {
         http.authorizeHttpRequests { it.anyRequest().permitAll() }
-        http.csrf { it.ignoringRequestMatchers("/graphql") }
+        http.csrf {
+            it.ignoringRequestMatchers("/graphql")
+            it.ignoringRequestMatchers(RequestMatcher { request -> alertMachineRequest(request, environment) })
+        }
         return http.build()
     }
 
-    @Bean
-    fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
+    // Boot 4.1.1's management child deliberately delegates to this parent's security proxy.
+    private fun alertMachineRequest(
+        request: HttpServletRequest,
+        environment: Environment,
+    ): Boolean {
+        val route = request.method == "POST" && request.requestURI == "/internal/alerts"
+        val port = environment.getProperty("local.management.port", Int::class.java)
+        val privateListener = request.isSecure && request.localPort == port
+        if (!route || !privateListener) return false
+        val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val leaf = certificates?.firstOrNull() as? X509Certificate
+        return leaf != null && certificateDnsNames(leaf) == listOf("alertmanager")
+    }
+
+    private fun certificateDnsNames(certificate: X509Certificate): List<Any?> =
+        certificate.subjectAlternativeNames
+            .orEmpty()
+            .filter { it.size >= 2 && it[0] == 2 }
+            .map { it[1] }
 
     @Bean
+    fun listenerBoundary(
+        environment: Environment,
+        metrics: ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
+    ): FilterRegistrationBean<ListenerBoundary> =
+        FilterRegistrationBean(ListenerBoundary(environment, metrics.ifAvailable)).apply {
+            setName("applicationListenerBoundary")
+            order = Ordered.HIGHEST_PRECEDENCE
+            addUrlPatterns("/*")
+        }
+}
+
+@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+class OwnerServiceConfiguration {
+    @Bean
     fun identityService(
-        sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
-        connectors: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.connector.ConnectorStore>,
+        sessions: ObjectProvider<com.spoolin.core.features.session.SessionStore>,
+        connectors: ObjectProvider<ConnectorStore>,
     ): io.grpc.BindableService =
         com.spoolin.core.boundary.grpc
             .IdentityRpc({ sessions.ifAvailable }, { connectors.ifAvailable })
@@ -130,36 +273,44 @@ class Application {
     @Bean
     @GlobalServerInterceptor
     fun connectorAuth(): com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor =
-        com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor()
+        com.spoolin.core.features.mcpgateway
+            .ConnectorAuthInterceptor()
 
     @Bean
-    fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService =
-        gateway
+    fun mcpGatewayService(gateway: McpGatewayRpc): io.grpc.BindableService = gateway
 
     @Bean
     fun workPendingMetrics(
-        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        registry: ObjectProvider<MeterRegistry>,
         dataSource: DataSource,
-    ): com.spoolin.core.operations.metrics.WorkPendingMetrics? =
-        registry.ifAvailable?.let { com.spoolin.core.operations.metrics.WorkPendingMetrics(it, dataSource) }
+    ): WorkPendingMetrics? =
+        registry.ifAvailable?.let {
+            com.spoolin.core.operations.metrics
+                .WorkPendingMetrics(it, dataSource)
+        }
 
     @Bean
     fun alertRecorder(
         dataSource: DataSource,
-        workPendingMetrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.operations.metrics.WorkPendingMetrics>,
+        workPendingMetrics: ObjectProvider<WorkPendingMetrics>,
     ): com.spoolin.core.features.alerts.AlertRecorder =
-        com.spoolin.core.features.alerts.AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
+        com.spoolin.core.features.alerts
+            .AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
 }
 
 fun main(args: Array<String>) {
-    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    com.spoolin.support.logging
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), OWNER)
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env
                 .StandardEnvironment()
         DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
+    } else if (args.size == 1 && args[0].startsWith("--initialize-accounts=")) {
+        com.spoolin.core.features.bootstrap
+            .runInitializationCli(args[0])
     } else {
-        check(args.isEmpty()) { "Use environment configuration; only --migrate is an accepted argument" }
+        check(args.isEmpty()) { "Use environment configuration or a supported maintenance argument" }
         org.springframework.boot.SpringApplication
             .run(Application::class.java)
     }
@@ -378,7 +529,8 @@ fun certificateIdentity(certificate: X509Certificate): String? {
             .orEmpty()
             .filter { it[0] == 2 }
             .mapNotNull { it[1] as? String }
-    val identities = names.filter { it in setOf("core", "catalog", "media", "mcp", "operator", "prometheus") }
+    val permitted = setOf("core", "catalog", "media", "mcp", "operator", "prometheus", "alertmanager")
+    val identities = names.filter { it in permitted }
     return identities.singleOrNull()
 }
 
@@ -432,33 +584,71 @@ class ServiceIdentityInterceptor : ServerInterceptor {
 
 class ListenerBoundary(
     private val environment: Environment,
+    private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
     ) {
-        val path = request.requestURI
-        if (path.startsWith("/actuator")) {
-            val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
-            val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
-            val permitted =
-                if (path ==
-                    "/actuator/prometheus"
-                ) {
-                    identity == "prometheus"
-                } else {
-                    identity in setOf("operator", "core", "catalog", "media", "mcp")
-                }
-            val privatePort = environment.getProperty("local.management.port", Int::class.java)
-            if (!request.isSecure || request.localPort != privatePort || !permitted) {
-                response.sendError(HTTP_FORBIDDEN)
-                return
+        val rejection = rejectionStatus(request)
+        if (rejection != null) {
+            response.sendError(rejection)
+        } else {
+            response.setHeader("X-Content-Type-Options", "nosniff")
+            response.setHeader("Cache-Control", "no-store")
+            if (request.requestURI == "/actuator/prometheus") {
+                serveMetrics(request, response, chain)
+            } else {
+                chain.doFilter(request, response)
             }
         }
-        response.setHeader("X-Content-Type-Options", "nosniff")
-        response.setHeader("Cache-Control", "no-store")
-        chain.doFilter(request, response)
+    }
+
+    private fun rejectionStatus(request: HttpServletRequest): Int? {
+        val path = request.requestURI
+        if (!(path.startsWith("/actuator") || path == "/internal/alerts")) return null
+        val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
+        val permitted =
+            when (path) {
+                "/internal/alerts" -> identity == "alertmanager"
+                "/actuator/prometheus" -> identity == "prometheus"
+                else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
+            }
+        val privatePort = environment.getProperty("local.management.port", Int::class.java)
+        return if (permittedListener(request, privatePort, permitted)) {
+            null
+        } else if (request.requestURI == "/internal/alerts" && request.localPort != privatePort) {
+            HTTP_NOT_FOUND
+        } else {
+            HTTP_FORBIDDEN
+        }
+    }
+
+    private fun permittedListener(
+        request: HttpServletRequest,
+        port: Int?,
+        permitted: Boolean,
+    ): Boolean = request.isSecure && request.localPort == port && permitted
+
+    private fun serveMetrics(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
+        val measurement = metrics
+        if (measurement == null) {
+            response.sendError(HTTP_UNAVAILABLE)
+        } else {
+            synchronized(measurement) {
+                if (measurement.prepareScrape()) {
+                    chain.doFilter(request, response)
+                } else {
+                    response.sendError(HTTP_UNAVAILABLE)
+                }
+            }
+        }
     }
 }
 
@@ -472,9 +662,12 @@ class FrontendNavigation {
         "/register",
         "/manage",
         "/manage/movies",
+        "/manage/movies/new",
         "/manage/people",
+        "/manage/people/new",
         "/manage/archives",
         "/manage/audit",
+        "/manage/{*section}",
         produces = [MediaType.TEXT_HTML_VALUE],
     )
     fun navigation(): ResponseEntity<ByteArray> {
@@ -492,7 +685,14 @@ class FrontendNavigation {
             ).body(bytes)
     }
 
-    @GetMapping("/movies/{id}", "/people/{id}", produces = [MediaType.TEXT_HTML_VALUE])
+    @GetMapping(
+        "/movies/{id}",
+        "/titles/{id}",
+        "/people/{id}",
+        "/manage/movies/{id}",
+        "/manage/people/{id}",
+        produces = [MediaType.TEXT_HTML_VALUE],
+    )
     fun recordNavigation(
         @PathVariable id: String,
     ): ResponseEntity<ByteArray> =

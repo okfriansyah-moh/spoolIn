@@ -2,6 +2,8 @@ package com.spoolin.core.operations.receipts
 
 import com.spoolin.core.operations.events.ReceiptActivity
 import com.spoolin.core.operations.events.ReceiptAudit
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.observability.LogicalResult
 import com.spoolin.support.receipts.Comparison
 import com.spoolin.support.receipts.IntentHashes
 import com.spoolin.support.receipts.OperationIntent
@@ -28,6 +30,7 @@ class OwnerReceipts(
     private val dataSource: DataSource,
     private val hashes: IntentHashes,
     private val clock: Clock = Clock.systemUTC(),
+    private val metrics: LogicalMetrics? = null,
 ) {
     fun execute(
         intent: OperationIntent,
@@ -50,21 +53,44 @@ class OwnerReceipts(
         options: ReceiptExecution,
         mutation: (Connection) -> SafeResult,
     ): ReceiptOutcome =
-        dataSource.committed { connection ->
-            val inserted = reserve(connection, intent, correlationId, options.privateInput)
-            val existing = locked(connection, intent.id)
-            when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
-                Comparison.HIDDEN -> throw ReceiptHidden()
-                Comparison.CONFLICT -> throw ReceiptConflict()
-                Comparison.REPLAY -> Unit
+        observe(intent.kind) {
+            dataSource.committed { connection ->
+                val inserted = reserve(connection, intent, correlationId, options.privateInput)
+                val existing = locked(connection, intent.id)
+                when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
+                    Comparison.HIDDEN -> throw ReceiptHidden()
+                    Comparison.CONFLICT -> throw ReceiptConflict()
+                    Comparison.REPLAY -> Unit
+                }
+                if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
+                val result = mutation(connection)
+                complete(connection, intent.id, result)
+                ReceiptActivity.append(connection, intent.id, correlationId, result.resultId, options.audit)
+                options.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
+                locked(connection, intent.id).outcome
             }
-            if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
-            val result = mutation(connection)
-            complete(connection, intent.id, result)
-            ReceiptActivity.append(connection, intent.id, correlationId, result.resultId, options.audit)
-            options.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
-            locked(connection, intent.id).outcome
         }
+
+    private fun observe(
+        kind: String,
+        operation: () -> ReceiptOutcome,
+    ): ReceiptOutcome {
+        val started = System.nanoTime()
+        var observed = LogicalResult.unknown()
+        try {
+            val result =
+                runCatching(operation).getOrElse { failure ->
+                    observed = receiptFailure(failure)
+                    throw failure
+                }
+            val code = if (result.resultExpired && result.state == ReceiptState.SUCCEEDED) null else result.errorCode
+            observed = LogicalResult.fromReceipt(result.state.name, code)
+            return result
+        } finally {
+            // A failed collector must not undo or replace an already committed owner result.
+            runCatching { metrics?.complete(kind, "owner", observed, started) }
+        }
+    }
 
     fun resolve(intent: OperationIntent): ReceiptOutcome? =
         dataSource.connection.use { connection ->
@@ -179,3 +205,11 @@ private data class ReceiptExecution(
     val work: List<WorkRequest> = emptyList(),
     val audit: ReceiptAudit = ReceiptAudit(),
 )
+
+private fun receiptFailure(failure: Throwable): LogicalResult =
+    when (failure) {
+        is ReceiptConflict -> LogicalResult.fromProblem("IDEMPOTENCY_CONFLICT")
+        is ReceiptHidden -> LogicalResult.fromProblem("NOT_FOUND")
+        is io.grpc.StatusRuntimeException -> LogicalResult.fromStatus(failure.status, true)
+        else -> LogicalResult.unknown()
+    }

@@ -25,6 +25,9 @@ tasks.named<Test>("test") {
 
 tasks.named<Test>("integrationTest") {
     classpath = foundationTestRuntime
+    doFirst {
+        classpath = classpath.filter { it != sourceSets["main"].output.resourcesDir }
+    }
     dependsOn("integrationTestClasses")
     filter { includeTestsMatching("com.spoolin.catalog.boundary.bootstrap.*BoundaryTest") }
 }
@@ -65,12 +68,14 @@ tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
 
 val workIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
-    dependsOn("testClasses")
+    dependsOn("testClasses", "integrationTestClasses")
     classpath =
         files(
             sourceSets["test"].output.classesDirs,
             configurations["testRuntimeClasspath"],
-            foundationTestRuntime,
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.catalog.operations.work.*") }
     useJUnitPlatform()
@@ -187,7 +192,7 @@ tasks.named("koverXmlReport") { dependsOn(catalogCreditWriteUnitTest) }
 
 val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detekt.Detekt::class) {
     setSource(files("src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts"))
-    config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
+    config.setFrom(rootProject.file(".ai/bundles/1.2.1/profiles/kotlin/detekt.yml"))
     buildUponDefaultConfig = false
     ignoreFailures = false
     reports {
@@ -198,3 +203,38 @@ val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
         md.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.md"))
     }
 }
+
+val catalogLifecycleIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath =
+        files(
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.catalog.recovery.lifecycle.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+
+tasks.named("koverXmlReport") { dependsOn(catalogLifecycleIntegrationTest) }
+
+dependencies {
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+}
+
+val catalogProposalIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath =
+        files(
+            sourceSets["integrationTest"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
+    filter { includeTestsMatching("com.spoolin.catalog.features.proposal.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+tasks.named("koverXmlReport") { dependsOn(catalogProposalIntegrationTest) }

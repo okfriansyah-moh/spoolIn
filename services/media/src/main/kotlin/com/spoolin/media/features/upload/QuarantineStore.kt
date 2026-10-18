@@ -46,7 +46,8 @@ class QuarantineStore(
                         off: Int,
                         len: Int,
                     ) {
-                        channel.write(java.nio.ByteBuffer.wrap(b, off, len))
+                        val buffer = java.nio.ByteBuffer.wrap(b, off, len)
+                        while (buffer.hasRemaining()) channel.write(buffer)
                     }
 
                     override fun flush() = channel.force(true) // fsync (§7.6)
@@ -57,6 +58,36 @@ class QuarantineStore(
                     }
                 }
             }
+
+    fun outputDirectory(): Path = output
+
+    /** Crash leftovers are private attempt directories, never accepted inputs or published files. */
+    fun sweepAbandonedScratch(now: java.time.Instant = java.time.Instant.now()) {
+        Files.list(output).use { paths ->
+            paths
+                .filter { Files.isDirectory(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }
+                .filter { runCatching { UUID.fromString(it.fileName.toString()) }.isSuccess }
+                .filter {
+                    Files
+                        .getLastModifiedTime(it)
+                        .toInstant()
+                        .isBefore(now.minusSeconds(SCRATCH_RETENTION_SECONDS))
+                }.limit(SCRATCH_SWEEP_BATCH)
+                .forEach(::deleteScratch)
+        }
+    }
+
+    private fun deleteScratch(directory: Path) {
+        Files.walk(directory).use { entries ->
+            entries.sorted(java.util.Comparator.reverseOrder()).forEach { Files.deleteIfExists(it) }
+        }
+    }
+
+    fun processingInput(assetId: UUID): Path {
+        val path = stagingPath(assetId)
+        require(Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS))
+        return path
+    }
 
     /** Delete a quarantine file idempotently (cleanup on rejection / cancellation). */
     fun deleteQuarantine(path: Path) = Files.deleteIfExists(path)
@@ -71,3 +102,6 @@ class QuarantineStore(
         return outputPath
     }
 }
+
+private const val SCRATCH_RETENTION_SECONDS = 3600L
+private const val SCRATCH_SWEEP_BATCH = 10L

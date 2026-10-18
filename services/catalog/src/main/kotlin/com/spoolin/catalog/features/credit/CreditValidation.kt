@@ -2,13 +2,13 @@
 
 package com.spoolin.catalog.features.credit
 
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.TextBound
 import com.spoolin.support.policy.TextRules
 import spoolin.v1.Spoolin.CreditWrite
-
-private val CHARACTER_BOUND = TextBound(1, 200)
 
 data class ValidatedCreditCreate(
     val personId: String,
@@ -22,20 +22,26 @@ data class ValidatedCreditPatch(
 )
 
 object CreditValidation {
-    fun validateCreate(request: CreditWrite): ValidatedCreditCreate {
+    fun validateCreate(
+        request: CreditWrite,
+        policy: PublicPolicy = CatalogWritePolicy.environment(),
+    ): ValidatedCreditCreate {
         requirePersonRoleIds(request)
         return ValidatedCreditCreate(
             personId = request.personId,
             roleId = request.roleId,
-            characters = normalizeCharacters(request.charactersList, "characters"),
+            characters = TextRules.characters(request.charactersList, policy.textBounds.getValue("characterName")),
         )
     }
 
-    fun validatePatch(request: CreditWrite): ValidatedCreditPatch {
+    fun validatePatch(
+        request: CreditWrite,
+        policy: PublicPolicy = CatalogWritePolicy.environment(),
+    ): ValidatedCreditPatch {
         val mask = request.updateMask.pathsList.toSet()
         return ValidatedCreditPatch(
             roleId = patchRole(mask, request.roleId),
-            characters = patchCharacters(mask, request.charactersList),
+            characters = patchCharacters(mask, request.charactersList, policy.textBounds.getValue("characterName")),
         )
     }
 
@@ -65,9 +71,10 @@ object CreditValidation {
     private fun patchCharacters(
         mask: Set<String>,
         raw: List<String>,
+        bound: TextBound,
     ): PatchValue<List<String>> =
         when {
-            "characters" in mask -> PatchValue.Value(normalizeCharacters(raw, "characters"))
+            "characters" in mask -> PatchValue.Value(TextRules.characters(raw, bound))
             else -> PatchValue.Omitted
         }
 
@@ -87,18 +94,4 @@ object CreditValidation {
                 .also { require(it.toString() == value) }
                 .toString()
         }.getOrElse { throw InputViolation(path, "Supply a lowercase, hyphenated UUID.") }
-
-    private fun normalizeCharacters(
-        values: List<String>,
-        path: String,
-    ): List<String> {
-        val trimmed = values.map { TextRules.ordinary(it, CHARACTER_BOUND, path) }
-        val seen = mutableSetOf<String>()
-        for (name in trimmed) {
-            val key = name.trim()
-            if (key in seen) throw InputViolation(path, "Remove duplicate character names.")
-            seen.add(key)
-        }
-        return trimmed
-    }
 }

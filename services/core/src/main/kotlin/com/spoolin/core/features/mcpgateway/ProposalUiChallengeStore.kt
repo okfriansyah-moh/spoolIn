@@ -8,10 +8,13 @@ import java.time.Instant
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
+private const val PROPOSAL_TTL_MINUTES = 10L
+private const val BINDING_TOKEN_BYTES = 32
+
 /** UI-only approval challenges keyed by proposal binding (never model-visible). */
 class ProposalUiChallengeStore(
     private val clock: Clock = Clock.systemUTC(),
-    private val ttl: Duration = Duration.ofMinutes(10),
+    private val ttl: Duration = Duration.ofMinutes(PROPOSAL_TTL_MINUTES),
     private val random: SecureRandom = SecureRandom(),
 ) {
     private data class Entry(
@@ -41,43 +44,50 @@ class ProposalUiChallengeStore(
         revision: Int,
         contentHash: String,
         challenge: String,
-    ): Boolean {
-        if (challenge.isBlank()) return false
-        purgeExpired()
-        val entry = entries[key(proposalId, revision)] ?: return false
-        if (clock.instant().isAfter(entry.expiresAt)) {
-            entries.remove(key(proposalId, revision))
-            return false
+    ): Boolean =
+        if (challenge.isBlank()) {
+            false
+        } else {
+            val entry = liveEntry(proposalId, revision)
+            entry != null && entry.contentHash == contentHash && constantTimeEquals(entry.challenge, challenge)
         }
-        if (entry.contentHash != contentHash) return false
-        return constantTimeEquals(entry.challenge, challenge)
-    }
 
     fun getChallenge(
         proposalId: String,
         revision: Int,
         contentHash: String,
         bindingToken: String,
-    ): String? {
-        if (bindingToken.isBlank()) return null
-        purgeExpired()
-        val entry = entries[key(proposalId, revision)] ?: return null
-        if (clock.instant().isAfter(entry.expiresAt)) {
-            entries.remove(key(proposalId, revision))
-            return null
+    ): String? =
+        if (bindingToken.isBlank()) {
+            null
+        } else {
+            liveEntry(proposalId, revision)
+                ?.takeIf { it.contentHash == contentHash && constantTimeEquals(it.bindingToken, bindingToken) }
+                ?.challenge
         }
-        if (entry.contentHash != contentHash) return null
-        if (!constantTimeEquals(entry.bindingToken, bindingToken)) return null
-        return entry.challenge
+
+    private fun liveEntry(
+        proposalId: String,
+        revision: Int,
+    ): Entry? {
+        purgeExpired()
+        val binding = key(proposalId, revision)
+        val entry = entries[binding] ?: return null
+        return if (clock.instant().isBefore(entry.expiresAt)) {
+            entry
+        } else {
+            entries.remove(binding, entry)
+            null
+        }
     }
 
     private fun purgeExpired() {
         val now = clock.instant()
-        entries.entries.removeIf { now.isAfter(it.value.expiresAt) }
+        entries.entries.removeIf { !now.isBefore(it.value.expiresAt) }
     }
 
     private fun randomBindingToken(): String {
-        val bytes = ByteArray(32).also(random::nextBytes)
+        val bytes = ByteArray(BINDING_TOKEN_BYTES).also(random::nextBytes)
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 

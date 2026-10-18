@@ -1,7 +1,11 @@
 spring:
   application:
     name: media
+  output:
+    ansi:
+      enabled: never
   main:
+    banner-mode: off
     allow-circular-references: false
   jpa:
     open-in-view: false
@@ -23,7 +27,7 @@ spring:
             certificate: ${SERVICE_CA_FILE}
   grpc:
     client:
-      channels:
+      channel:
         catalog:
           target: ${CATALOG_GRPC_TARGET:dns:///catalog:9090}
           ssl:
@@ -61,7 +65,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus
   endpoint:
     health:
       show-details: never
@@ -72,8 +76,8 @@ management:
           include: readinessState,schema
 spoolin:
   schema:
-    minimum: '1'
-    maximum: '2'
+    minimum: '3'
+    maximum: '3'
   policy:
     revision: ${SPOOLIN_POLICY_REVISION:v1}
   media:

@@ -90,6 +90,7 @@ internal object SelectedNumbers {
             SelectedNumber("EMAIL_MAX_CODE_POINTS", 254, 1, 254, "text", "email"),
             SelectedNumber("PASSWORD_MIN_CODE_POINTS", 15, 1, 2147483647, "text", "password", true),
             SelectedNumber("PASSWORD_MAX_CODE_POINTS", 128, 1, 512, "text", "password"),
+            SelectedNumber("SEARCH_MIN_CODE_POINTS", 0, 0, 2147483647, "text", "search", true),
             SelectedNumber("SEARCH_MAX_CODE_POINTS", 200, 1, 21827, "text", "search"),
             SelectedNumber("SOURCE_URL_MAX_CODE_POINTS", 2048, 1, 2048, "text", "sourceUrl"),
             SelectedNumber("REUSE_BASIS_MAX_CODE_POINTS", 4000, 1, 4000, "text", "reuseBasis"),
