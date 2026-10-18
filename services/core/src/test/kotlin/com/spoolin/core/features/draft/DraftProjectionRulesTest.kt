@@ -13,7 +13,10 @@ class DraftProjectionRulesTest {
         val draft = projection("PERSON", """{"name":"A. Rivers","biography":"A fictional director."}""")
         val recovered = draftGraphqlProjection(draft)["values"]
         assertEquals(values, recovered)
-        val encoded = tools.jackson.databind.ObjectMapper().writeValueAsString(recovered)
+        val encoded =
+            tools.jackson.databind
+                .ObjectMapper()
+                .writeValueAsString(recovered)
         assertTrue(DraftPayload().encode("PERSON", encoded).isNotEmpty())
     }
 

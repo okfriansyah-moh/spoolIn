@@ -1774,7 +1774,7 @@ message Id {
 message VersionedId {
   Context context = 1;
   string id = 2;
-  int64 expected_version = 3;
+  optional int64 expected_version = 3;
 }
 
 message PartialDate {
@@ -1823,7 +1823,7 @@ message MovieValues {
   PartialDate release = 5;
   optional int32 runtime_minutes = 6;
   optional string original_language = 7;
-  string synopsis_language = 8;
+  optional string synopsis_language = 8;
   repeated string countries = 9;
 }
 
@@ -1855,7 +1855,7 @@ message CreditWrite {
   string person_id = 4;
   string role_id = 5;
   repeated string characters = 6;
-  int64 expected_version = 7;
+  optional int64 expected_version = 7;
   google.protobuf.FieldMask update_mask = 8;
 }
 

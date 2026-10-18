@@ -14,6 +14,13 @@ STATE = ROOT / '.local'
 TOOL = 'spoolin-local-toolchain:21.0.12.1-24.21.0'
 OWNERS = ('core', 'catalog', 'media')
 SERVICES = ('postgres', *OWNERS, 'core-migrator', 'catalog-migrator', 'media-migrator', 'catalog-seed')
+BUILD_CACHES = {
+    'spoolin-local-gradle': '/workspace/.local/gradle',
+    'spoolin-local-node': '/workspace/node_modules',
+    'spoolin-local-node-frontend': '/workspace/frontend/node_modules',
+    'spoolin-local-node-mcp': '/workspace/mcp/node_modules',
+    'spoolin-local-node-browser': '/workspace/tests/browser/node_modules',
+}
 
 
 def run(*args, capture=False, **kwargs):
@@ -57,7 +64,7 @@ def docker_test_arguments():
 
 
 def tooling(*args, root=False, cache=True, docker=False):
-    mounts = ['-v', 'spoolin-local-gradle:/workspace/.local/gradle'] if cache else []
+    mounts = [part for name, path in BUILD_CACHES.items() for part in ('-v', f'{name}:{path}')] if cache else []
     identity = [] if root else ['--user', f'{os.getuid()}:{os.getgid()}']
     test_arguments = docker_test_arguments() if docker else []
     return run('docker', 'run', '--rm', *identity, *test_arguments, '-v', f'{ROOT}:/workspace',
@@ -128,7 +135,9 @@ def render_compose():
 def build_sources(test=False):
     (STATE / 'gradle').mkdir(exist_ok=True)
     run('docker', 'build', '-t', TOOL, '-f', str(ROOT / 'ops/local/toolchain.Dockerfile'), str(ROOT / 'ops/local'))
-    tooling('python3', '-c', f'import os; os.chown("/workspace/.local/gradle", {os.getuid()}, {os.getgid()})', root=True)
+    tooling('python3', '-c',
+            'import os,sys\nuid,gid=map(int,sys.argv[1:3])\nfor path in sys.argv[3:]: os.chown(path,uid,gid)',
+            str(os.getuid()), str(os.getgid()), *BUILD_CACHES.values(), root=True)
     if test:
         tooling('python3', 'ops/local/test_runner.py')
     tooling('npm', 'ci')
@@ -198,10 +207,11 @@ def reset():
     if STATE.exists():
         # UID10001 owns protected identities; remove only this installation directory.
         tooling('python3', '-c', 'import shutil; shutil.rmtree("/workspace/.local")', root=True, cache=False)
-    caches = run('docker', 'volume', 'ls', '--filter', 'name=^spoolin-local-gradle$',
+    caches = run('docker', 'volume', 'ls', '--filter', 'name=^(' + '|'.join(BUILD_CACHES) + ')$',
                  '--format', '{{.Name}}', capture=True).stdout.splitlines()
-    if 'spoolin-local-gradle' in caches:
-        run('docker', 'volume', 'rm', 'spoolin-local-gradle')
+    selected = [name for name in BUILD_CACHES if name in caches]
+    if selected:
+        run('docker', 'volume', 'rm', *selected)
     print('Local data and credentials deleted. Run make local-start for a fresh installation.')
 
 

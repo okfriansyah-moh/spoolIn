@@ -35,12 +35,18 @@ class ReportPreservationTests(unittest.TestCase):
 
     def check_reports(self, module, task, stubs):
         mapping = json.loads((ROOT / 'build-tools/verification-map.json').read_text())
-        for level in [name for name in ['unit', 'integration'] if mapping['tasks'][task].get(name)]:
+        levels = [name for name in ['unit', 'integration']
+                  if any(suite.get('argv', [None, None])[1:2] == [f'build-tools/verification-tests/{module.__name__}.py']
+                         for suite in mapping['tasks'][task].get(name, []))]
+        self.assertTrue(levels, f"No mapped report producer for {task}: {module.__name__}")
+        for level in levels:
             with self.subTest(task=task, level=level), patch.object(module, 'ROOT', self.root), patch.object(
                 sys, 'argv', ['runner', '--task', task, '--level', level],
             ), patch.multiple(module, **stubs):
                 self.assertEqual(module.main(), 0)
-            report = self.root / mapping['tasks'][task][level][0]['report']
+            suite = next(suite for suite in mapping['tasks'][task][level]
+                         if suite.get('argv', [])[1:2] == [f'build-tools/verification-tests/{module.__name__}.py'])
+            report = self.root / suite['report']
             self.assertEqual(json.loads(report.read_text())['exit_code'], 0)
             self.assertIn('numbering-v1', report.parts)
         for path, original in self.old.items():
@@ -86,7 +92,15 @@ class ReportPreservationTests(unittest.TestCase):
         for task in mapping['tasks'].values():
             for level in ['unit', 'integration']:
                 for suite in task.get(level, []):
-                    self.assertTrue(suite['report'].startswith('.ai/evidence/numbering-v1/'))
+                    if suite.get('kind') == 'blocked':
+                        self.assertTrue(suite['reason'])
+                        self.assertTrue(suite['proof_boundary'])
+                        self.assertNotIn('report', suite)
+                        continue
+                    if suite['id'] == 't045-measurement-rules':
+                        self.assertEqual(suite['report'], 'artifacts/capacity/rules.json')
+                    else:
+                        self.assertTrue(suite['report'].startswith('.ai/evidence/numbering-v1/'))
 
 
 if __name__ == '__main__':

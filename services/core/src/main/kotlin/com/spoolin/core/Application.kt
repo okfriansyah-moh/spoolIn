@@ -238,8 +238,8 @@ class RuntimeConfiguration {
         val privateListener = request.isSecure && request.localPort == port
         if (!route || !privateListener) return false
         val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
-        val leaf = certificates?.firstOrNull() as? X509Certificate ?: return false
-        return certificateDnsNames(leaf) == listOf("alertmanager")
+        val leaf = certificates?.firstOrNull() as? X509Certificate
+        return leaf != null && certificateDnsNames(leaf) == listOf("alertmanager")
     }
 
     private fun certificateDnsNames(certificate: X509Certificate): List<Any?> =

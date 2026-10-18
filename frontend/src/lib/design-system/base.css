@@ -132,7 +132,11 @@ p {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--primitive-space-3) var(--primitive-space-6);
-  padding: var(--primitive-space-3) max(var(--primitive-space-4), calc((100vw - var(--primitive-container)) / 2));
+  padding: var(--primitive-space-3)
+    max(
+      var(--primitive-space-4),
+      calc((100vw - var(--primitive-container)) / 2)
+    );
   border-bottom: 1px solid var(--line);
   background: var(--bg);
 }
@@ -165,7 +169,9 @@ p {
   color: var(--muted);
   font-weight: 550;
   text-decoration: none;
-  transition: background-color var(--primitive-duration-short), color var(--primitive-duration-short);
+  transition:
+    background-color var(--primitive-duration-short),
+    color var(--primitive-duration-short);
 }
 .app-header .primary-navigation a:hover {
   color: var(--text);

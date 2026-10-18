@@ -253,9 +253,11 @@ make local-test
 
 `make local-test` runs the setup-helper regression suite, builds the app, runs npm type checks, frontend and MCP coverage tests, and Gradle test tasks. Some backend tests use isolated database fixtures. The separately named `integrationTest` tasks and browser acceptance suites are not part of this command.
 
+Container builds keep Linux dependencies in dedicated Docker volumes, so they preserve any Node dependencies installed on your host. Reset removes these build caches too.
+
 Its temporary backend test container receives access to your local Docker engine so Testcontainers can start and remove isolated PostgreSQL fixtures. Application containers do not receive this socket. Remote Docker endpoints are not supported by this helper.
 
-Status checks service readiness and codec isolation as well as container state. Logs help explain a failed startup or request. If the log command follows output continuously, press `Ctrl+C` to leave it; this doesn't stop the application. Stop retains the database and artwork. Start brings the same installation back.
+Status checks service readiness and codec isolation as well as container state. Logs print the most recent 200 lines per service, then return to your terminal. Stop retains the database and artwork. Start brings the same installation back.
 
 To update this PR branch in a checkout without local source edits:
 
@@ -322,6 +324,6 @@ Contract generation requires Java and Node; generated interfaces must match the 
 
 ## Verification limits
 
-The local workflow and browser walkthrough were exercised on macOS with Docker Desktop and Docker Engine `29.8.2`, running Linux ARM64 containers. Windows/WSL2 and native Ubuntu installation instructions were checked against the linked vendor guides; they were not run on fresh Windows or Ubuntu machines.
+The local workflow and browser walkthrough were exercised on macOS with Docker Desktop and Docker Engine `29.8.2`, running Linux ARM64 containers. Installer commands were checked against the linked vendor guides; this was not a fresh operating-system installation. Windows/WSL2 and native Ubuntu instructions received source inspection only.
 
 Platform instructions follow the linked vendor installation guides. Successful tool installation depends on your OS version, virtualization settings, and Docker security support. The delivery report records which platforms and application journeys were actually run. Historical release evidence and remaining acceptance work are retained in [the release handoff](release/handoff.md); screenshots alone don't establish every acceptance case.

@@ -19,21 +19,28 @@ class BrowserRequestFailureRulesTest {
             val failures =
                 listOf(IOException("synthetic private IO detail"), IllegalStateException("synthetic private state"))
             for (actionFailure in failures) {
-                val received = AtomicReference<Any>()
-                val completed = CountDownLatch(1)
-                val response = executor.run { throw actionFailure }
-                response.setResultHandler {
-                    received.set(it)
-                    completed.countDown()
-                }
-                assertTrue(completed.await(5, TimeUnit.SECONDS))
-                val actual = assertInstanceOf(ResponseEntity::class.java, received.get())
-                assertEquals(BrowserBoundary.UNAVAILABLE, actual.statusCode.value())
-                assertEquals(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "UNAVAILABLE").body, actual.body)
-                assertFalse(actual.body.toString().contains("private"))
+                assertUnavailable(executor, actionFailure)
             }
         } finally {
             executor.close()
         }
+    }
+
+    private fun assertUnavailable(
+        executor: BrowserRequests,
+        actionFailure: Throwable,
+    ) {
+        val received = AtomicReference<Any>()
+        val completed = CountDownLatch(1)
+        val response = executor.run { throw actionFailure }
+        response.setResultHandler {
+            received.set(it)
+            completed.countDown()
+        }
+        assertTrue(completed.await(5, TimeUnit.SECONDS))
+        val actual = assertInstanceOf(ResponseEntity::class.java, received.get())
+        assertEquals(BrowserBoundary.UNAVAILABLE, actual.statusCode.value())
+        assertEquals(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "UNAVAILABLE").body, actual.body)
+        assertFalse(actual.body.toString().contains("private"))
     }
 }

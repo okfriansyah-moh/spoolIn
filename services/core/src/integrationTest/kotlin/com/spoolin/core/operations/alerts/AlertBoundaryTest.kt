@@ -75,7 +75,12 @@ class AlertBoundaryTest {
         val uri = fixture.origin + "/internal/alerts"
         assertEquals(404, send(alertmanager, uri, payload()).statusCode())
         assertEquals(404, send(fixture.client, uri, payload()).statusCode())
-        val request = HttpRequest.newBuilder(URI(uri)).timeout(Duration.ofSeconds(5)).GET().build()
+        val request =
+            HttpRequest
+                .newBuilder(URI(uri))
+                .timeout(Duration.ofSeconds(5))
+                .GET()
+                .build()
         assertEquals(404, alertmanager.send(request, HttpResponse.BodyHandlers.discarding()).statusCode())
     }
 

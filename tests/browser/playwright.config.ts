@@ -29,10 +29,7 @@ export default defineConfig({
   timeout: 60000,
   reporter: taskBrowser
     ? [['list'], ['json']]
-    : [
-        ['list'],
-        ['junit', { outputFile: '../../test-results/junit.xml' }],
-      ],
+    : [['list'], ['junit', { outputFile: '../../test-results/junit.xml' }]],
   outputDir: '../../test-results/shell',
   use: {
     baseURL: 'http://127.0.0.1:43104',
@@ -43,47 +40,50 @@ export default defineConfig({
   projects: taskBrowser
     ? [taskProject]
     : [
-    ...[1440, 390, 320].flatMap((width) =>
-      (['dark', 'light'] as const).map((colorScheme) => ({
-        name: `chromium-${width}-${colorScheme}`,
-        use: {
-          browserName: 'chromium' as const,
-          viewport: { width, height: 900 },
-          hasTouch: width < 700,
-          colorScheme,
-          reducedMotion: 'reduce' as const,
-          launchOptions: chromium ? { executablePath: chromium } : {},
-          video: { mode: 'on' as const, size: { width, height: 900 } },
-        },
-      })),
-    ),
-    ...(firefoxEndpoint
-      ? [
-          {
-            name: 'firefox-390-dark',
+        ...[1440, 390, 320].flatMap((width) =>
+          (['dark', 'light'] as const).map((colorScheme) => ({
+            name: `chromium-${width}-${colorScheme}`,
             use: {
-              browserName: 'firefox' as const,
-              connectOptions: {
-                wsEndpoint: firefoxEndpoint,
-                exposeNetwork: '<loopback>',
-              },
-              viewport: { width: 390, height: 900 },
-              colorScheme: 'dark' as const,
-              video: { mode: 'on' as const, size: { width: 390, height: 900 } },
+              browserName: 'chromium' as const,
+              viewport: { width, height: 900 },
+              hasTouch: width < 700,
+              colorScheme,
+              reducedMotion: 'reduce' as const,
+              launchOptions: chromium ? { executablePath: chromium } : {},
+              video: { mode: 'on' as const, size: { width, height: 900 } },
             },
+          })),
+        ),
+        ...(firefoxEndpoint
+          ? [
+              {
+                name: 'firefox-390-dark',
+                use: {
+                  browserName: 'firefox' as const,
+                  connectOptions: {
+                    wsEndpoint: firefoxEndpoint,
+                    exposeNetwork: '<loopback>',
+                  },
+                  viewport: { width: 390, height: 900 },
+                  colorScheme: 'dark' as const,
+                  video: {
+                    mode: 'on' as const,
+                    size: { width: 390, height: 900 },
+                  },
+                },
+              },
+            ]
+          : []),
+        {
+          name: 'webkit-390-dark',
+          use: {
+            browserName: 'webkit',
+            viewport: { width: 390, height: 900 },
+            colorScheme: 'dark',
+            video: { mode: 'on', size: { width: 390, height: 900 } },
           },
-        ]
-      : []),
-    {
-      name: 'webkit-390-dark',
-      use: {
-        browserName: 'webkit',
-        viewport: { width: 390, height: 900 },
-        colorScheme: 'dark',
-        video: { mode: 'on', size: { width: 390, height: 900 } },
-      },
-    },
-  ],
+        },
+      ],
   webServer: {
     command:
       'npm exec --workspace frontend -- vite --mode shell-test --host 127.0.0.1 --port 43104',

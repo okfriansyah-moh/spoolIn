@@ -107,6 +107,18 @@ class LocalCommandsTest(unittest.TestCase):
         self.assertIn(f'{RUNNER.os.getuid()}:{RUNNER.os.getgid()}', command.call_args.args)
         self.assertIn(f'{RUNNER.ROOT}:/workspace', command.call_args.args)
 
+    def test_container_dependencies_do_not_replace_host_workspace_dependencies(self):
+        with patch.object(RUNNER, 'run') as command:
+            RUNNER.tooling('npm', 'ci')
+        mounts = command.call_args.args
+        for workspace in ('/workspace', '/workspace/frontend', '/workspace/mcp', '/workspace/tests/browser'):
+            self.assertTrue(any(value.startswith('spoolin-local-node') and value.endswith(f':{workspace}/node_modules') for value in mounts))
+
+    def test_provisioning_and_reset_do_not_mount_build_caches(self):
+        with patch.object(RUNNER, 'run') as command:
+            RUNNER.tooling('python3', 'ops/local/provision.py', cache=False)
+        self.assertFalse(any(name in ' '.join(command.call_args.args) for name in RUNNER.BUILD_CACHES))
+
     def test_setup_provisions_only_when_uninitialized(self):
         with tempfile.TemporaryDirectory() as temporary:
             with patch.object(RUNNER, 'STATE', Path(temporary)), patch.object(RUNNER, 'run') as command, patch.object(RUNNER, 'tooling') as tool, patch.object(RUNNER, 'render_compose') as render:
@@ -202,6 +214,13 @@ class LocalPathSafetyTest(unittest.TestCase):
 
 
 class LocalCacheResetTest(unittest.TestCase):
+    def test_reset_removes_only_known_existing_dependency_caches(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            existing = 'unrelated-volume\nspoolin-local-node-frontend\nspoolin-local-gradle\n'
+            with patch.object(RUNNER, 'STATE', Path(temporary)), patch('builtins.input', return_value='DELETE'), patch.object(RUNNER, 'tooling'), patch.object(RUNNER, 'run', return_value=subprocess.CompletedProcess([], 0, stdout=existing)) as command:
+                RUNNER.reset()
+            self.assertEqual(('docker', 'volume', 'rm', 'spoolin-local-gradle', 'spoolin-local-node-frontend'), command.call_args.args)
+
     def test_reset_without_build_cache_does_not_fail_volume_removal(self):
         with tempfile.TemporaryDirectory() as temporary:
             state = Path(temporary)
