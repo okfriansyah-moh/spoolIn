@@ -1,0 +1,62 @@
+{
+  "observedAt": "2026-10-18T12:54:11.416195+00:00",
+  "manifestVersion": "wikidata-2026-10-v1",
+  "manifestSHA256": "8d26d3683bfef053128ae554b843966db3f4fb6be31195745edb05f5d5c37c95",
+  "snapshotSHA256": "00514dbfdeeaa3805d8a90a4e654ae9409baf33ef20e15dcf3533d10783f6caf",
+  "counts": {
+    "MOVIE": 100,
+    "TV": 100
+  },
+  "people": 1213,
+  "credits": 1475,
+  "artworkPresent": 0,
+  "bundledFiles": 0,
+  "missingFields": {
+    "originalTitle": 200,
+    "originalLanguage": 200,
+    "countries": 200,
+    "runtimeMinutes": 200
+  },
+  "boilerplateSynopses": 200,
+  "liveTitleAudit": {
+    "selected": 200,
+    "retrieved": 200,
+    "complete": true,
+    "comparedFactsMatch": true,
+    "mismatches": [],
+    "comparisonScope": "English title label, release chosen by existing freezer, seeded genre IDs, and included credited person/role statements; not independent corroboration of every claim"
+  },
+  "availableLivePropertyCounts": {
+    "P1476": 199,
+    "P364": 199,
+    "P495": 200,
+    "P2047": 183,
+    "P154": 133,
+    "P18": 57
+  },
+  "posterGate": {
+    "requiredMoviePairs": 100,
+    "requiredTVPairs": 100,
+    "approvedMoviePairs": 0,
+    "approvedTVPairs": 0,
+    "tvCategoryFilesReviewed": 28,
+    "tvDistinctCategoryCandidates": 12,
+    "tvOutsideCategoryLeads": 4,
+    "status": "unmet"
+  },
+  "implementation": "not started; existing seed preserved until both poster inventories pass",
+  "source": "https://www.wikidata.org/w/api.php",
+  "referenceLabelAudit": {
+    "selected": 1378,
+    "retrieved": 1000,
+    "remaining": 378,
+    "complete": false,
+    "mismatchCount": 0,
+    "scope": "English labels of people and distinct genres only; not biography or independent person identity review",
+    "lookupBlocker": {
+      "type": "RuntimeError",
+      "status": null,
+      "retryAfter": null
+    }
+  }
+}
