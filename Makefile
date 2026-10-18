@@ -1,3 +1,5 @@
+export SERVICE
+
 .PHONY: start stop restart status logs seed test-unit test-integration
 
 start:
@@ -9,7 +11,7 @@ restart:
 status:
 	@bash ops/bin/status.sh
 logs:
-	@bash ops/bin/logs.sh $(SERVICE)
+	@bash ops/bin/logs.sh "$${SERVICE}"
 seed:
 	@bash ops/bin/seed.sh
 test-unit:

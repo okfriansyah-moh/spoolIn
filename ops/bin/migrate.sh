@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[[ $# == 1 ]] || { printf '%s\n' 'migration: select exactly one owner' >&2; exit 2; }
 case "${1-}" in core|catalog|media) owner="$1" ;; *) printf '%s\n' 'migration: select core, catalog or media' >&2; exit 2 ;; esac
 root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 : "${SPOOLIN_INSTALLATION:?Set the installation identifier}"
