@@ -158,7 +158,7 @@ def measure_phase(stack, selected, report):
         report["result"] = report["measurement"]["result"]
     else:
         report["measurement"] = plans(stack, manifest)
-        report["result"] = "PENDING"
+        report["result"] = report["measurement"]["result"]
 
 
 def main():
@@ -172,7 +172,7 @@ def main():
               "unverified": ["accepted static JPEG/PNG/WebP10s processing and near-resource-boundary decoder measurements",
                              "overload/isolation during Media fault, bounded shutdown, forced-crash persisted recovery",
                              "full protected backup/restore RPO/RTO and external provider evidence",
-                             "both arm64/amd64 resource observations and all consequential SQL/N+1 proofs"]}
+                             "both arm64/amd64 resource observations; SQL plans and nested-field query counts require actual selected-phase results"]}
     stack = CapacityStack(selected.phase, selected.repetition, output)
     try:
         stack.prepare()

@@ -10,6 +10,8 @@ from unittest.mock import patch
 from capacity_http import Response
 from capacity_runtime import require_hosted
 from capacity_workload import assert_scope, matching, nearest_rank
+from capacity_plans import redact_plan_literals, title_statement
+from capacity_sql_observation import deltas, inventory
 
 spec = importlib.util.spec_from_file_location("capacity_entry", Path(__file__).with_name("verify-capacity.py"))
 entry = importlib.util.module_from_spec(spec)
@@ -65,6 +67,53 @@ class CapacityEvidenceRulesTest(unittest.TestCase):
         self.assertEqual([], matching([row], {"year": 2000, "month": 1}))
         self.assertFalse(assert_scope(Response(200, {"data": {"titles": {"nodes": []}}}, 1, 1, 1),
                                      {"root": "titles", "expectedIds": ["fixed"], "hasNextPage": False}))
+
+    def test_frozen_credited_name_scope_includes_only_active_cast_or_creator_and_public_title(self):
+        import copy
+        manifest = json.loads((Path(__file__).parents[2] / 'data/seed/manifest.json').read_text())
+        people = {person['externalId']: person for person in manifest['people']}
+        categories = {role['externalId']: role['category'] for role in manifest['roles']}
+        row, person = next((row, people[credit['personExternalId']]) for row in manifest['records']
+                           for credit in row['credits'] if categories[credit['roleExternalId']] in {'CAST', 'CREATOR'}
+                           and people[credit['personExternalId']]['name'].casefold() not in row['normalized']['title'].casefold())
+        selected = {'text': person['name']}
+        self.assertIn(row, matching([row], selected, manifest['people'], manifest['roles']))
+        hidden_people = copy.deepcopy(manifest['people'])
+        next(value for value in hidden_people if value['externalId'] == person['externalId'])['status'] = 'ARCHIVED'
+        self.assertEqual([], matching([row], selected, hidden_people, manifest['roles']))
+        self.assertEqual([], matching([{**row, 'status': 'ARCHIVED'}], selected, manifest['people'], manifest['roles']))
+        crew = [{**role, 'category': 'CREW'} for role in manifest['roles']]
+        self.assertEqual([], matching([row], selected, manifest['people'], crew))
+
+    def test_driver_delta_retains_per_row_queries_and_separates_background_activity(self):
+        before = [{'queryId': '1', 'query': 'SELECT genre_id FROM title_genre WHERE title_id=$1',
+                   'calls': 1, 'rows': 2, 'totalExecutionMs': 1}]
+        after = [{**before[0], 'calls': 21, 'rows': 42, 'totalExecutionMs': 5},
+                 {'queryId': '2', 'query': 'SELECT id FROM durable_work WHERE state=$1',
+                  'calls': 3, 'rows': 0, 'totalExecutionMs': 1}]
+        observed = deltas(before, after)
+        self.assertEqual(20, observed[0]['calls'])
+        self.assertTrue(observed[0]['metadataSelect'])
+        self.assertFalse(observed[1]['metadataSelect'])
+        self.assertEqual(3, observed[1]['calls'])
+        with self.assertRaises(RuntimeError):
+            deltas(after, before)
+
+    def test_plan_shapes_retain_person_search_and_withhold_private_lookup_literals(self):
+        sql, types, values, _ = title_statement({'text': 'literal%_'})
+        self.assertIn('COLLATE pg_unicode_fast', sql)
+        self.assertIn("sr.category IN ('CAST','CREATOR')", sql)
+        self.assertIn("sp.status='ACTIVE'", sql)
+        self.assertEqual(['text'], types)
+        self.assertEqual(1, len(values))
+        digest = 'ab' * 32
+        plan = [{'Plan': {'Index Cond': "digest='\\x" + digest + "'::bytea", 'Actual Rows': 1}}]
+        safe = redact_plan_literals(plan)
+        self.assertNotIn(digest, json.dumps(safe))
+        self.assertEqual(1, safe[0]['Plan']['Actual Rows'])
+        definition = inventory()
+        self.assertEqual(15, len(definition['families']))
+        self.assertTrue(all(len(source['sha256']) == 64 for family in definition['families'] for source in family['sources']))
 
     def test_runner_guard_rejects_mac_even_when_hosted_environment_is_forged(self):
         environment = {"GITHUB_ACTIONS": "true", "RUNNER_ENVIRONMENT": "github-hosted", "RUNNER_OS": "Linux"}

@@ -36,12 +36,21 @@ def ordered_records(records):
                   for part in ("year", "month", "day")) + (row["stableUUID"],))
 
 
-def matching(records, selected):
+def matching(records, selected, people=(), roles=()):
     text = selected.get("text", "").casefold()
     result = []
+    people_by_id = {person["externalId"]: person for person in people}
+    categories = {role["externalId"]: role["category"] for role in roles}
     for row in records:
+        if row.get("status", "ACTIVE") != "ACTIVE":
+            continue
         values = row["normalized"]
-        if text and text not in values["title"].casefold() and text not in (values.get("originalTitle") or "").casefold():
+        names = [values["title"], values.get("originalTitle") or ""]
+        for credit in row.get("credits", []):
+            person = people_by_id.get(credit["personExternalId"])
+            if person and person.get("status", "ACTIVE") == "ACTIVE" and categories.get(credit["roleExternalId"]) in {"CAST", "CREATOR"}:
+                names.append(person["name"])
+        if text and not any(text in name.casefold() for name in names):
             continue
         if selected.get("kind") and row["kind"] != selected["kind"]:
             continue
@@ -55,10 +64,12 @@ def matching(records, selected):
 
 def read_cases(manifest):
     records = manifest["records"]
+    def expected(selected):
+        return matching(records, selected, manifest["people"], manifest["roles"])
     rare = next(row["normalized"]["title"] for row in records
-                if len(matching(records, {"text": row["normalized"]["title"]})) == 1)
-    common = max("abcdefghijklmnopqrstuvwxyz", key=lambda text: len(matching(records, {"text": text})))
-    if len(matching(records, {"text": common})) <= 20:
+                if len(expected({"text": row["normalized"]["title"]})) == 1)
+    common = max("abcdefghijklmnopqrstuvwxyz", key=lambda text: len(expected({"text": text})))
+    if len(expected({"text": common})) <= 20:
         raise RuntimeError("Approved fixture does not provide a common literal substring")
     dated = next(row for row in records if row["normalized"]["release"].get("month"))
     genres = dated["normalized"]["genreIds"][:2]
@@ -70,8 +81,8 @@ def read_cases(manifest):
     filters = ({}, {"text": rare}, {"text": common},
                {"kind": dated["kind"], "genreIds": genres, "year": date["year"], "month": date["month"]})
     cases = [{"name": name, "root": "titles", "query": LIST_QUERY, "variables": {"filter": selected},
-              "expectedIds": [row["stableUUID"] for row in matching(records, selected)[:20]],
-              "hasNextPage": len(matching(records, selected)) > 20}
+              "expectedIds": [row["stableUUID"] for row in expected(selected)[:20]],
+              "hasNextPage": len(expected(selected)) > 20}
              for name, selected in zip(("no-filter", "rare-literal", "common-literal", "typed-two-genre-date"), filters)]
     cases.append({"name": "title-detail", "root": "title", "query": DETAIL_QUERY,
                   "variables": {"id": dated["stableUUID"]}, "expectedIds": [dated["stableUUID"]]})
