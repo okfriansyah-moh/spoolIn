@@ -43,8 +43,25 @@ class ProcessingMetricsRulesTest {
             listOf(0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 3.0, 5.0, 15.0, 30.0),
             buckets.map { it.bucket(java.util.concurrent.TimeUnit.SECONDS) },
         )
-        assertTrue(registry.meters.all { meter -> meter.id.tags.all { it.key in setOf("service", "outcome") } })
+        assertFixedLabels(registry)
         assertFalse(registry.meters.any { it.id.tags.any { tag -> tag.value.contains("private") } })
+    }
+
+    private fun assertFixedLabels(registry: SimpleMeterRegistry) {
+        val limits = setOf(0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 3.0, 5.0, 15.0, 30.0)
+        registry.meters.forEach { meter ->
+            val expected = when (meter.id.name) {
+                "spoolin.media.processing" -> setOf("service", "outcome")
+                "spoolin.media.processing.duration" -> setOf("service")
+                "spoolin.media.processing.duration.histogram" -> setOf("service", "le")
+                else -> error("Unexpected processing meter")
+            }
+            assertEquals(expected, meter.id.tags.map { it.key }.toSet())
+            if ("le" in expected) {
+                val boundary = requireNotNull(meter.id.getTag("le")).toDouble()
+                assertTrue(boundary in limits)
+            }
+        }
     }
 
     @Test
