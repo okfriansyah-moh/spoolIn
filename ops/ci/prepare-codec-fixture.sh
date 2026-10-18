@@ -77,9 +77,9 @@ if ! timeout 15s /usr/bin/bwrap --unshare-all --die-with-parent --new-session \
   printf '%s\n' 'Production codec sandbox preflight failed. Inspect the runner namespace policy and dependencies; no unrestricted fallback was used.' >&2
   exit 2
 fi
+python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
 [[ "$(cat "$staging/dimensions")" =~ ^[1-9][0-9]*\ [1-9][0-9]*\ [1-4]$ ]] || {
   printf '%s\n' 'Production header helper did not return valid bounded dimensions.' >&2
   exit 2
 }
-python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
 printf '%s\n' 'Pinned codec and namespace prerequisites are ready. Actual artworkIntegrationTest execution remains required.'

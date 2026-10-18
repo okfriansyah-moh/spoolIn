@@ -216,7 +216,8 @@ def main():
                     record['namespaceObservations'][stage] = namespaces(read_file(workspace, stage + '.namespace', 4096))
                     log = read_file(workspace, stage + '.log', 4096)
                     if log:
-                        record['codecDiagnostics'][stage] = log
+                        size = int(checked(compose('exec', '-T', 'media', 'stat', '-c', '%s', workspace + '/' + stage + '.log'), limit=128))
+                        record['codecDiagnostics'][stage] = {'text': log, 'observedBytes': size, 'retainedByteLimit': 4096, 'truncated': size > 4096}
                 except (RuntimeError, ValueError):
                     record['namespaceObservations'][stage] = {'status': 'unavailable'}
             if record['result'] == 'PASS':
@@ -227,10 +228,18 @@ def main():
                                for kind in ('mnt', 'net', 'pid')):
                         record['result'] = 'FAIL'
                         record['reason'] = 'required-sandbox-namespace-proof-missing-or-unchanged'
-            record['userNamespaceProof'] = 'unshare-all executed; upstream info-fd omits the user namespace inode'
-            DIAG.bounded_command(['docker', 'rm', '-f', name], limit=1024, seconds=15)
+            record['userNamespaceObservation'] = 'Upstream info-fd omits user namespace inode; stage outcomes determine whether the sandbox ran'
+            removal, _ = DIAG.bounded_command(['docker', 'rm', '-f', name], limit=1024, seconds=15)
+            record['containerCleanup'] = removal
+            if removal['exit'] != 0 or removal['timedOut']:
+                record['result'] = 'FAIL'
+                record['cleanupFailure'] = 'one-off-container-removal-unconfirmed'
+        cleanup, _ = DIAG.bounded_command(compose('exec', '-T', 'media', '/bin/sh', '-ec', 'rm -rf -- ' + shlex.quote(workspace)), limit=1024, seconds=15)
+        record['fixtureCleanup'] = cleanup
+        if cleanup['exit'] != 0 or cleanup['timedOut']:
+            record['result'] = 'FAIL'
+            record['cleanupFailure'] = 'owned-fixture-removal-unconfirmed'
         (reports / 'summary.json').write_text(json.dumps(record, indent=2) + '\n')
-        DIAG.bounded_command(compose('exec', '-T', 'media', '/bin/sh', '-ec', 'rm -rf -- ' + shlex.quote(workspace)), limit=1024, seconds=15)
     require(record['result'] == 'PASS', 'Actual Media container codec proof failed')
 
 
