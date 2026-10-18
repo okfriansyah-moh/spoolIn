@@ -17,61 +17,8 @@ class RetentionBoundaryTest {
     @Test
     fun `core expiry batches preserve live rows and seven day session reconciliation without decrypting drafts`() {
         com.spoolin.core.recovery.crypto.CryptoFixture("core-retention.json").use { fixture ->
-            val account = UUID.randomUUID()
-            fixture.accounts.insert(
-                account,
-                com.spoolin.core.features.account.persistence
-                    .IdentityRules()
-                    .identity("Retention test", "retention@example.invalid"),
-                com.spoolin.core.features.crypto.Argon2Engine().hash(
-                    com.spoolin.core.features.crypto.PasswordInput
-                        .exactBytes("Retention test password 123!"),
-                ),
-                com.spoolin.core.features.account.persistence.AccountRole.VIEWER,
-            )
-            fixture.pool.connection.use { connection ->
-                connection.executeBound(
-                    """
-                    INSERT INTO browser_session(token_hash,id,account_id,auth_epoch,csrf_hash,expires_at,last_seen_at)
-                    SELECT decode(md5(i::text)||md5(i::text),'hex'),md5(i::text)::uuid,?,0,
-                      decode(repeat('01',32),'hex'),CURRENT_TIMESTAMP-INTERVAL '8 days',CURRENT_TIMESTAMP-INTERVAL '8 days'
-                    FROM generate_series(1,101) i
-                    """.trimIndent(),
-                    account,
-                )
-                connection.executeBound(
-                    """
-                    INSERT INTO mcp_credential(id,token_hash,account_id,client_kind,auth_epoch,scope,expires_at)
-                    SELECT md5(i::text)::uuid,decode(md5(i::text)||md5(i::text),'hex'),?,'CLAUDE',0,
-                      'movie:propose movie:approve',CURRENT_TIMESTAMP-INTERVAL '1 day' FROM generate_series(1,101) i
-                    """.trimIndent(),
-                    account,
-                )
-                connection.executeBound(
-                    """
-                    INSERT INTO form_draft(id,account_id,target_kind,policy_revision,body_key_id,body_nonce,body_cipher,expires_at)
-                    SELECT md5(i::text)::uuid,?,'MOVIE','v1','draft-write',substring(decode(md5(i::text),'hex') FROM 1 FOR 12),
-                      decode(repeat('00',16),'hex'),CURRENT_TIMESTAMP-INTERVAL '1 day' FROM generate_series(1,101) i
-                    """.trimIndent(),
-                    account,
-                )
-                connection.createStatement().executeUpdate(
-                    """
-                    INSERT INTO request_rate_window(bucket_key,window_start,hits,expires_at)
-                    SELECT decode(md5(i::text)||md5(i::text),'hex'),CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP-INTERVAL '1 day'
-                    FROM generate_series(1,101) i
-                    """.trimIndent(),
-                )
-                connection.executeBound(
-                    """
-                    INSERT INTO browser_session(token_hash,id,account_id,auth_epoch,csrf_hash,expires_at,last_seen_at)
-                    VALUES (decode(repeat('ff',32),'hex'),?,?,0,decode(repeat('01',32),'hex'),
-                      CURRENT_TIMESTAMP-INTERVAL '1 day',CURRENT_TIMESTAMP-INTERVAL '1 day')
-                    """.trimIndent(),
-                    UUID.randomUUID(),
-                    account,
-                )
-            }
+            val account = retentionAccount(fixture)
+            seedExpiredIdentityRows(fixture.pool, account)
             val source =
                 MaintenanceDataSources.open(
                     "core",
@@ -79,7 +26,9 @@ class RetentionBoundaryTest {
                     fixture.owner.passwords.getValue("core-maintenance"),
                 )
             val counts = RetentionMaintenance(source, "core").hourly()
-            for (key in listOf("sessions", "credentials", "drafts", "rateWindows")) assertEquals(100, counts.getValue(key))
+            for (key in listOf("sessions", "credentials", "drafts", "rateWindows")) {
+                assertEquals(100, counts.getValue(key))
+            }
             assertEquals(2, count(fixture.pool, "browser_session"))
             assertEquals(1, count(fixture.pool, "mcp_credential"))
             assertEquals(1, count(fixture.pool, "form_draft"))
@@ -118,9 +67,19 @@ class RetentionBoundaryTest {
             assertEquals(1, result.getValue("work"))
             assertEquals(2, result.getValue("payloads"))
             assertEquals(0, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$old'"))
-            assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$recent' AND payload='{}'::jsonb"))
-            assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$fresh' AND payload<>'{}'::jsonb"))
-            assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$notification' AND notification_summary IS NOT NULL"))
+            assertEquals(
+                1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$recent' AND payload='{}'::jsonb"),
+            )
+            assertEquals(
+                1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$fresh' AND payload<>'{}'::jsonb"),
+            )
+            assertEquals(
+                1,
+                scalar(
+                    pool,
+                    "SELECT count(*) FROM durable_work WHERE id='$notification' AND notification_summary IS NOT NULL",
+                ),
+            )
         }
 
     @Test
@@ -137,7 +96,9 @@ class RetentionBoundaryTest {
             attempts(pool, unmatched, null)
             assertEquals(0, maintenance.daily().getValue("work"))
             for (id in listOf(sibling, blocked, waiting, uncertain, unmatched)) {
-                assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$id' AND payload<>'{}'::jsonb"))
+                assertEquals(
+                    1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$id' AND payload<>'{}'::jsonb"),
+                )
             }
             assertEquals(3, count(pool, "operational_event"))
         }
@@ -176,7 +137,10 @@ class RetentionBoundaryTest {
             assertEquals(2, result.getValue("attemptEvents"))
             assertEquals(1, count(pool, "operation_receipt"))
             assertEquals(1, count(pool, "asset_reference"))
-            assertEquals(1, scalar(pool, "SELECT count(*) FROM asset WHERE processing_work_id IS NULL AND storage_key IS NOT NULL"))
+            assertEquals(
+                1,
+                scalar(pool, "SELECT count(*) FROM asset WHERE processing_work_id IS NULL AND storage_key IS NOT NULL"),
+            )
         }
 
     @Test
@@ -185,56 +149,14 @@ class RetentionBoundaryTest {
             val operation = receipt(pool)
             val work = work(pool, "DONE", 100, operation)
             attempts(pool, work, "SUCCEEDED")
-            val asset = UUID.randomUUID()
-            pool.connection.use {
-                it.executeBound(
-                    """
-                    INSERT INTO asset(id,upload_operation_id,actor_id,state,input_bytes,policy_revision,storage_key,
-                      content_hash,format,output_bytes,width,height,processing_work_id,processing_staging_key,
-                      processing_input_hash,processing_created_at)
-                    VALUES (?,?,?,'READY',3,'v1',?,decode(repeat('01',32),'hex'),'PNG',3,1,1,?,
-                      'quarantine/test',decode(repeat('02',32),'hex'),CURRENT_TIMESTAMP-INTERVAL '100 days')
-                    """.trimIndent(),
-                    asset,
-                    operation,
-                    UUID.randomUUID(),
-                    "artwork/$asset",
-                    work,
-                )
-            }
-            val executor =
-                java.util.concurrent.Executors
-                    .newSingleThreadExecutor()
-            try {
-                pool.connection.use { operator ->
-                    operator.autoCommit = false
-                    operator.prepareStatement("SELECT id FROM asset WHERE id=? FOR UPDATE").use {
-                        it.setObject(1, asset)
-                        it.executeQuery().close()
-                    }
-                    val pending = executor.submit<Map<String, Int>> { maintenance.daily() }
-                    val deadline =
-                        System.nanoTime() +
-                            java.util.concurrent.TimeUnit.SECONDS
-                                .toNanos(1)
-                    while (scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") == 0 && System.nanoTime() < deadline) {
-                        Thread.sleep(5)
-                    }
-                    assertTrue(scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") > 0)
-                    operator.prepareStatement("SELECT id FROM durable_work WHERE id=? FOR UPDATE NOWAIT").use {
-                        it.setObject(1, work)
-                        it.executeQuery().close()
-                    }
-                    operator.executeBound("UPDATE durable_work SET state='EXHAUSTED' WHERE id=?", work)
-                    operator.commit()
-                    assertEquals(0, pending.get(5, java.util.concurrent.TimeUnit.SECONDS).getValue("work"))
-                }
-                assertEquals(2, count(pool, "operational_event"))
-                assertEquals(1, scalar(pool, "SELECT count(*) FROM asset WHERE processing_work_id='$work' AND storage_key IS NOT NULL"))
-                assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$work' AND payload<>'{}'::jsonb"))
-            } finally {
-                executor.shutdownNow()
-            }
+            val asset = retainedAsset(pool, work, operation)
+            blockedRetention(pool, maintenance, work, asset)
+            assertEquals(2, count(pool, "operational_event"))
+            assertEquals(
+                1,
+                scalar(pool, "SELECT count(*) FROM asset WHERE processing_work_id='$work' AND storage_key IS NOT NULL"),
+            )
+            assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$work' AND payload<>'{}'::jsonb"))
         }
 
     @Test
@@ -262,7 +184,8 @@ class RetentionBoundaryTest {
             pool.connection.use {
                 it.executeBound(
                     """
-                    INSERT INTO operation_receipt(id,actor_scope,kind,request_hash,state,result,correlation_id,expires_at)
+                    INSERT INTO operation_receipt(
+                      id,actor_scope,kind,request_hash,state,result,correlation_id,expires_at)
                     VALUES (?,'SERVICE:test','TEST',decode(repeat('00',32),'hex'),?,'{"ok":true}'::jsonb,?,
                       CURRENT_TIMESTAMP-INTERVAL '1 day')
                     """.trimIndent(),
@@ -324,7 +247,8 @@ class RetentionBoundaryTest {
             if (outcome != null) {
                 connection.executeBound(
                     """
-                    INSERT INTO operational_event(id,actor_kind,action,subject_kind,correlation_id,created_at,event_type,
+                    INSERT INTO operational_event(
+                      id,actor_kind,action,subject_kind,correlation_id,created_at,event_type,
                       work_id,generation,attempt_no,lease_epoch,outcome,attempt_outcome)
                     VALUES (?,'SERVICE','WORK_ATTEMPT','WORK',?,CURRENT_TIMESTAMP-INTERVAL '100 days',
                       'ATTEMPT_FINISHED',?,0,1,1,?,?)
@@ -336,6 +260,139 @@ class RetentionBoundaryTest {
                     outcome,
                 )
             }
+        }
+    }
+
+    private fun retentionAccount(fixture: com.spoolin.core.recovery.crypto.CryptoFixture): UUID {
+        val account = UUID.randomUUID()
+        fixture.accounts.insert(
+            account,
+            com.spoolin.core.features.account.persistence
+                .IdentityRules()
+                .identity("Retention test", "retention@example.invalid"),
+            com.spoolin.core.features.crypto.Argon2Engine().hash(
+                com.spoolin.core.features.crypto.PasswordInput
+                    .exactBytes("Retention test password 123!"),
+            ),
+            com.spoolin.core.features.account.persistence.AccountRole.VIEWER,
+        )
+        return account
+    }
+
+    private fun seedExpiredIdentityRows(
+        pool: DataSource,
+        account: UUID,
+    ) {
+        pool.connection.use { connection ->
+            connection.executeBound(
+                """
+                INSERT INTO browser_session(token_hash,id,account_id,auth_epoch,csrf_hash,expires_at,last_seen_at)
+                SELECT decode(md5(i::text)||md5(i::text),'hex'),md5(i::text)::uuid,?,0,
+                  decode(repeat('01',32),'hex'),CURRENT_TIMESTAMP-INTERVAL '8 days',CURRENT_TIMESTAMP-INTERVAL '8 days'
+                FROM generate_series(1,101) i
+                """.trimIndent(),
+                account,
+            )
+            connection.executeBound(
+                """
+                INSERT INTO mcp_credential(id,token_hash,account_id,client_kind,auth_epoch,scope,expires_at)
+                SELECT md5(i::text)::uuid,decode(md5(i::text)||md5(i::text),'hex'),?,'CLAUDE',0,
+                  'movie:propose movie:approve',CURRENT_TIMESTAMP-INTERVAL '1 day' FROM generate_series(1,101) i
+                """.trimIndent(),
+                account,
+            )
+            connection.executeBound(
+                """
+                INSERT INTO form_draft(
+                  id,account_id,target_kind,policy_revision,body_key_id,body_nonce,body_cipher,expires_at)
+                SELECT md5(i::text)::uuid,?,'MOVIE','v1','draft-write',
+                  substring(decode(md5(i::text),'hex') FROM 1 FOR 12),
+                  decode(repeat('00',16),'hex'),CURRENT_TIMESTAMP-INTERVAL '1 day' FROM generate_series(1,101) i
+                """.trimIndent(),
+                account,
+            )
+            connection.createStatement().executeUpdate(
+                """
+                INSERT INTO request_rate_window(bucket_key,window_start,hits,expires_at)
+                SELECT decode(md5(i::text)||md5(i::text),'hex'),CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP-INTERVAL '1 day'
+                FROM generate_series(1,101) i
+                """.trimIndent(),
+            )
+            connection.executeBound(
+                """
+                INSERT INTO browser_session(token_hash,id,account_id,auth_epoch,csrf_hash,expires_at,last_seen_at)
+                VALUES (decode(repeat('ff',32),'hex'),?,?,0,decode(repeat('01',32),'hex'),
+                  CURRENT_TIMESTAMP-INTERVAL '1 day',CURRENT_TIMESTAMP-INTERVAL '1 day')
+                """.trimIndent(),
+                UUID.randomUUID(),
+                account,
+            )
+        }
+    }
+
+    private fun retainedAsset(
+        pool: DataSource,
+        work: UUID,
+        operation: UUID,
+    ): UUID {
+        val asset = UUID.randomUUID()
+        pool.connection.use {
+            it.executeBound(
+                """
+                INSERT INTO asset(id,upload_operation_id,actor_id,state,input_bytes,policy_revision,storage_key,
+                  content_hash,format,output_bytes,width,height,processing_work_id,processing_staging_key,
+                  processing_input_hash,processing_created_at)
+                VALUES (?,?,?,'READY',3,'v1',?,decode(repeat('01',32),'hex'),'PNG',3,1,1,?,
+                  'quarantine/test',decode(repeat('02',32),'hex'),CURRENT_TIMESTAMP-INTERVAL '100 days')
+                """.trimIndent(),
+                asset,
+                operation,
+                UUID.randomUUID(),
+                "artwork/$asset",
+                work,
+            )
+        }
+        return asset
+    }
+
+    private fun blockedRetention(
+        pool: DataSource,
+        maintenance: RetentionMaintenance,
+        work: UUID,
+        asset: UUID,
+    ) {
+        val executor =
+            java.util.concurrent.Executors
+                .newSingleThreadExecutor()
+        try {
+            pool.connection.use { operator ->
+                operator.autoCommit = false
+                operator.prepareStatement("SELECT id FROM asset WHERE id=? FOR UPDATE").use {
+                    it.setObject(1, asset)
+                    it.executeQuery().close()
+                }
+                val pending = executor.submit<Map<String, Int>> { maintenance.daily() }
+                val deadline =
+                    System.nanoTime() +
+                        java.util.concurrent.TimeUnit.SECONDS
+                            .toNanos(1)
+                while (
+                    scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") == 0 &&
+                    System.nanoTime() < deadline
+                ) {
+                    Thread.sleep(5)
+                }
+                assertTrue(scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") > 0)
+                operator.prepareStatement("SELECT id FROM durable_work WHERE id=? FOR UPDATE NOWAIT").use {
+                    it.setObject(1, work)
+                    it.executeQuery().close()
+                }
+                operator.executeBound("UPDATE durable_work SET state='EXHAUSTED' WHERE id=?", work)
+                operator.commit()
+                assertEquals(0, pending.get(5, java.util.concurrent.TimeUnit.SECONDS).getValue("work"))
+            }
+        } finally {
+            executor.shutdownNow()
         }
     }
 
@@ -352,24 +409,32 @@ class RetentionBoundaryTest {
             it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single()
         }
 
+    private fun migrate(
+        fixture: OwnerFixture,
+        owner: String,
+    ) {
+        fixture.pool(owner, "migrator").use {
+            if (owner == "media") {
+                MigrationRunner(it).migrate()
+            } else {
+                com.spoolin.catalog
+                    .MigrationRunner(it)
+                    .migrate()
+            }
+        }
+    }
+
     private fun fixture(
         owner: String = "media",
         block: (DataSource, RetentionMaintenance, DataSource) -> Unit,
     ) {
         OwnerFixture("retention.json").start().use { fixture ->
             fixture.membership(owner, "grant")
-            fixture.pool(owner, "migrator").use {
-                if (owner == "media") {
-                    MigrationRunner(it).migrate()
-                } else {
-                    com.spoolin.catalog
-                        .MigrationRunner(it)
-                        .migrate()
-                }
-            }
+            migrate(fixture, owner)
             fixture.grants(owner)
             fixture.membership(owner, "revoke")
-            val maintenance = MaintenanceDataSources.open(owner, fixture.url(owner), fixture.passwords.getValue("$owner-maintenance"))
+            val maintenance =
+                MaintenanceDataSources.open(owner, fixture.url(owner), fixture.passwords.getValue("$owner-maintenance"))
             fixture.pool(owner).use { block(it, RetentionMaintenance(maintenance, owner), maintenance) }
         }
     }

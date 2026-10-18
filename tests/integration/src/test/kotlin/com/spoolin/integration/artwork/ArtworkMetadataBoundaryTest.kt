@@ -67,7 +67,9 @@ class ArtworkMetadataBoundaryTest {
         fixture { proxy, channel, _, _ ->
             val wiring = RuntimeWiring.newRuntimeWiring()
             wiring.type("Title") { it.dataFetcher("credits") { "credits" } }
-            ArtworkGraphql(CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newStub(channel), null, reads = proxy).bind(wiring)
+            ArtworkGraphql(
+                CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newStub(channel), null, reads = proxy,
+            ).bind(wiring)
             assertTrue(
                 wiring
                     .build()
@@ -142,7 +144,9 @@ class ArtworkMetadataBoundaryTest {
                     assertEquals(hold.toString(), request.holdId)
                     assertEquals(asset.toString(), request.assetId)
                     assertEquals(7L, request.catalogVersion)
-                    (output as ServerCallStreamObserver<Spoolin.AssetReadChunk>).setOnCancelHandler { cancelled.countDown() }
+                    (output as ServerCallStreamObserver<Spoolin.AssetReadChunk>).setOnCancelHandler {
+                        cancelled.countDown()
+                    }
                     output.onNext(
                         Spoolin.AssetReadChunk
                             .newBuilder()
@@ -153,10 +157,14 @@ class ArtworkMetadataBoundaryTest {
                                     .setWidth(640)
                                     .setHeight(480)
                                     .setOutputBytes(3)
-                                    .setContentHash(ByteString.copyFrom(MessageDigest.getInstance("SHA-256").digest(byteArrayOf(1, 2, 3)))),
+                                    .setContentHash(
+                                        ByteString.copyFrom(
+                                            MessageDigest.getInstance("SHA-256").digest(byteArrayOf(1, 2, 3)),
+                                        ),
+                                    ),
                             ).build(),
                     )
-                    // The missing bytes are deliberate: metadata must not consume a body; full reads must reject truncation.
+                    // Metadata must not consume a body; full reads must reject the deliberate missing bytes.
                     if (truncate) output.onCompleted()
                 }
             }
@@ -170,7 +178,9 @@ class ArtworkMetadataBoundaryTest {
         val channel = NettyChannelBuilder.forAddress("127.0.0.1", server.port).usePlaintext().build()
         try {
             assertions(
-                ArtworkReadProxy(CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newBlockingStub(channel), null),
+                ArtworkReadProxy(
+                    CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newBlockingStub(channel), null,
+                ),
                 channel,
                 cancelled,
                 requests,

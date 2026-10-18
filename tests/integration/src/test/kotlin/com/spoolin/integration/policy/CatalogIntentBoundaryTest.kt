@@ -55,8 +55,10 @@ class CatalogIntentBoundaryTest {
                     original.toBuilder().setValues(values.toBuilder().setSynopsisLanguage("fr")).build(),
                     original.toBuilder().setValues(values.toBuilder().setRuntimeMinutes(90)).build(),
                     original.toBuilder().setValues(values.toBuilder().addCountries("GB")).build(),
-                    original.toBuilder().setValues(values.toBuilder().setRelease(values.release.toBuilder().setMonth(2))).build(),
-                    original.toBuilder().setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(1))).build(),
+                    original.toBuilder()
+                        .setValues(values.toBuilder().setRelease(values.release.toBuilder().setMonth(2))).build(),
+                    original.toBuilder()
+                        .setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(1))).build(),
                     original.toBuilder().setExpectedVersion(0).build(),
                 )
             variants.forEach { conflict { fixture.movie(it) } }
@@ -90,7 +92,11 @@ class CatalogIntentBoundaryTest {
                 )
             }
             conflict { fixture.credit(original.toBuilder().setExpectedVersion(1).build()) }
-            conflict { fixture.credit(original.toBuilder().setUpdateMask(FieldMask.newBuilder().addPaths("characters")).build()) }
+            conflict {
+                fixture.credit(
+                    original.toBuilder().setUpdateMask(FieldMask.newBuilder().addPaths("characters")).build(),
+                )
+            }
             assertEquals(result, fixture.credit(original))
             val remove =
                 Spoolin.VersionedId
@@ -131,7 +137,8 @@ class CatalogIntentBoundaryTest {
             }
             val lost = fixture.person("Lost reply")
             fixture.loseNextPersonReply.set(true)
-            assertEquals(Status.Code.UNAVAILABLE, assertThrows(StatusRuntimeException::class.java) { fixture.person(lost) }.status.code)
+            val failure = assertThrows(StatusRuntimeException::class.java) { fixture.person(lost) }
+            assertEquals(Status.Code.UNAVAILABLE, failure.status.code)
             val retained = fixture.lookup(lost.context.operationId)
             assertEquals("SUCCEEDED", retained.state)
             assertEquals(retained, fixture.person(lost))
@@ -159,7 +166,9 @@ class CatalogIntentBoundaryTest {
             assertEquals("SUCCEEDED", retained.state)
             assertEquals(person.toString(), retained.resultId)
             conflict { fixture.person(legacy) }
-            conflict { fixture.person(legacy.toBuilder().setValues(legacy.values.toBuilder().setBiography("Changed")).build()) }
+            conflict {
+                fixture.person(legacy.toBuilder().setValues(legacy.values.toBuilder().setBiography("Changed")).build())
+            }
             assertEquals(before, fixture.receipt(legacy.context.operationId))
             assertEquals(retained, fixture.lookup(legacy.context.operationId))
             assertEquals("Original", fixture.text("SELECT biography FROM person WHERE id=?", person.toString()))

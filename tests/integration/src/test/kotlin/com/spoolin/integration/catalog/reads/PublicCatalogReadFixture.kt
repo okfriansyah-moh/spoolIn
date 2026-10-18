@@ -85,10 +85,13 @@ internal class PublicCatalogReadFixture : AutoCloseable {
                 "en",
             )
             connection.executeBound("INSERT INTO person(id,name) VALUES(?,?)", person, "Boundary person")
-            connection.executeBound("INSERT INTO genre(id,label,normalized_label) VALUES(?,?,?)", genre, "Boundary drama", "boundary drama")
+            connection.executeBound(
+                "INSERT INTO genre(id,label,normalized_label) VALUES(?,?,?)", genre, "Boundary drama", "boundary drama",
+            )
             connection.executeBound("INSERT INTO title_genre(title_id,genre_id) VALUES(?,?)", title, genre)
             connection.executeBound(
-                "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,retrieved_at,reuse_note,field_sources) " +
+                "INSERT INTO provenance_record(" +
+                    "source,external_id,subject_kind,subject_id,retrieved_at,reuse_note,field_sources) " +
                     "VALUES(?,?,'TITLE',?,'2025-01-01T00:00:00Z',?,?::jsonb)",
                 "synthetic-test",
                 "boundary-movie",

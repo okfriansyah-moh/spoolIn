@@ -41,7 +41,9 @@ class OperatorRecoveryBoundaryTest {
             assertEquals(
                 "PROCESSING",
                 pool.connection.use {
-                    it.queryBound("SELECT state FROM appdata.asset WHERE id=?", listOf(work.asset)) { row -> row.getString(1) }.single()
+                    it.queryBound("SELECT state FROM appdata.asset WHERE id=?", listOf(work.asset)) { row ->
+                        row.getString(1)
+                    }.single()
                 },
             )
             assertThrows(IllegalArgumentException::class.java) { recover(pool, work) }
@@ -67,10 +69,14 @@ class OperatorRecoveryBoundaryTest {
                 }
             }
             val unsupported = setup(pool)
-            pool.committed { it.executeBound("UPDATE appdata.durable_work SET kind='UNSUPPORTED' WHERE id=?", unsupported.id) }
+            pool.committed {
+                it.executeBound("UPDATE appdata.durable_work SET kind='UNSUPPORTED' WHERE id=?", unsupported.id)
+            }
             assertThrows(IllegalArgumentException::class.java) { recover(pool, unsupported) }
             val terminal = setup(pool)
-            pool.committed { it.executeBound("UPDATE appdata.operation_receipt SET state='FAILED' WHERE id=?", terminal.operation) }
+            pool.committed {
+                it.executeBound("UPDATE appdata.operation_receipt SET state='FAILED' WHERE id=?", terminal.operation)
+            }
             assertThrows(IllegalArgumentException::class.java) { recover(pool, terminal) }
             val corrupt = setup(pool)
             Files.write(directory.resolve("quarantine/${corrupt.asset}"), byteArrayOf(4, 5, 6))
@@ -109,7 +115,8 @@ class OperatorRecoveryBoundaryTest {
         pool.committed { connection ->
             val now = connection.queryBound("SELECT clock_timestamp()") { it.getTimestamp(1).toInstant() }.single()
             connection.executeBound(
-                "INSERT INTO appdata.operation_receipt(id,actor_scope,kind,request_hash,state,correlation_id,expires_at) " +
+                "INSERT INTO appdata.operation_receipt(" +
+                    "id,actor_scope,kind,request_hash,state,correlation_id,expires_at) " +
                     "VALUES (?,'SERVICE_TEST','UPLOAD',?,'PENDING',?,?)",
                 work.operation,
                 ByteArray(32),
@@ -117,7 +124,8 @@ class OperatorRecoveryBoundaryTest {
                 Timestamp.from(now.plusSeconds(3600)),
             )
             connection.executeBound(
-                "INSERT INTO appdata.durable_work(id,operation_id,kind,payload,state,attempt_count,max_attempts,lease_epoch," +
+                "INSERT INTO appdata.durable_work(" +
+                    "id,operation_id,kind,payload,state,attempt_count,max_attempts,lease_epoch," +
                     "deadline_at,correlation_id,base_delay_ms,cap_delay_ms,backoff_multiplier,last_error) " +
                     "VALUES (?,?,'MEDIA_PROCESS',?::jsonb,'EXHAUSTED',1,3,1,?,?,500,5000,2,'UNCERTAIN')",
                 work.id,
@@ -127,7 +135,8 @@ class OperatorRecoveryBoundaryTest {
                 UUID.randomUUID(),
             )
             connection.executeBound(
-                "INSERT INTO appdata.asset(id,upload_operation_id,actor_id,state,input_bytes,policy_revision,processing_work_id," +
+                "INSERT INTO appdata.asset(" +
+                    "id,upload_operation_id,actor_id,state,input_bytes,policy_revision,processing_work_id," +
                     "processing_staging_key,processing_input_hash,processing_created_at) " +
                     "VALUES (?,?,?,'PROCESSING',3,'test-policy',?,?,?,?)",
                 work.asset,
@@ -149,7 +158,8 @@ class OperatorRecoveryBoundaryTest {
         time: Instant,
     ) {
         connection.executeBound(
-            "INSERT INTO appdata.operational_event(id,operation_id,actor_kind,action,subject_kind,subject_id,correlation_id," +
+            "INSERT INTO appdata.operational_event(" +
+                "id,operation_id,actor_kind,action,subject_kind,subject_id,correlation_id," +
                 "event_type,work_id,generation,attempt_no,lease_epoch,created_at) " +
                 "VALUES (?,?,'SERVICE','WORK_ATTEMPT','WORK',?,?,'ATTEMPT_STARTED',?,0,1,1,?)",
             UUID.randomUUID(),
@@ -160,7 +170,8 @@ class OperatorRecoveryBoundaryTest {
             Timestamp.from(time),
         )
         connection.executeBound(
-            "INSERT INTO appdata.operational_event(id,operation_id,actor_kind,action,subject_kind,subject_id,correlation_id," +
+            "INSERT INTO appdata.operational_event(" +
+                "id,operation_id,actor_kind,action,subject_kind,subject_id,correlation_id," +
                 "event_type,work_id,generation,attempt_no,lease_epoch,created_at,outcome,attempt_outcome) " +
                 "VALUES (?,?,'SERVICE','WORK_ATTEMPT','WORK',?,?,'ATTEMPT_FINISHED',?,0,1,1,?,'FAILED','UNCERTAIN')",
             UUID.randomUUID(),
@@ -194,7 +205,9 @@ class OperatorRecoveryBoundaryTest {
         work: UUID,
     ): Int =
         pool.connection.use {
-            it.queryBound("SELECT count(*) FROM appdata.operational_event WHERE work_id=?", listOf(work)) { row -> row.getInt(1) }.single()
+            it.queryBound("SELECT count(*) FROM appdata.operational_event WHERE work_id=?", listOf(work)) { row ->
+                row.getInt(1)
+            }.single()
         }
 
     private fun fixture(

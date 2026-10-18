@@ -63,7 +63,9 @@ class LogicalRpcMetricsBoundaryTest {
     fun `actual terminal dependency failure is recorded once without successful fallback`() =
         fixture { registry, channel, probe ->
             probe.failure = Status.UNAVAILABLE
-            assertThrows(StatusRuntimeException::class.java) { stub(channel).writeMovie(Spoolin.MovieWrite.getDefaultInstance()) }
+            assertThrows(StatusRuntimeException::class.java) {
+                stub(channel).writeMovie(Spoolin.MovieWrite.getDefaultInstance())
+            }
             assertEquals(1.0, count(registry, "WriteMovie", "SYSTEM_FAILED", "UNAVAILABLE"))
             assertEquals(1, registry.get("spoolin.operation.duration").timer().count())
         }
@@ -88,7 +90,9 @@ class LogicalRpcMetricsBoundaryTest {
             )
             assertEquals(1.0, count(registry, "GetOperation", "SUCCESS", "OK"))
             probe.omit = true
-            assertThrows(StatusRuntimeException::class.java) { stub(channel).writeMovie(Spoolin.MovieWrite.getDefaultInstance()) }
+            assertThrows(StatusRuntimeException::class.java) {
+                stub(channel).writeMovie(Spoolin.MovieWrite.getDefaultInstance())
+            }
             assertEquals(1.0, count(registry, "WriteMovie", "UNCERTAIN", "UNKNOWN"))
         }
 
@@ -182,9 +186,9 @@ class LogicalRpcMetricsBoundaryTest {
                             frame.countDown()
                         }
 
-                        override fun onError(error: Throwable) { }
+                        override fun onError(error: Throwable) = Unit
 
-                        override fun onCompleted() { }
+                        override fun onCompleted() = Unit
                     },
                 )
                 assertTrue(frame.await(3, TimeUnit.SECONDS))
@@ -272,7 +276,8 @@ class LogicalRpcMetricsBoundaryTest {
         error("Expected actual completed RPC measurement was not observed")
     }
 
-    private fun stub(channel: ManagedChannel) = CatalogServiceGrpc.newBlockingStub(channel).withDeadlineAfter(3, TimeUnit.SECONDS)
+    private fun stub(channel: ManagedChannel) =
+        CatalogServiceGrpc.newBlockingStub(channel).withDeadlineAfter(3, TimeUnit.SECONDS)
 
     private fun close(channel: ManagedChannel) {
         channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)

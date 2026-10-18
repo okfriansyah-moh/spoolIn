@@ -66,7 +66,13 @@ class ArtworkCancellationBoundaryTest {
                     cancel.operation,
                 ),
             )
-            assertEquals(1, fixture.count("SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id))
+            assertEquals(
+                1,
+                fixture.count(
+                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'",
+                    upload.id,
+                ),
+            )
         }
     }
 
@@ -88,7 +94,13 @@ class ArtworkCancellationBoundaryTest {
                     cancel.operation,
                 ),
             )
-            assertEquals(1, fixture.count("SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id))
+            assertEquals(
+                1,
+                fixture.count(
+                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'",
+                    upload.id,
+                ),
+            )
         }
     }
 
@@ -107,12 +119,20 @@ class ArtworkCancellationBoundaryTest {
                 assertEquals(
                     1,
                     fixture.count(
-                        "SELECT count(*) FROM operation_receipt WHERE id=? AND state='FAILED' AND error_code='NOT_FOUND'",
+                        "SELECT count(*) FROM operation_receipt " +
+                            "WHERE id=? AND state='FAILED' AND error_code='NOT_FOUND'",
                         cancel.operation,
                     ),
                 )
-                assertEquals(0, fixture.count("SELECT count(*) FROM catalog_audit_event WHERE operation_id=?", cancel.operation))
-                assertEquals(0, fixture.count("SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload))
+                assertEquals(
+                    0, fixture.count("SELECT count(*) FROM catalog_audit_event WHERE operation_id=?", cancel.operation),
+                )
+                assertEquals(
+                    0,
+                    fixture.count(
+                        "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload,
+                    ),
+                )
             }
             assertEquals("PREPARING", fixture.state(hidden).intent)
             assertEquals("PENDING", fixture.state(hidden).receipt)
@@ -132,7 +152,9 @@ class ArtworkCancellationBoundaryTest {
                 assertEquals(0, fixture.count("SELECT count(*) FROM operation_receipt WHERE id=?", cancel.operation))
                 assertEquals(
                     0,
-                    fixture.count("SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id),
+                    fixture.count(
+                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id,
+                ),
                 )
             } finally {
                 fixture.auditFailure(false)
@@ -158,69 +180,91 @@ class ArtworkCancellationBoundaryTest {
             val upload = fixture.begin()
             val cancel = Cancellation(upload.id)
             val claim = fixture.claim(upload)
-            val executor = Executors.newFixedThreadPool(2)
-            try {
-                val result =
-                    fixture.pool.connection.use { gate ->
-                        gate.autoCommit = false
-                        ArtworkRpc.lock(gate)
-                        val cancelResult =
-                            if (cancelFirst) {
-                                executor.submit<Spoolin.ArtworkCancelOutcome> {
-                                    fixture.cancel(
-                                        cancel,
-                                    )
-                                }
-                            } else {
-                                null
-                            }
-                        val attachResult = if (!cancelFirst) executor.submit { fixture.attach(claim, upload) } else null
-                        awaitWaiters(fixture.pool, 1)
-                        val secondCancel =
-                            if (!cancelFirst) {
-                                executor.submit<Spoolin.ArtworkCancelOutcome> {
-                                    fixture.cancel(
-                                        cancel,
-                                    )
-                                }
-                            } else {
-                                null
-                            }
-                        val secondAttach = if (cancelFirst) executor.submit { fixture.attach(claim, upload) } else null
-                        awaitWaiters(fixture.pool, 2)
-                        gate.commit()
-                        (attachResult ?: secondAttach)!!.get(10, TimeUnit.SECONDS)
-                        (cancelResult ?: secondCancel)!!.get(10, TimeUnit.SECONDS)
-                    }
-                assertEquals(cancelFirst, result.cancelled)
-                assertEquals(if (cancelFirst) "FAILED" else "SUCCEEDED", result.uploadOperation.state)
-                assertEquals(result, fixture.cancel(cancel))
-                val state = fixture.state(upload)
-                assertEquals(if (cancelFirst) "ABORTED" else "ATTACHED", state.intent)
-                assertEquals(if (cancelFirst) 0L else 1L, state.version)
-                if (!cancelFirst) {
-                    assertEquals(upload.asset, state.asset)
-                    assertEquals(upload.id, state.hold)
-                } else {
-                    assertEquals(null, state.asset)
-                    assertEquals(null, state.hold)
-                }
-                assertEquals(
-                    if (cancelFirst) 1 else 0,
-                    fixture.count("SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id),
-                )
-                assertEquals(
-                    if (cancelFirst) 1 else 0,
-                    fixture.count(
-                        "SELECT count(*) FROM catalog_audit_event WHERE operation_id=? AND action='CANCEL_ARTWORK'",
-                        cancel.operation,
-                    ),
-                )
-            } finally {
-                executor.shutdownNow()
+            val result = cancellationOrder(fixture, upload, cancel, claim, cancelFirst)
+            assertEquals(cancelFirst, result.cancelled)
+            assertEquals(if (cancelFirst) "FAILED" else "SUCCEEDED", result.uploadOperation.state)
+            assertEquals(result, fixture.cancel(cancel))
+            val state = fixture.state(upload)
+            assertEquals(if (cancelFirst) "ABORTED" else "ATTACHED", state.intent)
+            assertEquals(if (cancelFirst) 0L else 1L, state.version)
+            if (!cancelFirst) {
+                assertEquals(upload.asset, state.asset)
+                assertEquals(upload.id, state.hold)
+            } else {
+                assertEquals(null, state.asset)
+                assertEquals(null, state.hold)
             }
+            assertEquals(
+                if (cancelFirst) 1 else 0,
+                fixture.count(
+                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id,
+                ),
+            )
+            assertEquals(
+                if (cancelFirst) 1 else 0,
+                fixture.count(
+                    "SELECT count(*) FROM catalog_audit_event WHERE operation_id=? AND action='CANCEL_ARTWORK'",
+                    cancel.operation,
+                ),
+            )
         }
     }
+}
+
+private fun cancellationOrder(
+    fixture: CancellationFixture,
+    upload: Upload,
+    cancel: Cancellation,
+    claim: WorkClaim,
+    cancelFirst: Boolean,
+): Spoolin.ArtworkCancelOutcome {
+    val executor = Executors.newFixedThreadPool(2)
+    return try {
+        CancellationRace(fixture, upload, cancel, claim, executor).run(cancelFirst)
+    } finally {
+        executor.shutdownNow()
+    }
+}
+
+private class CancellationRace(
+    private val fixture: CancellationFixture,
+    private val upload: Upload,
+    private val cancel: Cancellation,
+    private val claim: WorkClaim,
+    private val executor: java.util.concurrent.ExecutorService,
+) {
+    fun run(cancelFirst: Boolean): Spoolin.ArtworkCancelOutcome =
+        fixture.pool.connection.use { gate ->
+            gate.autoCommit = false
+            ArtworkRpc.lock(gate)
+            val cancelResult =
+                if (cancelFirst) {
+                    executor.submit<Spoolin.ArtworkCancelOutcome> {
+                        fixture.cancel(
+                            cancel,
+                        )
+                    }
+                } else {
+                    null
+                }
+            val attachResult = if (!cancelFirst) executor.submit { fixture.attach(claim, upload) } else null
+            awaitWaiters(fixture.pool, 1)
+            val secondCancel =
+                if (!cancelFirst) {
+                    executor.submit<Spoolin.ArtworkCancelOutcome> {
+                        fixture.cancel(
+                            cancel,
+                        )
+                    }
+                } else {
+                    null
+                }
+            val secondAttach = if (cancelFirst) executor.submit { fixture.attach(claim, upload) } else null
+            awaitWaiters(fixture.pool, 2)
+            gate.commit()
+            (attachResult ?: secondAttach)!!.get(10, TimeUnit.SECONDS)
+            (cancelResult ?: secondCancel)!!.get(10, TimeUnit.SECONDS)
+        }
 }
 
 private data class Upload(
@@ -270,7 +314,8 @@ private class CancellationFixture : AutoCloseable {
             ActorVerifier(mapOf("key_A" to proof.pair.public)),
             live::check,
         )
-    private val server = transport.server(proof.root, "catalog", service, com.spoolin.catalog.ServiceIdentityInterceptor(actors))
+    private val server =
+        transport.server(proof.root, "catalog", service, com.spoolin.catalog.ServiceIdentityInterceptor(actors))
     private val channel = transport.channel(proof.root, "core", "catalog", server.port)
 
     fun begin(actor: ActorClaims = proof.claims): Upload {
@@ -354,7 +399,10 @@ private class CancellationFixture : AutoCloseable {
     fun claim(upload: Upload): WorkClaim =
         pool.committed { connection ->
             val now = Instant.now()
-            val candidate = WorkSql.selectForClaim(connection, now, 10, setOf("ARTWORK_ATTACH")).single { it.operationId == upload.id }
+            val candidate =
+                WorkSql.selectForClaim(connection, now, 10, setOf("ARTWORK_ATTACH")).single {
+                    it.operationId == upload.id
+                }
             requireNotNull(WorkSql.commitClaim(connection, candidate, UUID.randomUUID(), now))
         }
 
@@ -396,20 +444,7 @@ private class CancellationFixture : AutoCloseable {
         proof.fixture.owner.pool("catalog", "migrator").use { migration ->
             migration.connection.use { connection ->
                 connection.createStatement().use { statement ->
-                    if (enabled) {
-                        statement.execute(
-                            "CREATE FUNCTION appdata.reject_cancel_fixture() RETURNS trigger LANGUAGE plpgsql AS " +
-                                "\u0024\u0024 BEGIN IF NEW.action='CANCEL_ARTWORK' THEN " +
-                                "RAISE EXCEPTION 'Fixture audit unavailable'; END IF; RETURN NEW; END; \u0024\u0024",
-                        )
-                        statement.execute(
-                            "CREATE TRIGGER reject_cancel_fixture BEFORE INSERT ON catalog_audit_event " +
-                                "FOR EACH ROW EXECUTE FUNCTION appdata.reject_cancel_fixture()",
-                        )
-                    } else {
-                        statement.execute("DROP TRIGGER reject_cancel_fixture ON catalog_audit_event")
-                        statement.execute("DROP FUNCTION appdata.reject_cancel_fixture()")
-                    }
+                    toggleCancellationAudit(statement, enabled)
                 }
             }
         }
@@ -434,7 +469,8 @@ private fun awaitWaiters(
             pool.connection.use { connection ->
                 connection
                     .queryBound(
-                        "SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND NOT granted AND classid=41001 AND objid=1 " +
+                        "SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND NOT granted " +
+                            "AND classid=41001 AND objid=1 " +
                             "AND database=(SELECT oid FROM pg_database WHERE datname=current_database())",
                     ) { it.getInt(1) }
                     .single()
@@ -466,5 +502,25 @@ private class CancelReply(
 
     override fun onError(failure: Throwable) {
         if (!lost) response.onError(failure)
+    }
+}
+
+private fun toggleCancellationAudit(
+    statement: java.sql.Statement,
+    enabled: Boolean,
+) {
+    if (enabled) {
+        statement.execute(
+            "CREATE FUNCTION appdata.reject_cancel_fixture() RETURNS trigger LANGUAGE plpgsql AS " +
+                "\u0024\u0024 BEGIN IF NEW.action='CANCEL_ARTWORK' THEN " +
+                "RAISE EXCEPTION 'Fixture audit unavailable'; END IF; RETURN NEW; END; \u0024\u0024",
+        )
+        statement.execute(
+            "CREATE TRIGGER reject_cancel_fixture BEFORE INSERT ON catalog_audit_event " +
+                "FOR EACH ROW EXECUTE FUNCTION appdata.reject_cancel_fixture()",
+        )
+    } else {
+        statement.execute("DROP TRIGGER reject_cancel_fixture ON catalog_audit_event")
+        statement.execute("DROP FUNCTION appdata.reject_cancel_fixture()")
     }
 }

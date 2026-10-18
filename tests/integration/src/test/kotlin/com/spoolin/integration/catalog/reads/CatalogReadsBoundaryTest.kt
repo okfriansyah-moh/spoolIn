@@ -66,7 +66,10 @@ class CatalogReadsBoundaryTest {
                     .single()
                     .label,
             )
-            assertEquals("Boundary person", stub.getPerson(Id.newBuilder().setId(proof.person.toString()).build()).values.name)
+            assertEquals(
+                "Boundary person",
+                stub.getPerson(Id.newBuilder().setId(proof.person.toString()).build()).values.name,
+            )
             assertEquals(
                 1,
                 stub
@@ -124,7 +127,10 @@ class CatalogReadsBoundaryTest {
                     .PolicyGraphql(schema, policy, views)
             val result =
                 engine.execute(
-                    mapOf("query" to "{ titles(filter:{}) { nodes { title genres { id label } provenance { fieldSources } } } }"),
+                    mapOf(
+                        "query" to
+                            "{ titles(filter:{}) { nodes { title genres { id label } provenance { fieldSources } } } }",
+                    ),
                 )
             org.junit.jupiter.api.Assertions
                 .assertFalse(result.containsKey("errors"), result.toString())
@@ -146,29 +152,39 @@ class CatalogReadsBoundaryTest {
             val rpc =
                 com.spoolin.core.boundary.grpc
                     .IdentityRpc({ null }, { null })
-            val server = transport.server(proof.fixture.owner.root, "core", rpc, com.spoolin.core.ServiceIdentityInterceptor())
+            val server =
+                transport.server(proof.fixture.owner.root, "core", rpc, com.spoolin.core.ServiceIdentityInterceptor())
             try {
                 listOf("core", "catalog", "media", "mcp").forEach { identity ->
-                    val channel = transport.channel(proof.fixture.owner.root, identity, "core", server.port)
-                    try {
-                        val failure =
-                            org.junit.jupiter.api.Assertions.assertThrows(io.grpc.StatusRuntimeException::class.java) {
-                                spoolin.v1.IdentityServiceGrpc
-                                    .newBlockingStub(channel)
-                                    .withDeadlineAfter(3, TimeUnit.SECONDS)
-                                    .resolveActor(
-                                        spoolin.v1.Spoolin.ResolveActorRequest
-                                            .getDefaultInstance(),
-                                    )
-                            }
-                        assertEquals(io.grpc.Status.Code.PERMISSION_DENIED, failure.status.code, identity)
-                    } finally {
-                        channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
-                    }
+                    denyResolveActor(transport, proof.fixture.owner.root, identity, server.port)
                 }
             } finally {
                 server.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
             }
+        }
+    }
+
+    private fun denyResolveActor(
+        transport: com.spoolin.integration.identity.ScopedActorTest,
+        root: java.nio.file.Path,
+        identity: String,
+        port: Int,
+    ) {
+        val channel = transport.channel(root, identity, "core", port)
+        try {
+            val failure =
+                org.junit.jupiter.api.Assertions.assertThrows(io.grpc.StatusRuntimeException::class.java) {
+                    spoolin.v1.IdentityServiceGrpc
+                        .newBlockingStub(channel)
+                        .withDeadlineAfter(3, TimeUnit.SECONDS)
+                        .resolveActor(
+                            spoolin.v1.Spoolin.ResolveActorRequest
+                                .getDefaultInstance(),
+                        )
+                }
+            assertEquals(io.grpc.Status.Code.PERMISSION_DENIED, failure.status.code, identity)
+        } finally {
+            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
         }
     }
 

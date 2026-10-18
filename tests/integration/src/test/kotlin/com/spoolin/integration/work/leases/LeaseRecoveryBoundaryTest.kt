@@ -65,7 +65,9 @@ class LeaseRecoveryBoundaryTest {
                 val claim = claim(pool)
                 val now = databaseNow(pool)
                 pool.committed { connection ->
-                    connection.executeBound("UPDATE durable_work SET $column=? WHERE id=?", Timestamp.from(now), claim.workId)
+                    connection.executeBound(
+                        "UPDATE durable_work SET $column=? WHERE id=?", Timestamp.from(now), claim.workId,
+                    )
                 }
                 assertFalse(pool.committed { WorkSql.renewLease(it, claim, now) })
                 assertFalse(complete(pool, claim, now))
@@ -107,7 +109,9 @@ class LeaseRecoveryBoundaryTest {
     fun `completion without a matching started event cannot create success evidence`() {
         fixture("started-evidence") { pool ->
             val claim = claim(pool)
-            pool.committed { it.executeBound("UPDATE durable_work SET lease_epoch=lease_epoch+1 WHERE id=?", claim.workId) }
+            pool.committed {
+                it.executeBound("UPDATE durable_work SET lease_epoch=lease_epoch+1 WHERE id=?", claim.workId)
+            }
             assertFalse(complete(pool, claim.copy(leaseEpoch = claim.leaseEpoch + 1), databaseNow(pool)))
             assertEquals(0, eventCount(pool, claim.workId, "ATTEMPT_FINISHED"))
         }
@@ -135,12 +139,18 @@ class LeaseRecoveryBoundaryTest {
                     first.workId,
                 )
             }
-            val recovery = WorkRecoveryCommit("verified-operator", "Destination outcome checked\bexplicit reason", UUID.randomUUID())
+            val recovery =
+                WorkRecoveryCommit(
+                    "verified-operator", "Destination outcome checked\bexplicit reason", UUID.randomUUID(),
+                )
             assertTrue(pool.committed { WorkSql.recoverWork(it, first.workId, recovery, now) })
             assertFalse(pool.committed { WorkSql.recoverWork(it, first.workId, recovery, now) })
             val second =
                 pool.committed {
-                    WorkSql.commitClaim(it, WorkSql.selectForClaim(it, databaseNow(pool), 1).single(), UUID.randomUUID(), databaseNow(pool))
+                    WorkSql.commitClaim(
+                        it, WorkSql.selectForClaim(it, databaseNow(pool), 1).single(),
+                        UUID.randomUUID(), databaseNow(pool),
+                    )
                 }
             assertNotNull(second)
             assertEquals(first.workId, second?.workId)
@@ -154,17 +164,7 @@ class LeaseRecoveryBoundaryTest {
             assertEquals(2, eventCount(pool, first.workId, "ATTEMPT_STARTED"))
             assertEquals(1, eventCount(pool, first.workId, "ATTEMPT_FINISHED"))
             assertEquals(1, eventCount(pool, first.workId, "RECOVERY"))
-            val audit =
-                pool.committed {
-                    it
-                        .queryBound(
-                            "SELECT changes->>'reason', changes->>'previousDeadlineAt', changes->>'deadlineAt' " +
-                                "FROM operational_event WHERE work_id=? AND event_type='RECOVERY'",
-                            listOf(first.workId),
-                        ) { row ->
-                            listOf(row.getString(1), row.getString(2), row.getString(3))
-                        }.single()
-                }
+            val audit = recoveryChanges(pool, first.workId)
             assertEquals(listOf(recovery.reason, now.minusSeconds(1).toString(), now.plusSeconds(60).toString()), audit)
         }
     }
@@ -176,7 +176,10 @@ class LeaseRecoveryBoundaryTest {
                 val claim = claim(pool)
                 val now = databaseNow(pool)
                 pool.committed {
-                    it.executeBound("UPDATE durable_work SET lease_until=? WHERE id=?", Timestamp.from(now.plusMillis(500)), claim.workId)
+                    it.executeBound(
+                        "UPDATE durable_work SET lease_until=? WHERE id=?",
+                        Timestamp.from(now.plusMillis(500)), claim.workId,
+                    )
                 }
                 assertFalse(blockedMutation(pool, claim, now, renew))
                 assertEquals(0, eventCount(pool, claim.workId, "ATTEMPT_FINISHED"))
@@ -215,6 +218,21 @@ class LeaseRecoveryBoundaryTest {
         }
     }
 
+    private fun recoveryChanges(
+        pool: DataSource,
+        work: UUID,
+    ): List<String> =
+        pool.committed {
+            it
+                .queryBound(
+                    "SELECT changes->>'reason', changes->>'previousDeadlineAt', changes->>'deadlineAt' " +
+                        "FROM operational_event WHERE work_id=? AND event_type='RECOVERY'",
+                    listOf(work),
+                ) { row ->
+                    listOf(row.getString(1), row.getString(2), row.getString(3))
+                }.single()
+        }
+
     private fun recoverAfterSignal(
         pool: DataSource,
         workId: UUID,
@@ -238,7 +256,10 @@ class LeaseRecoveryBoundaryTest {
             pool.connection.use { blocker ->
                 blocker.autoCommit = false
                 blocker.queryBound("SELECT id FROM durable_work WHERE id=? FOR UPDATE", listOf(claim.workId)) { true }
-                val finished = executor.submit<Boolean> { mutateOnBackend(pool, claim, now, renew, backend, started) }
+                val finished =
+                    executor.submit<Boolean> {
+                        mutateOnBackend(pool, claim, now, renew, BackendSignal(backend, started))
+                    }
                 assertTrue(started.await(2, TimeUnit.SECONDS))
                 awaitBlocked(pool, backend.get())
                 blocker.queryBound("SELECT pg_sleep(0.75)") { true }
@@ -255,12 +276,11 @@ class LeaseRecoveryBoundaryTest {
         claim: WorkClaim,
         now: Instant,
         renew: Boolean,
-        backend: AtomicInteger,
-        started: CountDownLatch,
+        signal: BackendSignal,
     ): Boolean =
         pool.committed { connection ->
-            backend.set(connection.queryBound("SELECT pg_backend_pid()") { it.getInt(1) }.single())
-            started.countDown()
+            signal.backend.set(connection.queryBound("SELECT pg_backend_pid()") { it.getInt(1) }.single())
+            signal.started.countDown()
             if (renew) {
                 WorkSql.renewLease(connection, claim, now)
             } else {
@@ -281,7 +301,9 @@ class LeaseRecoveryBoundaryTest {
         while (System.nanoTime() < deadline) {
             val blocked =
                 pool.committed {
-                    it.queryBound("SELECT cardinality(pg_blocking_pids(?)) > 0", listOf(backend)) { row -> row.getBoolean(1) }.single()
+                    it.queryBound("SELECT cardinality(pg_blocking_pids(?)) > 0", listOf(backend)) { row ->
+                        row.getBoolean(1)
+                    }.single()
                 }
             if (blocked) return
             Thread.sleep(10)
@@ -313,8 +335,10 @@ class LeaseRecoveryBoundaryTest {
                 Timestamp.from(now.plusSeconds(3600)),
             )
             it.executeBound(
-                "INSERT INTO durable_work(id,operation_id,kind,payload,max_attempts,deadline_at,correlation_id,next_attempt_at," +
-                    "base_delay_ms,cap_delay_ms,backoff_multiplier) VALUES (?,?,'SYNC_CATALOG',?::jsonb,3,?,?,?,500,5000,2)",
+                "INSERT INTO durable_work(" +
+                    "id,operation_id,kind,payload,max_attempts,deadline_at,correlation_id,next_attempt_at," +
+                    "base_delay_ms,cap_delay_ms,backoff_multiplier) " +
+                    "VALUES (?,?,'SYNC_CATALOG',?::jsonb,3,?,?,?,500,5000,2)",
                 id,
                 operationId,
                 """{"effectId":"$id"}""",
@@ -367,3 +391,8 @@ class LeaseRecoveryBoundaryTest {
         }
     }
 }
+
+private data class BackendSignal(
+    val backend: AtomicInteger,
+    val started: CountDownLatch,
+)

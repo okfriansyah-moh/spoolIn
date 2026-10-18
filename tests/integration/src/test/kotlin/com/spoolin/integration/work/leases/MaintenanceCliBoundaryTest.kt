@@ -26,7 +26,8 @@ class MaintenanceCliBoundaryTest {
         fixture.connection(owner).use { connection ->
             connection.executeBound(
                 """
-                INSERT INTO appdata.operation_receipt(id,actor_scope,kind,request_hash,state,result,correlation_id,expires_at)
+                INSERT INTO appdata.operation_receipt(
+                  id,actor_scope,kind,request_hash,state,result,correlation_id,expires_at)
                 SELECT gen_random_uuid(),'SERVICE:test','TEST',decode(repeat('00',32),'hex'),'SUCCEEDED',
                   '{"ok":true}'::jsonb,?,CURRENT_TIMESTAMP-INTERVAL '1 day' FROM generate_series(1,101)
                 """.trimIndent(),
@@ -38,7 +39,10 @@ class MaintenanceCliBoundaryTest {
         assertEquals(emptyMap<String, Int>(), inspect.getValue("counts"))
         assertEquals(101, remaining(fixture, owner))
         val execute = RetentionMaintenanceCli.run(args(owner, "hourly", "execute"), environment(fixture, owner)::get)
-        assertEquals(mapOf("receiptBodies" to 100), (execute.getValue("counts") as Map<*, *>).filterKeys { it == "receiptBodies" })
+        assertEquals(
+            mapOf("receiptBodies" to 100),
+            (execute.getValue("counts") as Map<*, *>).filterKeys { it == "receiptBodies" },
+        )
         assertEquals(1, remaining(fixture, owner))
         val daily = RetentionMaintenanceCli.run(args(owner, "daily", "execute"), environment(fixture, owner)::get)
         assertEquals(0, (daily.getValue("counts") as Map<*, *>)["work"])
@@ -69,7 +73,9 @@ class MaintenanceCliBoundaryTest {
         fixture("catalog") { fixture ->
             val wrong = environment(fixture, "catalog").toMutableMap()
             wrong["CATALOG_DB_MAINTENANCE_PASSWORD_FILE"] = fixture.passwords.getValue("catalog-runtime").toString()
-            assertThrows(SQLException::class.java) { RetentionMaintenanceCli.run(args("catalog", "hourly", "execute"), wrong::get) }
+            assertThrows(SQLException::class.java) {
+                RetentionMaintenanceCli.run(args("catalog", "hourly", "execute"), wrong::get)
+            }
             val insecure = environment(fixture, "catalog").toMutableMap()
             insecure["CATALOG_DB_URL"] = "jdbc:postgresql://localhost:5432/spoolin_catalog?sslmode=disable"
             assertThrows(IllegalArgumentException::class.java) {
@@ -106,28 +112,26 @@ class MaintenanceCliBoundaryTest {
                 }.single()
         }
 
+    private fun migrate(
+        fixture: OwnerFixture,
+        owner: String,
+    ) {
+        fixture.pool(owner, "migrator").use { source ->
+            when (owner) {
+                "core" -> com.spoolin.core.MigrationRunner(source).migrate()
+                "catalog" -> com.spoolin.catalog.MigrationRunner(source).migrate()
+                "media" -> com.spoolin.media.MigrationRunner(source).migrate()
+            }
+        }
+    }
+
     private fun fixture(
         owner: String,
         check: (OwnerFixture) -> Unit,
     ) {
         OwnerFixture("maintenance-cli.json").start().use { fixture ->
             fixture.membership(owner, "grant")
-            fixture.pool(owner, "migrator").use { source ->
-                when (owner) {
-                    "core" ->
-                        com.spoolin.core
-                            .MigrationRunner(source)
-                            .migrate()
-                    "catalog" ->
-                        com.spoolin.catalog
-                            .MigrationRunner(source)
-                            .migrate()
-                    "media" ->
-                        com.spoolin.media
-                            .MigrationRunner(source)
-                            .migrate()
-                }
-            }
+            migrate(fixture, owner)
             fixture.grants(owner)
             fixture.membership(owner, "revoke")
             check(fixture)

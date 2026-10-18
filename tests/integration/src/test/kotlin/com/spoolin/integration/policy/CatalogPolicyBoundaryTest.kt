@@ -45,12 +45,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-/** Calls actual write handlers through signed mTLS and live Core identity, then reads separately committed PostgreSQL rows. */
+/** Signed mTLS and live Core identity admit writes, followed by separately committed PostgreSQL observations. */
 class CatalogPolicyBoundaryTest {
     @Test
-    fun `effective person policy rejects fresh invalid fields while replay and unchanged legacy text survive tightening`() {
+    fun `person policy rejects fresh invalid fields and preserves replay and unchanged legacy text`() {
         CatalogPolicyFixture().use { fixture ->
-            fixture.policy = configured(mapOf("PERSON_NAME_MIN_CODE_POINTS" to "2", "PERSON_NAME_MAX_CODE_POINTS" to "3"))
+            fixture.policy =
+                configured(mapOf("PERSON_NAME_MIN_CODE_POINTS" to "2", "PERSON_NAME_MAX_CODE_POINTS" to "3"))
             val invalid = fixture.person("x")
             assertEquals("FIELD_INVALID", fixture.person(invalid).problem.code)
             assertEquals(0, fixture.count("SELECT count(*) FROM person"))
@@ -73,7 +74,8 @@ class CatalogPolicyBoundaryTest {
                     .toBuilder()
                     .setContext(fixture.context(original.context.policyRevision))
                     .build()
-            assertEquals("POLICY_CHANGED", assertThrows(StatusRuntimeException::class.java) { fixture.person(stale) }.status.description)
+            val changed = assertThrows(StatusRuntimeException::class.java) { fixture.person(stale) }
+            assertEquals("POLICY_CHANGED", changed.status.description)
             val patch =
                 fixture
                     .person("x")
@@ -134,7 +136,8 @@ class CatalogPolicyBoundaryTest {
                         "CHARACTER_NAME_MAX_CODE_POINTS" to "3",
                     ),
                 )
-            assertEquals("FIELD_INVALID", assertThrows(StatusRuntimeException::class.java) { fixture.role("x") }.status.description)
+            val invalid = assertThrows(StatusRuntimeException::class.java) { fixture.role("x") }
+            assertEquals("FIELD_INVALID", invalid.status.description)
             val custom = fixture.role("a\"b")
             assertEquals("SUCCEEDED", custom.state)
             assertEquals("a\"b", fixture.text("SELECT label FROM credit_role WHERE id=?", custom.resultId))
@@ -154,7 +157,8 @@ class CatalogPolicyBoundaryTest {
     @Test
     fun `real credit write removes blank entries and all-blank update persists empty array after reload`() {
         CatalogPolicyFixture().use { fixture ->
-            fixture.policy = configured(mapOf("CHARACTER_NAME_MIN_CODE_POINTS" to "3", "CHARACTER_NAME_MAX_CODE_POINTS" to "4"))
+            fixture.policy =
+                configured(mapOf("CHARACTER_NAME_MIN_CODE_POINTS" to "3", "CHARACTER_NAME_MAX_CODE_POINTS" to "4"))
             val title = fixture.movie(fixture.movie("Movie"))
             val person = fixture.person(fixture.person("Person"))
             val role = fixture.characterRole()
@@ -168,7 +172,10 @@ class CatalogPolicyBoundaryTest {
                     .build()
             val created = fixture.credit(request)
             assertEquals("SUCCEEDED", created.state)
-            assertEquals("ABC|Name", fixture.text("SELECT array_to_string(characters,'|') FROM credit WHERE id=?", created.resultId))
+            assertEquals(
+                "ABC|Name",
+                fixture.text("SELECT array_to_string(characters,'|') FROM credit WHERE id=?", created.resultId),
+            )
             val clear =
                 fixture
                     .credit(title.resultId, person.resultId, role, "\u00a0\t ")
@@ -215,10 +222,7 @@ class CatalogPolicyBoundaryTest {
             val executor = Executors.newSingleThreadExecutor()
             val gate = fixture.gate()
             try {
-                val response =
-                    executor.submit<StatusRuntimeException> {
-                        assertThrows(StatusRuntimeException::class.java) { fixture.person(request) }
-                    }
+                val response = policyResponse(executor, fixture, request)
                 val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3)
                 while (!fixture.waiting() && System.nanoTime() < deadline) Thread.sleep(10)
                 assertTrue(fixture.waiting())
@@ -234,8 +238,18 @@ class CatalogPolicyBoundaryTest {
         }
     }
 
+    private fun policyResponse(
+        executor: java.util.concurrent.ExecutorService,
+        fixture: CatalogPolicyFixture,
+        request: Spoolin.PersonWrite,
+    ): java.util.concurrent.Future<StatusRuntimeException> =
+        executor.submit<StatusRuntimeException> {
+            assertThrows(StatusRuntimeException::class.java) { fixture.person(request) }
+        }
+
     companion object {
-        private fun configured(values: Map<String, String>): PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        private fun configured(values: Map<String, String>): PublicPolicy =
+            PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
     }
 }
 
@@ -296,12 +310,15 @@ internal class CatalogPolicyFixture : AutoCloseable {
             ActorVerifier(mapOf("key_A" to proof.pair.public)),
             live::check,
         )
-    private val server = transport.server(proof.root, "catalog", service, com.spoolin.catalog.ServiceIdentityInterceptor(actors))
+    private val server =
+        transport.server(proof.root, "catalog", service, com.spoolin.catalog.ServiceIdentityInterceptor(actors))
     private val channel = transport.channel(proof.root, "core", "catalog", server.port)
     private val genre =
         UUID.randomUUID().also { id ->
             pool.committed {
-                it.executeBound("INSERT INTO genre(id,label,normalized_label) VALUES (?,'Policy proof','policy proof')", id)
+                it.executeBound(
+                    "INSERT INTO genre(id,label,normalized_label) VALUES (?,'Policy proof','policy proof')", id,
+                )
             }
         }
 
@@ -320,7 +337,8 @@ internal class CatalogPolicyFixture : AutoCloseable {
             .setValues(Spoolin.PersonValues.newBuilder().setName(name))
             .build()
 
-    fun person(request: Spoolin.PersonWrite): Spoolin.Outcome = client("WritePerson", request.context).writePerson(request)
+    fun person(request: Spoolin.PersonWrite): Spoolin.Outcome =
+        client("WritePerson", request.context).writePerson(request)
 
     fun movie(title: String): Spoolin.MovieWrite =
         Spoolin.MovieWrite
@@ -379,9 +397,11 @@ internal class CatalogPolicyFixture : AutoCloseable {
             .addCharacters(character)
             .build()
 
-    fun credit(request: Spoolin.CreditWrite): Spoolin.Outcome = client("WriteCredit", request.context).writeCredit(request)
+    fun credit(request: Spoolin.CreditWrite): Spoolin.Outcome =
+        client("WriteCredit", request.context).writeCredit(request)
 
-    fun count(sql: String): Int = pool.connection.use { it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single() }
+    fun count(sql: String): Int =
+        pool.connection.use { it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single() }
 
     fun text(
         sql: String,
@@ -391,7 +411,8 @@ internal class CatalogPolicyFixture : AutoCloseable {
             it.queryBound(sql, listOf(UUID.fromString(id))) { row -> row.getString(1) }.single()
         }
 
-    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome = client("RemoveCredit", request.context).removeCredit(request)
+    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome =
+        client("RemoveCredit", request.context).removeCredit(request)
 
     fun lookup(operation: String): Spoolin.Outcome =
         client("GetOperation", context().toBuilder().setOperationId(operation).build())
@@ -422,7 +443,10 @@ internal class CatalogPolicyFixture : AutoCloseable {
                         .sorted()
                         .joinToString(","),
             )
-        val intent = OperationIntent(operation, "account:${proof.account}", "WritePerson", request.context.policyRevision, fields)
+        val intent =
+            OperationIntent(
+                operation, "account:${proof.account}", "WritePerson", request.context.policyRevision, fields,
+            )
         receipts.execute(intent, correlation, true) { connection ->
             connection.executeBound(
                 "INSERT INTO person(id,name,biography,status,version,impact_version) VALUES (?,?,?,'ACTIVE',0,0)",
