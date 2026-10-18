@@ -162,10 +162,10 @@ it('uncertain form checks the original registration and never resubmits a passwo
 
 it('sign-in fields expose exact names independently of visible requirement markers', async () => {
   const controller = mount(vi.fn<AccountCommands['submit']>(), 'signIn');
-  await screen.findByRole('form', { name: 'Sign in', exact: true });
+  await screen.findByRole('form', { name: 'Sign in' });
   const email = screen.getByLabelText('Email', { exact: true });
   const password = screen.getByLabelText('Password', { exact: true });
-  expect(email).toBe(screen.getByRole('textbox', { name: 'Email', exact: true }));
+  expect(email).toBe(screen.getByRole('textbox', { name: 'Email' }));
   expect(email instanceof HTMLInputElement && email.required).toBe(true);
   expect(password instanceof HTMLInputElement && password.required).toBe(true);
   expect(password.getAttribute('type')).toBe('password');
@@ -173,6 +173,6 @@ it('sign-in fields expose exact names independently of visible requirement marke
   expect(document.querySelector('label[for="account-password"]')?.textContent).toBe('Password · Required');
   expect(email.getAttribute('aria-describedby')).toBe('account-email-help');
   expect(password.getAttribute('aria-describedby')).toBe('account-password-help');
-  expect(screen.getByRole('button', { name: 'Sign in', exact: true })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy();
   controller.dispose();
 });

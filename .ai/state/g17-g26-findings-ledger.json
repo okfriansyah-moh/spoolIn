@@ -1150,9 +1150,43 @@
         "156d26be",
         "f14820b9",
         "7303145",
-        "e31a2fcb"
+        "e31a2fcb",
+        "fadcf404",
+        "e3e91ab",
+        "ea80be61",
+        "0fbe2137",
+        "a66e4081",
+        "82e25616",
+        "489ea460"
       ],
-      "runtime_proof": "Pending corrected remote execution and inspected application, codec, browser and monitoring reports. Source corrections and diagnostics do not establish acceptance."
+      "runtime_proof": "Pending corrected remote execution and inspected application, codec, browser and monitoring reports. Source corrections and diagnostics do not establish acceptance.",
+      "continuation_observations": [
+        {
+          "assessed_sha": "fadcf404c1a763be68b9b2cc84a251b062eafa00",
+          "run_id": 39097374811,
+          "source_vs_runtime": "Current runtime shows the sign-in form and inputs rendered; the earlier locator timeout did not prove input absence. Exact accessible names include requirement markers. Monitoring child guards are now behaviorally proved at the API/mTLS boundary; rendered dashboard and durable alert episode remain pending.",
+          "passed_boundaries": [
+            "Actual make start and private mTLS owner readiness",
+            "Actual public policy HTTPS API",
+            "Monitoring config validators, loopback isolation, four live scrapes, management MCP identity denials, authenticated Grafana API"
+          ],
+          "failed_boundaries": [
+            "Catalog titles HTTPS API 503",
+            "Full seed comparison and persistence/repeat verification",
+            "Positive SDK stdio gateway journey",
+            "Production nonroot Media namespace creation",
+            "Exact-name sign-in browser journey",
+            "Durable alert notification episode"
+          ],
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39097374811/artifacts/12124764445",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39097374811/artifacts/12124754598",
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39097374811/artifacts/12124799587"
+          ]
+        }
+      ],
+      "configuration_diagnosis": "Pinned Spring Boot 4.1.1 spring-boot-grpc-client metadata and tagged upstream GrpcClientProperties bind spring.grpc.client.channel, singular. All three owner YAML files used channels, so their declared targets and mutual-TLS settings were ignored. Corrected source and actual-YAML Binder regression are prepared; behavior awaits current remote rerun.",
+      "configuration_primary_source": "https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-grpc-client/src/main/java/org/springframework/boot/grpc/client/autoconfigure/GrpcClientProperties.java"
     }
   ],
   "pending_acceptance": [
@@ -1649,6 +1683,15 @@
           12124754598,
           12124799587
         ]
+      },
+      {
+        "run_id": 39098324998,
+        "tested_sha": "69d27ed551f1b02ba1adce112c29c212eafa87a0",
+        "result": "in_progress",
+        "detail": "Focused runtime rerun includes corrected actual Boot gRPC client configuration, accessible field names, typed MCP refusals and precise production Media profiles. Scoped policy provisioning failed early; actual diagnostics pending artifact retention. No runtime pass is inferred.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098324998",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": []
       }
     ],
     "progress_checkpoints": [

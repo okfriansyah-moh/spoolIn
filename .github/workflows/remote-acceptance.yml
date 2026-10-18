@@ -9,7 +9,7 @@ on:
       mode:
         description: Full acceptance, focused real runtime proof, or source preparation
         type: choice
-        options: [verify, runtime, dependencies, seed, format, quality]
+        options: [verify, runtime, dependencies, seed, format, quality, sandbox]
         default: verify
 permissions:
   contents: read
@@ -73,7 +73,7 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts
       - name: Install locked npm dependencies
         id: dependencies
-        if: ${{ inputs.mode != 'seed' }}
+        if: ${{ inputs.mode != 'seed' && inputs.mode != 'sandbox' }}
         run: npm ci
       - name: Prepare dependency locks and verification entries
         if: ${{ (inputs.mode || 'dependencies') == 'dependencies' }}
@@ -90,12 +90,23 @@ jobs:
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/install-gates.sh
       - name: Provision scoped production Media sandbox policy
-        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
+        id: sandbox
+        if: ${{ !cancelled() && (inputs.mode == 'sandbox' || ((inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success')) }}
         run: |
           mkdir -p artifacts/source-checks
           python3 ops/ci/test-media-sandbox-policy.py
           sudo bash ops/bin/provision-media-sandbox.sh --install > artifacts/source-checks/media-sandbox-policy.json
           sudo bash ops/bin/provision-media-sandbox.sh --check
+      - name: Retain actual Media policy provisioning outcome immediately
+        if: ${{ !cancelled() && (inputs.mode == 'sandbox' || inputs.mode == 'verify' || inputs.mode == 'runtime') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: media-policy-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/source-checks/media-sandbox-policy.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Check safe MCP runtime diagnostic classifications
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
         run: node --test ops/ci/mcp-runtime-diagnostics.test.mjs
