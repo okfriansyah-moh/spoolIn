@@ -84,8 +84,10 @@
 </script>
 
 <svelte:head><title>Audit history · SpoolIn</title></svelte:head>
-<h1 tabindex="-1">Audit history</h1>
-<p class="muted">A clear record of catalog changes and approval outcomes.</p>
+<header class="history-heading">
+  <h1 tabindex="-1">Audit history</h1>
+  <p class="muted">A clear record of catalog changes and approval outcomes.</p>
+</header>
 <p role="status" aria-live="polite">{loading ? 'Loading history…' : message}</p>
 
 {#if rows.length}
@@ -186,6 +188,37 @@
 {/if}
 
 <style>
+  .history-heading {
+    margin-bottom: var(--primitive-space-6);
+  }
+  .history-heading h1 {
+    margin-bottom: var(--primitive-space-2);
+  }
+  .history-heading p {
+    margin: 0;
+  }
+  th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  tbody tr:hover {
+    background: var(--surface);
+  }
+  td time {
+    font-size: var(--primitive-type-small);
+    color: var(--muted);
+  }
+  td details {
+    min-width: 9rem;
+  }
+  summary {
+    cursor: pointer;
+    font-size: var(--primitive-type-small);
+  }
+  .table-wrap {
+    margin-block: var(--primitive-space-6);
+  }
   .mobile-history {
     display: none;
     padding: 0;
@@ -198,17 +231,18 @@
   table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 14px;
   }
   th,
   td {
     text-align: left;
     vertical-align: top;
-    padding: var(--space-2, 0.5rem);
-    border-bottom: 1px solid var(--border, currentColor);
+    padding: var(--primitive-space-4) var(--primitive-space-3);
+    border-bottom: 1px solid var(--line);
     overflow-wrap: anywhere;
   }
   .muted {
-    margin-bottom: var(--space-4, 1rem);
+    color: var(--muted);
   }
   .history-entry {
     padding: var(--primitive-space-4);

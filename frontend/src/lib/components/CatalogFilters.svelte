@@ -80,8 +80,8 @@
   }
 </script>
 
-<div class="stack">
-  <div class="field">
+<div class="catalog-controls stack">
+  <div class="field catalog-search">
     <label for={`${id}-text`}>Search titles</label><input
       id={`${id}-text`}
       type="search"
@@ -93,15 +93,19 @@
     >
   </div>
   <div class="filter-categories">
-    <div class="field">
-      <label for={`${id}-kind`}>Title type</label><select
-        id={`${id}-kind`}
-        bind:value={criteria.kind}
-        ><option value="">All titles</option><option value="MOVIE"
-          >Movies</option
-        ><option value="TV">TV</option></select
-      >
-    </div>
+    <fieldset class="type-filters">
+      <legend>Title type</legend>
+      {#each [['', 'All titles'], ['MOVIE', 'Movies'], ['TV', 'TV series']] as choice (choice[0])}
+        <label
+          ><input
+            type="radio"
+            name={`${id}-kind`}
+            value={choice[0]}
+            bind:group={criteria.kind}
+          /><span>{choice[1]}</span></label
+        >
+      {/each}
+    </fieldset>
     <fieldset class="genre-choice">
       <legend>Genres · match any selected</legend>
       {#if selectedGenres.length}
@@ -206,13 +210,95 @@
 </div>
 
 <style>
+  .catalog-controls {
+    gap: 28px;
+  }
+  .catalog-search {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 6px;
+    background: var(--surface);
+  }
+  .catalog-search label {
+    grid-column: 1 / -1;
+    margin: -32px 0 8px -6px;
+    font-size: 13px;
+  }
+  .catalog-search input {
+    border: 0;
+    background: transparent;
+  }
+  .catalog-search button {
+    margin-left: 8px;
+  }
+  .type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .type-filters legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .type-filters label {
+    position: relative;
+    cursor: pointer;
+  }
+  .type-filters input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    min-height: 0;
+  }
+  .type-filters span {
+    display: block;
+    padding: 9px 17px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 44px;
+  }
+  .type-filters input:checked + span {
+    background: var(--selected);
+    border-color: var(--accent);
+  }
+  .type-filters input:focus-visible + span {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .filter-categories > .field {
+    font-size: 13px;
+  }
+  .filter-categories > .field label {
+    color: var(--muted);
+  }
+  .filter-categories > .field select {
+    font-size: 14px;
+  }
+
   .filter-categories {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(240px, 1.25fr) minmax(180px, 1fr) minmax(
+        120px,
+        0.7fr
+      ) minmax(120px, 0.7fr);
     align-items: start;
-    gap: var(--primitive-space-4);
+    gap: var(--primitive-space-6);
   }
   .genre-choice {
+    border: 0;
+    padding: 0;
+    margin: 0;
     inline-size: 100%;
     max-inline-size: 280px;
   }
@@ -283,6 +369,17 @@
     }
   }
   @media (max-width: 700px) {
+    .catalog-search {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .catalog-search button {
+      font-size: 12px;
+      padding-inline: 10px;
+    }
+    .type-filters span {
+      font-size: 12px;
+      padding-inline: 13px;
+    }
     .filter-categories {
       grid-template-columns: minmax(0, 1fr);
     }

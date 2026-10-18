@@ -166,15 +166,36 @@
   table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 14px;
   }
   th,
   td {
     text-align: left;
-    padding: 0.5rem 0.75rem;
+    padding: var(--primitive-space-4) var(--primitive-space-3);
+    border-bottom: 1px solid var(--line);
+    overflow-wrap: anywhere;
     vertical-align: top;
   }
   .muted {
     opacity: 0.8;
+  }
+
+  th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  td:first-child {
+    font-weight: 600;
+  }
+  td :global(.button) {
+    margin: 0 var(--primitive-space-2) var(--primitive-space-2) 0;
+    font-size: var(--primitive-type-small);
+    padding: var(--primitive-space-2) var(--primitive-space-3);
+    text-decoration: none;
+  }
+  tbody tr:hover {
+    background: var(--surface);
   }
   @media (max-width: 699px) {
     .list-page-heading {

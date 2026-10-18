@@ -474,10 +474,7 @@
     gap: var(--primitive-space-6);
     width: 100%;
     max-width: 48rem;
-    padding: clamp(1rem, 3vw, 2rem);
-    border: 1px solid var(--line);
-    border-radius: var(--component-artwork-radius);
-    background: var(--surface);
+    padding-block: var(--primitive-space-2) var(--primitive-space-6);
   }
   fieldset {
     border: 0;
@@ -618,7 +615,7 @@
   }
   @media (max-width: 699px) {
     form {
-      padding: var(--primitive-space-4);
+      padding-inline: 0;
     }
     .editor-actions {
       display: grid;

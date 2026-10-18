@@ -44,6 +44,8 @@ function mapTitleNodes(
     title: n.title,
     releaseContext: n.releaseContext ?? formatReleaseDate(n.release),
     artworkUrl: n.artwork?.url ?? null,
+    displayRelease: formatReleaseDate(n.release),
+    genreLabels: n.genres.map((genre) => genre.label),
   }));
 }
 

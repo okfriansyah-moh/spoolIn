@@ -152,7 +152,41 @@
   .artwork-upload {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--primitive-space-3);
+    max-width: 48rem;
+    padding-block: var(--primitive-space-8);
+    margin-top: var(--primitive-space-6);
+    border-top: 1px solid var(--line);
+  }
+  label {
+    font-size: 25px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  input[type='file'] {
+    padding: var(--primitive-space-6);
+    background: var(--surface);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    max-width: 100%;
+  }
+  input[type='file']::file-selector-button {
+    margin-right: var(--primitive-space-3);
+    padding: var(--primitive-space-2) var(--primitive-space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+  p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  button {
+    align-self: start;
   }
   progress {
     width: 100%;

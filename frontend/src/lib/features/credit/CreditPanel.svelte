@@ -721,7 +721,7 @@
   }
 </script>
 
-<section aria-labelledby="credits-heading">
+<section class="credit-panel" aria-labelledby="credits-heading">
   <h2 id="credits-heading">Cast and creators</h2>
   <p class="muted">
     Shared person picker, Cast/Creator roles, and optional complete character
@@ -996,14 +996,58 @@
 </ConfirmDialog>
 
 <style>
-  .credit-list {
-    margin: 1rem 0;
-    padding-left: 1.25rem;
+  .credit-panel {
+    display: grid;
+    gap: var(--primitive-space-4);
+    padding-block: var(--primitive-space-8);
+    margin-top: var(--primitive-space-6);
+    border-top: 1px solid var(--line);
+    max-width: 48rem;
   }
-  .field {
-    margin-bottom: 0.75rem;
+  .credit-panel > :global(button),
+  .credit-panel > :global(.button-group) {
+    justify-self: start;
+  }
+  .credit-panel > h2,
+  .credit-panel > p {
+    margin: 0;
+  }
+  .credit-list {
+    margin: var(--primitive-space-2) 0;
+    padding: 0;
+    list-style: none;
+  }
+  .credit-list li {
+    padding-block: var(--primitive-space-4);
+    border-bottom: 1px solid var(--line);
+    line-height: 1.8;
+  }
+  .credit-list button {
+    margin: var(--primitive-space-2) var(--primitive-space-2) 0 0;
+    background: transparent;
+    color: var(--text);
+    border-color: var(--line);
+    font-size: var(--primitive-type-small);
+  }
+  .credit-list strong {
+    font-weight: 650;
+  }
+  .field label {
+    display: block;
+    margin-bottom: var(--primitive-space-2);
+    font-size: 14px;
   }
   .muted {
-    opacity: 0.85;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  @media (max-width: 699px) {
+    .credit-panel {
+      padding-block: var(--primitive-space-6);
+    }
+    .credit-list button {
+      width: 100%;
+      margin-inline: 0;
+    }
   }
 </style>

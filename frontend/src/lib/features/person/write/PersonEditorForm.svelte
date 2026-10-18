@@ -286,10 +286,7 @@
     gap: var(--primitive-space-6);
     width: 100%;
     max-width: 48rem;
-    padding: clamp(1rem, 3vw, 2rem);
-    border: 1px solid var(--line);
-    border-radius: var(--component-artwork-radius);
-    background: var(--surface);
+    padding-block: var(--primitive-space-2) var(--primitive-space-6);
   }
   .saved-person-actions,
   .editor-actions {
@@ -298,15 +295,30 @@
     align-items: end;
     gap: var(--primitive-space-3);
   }
+  .editor-actions {
+    justify-content: space-between;
+    padding-top: var(--primitive-space-6);
+    border-top: 1px solid var(--line);
+  }
   .field {
-    margin-bottom: 1rem;
+    margin: 0;
+  }
+  .field label {
+    display: block;
+    margin-bottom: var(--primitive-space-2);
+    font-size: 14px;
+  }
+  .field small {
+    display: block;
+    margin-top: var(--primitive-space-2);
+    color: var(--muted);
   }
   .field-error {
     color: var(--danger);
   }
   @media (max-width: 699px) {
     form {
-      padding: var(--primitive-space-4);
+      padding-inline: 0;
     }
     .editor-actions {
       display: grid;

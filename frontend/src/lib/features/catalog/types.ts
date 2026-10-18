@@ -25,6 +25,8 @@ export type TitleSummary = Readonly<{
   title: string;
   releaseContext: string | null;
   artworkUrl: string | null;
+  displayRelease?: string | null;
+  genreLabels?: readonly string[];
 }>;
 
 /** Text validation result. */

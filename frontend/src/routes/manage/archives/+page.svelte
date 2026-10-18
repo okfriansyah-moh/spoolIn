@@ -319,11 +319,13 @@
 </script>
 
 <section class="stack" aria-label="Archived records">
-  <h1>Archives</h1>
-  <p>
-    Maintainer-only retained movies and people. Restore or confirm permanent
-    deletion separately.
-  </p>
+  <header class="archive-heading">
+    <h1>Archives</h1>
+    <p>
+      Maintainer-only retained movies and people. Restore or confirm permanent
+      deletion separately.
+    </p>
+  </header>
 
   <div class="archive-tabs" role="tablist" aria-label="Archive kind">
     <button
@@ -435,7 +437,14 @@
   .stack {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--primitive-space-6);
+  }
+  .archive-heading h1 {
+    margin-bottom: var(--primitive-space-2);
+  }
+  .archive-heading p {
+    margin: 0;
+    color: var(--muted);
   }
   .actions {
     display: flex;

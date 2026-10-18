@@ -127,81 +127,91 @@
 
 <svelte:head><title>People · SpoolIn</title></svelte:head>
 
-<header class="people-heading">
-  <h1 tabindex="-1">People</h1>
-  <p>Meet the people behind the films and series in the catalog.</p>
-</header>
+<section class="people-directory">
+  <header class="people-heading">
+    <h1 tabindex="-1">People</h1>
+    <p>Meet the people behind the films and series in the catalog.</p>
+  </header>
 
-<div class="field people-search">
-  <label for="people-search">Search people</label>
-  <input
-    id="people-search"
-    type="search"
-    bind:value={searchText}
-    oninput={onInput}
-  />
-  <button class="secondary" onclick={clearSearch}>Clear search text</button>
-</div>
+  <div class="field people-search">
+    <label for="people-search">Search people</label>
+    <input
+      id="people-search"
+      type="search"
+      bind:value={searchText}
+      oninput={onInput}
+    />
+    <button class="secondary" onclick={clearSearch}>Clear search text</button>
+  </div>
 
-{#if peopleState.kind === 'loading'}
-  <div role="status" aria-live="polite" class="catalog-status">
-    <p>Finding people…</p>
-  </div>
-{:else if peopleState.kind === 'failure'}
-  <div role="alert" class="catalog-status catalog-failure">
-    <p>People could not be loaded.</p>
-    <button onclick={() => void load(searchText)}>Try again</button>
-  </div>
-{:else if peopleState.kind === 'empty'}
-  <div class="catalog-status catalog-empty">
-    <p>No people have been added yet.</p>
-  </div>
-{:else if peopleState.kind === 'no-match'}
-  <div class="catalog-status catalog-no-match">
-    <p>No people match your search.</p>
-  </div>
-{:else if peopleState.kind === 'people'}
-  <ul class="people-list" aria-label="People">
-    {#each peopleState.people as person (person.id)}
-      <li>
-        <article class="person-result">
-          <a
-            class="person-name"
-            href={resolve('/people/[id]', { id: person.id })}
-          >
-            {person.name}
-          </a>
-          {#if person.biography}
-            <p class="bio-excerpt">{biographyPreview(person.biography)}</p>
-            {#if Array.from(person.biography).length > 120}
-              <details class="biography-details">
-                <summary>Read full biography</summary>
-                <p>{person.biography}</p>
-              </details>
-            {/if}
-          {/if}
-        </article>
-      </li>
-    {/each}
-  </ul>
-  {#if peopleState.pageInfo?.hasNextPage}<button
-      type="button"
-      onclick={nextPage}>Next people page</button
-    >{/if}
-{/if}
+  {#if peopleState.kind === 'loading'}
+    <div role="status" aria-live="polite" class="catalog-status">
+      <p>Finding people…</p>
+    </div>
+  {:else if peopleState.kind === 'failure'}
+    <div role="alert" class="catalog-status catalog-failure">
+      <p>People could not be loaded.</p>
+      <button onclick={() => void load(searchText)}>Try again</button>
+    </div>
+  {:else if peopleState.kind === 'empty'}
+    <div class="catalog-status catalog-empty">
+      <p>No people have been added yet.</p>
+    </div>
+  {:else if peopleState.kind === 'no-match'}
+    <div class="catalog-status catalog-no-match">
+      <p>No people match your search.</p>
+    </div>
+  {:else if peopleState.kind === 'people'}
+    <div class="people-results">
+      <ul class="people-list" aria-label="People">
+        {#each peopleState.people as person (person.id)}
+          <li>
+            <article class="person-result">
+              <div class="person-summary">
+                <a
+                  class="person-name"
+                  href={resolve('/people/[id]', { id: person.id })}
+                >
+                  {person.name}
+                </a>
+              </div>
+              <div class="person-biography">
+                {#if person.biography}
+                  <p class="bio-excerpt">
+                    {biographyPreview(person.biography)}
+                  </p>
+                  {#if Array.from(person.biography).length > 120}
+                    <details class="biography-details">
+                      <summary>Read full biography</summary>
+                      <p>{person.biography}</p>
+                    </details>
+                  {/if}
+                {/if}
+              </div>
+            </article>
+          </li>
+        {/each}
+      </ul>
+    </div>
+    {#if peopleState.pageInfo?.hasNextPage}<button
+        type="button"
+        onclick={nextPage}>Next people page</button
+      >{/if}
+  {/if}
+</section>
 
 <style>
   .people-heading {
     margin-bottom: var(--primitive-space-8);
   }
   .people-heading h1 {
-    margin-bottom: var(--primitive-space-2);
+    margin: 0 0 var(--primitive-space-3);
   }
   .people-heading p {
-    max-width: 65ch;
     margin: 0;
     color: var(--muted);
     font-size: 18px;
+    max-width: 65ch;
   }
   .people-search {
     display: grid;
@@ -209,48 +219,67 @@
     align-items: end;
     gap: var(--primitive-space-3);
     max-width: 48rem;
-    margin-bottom: var(--primitive-space-8);
+    margin-bottom: var(--primitive-space-12);
   }
   .people-search label {
     grid-column: 1 / -1;
   }
+  .people-search input {
+    min-height: 50px;
+  }
+  .people-results {
+    border-top: 1px solid var(--line);
+    margin-bottom: var(--primitive-space-6);
+  }
   .people-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-    gap: var(--primitive-space-4);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
   .people-list li {
     min-width: 0;
+    border-bottom: 1px solid var(--line);
   }
   .person-result {
-    height: 100%;
-    padding: var(--primitive-space-4);
-    border-bottom: 1px solid var(--line);
-    background: var(--surface);
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
+    gap: var(--primitive-space-12);
+    padding: var(--primitive-space-6) var(--primitive-space-4);
+    align-items: start;
   }
   .person-name {
     display: inline-block;
-    margin-bottom: var(--primitive-space-2);
     color: var(--text);
-    font-size: 20px;
-    font-weight: 650;
+    font-size: 19px;
+    font-weight: 600;
     text-underline-offset: 0.2em;
   }
+  .person-biography {
+    min-width: 0;
+  }
   .bio-excerpt {
-    margin-bottom: var(--primitive-space-2);
+    margin: 0;
     color: var(--muted);
+    max-width: 70ch;
+  }
+  .biography-details {
+    margin-top: var(--primitive-space-3);
   }
   .biography-details summary {
     color: var(--accent);
     font-size: var(--primitive-type-small);
-    text-decoration: underline;
     text-underline-offset: 0.18em;
+    cursor: pointer;
   }
   .biography-details p {
-    margin-top: var(--primitive-space-2);
+    margin: var(--primitive-space-3) 0 0;
     white-space: pre-wrap;
+  }
+  .catalog-status {
+    padding: var(--primitive-space-8) var(--primitive-space-6);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
   }
   @media (max-width: 699px) {
     .people-heading p {
@@ -258,6 +287,7 @@
     }
     .people-search {
       grid-template-columns: minmax(0, 1fr);
+      margin-bottom: var(--primitive-space-8);
     }
     .people-search label {
       grid-column: auto;
@@ -265,8 +295,13 @@
     .people-search button {
       width: 100%;
     }
-    .people-list {
+    .person-result {
       grid-template-columns: minmax(0, 1fr);
+      gap: var(--primitive-space-3);
+      padding: var(--primitive-space-6) 0;
+    }
+    .person-name {
+      font-size: 18px;
     }
   }
 </style>

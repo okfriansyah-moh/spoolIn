@@ -130,68 +130,162 @@
   <title>{documentTitle}</title>
 </svelte:head>
 
-<nav aria-label="Breadcrumb">
-  <a href={resolve('/')}>Catalog</a> /
-  <a href={resolve('/people')}>People</a>
-</nav>
+<div class="person-page">
+  <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+    <a href={resolve('/')}>Catalog</a> /
+    <a href={resolve('/people')}>People</a>
+  </nav>
 
-{#if pageState.kind === 'loading'}
-  <div role="status" aria-live="polite">
-    <h1 tabindex="-1">Loading…</h1>
-  </div>
-{:else if pageState.kind === 'unavailable'}
-  <div class="unavailable">
-    <h1 tabindex="-1">This person is unavailable</h1>
-    <p>The person you requested is no longer available.</p>
-    <a href={resolve('/people')}>Return to people</a>
-  </div>
-{:else if pageState.kind === 'failure'}
-  <div role="alert" class="failure">
-    <h1 tabindex="-1">Could not load person</h1>
-    <p>The person could not be loaded. Please try again.</p>
-    <button type="button" onclick={() => loadPerson(page.params.id)}
-      >Retry person</button
-    >
-    <a href={resolve('/people')}>Return to people</a>
-  </div>
-{:else if pageState.kind === 'person'}
-  <article id="person-detail" aria-label={pageState.person.name}>
-    <h1 tabindex="-1">{pageState.person.name}</h1>
+  {#if pageState.kind === 'loading'}
+    <div role="status" aria-live="polite">
+      <h1 tabindex="-1">Loading…</h1>
+    </div>
+  {:else if pageState.kind === 'unavailable'}
+    <div class="unavailable">
+      <h1 tabindex="-1">This person is unavailable</h1>
+      <p>The person you requested is no longer available.</p>
+      <a href={resolve('/people')}>Return to people</a>
+    </div>
+  {:else if pageState.kind === 'failure'}
+    <div role="alert" class="failure">
+      <h1 tabindex="-1">Could not load person</h1>
+      <p>The person could not be loaded. Please try again.</p>
+      <button type="button" onclick={() => loadPerson(page.params.id)}
+        >Retry person</button
+      >
+      <a href={resolve('/people')}>Return to people</a>
+    </div>
+  {:else if pageState.kind === 'person'}
+    <article id="person-detail" aria-label={pageState.person.name}>
+      <header class="person-heading">
+        <h1 tabindex="-1">{pageState.person.name}</h1>
+      </header>
 
-    {#if pageState.person.biography}
-      <section aria-label="Biography">
-        <h2>Biography</h2>
-        <p>{pageState.person.biography}</p>
-      </section>
-    {/if}
-
-    <section aria-label="Credits">
-      <h2>Credits</h2>
-      {#if pageState.credits.length === 0}
-        <p>No credits known.</p>
-      {:else}
-        <ul>
-          {#each pageState.credits as credit (credit.id)}
-            <li>
-              <a href={resolve('/titles/[id]', { id: credit.titleId })}>
-                {credit.titleName}
-              </a>
-              — {credit.role.label}
-              {#if credit.characters.length > 0}
-                as {credit.characters.join(', ')}
-              {/if}
-            </li>
-          {/each}
-        </ul>
+      {#if pageState.person.biography}
+        <section class="person-biography" aria-label="Biography">
+          <h2>Biography</h2>
+          <p>{pageState.person.biography}</p>
+        </section>
       {/if}
-      {#if creditError}<p role="alert">{creditError}</p>{/if}
-      {#if pageState.pageInfo.hasNextPage}<button
-          type="button"
-          disabled={loadingCredits}
-          onclick={() => void moreCredits()}
-        >
-          {creditError ? 'Retry more credits' : 'Load more credits'}
-        </button>{/if}
-    </section>
-  </article>
-{/if}
+
+      <section class="person-credits" aria-label="Credits">
+        <h2>Credits</h2>
+        {#if pageState.credits.length === 0}
+          <p>No credits known.</p>
+        {:else}
+          <ul class="person-credit-list">
+            {#each pageState.credits as credit (credit.id)}
+              <li>
+                <a href={resolve('/titles/[id]', { id: credit.titleId })}>
+                  {credit.titleName}
+                </a>
+                <div class="credit-contribution">
+                  {credit.role.label}
+                  {#if credit.characters.length > 0}
+                    as {credit.characters.join(', ')}
+                  {/if}
+                </div>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+        {#if creditError}<p role="alert">{creditError}</p>{/if}
+        {#if pageState.pageInfo.hasNextPage}<button
+            type="button"
+            disabled={loadingCredits}
+            onclick={() => void moreCredits()}
+          >
+            {creditError ? 'Retry more credits' : 'Load more credits'}
+          </button>{/if}
+      </section>
+    </article>
+  {/if}
+</div>
+
+<style>
+  .detail-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-3);
+    align-items: center;
+    margin-bottom: var(--primitive-space-8);
+    color: var(--muted);
+    font-size: var(--primitive-type-small);
+  }
+  .detail-breadcrumb a {
+    color: var(--muted);
+  }
+  .person-heading {
+    margin-bottom: var(--primitive-space-8);
+    max-width: 55rem;
+  }
+  .person-heading h1 {
+    margin: 0;
+    font-size: clamp(36px, 5vw, 56px);
+  }
+  .person-biography {
+    max-width: 50rem;
+    margin-bottom: var(--primitive-space-12);
+  }
+  .person-biography h2 {
+    font-size: 22px;
+    margin: 0 0 var(--primitive-space-4);
+  }
+  .person-biography p {
+    font-size: 18px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    margin: 0;
+    color: var(--muted);
+  }
+  .person-credits {
+    margin-top: var(--primitive-space-12);
+  }
+  .person-credits h2 {
+    margin-bottom: var(--primitive-space-6);
+  }
+  .person-credit-list {
+    list-style: none;
+    margin: 0 0 var(--primitive-space-6);
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .person-credit-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--primitive-space-6);
+    padding: var(--primitive-space-6) var(--primitive-space-4);
+    border-bottom: 1px solid var(--line);
+  }
+  .person-credit-list a {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 18px;
+  }
+  .credit-contribution {
+    color: var(--muted);
+  }
+  .unavailable,
+  .failure {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--primitive-space-8);
+  }
+  .failure button {
+    margin-right: var(--primitive-space-4);
+  }
+  @media (max-width: 699px) {
+    .person-heading {
+      margin-bottom: var(--primitive-space-6);
+    }
+    .person-biography p {
+      font-size: 16px;
+    }
+    .person-credit-list li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--primitive-space-2);
+      padding: var(--primitive-space-6) 0;
+    }
+  }
+</style>

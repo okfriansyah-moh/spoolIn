@@ -1,4 +1,5 @@
 <script lang="ts">
+  import heroArtwork from '../lib/design-system/artwork/hero.png';
   /**
    * T013 – Discovery page (root route).
    *
@@ -202,111 +203,118 @@
 
 <svelte:head><title>SpoolIn · Every reel holds a story.</title></svelte:head>
 
-<div class="hero">
-  <h1 tabindex="-1">Every reel holds a story.</h1>
-  <p class="lead">
-    Unspooling stories and discovering what&#x2019;s behind them.
-  </p>
-</div>
-
-{#if mounted}
-  <section aria-label="Catalog filters" class="stack">
-    {#if textInvalid}
-      <p id={filterTextErrorId} role="alert" class="field-error">
-        <a href={`#${filterTextErrorId.replace('error', 'text')}`}
-          >Search text is too long</a
-        >
-        — up to {MAX_SEARCH_CODE_POINTS} characters are accepted.
-      </p>
-    {/if}
-
-    {#if genresLoading}<p role="status">Loading genre choices…</p>{/if}
-    {#if genreError}<p role="alert">{genreError}</p>
-      <button type="button" onclick={() => void loadGenres()}
-        >Retry genre choices</button
-      >{/if}
-    <CatalogFilters bind:criteria {genres} {years} />
-  </section>
-
-  {#if catalogState.kind === 'loading'}
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="Finding titles"
-      class="catalog-status"
-    >
-      <p>Finding titles for the current criteria…</p>
-    </div>
-  {:else if catalogState.kind === 'outdated'}
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="Refreshing"
-      class="catalog-status"
-    >
-      <p>Finding titles for the current criteria…</p>
-    </div>
-  {:else if catalogState.kind === 'failure'}
-    <div role="alert" class="catalog-status catalog-failure">
-      <p>The catalog could not load.</p>
-      <button onclick={() => controller?.retry()}>Try again</button>
-    </div>
-  {:else if catalogState.kind === 'empty'}
-    <div class="catalog-status catalog-empty">
-      <p>The catalog is empty.</p>
-      <a href={resolve('/')}>Browse again</a>
-    </div>
-  {:else if catalogState.kind === 'no-match'}
-    <div class="catalog-status catalog-no-match">
-      <p>No matching titles — try changing your filters.</p>
-    </div>
-  {:else if catalogState.kind === 'invalid'}
-    <div role="alert" class="catalog-status catalog-invalid">
-      <p>
-        Search text is too long — up to {MAX_SEARCH_CODE_POINTS} characters are accepted.
-        Correct the input above.
-      </p>
-    </div>
-  {:else if catalogState.kind === 'catalog'}
-    <section aria-label="Title results">
-      <p class="result-count">
-        {catalogState.titles.length} title{catalogState.titles.length === 1
-          ? ''
-          : 's'} found
-      </p>
-      <ul class="title-grid" aria-label="Titles">
-        {#each catalogState.titles as t (t.id)}
-          <li>
-            <TitleCard
-              id={t.id}
-              title={t.title}
-              kind={t.kind === 'TV' ? 'TV' : 'Movie'}
-              date={t.releaseContext}
-              artwork={t.artworkUrl}
-            />
-          </li>
-        {/each}
-      </ul>
-      {#if catalogState.pageError}<p role="alert">
-          {catalogState.pageError}
-        </p>{/if}
-      {#if catalogState.pageInfo?.hasNextPage}<button
-          type="button"
-          disabled={catalogState.loadingMore}
-          aria-busy={catalogState.loadingMore}
-          onclick={() => void nextTitlesPage()}
-        >
-          {catalogState.pageError
-            ? 'Retry next titles page'
-            : catalogState.loadingMore
-              ? 'Loading more titles…'
-              : 'Next titles page'}
-        </button>{/if}
-    </section>
-  {/if}
-{:else}
-  <!-- SSR / pre-hydration placeholder -->
-  <div role="status" aria-live="polite" class="catalog-status">
-    <p>Finding titles for the current criteria…</p>
+<section class="catalog-hero" aria-label="SpoolIn introduction">
+  <img class="hero-photo" src={heroArtwork} alt="" />
+  <div class="hero-copy">
+    <h1 tabindex="-1">Every reel<br />holds a story.</h1>
+    <p>Unspooling stories and discovering what&#x2019;s behind them.</p>
   </div>
-{/if}
+</section>
+
+<div class="catalog-content">
+  {#if mounted}
+    <section aria-label="Catalog filters" class="catalog-filters stack">
+      {#if textInvalid}
+        <p id={filterTextErrorId} role="alert" class="field-error">
+          <a href={`#${filterTextErrorId.replace('error', 'text')}`}
+            >Search text is too long</a
+          >
+          — up to {MAX_SEARCH_CODE_POINTS} characters are accepted.
+        </p>
+      {/if}
+
+      {#if genresLoading}<p role="status">Loading genre choices…</p>{/if}
+      {#if genreError}<p role="alert">{genreError}</p>
+        <button type="button" onclick={() => void loadGenres()}
+          >Retry genre choices</button
+        >{/if}
+      <CatalogFilters bind:criteria {genres} {years} />
+    </section>
+
+    {#if catalogState.kind === 'loading'}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="Finding titles"
+        class="catalog-status"
+      >
+        <p>Finding titles for the current criteria…</p>
+      </div>
+    {:else if catalogState.kind === 'outdated'}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="Refreshing"
+        class="catalog-status"
+      >
+        <p>Finding titles for the current criteria…</p>
+      </div>
+    {:else if catalogState.kind === 'failure'}
+      <div role="alert" class="catalog-status catalog-failure">
+        <p>The catalog could not load.</p>
+        <button onclick={() => controller?.retry()}>Try again</button>
+      </div>
+    {:else if catalogState.kind === 'empty'}
+      <div class="catalog-status catalog-empty">
+        <p>The catalog is empty.</p>
+        <a href={resolve('/')}>Browse again</a>
+      </div>
+    {:else if catalogState.kind === 'no-match'}
+      <div class="catalog-status catalog-no-match">
+        <p>No matching titles — try changing your filters.</p>
+      </div>
+    {:else if catalogState.kind === 'invalid'}
+      <div role="alert" class="catalog-status catalog-invalid">
+        <p>
+          Search text is too long — up to {MAX_SEARCH_CODE_POINTS} characters are
+          accepted. Correct the input above.
+        </p>
+      </div>
+    {:else if catalogState.kind === 'catalog'}
+      <section aria-label="Title results">
+        <div class="catalog-heading">
+          <h2>Explore the catalog</h2>
+          <p class="result-count">
+            {catalogState.titles.length} title{catalogState.titles.length === 1
+              ? ''
+              : 's'} found
+          </p>
+        </div>
+        <ul class="title-grid" aria-label="Titles">
+          {#each catalogState.titles as t (t.id)}
+            <li>
+              <TitleCard
+                id={t.id}
+                title={t.title}
+                kind={t.kind === 'TV' ? 'TV' : 'Movie'}
+                date={t.displayRelease}
+                genres={t.genreLabels}
+                artwork={t.artworkUrl}
+              />
+            </li>
+          {/each}
+        </ul>
+        {#if catalogState.pageError}<p role="alert">
+            {catalogState.pageError}
+          </p>{/if}
+        {#if catalogState.pageInfo?.hasNextPage}<button
+            type="button"
+            disabled={catalogState.loadingMore}
+            aria-busy={catalogState.loadingMore}
+            onclick={() => void nextTitlesPage()}
+          >
+            {catalogState.pageError
+              ? 'Retry next titles page'
+              : catalogState.loadingMore
+                ? 'Loading more titles…'
+                : 'Next titles page'}
+          </button>{/if}
+      </section>
+    {/if}
+  {:else}
+    <!-- SSR / pre-hydration placeholder -->
+    <div role="status" aria-live="polite" class="catalog-status">
+      <p>Finding titles for the current criteria…</p>
+    </div>
+  {/if}
+</div>
