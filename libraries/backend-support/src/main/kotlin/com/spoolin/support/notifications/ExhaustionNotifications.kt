@@ -19,18 +19,12 @@ class ExhaustionNotifications(
     private val service: String,
     private val mode: String = "database",
     private val environment: String = "local",
-    private val maxAttempts: Int = 3,
-    private val baseDelayMs: Int = 500,
-    private val capDelayMs: Int = 5000,
-    private val multiplier: Int = 2,
-    private val deadlineMs: Int = 60000,
+    private val retry: NotificationRetry = NotificationRetry(),
 ) {
     init {
         require(service in setOf("core", "catalog", "media"))
         require(mode in setOf("database", "smtp", "slack", "google_chat"))
         require(environment.matches(Regex("[A-Za-z0-9_-]{1,128}")))
-        require(maxAttempts in 1..10 && baseDelayMs in 1..60000 && capDelayMs in baseDelayMs..3600000)
-        require(multiplier in 1..10 && deadlineMs in 1000..3600000)
     }
 
     private val mapper = JsonMapper.builder().build()
@@ -49,13 +43,13 @@ class ExhaustionNotifications(
                     emptyList(),
                 ) { row ->
                     Exhausted(
-                        row.getObject(1, UUID::class.java),
-                        row.getObject(2, UUID::class.java),
-                        row.getString(3),
-                        row.getInt(4),
-                        row.getInt(5),
-                        row.getInt(6),
-                        row.getObject(7, UUID::class.java),
+                        row.getObject("id", UUID::class.java),
+                        row.getObject("operation_id", UUID::class.java),
+                        row.getString("kind"),
+                        row.getInt("generation"),
+                        row.getInt("attempt_count"),
+                        row.getInt("max_attempts"),
+                        row.getObject("correlation_id", UUID::class.java),
                     )
                 }
             rows.count { insert(connection, it) }
@@ -86,12 +80,12 @@ class ExhaustionNotifications(
                 id,
                 source.operation,
                 if (database) "DONE" else "READY",
-                maxAttempts,
-                Timestamp.from(if (database) now else now.plusMillis(deadlineMs.toLong())),
+                retry.maxAttempts,
+                Timestamp.from(if (database) now else now.plusMillis(retry.deadlineMs.toLong())),
                 source.correlation,
-                baseDelayMs,
-                capDelayMs,
-                multiplier,
+                retry.baseDelayMs,
+                retry.capDelayMs,
+                retry.multiplier,
                 "work:${source.id}:generation:${source.generation}",
                 mode,
                 if (database) "RECORDED" else "PENDING",
@@ -100,22 +94,20 @@ class ExhaustionNotifications(
                 timestamp,
                 timestamp,
             ) == 1
-        if (inserted) {
-            check(
-                connection.executeBound(
-                    "INSERT INTO operational_event (id,operation_id,actor_kind,action," +
-                        "subject_kind,subject_id,outcome,changes,correlation_id,event_type) " +
-                        "VALUES (?,?,'SERVICE','WORK_EXHAUSTION_RECORDED','NOTIFICATION',?," +
-                        "'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
-                    UUID.randomUUID(),
-                    source.operation,
-                    id,
-                    summary,
-                    source.correlation,
-                ) == 1,
-            )
-        }
+        if (inserted) appendEvent(connection, source, id, summary)
         return inserted
+    }
+
+    private fun appendEvent(connection: Connection, source: Exhausted, id: UUID, summary: String) {
+        check(
+            connection.executeBound(
+                "INSERT INTO operational_event (id,operation_id,actor_kind,action," +
+                    "subject_kind,subject_id,outcome,changes,correlation_id,event_type) " +
+                    "VALUES (?,?,'SERVICE','WORK_EXHAUSTION_RECORDED','NOTIFICATION',?," +
+                    "'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
+                UUID.randomUUID(), source.operation, id, summary, source.correlation,
+            ) == 1,
+        )
     }
 
     private fun summary(source: Exhausted): String =
@@ -170,11 +162,13 @@ class ExhaustionNotifications(
                 service,
                 read("NOTIFICATION_MODE") ?: "database",
                 read("SPOOLIN_ENVIRONMENT") ?: "local",
-                retry.getValue("RETRY_MAX_RETRIES") + 1,
-                retry.getValue("RETRY_BASE_DELAY_MS"),
-                retry.getValue("RETRY_MAX_DELAY_MS"),
-                retry.getValue("RETRY_MULTIPLIER"),
-                retry.getValue("RETRY_DEADLINE_MS"),
+                NotificationRetry(
+                    retry.getValue("RETRY_MAX_RETRIES") + 1,
+                    retry.getValue("RETRY_BASE_DELAY_MS"),
+                    retry.getValue("RETRY_MAX_DELAY_MS"),
+                    retry.getValue("RETRY_MULTIPLIER"),
+                    retry.getValue("RETRY_DEADLINE_MS"),
+                ),
             )
         }
     }

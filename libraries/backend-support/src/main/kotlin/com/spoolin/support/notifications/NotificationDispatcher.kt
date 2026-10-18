@@ -23,7 +23,9 @@ class NotificationDispatcher(
 
     fun start() {
         if (!running.compareAndSet(false, true)) return
-        repeat(2) { executor.scheduleWithFixedDelay({ if (running.get()) safeRun() }, 0, 250, TimeUnit.MILLISECONDS) }
+        repeat(2) {
+            executor.scheduleWithFixedDelay({ if (running.get()) safeRun() }, 0, POLL_MS, TimeUnit.MILLISECONDS)
+        }
     }
 
     fun runOnce(): Boolean {
@@ -56,7 +58,11 @@ class NotificationDispatcher(
     override fun close() {
         running.set(false)
         executor.shutdown()
-        if (!executor.awaitTermination(15, TimeUnit.SECONDS)) executor.shutdownNow()
+        if (!executor.awaitTermination(SHUTDOWN_SECONDS, TimeUnit.SECONDS)) executor.shutdownNow()
+    }
+    companion object {
+        private const val POLL_MS = 250L
+        private const val SHUTDOWN_SECONDS = 15L
     }
 }
 

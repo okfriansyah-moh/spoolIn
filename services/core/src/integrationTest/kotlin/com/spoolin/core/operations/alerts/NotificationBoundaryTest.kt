@@ -7,6 +7,8 @@ import com.spoolin.support.notifications.NotificationResult
 import com.spoolin.support.notifications.NotificationSettings
 import com.spoolin.support.notifications.NotificationStore
 import com.spoolin.support.notifications.NotificationTransport
+import com.spoolin.support.notifications.SmtpEndpoint
+import com.spoolin.support.notifications.SmtpCredentials
 import com.spoolin.support.notifications.SmtpTransport
 import com.spoolin.support.notifications.WebhookTransport
 import com.spoolin.support.receipts.executeBound
@@ -88,13 +90,8 @@ class NotificationBoundaryTest {
                     val id = enqueue("smtp")
                     val sender =
                         SmtpTransport(
-                            "localhost",
-                            server.port,
-                            "starttls",
-                            "ops@example.invalid",
-                            "fixed@example.invalid",
-                            "fixture-user",
-                            "fixture-password",
+                            SmtpEndpoint("localhost", server.port, "starttls", "ops@example.invalid", "fixed@example.invalid"),
+                            SmtpCredentials("fixture-user", "fixture-password"),
                             ssl,
                         )
                     NotificationDispatcher(pool, sender).use {
@@ -211,7 +208,10 @@ class NotificationBoundaryTest {
         mode: String,
     ): NotificationTransport =
         if (mode == "smtp") {
-            SmtpTransport("localhost", server.port, "implicit", "ops@example.invalid", "fixed@example.invalid", null, null, ssl)
+            SmtpTransport(
+                SmtpEndpoint("localhost", server.port, "implicit", "ops@example.invalid", "fixed@example.invalid"),
+                SmtpCredentials(null, null), ssl,
+            )
         } else {
             WebhookTransport(mode, URI("https://localhost:${server.port}/fixed"), setOf("localhost"), ssl)
         }

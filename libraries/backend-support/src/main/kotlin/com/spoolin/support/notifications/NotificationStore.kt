@@ -53,22 +53,24 @@ class NotificationStore(
                     ) { row ->
                         val work =
                             WorkClaim(
-                                row.getObject(1, UUID::class.java),
-                                row.getObject(2, UUID::class.java),
+                                row.getObject("id", UUID::class.java),
+                                row.getObject("operation_id", UUID::class.java),
                                 "NOTIFICATION",
-                                row.getString(3),
-                                row.getInt(4),
-                                row.getInt(5),
-                                row.getTimestamp(6).toInstant(),
+                                row.getString("payload"),
+                                row.getInt("attempt_count"),
+                                row.getInt("max_attempts"),
+                                row.getTimestamp("deadline_at").toInstant(),
                                 UUID.randomUUID(),
-                                row.getLong(7),
-                                row.getObject(8, UUID::class.java),
-                                row.getInt(9),
-                                row.getInt(10),
-                                row.getInt(11),
-                                row.getInt(12),
+                                row.getLong("lease_epoch"),
+                                row.getObject("correlation_id", UUID::class.java),
+                                row.getInt("base_delay_ms"),
+                                row.getInt("cap_delay_ms"),
+                                row.getInt("backoff_multiplier"),
+                                row.getInt("generation"),
                             )
-                        NotificationClaim(work, row.getString(13), row.getString(14))
+                        NotificationClaim(
+                            work, row.getString("notification_mode"), row.getString("notification_summary"),
+                        )
                     }.singleOrNull() ?: return@committed null
             WorkSql.commitClaim(connection, selected.work, UUID.randomUUID(), now)?.let { selected.copy(work = it) }
         }
@@ -85,7 +87,7 @@ class NotificationStore(
                         now,
                         minOf(status.deadlineAt, status.leaseUntil!!),
                     ).toMillis()
-                    .coerceAtMost(14000)
+                    .coerceAtMost(MAX_SEND_MS)
             }
         }
 
@@ -110,36 +112,34 @@ class NotificationStore(
         val retry =
             result.outcome == AttemptOutcome.TRANSIENT && claim.attemptCount < claim.maxAttempts &&
                 next < claim.deadlineAt
-        val state =
-            if (result.outcome == AttemptOutcome.SUCCEEDED) {
-                "DONE"
-            } else if (retry) {
-                "READY"
-            } else {
-                "EXHAUSTED"
-            }
-        val completion = WorkAttemptCompletion(result.outcome, result.errorCode, state, if (retry) next else null)
+        val completion = WorkAttemptCompletion(
+            result.outcome, result.errorCode, workState(result, retry), if (retry) next else null,
+        )
         if (!WorkSql.completeAttempt(connection, claim, completion, now)) return@committed false
-        val notificationState =
-            if (retry) {
-                "PENDING"
-            } else {
-                when (result.outcome) {
-                    AttemptOutcome.SUCCEEDED -> "ACCEPTED"
-                    AttemptOutcome.UNCERTAIN -> "UNKNOWN"
-                    else -> "FAILED"
-                }
-            }
         check(
             connection.executeBound(
                 "UPDATE durable_work SET notification_state=?,provider_reference=? WHERE id=?",
-                notificationState,
+                notificationState(result, retry),
                 result.reference,
                 claim.workId,
             ) == 1,
         )
         true
     }
+
+    private fun workState(result: NotificationResult, retry: Boolean): String =
+        when {
+            result.outcome == AttemptOutcome.SUCCEEDED -> "DONE"
+            retry -> "READY"
+            else -> "EXHAUSTED"
+        }
+
+    private fun notificationState(result: NotificationResult, retry: Boolean): String =
+        if (retry) "PENDING" else when (result.outcome) {
+            AttemptOutcome.SUCCEEDED -> "ACCEPTED"
+            AttemptOutcome.UNCERTAIN -> "UNKNOWN"
+            else -> "FAILED"
+        }
 
     private fun expire(connection: Connection) {
         // A crashed sender has no queryable provider receipt. Never reset its lease to READY.
@@ -165,6 +165,10 @@ class NotificationStore(
                 "last_error='NOTIFICATION_BUDGET_EXHAUSTED',updated_at=clock_timestamp() WHERE kind='NOTIFICATION' " +
                 "AND state='READY' AND (deadline_at<=clock_timestamp() OR attempt_count>=max_attempts)",
         )
+    }
+
+    private companion object {
+        const val MAX_SEND_MS = 14000L
     }
 
     private fun databaseNow(connection: Connection): Instant =
