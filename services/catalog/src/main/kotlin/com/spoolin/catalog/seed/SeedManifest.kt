@@ -1,10 +1,10 @@
 package com.spoolin.catalog.seed
 
-import tools.jackson.databind.JsonNode
-import com.spoolin.support.policy.PublicPolicy
-import com.spoolin.support.policy.PolicyEnvironment
-import com.spoolin.support.policy.TextRules
 import com.spoolin.support.policy.PartialDate
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.TextRules
+import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Path
 import java.time.LocalDate
@@ -171,10 +171,13 @@ class SeedManifest private constructor(
         require(maximum == null || value.codePointCount(0, value.length) <= maximum)
     }
 
-    private fun partial(node: JsonNode): PartialDate = PartialDate.of(
-        node["year"].asInt(), node.path("month").takeUnless { it.isNull || it.isMissingNode }?.asInt(),
-        node.path("day").takeUnless { it.isNull || it.isMissingNode }?.asInt(), requireYear = true,
-    )
+    private fun partial(node: JsonNode): PartialDate =
+        PartialDate.of(
+            node["year"].asInt(),
+            node.path("month").takeUnless { it.isNull || it.isMissingNode }?.asInt(),
+            node.path("day").takeUnless { it.isNull || it.isMissingNode }?.asInt(),
+            requireYear = true,
+        )
 
     private fun date(node: JsonNode) {
         val year = node.path("year").asInt()
@@ -196,7 +199,9 @@ class SeedManifest private constructor(
     companion object {
         fun read(path: Path): SeedManifest = SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
 
-        fun prepare(path: Path, policy: PublicPolicy = PolicyEnvironment.resolve(System::getenv)): SeedManifest =
-            read(path).also { SeedPolicyValidation(policy).validate(it) }
+        fun prepare(
+            path: Path,
+            policy: PublicPolicy = PolicyEnvironment.resolve(System::getenv),
+        ): SeedManifest = read(path).also { SeedPolicyValidation(policy).validate(it) }
     }
 }

@@ -34,16 +34,23 @@ class KeyRotationCliRulesTest {
 
     @Test
     fun `missing duplicate unexpected and unsafe options fail before key or database access`() {
-        val invalid = listOf(
-            arrayOf("--from"), arrayOf("--from", "--to", "new"),
-            valid + arrayOf("--from", "another"), valid + arrayOf("--dry-run", "--dry-run"),
-            valid + arrayOf("--max-batches", "0"), valid + arrayOf("--max-batches", "10001"),
-            valid + arrayOf("--max-batches", "01"), valid + arrayOf("--max-batches", "99999999999999"),
-            valid + arrayOf("--keys", "relative.json"), valid + arrayOf("--keys", "/run/../tmp/key.json"),
-            valid + arrayOf("--unknown", "private"),
-            arrayOf("--from", "old;private", "--to", "new"), arrayOf("--from", "same", "--to", "same"),
-            arrayOf("--from", "old", "--to", "new", "--purpose", "pii"),
-        )
+        val invalid =
+            listOf(
+                arrayOf("--from"),
+                arrayOf("--from", "--to", "new"),
+                valid + arrayOf("--from", "another"),
+                valid + arrayOf("--dry-run", "--dry-run"),
+                valid + arrayOf("--max-batches", "0"),
+                valid + arrayOf("--max-batches", "10001"),
+                valid + arrayOf("--max-batches", "01"),
+                valid + arrayOf("--max-batches", "99999999999999"),
+                valid + arrayOf("--keys", "relative.json"),
+                valid + arrayOf("--keys", "/run/../tmp/key.json"),
+                valid + arrayOf("--unknown", "private"),
+                arrayOf("--from", "old;private", "--to", "new"),
+                arrayOf("--from", "same", "--to", "same"),
+                arrayOf("--from", "old", "--to", "new", "--purpose", "pii"),
+            )
         invalid.forEach { args -> assertThrows(IllegalArgumentException::class.java) { RotationCliOptions.parse(args, map) } }
         assertThrows(IllegalArgumentException::class.java) { RotationCliOptions.parse(valid, null) }
     }
@@ -70,8 +77,12 @@ class KeyRotationCliRulesTest {
         }
     }
 
-    private fun material(name: String, value: Int): Path = directory.resolve(name).also { file ->
-        Files.write(file, ByteArray(32) { value.toByte() })
-        Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-------"))
-    }
+    private fun material(
+        name: String,
+        value: Int,
+    ): Path =
+        directory.resolve(name).also { file ->
+            Files.write(file, ByteArray(32) { value.toByte() })
+            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-------"))
+        }
 }

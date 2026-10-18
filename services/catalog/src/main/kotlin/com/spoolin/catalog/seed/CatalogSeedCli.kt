@@ -2,29 +2,50 @@ package com.spoolin.catalog.seed
 
 import com.spoolin.catalog.DatabaseSettings
 import com.spoolin.support.logging.applyNormalizedLogLevel
-import org.springframework.core.env.StandardEnvironment
-import org.springframework.core.env.ConfigurableEnvironment
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor
 import org.springframework.boot.context.config.ConfigDataException
-import com.spoolin.support.policy.PolicyEnvironment
-import java.nio.file.Path
-import com.spoolin.support.policy.InputViolation
-import java.io.IOException
-import java.sql.SQLException
+import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.StandardEnvironment
 import tools.jackson.core.JacksonException
+import java.io.IOException
+import java.nio.file.Path
+import java.sql.SQLException
 import kotlin.system.exitProcess
 
 /** CLI entry for ops/bin/seed.sh --apply (T033). */
 fun runSeedCli(args: Array<String>) {
     applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), "catalog")
-    try { seedCommand(args) }
-    catch (_: ConfigDataException) { failed("SEED_CONFIGURATION_INVALID") }
-    catch (_: InputViolation) { failed("SEED_POLICY_INVALID") }
-    catch (_: IllegalArgumentException) { failed("SEED_CONFIGURATION_OR_MANIFEST_INVALID") }
-    catch (_: IllegalStateException) { failed("SEED_RECEIPT_OR_PROVENANCE_INVALID") }
-    catch (_: SQLException) { failed("SEED_DATABASE_UNAVAILABLE") }
-    catch (_: JacksonException) { failed("SEED_MANIFEST_INVALID") }
-    catch (_: IOException) { failed("SEED_IO_UNAVAILABLE") }
+    try {
+        seedCommand(args)
+    } catch (
+        _: ConfigDataException,
+    ) {
+        failed("SEED_CONFIGURATION_INVALID")
+    } catch (
+        _: InputViolation,
+    ) {
+        failed("SEED_POLICY_INVALID")
+    } catch (
+        _: IllegalArgumentException,
+    ) {
+        failed("SEED_CONFIGURATION_OR_MANIFEST_INVALID")
+    } catch (
+        _: IllegalStateException,
+    ) {
+        failed("SEED_RECEIPT_OR_PROVENANCE_INVALID")
+    } catch (
+        _: SQLException,
+    ) {
+        failed("SEED_DATABASE_UNAVAILABLE")
+    } catch (
+        _: JacksonException,
+    ) {
+        failed("SEED_MANIFEST_INVALID")
+    } catch (_: IOException) {
+        failed("SEED_IO_UNAVAILABLE")
+    }
 }
 
 private fun seedCommand(args: Array<String>) {

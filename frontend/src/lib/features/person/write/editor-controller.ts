@@ -166,26 +166,53 @@ export class PersonEditorController {
   }
 
   openDiscardDialog(): void {
-    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain' || this.current.discardPending) return;
+    if (
+      this.current.phase === 'submitting' ||
+      this.current.phase === 'uncertain' ||
+      this.current.discardPending
+    )
+      return;
     this.publish({ ...this.current, discardDialogOpen: true });
   }
 
   closeDiscardDialog(): void {
-    if (!this.current.discardPending) this.publish({ ...this.current, discardDialogOpen: false });
+    if (!this.current.discardPending)
+      this.publish({ ...this.current, discardDialogOpen: false });
   }
 
   async confirmDiscard(): Promise<void> {
-    if (!this.writeContext || this.current.discardPending || this.current.phase === 'uncertain') return;
+    if (
+      !this.writeContext ||
+      this.current.discardPending ||
+      this.current.phase === 'uncertain'
+    )
+      return;
     this.publish({ ...this.current, discardPending: true });
     if (!(await this.draftSync.discard(this.writeContext))) {
-      this.publish({ ...this.current, discardPending: false, phase: 'failed',
-        message: 'Discard is not confirmed. Retry the original discard before leaving.' });
+      this.publish({
+        ...this.current,
+        discardPending: false,
+        phase: 'failed',
+        message:
+          'Discard is not confirmed. Retry the original discard before leaving.',
+      });
       return;
     }
-    this.publish({ ...this.current, discardPending: false, discardDialogOpen: false,
-      draft: this.current.saved ? personToDraft(this.current.saved) : EMPTY_PERSON_DRAFT,
-      draftChoices: Object.freeze([]), draftBaseKnown: true, phase: 'idle',
-      fieldErrors: Object.freeze([]), message: '', pendingOperationId: null, staleReviewOpen: false });
+    this.publish({
+      ...this.current,
+      discardPending: false,
+      discardDialogOpen: false,
+      draft: this.current.saved
+        ? personToDraft(this.current.saved)
+        : EMPTY_PERSON_DRAFT,
+      draftChoices: Object.freeze([]),
+      draftBaseKnown: true,
+      phase: 'idle',
+      fieldErrors: Object.freeze([]),
+      message: '',
+      pendingOperationId: null,
+      staleReviewOpen: false,
+    });
   }
 
   toggleStaleReview(): void {

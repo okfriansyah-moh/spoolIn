@@ -44,7 +44,8 @@
     editorState.mode === 'create' ? 'Save person' : 'Save person',
   );
   const submitDisabled = $derived(
-    disabled || editorState.discardPending ||
+    disabled ||
+      editorState.discardPending ||
       editorState.phase === 'submitting' ||
       editorState.phase === 'uncertain' ||
       editorState.phase === 'stale' ||
@@ -60,7 +61,8 @@
     reviewedCurrent = false;
   });
   const inputDisabled = $derived(
-    disabled || editorState.discardPending ||
+    disabled ||
+      editorState.discardPending ||
       editorState.draftChoices.length > 0 ||
       editorState.phase === 'submitting' ||
       editorState.phase === 'uncertain' ||
@@ -191,10 +193,16 @@
         {errorFor('person-biography')}
       </p>{/if}
   </div>
-  <Button type="button" variant="secondary"
-    disabledReason={editorState.phase === 'uncertain' || editorState.phase === 'submitting' || editorState.discardPending
-      ? 'Check the original result before leaving.' : ''}
-    onclick={onDiscardOpen}>Leave draft</Button>
+  <Button
+    type="button"
+    variant="secondary"
+    disabledReason={editorState.phase === 'uncertain' ||
+    editorState.phase === 'submitting' ||
+    editorState.discardPending
+      ? 'Check the original result before leaving.'
+      : ''}
+    onclick={onDiscardOpen}>Leave draft</Button
+  >
   <Button
     type="submit"
     pending={editorState.phase === 'submitting'}
@@ -204,10 +212,18 @@
   >
 </form>
 
-<ConfirmDialog open={editorState.discardDialogOpen} title="Discard this unsaved person draft?"
-  action="Discard draft" pending={editorState.discardPending}
-  onconfirm={onDiscardConfirm} oncancel={onDiscardClose}>
-  <p>The unsaved person draft is cleared. Saved person information and shared credits stay unchanged.</p>
+<ConfirmDialog
+  open={editorState.discardDialogOpen}
+  title="Discard this unsaved person draft?"
+  action="Discard draft"
+  pending={editorState.discardPending}
+  onconfirm={onDiscardConfirm}
+  oncancel={onDiscardClose}
+>
+  <p>
+    The unsaved person draft is cleared. Saved person information and shared
+    credits stay unchanged.
+  </p>
   {#if editorState.message}<p role="status">{editorState.message}</p>{/if}
 </ConfirmDialog>
 

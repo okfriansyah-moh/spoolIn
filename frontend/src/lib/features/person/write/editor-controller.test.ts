@@ -322,17 +322,30 @@ describe('published create draft consumption', () => {
   });
 });
 
-
 describe('person explicit discard', () => {
   it('cancel keeps values and uncertain discard retries the original operation before clearing the selected draft', async () => {
     const source = sourceFixture();
     source.listDrafts = async () => [personDraft()];
-    const discard = vi.fn<DraftSource['discardDraft']>(async (operationId, draftId) => ({
-      receipt: { operationId, resultId: draftId, version: '2', state: 'PENDING', resultExpired: false },
-      discarded: false, problemCode: null,
-    }));
+    const discard = vi.fn<DraftSource['discardDraft']>(
+      async (operationId, draftId) => ({
+        receipt: {
+          operationId,
+          resultId: draftId,
+          version: '2',
+          state: 'PENDING',
+          resultExpired: false,
+        },
+        discarded: false,
+        problemCode: null,
+      }),
+    );
     source.discardDraft = discard;
-    const controller = new PersonEditorController(async () => ({}), source, 'create', null);
+    const controller = new PersonEditorController(
+      async () => ({}),
+      source,
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     controller.openDiscardDialog();
     controller.closeDiscardDialog();
@@ -343,8 +356,15 @@ describe('person explicit discard', () => {
     expect(controller.snapshot.draft.name).toBe('Retained mononym');
     const original = discard.mock.calls[0];
     discard.mockImplementation(async (operationId, draftId) => ({
-      receipt: { operationId, resultId: draftId, version: '2', state: 'SUCCEEDED', resultExpired: false },
-      discarded: true, problemCode: null,
+      receipt: {
+        operationId,
+        resultId: draftId,
+        version: '2',
+        state: 'SUCCEEDED',
+        resultExpired: false,
+      },
+      discarded: true,
+      problemCode: null,
     }));
     await controller.confirmDiscard();
     expect(discard.mock.calls[1]?.slice(0, 3)).toEqual(original?.slice(0, 3));

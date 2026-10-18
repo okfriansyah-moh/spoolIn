@@ -34,9 +34,24 @@ class CatalogMetadataProjectionRulesTest {
 
     @Test
     fun `public provenance preserves typed owner source facts`() {
-        val source = Spoolin.FieldSource.newBuilder().setField("title").setUrl("https://example.invalid/fact")
-            .setReuseBasis("CC0 fact").setRetrievedAt(com.google.protobuf.Timestamp.newBuilder().setSeconds(1)).build()
-        val value = CatalogMetadataProjection.fieldSources(Spoolin.Provenance.newBuilder().addFieldSources(source).build())
+        val source =
+            Spoolin.FieldSource
+                .newBuilder()
+                .setField("title")
+                .setUrl("https://example.invalid/fact")
+                .setReuseBasis("CC0 fact")
+                .setRetrievedAt(
+                    com.google.protobuf.Timestamp
+                        .newBuilder()
+                        .setSeconds(1),
+                ).build()
+        val value =
+            CatalogMetadataProjection.fieldSources(
+                Spoolin.Provenance
+                    .newBuilder()
+                    .addFieldSources(source)
+                    .build(),
+            )
         val title = value["title"] as Map<*, *>
         assertEquals("https://example.invalid/fact", title["url"])
         assertEquals("CC0 fact", title["reuseBasis"])
@@ -44,16 +59,30 @@ class CatalogMetadataProjectionRulesTest {
         assertEquals(setOf("url", "reuseBasis", "retrievedAt", "precision"), title.keys)
     }
 
-    private fun engine(calls: AtomicInteger, missing: Boolean = false): GraphQL {
+    private fun engine(
+        calls: AtomicInteger,
+        missing: Boolean = false,
+    ): GraphQL {
         val wiring = RuntimeWiring.newRuntimeWiring()
-        wiring.type("Query") { type -> type.dataFetcher("titles") {
-            List(100) { mapOf("genres" to listOf(mapOf("id" to "genre-one"))) }
-        } }
+        wiring.type("Query") { type ->
+            type.dataFetcher("titles") {
+                List(100) { mapOf("genres" to listOf(mapOf("id" to "genre-one"))) }
+            }
+        }
         CatalogMetadataProjection {
             calls.incrementAndGet()
-            Spoolin.Genres.newBuilder().also { builder ->
-                if (!missing) builder.addNodes(Spoolin.Genre.newBuilder().setId("genre-one").setLabel("Drama"))
-            }.build()
+            Spoolin.Genres
+                .newBuilder()
+                .also { builder ->
+                    if (!missing) {
+                        builder.addNodes(
+                            Spoolin.Genre
+                                .newBuilder()
+                                .setId("genre-one")
+                                .setLabel("Drama"),
+                        )
+                    }
+                }.build()
         }.bind(wiring)
         val schema = "type Query { titles: [Title!]! } type Title { genres: [Genre!]! } type Genre { id: ID! label: String! }"
         return GraphQL.newGraphQL(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build())).build()

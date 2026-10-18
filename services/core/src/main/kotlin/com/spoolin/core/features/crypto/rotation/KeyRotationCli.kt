@@ -8,8 +8,6 @@ import com.spoolin.core.features.crypto.MountedKeys
 import com.spoolin.support.logging.applyNormalizedLogLevel
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
-import java.util.UUID
-import javax.sql.DataSource
 import com.spoolin.support.work.OperatorAccess
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor
 import org.springframework.boot.context.properties.bind.Bindable
@@ -20,31 +18,38 @@ import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
+import java.util.UUID
+import javax.sql.DataSource
 import kotlin.system.exitProcess
 
 /** Protected operator command; results contain no key material, database addresses or exception messages. */
 fun main(args: Array<String>) {
     applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), "core")
-    val code = try {
-        val operator = OperatorAccess.operatorIdentity()
-        val options = RotationCliOptions.parse(args, System.getenv("ROTATION_KEYS_FILE"))
-        val environment = StandardEnvironment()
-        ConfigDataEnvironmentPostProcessor.applyTo(environment)
-        executeRotation(options, environment, operator)
-    } catch (_: IllegalArgumentException) {
-        refusal("ROTATION_INPUT_OR_CONFIGURATION_INVALID")
-    } catch (_: java.io.IOException) {
-        refusal("ROTATION_PROTECTED_INPUT_UNAVAILABLE")
-    } catch (_: java.sql.SQLException) {
-        refusal("ROTATION_DATABASE_UNAVAILABLE")
-    } catch (_: RuntimeException) {
-        // The process boundary must also redact framework/provider exceptions carrying connection or file details.
-        refusal("ROTATION_REFUSED")
-    }
+    val code =
+        try {
+            val operator = OperatorAccess.operatorIdentity()
+            val options = RotationCliOptions.parse(args, System.getenv("ROTATION_KEYS_FILE"))
+            val environment = StandardEnvironment()
+            ConfigDataEnvironmentPostProcessor.applyTo(environment)
+            executeRotation(options, environment, operator)
+        } catch (_: IllegalArgumentException) {
+            refusal("ROTATION_INPUT_OR_CONFIGURATION_INVALID")
+        } catch (_: java.io.IOException) {
+            refusal("ROTATION_PROTECTED_INPUT_UNAVAILABLE")
+        } catch (_: java.sql.SQLException) {
+            refusal("ROTATION_DATABASE_UNAVAILABLE")
+        } catch (_: RuntimeException) {
+            // The process boundary must also redact framework/provider exceptions carrying connection or file details.
+            refusal("ROTATION_REFUSED")
+        }
     if (code != 0) exitProcess(code)
 }
 
-private fun executeRotation(options: RotationCliOptions, environment: ConfigurableEnvironment, operator: String): Int {
+private fun executeRotation(
+    options: RotationCliOptions,
+    environment: ConfigurableEnvironment,
+    operator: String,
+): Int {
     val configured = Path.of(environment.getRequiredProperty("ROTATION_KEYS_FILE"))
     require(Files.isSameFile(configured, options.keys)) { "Use the application's configured rotation map" }
     val settings = Binder.get(environment).bind("spoolin.account-protection", Bindable.of(AccountProtectionSettings::class.java)).get()
@@ -52,16 +57,29 @@ private fun executeRotation(options: RotationCliOptions, environment: Configurab
         MountedKeys(settings.keys, null).use { application -> validateApplicationMaterial(application, keys, options) }
         DatabaseSettings.load(environment, "core", false).pool().use { pool ->
             val result = rotate(pool, keys, options, operator)
-            println(JsonMapper.builder().build().writeValueAsString(mapOf(
-                "ok" to result.ok, "purpose" to options.purpose.name, "dryRun" to options.dryRun,
-                "backfilled" to result.backfilled, "remaining" to result.remaining, "message" to result.message,
-            )))
+            println(
+                JsonMapper.builder().build().writeValueAsString(
+                    mapOf(
+                        "ok" to result.ok,
+                        "purpose" to options.purpose.name,
+                        "dryRun" to options.dryRun,
+                        "backfilled" to result.backfilled,
+                        "remaining" to result.remaining,
+                        "message" to result.message,
+                    ),
+                ),
+            )
             return if (result.ok) 0 else 1
         }
     }
 }
 
-private fun rotate(pool: DataSource, keys: MountedKeys, options: RotationCliOptions, operator: String): RotationOutcome {
+private fun rotate(
+    pool: DataSource,
+    keys: MountedKeys,
+    options: RotationCliOptions,
+    operator: String,
+): RotationOutcome {
     val plan = KeyRotationPlan(options.from, options.to, options.purpose)
     if (options.dryRun) return plan.rotate(pool, KeyRegistry(pool), true, keys, options.maxBatches)
     val audit = RotationCommandAudit(pool, options, operator)
@@ -80,32 +98,64 @@ private fun rotate(pool: DataSource, keys: MountedKeys, options: RotationCliOpti
     }
 }
 
-private class RotationCommandAudit(private val pool: DataSource, private val options: RotationCliOptions, private val operator: String) {
+private class RotationCommandAudit(
+    private val pool: DataSource,
+    private val options: RotationCliOptions,
+    private val operator: String,
+) {
     private val correlation = UUID.randomUUID()
 
-    fun record(phase: String, outcome: String, result: RotationOutcome? = null) {
-        val changes = JsonMapper.builder().build().writeValueAsString(mapOf(
-            "purpose" to options.purpose.name, "fromKeyId" to options.from, "toKeyId" to options.to,
-            "phase" to phase, "maxBatches" to options.maxBatches,
-            "backfilled" to result?.backfilled, "remaining" to result?.remaining,
-        ))
+    fun record(
+        phase: String,
+        outcome: String,
+        result: RotationOutcome? = null,
+    ) {
+        val changes =
+            JsonMapper.builder().build().writeValueAsString(
+                mapOf(
+                    "purpose" to options.purpose.name,
+                    "fromKeyId" to options.from,
+                    "toKeyId" to options.to,
+                    "phase" to phase,
+                    "maxBatches" to options.maxBatches,
+                    "backfilled" to result?.backfilled,
+                    "remaining" to result?.remaining,
+                ),
+            )
         pool.committed { connection ->
-            check(connection.executeBound("INSERT INTO operational_event(id,actor_kind,action,subject_kind,outcome,changes," +
-                "correlation_id,event_type,operator_id) VALUES(?,'HUMAN','KEY_ROTATION','CRYPTO_KEY',?,?::jsonb,?,'ACTIVITY',?)",
-                UUID.randomUUID(), outcome, changes, correlation, operator) == 1)
+            check(
+                connection.executeBound(
+                    "INSERT INTO operational_event(id,actor_kind,action,subject_kind,outcome,changes," +
+                        "correlation_id,event_type,operator_id) VALUES(?,'HUMAN','KEY_ROTATION','CRYPTO_KEY',?,?::jsonb,?,'ACTIVITY',?)",
+                    UUID.randomUUID(),
+                    outcome,
+                    changes,
+                    correlation,
+                    operator,
+                ) == 1,
+            )
         }
     }
 }
 
 /** The mounted application registry must survive restart and agree with the reload map before WRITE activation. */
-internal fun validateApplicationMaterial(application: MountedKeys, rotation: MountedKeys, options: RotationCliOptions) {
+internal fun validateApplicationMaterial(
+    application: MountedKeys,
+    rotation: MountedKeys,
+    options: RotationCliOptions,
+) {
     listOf(options.from, options.to).forEach { id ->
         val actual = application.key(id, options.purpose) ?: error("Application material missing")
         try {
             val proposed = rotation.key(id, options.purpose) ?: error("Rotation material missing")
-            try { check(MessageDigest.isEqual(actual, proposed)) { "Mounted material differs" } }
-            finally { proposed.fill(0) }
-        } finally { actual.fill(0) }
+            try {
+                check(MessageDigest.isEqual(actual, proposed)) { "Mounted material differs" }
+            } finally {
+                proposed.fill(0)
+            }
+        } finally {
+            actual.fill(0)
+        }
     }
 }
 
@@ -119,7 +169,10 @@ internal data class RotationCliOptions(
     val maxBatches: Int,
 ) {
     companion object {
-        fun parse(args: Array<String>, defaultFile: String?): RotationCliOptions {
+        fun parse(
+            args: Array<String>,
+            defaultFile: String?,
+        ): RotationCliOptions {
             val values = mutableMapOf<String, String>()
             val flags = mutableSetOf<String>()
             var index = 0
@@ -136,7 +189,11 @@ internal data class RotationCliOptions(
             return checked(values, flags, defaultFile)
         }
 
-        private fun checked(values: Map<String, String>, flags: Set<String>, defaultFile: String?): RotationCliOptions {
+        private fun checked(
+            values: Map<String, String>,
+            flags: Set<String>,
+            defaultFile: String?,
+        ): RotationCliOptions {
             val from = requireNotNull(values["--from"])
             val to = requireNotNull(values["--to"])
             require(from != to && listOf(from, to).all { it.matches(Regex("[A-Za-z0-9_-]{1,64}")) })

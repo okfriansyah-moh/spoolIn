@@ -5,9 +5,13 @@ import { mutation, operation, safeProblem } from '../session/outcome';
 import type { IdentityOutcome } from '../session/commands';
 import type { CreditRoleOption, ManagedCredit, PersonOption } from './types';
 
-export type CreditCommandOutcome = IdentityOutcome | Readonly<{
-  state: 'REJECTED'; operationId: string; problem: NonNullable<IdentityOutcome['problem']>;
-}>;
+export type CreditCommandOutcome =
+  | IdentityOutcome
+  | Readonly<{
+      state: 'REJECTED';
+      operationId: string;
+      problem: NonNullable<IdentityOutcome['problem']>;
+    }>;
 
 const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48) {
   managedCredits(titleId: $titleId, first: $first) {
@@ -107,27 +111,44 @@ export async function fetchCreditRoles(
 }
 
 export async function fetchActivePeople(
-  request: GraphqlRequest, csrf: string, signal?: AbortSignal,
+  request: GraphqlRequest,
+  csrf: string,
+  signal?: AbortSignal,
 ): Promise<readonly PersonOption[]> {
   return (await fetchActivePeoplePage(request, csrf, null, signal)).nodes;
 }
 
 export async function fetchActivePeoplePage(
-  request: GraphqlRequest, csrf: string, after: string | null, signal?: AbortSignal,
+  request: GraphqlRequest,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
 ): Promise<Readonly<{ nodes: readonly PersonOption[]; next: string | null }>> {
-  const data = record(await request(MANAGED_PEOPLE, { state: 'ACTIVE', after }, withCsrfAndSignal(csrf, signal)));
+  const data = record(
+    await request(
+      MANAGED_PEOPLE,
+      { state: 'ACTIVE', after },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   const page = record(data.managedPeople);
   if (!Array.isArray(page.nodes)) throw new Error('Credit people unavailable.');
   const info = record(page.pageInfo);
-  if (typeof info.hasNextPage !== 'boolean') throw new Error('Credit people page unavailable.');
+  if (typeof info.hasNextPage !== 'boolean')
+    throw new Error('Credit people page unavailable.');
   const next = info.hasNextPage ? info.endCursor : null;
-  if (next !== null && (typeof next !== 'string' || !next || next === after)) throw new Error('Credit people cursor unavailable.');
+  if (next !== null && (typeof next !== 'string' || !next || next === after))
+    throw new Error('Credit people cursor unavailable.');
   const nodes = page.nodes.map((node) => {
     const row = record(node);
     return Object.freeze({ id: String(row.id), name: String(row.name) });
   });
-  if (new Set(nodes.map((person) => person.id)).size !== nodes.length) throw new Error('Duplicate credit people page.');
-  return Object.freeze({ nodes: Object.freeze(nodes), next: next as string | null });
+  if (new Set(nodes.map((person) => person.id)).size !== nodes.length)
+    throw new Error('Duplicate credit people page.');
+  return Object.freeze({
+    nodes: Object.freeze(nodes),
+    next: next as string | null,
+  });
 }
 
 const UPDATE_CREDIT = `mutation UpdateCredit(
@@ -163,7 +184,11 @@ async function writeCredit(
   if (result.operation === null) {
     const problem = safeProblem(result.problem);
     if (!problem) throw new Error('Credit rejection unavailable.');
-    return Object.freeze({ state: 'REJECTED', operationId: String(variables.operationId), problem });
+    return Object.freeze({
+      state: 'REJECTED',
+      operationId: String(variables.operationId),
+      problem,
+    });
   }
   return mutation(result, String(variables.operationId));
 }

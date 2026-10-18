@@ -22,7 +22,10 @@ class FieldSourceProjectionRulesTest {
 
     @Test
     fun `malformed source shape cannot become fabricated empty evidence`() {
-        listOf("[]", "{", """{"session":{"url":"https://example.invalid"}}""",
+        listOf(
+            "[]",
+            "{",
+            """{"session":{"url":"https://example.invalid"}}""",
             source().replace("https://www.wikidata.org/wiki/Q1", "javascript:alert(1)"),
             source().replace("2025-01-01T00:00:00Z", "invalid"),
             source().replace("CC0 facts", ""),

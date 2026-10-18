@@ -48,7 +48,10 @@ internal object DiagnosticEvents {
         event.loggerName == "org.springframework.boot.SpringApplication" &&
             event.message == "Application run failed" && event.level == Level.ERROR
 
-    private fun source(logger: String?, message: String?): DiagnosticDetails =
+    private fun source(
+        logger: String?,
+        message: String?,
+    ): DiagnosticDetails =
         when {
             logger == DRAFT_LOGGER && SafeJsonDiagnostics.isDraftFailure(message) ->
                 DiagnosticDetails(
@@ -74,7 +77,10 @@ internal object DiagnosticEvents {
         return selected
     }
 
-    private fun sqlCode(proxy: IThrowableProxy, default: String): String {
+    private fun sqlCode(
+        proxy: IThrowableProxy,
+        default: String,
+    ): String {
         val failure = (proxy as? ThrowableProxy)?.throwable as? SQLException ?: return default
         return when (failure.sqlState) {
             "28P01", "28000" -> "DATABASE_AUTHENTICATION_FAILED"
@@ -86,7 +92,10 @@ internal object DiagnosticEvents {
     }
 }
 
-private data class KnownFailure(val name: String, val code: String)
+private data class KnownFailure(
+    val name: String,
+    val code: String,
+)
 
 private val knownFailures =
     listOf(

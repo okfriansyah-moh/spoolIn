@@ -30,12 +30,13 @@ class BoundedJsonAppender internal constructor(
         val encoder = checkNotNull(envelope)
         val level = normalized(event.level)
         val details = if (level == null) null else DiagnosticEvents.classify(event)
-        val bytes = if (level == null) {
-            DiagnosticDropMetrics.shared.record(serviceName, DiagnosticLevel.ERROR, DiagnosticDrop.CONTRACT_INVALID)
-            encoder.invalid(event.timeStamp)
-        } else {
-            encoder.encode(level, event.timeStamp, checkNotNull(details))
-        }
+        val bytes =
+            if (level == null) {
+                DiagnosticDropMetrics.shared.record(serviceName, DiagnosticLevel.ERROR, DiagnosticDrop.CONTRACT_INVALID)
+                encoder.invalid(event.timeStamp)
+            } else {
+                encoder.encode(level, event.timeStamp, checkNotNull(details))
+            }
         checkNotNull(sink).submit(bytes, details?.level ?: level ?: DiagnosticLevel.ERROR)
     }
 

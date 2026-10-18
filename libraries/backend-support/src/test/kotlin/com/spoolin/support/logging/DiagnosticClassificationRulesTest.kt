@@ -22,7 +22,10 @@ class DiagnosticClassificationRulesTest {
     @Test
     fun `actual startup failure retains safe deepest SQL type and code without secret messages or arguments`() {
         val failure =
-            IllegalStateException("private bean and configuration", SQLException("password=secret jdbc=private", "28P01"))
+            IllegalStateException(
+                "private bean and configuration",
+                SQLException("password=secret jdbc=private", "28P01"),
+            )
         val event = startup()
         event.setThrowableProxy(ThrowableProxy(failure))
         val raw = append(event)
@@ -39,17 +42,25 @@ class DiagnosticClassificationRulesTest {
 
     @Test
     fun `closed SQL state categories are useful and arbitrary state values are never serialized`() {
-        val states = mapOf(
-            "42501" to "DATABASE_ACCESS_DENIED",
-            "42P01" to "DATABASE_SCHEMA_MISSING",
-            "08006" to "DATABASE_CONNECTION_UNAVAILABLE",
-            "private-state-value" to "DATABASE_FAILURE",
-        )
+        val states =
+            mapOf(
+                "42501" to "DATABASE_ACCESS_DENIED",
+                "42P01" to "DATABASE_SCHEMA_MISSING",
+                "08006" to "DATABASE_CONNECTION_UNAVAILABLE",
+                "private-state-value" to "DATABASE_FAILURE",
+            )
         for ((state, expected) in states) {
             val event = startup()
             event.setThrowableProxy(ThrowableProxy(SQLException("private message", state)))
             val raw = append(event)
-            assertEquals(expected, JsonMapper.builder().build().readTree(raw)["attributes"]["code"].asText())
+            assertEquals(
+                expected,
+                JsonMapper
+                    .builder()
+                    .build()
+                    .readTree(raw)["attributes"]["code"]
+                    .asText(),
+            )
             assertFalse(raw.contains(state) || raw.contains("private message"))
         }
     }
@@ -59,7 +70,14 @@ class DiagnosticClassificationRulesTest {
         val event = startup()
         event.setThrowableProxy(ThrowableProxy(PrivateNamedCanaryException()))
         val raw = append(event)
-        assertEquals("unclassified", JsonMapper.builder().build().readTree(raw)["attributes"]["error_class"].asText())
+        assertEquals(
+            "unclassified",
+            JsonMapper
+                .builder()
+                .build()
+                .readTree(raw)["attributes"]["error_class"]
+                .asText(),
+        )
         assertFalse(raw.contains("PrivateNamedCanaryException") || raw.contains("sensitive"))
     }
 
@@ -139,9 +157,10 @@ class DiagnosticClassificationRulesTest {
         SimpleMeterRegistry().use { registry ->
             DiagnosticDropMetrics.shared.bind("core", registry)
             val previous = fatalLoss(registry)
-            val failed = object : OutputStream() {
-                override fun write(value: Int): Unit = throw IOException("private sink error")
-            }
+            val failed =
+                object : OutputStream() {
+                    override fun write(value: Int): Unit = throw IOException("private sink error")
+                }
             val appender = BoundedJsonAppender { failed to failed }
             appender.serviceName = "core"
             appender.start()
@@ -155,7 +174,8 @@ class DiagnosticClassificationRulesTest {
 }
 
 private fun fatalLoss(registry: SimpleMeterRegistry): Double =
-    registry.find("spoolin.log.dropped")
+    registry
+        .find("spoolin.log.dropped")
         .tag("level", "fatal")
         .tag("reason", "sink_failed")
         .functionCounter()
@@ -172,12 +192,12 @@ private fun append(event: ILoggingEvent): String {
     return output.toString(Charsets.UTF_8)
 }
 
-private fun startup(): LoggingEvent = LoggingEvent().also {
-    it.level = Level.ERROR
-    it.timeStamp = 1
-    it.loggerName = "org.springframework.boot.SpringApplication"
-    it.message = "Application run failed"
-    it.argumentArray = arrayOf("private credential")
-    it.mdcPropertyMap = mapOf("token" to "private token")
-}
-
+private fun startup(): LoggingEvent =
+    LoggingEvent().also {
+        it.level = Level.ERROR
+        it.timeStamp = 1
+        it.loggerName = "org.springframework.boot.SpringApplication"
+        it.message = "Application run failed"
+        it.argumentArray = arrayOf("private credential")
+        it.mdcPropertyMap = mapOf("token" to "private token")
+    }

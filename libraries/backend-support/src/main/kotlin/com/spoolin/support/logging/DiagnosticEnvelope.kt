@@ -36,8 +36,11 @@ internal class DiagnosticEnvelope(
         logger: String?,
     ): ByteArray = encode(level, timestamp, DiagnosticEvents.origin(logger))
 
-    fun encode(level: DiagnosticLevel, timestamp: Long, details: DiagnosticDetails): ByteArray =
-        record(details.level ?: level, timestamp, details.message, attributes = details.attributes)
+    fun encode(
+        level: DiagnosticLevel,
+        timestamp: Long,
+        details: DiagnosticDetails,
+    ): ByteArray = record(details.level ?: level, timestamp, details.message, attributes = details.attributes)
 
     fun invalid(timestamp: Long): ByteArray = record(DiagnosticLevel.ERROR, timestamp, "Logger contract invalid")
 
@@ -51,14 +54,22 @@ internal class DiagnosticEnvelope(
         traced: Boolean = true,
         attributes: Map<String, String> = emptyMap(),
     ): ByteArray {
-        val (trace, span) = if (traced) TraceContexts.identifiers() else
-            "00000000000000000000000000000000" to "0000000000000000"
-        val fields = linkedMapOf<String, Any>(
-            "level" to level.label, "timestamp" to Instant.ofEpochMilli(timestamp).toString(),
-            "trace_id" to trace, "span_id" to span,
-            "message" to message, "resource" to resource,
-            "attributes" to attributes,
-        )
+        val (trace, span) =
+            if (traced) {
+                TraceContexts.identifiers()
+            } else {
+                "00000000000000000000000000000000" to "0000000000000000"
+            }
+        val fields =
+            linkedMapOf<String, Any>(
+                "level" to level.label,
+                "timestamp" to Instant.ofEpochMilli(timestamp).toString(),
+                "trace_id" to trace,
+                "span_id" to span,
+                "message" to message,
+                "resource" to resource,
+                "attributes" to attributes,
+            )
         val encoded = mapper.writeValueAsBytes(fields) + byteArrayOf('\n'.code.toByte())
         check(encoded.size <= DIAGNOSTIC_BYTES)
         return encoded

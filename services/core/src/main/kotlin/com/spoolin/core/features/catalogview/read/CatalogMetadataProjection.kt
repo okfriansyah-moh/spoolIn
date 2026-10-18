@@ -16,11 +16,13 @@ class CatalogMetadataProjection(
 
     private fun label(env: DataFetchingEnvironment): String {
         val id = env.getSource<Map<String, Any?>>()?.get("id") as? String
-        val labels = synchronized(env.graphQlContext) {
-            env.graphQlContext.get<Map<String, String>>(GENRE_CACHE) ?: loadGenres().nodesList
-                .associate { it.id to it.label }
-                .also { env.graphQlContext.put(GENRE_CACHE, it) }
-        }
+        val labels =
+            synchronized(env.graphQlContext) {
+                env.graphQlContext.get<Map<String, String>>(GENRE_CACHE) ?: loadGenres()
+                    .nodesList
+                    .associate { it.id to it.label }
+                    .also { env.graphQlContext.put(GENRE_CACHE, it) }
+            }
         return labels[id]?.takeIf { it.isNotBlank() } ?: throw Status.DATA_LOSS.asRuntimeException()
     }
 
@@ -29,15 +31,18 @@ class CatalogMetadataProjection(
 
         fun fieldSources(provenance: Spoolin.Provenance): Map<String, Any?> =
             provenance.fieldSourcesList.associate { source ->
-                source.field to mapOf(
-                    "url" to source.url,
-                    "reuseBasis" to source.reuseBasis,
-                    "retrievedAt" to Instant.ofEpochSecond(
-                        source.retrievedAt.seconds,
-                        source.retrievedAt.nanos.toLong(),
-                    ).toString(),
-                    "precision" to source.precision.takeIf { source.hasPrecision() },
-                )
+                source.field to
+                    mapOf(
+                        "url" to source.url,
+                        "reuseBasis" to source.reuseBasis,
+                        "retrievedAt" to
+                            Instant
+                                .ofEpochSecond(
+                                    source.retrievedAt.seconds,
+                                    source.retrievedAt.nanos.toLong(),
+                                ).toString(),
+                        "precision" to source.precision.takeIf { source.hasPrecision() },
+                    )
             }
     }
 }

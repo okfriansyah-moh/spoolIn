@@ -38,7 +38,14 @@ class SeedEffectivePolicyRulesTest {
         val id = person["stableUUID"].asText()
         person.put("name", "N".repeat(300))
         val path = write(root)
-        assertEquals(id, SeedManifest.read(path).people.first()["stableUUID"].asText())
+        assertEquals(
+            id,
+            SeedManifest
+                .read(path)
+                .people
+                .first()["stableUUID"]
+                .asText(),
+        )
         assertThrows(InputViolation::class.java) { SeedManifest.prepare(path, configured()) }
         val prepared = SeedManifest.prepare(path, configured(mapOf("PERSON_NAME_MAX_CODE_POINTS" to "300")))
         assertEquals("N".repeat(300), prepared.people.first()["name"].asText())
@@ -57,8 +64,15 @@ class SeedEffectivePolicyRulesTest {
         assertThrows(InputViolation::class.java) {
             SeedManifest.prepare(path, configured(mapOf("CHARACTER_NAME_MAX_CODE_POINTS" to "3")))
         }
-        assertEquals("Name", SeedManifest.prepare(path, configured()).records
-            .flatMap { it["credits"].toList() }.first { it["stableUUID"] == credit["stableUUID"] }["characters"][0].asText())
+        assertEquals(
+            "Name",
+            SeedManifest
+                .prepare(path, configured())
+                .records
+                .flatMap { it["credits"].toList() }
+                .first { it["stableUUID"] == credit["stableUUID"] }["characters"][0]
+                .asText(),
+        )
     }
 
     @Test
@@ -103,9 +117,15 @@ class SeedEffectivePolicyRulesTest {
         val environment = StandardEnvironment()
         environment.propertySources.remove(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME)
         environment.propertySources.remove(StandardEnvironment.SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME)
-        environment.propertySources.addFirst(MapPropertySource("seed-test", mapOf(
-            "spring.config.import" to "file:${config}[.yaml]", "spring.config.location" to "optional:file:${temporary}/missing.yaml",
-        )))
+        environment.propertySources.addFirst(
+            MapPropertySource(
+                "seed-test",
+                mapOf(
+                    "spring.config.import" to "file:$config[.yaml]",
+                    "spring.config.location" to "optional:file:$temporary/missing.yaml",
+                ),
+            ),
+        )
         seedEnvironment(environment)
         assertEquals("321", environment.getProperty("TITLE_MAX_CODE_POINTS"))
         environment.propertySources.addFirst(MapPropertySource("explicit", mapOf("TITLE_MAX_CODE_POINTS" to "333")))
@@ -115,13 +135,17 @@ class SeedEffectivePolicyRulesTest {
     }
 
     private fun configured(values: Map<String, String> = emptyMap()) = PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+
     private fun snapshot() = mapper.readTree(repository().resolve("data/seed/manifest.json").toFile()) as ObjectNode
+
     private fun write(root: ObjectNode): Path {
         root["people"].forEach { (it as ObjectNode).put("contentSHA256", SeedIdentities.hashHex(it)) }
         root["records"].forEach { (it as ObjectNode).put("contentSHA256", SeedIdentities.hashHex(it)) }
         root.put("snapshotSHA256", SeedIdentities.hashHex(root))
         return temporary.resolve("controlled-manifest.json").also { mapper.writeValue(it.toFile(), root) }
     }
-    private fun repository(): Path = generateSequence(Path.of(System.getProperty("user.dir")).toAbsolutePath()) { it.parent }
-        .first { Files.isRegularFile(it.resolve("data/seed/manifest.json")) }
+
+    private fun repository(): Path =
+        generateSequence(Path.of(System.getProperty("user.dir")).toAbsolutePath()) { it.parent }
+            .first { Files.isRegularFile(it.resolve("data/seed/manifest.json")) }
 }

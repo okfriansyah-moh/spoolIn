@@ -41,7 +41,12 @@ class CatalogViewGraphql(
                 .dataFetcher("genres") { _ -> genres() }
                 .dataFetcher("creditRoles") { _ -> creditRoles() }
         }
-        CatalogMetadataProjection { stub().listGenres(com.google.protobuf.Empty.getDefaultInstance()) }.bind(wiring)
+        CatalogMetadataProjection {
+            stub().listGenres(
+                com.google.protobuf.Empty
+                    .getDefaultInstance(),
+            )
+        }.bind(wiring)
         // Resolver for Title.credits (nested, resolved lazily per title)
         wiring.type("Title") { t ->
             t.dataFetcher("credits") { env -> titleCreditsField(env) }

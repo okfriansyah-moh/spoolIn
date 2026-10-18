@@ -26,10 +26,17 @@ internal class PublicCatalogReadFixture : AutoCloseable {
     val person = UUID.randomUUID()
     val genre = UUID.randomUUID()
     private val cursor = ByteArray(32) { 17 }
-    private val rpc = CatalogServiceRpc(
-        TitleSearchSql(pool), PersonSearch(pool), TaxonomyReads(pool), ProvenanceReads(pool),
-        OwnerReceiptReads(pool), ReceiptAuthority { null }, CatalogCursor(cursor), PeopleCursor(cursor),
-    )
+    private val rpc =
+        CatalogServiceRpc(
+            TitleSearchSql(pool),
+            PersonSearch(pool),
+            TaxonomyReads(pool),
+            ProvenanceReads(pool),
+            OwnerReceiptReads(pool),
+            ReceiptAuthority { null },
+            CatalogCursor(cursor),
+            PeopleCursor(cursor),
+        )
     val server = transport.server(owner.root, "catalog", rpc, com.spoolin.catalog.ServiceIdentityInterceptor())
     val caller = transport.channel(owner.root, "core", "catalog", server.port)
     val wrongCaller = transport.channel(owner.root, "mcp", "catalog", server.port)
@@ -41,9 +48,17 @@ internal class PublicCatalogReadFixture : AutoCloseable {
     private fun migrate() {
         owner.membership("catalog", "grant")
         owner.pool("catalog", "migrator").use { migration ->
-            org.flywaydb.core.Flyway.configure().dataSource(migration).schemas("appdata").defaultSchema("appdata")
+            org.flywaydb.core.Flyway
+                .configure()
+                .dataSource(migration)
+                .schemas("appdata")
+                .defaultSchema("appdata")
                 .locations("filesystem:${owner.repository}/services/catalog/src/main/resources/db/migration")
-                .createSchemas(false).failOnMissingLocations(true).validateMigrationNaming(true).load().migrate()
+                .createSchemas(false)
+                .failOnMissingLocations(true)
+                .validateMigrationNaming(true)
+                .load()
+                .migrate()
         }
         owner.grants("catalog")
         owner.membership("catalog", "revoke")
@@ -53,11 +68,21 @@ internal class PublicCatalogReadFixture : AutoCloseable {
         pool.connection.use { connection ->
             connection.executeBound(
                 "INSERT INTO title(id,kind,display_title,synopsis,synopsis_language,release_year) VALUES(?,?,?,?,?,?)",
-                title, "MOVIE", "Boundary movie", "Synthetic integration title.", "en", 2025,
+                title,
+                "MOVIE",
+                "Boundary movie",
+                "Synthetic integration title.",
+                "en",
+                2025,
             )
             connection.executeBound(
                 "INSERT INTO title(id,kind,status,display_title,synopsis,synopsis_language) VALUES(?,?,?,?,?,?)",
-                archived, "MOVIE", "ARCHIVED", "Hidden title", "Archived fixture.", "en",
+                archived,
+                "MOVIE",
+                "ARCHIVED",
+                "Hidden title",
+                "Archived fixture.",
+                "en",
             )
             connection.executeBound("INSERT INTO person(id,name) VALUES(?,?)", person, "Boundary person")
             connection.executeBound("INSERT INTO genre(id,label,normalized_label) VALUES(?,?,?)", genre, "Boundary drama", "boundary drama")
@@ -65,7 +90,11 @@ internal class PublicCatalogReadFixture : AutoCloseable {
             connection.executeBound(
                 "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,retrieved_at,reuse_note,field_sources) " +
                     "VALUES(?,?,'TITLE',?,'2025-01-01T00:00:00Z',?,?::jsonb)",
-                "synthetic-test", "boundary-movie", title, "Synthetic facts for this test only", SOURCE,
+                "synthetic-test",
+                "boundary-movie",
+                title,
+                "Synthetic facts for this test only",
+                SOURCE,
             )
         }
     }

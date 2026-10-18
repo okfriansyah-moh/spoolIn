@@ -1,8 +1,8 @@
 package com.spoolin.catalog.seed
 
-import com.spoolin.support.receipts.executeBound
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
@@ -307,8 +307,10 @@ class CatalogSeedLoader(
         )
     }
 
-    private fun optionalText(node: JsonNode, field: String): String? =
-        node.path(field).takeUnless { it.isNull || it.isMissingNode }?.asText()
+    private fun optionalText(
+        node: JsonNode,
+        field: String,
+    ): String? = node.path(field).takeUnless { it.isNull || it.isMissingNode }?.asText()
 
     private fun integer(
         node: JsonNode,

@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { GraphqlRequest } from '../../transport/graphql';
-import { addCredit, removeCredit, updateCredit, recoverCredit, fetchActivePeoplePage } from './api';
+import {
+  addCredit,
+  removeCredit,
+  updateCredit,
+  recoverCredit,
+  fetchActivePeoplePage,
+} from './api';
 
 const id = '11111111-1111-4111-8111-111111111111';
 function response(field: string, state: string) {
@@ -114,23 +120,55 @@ describe('credit writes and original receipts', () => {
   });
 });
 
-
 it('credit people paging preserves actual cursors and refuses a looping or incomplete page', async () => {
-  const request = vi.fn<GraphqlRequest>(async () => ({ managedPeople: {
-    nodes: [{ id, name: 'One' }], pageInfo: { hasNextPage: true, endCursor: 'next-cursor' },
-  } }));
-  expect(await fetchActivePeoplePage(request, 'csrf', null)).toEqual({ nodes: [{ id, name: 'One' }], next: 'next-cursor' });
+  const request = vi.fn<GraphqlRequest>(async () => ({
+    managedPeople: {
+      nodes: [{ id, name: 'One' }],
+      pageInfo: { hasNextPage: true, endCursor: 'next-cursor' },
+    },
+  }));
+  expect(await fetchActivePeoplePage(request, 'csrf', null)).toEqual({
+    nodes: [{ id, name: 'One' }],
+    next: 'next-cursor',
+  });
   expect(request.mock.calls[0]?.[1]).toEqual({ state: 'ACTIVE', after: null });
-  await expect(fetchActivePeoplePage(request, 'csrf', 'next-cursor')).rejects.toThrow('cursor');
-  request.mockResolvedValue({ managedPeople: { nodes: [], pageInfo: { hasNextPage: true, endCursor: null } } });
-  await expect(fetchActivePeoplePage(request, 'csrf', null)).rejects.toThrow('cursor');
+  await expect(
+    fetchActivePeoplePage(request, 'csrf', 'next-cursor'),
+  ).rejects.toThrow('cursor');
+  request.mockResolvedValue({
+    managedPeople: {
+      nodes: [],
+      pageInfo: { hasNextPage: true, endCursor: null },
+    },
+  });
+  await expect(fetchActivePeoplePage(request, 'csrf', null)).rejects.toThrow(
+    'cursor',
+  );
 });
 
 it('known credit domain rejection is distinct from a retained failed operation receipt', async () => {
-  const request = vi.fn<GraphqlRequest>(async () => ({ addCredit: { operation: null,
-    problem: { code: 'ALREADY_EXISTS', retryAfterMs: null } } }));
-  expect(await addCredit(request, id, id, '1', 'p1', { personId: id, roleId: id, characters: [] }, 'csrf', new AbortController().signal))
-    .toMatchObject({ state: 'REJECTED', operationId: id, problem: { code: 'ALREADY_EXISTS' } });
+  const request = vi.fn<GraphqlRequest>(async () => ({
+    addCredit: {
+      operation: null,
+      problem: { code: 'ALREADY_EXISTS', retryAfterMs: null },
+    },
+  }));
+  expect(
+    await addCredit(
+      request,
+      id,
+      id,
+      '1',
+      'p1',
+      { personId: id, roleId: id, characters: [] },
+      'csrf',
+      new AbortController().signal,
+    ),
+  ).toMatchObject({
+    state: 'REJECTED',
+    operationId: id,
+    problem: { code: 'ALREADY_EXISTS' },
+  });
 });
 
 
