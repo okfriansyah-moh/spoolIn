@@ -16,11 +16,11 @@ SpoolIn is a movie catalog for people who want to discover films and maintain th
   - [Troubleshooting](#troubleshooting)
   - [Verification limits](#verification-limits)
 - [Use SpoolIn](#use-spoolin)
-  - [Browse and search](#browse-and-search)
+  - [Choose the right account](#choose-the-right-account)
+  - [Viewer example: find a movie](#viewer-example-find-a-movie)
   - [Explore a movie](#explore-a-movie)
   - [Find cast and creators](#find-cast-and-creators)
-  - [Choose the right account](#choose-the-right-account)
-  - [Create and edit movies](#create-and-edit-movies)
+  - [Maintainer example: create and edit a movie](#maintainer-example-create-and-edit-a-movie)
   - [Manage people and credits](#manage-people-and-credits)
   - [Upload artwork](#upload-artwork)
   - [Archive and recover records](#archive-and-recover-records)
@@ -341,9 +341,34 @@ Platform instructions follow the linked vendor installation guides. Successful t
 
 The screenshots show fictional walkthrough records alongside the seeded catalog. The lighthouse poster was uploaded through the application.
 
-### Browse and search
+### Choose the right account
 
-The **Catalog** page lists movies with poster artwork. Select a movie to open its details. Use search when you know part of a title; filters help narrow the catalog. Wait for results to finish loading before changing your search again. An empty result means the current search has no matches; clear it or broaden the filters to return to browsing.
+| Account | Access |
+| --- | --- |
+| Visitor | Browse and search public movies, people, and credits |
+| Viewer | Browse with a signed-in account |
+| Maintainer | Maintain movies, people, credits, artwork, and archived records |
+
+Follow the [initial sign-in steps](#start-and-sign-in) to use the local accounts. **Register** creates a Viewer account; catalog editing requires a Maintainer.
+
+When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.
+
+### Viewer example: find a movie
+
+A Viewer can browse and search movies, people, and credits. Catalog editing, artwork uploads, archives, and history require a Maintainer.
+
+For example, find a seeded film and explore its credits:
+
+1. Sign in with the Viewer account from [Start and sign in](#start-and-sign-in). The header displays **Viewer** beside your account name.
+2. Open **Catalog** and enter `Star Wars` in **Search titles**. Wait for the results to load.
+3. Open **Star Wars: Episode VII – The Force Awakens** to read its synopsis and available credits.
+4. Select a credited person, or open **People** and search for a cast member or creator by name.
+
+![Signed-in Viewer searching Star Wars, with Viewer role and Catalog and People navigation visible](docs/assets/spoolin/viewer-catalog.png)
+
+*Viewer example: the header identifies the account role. This search shows a seeded movie; seed data has artwork placeholders until a Maintainer uploads a poster.*
+
+Filters help narrow the catalog. If no titles match, clear the search or broaden the filters to return to browsing.
 
 ### Explore a movie
 
@@ -357,27 +382,17 @@ Open **People** to browse or search for someone by name. A person's profile conn
 
 ![People directory with search and person records](docs/assets/spoolin/people.png)
 
-### Choose the right account
-
-| Account | Access |
-| --- | --- |
-| Visitor | Browse and search public movies, people, and credits |
-| Viewer | Browse with a signed-in account |
-| Maintainer | Maintain movies, people, credits, artwork, and archived records |
-
-Follow the [initial sign-in steps](#start-and-sign-in) to use the local accounts. **Register** creates a Viewer account; catalog editing requires a Maintainer.
-
-When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.
-
-### Create and edit movies
+### Maintainer example: create and edit a movie
 
 1. Sign in as a Maintainer and open **Movies** in the navigation.
-2. Choose **Create movie**. Enter the required title, synopsis, and other fields marked by the form. Add release details and genres where available.
+2. Choose **Create movie**. For a fictional example, enter `Letters from Tomorrow` as the title and `A lighthouse keeper receives letters dated one day ahead.` as the synopsis. Complete the other required fields; add release details and genres where available.
 3. Read any field errors and correct the named inputs. The form displays the current limits; don't shorten content based on an old screenshot's limits.
 4. Save and wait for confirmation. Open the saved movie to check the displayed information.
 5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, and save again.
 
-![Movie management view for maintaining catalog entries](docs/assets/spoolin/manage-movies.png)
+![Signed-in Maintainer managing movies, with Letters from Tomorrow and Create movie and Edit controls visible](docs/assets/spoolin/manage-movies.png)
+
+*Maintainer example: the saved fictional movie appears in Movies, with editing controls. The header displays Maintainer and includes management navigation.*
 
 If someone else saves the record while you're editing, SpoolIn asks you to review the current saved values. Compare them with your retained changes before continuing. If the connection drops during a save, use **Check original result** when offered. Repeatedly submitting an uncertain save can make it harder to tell which operation completed.
 
