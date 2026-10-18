@@ -80,7 +80,10 @@ class ArtworkTransferRulesTest {
         Spoolin.AssetReadChunk.newBuilder().setData(ByteString.copyFrom(value)).build()
 
     private fun assertAllScratchAvailable() {
-        val files = (1..SCRATCH_LIMIT).map { ArtworkScratch.create() }
-        try { assertEquals(SCRATCH_LIMIT, files.size) } finally { files.forEach(ArtworkScratch::delete) }
+        val files = mutableListOf<java.nio.file.Path>()
+        try {
+            repeat(SCRATCH_LIMIT) { files.add(ArtworkScratch.create()) }
+            assertEquals(SCRATCH_LIMIT, files.size)
+        } finally { files.forEach(ArtworkScratch::delete) }
     }
 }

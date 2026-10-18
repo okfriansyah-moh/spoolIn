@@ -5,6 +5,7 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -15,7 +16,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 private const val SPOOL_LIMIT = 1024L
-private const val CANCEL_AFTER_MS = 750L
+private const val CANCEL_AFTER_MS = 5000L
 private const val CANCEL_WAIT_SECONDS = 5L
 
 class ArtworkUploadBoundaryTest {
@@ -66,7 +67,9 @@ class ArtworkUploadBoundaryTest {
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         try {
             ArtworkUploadFixture(ArtworkUploadFixture.Mode.HOLD).use { f ->
-                spool().use { spool ->
+                val saved = spool()
+                val path = saved.path
+                saved.use { spool ->
                     val deadline = Context.current().withDeadlineAfter(CANCEL_AFTER_MS, TimeUnit.MILLISECONDS, scheduler)
                     try {
                         val error = assertThrows(StatusRuntimeException::class.java) {
@@ -76,6 +79,7 @@ class ArtworkUploadBoundaryTest {
                         assertTrue(f.cancelled.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
                     } finally { deadline.cancel(null) }
                 }
+                assertFalse(java.nio.file.Files.exists(path))
             }
         } finally { scheduler.shutdownNow() }
     }

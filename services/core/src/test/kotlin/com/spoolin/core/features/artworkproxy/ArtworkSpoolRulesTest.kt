@@ -33,8 +33,16 @@ class ArtworkSpoolRulesTest {
         val invalid = listOf("", "abcd=", "====", "AA A", "界AAA", "AAAAAAAAAAAA")
         invalid.forEach { input ->
             assertThrows(IllegalArgumentException::class.java) { ArtworkSpool.decode(input, INPUT_LIMIT) }
-            val files = (1..SCRATCH_LIMIT).map { ArtworkScratch.create() }
-            try { assertEquals(SCRATCH_LIMIT, files.size) } finally { files.forEach(ArtworkScratch::delete) }
+            assertAllScratchAvailable()
         }
     }
+
+    private fun assertAllScratchAvailable() {
+        val files = mutableListOf<java.nio.file.Path>()
+        try {
+            repeat(SCRATCH_LIMIT) { files.add(ArtworkScratch.create()) }
+            assertEquals(SCRATCH_LIMIT, files.size)
+        } finally { files.forEach(ArtworkScratch::delete) }
+    }
+
 }
