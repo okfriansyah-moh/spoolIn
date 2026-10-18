@@ -1123,6 +1123,36 @@
         "83df6ef"
       ],
       "runtime_proof": "Pending current-input full owner boundary rerun; original failures retained. No fixture-only correction is production runtime acceptance."
+    },
+    {
+      "id": "F-048",
+      "required": true,
+      "status": "open",
+      "area": "Actual application acceptance after make start",
+      "summary": "39096054626 established real readiness but publicGraphQL503, absent rendered sign-in input, productionBubblewrap0.6.1unsupported--size and actualmanagementscrape/authorization/alertepisodefailurespreventacceptance. Preserveeachboundary separately; hostcodecpassdoesnotestablishcontainerpass.",
+      "requirement_ids": [
+        "T001",
+        "T006",
+        "T013",
+        "T024",
+        "T034",
+        "T039",
+        "T040",
+        "T045",
+        "T046"
+      ],
+      "assessed_revision": "d5e789692d4163c5afdade7e7799f3213013aeb2",
+      "evidence_links": [
+        "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39096054626/artifacts/12124896602",
+        "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39096054626/artifacts/12124802219"
+      ],
+      "source_corrections": [
+        "156d26be",
+        "f14820b9",
+        "7303145",
+        "e31a2fcb"
+      ],
+      "runtime_proof": "Pendingcorrectedremoteexecutionandinspectedapplication/codec/browser/monitoringreports; sourcecorrectionanddiagnosticsare not acceptance."
     }
   ],
   "pending_acceptance": [
@@ -1561,6 +1591,49 @@
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095711013",
         "artifact_retention_days": 14,
         "inspected_artifact_ids": []
+      },
+      {
+        "run_id": 39095902910,
+        "tested_sha": "97412124860fec7c8f484cd79bbce59f58f96eae",
+        "result": "failed",
+        "detail": "Actualdetekt/ktlintreport31006bytes inspected; requiredstructural/line/importfindingsfixedin8c44306/9888ab72/fded7ff6/96b0210d. Newrotationarchitecture relocation83497fdf andformatter4d6091c remainpendingcurrent-inputqualityrerun. No threshold or suppression changes.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095902910",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12123514905
+        ]
+      },
+      {
+        "run_id": 39096054626,
+        "tested_sha": "d5e789692d4163c5afdade7e7799f3213013aeb2",
+        "result": "failed",
+        "detail": "ActualmakeStartPASSED04:15UTC:8containersrunning,private-mTLSCore/Catalog/MediaUP,GrafanaTLS200,migrationsandoriginal100movie/100seriesseedreceiptobserved. FullDBseedcomparison reachedrealHTTPSorderqueryandfailedHTTP503; repeat/restartnotreached. ActualMediaUID10001/read-only/capDropALL/no-new-privileges/defaultseccomp/AppArmorprobe failedbwrap0.6.1Unknownoption--size; pinnedproduction0.11.2sourcefix156d26be. RealChromiumsign-inpageEmailnotfoundbeforecredentials;globalsetupfailed,zerojourneyacceptance/screenshots. Actualmonitorvalidators/GrafanaAPIpassed;isolationoracle/scrapemetrics/MCPdenial/alertepisodefailed; childfilter/oraclefixf14820b9pendingrerun. Startupreadinessisnotfullacceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39096054626",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12124896602,
+          12124802219
+        ]
+      },
+      {
+        "run_id": 39096345334,
+        "tested_sha": "db9e16671c1cfda6148edd29560be9a3ea5b7956",
+        "result": "succeeded-preparation",
+        "detail": "Actualhostedformatterpassed; inspected44789bytepatch36filesapplied4d6091c. No runtime acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39096345334",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12125300759
+        ]
+      },
+      {
+        "run_id": 39096924829,
+        "tested_sha": "b770a87454511098de5e9002c30ae746dab741df",
+        "result": "in_progress",
+        "detail": "Focusedruntimewithmanagementchildguards,pinnedproductionBubblewrap,sanitizedpublicAPI/owner/browserdiagnosticsandallqualitysourcecorrectionsdispatched. Realcurrent-inputresultpending.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39096924829",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": []
       }
     ],
     "progress_checkpoints": [
@@ -1662,6 +1735,15 @@
         "at": "2026-10-18T03:55:00Z",
         "direction": "User prefers speed and actual make start/browser/design verification with usage remaining; focused runtime mode added, final gates and one combined review remain required."
       }
-    ]
+    ],
+    "external_environment_observations": {
+      "observed_at": "2026-10-18T04:24:00Z",
+      "repository_actions_secret_names": [],
+      "repository_environment_names": [
+        "copilot"
+      ],
+      "source_tunnel_lifecycle": "ops/bin/tunnel.sh retains exactunsupported-runner exit78; no verifiedregisteredrunneridentityprovided",
+      "conclusion": "Required actual Claude/ChatGPT hosts, approved registered tunnel identity and assistive reader observations remain pending. Empty repository secret listing is not proof about organization-level services or user accounts."
+    }
   }
 }
