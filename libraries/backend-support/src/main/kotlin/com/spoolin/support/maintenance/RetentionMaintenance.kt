@@ -20,35 +20,73 @@ class RetentionMaintenance(private val maintenance: DataSource, private val owne
         counts
     }
 
-    fun daily(): Map<String, Int> = transaction { connection ->
-        val payloads = connection.createStatement().use { statement ->
-            statement.executeUpdate("""
-                WITH eligible AS (SELECT w.id FROM appdata.durable_work w
-                  WHERE ${resolved()} ${mediaResolved()} AND w.kind<>'NOTIFICATION'
-                    AND w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '7 days' AND w.payload<>'{}'::jsonb
-                  ORDER BY w.updated_at,w.id LIMIT 100 FOR UPDATE OF w SKIP LOCKED)
-                UPDATE appdata.durable_work w SET payload='{}'::jsonb FROM eligible e WHERE w.id=e.id
-            """.trimIndent())
+    fun daily(): Map<String, Int> {
+        val ids = maintenance.connection.use { connection ->
+            connection.createStatement().use { statement ->
+                statement.executeQuery("""
+                    SELECT w.id FROM appdata.durable_work w WHERE ${resolved()} ${mediaResolved()}
+                      AND ((w.kind<>'NOTIFICATION' AND w.payload<>'{}'::jsonb
+                        AND w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '7 days')
+                        OR w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '90 days')
+                    ORDER BY w.updated_at,w.id LIMIT 100
+                """.trimIndent()).use { rows -> buildList { while (rows.next()) add(rows.getObject(1)) } }
+            }
         }
-        val ids = connection.createStatement().use { statement ->
-            statement.executeQuery("""
-                SELECT w.id FROM appdata.durable_work w WHERE ${resolved()} ${mediaResolved()}
-                  AND w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '90 days'
-                  AND NOT EXISTS (SELECT 1 FROM appdata.operational_event e WHERE e.work_id=w.id
-                    AND e.created_at>CURRENT_TIMESTAMP-INTERVAL '90 days')
-                ORDER BY w.updated_at,w.id LIMIT 100 FOR UPDATE OF w SKIP LOCKED
-            """.trimIndent()).use { rows -> buildList { while (rows.next()) add(rows.getObject(1)) } }
-        }
-        var events = 0
-        var work = 0
+        val counts = linkedMapOf("payloads" to 0, "attemptEvents" to 0, "work" to 0)
         for (id in ids) {
-            if (owner == "media") clearProcessing(connection, id)
-            events += update(connection, "DELETE FROM appdata.operational_event WHERE work_id=?", id)
-            work += update(connection, "DELETE FROM appdata.durable_work WHERE id=?", id)
+            val result = transaction { purgeWork(it, id) }
+            for ((key, value) in result) counts[key] = counts.getValue(key) + value
         }
-        mapOf("payloads" to payloads, "attemptEvents" to events, "work" to work,
-            "activityEvents" to purgeActivity(connection))
+        counts["activityEvents"] = transaction { purgeActivity(it) }
+        return counts
     }
+
+    private fun purgeWork(connection: Connection, id: Any): Map<String, Int> {
+        val checkpoint = connection.setSavepoint()
+        val assets = if (owner == "media") assets(connection, id, true) else emptyList()
+        val locked = connection.prepareStatement("SELECT id FROM appdata.durable_work WHERE id=? FOR UPDATE").use {
+            it.setObject(1, id)
+            it.executeQuery().use { rows -> rows.next() }
+        }
+        if (!locked || !eligible(connection, id) || (owner == "media" && assets != assets(connection, id, false))) {
+            connection.rollback(checkpoint)
+            return emptyMap()
+        }
+        val payloads = update(connection, """
+            UPDATE appdata.durable_work SET payload='{}'::jsonb WHERE id=? AND kind<>'NOTIFICATION'
+              AND payload<>'{}'::jsonb AND updated_at<=CURRENT_TIMESTAMP-INTERVAL '7 days'
+        """.trimIndent(), id)
+        if (!expiredHistory(connection, id)) return mapOf("payloads" to payloads)
+        if (owner == "media") clearProcessing(connection, id)
+        val events = update(connection, "DELETE FROM appdata.operational_event WHERE work_id=?", id)
+        val work = update(connection, "DELETE FROM appdata.durable_work WHERE id=?", id)
+        connection.releaseSavepoint(checkpoint)
+        return mapOf("payloads" to payloads, "attemptEvents" to events, "work" to work)
+    }
+
+    private fun assets(connection: Connection, id: Any, lock: Boolean): List<Any> =
+        connection.prepareStatement("SELECT id FROM appdata.asset WHERE processing_work_id=? ORDER BY id" +
+            if (lock) " FOR UPDATE" else "").use {
+            it.setObject(1, id)
+            it.executeQuery().use { rows -> buildList { while (rows.next()) add(rows.getObject(1)) } }
+        }
+
+    private fun eligible(connection: Connection, id: Any): Boolean =
+        connection.prepareStatement("SELECT w.id FROM appdata.durable_work w WHERE w.id=? AND ${resolved()} ${mediaResolved()}").use {
+            it.setObject(1, id)
+            it.executeQuery().use { rows -> rows.next() }
+        }
+
+    private fun expiredHistory(connection: Connection, id: Any): Boolean =
+        connection.prepareStatement("""
+            SELECT w.id FROM appdata.durable_work w WHERE w.id=?
+              AND w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '90 days'
+              AND NOT EXISTS (SELECT 1 FROM appdata.operational_event e WHERE e.work_id=w.id
+                AND e.created_at>CURRENT_TIMESTAMP-INTERVAL '90 days')
+        """.trimIndent()).use {
+            it.setObject(1, id)
+            it.executeQuery().use { rows -> rows.next() }
+        }
 
     private fun receiptBodies(connection: Connection): Int = connection.createStatement().use {
         it.executeUpdate("""

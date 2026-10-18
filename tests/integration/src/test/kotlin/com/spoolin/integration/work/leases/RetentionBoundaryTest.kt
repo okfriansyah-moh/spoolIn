@@ -7,6 +7,7 @@ import com.spoolin.support.maintenance.RetentionMaintenance
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -135,6 +136,47 @@ class RetentionBoundaryTest {
         assertEquals(1, count(pool, "operation_receipt"))
         assertEquals(1, count(pool, "asset_reference"))
         assertEquals(1, scalar(pool, "SELECT count(*) FROM asset WHERE processing_work_id IS NULL AND storage_key IS NOT NULL"))
+    }
+
+    @Test
+    fun `Media waits on asset before work and rechecks changed eligibility without deleting evidence`() = fixture { pool, maintenance, _ ->
+        val operation = receipt(pool)
+        val work = work(pool, "DONE", 100, operation)
+        attempts(pool, work, "SUCCEEDED")
+        val asset = UUID.randomUUID()
+        pool.connection.use {
+            it.executeBound("""
+                INSERT INTO asset(id,upload_operation_id,actor_id,state,input_bytes,policy_revision,storage_key,
+                  content_hash,format,output_bytes,width,height,processing_work_id,processing_staging_key,
+                  processing_input_hash,processing_created_at)
+                VALUES (?,?,?,'READY',3,'v1',?,decode(repeat('01',32),'hex'),'PNG',3,1,1,?,
+                  'quarantine/test',decode(repeat('02',32),'hex'),CURRENT_TIMESTAMP-INTERVAL '100 days')
+            """.trimIndent(), asset, operation, UUID.randomUUID(), "artwork/$asset", work)
+        }
+        val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
+        try {
+            pool.connection.use { operator ->
+                operator.autoCommit = false
+                operator.prepareStatement("SELECT id FROM asset WHERE id=? FOR UPDATE").use {
+                    it.setObject(1, asset); it.executeQuery().close()
+                }
+                val pending = executor.submit<Map<String, Int>> { maintenance.daily() }
+                val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(1)
+                while (scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") == 0 && System.nanoTime() < deadline) {
+                    Thread.sleep(5)
+                }
+                assertTrue(scalar(pool, "SELECT count(*) FROM pg_locks WHERE NOT granted") > 0)
+                operator.prepareStatement("SELECT id FROM durable_work WHERE id=? FOR UPDATE NOWAIT").use {
+                    it.setObject(1, work); it.executeQuery().close()
+                }
+                operator.executeBound("UPDATE durable_work SET state='EXHAUSTED' WHERE id=?", work)
+                operator.commit()
+                assertEquals(0, pending.get(5, java.util.concurrent.TimeUnit.SECONDS).getValue("work"))
+            }
+            assertEquals(2, count(pool, "operational_event"))
+            assertEquals(1, scalar(pool, "SELECT count(*) FROM asset WHERE processing_work_id='$work' AND storage_key IS NOT NULL"))
+            assertEquals(1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$work' AND payload<>'{}'::jsonb"))
+        } finally { executor.shutdownNow() }
     }
 
     @Test
