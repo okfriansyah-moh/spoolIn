@@ -19,9 +19,12 @@ object ImageEnvelope {
         ImageFormat.PNG -> {
             bytes.size >= pngEnd.size && bytes.takeLast(pngEnd.size).toByteArray().contentEquals(pngEnd)
         }
-        ImageFormat.WEBP -> bytes.size >= WEBP_MIN_BYTES && littleEndianLength(bytes) == bytes.size.toLong() - RIFF_HEADER_BYTES
+        ImageFormat.WEBP -> bytes.size >= WEBP_MIN_BYTES &&
+            littleEndianLength(bytes) == bytes.size.toLong() - RIFF_HEADER_BYTES
     }
 
     private fun littleEndianLength(bytes: ByteArray): Long =
-        (RIFF_LENGTH_START..RIFF_LENGTH_END).fold(0L) { size, index -> size or ((bytes[index].toLong() and UNSIGNED_BYTE_MASK) shl ((index - RIFF_LENGTH_START) * BITS_PER_BYTE)) }
+        (RIFF_LENGTH_START..RIFF_LENGTH_END).fold(0L) { size, index ->
+            size or ((bytes[index].toLong() and UNSIGNED_BYTE_MASK) shl ((index - RIFF_LENGTH_START) * BITS_PER_BYTE))
+        }
 }

@@ -66,7 +66,8 @@ class QuarantineStore(
         Files.list(output).use { paths ->
             paths.filter { Files.isDirectory(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }
                 .filter { runCatching { UUID.fromString(it.fileName.toString()) }.isSuccess }
-                .filter { Files.getLastModifiedTime(it).toInstant().isBefore(now.minusSeconds(SCRATCH_RETENTION_SECONDS)) }
+                .filter { Files.getLastModifiedTime(it).toInstant()
+                    .isBefore(now.minusSeconds(SCRATCH_RETENTION_SECONDS)) }
                 .limit(SCRATCH_SWEEP_BATCH).forEach(::deleteScratch)
         }
     }

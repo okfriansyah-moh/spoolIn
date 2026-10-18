@@ -52,7 +52,9 @@ class MediaProcessingHandler(
     }
 
     private fun validate(asset: AssetRow, input: java.nio.file.Path): ProcessorRunner.Outcome {
-        val validation = Files.newInputStream(input).use { ImageValidator.validate(it, ProcessingBounds.MAX_INPUT_BYTES) }
+        val validation = Files.newInputStream(input).use {
+            ImageValidator.validate(it, ProcessingBounds.MAX_INPUT_BYTES)
+        }
         return when (validation) {
             is ImageValidator.ValidationResult.Invalid -> ProcessorRunner.Outcome.Rejected(validation.errorCode)
             is ImageValidator.ValidationResult.Valid -> processValidated(asset, input, validation)
@@ -62,7 +64,8 @@ class MediaProcessingHandler(
     private fun processValidated(asset: AssetRow, input: java.nio.file.Path,
         validation: ImageValidator.ValidationResult.Valid): ProcessorRunner.Outcome {
         val error = when {
-            !java.security.MessageDigest.isEqual(validation.inputHash, asset.processingInputHash) -> "INPUT_CHECKSUM_MISMATCH"
+            !java.security.MessageDigest.isEqual(validation.inputHash, asset.processingInputHash) ->
+                "INPUT_CHECKSUM_MISMATCH"
             !ImageEnvelope.complete(Files.readAllBytes(input), validation.format) -> "INVALID_IMAGE_ENVELOPE"
             else -> null
         }
@@ -79,7 +82,8 @@ class MediaProcessingHandler(
             check(current?.processingWorkId == claim.workId && current.state == AssetState.PROCESSING)
             when (outcome) {
                 is ProcessorRunner.Outcome.Success -> completeReady(connection, asset.id, outcome)
-                is ProcessorRunner.Outcome.Rejected -> check(AssetSql.markRejected(connection, asset.id, outcome.errorCode) == 1)
+                is ProcessorRunner.Outcome.Rejected ->
+                    check(AssetSql.markRejected(connection, asset.id, outcome.errorCode) == 1)
             }
             completeReceipt(connection, asset, outcome is ProcessorRunner.Outcome.Success)
             true
@@ -87,7 +91,8 @@ class MediaProcessingHandler(
 
     private fun completion(outcome: ProcessorRunner.Outcome): WorkAttemptCompletion = when (outcome) {
         is ProcessorRunner.Outcome.Success -> WorkAttemptCompletion(AttemptOutcome.SUCCEEDED, null, "DONE")
-        is ProcessorRunner.Outcome.Rejected -> WorkAttemptCompletion(AttemptOutcome.PERMANENT, outcome.errorCode, "EXHAUSTED")
+        is ProcessorRunner.Outcome.Rejected ->
+            WorkAttemptCompletion(AttemptOutcome.PERMANENT, outcome.errorCode, "EXHAUSTED")
     }
 
     private fun completeReceipt(connection: Connection, asset: AssetRow, success: Boolean) {

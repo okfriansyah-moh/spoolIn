@@ -61,39 +61,41 @@ class HoldRpc(
         committed
     }
 
-    private fun verifyExisting(command: HoldCommand, existing: HoldRecord?) {
-        if (existing != null && (existing.asset != command.asset || existing.title != command.title)) {
-            throw Status.ALREADY_EXISTS.withDescription("HOLD_TUPLE_CONFLICT").asRuntimeException()
-        }
-    }
-
     private fun mutate(connection: Connection, command: HoldCommand, existing: HoldRecord?) {
         val updated = when (command.action) {
-            HoldAction.RESERVE -> reserve(connection, command, existing)
-            HoldAction.CONFIRM -> confirm(connection, command, existing)
-            HoldAction.RELEASE -> release(connection, command, existing)
+            HoldAction.RESERVE -> reserveHold(connection, command, existing)
+            HoldAction.CONFIRM -> confirmHold(connection, command, existing)
+            HoldAction.RELEASE -> releaseHold(connection, command, existing)
         }
         if (updated != 1) throw Status.FAILED_PRECONDITION.withDescription("HOLD_STATE_CONFLICT").asRuntimeException()
-    }
-
-    private fun reserve(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int =
-        if (existing == null) HoldSql.insertReserved(connection, command.hold, command.asset, command.title)
-        else if (existing.state == "RESERVED") 1 else 0
-
-    private fun confirm(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int = when (existing?.state) {
-        "RESERVED" -> HoldSql.confirmActive(connection, command.hold, requireNotNull(command.version))
-        "ACTIVE" -> if (existing.version == command.version) 1 else 0
-        else -> 0
-    }
-
-    private fun release(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int = when (existing?.state) {
-        "RESERVED", "ACTIVE" -> HoldSql.release(connection, command.hold, requireNotNull(command.version))
-        "RELEASED" -> 1
-        else -> 0
     }
 
     private fun projection(hold: HoldRecord, command: HoldCommand): Attachment = Attachment.newBuilder()
         .setHoldId(hold.id.toString()).setState(hold.state).setAssetId(hold.asset.toString())
         .setTitleId(hold.title.toString()).setActorId(command.actor.toString())
         .also { builder -> hold.version?.let { builder.catalogVersion = it } }.build()
+}
+
+private fun verifyExisting(command: HoldCommand, existing: HoldRecord?) {
+    if (existing != null && (existing.asset != command.asset || existing.title != command.title)) {
+        throw Status.ALREADY_EXISTS.withDescription("HOLD_TUPLE_CONFLICT").asRuntimeException()
+    }
+}
+
+private fun reserveHold(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int =
+    if (existing == null) HoldSql.insertReserved(connection, command.hold, command.asset, command.title)
+    else if (existing.state == "RESERVED") 1 else 0
+
+private fun confirmHold(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int =
+    when (existing?.state) {
+    "RESERVED" -> HoldSql.confirmActive(connection, command.hold, requireNotNull(command.version))
+    "ACTIVE" -> if (existing.version == command.version) 1 else 0
+    else -> 0
+}
+
+private fun releaseHold(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int =
+    when (existing?.state) {
+    "RESERVED", "ACTIVE" -> HoldSql.releaseHold(connection, command.hold, requireNotNull(command.version))
+    "RELEASED" -> 1
+    else -> 0
 }

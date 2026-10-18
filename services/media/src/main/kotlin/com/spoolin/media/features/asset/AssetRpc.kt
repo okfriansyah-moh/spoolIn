@@ -61,7 +61,8 @@ class AssetRpc(
                 val current = access.current(hold)
                 current.holdId == hold.toString() && current.assetId == asset.id.toString() &&
                     current.titleId == title.toString() && current.hasActorId() &&
-                    current.actorId == asset.actorId.toString() && current.state in setOf("PREPARING", "ACTIVE", "RELEASED")
+                    current.actorId == asset.actorId.toString() &&
+                    current.state in setOf("PREPARING", "ACTIVE", "RELEASED")
             }
             else -> false
         }
@@ -88,11 +89,6 @@ class AssetRpc(
         }
     }
 
-    private fun readable(row: AssetRow?): AssetRow {
-        if (row == null || row.state != AssetState.READY) throw Status.NOT_FOUND.asRuntimeException()
-        return row
-    }
-
     private fun authorized(id: UUID): AssetRow {
         val row = AssetSql.find(dataSource, id) ?: throw Status.NOT_FOUND.asRuntimeException()
         authorize(row)
@@ -108,27 +104,33 @@ class AssetRpc(
         if (!allowed) throw Status.NOT_FOUND.asRuntimeException()
     }
 
-    private fun <T> respond(response: StreamObserver<T>, result: () -> T) = protect(response) {
-        response.onNext(result()); response.onCompleted()
-    }
-
-    private fun <T> protect(response: StreamObserver<T>, operation: () -> Unit) {
-        try { operation() }
-        catch (failure: StatusRuntimeException) { response.onError(failure) }
-        catch (_: java.sql.SQLException) { unavailable(response) }
-        catch (_: java.io.IOException) { unavailable(response) }
-        catch (_: IllegalArgumentException) { unavailable(response) }
-        catch (_: IllegalStateException) { unavailable(response) }
-        catch (_: SecurityException) { unavailable(response) }
-        catch (_: java.security.GeneralSecurityException) { unavailable(response) }
-        catch (_: UnsupportedOperationException) { unavailable(response) }
-    }
-
-    private fun <T> unavailable(response: StreamObserver<T>) = response.onError(
-        Status.UNAVAILABLE.withDescription("ASSET_UNAVAILABLE").asRuntimeException(),
-    )
-
-    private fun parseId(value: String): UUID = runCatching {
-        UUID.fromString(value).also { require(it.toString() == value) }
-    }.getOrElse { throw Status.INVALID_ARGUMENT.asRuntimeException() }
 }
+
+private fun readable(row: AssetRow?): AssetRow {
+    if (row == null || row.state != AssetState.READY) throw Status.NOT_FOUND.asRuntimeException()
+    return row
+}
+
+private fun <T> respond(response: StreamObserver<T>, result: () -> T) = protect(response) {
+    response.onNext(result()); response.onCompleted()
+}
+
+private fun <T> protect(response: StreamObserver<T>, operation: () -> Unit) {
+    try { operation() }
+    catch (failure: StatusRuntimeException) { response.onError(failure) }
+    catch (_: java.sql.SQLException) { unavailable(response) }
+    catch (_: java.io.IOException) { unavailable(response) }
+    catch (_: IllegalArgumentException) { unavailable(response) }
+    catch (_: IllegalStateException) { unavailable(response) }
+    catch (_: SecurityException) { unavailable(response) }
+    catch (_: java.security.GeneralSecurityException) { unavailable(response) }
+    catch (_: UnsupportedOperationException) { unavailable(response) }
+}
+
+private fun <T> unavailable(response: StreamObserver<T>) = response.onError(
+    Status.UNAVAILABLE.withDescription("ASSET_UNAVAILABLE").asRuntimeException(),
+)
+
+private fun parseId(value: String): UUID = runCatching {
+    UUID.fromString(value).also { require(it.toString() == value) }
+}.getOrElse { throw Status.INVALID_ARGUMENT.asRuntimeException() }

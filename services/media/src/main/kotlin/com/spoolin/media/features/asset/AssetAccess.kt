@@ -22,7 +22,9 @@ class AssetAccess(private val dataSource: DataSource, private val catalog: Catal
     internal fun checkRead(local: AssetHold?, remote: Attachment, asset: UUID, hold: UUID, version: Long) {
         val active = local?.state in setOf("RESERVED", "ACTIVE") && remote.state == "ACTIVE"
         val current = remote.hasCatalogVersion() && remote.catalogVersion == version && version > 0
-        if (!sameReadTuple(local, remote, asset, hold) || !active || !current) throw Status.NOT_FOUND.asRuntimeException()
+        if (!sameReadTuple(local, remote, asset, hold) || !active || !current) {
+            throw Status.NOT_FOUND.asRuntimeException()
+        }
     }
 
     private fun sameReadTuple(local: AssetHold?, remote: Attachment, asset: UUID, hold: UUID): Boolean =

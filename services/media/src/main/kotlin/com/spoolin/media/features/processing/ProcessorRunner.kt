@@ -24,7 +24,8 @@ class ProcessorRunner(
         process(inputPath, outputDir, format, UUID.randomUUID())
 
     fun process(inputPath: Path, outputDir: Path, format: ImageFormat, assetId: UUID): Outcome {
-        val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(ProcessingBounds.MAX_WALL_SECONDS)
+        val deadline = System.nanoTime() +
+            java.util.concurrent.TimeUnit.SECONDS.toNanos(ProcessingBounds.MAX_WALL_SECONDS)
         val target = outputDir.resolve("$assetId.${format.label.lowercase()}")
         return if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)) inspect(target, format, outputDir, deadline)
         else encode(inputPath, outputDir, format, target, deadline)
@@ -109,19 +110,20 @@ class ProcessorRunner(
         else parseDimensions(Files.readString(header))
     }
 
-    private fun parseDimensions(header: String): Pair<Int, Int>? {
-        val fields = header.trim().split(' ').take(DIMENSION_FIELD_COUNT).map { it.toIntOrNull() }
-        if (fields.size != DIMENSION_FIELD_COUNT || fields.any { it == null }) return null
-        val width = requireNotNull(fields[0])
-        val height = requireNotNull(fields[1])
-        val bands = requireNotNull(fields[2])
-        return if (validDimensions(width, height, bands)) width to height else null
-    }
-
-    private fun validDimensions(width: Int, height: Int, bands: Int): Boolean =
-        width in 1..ProcessingBounds.MAX_DIMENSION_PX && height in 1..ProcessingBounds.MAX_DIMENSION_PX &&
-            bands in 1..ProcessingBounds.MAX_COLOR_BANDS && width.toLong() * height <= ProcessingBounds.MAX_PIXELS &&
-            width.toLong() * height * bands <= ProcessingBounds.MAX_DECODED_BYTES
 }
 
 private const val DIMENSION_FIELD_COUNT = 3
+
+private fun parseDimensions(header: String): Pair<Int, Int>? {
+    val fields = header.trim().split(' ').take(DIMENSION_FIELD_COUNT).map { it.toIntOrNull() }
+    if (fields.size != DIMENSION_FIELD_COUNT || fields.any { it == null }) return null
+    val width = requireNotNull(fields[0])
+    val height = requireNotNull(fields[1])
+    val bands = requireNotNull(fields[2])
+    return if (validDimensions(width, height, bands)) width to height else null
+}
+
+private fun validDimensions(width: Int, height: Int, bands: Int): Boolean =
+    width in 1..ProcessingBounds.MAX_DIMENSION_PX && height in 1..ProcessingBounds.MAX_DIMENSION_PX &&
+        bands in 1..ProcessingBounds.MAX_COLOR_BANDS && width.toLong() * height <= ProcessingBounds.MAX_PIXELS &&
+        width.toLong() * height * bands <= ProcessingBounds.MAX_DECODED_BYTES

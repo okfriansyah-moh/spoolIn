@@ -68,8 +68,10 @@ object HoldSql {
         ReceiptActivity.append(connection, command.operation, command.correlation, hold.id)
     }
 
-    fun insertReserved(connection: Connection, holdId: UUID, assetId: UUID, titleId: UUID): Int = connection.executeBound(
-        "INSERT INTO asset_reference (id,asset_id,title_id,state,updated_at) VALUES (?,?,?,'RESERVED',CURRENT_TIMESTAMP)",
+    fun insertReserved(connection: Connection, holdId: UUID, assetId: UUID, titleId: UUID): Int =
+        connection.executeBound(
+        "INSERT INTO asset_reference (id,asset_id,title_id,state,updated_at) " +
+            "VALUES (?,?,?,'RESERVED',CURRENT_TIMESTAMP)",
         holdId, assetId, titleId,
     )
 

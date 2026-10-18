@@ -19,6 +19,8 @@ class CodecSandbox {
         val output = scratch.resolve(outputName)
         Files.deleteIfExists(output)
         Files.createFile(output)
+        val outputLimit = if (outputName == "dimensions") ProcessingBounds.MAX_HEADER_BYTES
+            else ProcessingBounds.MAX_OUTPUT_BYTES
         val command = listOf(
             "/usr/bin/bwrap", "--unshare-all", "--die-with-parent", "--new-session",
             "--ro-bind", "/usr", "/usr", "--ro-bind", "/lib", "/lib",
@@ -31,7 +33,7 @@ class CodecSandbox {
             "--setenv", "LD_LIBRARY_PATH", "/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/aarch64-linux-gnu",
             "--setenv", "TMPDIR", "/tmp", "--setenv", "VIPS_CONCURRENCY", "1",
             "/usr/bin/prlimit", "--as=268435456", "--cpu=5",
-            "--fsize=${if (outputName == "dimensions") ProcessingBounds.MAX_HEADER_BYTES else ProcessingBounds.MAX_OUTPUT_BYTES}",
+            "--fsize=$outputLimit",
             "--nofile=64", "--",
         ) + codecArguments
         return try { boundedProcess(command, deadline) }
