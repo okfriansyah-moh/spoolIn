@@ -284,8 +284,13 @@ export class MovieEditorController {
       message: 'Started a new draft. Other retained drafts remain available after reload.' });
   }
 
+  private reviewedStale(reviewed: boolean): boolean {
+    return reviewed && this.current.phase === 'stale' && this.current.staleReviewOpen;
+  }
+
   async rebaseAfterReview(reviewed: boolean): Promise<void> {
-    if (!reviewed || this.current.phase !== 'stale' || !this.current.staleReviewOpen || !this.writeContext || !this.movieId) return;
+    if (!this.reviewedStale(reviewed)) return;
+    if (!this.writeContext || !this.movieId) return;
     const reviewedVersion = this.current.current?.version;
     try {
       const latest = await fetchManagedMovie(this.request, this.movieId, this.writeContext.csrf);
@@ -309,20 +314,28 @@ export class MovieEditorController {
     }
   }
 
+  private rebaseText<K extends 'title' | 'synopsis'>(field: K, latest: NonNullable<EditorState['saved']>): string {
+    const value = this.current.draft[field];
+    return value !== undefined && value !== this.current.saved?.[field] ? value ?? '' : latest[field];
+  }
+
+  private rebaseRelease(latest: NonNullable<EditorState['saved']>): NonNullable<MovieDraft['release']> {
+    const release = this.current.draft.release;
+    if (release?.year !== undefined && String(release.year ?? '') !== this.current.saved?.releaseYear) return release;
+    return movieToDraft(latest).release ?? { year: null, month: null, day: null };
+  }
+
+  private rebaseGenres(latest: NonNullable<EditorState['saved']>): readonly string[] {
+    const baseGenres = [...(this.current.saved?.genreIds ?? [])].sort().join(',');
+    const draftGenres = [...(this.current.draft.genreIds ?? this.current.saved?.genreIds ?? [])].sort().join(',');
+    return draftGenres !== baseGenres ? this.current.draft.genreIds ?? [] : latest.genreIds;
+  }
+
   private rebaseDraft(latest: NonNullable<EditorState['saved']>): MovieDraft {
-    const base = this.current.saved;
-    const draft = this.current.draft;
-    const defaults = movieToDraft(latest);
-    if (!base || !this.current.draftBaseKnown) return draft;
-    const baseGenres = [...base.genreIds].sort().join(',');
-    const draftGenres = [...(draft.genreIds ?? base.genreIds)].sort().join(',');
-    return { ...defaults,
-      title: draft.title !== undefined && draft.title !== base.title ? draft.title ?? '' : latest.title,
-      synopsis: draft.synopsis !== undefined && draft.synopsis !== base.synopsis ? draft.synopsis ?? '' : latest.synopsis,
-      originalTitle: this.originalTitleTouched ? draft.originalTitle ?? null : latest.originalTitle,
-      genreIds: draftGenres !== baseGenres ? draft.genreIds ?? [] : latest.genreIds,
-      release: draft.release?.year !== undefined && String(draft.release.year ?? '') !== base.releaseYear
-        ? draft.release : defaults.release ?? { year: null, month: null, day: null },
+    if (!this.current.saved || !this.current.draftBaseKnown) return this.current.draft;
+    return { ...movieToDraft(latest), title: this.rebaseText('title', latest), synopsis: this.rebaseText('synopsis', latest),
+      originalTitle: this.originalTitleTouched ? this.current.draft.originalTitle ?? null : latest.originalTitle,
+      genreIds: this.rebaseGenres(latest), release: this.rebaseRelease(latest),
     };
   }
 
@@ -337,22 +350,18 @@ export class MovieEditorController {
     return false;
   }
 
+  private submissionBlocked(): boolean {
+    return !!this.pendingWriteId || this.current.draftChoices.length > 0
+      || ['submitting', 'uncertain', 'stale', 'target-changed'].includes(this.current.phase)
+      || (this.mode === 'create' && this.current.saved !== null);
+  }
+
   private beginSubmit(): {
     operationId: string;
     generation: number;
     signal: AbortSignal;
   } | null {
-    if (
-      this.pendingWriteId ||
-      this.current.draftChoices.length > 0 ||
-      this.current.phase === 'submitting' ||
-      this.current.phase === 'uncertain' ||
-      this.current.phase === 'stale' ||
-      this.current.phase === 'target-changed' ||
-      (this.mode === 'create' && this.current.saved !== null)
-    ) {
-      return null;
-    }
+    if (this.submissionBlocked()) return null;
     if (!this.writeContext || !this.policy) return null;
     const fieldErrors = validateMovieDraft(
       this.current.draft,

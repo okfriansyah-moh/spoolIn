@@ -218,8 +218,13 @@ export class PersonEditorController {
       message: 'Started a new draft. Other retained drafts remain available after reload.' });
   }
 
+  private reviewedStale(reviewed: boolean): boolean {
+    return reviewed && this.current.phase === 'stale' && this.current.staleReviewOpen;
+  }
+
   async rebaseAfterReview(reviewed: boolean): Promise<void> {
-    if (!reviewed || this.current.phase !== 'stale' || !this.current.staleReviewOpen || !this.writeContext || !this.personId) return;
+    if (!this.reviewedStale(reviewed)) return;
+    if (!this.writeContext || !this.personId) return;
     const reviewedVersion = this.current.current?.version;
     try {
       const latest = await fetchManagedPerson(this.request, this.personId, this.writeContext.csrf);
@@ -265,22 +270,18 @@ export class PersonEditorController {
     return false;
   }
 
+  private submissionBlocked(): boolean {
+    return !!this.pendingWriteId || this.current.draftChoices.length > 0
+      || ['submitting', 'uncertain', 'stale', 'target-changed'].includes(this.current.phase)
+      || (this.mode === 'create' && this.current.saved !== null);
+  }
+
   private beginSubmit(): {
     operationId: string;
     generation: number;
     signal: AbortSignal;
   } | null {
-    if (
-      this.pendingWriteId ||
-      this.current.draftChoices.length > 0 ||
-      this.current.phase === 'submitting' ||
-      this.current.phase === 'uncertain' ||
-      this.current.phase === 'stale' ||
-      this.current.phase === 'target-changed' ||
-      (this.mode === 'create' && this.current.saved !== null)
-    ) {
-      return null;
-    }
+    if (this.submissionBlocked()) return null;
     if (!this.writeContext || !this.policy) return null;
     const fieldErrors = validatePersonDraft(this.current.draft, this.policy);
     if (fieldErrors.length) {
