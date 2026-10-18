@@ -16,8 +16,13 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 /** Explicit synthetic SQL setup; requests exercise production handlers over real mTLS/PostgreSQL. */
-internal class PublicCatalogReadFixture : AutoCloseable {
-    val fixture = CryptoFixture("catalog-public-read-boundary.json")
+internal class PublicCatalogReadFixture(
+    private val policy: () -> com.spoolin.support.policy.PublicPolicy = {
+        com.spoolin.support.policy.PolicySettings.resolve(com.spoolin.support.policy.ConfigurationSources())
+    },
+    private val proof: com.spoolin.integration.identity.SignedReceiptFixture? = null,
+) : AutoCloseable {
+    val fixture = proof?.fixture ?: CryptoFixture("catalog-public-read-boundary.json")
     private val transport = ScopedActorTest()
     private val owner = fixture.owner
     val pool = migrate().let { owner.pool("catalog") }
@@ -28,21 +33,72 @@ internal class PublicCatalogReadFixture : AutoCloseable {
     private val cursor = ByteArray(32) { 17 }
     private val rpc =
         CatalogServiceRpc(
-            TitleSearchSql(pool),
-            PersonSearch(pool),
+            TitleSearchSql(pool, policy),
+            PersonSearch(pool, policy),
             TaxonomyReads(pool),
             ProvenanceReads(pool),
             OwnerReceiptReads(pool),
             ReceiptAuthority { null },
             CatalogCursor(cursor),
             PeopleCursor(cursor),
+            managedReads = com.spoolin.catalog.features.movie.ManagedMovieReads(
+                pool, ProvenanceReads(pool), TitleSearchSql(pool, policy),
+                com.spoolin.catalog.operations.audit.AuditReads(pool), policy,
+                com.spoolin.catalog.features.search.ManagedReadCursors(cursor),
+            ),
+            managedPersonReads = com.spoolin.catalog.features.person.read.ManagedPersonReads(
+                pool, policy, com.spoolin.catalog.features.search.ManagedReadCursors(cursor),
+            ),
+            managedCreditReads = com.spoolin.catalog.features.credit.ManagedCreditReads(
+                pool, policy, com.spoolin.catalog.features.search.ManagedReadCursors(cursor),
+            ),
+            policy = policy,
         )
-    val server = transport.server(owner.root, "catalog", rpc, com.spoolin.catalog.ServiceIdentityInterceptor())
+    val server = transport.server(owner.root, "catalog", rpc, interceptor())
     val caller = transport.channel(owner.root, "core", "catalog", server.port)
     val wrongCaller = transport.channel(owner.root, "mcp", "catalog", server.port)
 
     init {
         seed()
+    }
+
+    fun graphql(query: String): Map<String, Any?> {
+        val effective = policy()
+        val stub = spoolin.v1.CatalogServiceGrpc.newBlockingStub(caller)
+        val views = com.spoolin.core.boundary.graphql.PolicyGraphqlViews(
+            catalog = com.spoolin.core.features.catalogview.read.CatalogViewGraphql(stub, effective),
+        )
+        val schema = java.nio.file.Files.readString(owner.repository.resolve("contracts/graphql/schema.graphql"))
+        return com.spoolin.core.boundary.graphql.PolicyGraphql(
+            schema, com.spoolin.core.features.policy.PolicyProvider(effective), views,
+        ).execute(mapOf("query" to query))
+    }
+
+    private fun interceptor(): com.spoolin.catalog.ServiceIdentityInterceptor {
+        val authority = proof ?: return com.spoolin.catalog.ServiceIdentityInterceptor()
+        val live = com.spoolin.catalog.boundary.grpc.CatalogActors(
+            spoolin.v1.IdentityServiceGrpc.newBlockingStub(authority.identity),
+        )
+        val actors = com.spoolin.support.identity.ActorInterceptor(
+            "catalog", com.spoolin.catalog.boundary.grpc.CatalogActors.protectedMethods,
+            com.spoolin.support.identity.ActorVerifier(mapOf("key_A" to authority.pair.public)), live::check,
+        )
+        return com.spoolin.catalog.ServiceIdentityInterceptor(actors)
+    }
+
+    fun managed(method: String, credential: UUID? = null): spoolin.v1.CatalogServiceGrpc.CatalogServiceBlockingStub {
+        val authority = requireNotNull(proof)
+        val now = java.time.Instant.now().epochSecond
+        val claims = authority.claims.copy(
+            method = "/spoolin.v1.CatalogService/$method", credentialId = credential ?: authority.claims.credentialId,
+            operationId = UUID.randomUUID(), issuedAt = now, expiresAt = now + 30,
+            nonce = UUID.randomUUID().toString().replace("-", ""),
+        )
+        val headers = io.grpc.Metadata().apply {
+            put(com.spoolin.support.identity.ActorRpc.metadata, authority.signer.sign(claims))
+        }
+        return spoolin.v1.CatalogServiceGrpc.newBlockingStub(caller).withDeadlineAfter(3, TimeUnit.SECONDS)
+            .withInterceptors(io.grpc.stub.MetadataUtils.newAttachHeadersInterceptor(headers))
     }
 
     private fun migrate() {
@@ -107,7 +163,7 @@ internal class PublicCatalogReadFixture : AutoCloseable {
         caller.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
         server.shutdownNow().awaitTermination(5, TimeUnit.SECONDS)
         pool.close()
-        fixture.close()
+        if (proof == null) fixture.close()
     }
 
     companion object {

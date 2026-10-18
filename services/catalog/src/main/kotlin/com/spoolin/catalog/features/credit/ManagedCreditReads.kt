@@ -56,7 +56,8 @@ class ManagedCreditReads(
             page.rows.forEach { builder.addNodes(creditProto(it)) }
             page.endCursor?.let {
                 builder.endCursor = cursors.titles.encode(
-                    com.spoolin.catalog.features.search.CatalogCursor.Keyset(null, null, null, it), scope, cursors.now(),
+                    com.spoolin.catalog.features.search.CatalogCursor.Keyset(null, null, null, it),
+                    scope, cursors.now(),
                 )
             }
             builder.hasNextPage = page.hasNextPage

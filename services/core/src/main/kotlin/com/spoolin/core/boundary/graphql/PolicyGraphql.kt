@@ -73,12 +73,23 @@ class PolicyGraphql(
         when (failure) {
             is com.spoolin.core.features.ratelimit.RateLimited -> "RATE_LIMITED"
             is com.spoolin.core.features.account.application.CredentialRejected -> "UNAUTHENTICATED"
+            is io.grpc.StatusRuntimeException -> grpcFailureCode(failure)
             is com.spoolin.core.features.account.persistence.AccountIdentityConflict -> "FIELD_INVALID"
             is IllegalArgumentException -> "FIELD_INVALID"
             is com.spoolin.core.features.crypto.HashingBusy -> "RESOURCE_EXHAUSTED"
             is com.spoolin.core.features.account.application.AuthenticationDeadlineExceeded -> "DEADLINE_EXCEEDED"
             else -> "UNAVAILABLE"
         }
+
+    private fun grpcFailureCode(failure: io.grpc.StatusRuntimeException): String = when (failure.status.code) {
+        io.grpc.Status.Code.INVALID_ARGUMENT -> "FIELD_INVALID"
+        io.grpc.Status.Code.UNAUTHENTICATED -> "UNAUTHENTICATED"
+        io.grpc.Status.Code.PERMISSION_DENIED -> "FORBIDDEN"
+        io.grpc.Status.Code.NOT_FOUND -> "NOT_FOUND"
+        io.grpc.Status.Code.RESOURCE_EXHAUSTED -> "RESOURCE_EXHAUSTED"
+        io.grpc.Status.Code.DEADLINE_EXCEEDED -> "DEADLINE_EXCEEDED"
+        else -> "UNAVAILABLE"
+    }
 
     private fun failureDetails(errors: List<graphql.GraphQLError>): Map<String, Any?> {
         val exception = errors.filterIsInstance<graphql.ExceptionWhileDataFetching>().firstOrNull()?.exception

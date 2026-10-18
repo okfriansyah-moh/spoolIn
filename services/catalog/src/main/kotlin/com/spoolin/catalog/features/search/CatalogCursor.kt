@@ -14,6 +14,7 @@ private const val HMAC_ALGO = "HmacSHA256"
 private const val HMAC_LEN = 32
 private const val KEY_BYTES = 32
 private const val MAX_CURSOR_BYTES = 1024
+private const val MAX_ENCODED_BYTES = 1368
 private const val CURSOR_TTL_SECONDS = 900L // 15 minutes
 
 /**
@@ -65,7 +66,9 @@ class CatalogCursor(
         now: Instant,
     ): Keyset? =
         runCatching {
+            if (encoded.length > MAX_ENCODED_BYTES) return@runCatching null
             val bytes = Base64.getUrlDecoder().decode(encoded)
+            if (bytes.size > MAX_CURSOR_BYTES) return@runCatching null
             if (bytes.size < HMAC_LEN + 1) return@runCatching null
             val payload = bytes.copyOfRange(0, bytes.size - HMAC_LEN)
             val expected = mac(payload)

@@ -709,7 +709,9 @@ class CatalogServiceRpc(
 
     /** Scope binds the cursor to a specific target (title or person) to prevent cross-use. */
     private fun creditScope(targetId: UUID, kind: String, first: Int): String =
-        ReadPolicy(policy()).cursorScope("public-credits", first, mapOf("kind" to kind, "target" to targetId.toString()))
+        ReadPolicy(policy()).cursorScope(
+            "public-credits", first, mapOf("kind" to kind, "target" to targetId.toString()),
+        )
 
     private fun pageSize(first: Int): Int = readInput { ReadPolicy(policy()).rpcPageSize(first) }
 
