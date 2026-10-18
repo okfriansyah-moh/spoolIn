@@ -95,6 +95,35 @@ class RotationLifecycleIntegrationTest {
     }
 
     @Test
+    fun `running key provider loads newly staged IDs and rejects changed material for existing versions`() {
+        CryptoFixture("rotation-live-map.json").use { fixture ->
+            val map = fixture.owner.root.resolve("rotation-keys.json")
+            val next = fixture.owner.root.resolve("pii-next")
+            val material = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+            java.nio.file.Files.write(next, material)
+            java.nio.file.Files.setPosixFilePermissions(next, java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"))
+            val mounts = fixture.mounts + ("pii-next" to com.spoolin.core.features.crypto.KeyMount(KeyPurpose.PII, next))
+            val json = tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsBytes(mounts.mapValues { (_, value) ->
+                mapOf("purpose" to value.purpose.name, "file" to value.file.toString())
+            })
+            java.nio.file.Files.write(map, json)
+            java.nio.file.Files.setPosixFilePermissions(map, java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"))
+            com.spoolin.core.features.crypto.MountedKeys(fixture.mounts, map).use { runtime ->
+                val loaded = requireNotNull(runtime.key("pii-next", KeyPurpose.PII))
+                try { org.junit.jupiter.api.Assertions.assertArrayEquals(material, loaded) } finally { loaded.fill(0) }
+                val replacement = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+                java.nio.file.Files.write(next, replacement)
+                org.junit.jupiter.api.Assertions.assertThrows(com.spoolin.core.features.crypto.ProtectionUnavailable::class.java) {
+                    runtime.key("unregistered-next", KeyPurpose.PII)
+                }
+                val retained = requireNotNull(runtime.key("pii-next", KeyPurpose.PII))
+                try { org.junit.jupiter.api.Assertions.assertArrayEquals(material, retained) } finally { retained.fill(0); replacement.fill(0) }
+            }
+            material.fill(0)
+        }
+    }
+
+    @Test
     fun `missing material and incompatible target fail without promoting an unverified write key`() {
         CryptoFixture("rotation-failure.json").use { fixture ->
             val before = fixture.registry.writeKey(KeyPurpose.PII).id
