@@ -14,7 +14,6 @@ SpoolIn is a movie catalog for people who want to discover films and maintain th
   - [Start and sign in](#start-and-sign-in)
   - [Everyday commands](#everyday-commands)
   - [Troubleshooting](#troubleshooting)
-  - [Source development](#source-development)
   - [Verification limits](#verification-limits)
 - [Use SpoolIn](#use-spoolin)
   - [Browse and search](#browse-and-search)
@@ -29,6 +28,8 @@ SpoolIn is a movie catalog for people who want to discover films and maintain th
   - [Use a smaller screen](#use-a-smaller-screen)
 - [How it works](#how-it-works)
 - [Develop and test](#develop-and-test)
+  - [Source development](#source-development)
+  - [Test scope](#test-scope)
 - [AI assistance](#ai-assistance)
 - [Project references](#project-references)
 
@@ -46,7 +47,7 @@ Use this guide if you're starting from a computer that doesn't have development 
 
 ### Before you start
 
-You need an internet connection for the first download, permission to install software, and enough free storage for container images and build dependencies. Docker runs Linux containers, including on macOS and Windows. Check Docker's linked requirements for your operating system and hardware before installing it. The documentation work used a Docker environment with 8 GiB of memory and 8 CPUs; it had about 15 GiB free before builds. These are observed development resources, not established minimum requirements. Container builds can need additional disk space as caches grow.
+You need an internet connection for the first download, permission to install software, and enough free storage for container images and build dependencies. Docker runs Linux containers, including on macOS and Windows. Check Docker's linked requirements for your operating system and hardware before installing it. Local startup was exercised with 8 GiB of Docker memory, 8 CPUs, and about 15 GiB of free storage before builds. These are observed development resources, not established minimum requirements. Container builds can need additional disk space as caches grow.
 
 | Tool | Why you need it |
 | --- | --- |
@@ -206,7 +207,7 @@ cd spoolIn
 git switch codex/remote-acceptance-closure
 ```
 
-The local helpers are currently on PR #10's `codex/remote-acceptance-closure` branch, so switch to it before setup. `git clone` creates the `spoolIn` folder. You only need it once. If you already have this repository, open its folder with `cd` and continue. Every `make local-*` command below runs from the folder containing `Makefile`.
+The `codex/remote-acceptance-closure` branch includes the local setup helpers used here. `git clone` creates the `spoolIn` folder. You only need it once. If you already have this repository, open its folder with `cd` and continue. Every `make local-*` command below runs from the folder containing `Makefile`.
 
 ### Start and sign in
 
@@ -272,23 +273,21 @@ Seed data provides 100 movies and 100 TV entries, plus people, genres, and credi
 
 ### Everyday commands
 
-```bash
-make local-status
-make local-logs
-make local-stop
-make local-start
-make local-test
-```
+Run these commands from the repository folder when you need the corresponding action:
 
-`make local-test` runs the setup-helper regression suite, builds the app, runs npm type checks, frontend and MCP coverage tests, and Gradle test tasks. Some backend tests use isolated database fixtures. The separately named `integrationTest` tasks and browser acceptance suites are not part of this command.
+| Command | What it does |
+| --- | --- |
+| `make local-setup` | Prepares configuration and preserves existing credentials |
+| `make local-start` | Builds and starts services, loads seed data, and checks readiness and codec isolation |
+| `make local-status` | Checks container state, service readiness, and codec isolation |
+| `make local-logs` | Prints the latest 200 log lines per service, then returns to the terminal |
+| `make local-stop` | Stops the services while retaining data and artwork |
+| `make local-test` | Runs the container-based checks described in [Test scope](#test-scope) |
+| `make local-reset` | Requests confirmation before deleting local data, credentials, and build caches |
 
-Container builds keep Linux dependencies in dedicated Docker volumes, so they preserve any Node dependencies installed on your host. Reset removes these build caches too.
+Container builds keep Linux dependencies in dedicated Docker volumes, preserving Node dependencies installed on your host. Stop and start reuse the same installation.
 
-Its temporary backend test container receives access to your local Docker engine so Testcontainers can start and remove isolated PostgreSQL fixtures. Application containers do not receive this socket. Remote Docker endpoints are not supported by this helper.
-
-Status checks service readiness and codec isolation as well as container state. Logs print the most recent 200 lines per service, then return to your terminal. Stop retains the database and artwork. Start brings the same installation back.
-
-To update this PR branch in a checkout without local source edits:
+To update your checkout when you have no local source edits:
 
 ```bash
 make local-stop
@@ -332,40 +331,19 @@ The [Media isolation policy](docs/release/media-sandbox-policy.md) describes dep
 
 The local profile does not load the production AppArmor policy and is not equivalent to the production environment. Use trusted sample images on your development computer. Local helpers keep deployment configuration separate; don't substitute deployment `make start` for `make local-start`.
 
-### Source development
-
-You can run the whole application in Docker while editing source files. Rerun `make local-start` to build source changes and start the updated services. `make local-setup` prepares configuration; it doesn't build source. For checks directly on the host, install the pinned Node.js `24.21.0`, npm `11.19.0`, and Java 21 toolchains. The repository helper `ops/bin/toolchain-env.sh` recognizes the documented local tool locations; it doesn't install missing toolchains.
-
-From the repository root:
-
-```bash
-npm ci
-npm run generate
-npm run check
-npm run build
-npm run test:coverage --workspace frontend
-./gradlew test
-```
-
-Contract generation requires Java and Node; generated interfaces must match the checked-in schemas. `npm run dev --workspace frontend` starts only Vite, not the backend or database. Use the Docker workflow for the complete application.
-
-`make test-unit` and `make test-integration` use the repository's task-aware verification runners. Integration checks require isolated fixture configuration; follow the [verification workflow](docs/07-harness-workflow.md) and never point test helpers at data you want to keep. Running the application doesn't require installing AI clients, workflow hooks, or external chat integrations.
-
 ### Verification limits
 
 The local workflow and browser walkthrough were exercised on macOS with Docker Desktop and Docker Engine `29.8.2`, running Linux ARM64 containers. Installer commands were checked against the linked vendor guides; this was not a fresh operating-system installation. Windows/WSL2 and native Ubuntu instructions received source inspection only.
 
-Platform instructions follow the linked vendor installation guides. Successful tool installation depends on your OS version, virtualization settings, and Docker security support. The delivery report records which platforms and application journeys were actually run. Historical release evidence and remaining acceptance work are retained in [the release handoff](docs/release/handoff.md); screenshots alone don't establish every acceptance case.
+Platform instructions follow the linked vendor installation guides. Successful tool installation depends on your OS version, virtualization settings, and Docker security support. Historical results and outstanding browser, accessibility, external-client, and production verification are recorded in [the release handoff](docs/release/handoff.md) and [release verification record](docs/release/remote-acceptance-assessment.json).
 
 ## Use SpoolIn
 
-The screenshots include fictional walkthrough records alongside the seeded catalog. Seed data does not include poster files; the lighthouse poster was uploaded through the application.
+The screenshots show fictional walkthrough records alongside the seeded catalog. The lighthouse poster was uploaded through the application.
 
 ### Browse and search
 
 The **Catalog** page lists movies with poster artwork. Select a movie to open its details. Use search when you know part of a title; filters help narrow the catalog. Wait for results to finish loading before changing your search again. An empty result means the current search has no matches; clear it or broaden the filters to return to browsing.
-
-![Movie catalog showing artwork and browsing controls](docs/assets/spoolin/catalog.png)
 
 ### Explore a movie
 
@@ -387,7 +365,7 @@ Open **People** to browse or search for someone by name. A person's profile conn
 | Viewer | Browse with a signed-in account |
 | Maintainer | Maintain movies, people, credits, artwork, and archived records |
 
-Choose **Sign in** to use the credentials from `.local/accounts.txt`. The local setup creates a Viewer and a Maintainer for trying both experiences. Keep those passwords private. **Register** creates a Viewer account; it doesn't grant Maintainer permissions.
+Follow the [initial sign-in steps](#start-and-sign-in) to use the local accounts. **Register** creates a Viewer account; catalog editing requires a Maintainer.
 
 When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.
 
@@ -425,7 +403,14 @@ Cancel applies to an active operation where the control is available. When the o
 
 Archiving removes a movie or person from active catalog browsing while retaining a recovery path. Open the record's management page, choose its archive action, and read the confirmation before proceeding. Inspect affected credits and the impact information shown for the operation.
 
-Use **Archives** in the navigation to review archived records and the actions available for them. Treat permanent deletion as a separate decision: read the impact preview and confirmation rather than assuming it behaves like archiving. **History** in the navigation helps Maintainers inspect recorded catalog changes.
+To restore or permanently delete an archived record:
+
+1. Sign in as a Maintainer and open **Archives**.
+2. Choose the **Movies** or **People** tab and find the record.
+3. Select **Restore** to return it to the active catalog, or **Delete permanently** to open its deletion confirmation.
+4. Read the displayed impact information before choosing **Permanently delete**. Permanent deletion is irreversible.
+
+Open **History** to inspect recorded catalog changes.
 
 ### Understand feedback
 
@@ -440,8 +425,6 @@ Use **Archives** in the navigation to review archived records and the actions av
 | Upload processing | Wait for server processing and attachment confirmation |
 | Permission or session problem | Sign in with the correct account role |
 | Read failure | Retry the read when offered; a read failure isn't proof that a write failed |
-
-Local startup disables external in-chat publication. The catalog and maintenance interface can be explored without connecting a chat provider. External proposal approval and production readiness have separate verification requirements described in the [release records](docs/release/handoff.md).
 
 ### Use a smaller screen
 
@@ -481,19 +464,47 @@ Local startup keeps browser access on your computer, disables external tunnel an
 
 ## Develop and test
 
-For source work, use the versions pinned in the repository: Java 21, Node.js `24.21.0`, and npm `11.19.0`. The Kotlin and Spring Boot versions are pinned in [the Gradle version catalog](gradle/libs.versions.toml). Use `./gradlew` for Gradle so you don't need a separate Gradle installation. The frontend currently pins Svelte `5.57.2` and SvelteKit `3.0.1`.
+### Source development
 
-The [development instructions](#source-development) explain dependency installation and checks. Unit tests cover frontend controllers and components, Kotlin service behavior, and supporting tooling. Integration and browser checks exercise separate boundaries and need their declared runtime prerequisites. A successful unit run does not establish that every browser, accessibility, or service integration requirement passed.
+You can run the whole application in Docker while editing source files. Rerun `make local-start` to build source changes and start the updated services. `make local-setup` prepares configuration; it doesn't build source. For checks directly on the host, install Node.js `24.21.0`, npm `11.19.0`, and Java 21. Kotlin and Spring Boot versions are pinned in [the Gradle version catalog](gradle/libs.versions.toml); frontend versions are pinned in [frontend/package.json](frontend/package.json). Use `./gradlew` to run the repository's Gradle wrapper without installing Gradle separately. The repository helper `ops/bin/toolchain-env.sh` recognizes the documented local tool locations; it doesn't install missing toolchains.
 
-The [acceptance specification](docs/05-atdd.md) defines expected behavior. The [release handoff](docs/release/handoff.md) and [release verification record](docs/release/remote-acceptance-assessment.json) retain outstanding verification and historical results; they aren't a claim that every specified case has passed.
+From the repository root:
+
+```bash
+npm ci
+npm run generate
+npm run check
+npm run build
+npm run test:coverage --workspace frontend
+./gradlew test
+```
+
+Contract generation requires Java and Node; generated interfaces must match the checked-in schemas. `npm run dev --workspace frontend` starts only Vite, not the backend or database. Use the Docker workflow for the complete application.
+
+`make test-unit` and `make test-integration` use the repository's task-aware verification runners. Integration checks require isolated fixture configuration; follow the [verification workflow](docs/07-harness-workflow.md) and never point test helpers at data you want to keep. Running the application doesn't require installing AI clients, workflow hooks, or external chat integrations.
+
+### Test scope
+
+`make local-test` builds the app and runs the setup-helper regressions, npm type checks, frontend and MCP coverage tests, and Gradle `test` tasks. Its temporary backend test container receives access to the local Docker engine so Testcontainers can manage isolated PostgreSQL fixtures. Application containers do not receive this socket; remote Docker endpoints are unsupported.
+
+The separately named `integrationTest` tasks and browser acceptance suites need their own runtime prerequisites and are not included in `make local-test`. See the [verification workflow](docs/07-harness-workflow.md) for those runners.
+
+Existing unit tests cover successful operations and failure boundaries. Examples include:
+
+| Area | Examples in the repository |
+| --- | --- |
+| Artwork file validation | [Allowed formats and byte limits](frontend/src/lib/features/artwork/file-validation.test.ts) |
+| Upload feedback | [Uncertain cancellation, rejected cancellation, and failed result lookup](frontend/src/lib/features/artwork/upload-controller.test.ts) |
+| Recovered drafts | [Editable person values, movie arrays, and nullable fields](services/core/src/test/kotlin/com/spoolin/core/features/draft/DraftProjectionRulesTest.kt) |
+| Media upload streams | [Valid headers and chunks, empty or oversized files, checksum mismatch, and cancellation](services/media/src/test/kotlin/com/spoolin/media/features/upload/ChunkSinkRulesTest.kt) |
+
+The [acceptance specification](docs/05-atdd.md) defines the wider expected behavior. These examples and unit-test results do not establish complete scenario, browser, accessibility, or integration coverage.
 
 ## AI assistance
 
-AI coding tools support development, documentation, and review in this repository. The project retains instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits.
+AI coding assistance was used for code changes, local setup scripts, documentation, and review notes. The project retains instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits.
 
-OpenAI image generation produced four fictional prototype artwork assets. Their purpose and provenance are recorded in [the artwork record](docs/design-system/mockup/assets/artwork-provenance.json); they are separate from production catalog seed data. Screenshots in the usage guide show the running application.
-
-The optional in-chat movie proposal feature is application functionality. Local setup disables publication through that integration, and its external-client acceptance remains separate from running the catalog locally.
+OpenAI image generation produced four fictional prototype artwork assets. Their purpose and provenance are recorded in [the artwork record](docs/design-system/mockup/assets/artwork-provenance.json); they are separate from production catalog seed data. The screenshots in [Use SpoolIn](#use-spoolin) show the running application.
 
 ## Project references
 
