@@ -8,6 +8,7 @@ import java.util.UUID
 
 internal class SeedStructure(
     private val namespace: UUID,
+    private val publicPages: Boolean = false,
 ) {
     fun identity(
         node: JsonNode,
@@ -33,8 +34,13 @@ internal class SeedStructure(
     }
 
     private fun validateSource(source: JsonNode) {
-        require(source.path("url").asText().startsWith("https://www.wikidata.org/wiki/"))
-        require(source.path("license").asText() == "CC0-1.0")
+        val uri = java.net.URI(source.path("url").asText())
+        require(uri.scheme == "https" && uri.host != null && uri.userInfo == null && uri.port == -1)
+        require(publicPages || source.path("url").asText().startsWith("https://www.wikidata.org/wiki/"))
+        require(
+            source.path("license").asText() == "CC0-1.0" ||
+                publicPages && source.path("license").asText() == "not-specified",
+        )
         require(source.path("permissionBasis").asText().isNotBlank())
         java.time.Instant.parse(source.path("retrievedAt").asText())
     }

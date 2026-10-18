@@ -15,18 +15,23 @@ class SeedManifest private constructor(
     val records: List<JsonNode> = root["records"].toList()
     val people: List<JsonNode> = root["people"].toList()
     val roles: List<JsonNode> = root["roles"].toList()
+    var baseline: SeedManifest? = null
+        private set
     val snapshotHash: ByteArray = SeedIdentities.hash(root)
+
+    val publicPages: Boolean = root.path("sourcePolicyVersion").asText() == "public-pages-v1"
 
     private fun validate() {
         validateHeader()
+        if (publicPages) SeedArtworkValidation.validate(this)
         validateCounts()
         validateDistribution()
-        val validation = SeedRecordValidation(namespace, people, roles)
+        val validation = SeedRecordValidation(namespace, people, roles, publicPages)
         records.forEach(validation::validateRecord)
         people.forEach(validation::validatePerson)
         roles.forEach(validation::validateRole)
         require(roles.map { it.path("label").asText() }.toSet() == setOf("Actor", "Director", "Writer", "Producer"))
-        require(root.path("files").isArray && root.path("files").size() == 0) {
+        require(root.path("files").isArray && (publicPages || root.path("files").size() == 0)) {
             "Unreviewed seed artwork is prohibited"
         }
     }
@@ -36,7 +41,7 @@ class SeedManifest private constructor(
         require(version.matches(Regex("[A-Za-z0-9_.-]{1,64}")))
         require(root.path("expectedMovieCount").asInt() == SeedLimits.MOVIES)
         require(root.path("expectedTVCount").asInt() == SeedLimits.SERIES)
-        require(root.path("sourcePolicyVersion").asText().isNotBlank())
+        require(root.path("sourcePolicyVersion").asText() in setOf("TD10.1-CC0-v1", "public-pages-v1"))
         require(root.path("licenseSummary").asText().isNotBlank())
         require(root.path("snapshotSHA256").asText() == SeedIdentities.hashHex(root)) {
             "Seed snapshot checksum mismatch"
@@ -68,7 +73,14 @@ class SeedManifest private constructor(
     companion object {
         fun read(path: Path): SeedManifest {
             val root = JsonMapper.builder().build().readTree(path.toFile())
-            return SeedManifest(root).also { it.validate() }
+            return SeedManifest(root).also {
+                it.validate()
+                if (it.publicPages) {
+                    require(root.path("baselineManifest").asText() == "baselines/wikidata-2026-10-v1.json")
+                    it.baseline = read(path.parent.resolve(root["baselineManifest"].asText()))
+                    SeedArtworkValidation.validateFiles(it, path.parent)
+                }
+            }
         }
 
         fun prepare(

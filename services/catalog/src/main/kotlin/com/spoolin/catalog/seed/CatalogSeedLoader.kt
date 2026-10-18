@@ -20,6 +20,8 @@ class CatalogSeedLoader(
     fun loadFromManifest(
         manifest: Path,
         seedVersion: String,
+        artworkInput: Path? = null,
+        artworkOutput: Path? = null,
     ): Int {
         val seed = SeedManifest.read(manifest)
         require(seedVersion == seed.version) { "Configured seed version differs from manifestVersion" }
@@ -27,7 +29,9 @@ class CatalogSeedLoader(
             connection.autoCommit = false
             try {
                 val inserted = applySeed(connection, seed, seedVersion)
+                val result = artworkResult(connection, seed, artworkInput)
                 connection.commit()
+                writeArtworkResult(result, artworkOutput)
                 inserted
             } finally {
                 connection.rollback()
@@ -35,12 +39,26 @@ class CatalogSeedLoader(
         }
     }
 
+    private fun writeArtworkResult(
+        result: Map<String, Any>?,
+        output: Path?,
+    ) {
+        if (result != null && output != null) mapper.writeValue(output.toFile(), result)
+    }
+
+    private fun artworkResult(
+        connection: Connection,
+        seed: SeedManifest,
+        input: Path?,
+    ): Map<String, Any>? = input?.let { SeedArtworkImport.apply(connection, seed, it) }
+
     private fun applySeed(
         connection: Connection,
         seed: SeedManifest,
         version: String,
     ): Int {
         lock(connection)
+        if (seed.publicPages) validateBaseline(connection, seed)
         val provenance = SeedProvenance(connection, seed, version)
         val inserted =
             if (existing(connection, seed, version)) {
@@ -59,6 +77,23 @@ class CatalogSeedLoader(
             }
         provenance.verify()
         return inserted
+    }
+
+    private fun validateBaseline(
+        connection: Connection,
+        seed: SeedManifest,
+    ) {
+        val versions =
+            connection.queryBound(
+                "SELECT seed_version FROM operation_receipt WHERE " +
+                    "receipt_type='CATALOG_INITIALIZATION' AND state='SUCCEEDED'",
+                emptyList(),
+            ) { it.getString("seed_version") }
+        if (versions.isEmpty() || seed.version in versions) return
+        val baseline = requireNotNull(seed.baseline)
+        require(baseline.version in versions) { "SEED_BASELINE_UNAVAILABLE" }
+        existing(connection, baseline, baseline.version)
+        SeedProvenance(connection, baseline, baseline.version).verify()
     }
 
     private fun lock(connection: Connection) {
@@ -155,7 +190,7 @@ class CatalogSeedLoader(
                 "distribution" to mapper.convertValue(seed.root["distribution"], Map::class.java),
                 "people" to seed.people.size,
                 "credits" to seed.records.sumOf { it["credits"].size() },
-                "artworkFiles" to 0,
+                "artworkFiles" to seed.root.path("files").size(),
             )
         connection.executeBound(
             "UPDATE operation_receipt SET state='SUCCEEDED',seed_movie_count=100,seed_tv_count=100," +

@@ -37,6 +37,11 @@ object SeedIdentities {
         version: String,
     ): UUID = uuid5(namespace, "initialization/catalog/CATALOG_INITIALIZATION/$version".toByteArray(Charsets.UTF_8))
 
+    fun named(
+        namespace: UUID,
+        name: String,
+    ): UUID = uuid5(namespace, name.toByteArray(Charsets.UTF_8))
+
     private fun uuid5(
         namespace: UUID,
         name: ByteArray,

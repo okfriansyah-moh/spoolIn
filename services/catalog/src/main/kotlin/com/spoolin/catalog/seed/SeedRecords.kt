@@ -55,12 +55,22 @@ internal object SeedRecords {
         provenance: SeedProvenance,
     ) {
         val id = UUID.fromString(node["stableUUID"].asText())
-        connection.executeBound(
-            "INSERT INTO person(id,name,biography,status,version) VALUES(?,?,?,'ACTIVE',0)",
-            id,
-            node["name"].asText(),
-            optionalText(node, "biography"),
-        )
+        val deleted =
+            connection
+                .queryBound(
+                    "SELECT subject_id FROM provenance_record WHERE subject_id=? AND deleted_at IS NOT NULL",
+                    listOf(id),
+                ) { 1 }
+                .isNotEmpty()
+        if (!deleted) {
+            connection.executeBound(
+                "INSERT INTO person(id,name,biography,status,version) VALUES(?,?,?,'ACTIVE',0) ON " +
+                    "CONFLICT(id) DO NOTHING",
+                id,
+                node["name"].asText(),
+                optionalText(node, "biography"),
+            )
+        }
         provenance.member(node, "PERSON")
         provenance.source(node, "PERSON", id)
     }
@@ -73,7 +83,7 @@ internal object SeedRecords {
         seed.records.flatMap { it["genres"].toList() }.distinctBy { it["externalId"].asText() }.associate { node ->
             val id = UUID.fromString(node["stableUUID"].asText())
             connection.executeBound(
-                "INSERT INTO genre(id,label,normalized_label) VALUES(?,?,?)",
+                "INSERT INTO genre(id,label,normalized_label) VALUES(?,?,?) ON CONFLICT(id) DO NOTHING",
                 id,
                 node["label"].asText(),
                 node["label"].asText().lowercase(Locale.ROOT),
@@ -95,6 +105,7 @@ internal object SeedRecords {
         plan: TitlePlan,
     ) {
         val id = UUID.fromString(node["stableUUID"].asText())
+        if (plan.seed.publicPages && SeedRefresh.existing(connection, node, provenance, plan)) return
         titleFields(connection, node)
         node["normalized"]["genreIds"].forEach { genre ->
             connection.executeBound(

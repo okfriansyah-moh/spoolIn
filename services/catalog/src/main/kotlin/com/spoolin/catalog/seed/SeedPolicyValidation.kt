@@ -157,15 +157,13 @@ class SeedPolicyValidation(
             exact(source["permissionBasis"], policy.textBounds.getValue("reuseBasis"), "reuseBasis")
             val uri = URI(url)
             require(
-                uri.scheme == "https" && uri.host == "www.wikidata.org" && uri.userInfo == null && uri.port == -1 &&
-                    uri.path.startsWith("/wiki/") && uri.path.length > WIKI_PREFIX_LENGTH,
+                uri.scheme == "https" && uri.host != null && uri.userInfo == null && uri.port == -1,
             ) { "Unsupported seed source URL" }
         }
     }
 
     companion object {
         private const val MAX_RUNTIME = 100000L
-        private const val WIKI_PREFIX_LENGTH = 6
         private const val SOURCE_ENVELOPE_BYTES = 16384
         private val mapper = JsonMapper.builder().build()
     }

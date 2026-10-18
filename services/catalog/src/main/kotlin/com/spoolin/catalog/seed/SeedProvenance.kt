@@ -22,12 +22,21 @@ class SeedProvenance(
         id: UUID = UUID.fromString(node["stableUUID"].asText()),
     ) {
         connection.executeBound(
-            "INSERT INTO seed_member(seed_id,member_key,subject_kind,subject_id,content_hash) VALUES(?,?,?,?,?)",
+            "INSERT INTO seed_member(seed_id,member_key,subject_kind,subject_id,content_hash) " +
+                "VALUES(?,?,?,?,?) ON CONFLICT(seed_id,member_key) DO NOTHING",
             version,
             key(node, kind),
             kind,
             id,
             SeedIdentities.hash(node),
+        )
+        connection.executeBound(
+            "UPDATE seed_member SET removed_at=p.deleted_at FROM provenance_record p " +
+                "WHERE seed_member.seed_id=? AND seed_member.member_key=? AND p.subject_id=? AND " +
+                "p.deleted_at IS NOT NULL",
+            version,
+            key(node, kind),
+            id,
         )
     }
 
@@ -40,14 +49,16 @@ class SeedProvenance(
         val first = node["sources"].first()
         connection.executeBound(
             "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,record_url," +
-                "retrieved_at,reuse_note,field_sources) VALUES(?,?,?,?,?,?,?,?::jsonb)",
+                "retrieved_at,reuse_note,field_sources) VALUES(?,?,?,?,?,?,?,?::jsonb) " +
+                "ON CONFLICT(source,external_id,subject_kind) DO NOTHING",
             node["source"].asText(),
             node["externalId"].asText(),
             kind,
             id,
             first["url"].asText(),
             Timestamp.from(Instant.parse(first["retrievedAt"].asText())),
-            "CC0-1.0 Wikidata facts; original factual synopsis where applicable",
+            if (seed.publicPages) "Public webpage source recorded; no open-license claim."
+            else "CC0-1.0 Wikidata facts; original factual synopsis where applicable",
             mapper.writeValueAsString(fields),
         )
     }

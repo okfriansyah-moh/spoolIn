@@ -51,7 +51,12 @@ fun runSeedCli(args: Array<String>) {
 private fun seedCommand(args: Array<String>) {
     val manifestArg = args.firstOrNull { it.startsWith("--seed-manifest=") } ?: usage()
     val manifest = Path.of(manifestArg.removePrefix("--seed-manifest="))
-    require(args.all { it.startsWith("--seed-manifest=") || it == "--validate-only" }) { "Unsupported seed argument" }
+    require(
+        args.all {
+            it.startsWith("--seed-manifest=") || it.startsWith("--seed-artwork-input=") ||
+                it.startsWith("--seed-artwork-output=") || it == "--validate-only"
+        },
+    ) { "Unsupported seed argument" }
     val environment = seedEnvironment()
     val policy = { PolicyEnvironment.resolve { environment.getProperty(it) } }
     if ("--validate-only" in args) {
@@ -70,7 +75,13 @@ private fun seedCommand(args: Array<String>) {
     val dataSource = DatabaseSettings.load(environment, "catalog", false).pool()
     dataSource.use { pool ->
         val loader = CatalogSeedLoader(pool, policy)
-        val inserted = loader.loadFromManifest(manifest, seedVersion)
+        val inserted =
+            loader.loadFromManifest(
+                manifest,
+                seedVersion,
+                args.firstOrNull { it.startsWith("--seed-artwork-input=") }?.substringAfter("=")?.let(Path::of),
+                args.firstOrNull { it.startsWith("--seed-artwork-output=") }?.substringAfter("=")?.let(Path::of),
+            )
         println("CatalogSeedLoader inserted $inserted titles for seed_version=$seedVersion")
     }
 }

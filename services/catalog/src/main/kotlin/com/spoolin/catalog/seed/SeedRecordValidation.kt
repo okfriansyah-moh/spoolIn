@@ -8,8 +8,9 @@ internal class SeedRecordValidation(
     namespace: UUID,
     private val people: List<JsonNode>,
     private val roles: List<JsonNode>,
+    private val publicPages: Boolean = false,
 ) {
-    private val structure = SeedStructure(namespace)
+    private val structure = SeedStructure(namespace, publicPages)
 
     fun validatePerson(person: JsonNode) {
         structure.identity(person, "PERSON")
@@ -37,7 +38,7 @@ internal class SeedRecordValidation(
         if (kind == "TV") validateSeries(values)
         validateGenres(record)
         record["credits"].forEach(::validateCredit)
-        require(record.path("artwork").isNull) { "Artwork requires a separately reviewed file license" }
+        require(publicPages || record.path("artwork").isNull) { "Artwork requires a separately reviewed file license" }
     }
 
     private fun validateSeries(values: JsonNode) {
