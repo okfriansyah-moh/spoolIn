@@ -15,7 +15,7 @@ depends_on:
 - T039
 - T043
 readiness: Ready
-status: Not started
+status: In progress
 risk: medium
 test_strategy: alongside
 visual_review: required

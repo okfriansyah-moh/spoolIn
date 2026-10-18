@@ -12,7 +12,7 @@ depends_on:
 - T023
 - T029
 readiness: Ready
-status: Not started
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: required

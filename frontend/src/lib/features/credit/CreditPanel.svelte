@@ -5,6 +5,9 @@
   import { createTransport } from '../../transport/graphql';
   import type { Policy } from '../../policy/types';
   import type { WriteContext } from '../movie/types';
+  import type { DraftSource } from '../draft/types';
+  import { recoverCatalogOperation } from '../movie/api';
+  import { CreditDraftSync } from './draft-sync';
   import {
     addCredit,
     fetchActivePeople,
@@ -19,12 +22,14 @@
     titleVersion,
     policy,
     context,
+    draftSource,
     onTitleVersionChange,
   }: {
     titleId: string;
     titleVersion: string;
     policy: Policy;
     context: WriteContext;
+    draftSource: DraftSource;
     onTitleVersionChange: (version: string) => void;
   } = $props();
 
@@ -41,6 +46,28 @@
   const selectedRole = $derived(
     roles.find((role) => role.id === roleId) ?? null,
   );
+
+  let draftSync = $state<CreditDraftSync | null>(null);
+
+  $effect(() => {
+    draftSync?.dispose();
+    draftSync = new CreditDraftSync(draftSource, titleId);
+    return () => draftSync?.dispose();
+  });
+
+  $effect(() => {
+    if (!draftSync || !personId || !roleId) return;
+    draftSync.schedule(
+      {
+        titleId,
+        personId,
+        roleId,
+        characters: parseCreditCharacters(selectedRole ?? undefined, characterText),
+      },
+      context,
+      titleVersion,
+    );
+  });
 
   onMount(() => {
     const transport = createTransport();
@@ -105,8 +132,16 @@
     );
     submitting = false;
     if (error) {
-      message = error;
-      return;
+      const receipt = await recoverCatalogOperation(
+        transport,
+        operationId,
+        context.csrf,
+        new AbortController().signal,
+      );
+      if (receipt?.state !== 'SUCCEEDED') {
+        message = error;
+        return;
+      }
     }
     const nextVersion = String(Number(titleVersion) + 1);
     onTitleVersionChange(nextVersion);
@@ -128,6 +163,11 @@
   {#if loading}
     <p role="status">Loading credits…</p>
   {:else}
+    {#if draftSync?.snapshot.unbacked}
+      <Notice title="Draft not backed up" tone="info">
+        <p>Recent credit edits could not be saved to a draft yet.</p>
+      </Notice>
+    {/if}
     {#if message}
       <Notice
         title={message.includes('duplicate') ? 'Review the credit' : 'Credits'}

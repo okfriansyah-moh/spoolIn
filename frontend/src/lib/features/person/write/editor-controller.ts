@@ -8,6 +8,8 @@ import {
   recoverCatalogOperation,
   updatePerson,
 } from './api';
+import type { DraftSource } from '../../draft/types';
+import { PersonDraftSync } from './draft-sync';
 import type { EditorState, ManagedPerson, WriteContext } from './types';
 import { EMPTY_PERSON_DRAFT } from './types';
 import { problemMessage, validatePersonDraft } from './validation';
@@ -46,13 +48,16 @@ export class PersonEditorController {
   private pendingWriteId: string | null = null;
   private writeGeneration = 0;
   private active: AbortController | null = null;
+  private readonly draftSync: PersonDraftSync;
 
   constructor(
     private readonly request: GraphqlRequest,
+    draftSource: DraftSource,
     private readonly mode: 'create' | 'edit',
     private readonly personId: string | null,
   ) {
     this.current = initialState(mode, personId);
+    this.draftSync = new PersonDraftSync(draftSource, personId);
   }
 
   subscribe(listener: (state: EditorState) => void): () => void {
@@ -68,6 +73,7 @@ export class PersonEditorController {
   ): Promise<void> {
     this.policy = policy;
     this.writeContext = context;
+    this.draftSync.reset({ catalogOperationId: null });
     if (this.mode === 'create') {
       this.publish({ ...this.current, summaryTitle: 'Create person' });
       return;
@@ -108,6 +114,10 @@ export class PersonEditorController {
         });
         return;
       }
+      this.draftSync.reset({
+        catalogOperationId: null,
+        expectedVersion: person.version,
+      });
       this.publish({
         ...this.current,
         saved: person,
@@ -128,6 +138,15 @@ export class PersonEditorController {
   updateDraft(next: PersonDraft): void {
     if (this.current.phase === 'submitting') return;
     this.publish({ ...this.current, draft: Object.freeze({ ...next }) });
+    if (this.writeContext && this.current.saved) {
+      this.draftSync.schedule(
+        next,
+        this.writeContext,
+        this.current.saved.version,
+      );
+    } else if (this.writeContext && this.mode === 'create') {
+      this.draftSync.schedule(next, this.writeContext, null);
+    }
   }
 
   toggleStaleReview(): void {
@@ -297,31 +316,54 @@ export class PersonEditorController {
   }
 
   async checkOriginalResult(): Promise<void> {
-    if (!this.writeContext || !this.pendingWriteId) return;
-    const operationId = this.pendingWriteId;
+    const operationId =
+      this.current.pendingOperationId ?? this.pendingWriteId ?? null;
+    if (!operationId || !this.writeContext) return;
     const signal = this.active?.signal ?? new AbortController().signal;
-    const receipt = await recoverCatalogOperation(
-      this.request,
-      operationId,
-      this.writeContext.csrf,
-      signal,
-    );
-    if (!receipt) {
+    try {
+      const receipt = await recoverCatalogOperation(
+        this.request,
+        operationId,
+        this.writeContext.csrf,
+        signal,
+      );
+      if (receipt?.state === 'SUCCEEDED') {
+        const personId = receipt.resultId ?? this.personId;
+        if (personId) await this.publishSavedPerson(personId);
+        this.pendingWriteId = null;
+        this.publish({
+          ...this.current,
+          phase: 'resolved',
+          pendingOperationId: null,
+          message:
+            'Original save confirmed. The current record has been refreshed; no repeat submission is needed.',
+        });
+        return;
+      }
+      if (receipt?.state === 'FAILED') {
+        this.pendingWriteId = null;
+        this.publish({
+          ...this.current,
+          phase: 'failed',
+          pendingOperationId: null,
+          message: problemMessage(receipt.problemCode),
+        });
+        return;
+      }
       this.publish({
         ...this.current,
         phase: 'uncertain',
         message:
-          'Save result not confirmed. Check again before submitting another save.',
+          'Save result not confirmed. Check the original operation before repeating it.',
       });
-      return;
+    } catch {
+      this.publish({
+        ...this.current,
+        phase: 'uncertain',
+        message:
+          'Save result not confirmed. Check the original operation before repeating it.',
+      });
     }
-    this.pendingWriteId = null;
-    this.publish({
-      ...this.current,
-      phase: 'resolved',
-      pendingOperationId: null,
-      message: 'Original save confirmed.',
-    });
   }
 
   private async finishWrite(
@@ -394,6 +436,7 @@ export class PersonEditorController {
 
   dispose(): void {
     this.active?.abort();
+    this.draftSync.dispose();
     this.listeners.clear();
   }
 
@@ -405,8 +448,9 @@ export class PersonEditorController {
 
 export function createPersonEditorController(
   request: GraphqlRequest,
+  draftSource: DraftSource,
   mode: 'create' | 'edit',
   personId: string | null,
 ): PersonEditorController {
-  return new PersonEditorController(request, mode, personId);
+  return new PersonEditorController(request, draftSource, mode, personId);
 }

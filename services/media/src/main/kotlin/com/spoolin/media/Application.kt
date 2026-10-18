@@ -148,6 +148,7 @@ class Application {
 }
 
 fun main(args: Array<String>) {
+    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env

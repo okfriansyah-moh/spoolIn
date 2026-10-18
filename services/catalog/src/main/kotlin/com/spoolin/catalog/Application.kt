@@ -145,6 +145,7 @@ class Application {
         movieLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.MovieLifecycle>,
         personLifecycleProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.PersonLifecycle>,
         deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
+        proposalWritesProvider: ObjectProvider<com.spoolin.catalog.features.proposal.ProposalWrites>,
     ): io.grpc.BindableService {
         val reads =
             com.spoolin.catalog.operations.receipts
@@ -189,6 +190,7 @@ class Application {
             movieLifecycle = movieLifecycleProvider.ifAvailable,
             personLifecycle = personLifecycleProvider.ifAvailable,
             deletionImpact = deletionImpactProvider.ifAvailable,
+            proposalWrites = proposalWritesProvider.ifAvailable,
         )
     }
 }
@@ -270,18 +272,46 @@ class CatalogWriteConfiguration {
     fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
             .ManagedCreditReads(dataSource)
+
+    @Bean
+    fun proposalMetrics(
+        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        dataSource: DataSource,
+    ): com.spoolin.catalog.operations.metrics.ProposalMetrics? =
+        registry.ifAvailable?.let { com.spoolin.catalog.operations.metrics.ProposalMetrics(it, dataSource) }
+
+    @Bean
+    fun proposalWrites(
+        dataSource: DataSource,
+        receipts: OwnerReceipts,
+        movieWrites: MovieWrites,
+        proposalMetrics: com.spoolin.catalog.operations.metrics.ProposalMetrics?,
+        environment: Environment,
+    ): com.spoolin.catalog.features.proposal.ProposalWrites =
+        com.spoolin.catalog.features.proposal.ProposalWrites(
+            dataSource,
+            receipts,
+            movieWrites,
+            proposalMetrics,
+            livePolicyRevision = { environment.getProperty("POLICY_REVISION", "default") ?: "default" },
+        )
 }
 
 fun main(args: Array<String>) {
-    if (args.contentEquals(arrayOf("--migrate"))) {
-        val environment =
-            org.springframework.core.env
-                .StandardEnvironment()
-        DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
-    } else {
-        check(args.isEmpty()) { "Use environment configuration; only --migrate is an accepted argument" }
-        org.springframework.boot.SpringApplication
-            .run(Application::class.java)
+    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    when {
+        args.contentEquals(arrayOf("--migrate")) -> {
+            val environment =
+                org.springframework.core.env
+                    .StandardEnvironment()
+            DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
+        }
+        args.any { it.startsWith("--seed-manifest=") } ->
+            com.spoolin.catalog.seed.runSeedCli(args)
+        args.isEmpty() ->
+            org.springframework.boot.SpringApplication
+                .run(Application::class.java)
+        else -> error("Use environment configuration; accepted args: --migrate, --seed-manifest=PATH")
     }
 }
 

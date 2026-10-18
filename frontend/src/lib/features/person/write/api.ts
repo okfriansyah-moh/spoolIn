@@ -153,12 +153,20 @@ export async function updatePerson(
   return personMutationOutcome(data.updatePerson, operationId);
 }
 
+export type RecoveredCatalogOperation = Readonly<{
+  operationId: string;
+  state: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED';
+  resultId: string | null;
+  version: string | null;
+  problemCode: string | null;
+}>;
+
 export async function recoverCatalogOperation(
   request: GraphqlRequest,
   operationId: string,
   csrf: string,
   signal: AbortSignal,
-) {
+): Promise<RecoveredCatalogOperation | null> {
   const data = record(
     await request(
       CATALOG_OPERATION_QUERY,
@@ -166,5 +174,18 @@ export async function recoverCatalogOperation(
       { csrf, signal },
     ),
   );
-  return recoverPersonOperation(data.operation, operationId);
+  const node = data.operation;
+  if (node === null) return null;
+  const receipt = recoverPersonOperation(node, operationId);
+  if (!receipt) return null;
+  const input = record(node);
+  const resultId = typeof input.resultId === 'string' ? input.resultId : null;
+  const version = typeof input.version === 'string' ? input.version : null;
+  return Object.freeze({
+    operationId: receipt.operationId,
+    state: receipt.state,
+    resultId,
+    version,
+    problemCode: receipt.problem?.code ?? null,
+  });
 }

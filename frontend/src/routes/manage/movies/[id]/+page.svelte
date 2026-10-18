@@ -110,6 +110,7 @@
       titleVersion={version}
       policy={sessionCtl.snapshot.policy}
       context={writeContext}
+      draftSource={createDraftSource(createTransport())}
       onTitleVersionChange={(next) => {
         creditTitleVersion = next;
       }}

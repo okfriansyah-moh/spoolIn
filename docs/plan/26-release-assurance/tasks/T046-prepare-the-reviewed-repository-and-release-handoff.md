@@ -17,7 +17,7 @@ depends_on:
 - T044
 - T045
 readiness: Ready
-status: Not started
+status: In progress
 risk: medium
 test_strategy: checks-only
 visual_review: not-applicable

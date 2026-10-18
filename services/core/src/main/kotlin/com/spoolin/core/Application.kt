@@ -1,7 +1,5 @@
 package com.spoolin.core
 
-import com.spoolin.core.features.policy.PolicyAccess
-import com.spoolin.core.features.policy.PolicyGateway
 import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.core.features.ratelimit.RateMaintenance
 import com.zaxxer.hikari.HikariConfig
@@ -124,18 +122,37 @@ class Application {
     @Bean
     fun identityService(
         sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
+        connectors: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.connector.ConnectorStore>,
     ): io.grpc.BindableService =
         com.spoolin.core.boundary.grpc
-            .IdentityRpc { sessions.ifAvailable }
+            .IdentityRpc({ sessions.ifAvailable }, { connectors.ifAvailable })
 
     @Bean
-    fun mcpGatewayService(provider: PolicyProvider): io.grpc.BindableService {
-        val access = PolicyAccess { false }
-        return PolicyGateway(provider, access)
-    }
+    @GlobalServerInterceptor
+    fun connectorAuth(): com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor =
+        com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor()
+
+    @Bean
+    fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService =
+        gateway
+
+    @Bean
+    fun workPendingMetrics(
+        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        dataSource: DataSource,
+    ): com.spoolin.core.operations.metrics.WorkPendingMetrics? =
+        registry.ifAvailable?.let { com.spoolin.core.operations.metrics.WorkPendingMetrics(it, dataSource) }
+
+    @Bean
+    fun alertRecorder(
+        dataSource: DataSource,
+        workPendingMetrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.operations.metrics.WorkPendingMetrics>,
+    ): com.spoolin.core.features.alerts.AlertRecorder =
+        com.spoolin.core.features.alerts.AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
 }
 
 fun main(args: Array<String>) {
+    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env

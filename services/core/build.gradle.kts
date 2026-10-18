@@ -63,6 +63,13 @@ springBoot { mainClass.set("com.spoolin.core.ApplicationKt") }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") { archiveClassifier.set("boot") }
 
+tasks.register<JavaExec>("keyRotationCli") {
+    group = "application"
+    description = "Execute Core KeyRotationPlan (ops/bin/rotate-keys.sh --execute)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.spoolin.core.features.crypto.rotation.KeyRotationCliKt")
+}
+
 val receiptIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
