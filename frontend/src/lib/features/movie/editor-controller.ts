@@ -13,7 +13,12 @@ import { MovieDraftSync } from './draft-sync';
 import { draftToCreateInput, draftToUpdatePatch, patchIsEmpty } from './patch';
 import { rebaseMovieMetadata } from './metadata';
 import { movieToDraft } from './projection';
-import type { EditorState, ManagedMovie, WriteContext } from './types';
+import type {
+  EditorState,
+  FieldError,
+  ManagedMovie,
+  WriteContext,
+} from './types';
 import { EMPTY_MOVIE_DRAFT } from './types';
 import { problemMessage, validateMovieDraft } from './validation';
 import type { DraftSource, DraftRecord } from '../draft/types';
@@ -485,8 +490,11 @@ export class MovieEditorController {
       ...this.current,
       phase: 'failed',
       pendingOperationId: null,
-      message:
-        'Changes are not backed up yet. Retry after the original draft save is confirmed.',
+      message: this.draftSync.snapshot.pendingOperationId
+        ? 'Changes are not backed up yet. Retry after the original draft save is confirmed.'
+        : this.draftSync.snapshot.failureCode === 'RATE_LIMITED'
+          ? 'Draft backup was rate limited. Your entries are retained. Wait before saving again.'
+          : 'Draft backup was rejected. Your entries are retained. Review the form and try saving again.',
     });
     return false;
   }
@@ -576,6 +584,7 @@ export class MovieEditorController {
       operationId,
       outcome.resultMovieId,
       outcome.resultVersion,
+      outcome.fieldErrors,
     );
   }
 
@@ -619,6 +628,7 @@ export class MovieEditorController {
       operationId,
       outcome.resultMovieId ?? this.movieId,
       outcome.resultVersion,
+      outcome.fieldErrors,
     );
   }
 
@@ -791,6 +801,7 @@ export class MovieEditorController {
     operationId: string,
     movieId: string | null,
     nextVersion?: string | null,
+    fieldErrors: readonly FieldError[] = [],
   ): Promise<void> {
     const { state } = receipt;
     if (receipt.resultExpired || state === 'EXPIRED') {
@@ -818,7 +829,7 @@ export class MovieEditorController {
     }
     if (state === 'FAILED') {
       this.pendingWriteId = null;
-      await this.finishFailedWrite(problemCode);
+      await this.finishFailedWrite(problemCode, fieldErrors);
       return;
     }
     this.pendingWriteId = operationId;
@@ -831,7 +842,10 @@ export class MovieEditorController {
     });
   }
 
-  private async finishFailedWrite(problemCode: string | null): Promise<void> {
+  private async finishFailedWrite(
+    problemCode: string | null,
+    fieldErrors: readonly FieldError[] = [],
+  ): Promise<void> {
     if (problemCode === 'STALE_VERSION') {
       await this.enterStaleReview();
       return;
@@ -840,8 +854,10 @@ export class MovieEditorController {
       ...this.current,
       phase: 'failed',
       pendingOperationId: null,
-      fieldErrors: Object.freeze([]),
-      message: problemMessage(problemCode),
+      fieldErrors: Object.freeze([...fieldErrors]),
+      message: fieldErrors.length
+        ? 'Changes were not saved. Review the highlighted fields.'
+        : problemMessage(problemCode),
     });
   }
 

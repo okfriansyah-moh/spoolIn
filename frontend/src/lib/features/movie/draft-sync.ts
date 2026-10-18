@@ -1,7 +1,16 @@
+import { TransportFailure } from '../../transport/graphql';
 import { AUTOSAVE_IDLE_MS } from '../draft/types';
 import type { DraftSource, DraftRecord, DraftReceipt } from '../draft/types';
 import type { MovieDraft } from '../../generated/json-types';
 import type { WriteContext } from './types';
+
+const rejectedDraftCodes = new Set([
+  'FIELD_INVALID',
+  'VALIDATION_FAILED',
+  'FORBIDDEN',
+  'UNAUTHENTICATED',
+  'RATE_LIMITED',
+]);
 
 type PendingDraft = Readonly<{
   operationId: string;
@@ -30,6 +39,7 @@ export class MovieDraftSync {
   } | null = null;
   private backed = false;
   private unbacked = false;
+  private failureCode: string | null = null;
   private queue: Promise<void> = Promise.resolve();
 
   constructor(
@@ -51,6 +61,7 @@ export class MovieDraftSync {
     this.expectedVersion = options.expectedVersion ?? null;
     this.backed = false;
     this.unbacked = false;
+    this.failureCode = null;
   }
 
   get snapshot() {
@@ -58,6 +69,7 @@ export class MovieDraftSync {
       backed: this.backed,
       unbacked: this.unbacked,
       pendingOperationId: this.pending?.operationId ?? null,
+      failureCode: this.failureCode,
     });
   }
 
@@ -129,11 +141,15 @@ export class MovieDraftSync {
       return;
     }
     try {
-      if (this.pending && !(await this.reconcile(context))) {
-        this.unbacked = true;
-        return;
+      if (this.pending) {
+        const confirmed = await this.reconcile(context);
+        if (!confirmed && this.pending) {
+          this.unbacked = true;
+          return;
+        }
       }
       this.backed = false;
+      this.failureCode = null;
       this.pending = {
         operationId: globalThis.crypto.randomUUID(),
         draftId: this.draftId,
@@ -147,10 +163,27 @@ export class MovieDraftSync {
           policyRevision: context.policyRevision,
         },
       };
-      const outcome = await this.sendPending(context);
+      const outcome = await this.sendNewPending(context);
+      this.failureCode = outcome.problemCode;
       this.accept(outcome.receipt);
     } catch {
       this.unbacked = true;
+    }
+  }
+
+  private async sendNewPending(context: WriteContext) {
+    try {
+      return await this.sendPending(context);
+    } catch (error) {
+      if (
+        error instanceof TransportFailure &&
+        error.kind === 'rejected' &&
+        rejectedDraftCodes.has(error.code)
+      ) {
+        this.pending = null;
+        this.failureCode = error.code;
+      }
+      throw error;
     }
   }
 
@@ -185,6 +218,7 @@ export class MovieDraftSync {
     this.pending = null;
     this.backed = true;
     this.unbacked = false;
+    this.failureCode = null;
     return true;
   }
 

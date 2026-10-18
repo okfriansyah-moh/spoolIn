@@ -70,6 +70,28 @@
   );
   let genreSearch = $state('');
   let genreOpen = $state(false);
+  let genreDisclosure = $state<HTMLDetailsElement>();
+
+  function dismissGenres(event: MouseEvent): void {
+    if (
+      genreOpen &&
+      genreDisclosure &&
+      !event.composedPath().includes(genreDisclosure)
+    )
+      genreOpen = false;
+  }
+
+  function closeGenres(): void {
+    genreOpen = false;
+    genreDisclosure?.querySelector('summary')?.focus({ preventScroll: true });
+  }
+
+  function genreKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && genreOpen) {
+      event.preventDefault();
+      closeGenres();
+    }
+  }
   let detailsOpen = $state(false);
   let lastFieldErrors: EditorState['fieldErrors'] | null = null;
   const optionalFieldErrorIds = new Set([
@@ -120,6 +142,8 @@
       (editorState.mode === 'create' && editorState.saved !== null),
   );
 </script>
+
+<svelte:window onclick={dismissGenres} onkeydown={genreKeydown} />
 
 <MovieSaveFeedback state={editorState} {onCheckOriginal} {onReviewStale} />
 
@@ -237,6 +261,7 @@
 
 <form
   id="movie-editor-form"
+  tabindex="-1"
   class="movie-editor-form"
   aria-label={editorState.mode === 'create' ? 'Create movie' : 'Edit movie'}
   onsubmit={(event) => {
@@ -336,7 +361,11 @@
         {/each}
       </ul>
     {/if}
-    <details class="genre-disclosure" bind:open={genreOpen}>
+    <details
+      class="genre-disclosure"
+      bind:this={genreDisclosure}
+      bind:open={genreOpen}
+    >
       <summary>
         {genreCount ? 'Change genres' : 'Choose genres'}
         <span class="disclosure-count">{genreCount} selected</span>
@@ -372,6 +401,9 @@
             </p>
           {/each}
         </div>
+        <button type="button" class="secondary" onclick={closeGenres}
+          >Close genres</button
+        >
       </div>
     </details>
     {#if errorFor('movie-genres')}
