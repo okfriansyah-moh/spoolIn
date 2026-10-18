@@ -38,7 +38,12 @@ class ProvenanceReads(
                    WHERE subject_id = ? AND subject_kind = ? AND deleted_at IS NULL
                    ORDER BY source ASC""",
                 listOf(subjectId, subjectKind),
-            ) { rs -> mapRow(rs) }
+            ) { rs -> mapRow(rs) } +
+                if (subjectKind == "TITLE") {
+                    SeedArtworkSources.read(conn, listOf(subjectId)).map { it.second }
+                } else {
+                    emptyList()
+                }
         }
 
     fun forSubjects(
@@ -58,7 +63,8 @@ class ProvenanceReads(
                             "WHERE subject_id IN ($placeholders) AND subject_kind=? AND deleted_at IS NULL " +
                             "ORDER BY subject_id,source ASC",
                         batch + subjectKind,
-                    ) { row -> row.getObject("subject_id", UUID::class.java) to mapRow(row) }
+                    ) { row -> row.getObject("subject_id", UUID::class.java) to mapRow(row) } +
+                        if (subjectKind == "TITLE") SeedArtworkSources.read(connection, batch) else emptyList()
                 }.groupBy({ it.first }, { it.second })
         }
     }

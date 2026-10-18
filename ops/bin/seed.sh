@@ -26,4 +26,9 @@ if [[ "$apply" -ne 1 ]]; then
   exit 2
 fi
 source "$root_dir/ops/bin/_compose_common.sh"
+compose_common_run "$root_dir" --profile seed run --rm --no-deps media-seed
 compose_common_run "$root_dir" --profile seed run --rm --no-deps catalog-seed
+compose_common_run "$root_dir" --profile seed run --rm --no-deps media-seed \
+  --seed-artwork-manifest=/app/seed/manifest.json \
+  --seed-artwork-finalize=/var/spoolin/seed-artwork/catalog.json \
+  --seed-artwork-output=/var/spoolin/seed-artwork/finalized.json

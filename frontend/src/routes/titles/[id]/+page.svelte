@@ -21,6 +21,7 @@
   } from '../../../lib/features/catalog/api';
   import { formatReleaseDate } from '../../../lib/features/catalog/filter';
   import ArtworkSlot from '../../../lib/components/ArtworkSlot.svelte';
+  import PosterAttribution from '../../../lib/components/PosterAttribution.svelte';
   import type { CatalogTitleDetail } from '../../../lib/features/catalog/api';
   import { isRecordId } from '../../../lib/components/safe-url';
 
@@ -183,6 +184,7 @@
             src={titleState.title.artwork?.url ?? null}
             alt={titleState.title.title}
           />
+          <PosterAttribution title={titleState.title} />
         </div>
 
         <section
@@ -315,6 +317,7 @@
             src={titleState.title.artwork?.url ?? null}
             alt={titleState.title.title}
           />
+          <PosterAttribution title={titleState.title} />
         </div>
 
         <section

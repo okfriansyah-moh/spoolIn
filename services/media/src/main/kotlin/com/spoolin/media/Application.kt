@@ -289,6 +289,9 @@ fun main(args: Array<String>) {
             org.springframework.core.env
                 .StandardEnvironment()
         DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
+    } else if (args.any { it.startsWith("--seed-artwork-manifest=") }) {
+        com.spoolin.media.seed
+            .runSeedArtworkCli(args)
     } else {
         check(args.isEmpty()) { "Use environment configuration; only --migrate is an accepted argument" }
         org.springframework.boot.SpringApplication

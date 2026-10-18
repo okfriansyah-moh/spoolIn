@@ -204,7 +204,7 @@ services:
     secrets:
       - catalog-migrator-password
       - service-ca
-  media:
+  media: &media-service
     stop_grace_period: 65s
     build:
       context: ..
@@ -263,6 +263,15 @@ services:
     secrets:
       - media-migrator-password
       - service-ca
+  media-seed:
+    <<: *media-service
+    profiles: [seed]
+    command: [--seed-artwork-manifest=/app/seed/manifest.json, --seed-artwork-output=/var/spoolin/seed-artwork/media.json]
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
+      - ../data/seed:/app/seed:ro
+      - media:/var/spoolin/media
+      - seed-artwork:/var/spoolin/seed-artwork
   catalog-seed:
     image: spoolin-catalog-foundation:0.0.0
     profiles: [seed]
@@ -273,8 +282,8 @@ services:
       SPRING_CONFIG_IMPORT: file:/run/spoolin-config/catalog.json[.yaml]
       CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
       CATALOG_DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/catalog-maintenance-password
-      SPOOLIN_SEED_ID: wikidata-2026-10-v1
-    command: [--seed-manifest=/app/seed/manifest.json]
+      SPOOLIN_SEED_ID: public-pages-2026-10-v2
+    command: [--seed-manifest=/app/seed/manifest.json, --seed-artwork-input=/var/spoolin/seed-artwork/media.json, --seed-artwork-output=/var/spoolin/seed-artwork/catalog.json]
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
@@ -282,6 +291,7 @@ services:
     security_opt: [no-new-privileges:true]
     volumes:
       - ../data/seed:/app/seed:ro
+      - seed-artwork:/var/spoolin/seed-artwork
       - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
     secrets: [catalog-runtime-password, service-ca]
 
@@ -443,6 +453,7 @@ networks:
     driver_opts:
       com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
 volumes:
+  seed-artwork:
   core-timing:
   media:
   database:

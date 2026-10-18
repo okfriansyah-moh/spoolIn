@@ -47,6 +47,7 @@ RUN ldconfig && /usr/local/bin/vips --version | grep -Fx 'vips-8.18.7' && \
     mkdir -p /lib64
 WORKDIR /app
 COPY services/media/build/libs/*-boot.jar /app/service.jar
-RUN mkdir -p /var/spoolin/media && chown 10001:10001 /var/spoolin/media
+RUN mkdir -p /var/spoolin/media /var/spoolin/seed-artwork && \
+    chown 10001:10001 /var/spoolin/media /var/spoolin/seed-artwork
 USER 10001:10001
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=65", "-jar", "/app/service.jar"]

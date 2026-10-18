@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / '.local'
 TOOL = 'spoolin-local-toolchain:21.0.12.1-24.21.0'
 OWNERS = ('core', 'catalog', 'media')
-SERVICES = ('postgres', *OWNERS, 'core-migrator', 'catalog-migrator', 'media-migrator', 'catalog-seed')
+SERVICES = ('postgres', *OWNERS, 'core-migrator', 'catalog-migrator', 'media-migrator', 'catalog-seed', 'media-seed')
 BUILD_CACHES = {
     'spoolin-local-gradle': '/workspace/.local/gradle',
     'spoolin-local-node': '/workspace/node_modules',
@@ -106,6 +106,7 @@ def local_configuration(document):
         service['image'] = f'spoolin-local-{owner}:development'
     document['services']['media']['security_opt'] = [
         'no-new-privileges:true', 'systempaths=unconfined', f'seccomp={ROOT / "ops/security/media-seccomp.json"}']
+    document['services']['media-seed']['security_opt'] = document['services']['media']['security_opt']
     for service in document['services'].values():
         service.pop('depends_on', None)
     document['services']['local-readiness'] = {
@@ -192,10 +193,19 @@ def start():
     for owner in OWNERS:
         migrate(owner)
     compose('run', '--rm', '--no-deps', 'core', '--initialize-accounts=/run/spoolin-config/account-initialization.json')
-    compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'catalog-seed')
+    seed()
     compose('up', '-d', *OWNERS)
     ready()
     print('SpoolIn is ready at https://localhost:8443. Credentials: .local/accounts.txt')
+
+
+def seed():
+    compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'media-seed')
+    compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'catalog-seed')
+    compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'media-seed',
+            '--seed-artwork-manifest=/app/seed/manifest.json',
+            '--seed-artwork-finalize=/var/spoolin/seed-artwork/catalog.json',
+            '--seed-artwork-output=/var/spoolin/seed-artwork/finalized.json')
 
 
 def reset():
