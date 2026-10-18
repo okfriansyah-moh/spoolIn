@@ -73,6 +73,8 @@ class HoldBoundaryTest {
                 assertInvalidCommands(client)
                 assertReserve(pool, client)
                 assertLifecycle(pool, client)
+                assertExpiredRecovery(pool, client)
+                assertBindingProtection(pool)
                 val wrong = MediaServiceGrpc.newBlockingStub(core).withDeadlineAfter(5, TimeUnit.SECONDS)
                 assertEquals(Status.Code.PERMISSION_DENIED, assertThrows(StatusRuntimeException::class.java) {
                     wrong.reserve(command("media-reserve"))
@@ -155,6 +157,51 @@ class HoldBoundaryTest {
         assertEquals("RELEASED", client.reserve(command("media-reserve")).state)
         assertEquals("RELEASED", state(pool))
         assertEquals(1, count(pool, "SELECT count(*) FROM operational_event WHERE operation_id=?", child("media-release")))
+    }
+
+    private fun assertExpiredRecovery(pool: DataSource, client: MediaServiceGrpc.MediaServiceBlockingStub) {
+        // Controlled retention boundary: the same permanent receipt survives with its result purged.
+        pool.committed { connection -> connection.executeBound(
+            "UPDATE operation_receipt SET result=NULL,expires_at=CURRENT_TIMESTAMP-interval '1 day' WHERE id=?",
+            child("media-release"),
+        ) }
+        val request = Spoolin.Id.newBuilder().setId(child("media-release").toString()).build()
+        val receipt = client.getOperation(request)
+        assertEquals("SUCCEEDED", receipt.state)
+        assertEquals(true, receipt.resultExpired)
+        assertEquals(false, receipt.hasResultId())
+        assertEquals("RESULT_EXPIRED", receipt.problem.code)
+        assertEquals("RELEASED", client.release(command("media-release", 8)).state)
+        assertEquals(1, count(pool, "SELECT count(*) FROM operational_event WHERE operation_id=?", child("media-release")))
+        assertEquals(1, count(pool, "SELECT count(*) FROM hold_operation_binding WHERE operation_id=?", child("media-release")))
+        projection.set(attachment("RELEASED", 8).toBuilder().setActorId(UUID.randomUUID().toString()).build())
+        assertEquals(Status.Code.NOT_FOUND, assertThrows(StatusRuntimeException::class.java) {
+            client.getOperation(request)
+        }.status.code)
+        projection.set(attachment("RELEASED", 8))
+    }
+
+    private fun assertBindingProtection(pool: DataSource) {
+        val failure = assertThrows(java.sql.SQLException::class.java) {
+            pool.connection.use { it.executeBound(
+                "UPDATE hold_operation_binding SET actor_id=? WHERE operation_id=?", UUID.randomUUID(), child("media-release"),
+            ) }
+        }
+        assertEquals("42501", failure.sqlState)
+        val mismatch = assertThrows(java.sql.SQLException::class.java) {
+            pool.committed { connection ->
+                val operation = UUID.randomUUID()
+                connection.executeBound("INSERT INTO operation_receipt " +
+                    "(id,actor_scope,kind,request_hash,state,correlation_id,expires_at) " +
+                    "VALUES (?,'account:wrong','HOLD_RELEASE',?,'SUCCEEDED',?,CURRENT_TIMESTAMP+interval '7 days')",
+                    operation, ByteArray(32), correlation)
+                connection.executeBound(
+                    "INSERT INTO hold_operation_binding(operation_id,hold_id,actor_id,verb) VALUES (?,?,?,'RELEASE')",
+                    operation, hold, actor,
+                )
+            }
+        }
+        assertEquals("23514", mismatch.sqlState)
     }
 
     private fun command(step: String, version: Long? = null): Spoolin.Hold = Spoolin.Hold.newBuilder()

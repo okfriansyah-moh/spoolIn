@@ -29,19 +29,25 @@ object HoldSql {
             Timestamp.from(now), Timestamp.from(now.plusSeconds(604800)),
         ) == 1
         connection.queryBound(
-            "SELECT actor_scope,kind,request_hash,state,result,expires_at FROM operation_receipt WHERE id=? FOR UPDATE",
+            "SELECT actor_scope,kind,request_hash,state FROM operation_receipt WHERE id=? FOR UPDATE",
             listOf(command.operation),
         ) { row ->
             if (row.getString("actor_scope") != command.scope) throw Status.NOT_FOUND.asRuntimeException()
             val compatible = row.getString("kind") == command.action.kind &&
                 MessageDigest.isEqual(row.getBytes("request_hash"), command.hash())
             if (!compatible) throw Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException()
-            if (!inserted && (row.getString("state") != "SUCCEEDED" || row.getString("result") == null ||
-                !row.getTimestamp("expires_at").toInstant().isAfter(now))) {
-                throw Status.FAILED_PRECONDITION.withDescription("HOLD_RECEIPT_UNAVAILABLE_OR_EXPIRED").asRuntimeException()
+            if (!inserted && row.getString("state") != "SUCCEEDED") {
+                throw Status.FAILED_PRECONDITION.withDescription("HOLD_RECEIPT_UNAVAILABLE").asRuntimeException()
             }
             Unit
         }.single()
+        if (!inserted) {
+            val bound = connection.queryBound(
+                "SELECT count(*) FROM hold_operation_binding WHERE operation_id=? AND hold_id=? AND actor_id=? AND verb=?",
+                listOf(command.operation, command.hold, command.actor, command.action.name),
+            ) { it.getInt(1) }.single()
+            if (bound != 1) throw Status.UNAVAILABLE.withDescription("HOLD_RECEIPT_BINDING_UNAVAILABLE").asRuntimeException()
+        }
         return inserted
     }
 
@@ -49,6 +55,10 @@ object HoldSql {
         check(connection.executeBound(
             "UPDATE operation_receipt SET state='SUCCEEDED',result=?::jsonb WHERE id=? AND state='PENDING'",
             SafeResult(hold.id, hold.version).json(), command.operation,
+        ) == 1)
+        check(connection.executeBound(
+            "INSERT INTO hold_operation_binding(operation_id,hold_id,actor_id,verb) VALUES (?,?,?,?)",
+            command.operation, hold.id, command.actor, command.action.name,
         ) == 1)
         ReceiptActivity.append(connection, command.operation, command.correlation, hold.id)
     }
