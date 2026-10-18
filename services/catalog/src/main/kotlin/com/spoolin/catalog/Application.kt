@@ -8,6 +8,9 @@ import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.receipts.ComparisonKeys
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -234,6 +237,7 @@ class OwnerServiceConfiguration {
     fun catalogService(
         dataSource: DataSource,
         cursorKey: ByteArray,
+        environment: Environment,
         movieWritesProvider: ObjectProvider<MovieWrites>,
         managedReadsProvider: ObjectProvider<ManagedMovieReads>,
         personWritesProvider: ObjectProvider<PersonWrites>,
@@ -247,6 +251,7 @@ class OwnerServiceConfiguration {
         deletionImpactProvider: ObjectProvider<com.spoolin.catalog.features.lifecycle.DeletionImpact>,
         proposalWritesProvider: ObjectProvider<com.spoolin.catalog.features.proposal.ProposalWrites>,
     ): io.grpc.BindableService {
+        val policy = effectiveReadPolicy(environment)
         val reads =
             com.spoolin.catalog.operations.receipts
                 .OwnerReceiptReads(dataSource)
@@ -265,10 +270,10 @@ class OwnerServiceConfiguration {
         return com.spoolin.catalog.boundary.grpc.CatalogServiceRpc(
             titleSearch =
                 com.spoolin.catalog.features.search
-                    .TitleSearchSql(dataSource),
+                    .TitleSearchSql(dataSource, policy),
             personSearch =
                 com.spoolin.catalog.features.person.read
-                    .PersonSearch(dataSource),
+                    .PersonSearch(dataSource, policy),
             taxonomy =
                 com.spoolin.catalog.features.taxonomy.read
                     .TaxonomyReads(dataSource),
@@ -291,6 +296,7 @@ class OwnerServiceConfiguration {
             personLifecycle = personLifecycleProvider.ifAvailable,
             deletionImpact = deletionImpactProvider.ifAvailable,
             proposalWrites = proposalWritesProvider.ifAvailable,
+            policy = policy,
         )
     }
 }
@@ -329,11 +335,12 @@ class CatalogWriteConfiguration {
     ): MovieWrites = MovieWrites(receipts, policy = policy)
 
     @Bean
-    fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
+    fun managedMovieReads(dataSource: DataSource, cursorKey: ByteArray, environment: Environment): ManagedMovieReads {
+        val policy = effectiveReadPolicy(environment)
         val provenance = ProvenanceReads(dataSource)
-        val titleSearch = TitleSearchSql(dataSource)
+        val titleSearch = TitleSearchSql(dataSource, policy)
         val auditReads = AuditReads(dataSource)
-        return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads)
+        return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads, policy = policy, cursors = ManagedReadCursors(cursorKey))
     }
 
     @Bean
@@ -398,7 +405,8 @@ class CatalogWriteConfiguration {
             .DeletionImpact(dataSource, tokens)
 
     @Bean
-    fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
+    fun managedPersonReads(dataSource: DataSource, cursorKey: ByteArray, environment: Environment): ManagedPersonReads =
+        ManagedPersonReads(dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey))
 
     @Bean
     fun roleWrites(
@@ -417,9 +425,11 @@ class CatalogWriteConfiguration {
             .CreditWrites(receipts, policy = policy)
 
     @Bean
-    fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
+    fun managedCreditReads(
+        dataSource: DataSource, cursorKey: ByteArray, environment: Environment,
+    ): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
-            .ManagedCreditReads(dataSource)
+            .ManagedCreditReads(dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey))
 
     @Bean
     fun proposalMetrics(
@@ -815,3 +825,6 @@ class BoundaryErrors : org.springframework.boot.webmvc.error.ErrorController {
             )
     }
 }
+
+private fun effectiveReadPolicy(environment: Environment): () -> PublicPolicy =
+    { PolicyEnvironment.resolve { environment.getProperty(it) } }

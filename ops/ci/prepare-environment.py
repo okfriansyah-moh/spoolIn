@@ -130,7 +130,7 @@ def main():
         exports.update({f"RATE_LIMIT_{profile}_{field}": value for profile in ("READ", "MUTATION")
                         for field, value in (("MAX_REQUESTS", "1000000"), ("WINDOW_SECONDS", "60"))})
         if namespace.startswith(("capacity-reader-", "capacity-writer-")):
-            exports["CORE_JAVA_TOOL_OPTIONS"] = "-XX:StartFlightRecording=settings=/app/core-timing.jfc,filename=/tmp/core-timing.jfr,dumponexit=true"
+            exports["CORE_JAVA_TOOL_OPTIONS"] = "-XX:StartFlightRecording=settings=/app/core-timing.jfc,filename=/var/spoolin/timing/core-timing.jfr,dumponexit=true,maxsize=128m"
     (base / "locks").mkdir(mode=0o700)
     command("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "2", "-subj", "/CN=Spoolin disposable CI CA", "-keyout", str(base / "ca-key"), "-out", str(base / "service-ca"))
     (base / "ca-key").chmod(0o600)
