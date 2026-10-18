@@ -329,3 +329,17 @@ it('shell defaults to public navigation with no demo role selection', () => {
     }).body,
   ).toContain('aria-current="page"');
 });
+
+it('large genre collections retain every native choice and selection inside a labelled region', () => {
+  const genres = Array.from({ length: 120 }, (_, index) => ({ id: `genre-${index}`, name: `Genre ${index}` }));
+  const body = render(CatalogFilters, { props: {
+    criteria: { text: '', kind: '', genres: ['genre-119'], year: '', month: '' },
+    genres, years: ['2025'],
+  } }).body;
+  expect(body).toContain('role="region"');
+  expect(body).toContain('aria-label="Genre choices"');
+  expect(body).toContain('Scroll or use the keyboard to reach every genre.');
+  expect(body.match(/type="checkbox"/g)).toHaveLength(120);
+  for (const genre of genres) expect(body).toContain(`value="${genre.id}"`);
+  expect(body.match(/ checked/g)).toHaveLength(1);
+});

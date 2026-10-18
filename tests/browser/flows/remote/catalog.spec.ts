@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { test, expect, capture } from './helpers';
+import { test, expect, capture, readApi } from './helpers';
+import type { Page } from '@playwright/test';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -28,6 +29,9 @@ test('Public catalog uses real GraphQL, seeded artwork and durable detail naviga
     await expect(page.locator('.title-card')).not.toHaveCount(0);
     await expect(page.getByLabel('Month', { exact: true })).toBeDisabled();
     expect(apiFailures).toEqual([]);
+  });
+  await test.step('Keep every genre in a bounded region with native keyboard access', async () => {
+    await assertGenreRegion(page);
   });
   const theme = info.project.use.colorScheme ?? 'dark';
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -198,3 +202,33 @@ test('ATDD-011/012 partial: an older known release year is selectable and invali
     page.getByLabel('Other release year', { exact: true }),
   ).toHaveCount(0);
 });
+
+async function assertGenreRegion(page: Page) {
+  const group = page.getByRole('group', { name: 'Genres · match any selected', exact: true });
+  const region = group.getByRole('region', { name: 'Genre choices', exact: true });
+  const choices = region.locator('input[type="checkbox"]');
+  const data = await readApi(page, 'query { genres { id } }');
+  expect(Array.isArray(data.genres)).toBe(true);
+  expect(data.genres.length).toBeGreaterThan(0);
+  await expect(choices).toHaveCount(data.genres.length);
+  expect(await choices.evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value).sort()))
+    .toEqual(data.genres.map((genre: { id: string }) => genre.id).sort());
+  await expect(region).toHaveCSS('overflow-y', 'auto');
+  const geometry = await region.evaluate((element) => ({
+    height: element.clientHeight, total: element.scrollHeight, width: element.getBoundingClientRect().width,
+    viewport: window.innerWidth, viewportHeight: window.innerHeight,
+  }));
+  expect(geometry.height).toBeLessThanOrEqual(geometry.viewportHeight / 2);
+  expect(geometry.width).toBeLessThanOrEqual(geometry.viewport);
+  await region.focus();
+  await expect(region).toBeFocused();
+  if (geometry.total > geometry.height) {
+    await page.keyboard.press('End');
+    await expect.poll(() => region.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press('Home');
+    await expect.poll(() => region.evaluate((element) => element.scrollTop)).toBe(0);
+  }
+  await page.keyboard.press('Tab');
+  await expect(choices.first()).toBeFocused();
+  await expect(choices.first()).not.toBeChecked();
+}

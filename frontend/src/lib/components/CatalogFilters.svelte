@@ -81,15 +81,20 @@
       >Clear search text</button
     >
   </div>
+  <div class="filter-categories">
+  <div class="field">
   <label for={`${id}-kind`}>Title type</label><select
     id={`${id}-kind`}
     bind:value={criteria.kind}
     ><option value="">All titles</option><option value="MOVIE">Movies</option
     ><option value="TV">TV</option></select
   >
-  <fieldset>
-    <legend>Genres · match any selected</legend
-    >{#each genres as genre (genre.id)}<label class="check"
+  </div>
+  <fieldset class="genre-choice">
+    <legend>Genres · match any selected</legend>
+    <div class="genre-options" role="region" aria-label="Genre choices"
+      aria-describedby={`${id}-genres-help`} tabindex="0">
+    {#each genres as genre (genre.id)}<label class="check"
         ><input
           type="checkbox"
           value={genre.id}
@@ -98,7 +103,10 @@
             toggleGenre(genre.id, event.currentTarget.checked)}
         />{genre.name}</label
       >{/each}
+    </div>
+    <small id={`${id}-genres-help`}>Scroll or use the keyboard to reach every genre.</small>
   </fieldset>
+  <div class="field">
   <label for={`${id}-year`}>Release year</label><select
     id={`${id}-year`}
     value={selectedYear}
@@ -122,6 +130,8 @@
         'Enter any known release year from 1 to 9999, or clear it for all years.'}</small
     >
   {/if}
+  </div>
+  <div class="field">
   <label for={`${id}-month`}>Month</label><select
     id={`${id}-month`}
     bind:value={criteria.month}
@@ -135,4 +145,42 @@
     >Choose a year first. Clearing it also clears month. Other categories
     combine with AND.</small
   >
+  </div>
+  </div>
 </div>
+
+<style>
+  .filter-categories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--primitive-space-4);
+  }
+  .genre-choice {
+    inline-size: 100%;
+    max-inline-size: 280px;
+  }
+  .genre-options {
+    display: grid;
+    max-block-size: calc(5 * var(--primitive-space-12));
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding: var(--primitive-space-2);
+  }
+  .genre-options input {
+    flex-shrink: 0;
+  }
+  @media (max-width: 1000px) {
+    .filter-categories {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 700px) {
+    .filter-categories {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .genre-choice {
+      max-inline-size: none;
+    }
+  }
+</style>
