@@ -682,6 +682,29 @@ export class MovieEditorController {
     });
   }
 
+  async refreshExternalChange(): Promise<void> {
+    if (!this.movieId || !this.writeContext || !this.current.saved) return;
+    const latest = await fetchManagedMovie(this.request, this.movieId, this.writeContext.csrf, this.active?.signal);
+    if (!latest || latest.state !== 'ACTIVE') {
+      this.publish({ ...this.current, phase: 'target-changed', current: latest,
+        message: 'This movie is now archived or unavailable. Retained edits have not been submitted.' });
+      return;
+    }
+    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain') {
+      this.publish({ ...this.current, current: latest,
+        message: 'The movie changed. Check the original save before reviewing current values.' });
+      return;
+    }
+    const dirty = !patchIsEmpty(draftToUpdatePatch(this.current.saved, this.current.draft, this.originalTitleTouched));
+    if (dirty || this.current.draftChoices.length) {
+      this.publish({ ...this.current, phase: 'stale', current: latest, staleReviewOpen: false,
+        message: 'The movie changed. Review the current version before saving your retained edits.' });
+    } else {
+      this.publish({ ...this.current, saved: latest, current: latest, draft: movieToDraft(latest),
+        mediaOutage: latest.artworkUnavailable });
+    }
+  }
+
   async checkOriginalResult(): Promise<void> {
     const operationId = this.current.pendingOperationId;
     if (!operationId || !this.writeContext) return;
