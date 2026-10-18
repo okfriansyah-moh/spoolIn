@@ -236,6 +236,11 @@ jobs:
         run: |
           bash ops/bin/seed.sh --validate-only
           python3 ops/ci/verify-seed-runtime.py
+      - name: Exercise actual protected connector and SDK stdio gateway flow
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
+        run: python3 ops/ci/verify-connector-runtime.py
       - name: Probe actual restricted production Media codec container
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/ci/probe-media-codec.py
