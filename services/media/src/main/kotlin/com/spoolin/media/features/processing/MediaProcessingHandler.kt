@@ -57,6 +57,9 @@ class MediaProcessingHandler(
         if (!java.security.MessageDigest.isEqual(validation.inputHash, asset.processingInputHash)) {
             return ProcessorRunner.Outcome.Rejected("INPUT_CHECKSUM_MISMATCH")
         }
+        if (!ImageEnvelope.complete(Files.readAllBytes(input), validation.format)) {
+            return ProcessorRunner.Outcome.Rejected("INVALID_IMAGE_ENVELOPE")
+        }
         return processor.process(input, store.outputDirectory(), validation.format, asset.id)
     }
 

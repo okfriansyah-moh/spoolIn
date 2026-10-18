@@ -61,6 +61,20 @@ class QuarantineStore(
 
     fun outputDirectory(): Path = output
 
+    /** Crash leftovers are private attempt directories, never accepted inputs or published files. */
+    fun sweepAbandonedScratch(now: java.time.Instant = java.time.Instant.now()) {
+        Files.list(output).use { paths ->
+            paths.filter { Files.isDirectory(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }
+                .filter { runCatching { UUID.fromString(it.fileName.toString()) }.isSuccess }
+                .filter { Files.getLastModifiedTime(it).toInstant().isBefore(now.minusSeconds(3600)) }
+                .limit(10).forEach { directory ->
+                    Files.walk(directory).use { entries ->
+                        entries.sorted(java.util.Comparator.reverseOrder()).forEach { Files.deleteIfExists(it) }
+                    }
+                }
+        }
+    }
+
     fun processingInput(assetId: UUID): Path {
         val path = stagingPath(assetId)
         require(Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS))

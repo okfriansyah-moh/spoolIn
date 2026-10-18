@@ -152,6 +152,7 @@ class Application {
         com.spoolin.media.operations.work.MediaWorkDispatcher(
             dataSource, schema,
             com.spoolin.media.features.processing.MediaProcessingHandler(dataSource, quarantineStore),
+            { quarantineStore.sweepAbandonedScratch() },
         )
 
     @Bean

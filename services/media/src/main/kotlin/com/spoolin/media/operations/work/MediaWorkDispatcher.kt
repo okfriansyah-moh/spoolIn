@@ -15,6 +15,7 @@ class MediaWorkDispatcher(
     dataSource: DataSource,
     private val readiness: SchemaReadiness,
     private val handler: MediaProcessingHandler,
+    private val sweepScratch: () -> Unit = {},
 ) : AutoCloseable {
     private val watchdog = MediaWorkWatchdog(dataSource)
     private val claimer = WorkClaimer(dataSource)
@@ -28,6 +29,7 @@ class MediaWorkDispatcher(
     fun dispatch() {
         if (stopped.get() || !readiness.ready()) return
         watchdog.reconcile()
+        sweepScratch()
         lanes.forEach { lane ->
             if (lane.compareAndSet(false, true)) workers.submit {
                 try { claimer.claim(1).singleOrNull()?.let(::execute) } finally { lane.set(false) }

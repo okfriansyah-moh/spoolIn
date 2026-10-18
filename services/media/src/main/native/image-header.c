@@ -14,6 +14,10 @@ int main(int argc, char **argv) {
     if (width < 1 || width > 8192 || height < 1 || height > 8192 || bands < 1 || bands > 4 ||
         pages != 1 || (long long)width * height > 40000000 ||
         (long long)width * height * bands * vips_format_sizeof(image->BandFmt) > 160000000) return 3;
+    size_t decoded_bytes = 0;
+    void *decoded = vips_image_write_to_memory(image, &decoded_bytes);
+    if (!decoded || decoded_bytes > 160000000) return 5;
+    g_free(decoded);
     FILE *output = fopen(argv[2], "w");
     if (!output) return 4;
     int result = fprintf(output, "%d %d %d\n", width, height, bands) < 0;
