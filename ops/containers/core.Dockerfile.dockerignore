@@ -4,3 +4,6 @@
 !services/core/build/
 !services/core/build/libs/
 !services/core/build/libs/*-boot.jar
+!ops/
+!ops/containers/
+!ops/containers/core-timing.jfc
