@@ -28,23 +28,25 @@ class BoundedJsonAppender internal constructor(
 
     override fun append(event: ILoggingEvent) {
         val encoder = checkNotNull(envelope)
-        val level =
-            when (event.level) {
-                Level.TRACE, Level.DEBUG -> DiagnosticLevel.DEBUG
-                Level.INFO -> DiagnosticLevel.INFO
-                Level.WARN -> DiagnosticLevel.WARNING
-                Level.ERROR -> DiagnosticLevel.ERROR
-                else -> null
-            }
-        val bytes =
-            if (level == null) {
-                DiagnosticDropMetrics.shared.record(serviceName, DiagnosticLevel.ERROR, DiagnosticDrop.CONTRACT_INVALID)
-                encoder.invalid(event.timeStamp)
-            } else {
-                encoder.encode(level, event.timeStamp, event.loggerName)
-            }
-        checkNotNull(sink).submit(bytes, level ?: DiagnosticLevel.ERROR)
+        val level = normalized(event.level)
+        val details = if (level == null) null else DiagnosticEvents.classify(event)
+        val bytes = if (level == null) {
+            DiagnosticDropMetrics.shared.record(serviceName, DiagnosticLevel.ERROR, DiagnosticDrop.CONTRACT_INVALID)
+            encoder.invalid(event.timeStamp)
+        } else {
+            encoder.encode(level, event.timeStamp, checkNotNull(details))
+        }
+        checkNotNull(sink).submit(bytes, details?.level ?: level ?: DiagnosticLevel.ERROR)
     }
+
+    private fun normalized(level: Level): DiagnosticLevel? =
+        when (level) {
+            Level.TRACE, Level.DEBUG -> DiagnosticLevel.DEBUG
+            Level.INFO -> DiagnosticLevel.INFO
+            Level.WARN -> DiagnosticLevel.WARNING
+            Level.ERROR -> DiagnosticLevel.ERROR
+            else -> null
+        }
 
     override fun stop() {
         super.stop()

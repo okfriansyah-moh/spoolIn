@@ -3,9 +3,9 @@ package com.spoolin.support.logging
 import ch.qos.logback.classic.pattern.ClassicConverter
 import ch.qos.logback.classic.spi.ILoggingEvent
 
-/** Escapes log message text as a JSON string value (including surrounding quotes). */
+/** Legacy pattern use receives the same fixed event summary as the root JSON appender. */
 class JsonLogMessageConverter : ClassicConverter() {
-    override fun convert(event: ILoggingEvent): String = jsonString(event.formattedMessage ?: "")
+    override fun convert(event: ILoggingEvent): String = jsonString(DiagnosticEvents.classify(event).message)
 }
 
 internal fun jsonString(raw: String): String {
