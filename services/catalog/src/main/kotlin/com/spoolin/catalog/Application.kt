@@ -123,22 +123,29 @@ class ObservabilityConfiguration {
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
-    fun traceServer(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceServerInterceptor =
+    fun traceServer(
+        tracing: com.spoolin.support.tracing.OwnerTracing,
+    ): com.spoolin.support.tracing.TraceServerInterceptor =
         com.spoolin.support.tracing.TraceServerInterceptor(tracing) { attributes ->
             runCatching {
-                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
+                val certificate =
+                    attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
                 certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
             }.getOrDefault(false)
         }
 
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
-    fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
+    fun traceClient(
+        tracing: com.spoolin.support.tracing.OwnerTracing,
+    ): com.spoolin.support.tracing.TraceClientInterceptor =
         com.spoolin.support.tracing
             .TraceClientInterceptor(tracing)
 
     @Bean
-    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
+    fun logicalMetrics(
+        registry: io.micrometer.core.instrument.MeterRegistry,
+    ): com.spoolin.support.observability.LogicalMetrics {
         com.spoolin.support.logging.DiagnosticDropMetrics.shared
             .bind("catalog", registry)
         return com.spoolin.support.observability
@@ -341,7 +348,9 @@ class CatalogWriteConfiguration {
         val provenance = ProvenanceReads(dataSource)
         val titleSearch = TitleSearchSql(dataSource, policy)
         val auditReads = AuditReads(dataSource)
-        return ManagedMovieReads(dataSource, provenance, titleSearch, auditReads, policy = policy, cursors = ManagedReadCursors(cursorKey))
+        return ManagedMovieReads(
+            dataSource, provenance, titleSearch, auditReads, policy = policy, cursors = ManagedReadCursors(cursorKey),
+        )
     }
 
     @Bean
@@ -411,7 +420,9 @@ class CatalogWriteConfiguration {
         cursorKey: ByteArray,
         environment: Environment,
     ): ManagedPersonReads =
-        ManagedPersonReads(dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey))
+        ManagedPersonReads(
+            dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey),
+        )
 
     @Bean
     fun roleWrites(
@@ -436,7 +447,9 @@ class CatalogWriteConfiguration {
         environment: Environment,
     ): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
-            .ManagedCreditReads(dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey))
+            .ManagedCreditReads(
+                dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey),
+            )
 
     @Bean
     fun proposalMetrics(

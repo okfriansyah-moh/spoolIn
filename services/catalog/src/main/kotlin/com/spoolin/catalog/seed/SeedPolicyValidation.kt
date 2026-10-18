@@ -29,7 +29,8 @@ class SeedPolicyValidation(
         seed.records.forEach { record ->
             val values = record["normalized"]
             title(values)
-            val extra = setOf("originalTitle", "originalLanguage", "runtimeMinutes").filter { known(values, it) }.toSet()
+            val extra =
+                setOf("originalTitle", "originalLanguage", "runtimeMinutes").filter { known(values, it) }.toSet()
             coverage(record, extra + if (values["countries"].size() == 0) emptySet() else setOf("countries"))
             sources(record)
             record["genres"].forEach(::sources)
@@ -50,7 +51,9 @@ class SeedPolicyValidation(
             StructuralRules.country(it.asText())
         }
         val runtime = values.path("runtimeMinutes")
-        require(runtime.isNull || runtime.isMissingNode || runtime.isIntegralNumber && runtime.asLong() in 1..MAX_RUNTIME) {
+        require(
+            runtime.isNull || runtime.isMissingNode || runtime.isIntegralNumber && runtime.asLong() in 1..MAX_RUNTIME,
+        ) {
             "Seed runtime must be a positive supported integer"
         }
     }
@@ -67,7 +70,9 @@ class SeedPolicyValidation(
         val names = TextRules.characters(raw, policy.textBounds.getValue("characterName"))
         require(names == raw) { "Seed characters must already be normalized" }
         if (names.isNotEmpty()) coverage(node, setOf("characters"))
-        CreditValidation.validateCharactersForRole(role["allowsCharacters"].asBoolean(), role["category"].asText(), names)
+        CreditValidation.validateCharactersForRole(
+            role["allowsCharacters"].asBoolean(), role["category"].asText(), names,
+        )
         sources(node)
     }
 

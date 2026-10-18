@@ -15,7 +15,10 @@ internal object SeedRecords {
     ): Map<String, UUID> =
         seed.roles.associate { role ->
             val normalized = role["label"].asText().lowercase(Locale.ROOT)
-            val identity = SeedRoleIdentity.resolve(role["source"].asText(), role["externalId"].asText(), role["stableUUID"].asText())
+            val identity =
+                SeedRoleIdentity.resolve(
+                    role["source"].asText(), role["externalId"].asText(), role["stableUUID"].asText(),
+                )
             val id =
                 connection
                     .queryBound(
@@ -31,7 +34,8 @@ internal object SeedRecords {
                         it.getObject("id", UUID::class.java)
                     }.singleOrNull() ?: identity.also { value ->
                     connection.executeBound(
-                        "INSERT INTO credit_role(id,category,label,normalized_label,allows_characters) VALUES(?,?,?,?,?)",
+                        "INSERT INTO credit_role(id,category,label,normalized_label,allows_characters) " +
+                            "VALUES(?,?,?,?,?)",
                         value,
                         role["category"].asText(),
                         role["label"].asText(),

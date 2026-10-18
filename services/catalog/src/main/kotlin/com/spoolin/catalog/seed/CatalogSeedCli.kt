@@ -57,7 +57,10 @@ private fun seedCommand(args: Array<String>) {
     if ("--validate-only" in args) {
         val effective = policy()
         val prepared = SeedManifest.prepare(manifest, effective)
-        println("Seed preparation validated version=${prepared.version} policyRevision=${effective.revision}; database not opened")
+        println(
+            "Seed preparation validated version=${prepared.version} " +
+                "policyRevision=${effective.revision}; database not opened",
+        )
         return
     }
     val seedVersion =

@@ -48,13 +48,16 @@ object SeedIdentities {
                 .putLong(namespace.leastSignificantBits)
                 .array()
         val digest = MessageDigest.getInstance("SHA-1").digest(prefix + name)
-        digest[VERSION_BYTE_INDEX] = ((digest[VERSION_BYTE_INDEX].toInt() and VERSION_LOW_MASK) or VERSION_FIVE_BITS).toByte()
-        digest[VARIANT_BYTE_INDEX] = ((digest[VARIANT_BYTE_INDEX].toInt() and VARIANT_LOW_MASK) or IETF_VARIANT_BITS).toByte()
+        digest[VERSION_BYTE_INDEX] =
+            ((digest[VERSION_BYTE_INDEX].toInt() and VERSION_LOW_MASK) or VERSION_FIVE_BITS).toByte()
+        digest[VARIANT_BYTE_INDEX] =
+            ((digest[VARIANT_BYTE_INDEX].toInt() and VARIANT_LOW_MASK) or IETF_VARIANT_BITS).toByte()
         val bytes = ByteBuffer.wrap(digest)
         return UUID(bytes.long, bytes.long)
     }
 
-    fun hash(node: JsonNode): ByteArray = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(stableValue(node)))
+    fun hash(node: JsonNode): ByteArray =
+        MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(stableValue(node)))
 
     fun hashHex(node: JsonNode): String = HexFormat.of().formatHex(hash(node))
 
