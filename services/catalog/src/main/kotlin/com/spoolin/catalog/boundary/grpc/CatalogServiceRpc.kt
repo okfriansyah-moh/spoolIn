@@ -165,6 +165,11 @@ class CatalogServiceRpc(
 
     // ── ListGenres ───────────────────────────────────────────────────────────
 
+    override fun getCatalogFilterOptions(
+        request: com.google.protobuf.Empty,
+        response: StreamObserver<Spoolin.CatalogFilterOptions>,
+    ) = publicReads.catalogFilterOptions(response)
+
     override fun listGenres(
         request: com.google.protobuf.Empty,
         response: StreamObserver<Genres>,

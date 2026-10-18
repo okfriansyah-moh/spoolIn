@@ -770,6 +770,7 @@ class ServiceIdentityInterceptor(
             put("spoolin.v1.CatalogService/PersonCredits", setOf("core"))
             put("spoolin.v1.CatalogService/TitleCredits", setOf("core"))
             put("spoolin.v1.CatalogService/ListGenres", setOf("core"))
+            put("spoolin.v1.CatalogService/GetCatalogFilterOptions", setOf("core"))
             put("spoolin.v1.CatalogService/ListRoles", setOf("core"))
             put("spoolin.v1.CatalogService/CreateRole", setOf("core"))
             put("spoolin.v1.CatalogService/ManagedTitles", setOf("core"))

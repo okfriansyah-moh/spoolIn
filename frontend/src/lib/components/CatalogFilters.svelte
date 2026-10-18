@@ -4,17 +4,16 @@
     criteria = $bindable(),
     genres,
     years,
+    months = [],
     onsearch,
   }: {
     criteria: Criteria;
     genres: { id: string; name: string }[];
     years: string[];
+    months?: number[];
     onsearch?: () => void;
   } = $props();
   const id = $props.id();
-  let customYear = $state(false);
-  let customYearText = $state('');
-  let yearError = $state('');
   let genreOpen = $state(false);
   let genreSearch = $state('');
   const selectedGenres = $derived(
@@ -26,50 +25,24 @@
       genre.name.toLocaleLowerCase().includes(query),
     );
   });
-  const selectedYear = $derived(
-    customYear || (!!criteria.year && !years.includes(criteria.year))
-      ? 'other'
-      : criteria.year,
-  );
-  let priorYear = '';
-  $effect(() => {
-    const year = criteria.year;
-    if (year === priorYear) return;
-    priorYear = year;
-    customYear = !!year && !years.includes(year);
-    customYearText = year;
-    yearError = '';
-  });
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
   function yearChanged(event: Event) {
     const year = (event.currentTarget as HTMLSelectElement).value;
-    yearError = '';
-    if (year === 'other') {
-      customYear = true;
-      customYearText = criteria.year;
-      return;
-    }
-    customYear = false;
-    criteria = { ...criteria, year, month: year ? criteria.month : '' };
-  }
-  function otherYearChanged(event: Event) {
-    customYear = true;
-    customYearText = (event.currentTarget as HTMLInputElement).value;
-    if (customYearText && !/^[0-9]{1,4}$/.test(customYearText)) {
-      yearError =
-        'Enter a release year from 1 to 9999. The current year filter stays unchanged.';
-      return;
-    }
-    if (customYearText && Number(customYearText) < 1) {
-      yearError =
-        'Enter a release year from 1 to 9999. The current year filter stays unchanged.';
-      return;
-    }
-    yearError = '';
-    criteria = {
-      ...criteria,
-      year: customYearText,
-      month: customYearText ? criteria.month : '',
-    };
+    criteria = { ...criteria, year, month: '' };
   }
 
   function toggleGenre(genreId: string, checked: boolean): void {
@@ -181,7 +154,7 @@
               </p>{/each}
           </div>
           <small id={`${id}-genres-help`}
-            >Every genre stays available. Scroll the list or search by name.</small
+            >Genres with available titles are listed. Scroll or search by name.</small
           >
         </div>
       </details>
@@ -189,27 +162,17 @@
     <div class="field">
       <label for={`${id}-year`}>Release year</label><select
         id={`${id}-year`}
-        value={selectedYear}
+        value={criteria.year}
         onchange={yearChanged}
         ><option value="">All years</option>{#each years as year (year)}<option
             value={year}>{year}</option
-          >{/each}<option value="other">Choose another year…</option></select
-      >
-      {#if selectedYear === 'other'}
-        <label for={`${id}-other-year`}>Other release year</label>
-        <input
-          id={`${id}-other-year`}
-          inputmode="numeric"
-          value={customYear ? customYearText : criteria.year}
-          aria-invalid={!!yearError}
-          aria-describedby={`${id}-year-help`}
-          oninput={otherYearChanged}
-        />
-        <small id={`${id}-year-help`}
-          >{yearError ||
-            'Enter any known release year from 1 to 9999, or clear it for all years.'}</small
-        >
-      {/if}
+          >{/each}
+        {#if criteria.year && !years.includes(criteria.year)}
+          <option value={criteria.year} disabled
+            >{criteria.year} (unavailable)</option
+          >
+        {/if}
+      </select>
     </div>
     <div class="field">
       <label for={`${id}-month`}>Month</label><select
@@ -218,10 +181,15 @@
         disabled={!criteria.year}
         aria-describedby={`${id}-month-help`}
         ><option value="">All months</option
-        >{#each ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as month, i (month)}<option
-            value={String(i + 1)}>{month}</option
-          >{/each}</select
-      ><small id={`${id}-month-help`}
+        >{#each months as month (month)}<option value={String(month)}
+            >{monthNames[month - 1]}</option
+          >{/each}
+        {#if criteria.month && !months.includes(Number(criteria.month))}
+          <option value={criteria.month} disabled
+            >{monthNames[Number(criteria.month) - 1] ?? criteria.month} (unavailable)</option
+          >
+        {/if}
+      </select><small id={`${id}-month-help`}
         >Choose a year first. Clearing it also clears month. Other categories
         combine with AND.</small
       >

@@ -421,7 +421,18 @@ service IdentityService {
   rpc CheckActor(CheckActorRequest) returns(Actor);
 }
 
+message CatalogReleaseYear {
+  int32 year = 1;
+  repeated int32 months = 2;
+}
+
+message CatalogFilterOptions {
+  repeated Genre genres = 1;
+  repeated CatalogReleaseYear release_years = 2;
+}
+
 service CatalogService {
+  rpc GetCatalogFilterOptions(google.protobuf.Empty) returns(CatalogFilterOptions);
   rpc SearchTitles(Search) returns(TitlePage);
   rpc GetTitle(Id) returns(Title);
   rpc SearchPeople(Search) returns(PersonPage);

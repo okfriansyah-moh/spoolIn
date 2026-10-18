@@ -328,7 +328,19 @@ input DraftInput {
   policyRevision: String!
 }
 
+"Release dates and genres used by active catalog titles; independent of current search filters."
+type CatalogFilterOptions {
+  genres: [Genre!]!
+  releaseYears: [CatalogReleaseYear!]!
+}
+
+type CatalogReleaseYear {
+  year: Int!
+  months: [Int!]!
+}
+
 type Query {
+  catalogFilterOptions: CatalogFilterOptions!
   session: Session!
   policy: Policy!
   titles(

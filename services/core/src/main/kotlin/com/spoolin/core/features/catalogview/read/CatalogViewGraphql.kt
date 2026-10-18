@@ -41,6 +41,7 @@ class CatalogViewGraphql(
                 .dataFetcher("titleCredits") { env -> titleCredits(env) }
                 .dataFetcher("personCredits") { env -> personCredits(env) }
                 .dataFetcher("genres") { _ -> genres() }
+                .dataFetcher("catalogFilterOptions") { _ -> catalogFilterOptions() }
                 .dataFetcher("creditRoles") { _ -> creditRoles() }
         }
         CatalogMetadataProjection {
@@ -177,6 +178,18 @@ class CatalogViewGraphql(
     }
 
     // ── genres ────────────────────────────────────────────────────────────────
+
+    private fun catalogFilterOptions(): Map<String, Any?> {
+        val result =
+            stub().getCatalogFilterOptions(
+                com.google.protobuf.Empty
+                    .getDefaultInstance(),
+            )
+        return mapOf(
+            "genres" to result.genresList.map { mapOf("id" to it.id, "label" to it.label) },
+            "releaseYears" to result.releaseYearsList.map { mapOf("year" to it.year, "months" to it.monthsList) },
+        )
+    }
 
     private fun genres(): List<Map<String, Any?>> {
         val result =

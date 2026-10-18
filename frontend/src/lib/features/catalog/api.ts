@@ -138,3 +138,49 @@ export async function fetchTitleCredits(
   if (!Array.isArray(result?.nodes)) throw new Error('Credits unavailable.');
   return { ...result, pageInfo: readPageInfo(result.pageInfo, after) };
 }
+
+export type CatalogFilterOptions = {
+  genres: { id: string; label: string }[];
+  releaseYears: { year: number; months: number[] }[];
+};
+
+export async function fetchCatalogFilterOptions(
+  request: GraphqlRequest,
+  signal?: AbortSignal,
+): Promise<CatalogFilterOptions> {
+  const data = record(
+    await request(
+      `query CatalogFilterOptions {
+      catalogFilterOptions { genres { id label } releaseYears { year months } }
+    }`,
+      {},
+      withSignal(signal),
+    ),
+  );
+  const options = record(data.catalogFilterOptions);
+  if (!Array.isArray(options.genres) || !Array.isArray(options.releaseYears))
+    throw new Error('Unexpected filter choices');
+  return {
+    genres: options.genres.map((value) => {
+      const genre = record(value);
+      if (typeof genre.id !== 'string' || typeof genre.label !== 'string')
+        throw new Error('Unexpected genre choice');
+      return { id: genre.id, label: genre.label };
+    }),
+    releaseYears: options.releaseYears.map((value) => {
+      const date = record(value);
+      if (
+        typeof date.year !== 'number' ||
+        !Number.isInteger(date.year) ||
+        date.year < 1 ||
+        date.year > 9999 ||
+        !Array.isArray(date.months) ||
+        !date.months.every(
+          (month) => Number.isInteger(month) && month >= 1 && month <= 12,
+        )
+      )
+        throw new Error('Unexpected release date choice');
+      return { year: date.year, months: date.months };
+    }),
+  };
+}
