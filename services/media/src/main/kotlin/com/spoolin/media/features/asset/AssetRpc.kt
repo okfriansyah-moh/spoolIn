@@ -67,9 +67,11 @@ class AssetRpc(
                 connection
                     .queryBound(
                         "SELECT a.*,h.id AS receipt_hold,h.title_id AS receipt_title FROM operation_receipt r " +
-                            "JOIN hold_operation_binding b ON b.operation_id=r.id JOIN asset_reference h ON h.id=b.hold_id " +
+                            "JOIN hold_operation_binding b ON b.operation_id=r.id " +
+                            "JOIN asset_reference h ON h.id=b.hold_id " +
                             "JOIN asset a ON a.id=h.asset_id WHERE r.id=? AND r.kind='HOLD_'||b.verb " +
-                            "AND b.actor_id=a.actor_id AND r.actor_scope='account:'||a.actor_id::text AND r.state='SUCCEEDED'",
+                            "AND b.actor_id=a.actor_id AND r.actor_scope='account:'||a.actor_id::text " +
+                            "AND r.state='SUCCEEDED'",
                         listOf(operation),
                     ) {
                         Triple(

@@ -7,6 +7,7 @@ import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import java.security.MessageDigest
 import java.sql.Connection
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
@@ -63,18 +64,7 @@ object HoldSql {
                 "SELECT actor_scope,kind,request_hash,state FROM operation_receipt WHERE id=? FOR UPDATE",
                 listOf(command.operation),
             ) { row ->
-                if (row.getString("actor_scope") != command.scope) throw Status.NOT_FOUND.asRuntimeException()
-                val compatible =
-                    row.getString("kind") == command.action.kind &&
-                        MessageDigest.isEqual(row.getBytes("request_hash"), command.hash())
-                if (!compatible) {
-                    throw Status.ALREADY_EXISTS
-                        .withDescription("IDEMPOTENCY_CONFLICT")
-                        .asRuntimeException()
-                }
-                if (!inserted && row.getString("state") != "SUCCEEDED") {
-                    throw Status.FAILED_PRECONDITION.withDescription("HOLD_RECEIPT_UNAVAILABLE").asRuntimeException()
-                }
+                validateReceipt(row, command, inserted)
                 Unit
             }.single()
         if (!inserted) {
@@ -93,6 +83,25 @@ object HoldSql {
             }
         }
         return inserted
+    }
+
+    private fun validateReceipt(row: ResultSet, command: HoldCommand, inserted: Boolean) {
+        requireScope(row, command)
+        val compatible =
+            row.getString("kind") == command.action.kind &&
+                MessageDigest.isEqual(row.getBytes("request_hash"), command.hash())
+        if (!compatible) {
+            throw Status.ALREADY_EXISTS
+                .withDescription("IDEMPOTENCY_CONFLICT")
+                .asRuntimeException()
+        }
+        if (!inserted && row.getString("state") != "SUCCEEDED") {
+            throw Status.FAILED_PRECONDITION.withDescription("HOLD_RECEIPT_UNAVAILABLE").asRuntimeException()
+        }
+    }
+
+    private fun requireScope(row: ResultSet, command: HoldCommand) {
+        if (row.getString("actor_scope") != command.scope) throw Status.NOT_FOUND.asRuntimeException()
     }
 
     internal fun completeReceipt(

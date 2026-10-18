@@ -3,7 +3,6 @@ package com.spoolin.media.features.processing
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
@@ -15,77 +14,7 @@ class CodecSandbox {
         codecArguments: List<String>,
         deadline: Long,
     ): String? {
-        val outputName =
-            if (codecArguments.first().endsWith("spoolin-image-header")) {
-                "dimensions"
-            } else {
-                codecArguments[CODEC_OUTPUT_ARGUMENT].substringAfterLast('/').substringBefore('[')
-            }
-        require(outputName.matches(Regex("dimensions|encoded\\.(jpeg|png|webp)")))
-        val output = scratch.resolve(outputName)
-        Files.deleteIfExists(output)
-        Files.createFile(output)
-        val outputLimit =
-            if (outputName == "dimensions") {
-                ProcessingBounds.MAX_HEADER_BYTES
-            } else {
-                ProcessingBounds.MAX_OUTPUT_BYTES
-            }
-        val command =
-            listOf(
-                "/usr/bin/bwrap",
-                "--unshare-all",
-                "--die-with-parent",
-                "--new-session",
-                "--ro-bind",
-                "/usr",
-                "/usr",
-                "--ro-bind",
-                "/lib",
-                "/lib",
-                "--ro-bind",
-                "/lib64",
-                "/lib64",
-                "--proc",
-                "/proc",
-                "--dev",
-                "/dev",
-                "--size",
-                "25161728",
-                "--tmpfs",
-                "/tmp",
-                "--ro-bind",
-                input.toAbsolutePath().toString(),
-                "/input",
-                "--dir",
-                "/output",
-                "--bind",
-                output.toAbsolutePath().toString(),
-                "/output/$outputName",
-                "--remount-ro",
-                "/",
-                "--chdir",
-                "/output",
-                "--clearenv",
-                "--setenv",
-                "PATH",
-                "/usr/local/bin:/usr/bin",
-                "--setenv",
-                "LD_LIBRARY_PATH",
-                "/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/aarch64-linux-gnu",
-                "--setenv",
-                "TMPDIR",
-                "/tmp",
-                "--setenv",
-                "VIPS_CONCURRENCY",
-                "1",
-                "/usr/bin/prlimit",
-                "--as=268435456",
-                "--cpu=5",
-                "--fsize=$outputLimit",
-                "--nofile=64",
-                "--",
-            ) + codecArguments
+        val command = CodecCommand.build(input, scratch, codecArguments)
         return try {
             boundedProcess(command, deadline)
         } catch (
@@ -188,6 +117,5 @@ class CodecFailure(
     val errorCode: String,
 ) : RuntimeException(errorCode)
 
-private const val CODEC_OUTPUT_ARGUMENT = 3
 private const val DIAGNOSTIC_BYTES = 4096
 private const val READER_JOIN_MILLIS = 1000L

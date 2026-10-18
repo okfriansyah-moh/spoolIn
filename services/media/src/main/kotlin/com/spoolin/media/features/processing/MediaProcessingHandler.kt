@@ -68,7 +68,8 @@ class MediaProcessingHandler(
                 ImageValidator.validate(it, ProcessingBounds.MAX_INPUT_BYTES)
             }
         return when (validation) {
-            is ImageValidator.ValidationResult.Invalid -> Processed(ProcessorRunner.Outcome.Rejected(validation.errorCode), false)
+            is ImageValidator.ValidationResult.Invalid ->
+                Processed(ProcessorRunner.Outcome.Rejected(validation.errorCode), false)
             is ImageValidator.ValidationResult.Valid -> processValidated(asset, input, validation)
         }
     }

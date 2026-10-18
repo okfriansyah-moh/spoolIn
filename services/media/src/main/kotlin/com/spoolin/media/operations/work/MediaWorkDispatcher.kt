@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
+private const val LEASE_RENEWAL_SECONDS = 10L
+private const val SHUTDOWN_WAIT_SECONDS = 30L
+
 /** Exactly two worker lanes; each lane holds at most one committed claim. */
 class MediaWorkDispatcher(
     dataSource: DataSource,
@@ -52,7 +55,7 @@ class MediaWorkDispatcher(
         val renewal =
             heartbeats.scheduleAtFixedRate({
                 if (!guard.renew(claim)) currentThread.interrupt()
-            }, 10, 10, TimeUnit.SECONDS)
+            }, LEASE_RENEWAL_SECONDS, LEASE_RENEWAL_SECONDS, TimeUnit.SECONDS)
         try {
             when (claim.kind) {
                 "MEDIA_PROCESS" -> handler.handle(claim)
@@ -71,7 +74,7 @@ class MediaWorkDispatcher(
     override fun close() {
         stopped.set(true)
         workers.shutdown()
-        if (!workers.awaitTermination(30, TimeUnit.SECONDS)) workers.shutdownNow()
+        if (!workers.awaitTermination(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS)) workers.shutdownNow()
         heartbeats.shutdownNow()
     }
 }

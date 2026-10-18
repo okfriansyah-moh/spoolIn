@@ -19,7 +19,10 @@ class ProcessingMetrics(
             Timer
                 .builder("spoolin.media.processing.duration")
                 .tag("service", "media")
-                .serviceLevelObjectives(*BUCKETS)
+                .serviceLevelObjectives(
+                    FAST_BUCKET, SHORT_BUCKET, TENTH_BUCKET, RESPONSE_BUCKET, HALF_SECOND_BUCKET,
+                    SECOND_BUCKET, SLOW_BUCKET, EFFECT_BUCKET, RECOVERY_BUCKET, LONG_BUCKET,
+                )
                 .register(registry)
                 .record((System.nanoTime() - started).coerceAtLeast(0), TimeUnit.NANOSECONDS)
             if (!returned) count("FAILED")
@@ -49,18 +52,15 @@ class ProcessingMetrics(
         private const val EFFECT_MS = 5000L
         private const val RECOVERY_MS = 15000L
         private const val LONG_MS = 30000L
-        private val BUCKETS =
-            longArrayOf(
-                FAST_MS,
-                SHORT_MS,
-                TENTH_MS,
-                RESPONSE_MS,
-                HALF_SECOND_MS,
-                SECOND_MS,
-                SLOW_MS,
-                EFFECT_MS,
-                RECOVERY_MS,
-                LONG_MS,
-            ).map(Duration::ofMillis).toTypedArray()
+        private val FAST_BUCKET = Duration.ofMillis(FAST_MS)
+        private val SHORT_BUCKET = Duration.ofMillis(SHORT_MS)
+        private val TENTH_BUCKET = Duration.ofMillis(TENTH_MS)
+        private val RESPONSE_BUCKET = Duration.ofMillis(RESPONSE_MS)
+        private val HALF_SECOND_BUCKET = Duration.ofMillis(HALF_SECOND_MS)
+        private val SECOND_BUCKET = Duration.ofMillis(SECOND_MS)
+        private val SLOW_BUCKET = Duration.ofMillis(SLOW_MS)
+        private val EFFECT_BUCKET = Duration.ofMillis(EFFECT_MS)
+        private val RECOVERY_BUCKET = Duration.ofMillis(RECOVERY_MS)
+        private val LONG_BUCKET = Duration.ofMillis(LONG_MS)
     }
 }
