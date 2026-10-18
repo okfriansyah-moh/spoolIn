@@ -17,6 +17,10 @@ export class GatewayClient {
       readFileSync(required('GRPC_CLIENT_CERT_FILE')),
     ));
   }
+  ready(): Promise<void> {
+    return new Promise((resolve, reject) => this.client.waitForReady(new Date(Date.now() + 5000),
+      (error) => error ? reject(new Error('Core gateway unavailable')) : resolve()));
+  }
   private call<T>(invoke: (metadata: Metadata, options: { deadline: Date }, callback: (error: Error | null, value: T) => void) => unknown, assertion?: string): Promise<T> {
     const metadata = new Metadata();
     metadata.set('authorization', `Bearer ${this.connectorToken}`);

@@ -62,7 +62,7 @@ def rate_agreement(directory):
 
 
 def provision_identity_files(base, exports):
-    for owner in ("postgres", "core", "catalog", "media", "operator"):
+    for owner in ("postgres", "core", "catalog", "media", "mcp", "operator"):
         key, cert = certificate(base, owner, f"DNS:{owner},DNS:localhost,IP:127.0.0.1")
         prefix = "SPOOLIN_OPERATOR" if owner == "operator" else owner.upper() + ("_SERVICE" if owner != "postgres" else "")
         exports[prefix + "_KEY_FILE"] = str(key)

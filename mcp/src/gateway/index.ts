@@ -1,3 +1,4 @@
+import { GatewayClient } from '../operations/gateway-client.js';
 import { StreamableHttpTransport } from '../transport/streamable-http.js';
 
 export type GatewayOptions = Readonly<{
@@ -10,6 +11,8 @@ export function createGateway() {
   return {
     close: () => transport.close(),
     async start(options: GatewayOptions): Promise<void> {
+      const probe = new GatewayClient('');
+      try { await probe.ready(); } finally { probe.close(); }
       await transport.listen(options);
     },
   };

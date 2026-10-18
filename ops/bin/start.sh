@@ -16,6 +16,7 @@ done
 "$bin/bootstrap-accounts.sh" || exit 4
 SPOOLIN_SEED_APPLY=1 "$bin/seed.sh" --apply || exit 4
 compose_common_run "$root_dir" up -d core catalog media || exit 5
+compose_common_run "$root_dir" up -d mcp || exit 5
 start=$SECONDS
 until "$bin/status.sh" >/dev/null 2>&1; do
   if (( SECONDS - start >= 300 )); then
@@ -24,5 +25,5 @@ until "$bin/status.sh" >/dev/null 2>&1; do
   fi
   sleep 2
 done
-printf '%s\n' 'start: Core, Catalog and Media ready; database migrations and catalog seed applied'
+printf '%s\n' 'start: Core, Catalog, Media and MCP ready; database migrations and catalog seed applied'
 printf '%s\n' 'start: external chat clients and monitoring are unverified; inspect acceptance obligations'

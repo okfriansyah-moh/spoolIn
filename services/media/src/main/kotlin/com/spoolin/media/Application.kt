@@ -137,12 +137,10 @@ class Application {
             com.spoolin.media.operations.receipts
                 .OwnerReceiptReads(dataSource)
         val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
-        val holdRpc =
-            com.spoolin.media.features.hold
-                .HoldRpc(dataSource)
         val catalog = com.spoolin.media.features.asset.CatalogAttachments(
             spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
         )
+        val holdRpc = com.spoolin.media.features.hold.HoldRpc(dataSource, catalog)
         val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision, catalog = catalog)
         val assets = com.spoolin.media.features.asset.AssetRpc(dataSource, quarantineStore, catalog)
         return MediaServiceImpl(uploadRpc, holdRpc, reads, assets)

@@ -209,6 +209,33 @@ services:
     volumes: [../data/seed:/app/seed:ro]
     secrets: [catalog-runtime-password, service-ca]
 
+  mcp:
+    build:
+      context: ..
+      dockerfile: ops/containers/mcp.Dockerfile
+    environment:
+      CORE_GRPC_TARGET: core:9090
+      GRPC_CA_FILE: /run/secrets/service-ca
+      GRPC_CLIENT_KEY_FILE: /run/secrets/mcp-key
+      GRPC_CLIENT_CERT_FILE: /run/secrets/mcp-cert
+      MCP_PORT: '8787'
+      MCP_HEALTH_PORT: '8788'
+      MCP_ALLOWED_HOSTS: localhost,127.0.0.1,mcp
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 1
+    secrets: [service-ca, mcp-key, mcp-cert]
+    ports: ["127.0.0.1:${MCP_HTTP_PORT:-8787}:8787"]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8788/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
 networks:
   private:
     internal: true
@@ -260,3 +287,7 @@ secrets:
     file: ${MEDIA_SERVICE_KEY_FILE:?Provision owner TLS material}
   media-cert:
     file: ${MEDIA_SERVICE_CERT_FILE:?Provision owner TLS material}
+  mcp-key:
+    file: ${MCP_SERVICE_KEY_FILE:?Provision MCP TLS key}
+  mcp-cert:
+    file: ${MCP_SERVICE_CERT_FILE:?Provision MCP TLS certificate}
