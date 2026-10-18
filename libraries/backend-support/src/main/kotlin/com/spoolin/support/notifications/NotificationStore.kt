@@ -42,9 +42,12 @@ class NotificationStore(
                 connection
                     .queryBound(
                         "SELECT id,operation_id,payload::text,attempt_count,max_attempts,deadline_at," +
-                            "lease_epoch,correlation_id,base_delay_ms,cap_delay_ms,backoff_multiplier,generation,notification_mode," +
-                            "notification_summary::text FROM durable_work WHERE kind='NOTIFICATION' AND state='READY' " +
-                            "AND notification_state='PENDING' AND next_attempt_at<=clock_timestamp() AND deadline_at>clock_timestamp() " +
+                            "lease_epoch,correlation_id,base_delay_ms,cap_delay_ms,backoff_multiplier," +
+                            "generation,notification_mode," +
+                            "notification_summary::text FROM durable_work " +
+                            "WHERE kind='NOTIFICATION' AND state='READY' " +
+                            "AND notification_state='PENDING' AND next_attempt_at<=clock_timestamp() " +
+                            "AND deadline_at>clock_timestamp() " +
                             "AND attempt_count<max_attempts ORDER BY next_attempt_at,id LIMIT 1 FOR UPDATE SKIP LOCKED",
                         emptyList(),
                     ) { row ->
@@ -143,13 +146,18 @@ class NotificationStore(
         connection.executeBound(
             "WITH expired AS (UPDATE durable_work SET state='EXHAUSTED',notification_state='UNKNOWN'," +
                 "lease_owner=NULL,lease_until=NULL,last_error='NOTIFICATION_UNCERTAIN',updated_at=clock_timestamp() " +
-                "WHERE kind='NOTIFICATION' AND state='LEASED' AND (lease_until<=clock_timestamp() OR deadline_at<=clock_timestamp()) " +
-                "RETURNING *) INSERT INTO operational_event (id,operation_id,actor_kind,action,subject_kind,subject_id,outcome," +
+                "WHERE kind='NOTIFICATION' AND state='LEASED' " +
+                "AND (lease_until<=clock_timestamp() OR deadline_at<=clock_timestamp()) " +
+                "RETURNING *) INSERT INTO operational_event " +
+                "(id,operation_id,actor_kind,action,subject_kind,subject_id,outcome," +
                 "correlation_id,event_type,work_id,generation,attempt_no,lease_epoch,attempt_outcome,error_code) " +
                 "SELECT gen_random_uuid(),operation_id,'SERVICE','WORK_ATTEMPT','WORK',id,'FAILED',correlation_id," +
-                "'ATTEMPT_FINISHED',id,generation,attempt_count,lease_epoch,'UNCERTAIN','NOTIFICATION_UNCERTAIN' FROM expired " +
-                "WHERE EXISTS (SELECT 1 FROM operational_event e WHERE e.work_id=expired.id AND e.generation=expired.generation " +
-                "AND e.attempt_no=expired.attempt_count AND e.lease_epoch=expired.lease_epoch AND e.event_type='ATTEMPT_STARTED') " +
+                "'ATTEMPT_FINISHED',id,generation,attempt_count,lease_epoch,'UNCERTAIN'," +
+                "'NOTIFICATION_UNCERTAIN' FROM expired " +
+                "WHERE EXISTS (SELECT 1 FROM operational_event e WHERE e.work_id=expired.id " +
+                "AND e.generation=expired.generation " +
+                "AND e.attempt_no=expired.attempt_count AND e.lease_epoch=expired.lease_epoch " +
+                "AND e.event_type='ATTEMPT_STARTED') " +
                 "ON CONFLICT DO NOTHING",
         )
         connection.executeBound(

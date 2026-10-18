@@ -59,7 +59,7 @@ data class AlertPolicy(
                         source.integer(setting.name, setting.default, setting.min, setting.max).value
                 }
 
-            fun set(
+            fun configuredSet(
                 name: String,
                 default: String,
             ): Set<String> =
@@ -80,9 +80,9 @@ data class AlertPolicy(
                 AlertMode.entries.singleOrNull { it.value == environment.getProperty("NOTIFICATION_MODE", "database") }
                     ?: throw IllegalArgumentException("NOTIFICATION_MODE: Select a supported mode")
             return AlertPolicy(
-                set("ALERT_ALLOWED_SERVICES", "core,catalog,media,mcp,postgres"),
-                set("ALERT_ALLOWED_SEVERITIES", "warning,critical"),
-                set("ALERT_ALLOWED_NAMES", ALERT_NAMES),
+                configuredSet("ALERT_ALLOWED_SERVICES", "core,catalog,media,mcp,postgres"),
+                configuredSet("ALERT_ALLOWED_SEVERITIES", "warning,critical"),
+                configuredSet("ALERT_ALLOWED_NAMES", ALERT_NAMES),
                 mapOf(
                     "summary" to annotations("ALERT_ALLOWED_SUMMARIES", ALERT_SUMMARIES),
                     "description" to annotations("ALERT_ALLOWED_DESCRIPTIONS", ""),

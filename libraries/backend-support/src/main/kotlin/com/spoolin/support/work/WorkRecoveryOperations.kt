@@ -38,7 +38,8 @@ object WorkRecoveryOperations {
         val row =
             connection
                 .queryBound(
-                    "SELECT id,kind,state,generation,lease_epoch,attempt_count,max_attempts,deadline_at,last_error,operation_id,correlation_id " +
+                    "SELECT id,kind,state,generation,lease_epoch,attempt_count,max_attempts," +
+                        "deadline_at,last_error,operation_id,correlation_id " +
                         "FROM appdata.durable_work WHERE id=?" + if (lock) " FOR UPDATE" else "",
                     listOf(id),
                 ) {
@@ -105,7 +106,8 @@ object WorkRecoveryOperations {
     ) {
         val asset =
             connection.queryBound(
-                "SELECT a.id,a.state,a.input_bytes,a.processing_input_hash,a.processing_staging_key,r.state AS receipt_state " +
+                "SELECT a.id,a.state,a.input_bytes,a.processing_input_hash,a.processing_staging_key," +
+                    "r.state AS receipt_state " +
                     "FROM appdata.asset a JOIN appdata.durable_work w ON w.id=a.processing_work_id " +
                     "JOIN appdata.operation_receipt r ON r.id=a.upload_operation_id " +
                     "WHERE w.id=? AND w.operation_id=a.upload_operation_id FOR UPDATE OF a,r",
@@ -122,7 +124,8 @@ object WorkRecoveryOperations {
         val started =
             connection
                 .queryBound(
-                    "SELECT max(created_at) FROM appdata.operational_event WHERE work_id=? AND event_type='ATTEMPT_STARTED'",
+                    "SELECT max(created_at) FROM appdata.operational_event " +
+                        "WHERE work_id=? AND event_type='ATTEMPT_STARTED'",
                     listOf(work.id),
                 ) { it.getTimestamp(1)?.toInstant() }
                 .single()

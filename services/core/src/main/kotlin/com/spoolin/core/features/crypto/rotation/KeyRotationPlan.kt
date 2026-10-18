@@ -26,16 +26,16 @@ data class KeyRotationPlan(
         maxBatches: Int = 100,
     ): RotationOutcome {
         require(maxBatches in 1..10000)
-        if (keys ==
-            null
-        ) {
+        if (keys == null) {
             return RotationOutcome(false, "Rotation requires validated mounted source and target key material; no state changed")
         }
         return dataSource.connection.use { lock ->
             lock.queryBound("SELECT pg_advisory_lock(734850220,?)", listOf(purpose.ordinal)) { true }
             try {
                 val states = states(dataSource)
-                if (!eligible(states)) return@use RotationOutcome(false, "Rotation source/target state is incompatible; no state changed")
+                if (!eligible(states)) {
+                    return@use RotationOutcome(false, "Rotation source/target state is incompatible; no state changed")
+                }
                 if (dryRun) {
                     require(
                         keys

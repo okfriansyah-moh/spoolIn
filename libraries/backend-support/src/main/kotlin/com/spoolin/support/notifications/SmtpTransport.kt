@@ -118,7 +118,8 @@ class SmtpTransport(
                     java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC),
                 )}\r\n" +
                 "Message-ID: <${item.work.workId}.${item.work.generation}@spoolin.local>\r\n" +
-                "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" +
+                "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n" +
+                "Content-Transfer-Encoding: base64\r\n\r\n" +
                 text + "\r\n.\r\n"
         ).toByteArray(StandardCharsets.US_ASCII)
     }

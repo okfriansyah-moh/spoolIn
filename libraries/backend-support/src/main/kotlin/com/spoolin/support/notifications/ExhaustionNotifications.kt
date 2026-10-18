@@ -41,8 +41,10 @@ class ExhaustionNotifications(
                 connection.queryBound(
                     "SELECT w.id,w.operation_id,w.kind,w.generation,w.attempt_count,w.max_attempts," +
                         "w.correlation_id FROM durable_work w WHERE w.state='EXHAUSTED' AND w.kind<>'NOTIFICATION' " +
-                        "AND NOT EXISTS (SELECT 1 FROM durable_work n WHERE n.kind='NOTIFICATION' AND n.notification_key IN " +
-                        "('work:'||w.id::text||':generation:'||w.generation::text,w.id::text||':'||w.generation::text)) " +
+                        "AND NOT EXISTS (SELECT 1 FROM durable_work n WHERE n.kind='NOTIFICATION' " +
+                        "AND n.notification_key IN " +
+                        "('work:'||w.id::text||':generation:'||w.generation::text," +
+                        "w.id::text||':'||w.generation::text)) " +
                         "ORDER BY w.updated_at,w.id LIMIT 10 FOR UPDATE OF w SKIP LOCKED",
                     emptyList(),
                 ) { row ->
@@ -77,7 +79,8 @@ class ExhaustionNotifications(
         val inserted =
             connection.executeBound(
                 "INSERT INTO durable_work (id,operation_id,kind,payload,state,max_attempts," +
-                    "deadline_at,correlation_id,base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode," +
+                    "deadline_at,correlation_id,base_delay_ms,cap_delay_ms,backoff_multiplier," +
+                    "notification_key,notification_mode," +
                     "notification_state,notification_summary,created_at,updated_at,next_attempt_at) " +
                     "VALUES (?,?,'NOTIFICATION','{}'::jsonb,?,?,?,?,?,?,?,?,?,?,?::jsonb,?,?,?) ON CONFLICT DO NOTHING",
                 id,
@@ -102,7 +105,8 @@ class ExhaustionNotifications(
                 connection.executeBound(
                     "INSERT INTO operational_event (id,operation_id,actor_kind,action," +
                         "subject_kind,subject_id,outcome,changes,correlation_id,event_type) " +
-                        "VALUES (?,?,'SERVICE','WORK_EXHAUSTION_RECORDED','NOTIFICATION',?,'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
+                        "VALUES (?,?,'SERVICE','WORK_EXHAUSTION_RECORDED','NOTIFICATION',?," +
+                        "'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
                     UUID.randomUUID(),
                     source.operation,
                     id,

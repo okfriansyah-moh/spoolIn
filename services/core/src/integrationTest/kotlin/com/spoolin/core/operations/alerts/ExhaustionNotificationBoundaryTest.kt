@@ -114,7 +114,8 @@ class ExhaustionNotificationBoundaryTest {
                 connection
                     .prepareStatement(
                         "SELECT state,notification_state,max_attempts,base_delay_ms,cap_delay_ms,backoff_multiplier," +
-                            "extract(epoch FROM deadline_at-created_at)*1000,notification_summary->>'service' FROM durable_work WHERE notification_key=?",
+                            "extract(epoch FROM deadline_at-created_at)*1000,notification_summary->>'service' " +
+                            "FROM durable_work WHERE notification_key=?",
                     ).use {
                         it.setString(1, "work:$source:generation:0")
                         it.executeQuery().use { rows ->
@@ -141,7 +142,8 @@ class ExhaustionNotificationBoundaryTest {
             fixture.connection("core").use { connection ->
                 connection.executeBound(
                     "INSERT INTO durable_work(id,kind,payload,state,max_attempts,deadline_at,correlation_id," +
-                        "base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode,notification_state,notification_summary) " +
+                        "base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode," +
+                        "notification_state,notification_summary) " +
                         "VALUES (?,'NOTIFICATION','{}','EXHAUSTED',3,clock_timestamp(),?,500,5000,2,?,'slack','UNKNOWN','{}')",
                     old,
                     UUID.randomUUID(),
@@ -223,10 +225,12 @@ class ExhaustionNotificationBoundaryTest {
                 if (enabled) {
                     it.execute(
                         "CREATE FUNCTION appdata.reject_notification_fixture() RETURNS trigger LANGUAGE plpgsql AS " +
-                            "\u0024\u0024 BEGIN IF NEW.action='WORK_EXHAUSTION_RECORDED' THEN RAISE EXCEPTION 'Fixture event write failure'; END IF; RETURN NEW; END; \u0024\u0024",
+                            "\u0024\u0024 BEGIN IF NEW.action='WORK_EXHAUSTION_RECORDED' THEN " +
+                            "RAISE EXCEPTION 'Fixture event write failure'; END IF; RETURN NEW; END; \u0024\u0024",
                     )
                     it.execute(
-                        "CREATE TRIGGER reject_notification_fixture BEFORE INSERT ON operational_event FOR EACH ROW EXECUTE FUNCTION appdata.reject_notification_fixture()",
+                        "CREATE TRIGGER reject_notification_fixture BEFORE INSERT ON operational_event FOR EACH ROW " +
+                            "EXECUTE FUNCTION appdata.reject_notification_fixture()",
                     )
                 } else {
                     it.execute("DROP TRIGGER reject_notification_fixture ON operational_event")

@@ -55,7 +55,10 @@ class InitializationReadKeysRulesTest {
         directory.resolve("read-keys.json").also {
             Files.write(
                 it,
-                JsonMapper.builder().build().writeValueAsBytes(mapOf(id to mapOf("purpose" to purpose, "file" to key.toString()))),
+                JsonMapper
+                    .builder()
+                    .build()
+                    .writeValueAsBytes(mapOf(id to mapOf("purpose" to purpose, "file" to key.toString()))),
             )
             Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
         }

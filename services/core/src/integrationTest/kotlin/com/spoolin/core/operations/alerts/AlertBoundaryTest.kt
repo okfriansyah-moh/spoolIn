@@ -1,8 +1,13 @@
 package com.spoolin.core.operations.alerts
 
-import com.spoolin.core.features.alerts.*
+import com.spoolin.core.features.alerts.AlertPolicy
+import com.spoolin.core.features.alerts.AlertRecorder
+import com.spoolin.core.features.alerts.AlertWebhook
 import com.spoolin.core.features.session.IdentityHttpFixture
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.net.URI
 import java.net.http.HttpClient
