@@ -17,7 +17,7 @@ const CATALOG_OPERATION_QUERY = `query CatalogOperation($id: UUID!) {
   }
 }`;
 
-const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: Int = 24, $after: Cursor) {
+const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: Int, $after: Cursor) {
   managedTitles(state: $state, first: $first, after: $after) {
     nodes {
       id kind state title releaseContext version

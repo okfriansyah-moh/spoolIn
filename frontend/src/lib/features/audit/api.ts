@@ -1,7 +1,7 @@
 import type { GraphqlRequest } from '../../transport/graphql';
 import { record } from '../session/parse';
 
-const AUDIT_QUERY = `query Audit($first: Int = 24, $after: Cursor, $subjectId: UUID) {
+const AUDIT_QUERY = `query Audit($first: Int, $after: Cursor, $subjectId: UUID) {
   audit(first: $first, after: $after, subjectId: $subjectId) {
     nodes {
       id actorRef action subjectKind subjectId outcome at changes

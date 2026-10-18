@@ -94,6 +94,6 @@ it('preserves the actual archive cursor and rejects nonadvancing pages', async (
     return { managedTitles: { nodes: [], pageInfo: { hasNextPage: true, endCursor: 'next' } } };
   };
   expect(await fetchArchivedPage(read, 'movies', 'csrf', 'previous')).toMatchObject({ pageInfo: { endCursor: 'next' } });
-  expect(calls).toMatchObject([{ variables: { first: 48, after: 'previous' } }]);
+  expect(calls[0]).toHaveProperty('variables', { after: 'previous' });
   await expect(fetchArchivedPage(read, 'movies', 'csrf', 'next')).rejects.toThrow('cursor');
 });

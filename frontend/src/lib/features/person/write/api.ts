@@ -9,7 +9,7 @@ import {
   type PersonMutationOutcome,
 } from './outcome';
 
-const MANAGED_PEOPLE_QUERY = `query ManagedPeople($state: RecordState!, $first: Int = 24, $after: Cursor) {
+const MANAGED_PEOPLE_QUERY = `query ManagedPeople($state: RecordState!, $first: Int, $after: Cursor) {
   managedPeople(state: $state, first: $first, after: $after) {
     nodes { id name state version biography }
     pageInfo { endCursor hasNextPage }

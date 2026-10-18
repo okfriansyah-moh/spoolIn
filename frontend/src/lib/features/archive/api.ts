@@ -4,14 +4,14 @@ import { readPageInfo, type PageSlice } from '../../state/pagination';
 import { record } from '../session/parse';
 import type { ArchiveListItem, ArchiveTab } from './types';
 
-const ARCHIVED_TITLES = `query ArchivedTitles($first: Int = 48, $after: Cursor) {
+const ARCHIVED_TITLES = `query ArchivedTitles($first: Int, $after: Cursor) {
   managedTitles(state: ARCHIVED, first: $first, after: $after) {
     nodes { id title state version }
     pageInfo { endCursor hasNextPage }
   }
 }`;
 
-const ARCHIVED_PEOPLE = `query ArchivedPeople($first: Int = 48, $after: Cursor) {
+const ARCHIVED_PEOPLE = `query ArchivedPeople($first: Int, $after: Cursor) {
   managedPeople(state: ARCHIVED, first: $first, after: $after) {
     nodes { id name state version }
     pageInfo { endCursor hasNextPage }
@@ -84,7 +84,7 @@ export async function fetchArchivedPage(
   const query = tab === 'movies' ? ARCHIVED_TITLES : ARCHIVED_PEOPLE;
   const options: RequestOptions = { csrf };
   if (signal) options.signal = signal;
-  const data = record(await request(query, { first: 48, after }, options));
+  const data = record(await request(query, { after }, options));
   const page = record(tab === 'movies' ? data.managedTitles : data.managedPeople);
   if (!Array.isArray(page.nodes)) throw new Error('Archives unavailable.');
   return Object.freeze({ nodes: Object.freeze(page.nodes.map((node) => archiveRow(node, tab))),

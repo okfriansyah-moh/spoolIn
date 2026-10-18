@@ -14,7 +14,7 @@ import type {
   PersonCreditsQueryVariables,
 } from '../../../generated/graphql';
 
-const PEOPLE_QUERY = `query People($text: String, $first: Int = 24, $after: Cursor) {
+const PEOPLE_QUERY = `query People($text: String, $first: Int, $after: Cursor) {
   people(text: $text, first: $first, after: $after) {
     nodes { id name biography state version }
     pageInfo { endCursor hasNextPage }
@@ -27,7 +27,7 @@ const PERSON_QUERY = `query Person($id: UUID!) {
   }
 }`;
 
-const PERSON_CREDITS_QUERY = `query PersonCredits($id: UUID!, $first: Int = 24, $after: Cursor) {
+const PERSON_CREDITS_QUERY = `query PersonCredits($id: UUID!, $first: Int, $after: Cursor) {
   personCredits(id: $id, first: $first, after: $after) {
     nodes {
       id personId personName titleId titleName

@@ -14,7 +14,7 @@ export type CreditCommandOutcome =
       problem: NonNullable<IdentityOutcome['problem']>;
     }>;
 
-const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48, $after: Cursor) {
+const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int, $after: Cursor) {
   managedCredits(titleId: $titleId, first: $first, after: $after) {
     nodes {
       id personId personName version characters
@@ -26,7 +26,7 @@ const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48,
 
 const CREDIT_ROLES = `query CreditRoles { creditRoles { id label category allowsCharacters } }`;
 
-const MANAGED_PEOPLE = `query ManagedPeople($state: RecordState!, $first: Int = 48, $after: Cursor) {
+const MANAGED_PEOPLE = `query ManagedPeople($state: RecordState!, $first: Int, $after: Cursor) {
   managedPeople(state: $state, first: $first, after: $after) {
     nodes { id name state }
     pageInfo { hasNextPage endCursor }

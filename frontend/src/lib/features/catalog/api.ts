@@ -20,7 +20,7 @@ import {
 
 // Raw query strings – imported from the shared all-operations.graphql
 // so the transport layer receives the exact wire format.
-const TITLES_QUERY = `query Titles($filter: SearchInput!, $first: Int = 24, $after: Cursor) {
+const TITLES_QUERY = `query Titles($filter: SearchInput!, $first: Int, $after: Cursor) {
   titles(filter: $filter, first: $first, after: $after) {
     nodes {
       id kind state title originalTitle synopsis
@@ -120,7 +120,7 @@ export { TitlesDocument, TitleDocument, GenresDocument };
 export async function fetchTitleCredits(
   request: GraphqlRequest, id: string, after: string | null, signal?: AbortSignal,
 ): Promise<CatalogTitleDetail['credits']> {
-  const data = record(await request(`query TitleCredits($id: UUID!, $first: Int = 24, $after: Cursor) {
+  const data = record(await request(`query TitleCredits($id: UUID!, $first: Int, $after: Cursor) {
     titleCredits(id: $id, first: $first, after: $after) {
       nodes { id personId personName titleId titleName role { id label category allowsCharacters } characters version }
       pageInfo { endCursor hasNextPage }
