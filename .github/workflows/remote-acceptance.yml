@@ -9,7 +9,7 @@ on:
       mode:
         description: Dependency preparation or strict acceptance
         type: choice
-        options: [verify, dependencies]
+        options: [verify, dependencies, seed]
         default: verify
 permissions:
   contents: read
@@ -52,10 +52,15 @@ jobs:
           distribution: temurin
           java-version: '21.0.12+1'
           cache: gradle
+      - name: Freeze permitted seed facts
+        if: ${{ inputs.mode == 'seed' }}
+        run: python3 ops/ci/freeze-wikidata.py
       - name: Prepare npm lock metadata
         if: ${{ inputs.mode == 'dependencies' }}
         run: npm install --package-lock-only --ignore-scripts
       - name: Install locked npm dependencies
+        id: dependencies
+        if: ${{ inputs.mode != 'seed' }}
         run: npm ci
       - name: Prepare dependency locks and verification entries
         if: ${{ (inputs.mode || 'dependencies') == 'dependencies' }}
@@ -64,7 +69,7 @@ jobs:
         if: ${{ inputs.mode == 'verify' }}
         run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
       - name: Check production frontend and MCP
-        if: ${{ inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: npm run check && npm run build
       - name: Provision isolated synthetic environment
         if: ${{ inputs.mode == 'verify' }}
@@ -100,6 +105,8 @@ jobs:
           name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            data/seed/manifest.json
+            data/seed/sources
             package-lock.json
             artifacts/runtime
             artifacts/make
