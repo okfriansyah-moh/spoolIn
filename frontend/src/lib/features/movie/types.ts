@@ -19,6 +19,12 @@ export type ManagedMovie = Readonly<{
   synopsis: string;
   genreIds: readonly string[];
   releaseYear: string;
+  releaseMonth?: number | null;
+  releaseDay?: number | null;
+  runtimeMinutes?: number | null;
+  originalLanguage?: string | null;
+  synopsisLanguage?: string;
+  countries?: readonly string[];
   version: string;
   artworkUrl: string | null;
   artworkUnavailable: boolean;

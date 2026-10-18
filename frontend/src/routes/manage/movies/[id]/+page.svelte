@@ -59,7 +59,7 @@
   });
 
   function draftChange(
-    field: 'title' | 'synopsis' | 'originalTitle' | 'releaseYear',
+    field: import('$lib/features/movie/draft-field-update').MovieDraftField,
     value: string,
   ) {
     if (!controller || !editorState) return;

@@ -11,6 +11,7 @@ import {
 } from './api';
 import { MovieDraftSync } from './draft-sync';
 import { draftToCreateInput, draftToUpdatePatch, patchIsEmpty } from './patch';
+import { rebaseMovieMetadata } from './metadata';
 import { movieToDraft } from './projection';
 import type { EditorState, WriteContext } from './types';
 import { EMPTY_MOVIE_DRAFT } from './types';
@@ -422,20 +423,6 @@ export class MovieEditorController {
       : latest[field];
   }
 
-  private rebaseRelease(
-    latest: NonNullable<EditorState['saved']>,
-  ): NonNullable<MovieDraft['release']> {
-    const release = this.current.draft.release;
-    if (
-      release?.year !== undefined &&
-      String(release.year ?? '') !== this.current.saved?.releaseYear
-    )
-      return release;
-    return (
-      movieToDraft(latest).release ?? { year: null, month: null, day: null }
-    );
-  }
-
   private rebaseGenres(
     latest: NonNullable<EditorState['saved']>,
   ): readonly string[] {
@@ -456,14 +443,13 @@ export class MovieEditorController {
     if (!this.current.saved || !this.current.draftBaseKnown)
       return this.current.draft;
     return {
-      ...movieToDraft(latest),
+      ...rebaseMovieMetadata(movieToDraft(this.current.saved), this.current.draft, movieToDraft(latest)),
       title: this.rebaseText('title', latest),
       synopsis: this.rebaseText('synopsis', latest),
       originalTitle: this.originalTitleTouched
         ? (this.current.draft.originalTitle ?? null)
         : latest.originalTitle,
       genreIds: this.rebaseGenres(latest),
-      release: this.rebaseRelease(latest),
     };
   }
 
@@ -567,10 +553,11 @@ export class MovieEditorController {
     );
     if (generation !== this.writeGeneration) return;
     await this.finishWrite(
-      outcome.receipt.state,
+      outcome.receipt,
       outcome.problemCode,
       operationId,
       outcome.resultMovieId,
+      outcome.resultVersion,
     );
   }
 
@@ -609,7 +596,7 @@ export class MovieEditorController {
     );
     if (generation !== this.writeGeneration) return;
     await this.finishWrite(
-      outcome.receipt.state,
+      outcome.receipt,
       outcome.problemCode,
       operationId,
       outcome.resultMovieId ?? this.movieId,
@@ -727,12 +714,19 @@ export class MovieEditorController {
   }
 
   private async finishWrite(
-    state: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED',
+    receipt: import('../session/commands').IdentityOutcome,
     problemCode: string | null,
     operationId: string,
     movieId: string | null,
     nextVersion?: string | null,
   ): Promise<void> {
+    const { state } = receipt;
+    if (receipt.resultExpired || state === 'EXPIRED') {
+      this.pendingWriteId = operationId;
+      this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: operationId,
+        message: 'Original save result expired. Review the current record; do not repeat the original change.' });
+      return;
+    }
     if (state === 'SUCCEEDED') {
       await this.refreshAfterSuccess(movieId, 'saved', nextVersion ?? null);
       this.pendingWriteId = null;
@@ -793,16 +787,17 @@ export class MovieEditorController {
     phase: 'saved' | 'resolved',
     version?: string | null,
   ): Promise<void> {
-    if (!this.writeContext || !movieId) return;
+    if (!this.writeContext || !movieId) throw new Error('Saved movie identity unavailable.');
     const movie = await fetchManagedMovie(
       this.request,
       movieId,
       this.writeContext.csrf,
       this.active?.signal,
     );
-    if (!movie) return;
+    if (!movie || movie.id !== movieId || movie.kind !== 'MOVIE' ||
+        (version && BigInt(movie.version) < BigInt(version)))
+      throw new Error('Saved movie result could not be verified.');
     const saved = movie;
-    void version;
     this.originalTitleTouched = false;
     await this.draftSync.discard(this.writeContext);
     this.publish({

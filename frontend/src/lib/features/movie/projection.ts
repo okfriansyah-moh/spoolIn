@@ -15,6 +15,10 @@ type WireTitle = Readonly<{
     day?: number | null;
   };
   releaseContext?: string | null;
+  runtimeMinutes?: number | null;
+  originalLanguage?: string | null;
+  synopsisLanguage?: string;
+  countries?: readonly string[];
   version: string;
   artwork?: { url?: string | null } | null;
 }>;
@@ -52,6 +56,12 @@ export function toManagedMovie(
     synopsis: node.synopsis ?? '',
     genreIds: Object.freeze((node.genres ?? []).map((genre) => genre.id)),
     releaseYear: year === null || year === undefined ? '' : String(year),
+    releaseMonth: node.release?.month ?? null,
+    releaseDay: node.release?.day ?? null,
+    runtimeMinutes: node.runtimeMinutes ?? null,
+    originalLanguage: node.originalLanguage ?? null,
+    synopsisLanguage: node.synopsisLanguage ?? 'und',
+    countries: Object.freeze([...(node.countries ?? [])]),
     version: node.version,
     artworkUrl: node.artwork?.url ?? null,
     artworkUnavailable,
@@ -66,11 +76,13 @@ export function movieToDraft(movie: ManagedMovie): MovieDraft {
     genreIds: Object.freeze([...movie.genreIds]),
     release: Object.freeze({
       year: movie.releaseYear ? Number(movie.releaseYear) : null,
-      month: null,
-      day: null,
+      month: movie.releaseMonth ?? null,
+      day: movie.releaseDay ?? null,
     }),
-    synopsisLanguage: 'und',
-    countries: Object.freeze([]),
+    runtimeMinutes: movie.runtimeMinutes ?? null,
+    originalLanguage: movie.originalLanguage ?? null,
+    synopsisLanguage: movie.synopsisLanguage ?? 'und',
+    countries: Object.freeze([...(movie.countries ?? [])]),
   });
 }
 

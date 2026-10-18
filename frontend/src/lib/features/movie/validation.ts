@@ -1,3 +1,4 @@
+import { metadataErrors } from './metadata';
 import { boundFor, checkText, trimOrdinary } from '../../policy/rules';
 import type { MovieDraft } from '../../generated/json-types';
 import type { Policy } from '../../policy/types';
@@ -82,6 +83,7 @@ export function validateMovieDraft(
     ...textField(draft.synopsis ?? '', 'synopsis', 'Synopsis', policy, true),
     ...originalTitleErrors(draft, policy, mode),
     ...releaseAndGenreErrors(draft),
+    ...metadataErrors(draft),
   ];
   return [...new Map(errors.map((error) => [error.id, error])).values()];
 }

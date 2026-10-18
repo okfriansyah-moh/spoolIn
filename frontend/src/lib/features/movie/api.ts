@@ -29,6 +29,7 @@ const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: 
 const MANAGED_TITLE_QUERY = `query ManagedTitle($id: UUID!) {
   managedTitle(id: $id) {
     id kind state title originalTitle synopsis
+    runtimeMinutes originalLanguage synopsisLanguage countries
     genres { id label }
     release { year month day }
     releaseContext

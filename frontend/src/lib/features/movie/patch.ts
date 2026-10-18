@@ -8,6 +8,8 @@ export type MovieInputPayload = Readonly<{
   synopsis: string;
   genreIds: readonly string[];
   release: { year: number; month?: number | null; day?: number | null };
+  runtimeMinutes: number | null;
+  originalLanguage: string | null;
   synopsisLanguage: string;
   countries: readonly string[];
 }>;
@@ -44,6 +46,8 @@ export function draftToCreateInput(draft: MovieDraft): MovieInputPayload {
     synopsis: trimOrdinary(draft.synopsis ?? ''),
     genreIds: Object.freeze([...(draft.genreIds ?? [])]),
     release: createRelease(draft, year),
+    runtimeMinutes: draft.runtimeMinutes ?? null,
+    originalLanguage: draft.originalLanguage?.trim() || null,
     synopsisLanguage: draft.synopsisLanguage?.trim() || 'und',
     countries: Object.freeze([...(draft.countries ?? [])]),
   });
@@ -57,6 +61,7 @@ export function draftToUpdatePatch(
   const patch: Record<string, unknown> = {};
   applyTextAndGenrePatch(patch, saved, draft);
   applyReleasePatch(patch, saved, draft);
+  applyMetadataPatch(patch, saved, draft);
   applyOriginalTitlePatch(patch, saved, draft, originalTitleTouched);
   return Object.freeze(patch);
 }
@@ -81,8 +86,10 @@ function applyReleasePatch(
   draft: MovieDraft,
 ): void {
   const year = draft.release?.year;
-  if (year === null || year === undefined || String(year) === saved.releaseYear)
-    return;
+  if (year === null || year === undefined) return;
+  if (String(year) === saved.releaseYear &&
+      (draft.release?.month ?? null) === (saved.releaseMonth ?? null) &&
+      (draft.release?.day ?? null) === (saved.releaseDay ?? null)) return;
   patch.release = {
     year,
     month: draft.release?.month ?? null,
@@ -116,4 +123,15 @@ function applyOriginalTitlePatch(
 
 export function patchIsEmpty(patch: MoviePatchPayload): boolean {
   return Object.keys(patch).length === 0;
+}
+
+function applyMetadataPatch(patch: Record<string, unknown>, saved: ManagedMovie, draft: MovieDraft): void {
+  if (draft.runtimeMinutes !== undefined && draft.runtimeMinutes !== (saved.runtimeMinutes ?? null))
+    patch.runtimeMinutes = draft.runtimeMinutes;
+  if (draft.originalLanguage !== undefined && (draft.originalLanguage?.trim() || null) !== (saved.originalLanguage ?? null))
+    patch.originalLanguage = draft.originalLanguage?.trim() || null;
+  if (draft.synopsisLanguage !== undefined && draft.synopsisLanguage.trim() !== (saved.synopsisLanguage ?? 'und'))
+    patch.synopsisLanguage = draft.synopsisLanguage.trim();
+  if (draft.countries !== undefined && [...draft.countries].sort().join(',') !== [...(saved.countries ?? [])].sort().join(','))
+    patch.countries = [...draft.countries];
 }
