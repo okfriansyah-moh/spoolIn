@@ -61,7 +61,7 @@ function releaseAndGenreErrors(draft: MovieDraft): FieldError[] {
   ) {
     errors.push({
       id: 'movie-release-year',
-      message: 'Release year: Enter a four-digit release year.',
+      message: 'Release year: Enter a year from 1 to 9999.',
     });
   }
   if (!(draft.genreIds ?? []).length) {

@@ -230,7 +230,7 @@
         onDraftChange('releaseYear', event.currentTarget.value)}
     />
     <small id="movie-release-year-help"
-      >Four-digit release year required for new movies.</small
+      >Use a release year from 1 to 9999 for new movies.</small
     >
     {#if errorFor('movie-release-year')}<p
         class="field-error"
