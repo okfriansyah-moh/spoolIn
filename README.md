@@ -40,6 +40,8 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
   - [Source development](#source-development)
   - [Test scope](#test-scope)
 - [AI assistance](#ai-assistance)
+  - [Human decisions and AI assistance](#human-decisions-and-ai-assistance)
+  - [Progress tracking](#progress-tracking)
 - [Project references](#project-references)
 
 ![SpoolIn movie catalog with artwork and browsing controls](docs/assets/spoolin/catalog.png)
@@ -672,7 +674,26 @@ The [acceptance specification](docs/05-atdd.md) defines the wider expected behav
 
 ## AI assistance
 
-AI coding assistance was used for code changes, local setup scripts, documentation, and review notes. The project retains instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits.
+I’m Muhammad Okfriansyah, the developer behind SpoolIn. I led the brainstorming, research, product direction, and delivery planning, with AI assistance throughout the process. My work included deciding what to build, reviewing trade-offs, refining requirements, organizing the work, and requesting corrections as the application took shape.
+
+### Human decisions and AI assistance
+
+| Stage | My work | AI assistance |
+| --- | --- | --- |
+| [Brainstorming](docs/01-brainstorming-result.md) and [research](docs/research/) | Set the questions and constraints, supplied context, evaluated options, and chose the project direction. | Explored alternatives, helped gather and organize research, and recorded discussions and decisions. |
+| [Product requirements](docs/02-PRD.md) | Defined the intended users, scope, priorities, and expected behavior; reviewed and refined the requirements. | Helped structure and draft the PRD, clarify requirements, and identify edge cases. |
+| [Design](docs/03-design-system.md) and [technical documentation](docs/04-spoolin-techdoc.md) | Reviewed architecture and interface trade-offs, selected the direction, and guided revisions. Included security and monitoring in the delivery scope. | Proposed options and helped draft the design system, technical contracts, diagrams, security controls, and monitoring guidance. |
+| [Acceptance scenarios](docs/05-atdd.md) and [implementation planning](docs/06-PLAN.md) | Set expectations, organized the sequence of work, and reviewed priorities and boundaries. | Helped break the work into tasks, draft scenarios, and keep the plan and supporting documentation aligned. |
+| [Agent instructions and workflow](docs/07-harness-workflow.md) | Set up and refined the instructions, skills, and working rules used to direct AI-assisted work. | Helped implement and document the workflow, summarize progress, and retain check results and review notes. |
+| Implementation and review | Directed the work, reviewed outcomes, and requested changes to setup, seeded data, UI, and documentation. Decided which changes to accept. | Generated and revised code, setup scripts, tests, and documentation; assisted with checks, debugging, screenshots, and code reviews. |
+
+These documents were developed with AI assistance. I own the product decisions and remain responsible for understanding and explaining the delivered work.
+
+### Progress tracking
+
+I used a [Notion Kanban board](https://cord-bluebell-457.notion.site/8a450667b9c642d1b0d13595fa5344ff?v=9ef08933eb1046a5add02d14eb853c76&source=copy_link) to track work across **To-do**, **In progress**, and **Complete**. It covered the planning steps, PRD and technical design, acceptance scenarios, implementation breakdown, security and monitoring plan, agent instructions, and implementation progress. I used it to manage priorities and follow the work from planning into delivery.
+
+The repository retains the resulting instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits. A board status records progress; the linked implementation and verification records provide the evidence for what was delivered.
 
 OpenAI image generation produced four fictional prototype artwork assets. Their purpose and provenance are recorded in [the artwork record](docs/design-system/mockup/assets/artwork-provenance.json); they are separate from production catalog seed data. The screenshots in [Use SpoolIn](#use-spoolin) show the running application.
 
