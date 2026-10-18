@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[[ $# == 0 ]] || { printf '%s\n' 'start: no arguments supported' >&2; exit 2; }
 root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 bin="$root_dir/ops/bin"
 # shellcheck source=_compose_common.sh

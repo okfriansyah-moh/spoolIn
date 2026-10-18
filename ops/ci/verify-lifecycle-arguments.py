@@ -19,7 +19,7 @@ def require(condition, message):
 
 def invalid_arguments():
     # Docker tripwire proves invalid input is refused before an effect; this is not runtime stack proof.
-    cases = [("stop", ["unsupported"]), ("restart", ["unsupported"]), ("migrate", ["core", "extra"]),
+    cases = [("start", ["unsupported"]), ("stop", ["unsupported"]), ("restart", ["unsupported"]), ("migrate", ["core", "extra"]),
              ("logs", ["unknown"]), ("logs", ["core", "catalog"]), ("logs", ["-f", "--follow"]),
              ("logs", ["--tail=0"]), ("logs", ["core; touch rejected-shell-input"]),
              ("test-unit", ["--unsupported"]), ("test-integration", ["--unsupported"])]
