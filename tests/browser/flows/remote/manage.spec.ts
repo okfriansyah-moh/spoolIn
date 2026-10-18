@@ -579,3 +579,46 @@ test('ATDD-026/179/262 partial: exact credit edit draft reloads and retains orde
   await expect(row).toContainText(revised.join(', '));
   await capture(page, info, ['ATDD-026', 'ATDD-179', 'ATDD-262'], 'credit-edit-draft-committed');
 });
+
+
+test('ATDD-026/179 partial: new credit drafts use no edit target and an explicit original-ID picker', async ({ page, context }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const movie = await createMovie(page);
+  const second = await context.newPage();
+  await second.goto(page.url());
+  await expect(second.getByLabel('Role', { exact: true })).toBeEnabled();
+  const firstNames = ['Maya / Echo', 'First retained draft'];
+  await chooseCreditPerson(page, person.id);
+  await page.getByLabel('Role', { exact: true }).selectOption({ label: 'Actor (CAST)' });
+  const firstId = await backCreditNames(page, firstNames, null);
+  const selectedNames = ['Young Maya', 'Selected retained draft'];
+  await chooseCreditPerson(second, person.id);
+  await second.getByLabel('Role', { exact: true }).selectOption({ label: 'Actor (CAST)' });
+  const selectedId = await backCreditNames(second, selectedNames, null);
+  expect(selectedId).not.toBe(firstId);
+  await second.close();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Choose a retained credit draft', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Person', { exact: true })).toBeDisabled();
+  await capture(page, info, ['ATDD-179'], 'credit-draft-picker');
+  await page.getByRole('button').filter({ hasText: `Resume Add ${person.name} · Actor · ${selectedNames.join(', ')}` }).click();
+  await expect(page.getByLabel('Character names · one per line')).toHaveValue(selectedNames.join('\n'));
+  await expect(page.getByRole('button', { name: 'Add credit', exact: true })).toBeEnabled();
+  const finalNames = ['Young Maya', 'Maya / Echo'];
+  await backCreditNames(page, finalNames, null, selectedId);
+  const drafts = await readApi(page, 'query { drafts { id targetId baseVersion values } }');
+  expect(drafts.drafts.find((draft: { id: string }) => draft.id === selectedId)).toMatchObject({
+    targetId: null, values: { titleId: movie.id, personId: person.id, characters: finalNames } });
+  await page.getByRole('button', { name: 'Add credit', exact: true }).click();
+  await expect(page.getByText('Credit saved.', { exact: true })).toBeVisible();
+  expect((await currentCredits(page, movie.id)).filter((credit) => credit.personId === person.id))
+    .toMatchObject([{ characters: finalNames }]);
+  await page.reload();
+  await expect(page.getByLabel('Character names · one per line')).toHaveValue(firstNames.join('\n'));
+  await discardVisibleCreditDraft(page);
+  const remaining = await readApi(page, 'query { drafts { id } }');
+  expect(remaining.drafts.some((draft: { id: string }) => [firstId, selectedId].includes(draft.id))).toBe(false);
+  expect((await currentCredits(page, movie.id)).filter((credit) => credit.personId === person.id)).toHaveLength(1);
+  await capture(page, info, ['ATDD-026', 'ATDD-179'], 'credit-selected-draft-persisted');
+});
