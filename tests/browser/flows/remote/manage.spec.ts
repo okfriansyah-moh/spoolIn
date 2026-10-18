@@ -982,6 +982,7 @@ test('ATDD-017 partial: movie metadata survives a real update and editor reload'
 }, info) => {
   await signInMaintainer(page);
   const movie = await createMovie(page);
+  await page.getByText('More movie details', { exact: true }).click();
   await page.getByLabel('Release year · Required').fill('2024');
   await page.getByLabel('Release month', { exact: true }).fill('2');
   await page.getByLabel('Release day', { exact: true }).fill('29');
@@ -992,6 +993,7 @@ test('ATDD-017 partial: movie metadata survives a real update and editor reload'
   await page.getByRole('button', { name: 'Save movie', exact: true }).click();
   await expect(page.getByText('Movie saved', { exact: true })).toBeVisible();
   await page.reload();
+  await page.getByText('More movie details', { exact: true }).click();
   await expect(page.getByLabel('Release month', { exact: true })).toHaveValue(
     '2',
   );
