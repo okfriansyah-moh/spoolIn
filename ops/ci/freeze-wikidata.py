@@ -107,7 +107,10 @@ def entities(ids):
     for offset in range(0, len(ordered), 40):
         parameters = {'action': 'wbgetentities', 'ids': '|'.join(ordered[offset:offset + 40]), 'props': 'labels|claims|info', 'languages': 'en', 'format': 'json'}
         response = request(API + '?' + urllib.parse.urlencode(parameters))
+        if 'error' in response:
+            raise RuntimeError('Wikidata entity retrieval rejected the bounded request')
         result.update(response.get('entities', {}))
+        print(f'Frozen entity batch {offset // 40 + 1}/{(len(ordered) + 39) // 40}', flush=True)
         time.sleep(0.2)
     return result
 
@@ -139,7 +142,17 @@ def source(entity_id, retrieved, fields):
     return [{'field': field, 'url': f'https://www.wikidata.org/wiki/{"Property:" if entity_id.startswith("P") else ""}{entity_id}', 'retrievedAt': retrieved, 'license': LICENSE, 'permissionBasis': 'Wikidata structured facts released under CC0; synopsis is original factual wording.'} for field in fields]
 
 
+def eligible(kind, entity):
+    expected = 'Q11424' if kind == 'MOVIE' else 'Q5398426'
+    classes = {value.get('id') for value in values(entity, 'P31') if isinstance(value, dict)}
+    title = label(entity)
+    release = date(entity, 'P577') or (date(entity, 'P580') if kind == 'TV' else None)
+    return expected in classes and bool(title) and len(title) <= 255 and release is not None and bool(values(entity, 'P136'))
+
+
 def record(kind, external, entity, linked, retrieved):
+    if not eligible(kind, entity):
+        return None
     title = label(entity)
     release = date(entity, 'P577') or (date(entity, 'P580') if kind == 'TV' else None)
     genre_ids = sorted({value['id'] for value in values(entity, 'P136') if isinstance(value, dict) and label(linked.get(value.get('id'), {}))})
@@ -170,10 +183,16 @@ def main():
     retrieved = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
     selected = {kind: candidates(kind) for kind in ('MOVIE', 'TV')}
     titles = entities(selected['MOVIE'] + selected['TV'])
+    selected = {kind: [identifier for identifier in identifiers if eligible(kind, titles.get(identifier, {}))][:150]
+                for kind, identifiers in selected.items()}
     linked_ids = []
-    for entity in titles.values():
-        for property_id in ['P136', *ROLES]:
-            linked_ids.extend(value['id'] for value in values(entity, property_id) if isinstance(value, dict) and value.get('id'))
+    for identifiers in selected.values():
+        for identifier in identifiers:
+            entity = titles[identifier]
+            for property_id in ['P136', *ROLES]:
+                candidates_for_field = sorted({value['id'] for value in values(entity, property_id)
+                                               if isinstance(value, dict) and value.get('id')})
+                linked_ids.extend(candidates_for_field[:20 if property_id == 'P136' else 4])
     linked = entities(linked_ids)
     records = []
     for kind in ('MOVIE', 'TV'):

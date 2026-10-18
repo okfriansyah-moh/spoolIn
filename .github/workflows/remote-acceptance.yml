@@ -58,6 +58,7 @@ jobs:
           java-version: '21.0.12+1'
           cache: gradle
       - name: Freeze permitted seed facts
+        timeout-minutes: 20
         if: ${{ inputs.mode == 'seed' }}
         run: python3 ops/ci/freeze-wikidata.py
       - name: Prepare npm lock metadata
