@@ -40,7 +40,7 @@ async function artworkPollStep(
   const committedVersion = attachedVersion(data.operation, titleId);
   const movie = await fetchManagedMovie(request, titleId, csrf, signal);
   if (!isCurrent()) return 'stale';
-  return currentAttachment(movie, committedVersion);
+  return currentAttachment(movie, committedVersion, titleId);
 }
 
 function attachedVersion(value: unknown, titleId: string): bigint {
@@ -50,8 +50,8 @@ function attachedVersion(value: unknown, titleId: string): bigint {
   return BigInt(receipt.version);
 }
 
-function currentAttachment(movie: Awaited<ReturnType<typeof fetchManagedMovie>>, committedVersion: bigint): ArtworkPollStep {
-  if (!movie || movie.state !== 'ACTIVE') return 'failure';
+function currentAttachment(movie: Awaited<ReturnType<typeof fetchManagedMovie>>, committedVersion: bigint, titleId: string): ArtworkPollStep {
+  if (!movie || movie.id !== titleId || movie.state !== 'ACTIVE') return 'failure';
   return movie.artworkUrl && BigInt(movie.version) >= committedVersion ? 'success' : 'continue';
 }
 
