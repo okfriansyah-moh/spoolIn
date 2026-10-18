@@ -66,12 +66,14 @@ class QuarantineStore(
         Files.list(output).use { paths ->
             paths.filter { Files.isDirectory(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }
                 .filter { runCatching { UUID.fromString(it.fileName.toString()) }.isSuccess }
-                .filter { Files.getLastModifiedTime(it).toInstant().isBefore(now.minusSeconds(3600)) }
-                .limit(10).forEach { directory ->
-                    Files.walk(directory).use { entries ->
-                        entries.sorted(java.util.Comparator.reverseOrder()).forEach { Files.deleteIfExists(it) }
-                    }
-                }
+                .filter { Files.getLastModifiedTime(it).toInstant().isBefore(now.minusSeconds(SCRATCH_RETENTION_SECONDS)) }
+                .limit(SCRATCH_SWEEP_BATCH).forEach(::deleteScratch)
+        }
+    }
+
+    private fun deleteScratch(directory: Path) {
+        Files.walk(directory).use { entries ->
+            entries.sorted(java.util.Comparator.reverseOrder()).forEach { Files.deleteIfExists(it) }
         }
     }
 
@@ -94,3 +96,6 @@ class QuarantineStore(
         return outputPath
     }
 }
+
+private const val SCRATCH_RETENTION_SECONDS = 3600L
+private const val SCRATCH_SWEEP_BATCH = 10L

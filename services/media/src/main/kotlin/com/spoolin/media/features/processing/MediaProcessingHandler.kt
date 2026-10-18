@@ -39,54 +39,65 @@ class MediaProcessingHandler(
     }
 
     private fun process(asset: AssetRow): ProcessorRunner.Outcome {
-        if (asset.processingStagingKey != "quarantine/${asset.id}") {
-            return ProcessorRunner.Outcome.Rejected("PROCESSING_IDENTITY_MISMATCH")
-        }
         val input = store.stagingPath(asset.id)
-        if (!Files.isRegularFile(input, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
-            return ProcessorRunner.Outcome.Rejected("ACCEPTED_INPUT_MISSING")
+        val error = inputError(asset, input)
+        return if (error != null) ProcessorRunner.Outcome.Rejected(error) else validate(asset, input)
+    }
+
+    private fun inputError(asset: AssetRow, input: java.nio.file.Path): String? = when {
+        asset.processingStagingKey != "quarantine/${asset.id}" -> "PROCESSING_IDENTITY_MISMATCH"
+        !Files.isRegularFile(input, java.nio.file.LinkOption.NOFOLLOW_LINKS) -> "ACCEPTED_INPUT_MISSING"
+        Files.size(input) != asset.inputBytes -> "INPUT_SIZE_MISMATCH"
+        else -> null
+    }
+
+    private fun validate(asset: AssetRow, input: java.nio.file.Path): ProcessorRunner.Outcome {
+        val validation = Files.newInputStream(input).use { ImageValidator.validate(it, ProcessingBounds.MAX_INPUT_BYTES) }
+        return when (validation) {
+            is ImageValidator.ValidationResult.Invalid -> ProcessorRunner.Outcome.Rejected(validation.errorCode)
+            is ImageValidator.ValidationResult.Valid -> processValidated(asset, input, validation)
         }
-        if (Files.size(input) != asset.inputBytes) return ProcessorRunner.Outcome.Rejected("INPUT_SIZE_MISMATCH")
-        val validation = Files.newInputStream(input).use {
-            ImageValidator.validate(it, ProcessingBounds.MAX_INPUT_BYTES)
+    }
+
+    private fun processValidated(asset: AssetRow, input: java.nio.file.Path,
+        validation: ImageValidator.ValidationResult.Valid): ProcessorRunner.Outcome {
+        val error = when {
+            !java.security.MessageDigest.isEqual(validation.inputHash, asset.processingInputHash) -> "INPUT_CHECKSUM_MISMATCH"
+            !ImageEnvelope.complete(Files.readAllBytes(input), validation.format) -> "INVALID_IMAGE_ENVELOPE"
+            else -> null
         }
-        if (validation is ImageValidator.ValidationResult.Invalid) {
-            return ProcessorRunner.Outcome.Rejected(validation.errorCode)
-        }
-        validation as ImageValidator.ValidationResult.Valid
-        if (!java.security.MessageDigest.isEqual(validation.inputHash, asset.processingInputHash)) {
-            return ProcessorRunner.Outcome.Rejected("INPUT_CHECKSUM_MISMATCH")
-        }
-        if (!ImageEnvelope.complete(Files.readAllBytes(input), validation.format)) {
-            return ProcessorRunner.Outcome.Rejected("INVALID_IMAGE_ENVELOPE")
-        }
-        return processor.process(input, store.outputDirectory(), validation.format, asset.id)
+        return if (error != null) ProcessorRunner.Outcome.Rejected(error)
+        else processor.process(input, store.outputDirectory(), validation.format, asset.id)
     }
 
     private fun finish(claim: WorkClaim, asset: AssetRow, outcome: ProcessorRunner.Outcome): Boolean =
         dataSource.committed { connection ->
-            val success = outcome is ProcessorRunner.Outcome.Success
-            val error = (outcome as? ProcessorRunner.Outcome.Rejected)?.errorCode
-            val completion = WorkAttemptCompletion(
-                if (success) AttemptOutcome.SUCCEEDED else AttemptOutcome.PERMANENT,
-                error, if (success) "DONE" else "EXHAUSTED",
-            )
+            val completion = completion(outcome)
             // completeAttempt locks and validates the live generation/attempt tuple before any asset write.
             if (!WorkSql.completeAttempt(connection, claim, completion, clock.instant())) return@committed false
             val current = AssetSql.findLocked(connection, asset.id)
             check(current?.processingWorkId == claim.workId && current.state == AssetState.PROCESSING)
             when (outcome) {
                 is ProcessorRunner.Outcome.Success -> completeReady(connection, asset.id, outcome)
-                is ProcessorRunner.Outcome.Rejected -> check(AssetSql.markRejected(connection, asset.id, error!!) == 1)
+                is ProcessorRunner.Outcome.Rejected -> check(AssetSql.markRejected(connection, asset.id, outcome.errorCode) == 1)
             }
-            check(connection.executeBound(
-                "UPDATE operation_receipt SET state=?,result=?::jsonb,error_code=? WHERE id=? AND state='PENDING'",
-                if (success) "SUCCEEDED" else "FAILED",
-                if (success) "{\"resultId\":\"${asset.id}\"}" else null,
-                if (success) null else "FIELD_INVALID", asset.uploadOperationId,
-            ) == 1)
+            completeReceipt(connection, asset, outcome is ProcessorRunner.Outcome.Success)
             true
         }
+
+    private fun completion(outcome: ProcessorRunner.Outcome): WorkAttemptCompletion = when (outcome) {
+        is ProcessorRunner.Outcome.Success -> WorkAttemptCompletion(AttemptOutcome.SUCCEEDED, null, "DONE")
+        is ProcessorRunner.Outcome.Rejected -> WorkAttemptCompletion(AttemptOutcome.PERMANENT, outcome.errorCode, "EXHAUSTED")
+    }
+
+    private fun completeReceipt(connection: Connection, asset: AssetRow, success: Boolean) {
+        check(connection.executeBound(
+            "UPDATE operation_receipt SET state=?,result=?::jsonb,error_code=? WHERE id=? AND state='PENDING'",
+            if (success) "SUCCEEDED" else "FAILED",
+            if (success) "{\"resultId\":\"${asset.id}\"}" else null,
+            if (success) null else "FIELD_INVALID", asset.uploadOperationId,
+        ) == 1)
+    }
 
     private fun completeReady(connection: Connection, assetId: UUID, result: ProcessorRunner.Outcome.Success) {
         check(AssetSql.markReady(
