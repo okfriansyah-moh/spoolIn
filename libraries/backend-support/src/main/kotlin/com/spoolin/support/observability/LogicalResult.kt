@@ -1,6 +1,5 @@
 package com.spoolin.support.observability
 
-import com.google.protobuf.Message
 import io.grpc.Status
 
 enum class MetricOutcome { SUCCESS, DOMAIN_REJECTED, SYSTEM_FAILED, UNCERTAIN }
@@ -108,66 +107,8 @@ data class LogicalResult private constructor(
         internal fun message(
             operation: MetricOperation,
             value: Any?,
-        ): LogicalResult {
-            if (value !is Message || value.descriptorForType.fullName != operation.response) return unknown()
-            if (operation.receiptLookup) return lookup(value)
-            return when (operation.response) {
-                "spoolin.v1.Outcome" -> receipt(value)
-                "spoolin.v1.ArtworkCancelOutcome" -> child(value, "operation")?.let(::receipt) ?: unknown()
-                else -> problem(value)?.let { fromProblem(it) } ?: knownReply(value)
-            }
-        }
-
-        private val collectionReplies =
-            setOf("TitlePage", "PersonPage", "CreditPage", "Genres", "Roles", "AuditPage", "Impact")
-        private val identityFields =
-            mapOf(
-                "Title" to "id",
-                "Person" to "id",
-                "Asset" to "id",
-                "Attachment" to "hold_id",
-                "ArtworkGrant" to "asset_id",
-                "ProposalRevision" to "proposal_id",
-            )
-
-        private fun knownReply(message: Message): LogicalResult {
-            val name = message.descriptorForType.name
-            if (name in collectionReplies) return success()
-            val identity = identityFields[name]?.let { string(message, it) }
-            val known =
-                when (name) {
-                    in identityFields -> !identity.isNullOrBlank()
-                    "PolicySnapshot" -> !string(message, "revision").isNullOrBlank()
-                    "MovieContext" -> child(message, "policy") != null
-                    "AssetReadChunk" -> message.allFields.isNotEmpty()
-                    else -> false
-                }
-            return if (known) success() else unknown()
-        }
-
-        private fun lookup(message: Message): LogicalResult {
-            val known =
-                !string(message, "operation_id").isNullOrBlank() &&
-                    string(message, "state") in setOf("SUCCEEDED", "FAILED", "PENDING", "EXPIRED")
-            return if (known) success() else unknown()
-        }
-
-        private fun receipt(message: Message): LogicalResult = fromReceipt(string(message, "state"), problem(message))
-
-        private fun problem(message: Message): String? = child(message, "problem")?.let { string(it, "code") }
-
-        private fun child(
-            message: Message,
-            name: String,
-        ): Message? {
-            val field = message.descriptorForType.findFieldByName(name) ?: return null
-            return if (message.hasField(field)) message.getField(field) as? Message else null
-        }
-
-        private fun string(
-            message: Message,
-            name: String,
-        ): String? = message.descriptorForType.findFieldByName(name)?.let { message.getField(it) as? String }
+        ): LogicalResult =
+            LogicalClassification.message(operation, value)
 
         private fun domain(code: MetricCode) = LogicalResult(MetricOutcome.DOMAIN_REJECTED, code)
 
@@ -203,18 +144,39 @@ private object GraphqlResults {
         status: Int,
         roots: Set<String>,
     ): LogicalResult {
-        if (status != HTTP_OK) return LogicalResult.fromStatus(httpFailures[status] ?: httpFailure(status), true)
-        if (body == null || roots.isEmpty() ||
-            roots.any { MetricOperations.graphql(it) == null }
-        ) {
-            return LogicalResult.unknown()
+        return if (status != HTTP_OK) {
+            LogicalResult.fromStatus(httpFailures[status] ?: httpFailure(status), true)
+        } else {
+            body?.takeIf { validRoots(roots) }?.let { classifyBody(it, roots) } ?: LogicalResult.unknown()
         }
+    }
+
+    private fun validRoots(roots: Set<String>): Boolean =
+        roots.isNotEmpty() && roots.all { MetricOperations.graphql(it) != null }
+
+    private fun classifyBody(
+        body: Map<*, *>,
+        roots: Set<String>,
+    ): LogicalResult {
         val errors = body["errors"]
-        if (errors != null && errors !is List<*>) return LogicalResult.unknown()
-        val applicable = (errors as? List<*>).orEmpty().filter { applies(it, roots) }
-        if (applicable.isNotEmpty()) return worst(applicable.map(::error))
-        val data = body["data"] as? Map<*, *> ?: return LogicalResult.unknown()
-        return worst(roots.map { field -> root(data, field) })
+        return if (errors != null && errors !is List<*>) {
+            LogicalResult.unknown()
+        } else {
+            val applicable = (errors as? List<*>).orEmpty().filter { applies(it, roots) }
+            if (applicable.isNotEmpty()) {
+                worst(applicable.map(::error))
+            } else {
+                dataResults(body, roots)
+            }
+        }
+    }
+
+    private fun dataResults(
+        body: Map<*, *>,
+        roots: Set<String>,
+    ): LogicalResult {
+        val data = body["data"] as? Map<*, *>
+        return data?.let { worst(roots.map { field -> root(it, field) }) } ?: LogicalResult.unknown()
     }
 
     private fun httpFailure(status: Int): Status =
@@ -230,15 +192,15 @@ private object GraphqlResults {
         value: Any?,
         roots: Set<String>,
     ): Boolean {
-        val error = value as? Map<*, *> ?: return true
-        val path = error["path"] as? List<*> ?: return true
-        val field = path.firstOrNull() as? String ?: return true
-        return field in roots
+        val error = value as? Map<*, *>
+        val path = error?.get("path") as? List<*>
+        val field = path?.firstOrNull() as? String
+        return field?.let { it in roots } ?: true
     }
 
     private fun error(value: Any?): LogicalResult {
-        val item = value as? Map<*, *> ?: return LogicalResult.unknown()
-        val extensions = item["extensions"] as? Map<*, *> ?: return LogicalResult.unknown()
+        val item = value as? Map<*, *>
+        val extensions = item?.get("extensions") as? Map<*, *> ?: return LogicalResult.unknown()
         val code = extensions["code"] as? String ?: extensions["classification"] as? String
         return if (code == "ValidationError") {
             LogicalResult.fromStatus(Status.INVALID_ARGUMENT, false)
@@ -250,16 +212,24 @@ private object GraphqlResults {
     private fun root(
         data: Map<*, *>,
         root: String,
-    ): LogicalResult {
-        if (!data.containsKey(root)) return LogicalResult.unknown()
-        val operation = requireNotNull(MetricOperations.graphql(root))
-        if (!operation.mutation) return LogicalResult.success()
-        val value = data[root] as? Map<*, *> ?: return LogicalResult.unknown()
-        val direct = value["problem"] as? Map<*, *>
-        if (direct != null) return LogicalResult.fromProblem(direct["code"] as? String)
-        val receipt = value["operation"] as? Map<*, *> ?: return LogicalResult.unknown()
-        val problem = receipt["problem"] as? Map<*, *>
-        return LogicalResult.fromReceipt(receipt["state"] as? String, problem?.get("code") as? String)
+    ): LogicalResult =
+        if (!data.containsKey(root)) {
+            LogicalResult.unknown()
+        } else {
+            val operation = requireNotNull(MetricOperations.graphql(root))
+            if (operation.mutation) mutation(data[root]) else LogicalResult.success()
+        }
+
+    private fun mutation(value: Any?): LogicalResult {
+        val item = value as? Map<*, *> ?: return LogicalResult.unknown()
+        val direct = item["problem"] as? Map<*, *>
+        return if (direct != null) {
+            LogicalResult.fromProblem(direct["code"] as? String)
+        } else {
+            val receipt = item["operation"] as? Map<*, *>
+            val problem = receipt?.get("problem") as? Map<*, *>
+            LogicalResult.fromReceipt(receipt?.get("state") as? String, problem?.get("code") as? String)
+        }
     }
 
     private fun worst(results: List<LogicalResult>): LogicalResult =

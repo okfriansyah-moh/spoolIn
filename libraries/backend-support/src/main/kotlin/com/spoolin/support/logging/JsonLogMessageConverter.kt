@@ -3,6 +3,8 @@ package com.spoolin.support.logging
 import ch.qos.logback.classic.pattern.ClassicConverter
 import ch.qos.logback.classic.spi.ILoggingEvent
 
+private const val FIRST_PRINTABLE_CODEPOINT = 0x20
+
 /** Legacy pattern use receives the same fixed event summary as the root JSON appender. */
 class JsonLogMessageConverter : ClassicConverter() {
     override fun convert(event: ILoggingEvent): String = jsonString(DiagnosticEvents.classify(event).message)
@@ -20,7 +22,7 @@ internal fun jsonString(raw: String): String {
                     '\r' -> append("\\r")
                     '\t' -> append("\\t")
                     else ->
-                        if (ch.code < 0x20) {
+                        if (ch.code < FIRST_PRINTABLE_CODEPOINT) {
                             append("\\u")
                             append("%04x".format(ch.code))
                         } else {

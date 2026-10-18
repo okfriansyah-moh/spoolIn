@@ -7,14 +7,14 @@ import java.nio.file.Path
 import java.sql.Connection
 import javax.sql.DataSource
 
+private const val NOTIFICATION_COUNT_COLUMN = 3
+
 /** The management filter must call prepareScrape and return HTTP503 when collection fails. */
 class OwnerMetrics(
     registry: MeterRegistry,
     private val dataSource: DataSource,
     private val owner: String,
-    private val activeConnections: () -> Int,
-    private val maximumConnections: () -> Int,
-    private val serviceReady: () -> Boolean,
+    private val runtime: OwnerMetricRuntime,
     private val volumes: Map<String, Path> = emptyMap(),
 ) {
     @Volatile private var measured: Snapshot? = null
@@ -74,25 +74,26 @@ class OwnerMetrics(
     @Synchronized
     fun prepareScrape(): Boolean =
         try {
-            val current =
-                dataSource.connection.use { connection ->
-                    connection.isReadOnly = true
-                    connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
-                    connection.autoCommit = false
-                    try {
-                        val result = collect(connection)
-                        connection.commit()
-                        result
-                    } finally {
-                        connection.rollback()
-                    }
-                }
+            val current = dataSource.connection.use(::collectCommitted)
             measured = current
             true
         } catch (_: Exception) {
             measured = null
             false
         }
+
+    private fun collectCommitted(connection: Connection): Snapshot {
+        connection.isReadOnly = true
+        connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
+        connection.autoCommit = false
+        return try {
+            val result = collect(connection)
+            connection.commit()
+            result
+        } finally {
+            connection.rollback()
+        }
+    }
 
     private fun collect(connection: Connection): Snapshot {
         val work = WORK_STATES.associateWith { 0.0 }.toMutableMap()
@@ -115,7 +116,7 @@ class OwnerMetrics(
             SELECT notification_mode,notification_state,count(*) FROM appdata.durable_work
             WHERE kind='NOTIFICATION' GROUP BY notification_mode,notification_state
             """.trimIndent(),
-        ) { rows -> notifications[rows.getString(1) to rows.getString(2)] = rows.getDouble(3) }
+        ) { rows -> notifications[rows.getString(1) to rows.getString(2)] = rows.getDouble(NOTIFICATION_COUNT_COLUMN) }
         var oldest = 0.0
         query(
             connection,
@@ -124,8 +125,8 @@ class OwnerMetrics(
             FROM appdata.durable_work WHERE state='READY' AND next_attempt_at<=CURRENT_TIMESTAMP
             """.trimIndent(),
         ) { oldest = it.getDouble(1) }
-        val active = activeConnections()
-        val maximum = maximumConnections()
+        val active = runtime.activeConnections()
+        val maximum = runtime.maximumConnections()
         require(maximum > 0 && active in 0..maximum)
         val disks =
             volumes.mapValues { (_, path) ->
@@ -133,7 +134,7 @@ class OwnerMetrics(
                 val store = Files.getFileStore(path)
                 (store.usableSpace to store.totalSpace).also { require(it.first >= 0 && it.second > 0) }
             }
-        return Snapshot(work, notifications, oldest, active, maximum, serviceReady(), disks)
+        return Snapshot(work, notifications, oldest, active, maximum, runtime.serviceReady(), disks)
     }
 
     private fun query(
@@ -143,8 +144,15 @@ class OwnerMetrics(
     ) {
         connection.createStatement().use { statement ->
             statement.queryTimeout = 2
-            statement.executeQuery(sql).use { rows -> while (rows.next()) row(rows) }
+            statement.executeQuery(sql).use { rows -> readRows(rows, row) }
         }
+    }
+
+    private fun readRows(
+        rows: java.sql.ResultSet,
+        row: (java.sql.ResultSet) -> Unit,
+    ) {
+        while (rows.next()) row(rows)
     }
 
     private fun snapshot(): Snapshot = checkNotNull(measured) { "No successful current owner measurement" }
@@ -179,3 +187,10 @@ class OwnerMetrics(
             listOf("RECORDED", "PENDING", "ACCEPTED", "DELIVERY_CONFIRMED", "UNKNOWN", "FAILED")
     }
 }
+
+/** Runtime measurements stay explicit and come from the actual owner pool and readiness state. */
+class OwnerMetricRuntime(
+    val activeConnections: () -> Int,
+    val maximumConnections: () -> Int,
+    val serviceReady: () -> Boolean,
+)

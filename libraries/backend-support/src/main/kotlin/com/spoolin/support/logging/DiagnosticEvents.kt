@@ -68,7 +68,11 @@ internal object DiagnosticEvents {
         }
 
     private fun failure(first: IThrowableProxy?): KnownFailure? {
-        var current = first ?: return null
+        return first?.let(::causedFailure)
+    }
+
+    private fun causedFailure(first: IThrowableProxy): KnownFailure {
+        var current = first
         var selected = KnownFailure("unclassified", "UNCLASSIFIED_FAILURE")
         repeat(MAX_CAUSES) {
             knownFailures[current.className]?.let { selected = it.copy(code = sqlCode(current, it.code)) }

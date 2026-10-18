@@ -13,6 +13,8 @@ import java.util.Properties
 import java.util.logging.Logger
 import javax.sql.DataSource
 
+private const val MAXIMUM_MAINTENANCE_SECRET_BYTES = 4096L
+
 /** Separate protected maintenance credentials; this factory never issues DDL or grants. */
 object MaintenanceDataSources {
     fun open(
@@ -31,7 +33,7 @@ object MaintenanceDataSources {
         require(query.count { it.first() == "sslmode" } == 1 && query.any { it == listOf("sslmode", "verify-full") })
         require(query.all { it.size == 2 && it.first() in setOf("sslmode", "sslrootcert", "connectTimeout") })
         require(passwordFile.isAbsolute && Files.isRegularFile(passwordFile, NOFOLLOW_LINKS))
-        require(Files.size(passwordFile) in 1..4096)
+        require(Files.size(passwordFile) in 1..MAXIMUM_MAINTENANCE_SECRET_BYTES)
         require(Files.getPosixFilePermissions(passwordFile) == PosixFilePermissions.fromString("rw-------"))
         return ProtectedSource(owner, url, passwordFile)
     }
@@ -53,18 +55,22 @@ object MaintenanceDataSources {
                         setProperty("options", "-c search_path=appdata -c statement_timeout=10000 -c lock_timeout=2000")
                     },
                 )
-            try {
-                connection.createStatement().use {
-                    it.executeQuery("SELECT current_user").use { rows ->
-                        check(rows.next() && rows.getString(1) == expected)
-                    }
-                }
-                return connection
-            } catch (failure: Exception) {
-                connection.close()
-                throw failure
+            var verified = false
+            return try {
+                check(connectionUser(connection) == expected)
+                verified = true
+                connection
+            } finally {
+                if (!verified) connection.close()
             }
         }
+
+        private fun connectionUser(connection: Connection): String? =
+            connection.createStatement().use { statement ->
+                statement.executeQuery("SELECT current_user").use { rows ->
+                    if (rows.next()) rows.getString(1) else null
+                }
+            }
 
         override fun getConnection(
             username: String?,

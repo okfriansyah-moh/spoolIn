@@ -62,14 +62,16 @@ class OwnerSpan internal constructor(
     private val ended = AtomicBoolean()
 
     fun <T> scoped(action: () -> T): T =
-        context.makeCurrent().use {
-            var returned = false
-            try {
-                action().also { returned = true }
-            } finally {
-                if (!returned) finish(false)
-            }
+        context.makeCurrent().use { invokeScoped(action) }
+
+    private fun <T> invokeScoped(action: () -> T): T {
+        var returned = false
+        return try {
+            action().also { returned = true }
+        } finally {
+            if (!returned) finish(false)
         }
+    }
 
     fun wrap(action: Runnable): Runnable = Runnable { scoped { action.run() } }
 

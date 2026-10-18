@@ -8,6 +8,8 @@ import java.sql.Connection
 import java.util.UUID
 import kotlin.system.exitProcess
 
+private const val RECOVERY_FAILURE_EXIT = 4
+
 /** Process-local administrative entrypoint, invoked by the installation-owning OS user through Compose. */
 object WorkRecoveryCli {
     @JvmStatic
@@ -16,9 +18,10 @@ object WorkRecoveryCli {
             run(args)
         } catch (_: Exception) {
             System.err.println(
-                "Work recovery refused: verify operator authority, inspected fence, destination evidence and protected configuration",
+                "Work recovery refused: verify operator authority, inspected fence, " +
+                    "destination evidence and protected configuration",
             )
-            exitProcess(4)
+            exitProcess(RECOVERY_FAILURE_EXIT)
         }
     }
 

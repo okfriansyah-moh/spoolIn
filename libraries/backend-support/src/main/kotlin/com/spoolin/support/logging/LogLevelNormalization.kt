@@ -5,10 +5,6 @@ import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.system.exitProcess
 
-class InvalidLogLevelException(
-    message: String,
-) : RuntimeException(message)
-
 /** TD-LOG-CONFIG: only info and debug are permitted; omitted defaults to info. */
 fun normalizeConfiguredLogLevel(raw: String?): String {
     val normalized = raw?.trim()?.lowercase()

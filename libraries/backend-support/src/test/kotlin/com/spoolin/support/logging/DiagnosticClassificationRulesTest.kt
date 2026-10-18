@@ -140,17 +140,19 @@ class DiagnosticClassificationRulesTest {
     fun `classified records retain current real SDK trace binding before asynchronous delivery`() {
         SdkTracerProvider.builder().build().use { provider ->
             val span = provider.get("diagnostic-test").spanBuilder("startup-observation").startSpan()
-            val raw =
-                try {
-                    span.makeCurrent().use { append(startup()) }
-                } finally {
-                    span.end()
-                }
+            val raw = tracedStartup(span)
             val node = JsonMapper.builder().build().readTree(raw)
             assertEquals(span.spanContext.traceId, node["trace_id"].asText())
             assertEquals(span.spanContext.spanId, node["span_id"].asText())
         }
     }
+
+    private fun tracedStartup(span: io.opentelemetry.api.trace.Span): String =
+        try {
+            span.makeCurrent().use { append(startup()) }
+        } finally {
+            span.end()
+        }
 
     @Test
     fun `loss of a classified fatal record counts its encoded level rather than its original framework level`() {

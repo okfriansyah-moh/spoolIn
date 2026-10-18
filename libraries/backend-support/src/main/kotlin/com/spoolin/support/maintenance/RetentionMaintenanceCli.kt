@@ -4,6 +4,8 @@ import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Path
 import kotlin.system.exitProcess
 
+private const val MAINTENANCE_BATCH_LIMIT = 100
+
 /** Local operator entry; bounded retention uses only the selected owner's protected maintenance credential. */
 object RetentionMaintenanceCli {
     @JvmStatic
@@ -44,7 +46,7 @@ object RetentionMaintenanceCli {
         return mapOf(
             "owner" to owner,
             "schedule" to options.getValue("--schedule"),
-            "batchLimit" to 100,
+            "batchLimit" to MAINTENANCE_BATCH_LIMIT,
             "executed" to execute,
             "counts" to counts,
         )

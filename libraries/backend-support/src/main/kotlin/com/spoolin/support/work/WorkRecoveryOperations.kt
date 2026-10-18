@@ -18,6 +18,8 @@ private val SAFE_NOTIFICATION_ERRORS =
         "NOTIFICATION_MODE_CHANGED",
     )
 private const val MAX_RECOVERY_INPUT_BYTES = 5242880L
+private const val MAXIMUM_PHASE_HISTORY = 1000
+private const val RECOVERY_BUFFER_BYTES = 8192
 
 /** Redacted operator evidence; payloads, credentials and private domain fields are excluded. */
 data class WorkRecoveryInspection(
@@ -81,7 +83,10 @@ object WorkRecoveryOperations {
                     "created_at",
                 ).associateWith { field -> event.getString(field) }
             }
-        return row.copy(phaseHistory = events.take(1000), historyTruncated = events.size > 1000)
+        return row.copy(
+            phaseHistory = events.take(MAXIMUM_PHASE_HISTORY),
+            historyTruncated = events.size > MAXIMUM_PHASE_HISTORY,
+        )
     }
 
     fun recover(
@@ -197,7 +202,7 @@ object WorkRecoveryOperations {
         require(Files.isRegularFile(input, NOFOLLOW_LINKS) && Files.size(input) == size)
         val digest = MessageDigest.getInstance("SHA-256")
         Files.newInputStream(input).use { stream ->
-            val buffer = ByteArray(8192)
+            val buffer = ByteArray(RECOVERY_BUFFER_BYTES)
             var count = stream.read(buffer)
             var total = 0L
             while (count != -1) {

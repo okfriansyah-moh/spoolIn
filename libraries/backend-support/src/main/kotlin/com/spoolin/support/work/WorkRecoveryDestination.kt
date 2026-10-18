@@ -69,8 +69,10 @@ object OperatorAccess {
         )
     }
 
+    private const val MAXIMUM_SECRET_BYTES = 4096L
+
     fun protectedFile(path: Path) {
-        require(Files.isRegularFile(path, NOFOLLOW_LINKS) && Files.size(path) in 1..4096)
+        require(Files.isRegularFile(path, NOFOLLOW_LINKS) && Files.size(path) in 1..MAXIMUM_SECRET_BYTES)
         require(Files.getPosixFilePermissions(path) == PosixFilePermissions.fromString("rw-------"))
     }
 

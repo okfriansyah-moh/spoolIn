@@ -34,13 +34,20 @@ object TraceContexts {
         headers: Metadata,
         trusted: Boolean,
     ): Context {
-        if (!trusted) return Context.root()
-        val values = headers.getAll(traceparent)?.iterator() ?: return Context.root()
-        if (!values.hasNext()) return Context.root()
-        val value = values.next()
-        if (values.hasNext() || value.length !in MIN_PARENT_BYTES..MAX_PARENT_BYTES || !shape.matches(value)) {
-            return Context.root()
-        }
+        val value = if (trusted) parentValue(headers) else null
+        return value?.let(::extractParent) ?: Context.root()
+    }
+
+    private fun parentValue(headers: Metadata): String? {
+        val values = headers.getAll(traceparent)?.iterator() ?: return null
+        val value = if (values.hasNext()) values.next() else null
+        return value?.takeIf { !values.hasNext() && validShape(it) }
+    }
+
+    private fun validShape(value: String): Boolean =
+        value.length in MIN_PARENT_BYTES..MAX_PARENT_BYTES && shape.matches(value)
+
+    private fun extractParent(value: String): Context {
         val getter =
             object : TextMapGetter<String> {
                 override fun keys(carrier: String): Iterable<String> = listOf("traceparent")

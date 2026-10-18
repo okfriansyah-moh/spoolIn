@@ -2,6 +2,7 @@ package com.spoolin.integration.work.leases
 
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
 import com.spoolin.media.MigrationRunner
+import com.spoolin.support.observability.OwnerMetricRuntime
 import com.spoolin.support.observability.OwnerMetrics
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -34,14 +35,23 @@ class OwnerMetricsBoundaryTest {
                             INSERT INTO durable_work(id,kind,payload,state,max_attempts,deadline_at,correlation_id,
                               base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode,
                               notification_state,notification_summary)
-                            VALUES ('${UUID.randomUUID()}','NOTIFICATION','{}','${if (mode == "database") "DONE" else "EXHAUSTED"}',
-                              3,CURRENT_TIMESTAMP,'${UUID.randomUUID()}',500,5000,2,'${UUID.randomUUID()}','$mode','$state','{}')
+                            VALUES ('${UUID.randomUUID()}','NOTIFICATION','{}',
+                              '${if (mode == "database") "DONE" else "EXHAUSTED"}',
+                              3,CURRENT_TIMESTAMP,'${UUID.randomUUID()}',500,5000,2,
+                              '${UUID.randomUUID()}','$mode','$state','{}')
                             """.trimIndent(),
                         )
                     }
                 }
                 SimpleMeterRegistry().useRegistry { registry ->
-                    val metrics = OwnerMetrics(registry, pool, "media", { 2 }, { 8 }, { true }, mapOf("artwork" to directory))
+                    val metrics =
+                        OwnerMetrics(
+                            registry,
+                            pool,
+                            "media",
+                            OwnerMetricRuntime({ 2 }, { 8 }, { true }),
+                            mapOf("artwork" to directory),
+                        )
                     assertTrue(metrics.prepareScrape())
                     assertEquals(
                         1.0,
@@ -88,17 +98,18 @@ class OwnerMetricsBoundaryTest {
                     assertEquals(8.0, registry.get("spoolin.pool.max.connections").gauge().value())
                     assertTrue(registry.get("spoolin.disk.capacity.bytes").gauge().value() > 0)
                     assertTrue(registry.get("spoolin.disk.available.bytes").gauge().value() >= 0)
-                    assertTrue(registry.meters.flatMap { it.id.tags }.all { it.key in setOf("service", "state", "mode", "volume") })
+                    val labels = registry.meters.flatMap { it.id.tags }
+                    assertTrue(labels.all { it.key in setOf("service", "state", "mode", "volume") })
                 }
             }
         }
 
     @Test
-    fun `actual database permission failure fails scrape and invalidates prior measurements instead of returning zero`() =
+    fun `database permission failure fails scrape and invalidates prior measurements`() =
         fixture { owner ->
             owner.pool("media").use { pool ->
                 SimpleMeterRegistry().useRegistry { registry ->
-                    val metrics = OwnerMetrics(registry, pool, "media", { 0 }, { 8 }, { true })
+                    val metrics = OwnerMetrics(registry, pool, "media", OwnerMetricRuntime({ 0 }, { 8 }, { true }))
                     assertTrue(metrics.prepareScrape())
                     assertEquals(
                         0.0,
@@ -129,7 +140,7 @@ class OwnerMetricsBoundaryTest {
         fixture { owner ->
             owner.pool("media").use { pool ->
                 SimpleMeterRegistry().useRegistry { registry ->
-                    val metrics = OwnerMetrics(registry, pool, "media", { 1 }, { 8 }, { false })
+                    val metrics = OwnerMetrics(registry, pool, "media", OwnerMetricRuntime({ 1 }, { 8 }, { false }))
                     assertTrue(metrics.prepareScrape())
                     assertEquals(0.0, registry.get("spoolin.service.ready").gauge().value())
                     assertEquals(0.0, registry.get("spoolin.oldest.due.work.seconds").gauge().value())
