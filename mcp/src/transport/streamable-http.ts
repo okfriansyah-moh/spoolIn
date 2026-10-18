@@ -17,6 +17,7 @@ export class StreamableHttpTransport {
     if (!address || typeof address === 'string') throw new Error('MCP listener unavailable');
     return address.port;
   }
+  private initializing = 0;
   private readonly sessions = new Map<string, Session>();
   private listener?: http.Server;
   private health?: http.Server;
@@ -63,8 +64,12 @@ export class StreamableHttpTransport {
       await session.transport.handleRequest(req, res);
       return;
     }
-    if (req.method !== 'POST' || this.sessions.size >= MAX_SESSIONS) { res.writeHead(req.method === 'POST' ? 429 : 400).end(); return; }
+    if (req.method !== 'POST' || this.sessions.size + this.initializing >= MAX_SESSIONS) { res.writeHead(req.method === 'POST' ? 429 : 400).end(); return; }
     // Core validates the live credential before an MCP session or any tool is allocated.
+    this.initializing += 1;
+    try { await this.initialize(req, res, token, digest); } finally { this.initializing -= 1; }
+  }
+  private async initialize(req: http.IncomingMessage, res: http.ServerResponse, token: string, digest: Buffer): Promise<void> {
     const service = await this.sessionFactory(token);
     let sessionId: string | undefined;
     const transport = new NodeStreamableHTTPServerTransport({
@@ -76,9 +81,12 @@ export class StreamableHttpTransport {
       },
       onsessionclosed: async (value) => { this.sessions.delete(value); await service.close(); },
     });
-    await service.server.connect(transport);
-    await transport.handleRequest(req, res);
-    if (!sessionId) await service.close();
+    try {
+      await service.server.connect(transport);
+      await transport.handleRequest(req, res);
+    } finally {
+      if (!sessionId) await service.close();
+    }
   }
   async close(): Promise<void> {
     if (this.cleanup) clearInterval(this.cleanup);
