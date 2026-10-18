@@ -19,6 +19,9 @@ CREATE FUNCTION invalidate_linked_title_impact() RETURNS trigger
 LANGUAGE plpgsql SET search_path = pg_catalog, appdata AS $impact$
 BEGIN
   IF ROW(NEW.display_title,NEW.kind,NEW.status) IS DISTINCT FROM ROW(OLD.display_title,OLD.kind,OLD.status) THEN
+    PERFORM p.id FROM appdata.person p
+    WHERE EXISTS (SELECT 1 FROM appdata.credit c WHERE c.person_id=p.id AND c.title_id=NEW.id)
+    ORDER BY p.id FOR UPDATE;
     UPDATE appdata.person SET impact_version=impact_version+1,updated_at=CURRENT_TIMESTAMP
     WHERE id IN (SELECT person_id FROM appdata.credit WHERE title_id=NEW.id);
   END IF;
