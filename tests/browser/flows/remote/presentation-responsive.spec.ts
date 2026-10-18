@@ -130,7 +130,7 @@ test('Responsive route review: production pages reflow across approved widths an
         if (route.path.startsWith('/manage/movies/'))
           await expect(currentNavigation).toHaveText('Movies');
         else if (route.path.startsWith('/manage/people/'))
-          await expect(currentNavigation).toHaveText('People');
+          await expect(currentNavigation).toHaveText('Manage people');
         observations.push({
           route: route.path,
           heading: route.heading,
