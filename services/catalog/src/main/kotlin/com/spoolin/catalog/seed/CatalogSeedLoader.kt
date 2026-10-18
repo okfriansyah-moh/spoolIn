@@ -264,7 +264,7 @@ class CatalogSeedLoader(
                 id,
                 SeedIdentities.record(plan.seed.namespace, "wikidata", "PERSON", credit["personExternalId"].asText()),
                 plan.roles.getValue(credit["roleExternalId"].asText()),
-                connection.createArrayOf("text", credit["characters"].map { it.asText() }.toTypedArray()),
+                connection.createArrayOf("text", credit["characters"].toList().map { it.asText() }.toTypedArray()),
             )
             provenance.member(credit, "CREDIT")
         }
@@ -302,7 +302,7 @@ class CatalogSeedLoader(
             integer(end, "day"),
             optionalText(values, "originalTitle"),
             optionalText(values, "originalLanguage"),
-            connection.createArrayOf("text", values["countries"].map { it.asText() }.toTypedArray()),
+            connection.createArrayOf("text", values["countries"].toList().map { it.asText() }.toTypedArray()),
             integer(values, "runtimeMinutes"),
         )
     }

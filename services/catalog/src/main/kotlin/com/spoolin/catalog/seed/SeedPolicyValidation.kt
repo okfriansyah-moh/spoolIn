@@ -60,7 +60,7 @@ class SeedPolicyValidation(
         role: JsonNode,
     ) {
         val raw =
-            node["characters"].map {
+            node["characters"].toList().map {
                 require(it.isString)
                 it.asText()
             }
@@ -119,7 +119,7 @@ class SeedPolicyValidation(
         node: JsonNode,
         required: Set<String>,
     ) {
-        require(node["sources"].map { it["field"].asText() }.toSet().containsAll(required)) { "Missing seed field provenance" }
+        require(node["sources"].toList().map { it["field"].asText() }.toSet().containsAll(required)) { "Missing seed field provenance" }
     }
 
     private fun sources(node: JsonNode) {
