@@ -42,12 +42,21 @@ internal object MetricOperations {
 
     fun rpc(service: String, method: String): MetricOperation? = rpc[service]?.get(method)
 
+    private val coreOwners = mapOf("REGISTER" to "register", "SignIn" to "signIn", "SignOut" to "signOut",
+        "DRAFT_SAVE" to "saveDraft", "DRAFT_DISCARD" to "discardDraft")
+
     fun named(service: String, name: String, boundary: String): MetricOperation? {
-        if (service == "core" && name == "GraphQL" && boundary == "ingress") {
-            return MetricOperation("GraphQL", "ingress", "", false)
-        }
+        val specific = coreBoundary(service, name, boundary)
+        if (specific != null) return specific
         val graphql = if (service == "core") graphql(name) else null
         return (graphql ?: rpc[service]?.values?.find { it.name == name })?.takeIf { it.boundary == boundary }
+    }
+
+    private fun coreBoundary(service: String, name: String, boundary: String): MetricOperation? = when {
+        service != "core" -> null
+        boundary == "owner" -> coreOwners[name]?.let { MetricOperation(it, "owner", "", true) }
+        name == "GraphQL" && boundary == "ingress" -> MetricOperation("GraphQL", "ingress", "", false)
+        else -> null
     }
 
     fun graphql(field: String): MetricOperation? = when (field) {

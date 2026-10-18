@@ -24,5 +24,6 @@ class ReceiptConfiguration {
     fun ownerReceipts(
         dataSource: DataSource,
         keys: IntentHashes,
-    ): OwnerReceipts = OwnerReceipts(dataSource, keys)
+        metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.LogicalMetrics>,
+    ): OwnerReceipts = OwnerReceipts(dataSource, keys, metrics = metrics.ifAvailable)
 }

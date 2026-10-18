@@ -2,6 +2,8 @@ package com.spoolin.core.operations.receipts
 
 import com.spoolin.core.operations.events.ReceiptActivity
 import com.spoolin.core.operations.events.ReceiptAudit
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.observability.LogicalResult
 import com.spoolin.support.receipts.Comparison
 import com.spoolin.support.receipts.IntentHashes
 import com.spoolin.support.receipts.OperationIntent
@@ -28,6 +30,7 @@ class OwnerReceipts(
     private val dataSource: DataSource,
     private val hashes: IntentHashes,
     private val clock: Clock = Clock.systemUTC(),
+    private val metrics: LogicalMetrics? = null,
 ) {
     fun execute(
         intent: OperationIntent,
@@ -49,7 +52,7 @@ class OwnerReceipts(
         correlationId: UUID,
         options: ReceiptExecution,
         mutation: (Connection) -> SafeResult,
-    ): ReceiptOutcome =
+    ): ReceiptOutcome = observe(intent.kind) {
         dataSource.committed { connection ->
             val inserted = reserve(connection, intent, correlationId, options.privateInput)
             val existing = locked(connection, intent.id)
@@ -65,6 +68,30 @@ class OwnerReceipts(
             options.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
             locked(connection, intent.id).outcome
         }
+    }
+
+    private fun observe(kind: String, operation: () -> ReceiptOutcome): ReceiptOutcome {
+        val started = System.nanoTime()
+        var observed = LogicalResult.unknown()
+        try {
+            val result = operation()
+            val code = if (result.resultExpired && result.state == ReceiptState.SUCCEEDED) null else result.errorCode
+            observed = LogicalResult.fromReceipt(result.state.name, code)
+            return result
+        } catch (failure: ReceiptConflict) {
+            observed = LogicalResult.fromProblem("IDEMPOTENCY_CONFLICT")
+            throw failure
+        } catch (failure: ReceiptHidden) {
+            observed = LogicalResult.fromProblem("NOT_FOUND")
+            throw failure
+        } catch (failure: io.grpc.StatusRuntimeException) {
+            observed = LogicalResult.fromStatus(failure.status, true)
+            throw failure
+        } finally {
+            // A failed collector must not undo or replace an already committed owner result.
+            runCatching { metrics?.complete(kind, "owner", observed, started) }
+        }
+    }
 
     fun resolve(intent: OperationIntent): ReceiptOutcome? =
         dataSource.connection.use { connection ->
