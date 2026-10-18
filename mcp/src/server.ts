@@ -7,3 +7,6 @@ await gateway.start({
   httpPath: '/mcp',
   healthPort,
 });
+
+process.once('SIGTERM', () => { void gateway.close(); });
+process.once('SIGINT', () => { void gateway.close(); });

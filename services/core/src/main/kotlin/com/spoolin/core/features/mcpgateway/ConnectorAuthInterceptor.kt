@@ -25,7 +25,10 @@ class ConnectorAuthInterceptor : ServerInterceptor {
             return object : ServerCall.Listener<ReqT>() {}
         }
         val hash = ConnectorTokenDigest.sha256(token.toByteArray(Charsets.UTF_8))
-        val context = ConnectorRpcContext.context(hash)
+        val context = ConnectorRpcContext.context(hash).withValue(
+            UiAssertionVerifier.assertionContext,
+            headers.get(Metadata.Key.of("mcp-ui-assertion", Metadata.ASCII_STRING_MARSHALLER)),
+        )
         return Contexts.interceptCall(context, call, headers, next)
     }
 

@@ -8,6 +8,7 @@ export type GatewayOptions = Readonly<{
 export function createGateway() {
   const transport = new StreamableHttpTransport();
   return {
+    close: () => transport.close(),
     async start(options: GatewayOptions): Promise<void> {
       await transport.listen(options);
     },

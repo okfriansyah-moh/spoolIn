@@ -21,6 +21,7 @@ class McpGatewayRpc(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: McpActorIssuer?,
     private val uiChallenges: ProposalUiChallengeStore,
+    private val uiAssertions: UiAssertionVerifier? = null,
 ) : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {
     override fun getPolicy(
         request: Empty,
@@ -97,6 +98,7 @@ class McpGatewayRpc(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
+        requireTrustedUi(request, "/spoolin.v1.McpGatewayService/ApproveMovie", response) ?: return
         forwardCatalog(
             connector = currentConnector(),
             catalogMethod = "/spoolin.v1.CatalogService/ApproveAndCreate",
@@ -107,7 +109,7 @@ class McpGatewayRpc(
     }
 
     fun approveMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
-        forwardCatalogBlocking("/spoolin.v1.CatalogService/ApproveAndCreate") { token ->
+        forwardTrustedCatalogBlocking(request, "/spoolin.v1.McpGatewayService/ApproveMovie", "/spoolin.v1.CatalogService/ApproveAndCreate") { token ->
             catalogStub(token).approveAndCreate(request)
         }
 
@@ -115,6 +117,7 @@ class McpGatewayRpc(
         request: Spoolin.ApprovalInput,
         response: StreamObserver<Spoolin.Outcome>,
     ) {
+        requireTrustedUi(request, "/spoolin.v1.McpGatewayService/RejectMovie", response) ?: return
         forwardCatalog(
             connector = currentConnector(),
             catalogMethod = "/spoolin.v1.CatalogService/RejectProposal",
@@ -125,7 +128,7 @@ class McpGatewayRpc(
     }
 
     fun rejectMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
-        forwardCatalogBlocking("/spoolin.v1.CatalogService/RejectProposal") { token ->
+        forwardTrustedCatalogBlocking(request, "/spoolin.v1.McpGatewayService/RejectMovie", "/spoolin.v1.CatalogService/RejectProposal") { token ->
             catalogStub(token).rejectProposal(request)
         }
 
@@ -140,6 +143,32 @@ class McpGatewayRpc(
         ) { token ->
             catalogStub(token).getOperation(request)
         }
+    }
+
+    private fun <T> requireTrustedUi(
+        request: Spoolin.ApprovalInput,
+        method: String,
+        response: StreamObserver<T>,
+    ): Boolean? = try {
+        val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        val verifier = uiAssertions ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        verifier.requireTrustedUi(connector, request, method)
+        true
+    } catch (failure: io.grpc.StatusRuntimeException) {
+        response.onError(failure)
+        null
+    }
+
+    private fun <T> forwardTrustedCatalogBlocking(
+        request: Spoolin.ApprovalInput,
+        method: String,
+        catalogMethod: String,
+        call: (String) -> T,
+    ): T {
+        val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        val verifier = uiAssertions ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        verifier.requireTrustedUi(connector, request, method)
+        return forwardCatalogBlocking(catalogMethod, call)
     }
 
     private fun <T> forwardCatalogBlocking(

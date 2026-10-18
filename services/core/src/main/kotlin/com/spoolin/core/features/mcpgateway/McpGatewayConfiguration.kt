@@ -11,9 +11,19 @@ import org.springframework.core.env.Environment
 import org.springframework.grpc.client.GrpcChannelFactory
 import spoolin.v1.CatalogServiceGrpc
 import java.nio.file.Path
+import java.nio.file.Files
+import com.fasterxml.jackson.databind.ObjectMapper
 
 @Configuration(proxyBeanMethods = false)
 class McpGatewayConfiguration {
+    @Bean
+    fun uiAssertionVerifier(environment: Environment, mapper: ObjectMapper): UiAssertionVerifier {
+        val enabled = environment.getProperty("MCP_PUBLICATION_ENABLED", Boolean::class.java, false)
+        val file = environment.getProperty("MCP_UI_ASSERTION_KEY_FILE")
+        val key = if (enabled && !file.isNullOrBlank()) Files.readAllBytes(Path.of(file)) else null
+        return UiAssertionVerifier(enabled, environment.getProperty("MCP_UI_ASSERTION_KEY_ID"), key, mapper)
+    }
+
     @Bean
     fun proposalUiChallengeStore(): ProposalUiChallengeStore = ProposalUiChallengeStore()
 
@@ -35,6 +45,7 @@ class McpGatewayConfiguration {
         channels: GrpcChannelFactory,
         issuer: McpActorIssuer?,
         uiChallenges: ProposalUiChallengeStore,
+        uiAssertions: UiAssertionVerifier,
     ): McpGatewayRpc =
         McpGatewayRpc(
             connectors,
@@ -42,5 +53,6 @@ class McpGatewayConfiguration {
             CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
             issuer,
             uiChallenges,
+            uiAssertions,
         )
 }
