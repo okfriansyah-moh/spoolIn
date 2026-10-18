@@ -70,6 +70,16 @@ def provision_identity_files(base, exports):
         exports[prefix + "_CERT_FILE"] = str(cert)
         if owner != "operator":
             command("sudo", "chown", "10001:10001", str(key), str(cert))
+    for owner in ("prometheus", "alertmanager", "grafana"):
+        names = f"DNS:{owner}" if owner != "grafana" else "DNS:grafana,DNS:localhost,IP:127.0.0.1"
+        key, cert = certificate(base, owner, names)
+        exports[owner.upper() + "_SERVICE_KEY_FILE"] = str(key)
+        exports[owner.upper() + "_SERVICE_CERT_FILE"] = str(cert)
+        command("sudo", "chown", "10001:10001", str(key), str(cert))
+    grafana_password = secrets.token_urlsafe(32)
+    exports["GRAFANA_ADMIN_PASSWORD_FILE"] = str(protected(base / "grafana-admin-password", grafana_password))
+    exports["SPOOLIN_GRAFANA_CHECK_PASSWORD_FILE"] = str(protected(base / "grafana-check-password", grafana_password))
+    command("sudo", "chown", "10001:10001", exports["GRAFANA_ADMIN_PASSWORD_FILE"])
     exports["POSTGRES_PASSWORD_FILE"] = str(protected(base / "postgres-password", secrets.token_urlsafe(32)))
     for owner in ("core", "catalog", "media"):
         for role in ("runtime", "migrator", "maintenance", "backup"):

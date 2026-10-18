@@ -38,7 +38,7 @@ class AlertRecorder(
     private fun insert(connection: Connection, episode: AlertEpisode, policy: AlertPolicy): Boolean {
         val id = UUID.randomUUID()
         val correlation = UUID.randomUUID()
-        val database = policy.mode == AlertMode.DATABASE
+        val database = policy.mode == AlertMode.DATABASE || episode.summary["alertname"] == "NotificationUnresolved"
         val sql = "INSERT INTO durable_work (id,kind,payload,state,max_attempts,deadline_at,correlation_id," +
             "base_delay_ms,cap_delay_ms,backoff_multiplier,notification_key,notification_mode," +
             "notification_state,notification_summary) VALUES (?,'NOTIFICATION','{}'::jsonb,?,?," +
@@ -46,7 +46,7 @@ class AlertRecorder(
             "ON CONFLICT (notification_key) DO NOTHING"
         val created = connection.executeBound(sql, id, if (database) "DONE" else "READY", policy.maxAttempts,
             if (database) 0 else policy.deadlineMs, correlation, policy.baseDelayMs, policy.capDelayMs,
-            policy.multiplier, episode.key, policy.mode.value, if (database) "RECORDED" else "PENDING",
+            policy.multiplier, episode.key, if (database) "database" else policy.mode.value, if (database) "RECORDED" else "PENDING",
             mapper.writeValueAsString(episode.summary)) == 1
         if (created) check(connection.executeBound(
             "INSERT INTO operational_event (id,actor_kind,action,subject_kind,subject_id,outcome,changes," +
