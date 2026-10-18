@@ -1,8 +1,14 @@
-import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
+import { checkProtectedState, observeAdmission, respectAdmission } from './authentication';
 import { test as base, expect, type Page, type TestInfo } from '@playwright/test';
 
-export const test = base.extend({});
+export const test = base.extend({
+  page: async ({ page, context }, use) => {
+    observeAdmission(context);
+    await respectAdmission();
+    await use(page);
+  },
+});
 export { expect };
 
 test.afterEach(async ({ page }, info) => {
@@ -14,6 +20,7 @@ test.afterEach(async ({ page }, info) => {
 });
 
 export async function capture(page: Page, info: TestInfo, cases: string[], step: string) {
+  await respectAdmission(15, 5);
   expect(await page.locator('input[type="password"]').count()).toBe(0);
   const path = info.outputPath(`${step}.png`);
   await page.screenshot({ path, fullPage: true });
@@ -23,22 +30,23 @@ export async function capture(page: Page, info: TestInfo, cases: string[], step:
       theme: await page.locator('html').getAttribute('data-theme'), viewport: page.viewportSize(),
       browser: info.project.use.browserName, browserVersion: page.context().browser()?.version(),
       sha: process.env.TESTED_SHA ?? process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-      runnerOS: process.env.RUNNER_OS, result: info.status ?? 'assertions-completed',
+      runnerOS: process.env.RUNNER_OS, imageOS: process.env.ImageOS, imageVersion: process.env.ImageVersion,
+      inputMethods: info.project.metadata.inputMethods ?? ['pointer', 'keyboard'],
+      result: info.status ?? 'assertions-completed',
       artifact: path, visualComparison: 'Textual specification assertions; no pixel identity claim.' }),
     contentType: 'application/json',
   });
 }
 
 export async function signInMaintainer(page: Page) {
-  const path = process.env.SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE;
-  if (!path) throw new Error('Protected remote Maintainer password file is required.');
-  const password = readFileSync(path, 'utf8').trim();
-  await page.goto('/sign-in');
-  await page.getByLabel('Email', { exact: true }).fill('maintainer@example.invalid');
-  await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  checkProtectedState();
+  await respectAdmission();
+  await page.goto('/');
   await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
-  await expect(page.locator('input[type="password"]')).toHaveCount(0);
+  const response = await page.request.post('/graphql', { headers: { 'X-Spoolin-Client': 'web' },
+    data: { query: 'query { session { authenticated role } }' } });
+  expect(response.ok()).toBe(true);
+  expect(await response.json()).toEqual({ data: { session: { authenticated: true, role: 'MAINTAINER' } } });
 }
 
 export function uniqueName(kind: string) {
@@ -62,6 +70,7 @@ async function saveCreated(page: Page, mutation: string, button: string) {
 }
 
 export async function createMovie(page: Page, title = uniqueName('Movie')) {
+  await respectAdmission(45, 20);
   await page.goto('/manage/movies');
   await page.getByRole('link', { name: 'Create movie', exact: true }).click();
   await page.getByLabel('Title · Required', { exact: true }).fill(title);
@@ -70,19 +79,24 @@ export async function createMovie(page: Page, title = uniqueName('Movie')) {
   await page.locator('#movie-genres input[type="checkbox"]').first().check();
   const id = await saveCreated(page, 'CreateMovie', 'Create movie');
   await expect(page.getByText('Movie saved', { exact: true })).toBeVisible();
-  await page.goto(`/manage/movies/${id}`);
+  await expect(page.getByRole('button', { name: 'Create movie', exact: true })).toBeDisabled();
+  await page.getByRole('link', { name: 'Edit saved movie', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/manage/movies/${id}$`));
   await expect(page.getByLabel('Title · Required', { exact: true })).toHaveValue(title);
   return { id, title };
 }
 
 export async function createPerson(page: Page, name = uniqueName('Person')) {
+  await respectAdmission(45, 20);
   await page.goto('/manage/people');
   await page.getByRole('link', { name: 'Create person', exact: true }).click();
   await page.getByLabel('Professional name · Required').fill(name);
   await page.getByLabel('Biography · Optional').fill('Remote acceptance biography.');
   const id = await saveCreated(page, 'CreatePerson', 'Save person');
   await expect(page.getByText('Person saved', { exact: true })).toBeVisible();
-  await page.goto(`/manage/people/${id}`);
+  await expect(page.getByRole('button', { name: 'Save person', exact: true })).toBeDisabled();
+  await page.getByRole('link', { name: 'Edit saved person', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/manage/people/${id}$`));
   await expect(page.getByLabel('Professional name · Required')).toHaveValue(name);
   return { id, name };
 }
