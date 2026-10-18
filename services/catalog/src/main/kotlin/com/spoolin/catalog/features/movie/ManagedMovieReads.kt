@@ -325,7 +325,10 @@ private object AuditReadChanges {
         else -> emptySet()
     }
 
-    private fun structured(root: tools.jackson.databind.JsonNode, allowed: Set<String>): List<spoolin.v1.Spoolin.AuditChange> {
+    private fun structured(
+        root: tools.jackson.databind.JsonNode,
+        allowed: Set<String>,
+    ): List<spoolin.v1.Spoolin.AuditChange> {
         val changes = root["changes"]
         require(changes.isArray)
         require(!root.path("truncated").asBoolean(false))
@@ -333,7 +336,10 @@ private object AuditReadChanges {
             .map { change -> project(change["path"].asString(), change) }
     }
 
-    private fun legacy(root: tools.jackson.databind.JsonNode, allowed: Set<String>): List<spoolin.v1.Spoolin.AuditChange> =
+    private fun legacy(
+        root: tools.jackson.databind.JsonNode,
+        allowed: Set<String>,
+    ): List<spoolin.v1.Spoolin.AuditChange> =
         root.propertyNames().filter { it in allowed }.sorted().map { path -> project(path, root[path]) }
 
     private fun project(path: String, value: tools.jackson.databind.JsonNode): spoolin.v1.Spoolin.AuditChange {

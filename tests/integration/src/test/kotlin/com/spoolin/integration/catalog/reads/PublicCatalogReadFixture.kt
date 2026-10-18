@@ -67,11 +67,18 @@ internal class PublicCatalogReadFixture(
         val stub = spoolin.v1.CatalogServiceGrpc.newBlockingStub(caller)
         val views = com.spoolin.core.boundary.graphql.PolicyGraphqlViews(
             catalog = com.spoolin.core.features.catalogview.read.CatalogViewGraphql(stub, effective),
+            managedCatalog = proof?.let {
+                com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql(
+                    stub, com.spoolin.core.boundary.grpc.ActorIssuer(it.signer), policy,
+                )
+            },
         )
         val schema = java.nio.file.Files.readString(owner.repository.resolve("contracts/graphql/schema.graphql"))
         return com.spoolin.core.boundary.graphql.PolicyGraphql(
             schema, com.spoolin.core.features.policy.PolicyProvider(effective), views,
-        ).execute(mapOf("query" to query))
+        ).execute(mapOf("query" to query), proof?.let {
+            com.spoolin.core.boundary.http.BrowserContext(it.issued.principal, null, null, null)
+        })
     }
 
     private fun interceptor(): com.spoolin.catalog.ServiceIdentityInterceptor {
