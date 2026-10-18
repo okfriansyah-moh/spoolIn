@@ -31,6 +31,7 @@ class AlertBoundaryTest {
             val port = fixture.context.environment.getRequiredProperty("local.management.port")
             val uri = "https://localhost:$port/internal/alerts"
             val client = alertClient(root)
+            assertUnrelatedCsrf(fixture, "https://localhost:$port")
             assertEquals(403, send(fixture.client, uri, payload()).statusCode())
             assertEquals(202, send(client, uri, payload()).statusCode())
             assertEquals(202, send(client, uri, payload()).statusCode())
@@ -63,6 +64,16 @@ class AlertBoundaryTest {
             concurrentDuplicate(fixture)
             atomicRollback(fixture)
         }
+    }
+
+    private fun assertUnrelatedCsrf(fixture: IdentityHttpFixture, origin: String) {
+        val uri = origin + "/actuator/health/liveness"
+        val healthy = fixture.client.send(
+            HttpRequest.newBuilder(URI(uri)).timeout(Duration.ofSeconds(5)).GET().build(),
+            HttpResponse.BodyHandlers.discarding(),
+        )
+        assertEquals(200, healthy.statusCode())
+        assertEquals(403, send(fixture.client, uri, "{}").statusCode())
     }
 
     private fun concurrentDuplicate(fixture: IdentityHttpFixture) {
