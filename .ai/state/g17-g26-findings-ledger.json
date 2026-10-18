@@ -1186,7 +1186,15 @@
         }
       ],
       "configuration_diagnosis": "Pinned Spring Boot 4.1.1 spring-boot-grpc-client metadata and tagged upstream GrpcClientProperties bind spring.grpc.client.channel, singular. All three owner YAML files used channels, so their declared targets and mutual-TLS settings were ignored. Corrected source and actual-YAML Binder regression are prepared; behavior awaits current remote rerun.",
-      "configuration_primary_source": "https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-grpc-client/src/main/java/org/springframework/boot/grpc/client/autoconfigure/GrpcClientProperties.java"
+      "configuration_primary_source": "https://github.com/spring-projects/spring-boot/blob/v4.1.1/module/spring-boot-grpc-client/src/main/java/org/springframework/boot/grpc/client/autoconfigure/GrpcClientProperties.java",
+      "continuation_assessments": [
+        {
+          "assessed_revision": "42d85c35",
+          "source": "Actual same-origin helper omission corrected42d85c35; new runtime still exposed first-draft argument-presence failure. Actual codec diagnostic awk denied, corrected04b5b483 with POSIX built-ins and no security policy widening.",
+          "runtime_accepted": false,
+          "evidence": "run39100851587 artifacts12126387376 and12126577212; browser reports1timeout/83skipped/0passed."
+        }
+      ]
     },
     {
       "id": "F-049",
@@ -1213,6 +1221,72 @@
       "runtime_proof": "Pending corrected remote catalogReadsTest real PostgreSQL/mTLS successful-query counts for page sizes 1/20, managed/empty pages and 201-ID helper boundaries, plus actual completed-query deltas in the owned capacity installation. No runtime acceptance is inferred from these authored tests.",
       "owner": "remote-media-implementer; coordinator retains closure authority",
       "remaining_obligation": "Ordinary title-list batching is prepared in fe3ab578. Nested titles.nodes.credits still invokes unary TitleCredits per title; ordinary list results cannot establish nested-query closure. Current contracts expose no approved batch carrier. Capacity SQL stage now measures both paths and must retain any failure."
+    },
+    {
+      "id": "F-050",
+      "required": true,
+      "status": "open",
+      "area": "Seeded public provenance projection",
+      "summary": "Frozen TV records store approved end field evidence. FieldSourceProjection rejected end as unknown and returned DATA_LOSS, mapped by Core to UNAVAILABLE503. Complete seed database checks passed but full public first100 and rendered catalog failed.",
+      "requirement_ids": [
+        "T012",
+        "T032",
+        "T033",
+        "TD-U-006"
+      ],
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/boundary/grpc/FieldSourceProjection.kt",
+        "ops/ci/verify-seed-runtime.py"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "e1b69a241eeb88741e1bbc0101f5403f29f6442c",
+          "source": "Allow exact approved end evidence field; preserve frozen data/hash and unknown-field rejection. Add all200 source projection regression; align API expected shape with approved url/reuseBasis/retrievedAt/precision while preserving raw DB ledger comparison.",
+          "runtime_accepted": false,
+          "remote_proof_required": "Actual first100 pages, all200 title/credit/provenance API comparisons, repeated make seed and restart persistence."
+        }
+      ]
+    },
+    {
+      "id": "F-051",
+      "required": true,
+      "status": "open",
+      "area": "First browser draft creation presence",
+      "summary": "Actual CreateMovie journey never dispatched because first draft backup failed. DraftGraphql treated AST argument presence as explicit expectedVersion null even when the nullable variable was omitted by the production document. Required backup gate correctly refused publication of an unbacked submission.",
+      "requirement_ids": [
+        "T014",
+        "T015",
+        "T027",
+        "ATDD-178",
+        "ATDD-179",
+        "ATDD-260"
+      ],
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/draft/DraftGraphql.kt",
+        "frontend/src/lib/features/movie/editor-controller.ts"
+      ],
+      "runtime_accepted": false,
+      "source_disposition": "Correction in progress using coerced argument presence; preserve explicit-null rejection and protected persistence."
+    },
+    {
+      "id": "F-052",
+      "required": true,
+      "status": "open",
+      "area": "Seed-sized catalog filter layout",
+      "summary": "Actual1440x8349 catalog screenshot shows unbounded genre fieldset pushing year/month/error far below navigation. Approved discovery source keeps compact filter controls.",
+      "requirement_ids": [
+        "T013",
+        "T044",
+        "ATDD-269",
+        "ATDD-270"
+      ],
+      "evidence_paths": [
+        "frontend/src/lib/components/CatalogFilters.svelte",
+        "docs/design-system/mockup/discovery.html"
+      ],
+      "source_disposition": "Prepared b4c337af bounded responsive region retains every native checkbox and legend/help; added actual API-to-UI complete ID/count and keyboard assertions.",
+      "runtime_accepted": false,
+      "remote_proof_required": "Matching approved textual layout/property and real keyboard/browser/theme/viewport checks plus actual screenshots/diffs."
     }
   ],
   "pending_acceptance": [
@@ -1787,16 +1861,34 @@
       {
         "run_id": 39100820810,
         "tested_sha": "e4f535068bac5cf62a75ce10af1222af0f30a032",
-        "result": "in_progress-quality",
-        "detail": "Actual hosted detekt/ktlint execution in progress; gates and thresholds unchanged.",
-        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100820810"
+        "result": "failed-quality",
+        "detail": "Actual detekt failed listed shared/Core/Catalog/Media/integration complexity/return/nesting/catch/line findings; ktlint execution retained separately. Corrected source and behavior regressions are prepared; fresh configured gates still required.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100820810",
+        "inspected_artifact_ids": [
+          12126273297
+        ]
       },
       {
         "run_id": 39100851587,
         "tested_sha": "42d85c35e5076a642125f4d10983a5e75521a18d",
-        "result": "dispatched-focused-runtime",
-        "detail": "Corrected ordinary title batching, exact management security proxy, native fixture fixes, bounded codec/seed diagnostics and same-origin browser helper. Focused4-project browser feedback stops at first failure; unexecuted cases remain pending. Full32-project final composed verification still required.",
-        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100851587"
+        "result": "failed-focused-runtime",
+        "detail": "Actual make start/private owner readiness, public first1 title probe and SDK stdio/HTTP/mTLS/Core/Catalog/PostgreSQL flow passed. Full seed database comparison passed100MOVIE/100TV/1213people/1475credits/3057seedmembers; first100 SeedOrder API503 UNAVAILABLE, no detail/repeat/restart execution. Restricted Media probe failed beforecodec: actual process-context awk execution denied126 under unchanged profile. Browser1timedOut/83skipped/0passed: required backup gate prevented CreateMovie dispatch because first draft save failed; no upload boundary reached. Monitoring conclusion and final artifacts require inspection.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100851587",
+        "inspected_artifact_ids": [
+          12126387376
+        ],
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39101181731,
+        "tested_sha": "94d9ff1719f1293df1875d1a3c77c06692d02f8a",
+        "result": "passed-format-preparation-only",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39101181731",
+        "detail": "Inspected22,803-byte hosted patch14files, applied c002e8b4. Formatter recombined several single-return long helpers; separate meaningful-value source correction4e0736a9 prepared. No configured quality/runtime pass inferred.",
+        "inspected_artifact_ids": [
+          12125799774
+        ],
+        "artifact_retention_days": 14
       }
     ],
     "progress_checkpoints": [
