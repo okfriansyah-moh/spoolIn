@@ -9,7 +9,6 @@ import com.spoolin.core.features.crypto.ProtectionMetrics
 import com.spoolin.core.operations.receipts.OwnerReceipts
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -18,11 +17,10 @@ import javax.sql.DataSource
 /**
  * Wires the draft feature beans.
  *
- * Activated only when the receipt system and account-protection beans are present,
- * which guarantees that [MountedKeys] (including the DRAFT key) and [OwnerReceipts] are available.
+ * Required receipt and protection dependencies are resolved at bean creation. Missing
+ * prerequisites fail startup rather than silently omitting the draft resolvers.
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnBean(OwnerReceipts::class, MountedKeys::class)
 class DraftConfiguration {
     @Bean
     fun draftPayload(): DraftPayload = DraftPayload()

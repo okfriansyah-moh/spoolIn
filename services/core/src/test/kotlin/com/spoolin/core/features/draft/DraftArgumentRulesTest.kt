@@ -111,8 +111,20 @@ class DraftArgumentRulesTest {
             "input" to
                 mapOf(
                     "targetKind" to "MOVIE",
-                    "values" to mapOf("title" to "Draft coercion boundary"),
-                    "policyRevision" to "test-policy",
+                    "targetId" to null,
+                    "baseVersion" to null,
+                    "values" to
+                        mapOf(
+                            "title" to "Draft coercion boundary",
+                            "originalTitle" to null,
+                            "synopsis" to "A remote acceptance movie with persisted metadata.",
+                            "genreIds" to listOf("55555555-5555-4555-8555-555555555555"),
+                            "release" to mapOf("year" to 2024, "month" to null, "day" to null),
+                            "synopsisLanguage" to "und",
+                            "countries" to emptyList<String>(),
+                        ),
+                    "operationId" to null,
+                    "policyRevision" to "a".repeat(64),
                 ),
         )
 

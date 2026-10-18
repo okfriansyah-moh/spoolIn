@@ -21,11 +21,11 @@ data class PolicyGraphqlViews(
     val lifecycle: LifecycleGraphql? = null,
 )
 
-/** Spring-resolved optional GraphQL modules for [PolicyGraphqlConfiguration]. */
+/** Spring-resolved feature modules; protected draft recovery is required for Catalog writes. */
 data class PolicyGraphqlProviders(
     val accounts: ObjectProvider<AccountGraphql>,
     val catalog: ObjectProvider<CatalogViewGraphql>,
-    val drafts: ObjectProvider<DraftGraphql>,
+    val drafts: DraftGraphql,
     val managedCatalog: ObjectProvider<ManagedCatalogGraphql>,
     val managedPerson: ObjectProvider<ManagedPersonGraphql>,
     val managedCredit: ObjectProvider<ManagedCreditGraphql>,
@@ -36,7 +36,7 @@ data class PolicyGraphqlProviders(
         PolicyGraphqlViews(
             accounts = accounts.ifAvailable,
             catalog = catalog.ifAvailable,
-            drafts = drafts.ifAvailable,
+            drafts = drafts,
             managedCatalog = managedCatalog.ifAvailable,
             managedPerson = managedPerson.ifAvailable,
             managedCredit = managedCredit.ifAvailable,

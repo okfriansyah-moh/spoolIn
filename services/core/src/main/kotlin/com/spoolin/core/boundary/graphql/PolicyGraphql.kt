@@ -146,9 +146,7 @@ class PolicyGraphqlConfiguration {
         catalog: org.springframework.beans.factory.ObjectProvider<
             com.spoolin.core.features.catalogview.read.CatalogViewGraphql,
         >,
-        drafts: org.springframework.beans.factory.ObjectProvider<
-            com.spoolin.core.features.draft.DraftGraphql,
-        >,
+        drafts: com.spoolin.core.features.draft.DraftGraphql,
         managedCatalog: org.springframework.beans.factory.ObjectProvider<
             com.spoolin.core.features.catalogview.movie.ManagedCatalogGraphql,
         >,
