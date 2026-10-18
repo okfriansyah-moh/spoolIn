@@ -30,6 +30,7 @@ private const val ARTWORK_QUEUE_SIZE = 8
 private const val ARTWORK_SECONDS = 15L
 private const val ARTWORK_TIMEOUT_MS = 15_000L
 private const val TRANSFER_BYTES = 65_536
+private const val HTTP_RATE_LIMITED = 429
 private const val SECOND_MS = 1000L
 
 @RestController
@@ -156,7 +157,7 @@ class ArtworkServing(
 private fun retryAfter(response: HttpServletResponse, failure: RateLimited) {
     val seconds = ((failure.retryAfterMs + SECOND_MS - 1) / SECOND_MS).coerceAtLeast(1)
     response.setHeader("Retry-After", seconds.toString())
-    response.sendError(HttpServletResponse.SC_TOO_MANY_REQUESTS)
+    response.sendError(HTTP_RATE_LIMITED)
 }
 
 private fun artworkStatus(failure: StatusRuntimeException, public: Boolean): Int = when (failure.status.code) {

@@ -111,7 +111,16 @@ class ArtworkGraphql(
         if (outcome.resultExpired && (outcome.hasVersion() || outcome.hasResultId())) {
             throw io.grpc.Status.DATA_LOSS.asRuntimeException()
         }
-        if (outcome.hasResultId()) validateUuid(outcome.resultId, "resultId")
+        validateResultId(outcome)
+    }
+
+    private fun validateResultId(outcome: Spoolin.Outcome) {
+        if (outcome.hasResultId()) {
+            val valid = runCatching {
+                UUID.fromString(outcome.resultId).toString() == outcome.resultId
+            }.getOrDefault(false)
+            if (!valid) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
+        }
     }
 
     private fun child(operation: UUID, step: String): UUID =
