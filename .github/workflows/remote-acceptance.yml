@@ -95,8 +95,8 @@ jobs:
         run: |
           mkdir -p artifacts/source-checks
           python3 ops/ci/test-media-sandbox-policy.py
-          sudo bash ops/bin/provision-media-sandbox.sh --install > artifacts/source-checks/media-sandbox-policy.json
-          sudo bash ops/bin/provision-media-sandbox.sh --check
+          sudo bash ops/bin/provision-media-sandbox.sh --install 2>&1 | tee artifacts/source-checks/media-sandbox-policy.log
+          sudo bash ops/bin/provision-media-sandbox.sh --check 2>&1 | tee -a artifacts/source-checks/media-sandbox-policy.log
       - name: Retain actual Media policy provisioning outcome immediately
         if: ${{ !cancelled() && (inputs.mode == 'sandbox' || inputs.mode == 'verify' || inputs.mode == 'runtime') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -104,7 +104,7 @@ jobs:
           name: media-policy-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
-            artifacts/source-checks/media-sandbox-policy.json
+            artifacts/source-checks/media-sandbox-policy.log
           retention-days: 14
           if-no-files-found: error
       - name: Check safe MCP runtime diagnostic classifications
