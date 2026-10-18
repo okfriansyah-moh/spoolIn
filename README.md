@@ -530,14 +530,20 @@ Editing a person updates that identity across its credits. It doesn't merge diff
 Open **Movies** and select **Cast and creators** beside `Letters from Tomorrow`. This opens a separate page with the movie title, existing credits, and buttons to add cast or creators. The action is available in both desktop and mobile lists. **Edit** opens movie details, artwork, and archive controls; credits are managed separately.
 
 1. Select **+ Add creator** to reveal the form. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
-2. Select **+ Add cast**, then choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Load more people** to find a person beyond the current options.
+2. Select **+ Add cast**, then choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Search people**, then select **Search** or press Enter, to find names beyond the first page. Select a match in the **Person** dropdown. **Clear search** restores unfiltered names; **Load more names** or **Find more matches** adds another page, with a count and completion message. Searching does not change your selected person.
 3. Wait for confirmation. The form collapses after a successful save; use either plus button to add another credit. The same movie can have both cast and creator credits. Select **Done** when finished to return to Movies. When you opened credits from the movie list, your previous search text, submitted search, loaded results, and scroll position are restored. **Skip for now** appears only during the new-movie creation step; that flow also shows the newly created movie when you return. Unfinished credit input must be saved or discarded before leaving; use **Continue editing** to keep working. If a save result is unknown, check the original result before leaving.
 4. To change a credit, select its **Edit credit** control, update the role or supported character names, and select **Save credit**.
 5. To remove a contribution, choose **Remove credit** on that row and review its confirmation. Removing a credit removes the relationship; the shared person remains available.
 
+**Refresh saved credits** reloads saved contributions without saving your form. It retains your unfinished input and loaded credit depth, reports when nothing changed, and offers a retry message if loading fails.
+
+If the needed role is missing, open **Need another role?**. A custom role is a reusable contribution label, such as Stunt performer or Historical adviser; creating it does not add a movie credit. The form inherits Cast or Creator from the credit you are adding, and asks for a category only when it is unknown. Custom roles do not accept character names; choose **Actor** when character names are needed. After **Create role**, wait for **Role ready**, choose a person if needed, then select **Add credit**. **Cancel custom role** clears unfinished role input.
+
+If role creation is unconfirmed, use **Check creation status** or **Safely retry creation**, which reuses the same request. Resolve it before leaving or saving another credit. If creation succeeded but refreshing the dropdown failed, use **Refresh role list**; do not create the role again. Known rejections let you correct the form, while unfinished role input must be discarded or completed before leaving.
+
 ![Maintainer credit panel with A. Rivers as Director and Mira Vale as Actor playing The Keeper, plus editing and removal controls](docs/assets/spoolin/maintainer-credits.png)
 
-*Credits example: the movie links one creator and one cast member to their existing person records. These screenshots predate the direct **Cast and creators** list action, separate credits page, plus buttons, and creation-step navigation described above.*
+*Credits example: the movie links one creator and one cast member to their existing person records. These screenshots predate the direct **Cast and creators** list action, separate credits page, plus buttons, searchable person dropdown, refresh feedback, optional custom-role form, and creation-step navigation described above.*
 
 ### Maintainer example: upload artwork
 
