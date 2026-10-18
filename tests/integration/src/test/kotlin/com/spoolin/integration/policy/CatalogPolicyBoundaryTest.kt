@@ -252,7 +252,10 @@ class CatalogPolicyBoundaryTest {
         }
 
     companion object {
-        private fun configured(values: Map<String, String>): PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        private fun configured(values: Map<String, String>): PublicPolicy {
+            val sources = ConfigurationSources(emptyMap(), values)
+            return PolicySettings.resolve(sources)
+        }
     }
 }
 
@@ -341,7 +344,10 @@ internal class CatalogPolicyFixture : AutoCloseable {
             .setValues(Spoolin.PersonValues.newBuilder().setName(name))
             .build()
 
-    fun person(request: Spoolin.PersonWrite): Spoolin.Outcome = client("WritePerson", request.context).writePerson(request)
+    fun person(request: Spoolin.PersonWrite): Spoolin.Outcome {
+        val owner = client("WritePerson", request.context)
+        return owner.writePerson(request)
+    }
 
     fun movie(title: String): Spoolin.MovieWrite =
         Spoolin.MovieWrite
@@ -400,9 +406,18 @@ internal class CatalogPolicyFixture : AutoCloseable {
             .addCharacters(character)
             .build()
 
-    fun credit(request: Spoolin.CreditWrite): Spoolin.Outcome = client("WriteCredit", request.context).writeCredit(request)
+    fun credit(request: Spoolin.CreditWrite): Spoolin.Outcome {
+        val owner = client("WriteCredit", request.context)
+        return owner.writeCredit(request)
+    }
 
-    fun count(sql: String): Int = pool.connection.use { it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single() }
+    fun count(sql: String): Int {
+        val counts =
+            pool.connection.use { connection ->
+                connection.queryBound(sql, emptyList()) { row -> row.getInt(1) }
+            }
+        return counts.single()
+    }
 
     fun text(
         sql: String,
@@ -412,7 +427,10 @@ internal class CatalogPolicyFixture : AutoCloseable {
             it.queryBound(sql, listOf(UUID.fromString(id))) { row -> row.getString(1) }.single()
         }
 
-    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome = client("RemoveCredit", request.context).removeCredit(request)
+    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome {
+        val owner = client("RemoveCredit", request.context)
+        return owner.removeCredit(request)
+    }
 
     fun lookup(operation: String): Spoolin.Outcome =
         client("GetOperation", context().toBuilder().setOperationId(operation).build())

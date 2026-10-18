@@ -242,8 +242,10 @@ class CatalogSeedPolicyBoundaryTest {
         fixture.fixture.owner.repository
             .resolve("data/seed/manifest.json")
 
-    private fun configured(values: Map<String, String> = emptyMap()): PublicPolicy =
-        PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    private fun configured(values: Map<String, String> = emptyMap()): PublicPolicy {
+        val sources = ConfigurationSources(values, emptyMap())
+        return PolicySettings.resolve(sources)
+    }
 
     private fun count(
         pool: DataSource,

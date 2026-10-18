@@ -135,8 +135,10 @@ class SeedEffectivePolicyRulesTest {
         assertTrue(policy.revision.isNotBlank())
     }
 
-    private fun configured(values: Map<String, String> = emptyMap()): PublicPolicy =
-        PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    private fun configured(values: Map<String, String> = emptyMap()): PublicPolicy {
+        val sources = ConfigurationSources(values, emptyMap())
+        return PolicySettings.resolve(sources)
+    }
 
     private fun snapshot() = mapper.readTree(repository().resolve("data/seed/manifest.json").toFile()) as ObjectNode
 
