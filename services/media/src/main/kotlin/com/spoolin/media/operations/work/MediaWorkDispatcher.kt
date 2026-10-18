@@ -16,6 +16,8 @@ class MediaWorkDispatcher(
     private val readiness: SchemaReadiness,
     private val handler: MediaProcessingHandler,
     private val sweepScratch: () -> Unit = {},
+    private val notifications: com.spoolin.support.notifications.ExhaustionNotifications =
+        com.spoolin.support.notifications.ExhaustionNotifications.configured(dataSource, "media", System::getenv),
 ) : AutoCloseable {
     private val watchdog = MediaWorkWatchdog(dataSource)
     private val claimer = WorkClaimer(dataSource)
@@ -29,6 +31,7 @@ class MediaWorkDispatcher(
     fun dispatch() {
         if (stopped.get() || !readiness.ready()) return
         watchdog.reconcile()
+        notifications.recordExhaustion()
         sweepScratch()
         lanes.forEach { lane ->
             if (lane.compareAndSet(false, true)) workers.submit {
