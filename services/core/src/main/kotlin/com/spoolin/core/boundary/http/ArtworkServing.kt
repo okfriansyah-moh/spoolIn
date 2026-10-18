@@ -180,14 +180,19 @@ class ArtworkServing(
         response: HttpServletResponse,
     ) {
         Files.newInputStream(asset.path).use { input ->
-            val buffer = ByteArray(TRANSFER_BYTES)
-            while (!Context.current().isCancelled) {
-                val size = input.read(buffer)
-                if (size < 0) break
-                response.outputStream.write(buffer, 0, size)
-            }
+            copyArtwork(input, response)
         }
     }
+
+    private fun copyArtwork(input: java.io.InputStream, response: HttpServletResponse) {
+        val buffer = ByteArray(TRANSFER_BYTES)
+        while (!Context.current().isCancelled) {
+            val size = input.read(buffer)
+            if (size < 0) break
+            response.outputStream.write(buffer, 0, size)
+        }
+    }
+
 }
 
 private fun retryAfter(

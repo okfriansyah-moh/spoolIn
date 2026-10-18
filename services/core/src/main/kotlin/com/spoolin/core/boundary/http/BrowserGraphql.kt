@@ -21,15 +21,13 @@ class BrowserGraphql(
     private val policy: PolicyProvider,
     private val graphql: PolicyGraphql,
     private val boundary: BrowserBoundary,
-    private val identity: org.springframework.beans.factory.ObjectProvider<BrowserIdentity>,
     private val requests: BrowserRequests,
-    private val admission: org.springframework.beans.factory.ObjectProvider<BrowserAdmission>,
-    private val metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.LogicalMetrics>,
+    private val services: BrowserServices,
 ) {
     @RequestMapping("/graphql")
     fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> {
         val started = System.nanoTime()
-        val observation = GraphqlObservation(metrics.ifAvailable, started)
+        val observation = GraphqlObservation(services.metrics.ifAvailable, started)
         return try {
             submit(request, started, observation)
         } catch (failure: BrowserRejected) {
@@ -96,9 +94,9 @@ class BrowserGraphql(
         val upload = parsed.roots.singleOrNull() == "uploadArtwork"
         val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
         if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
-        val identities = identity.ifAvailable ?: throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
+        val identities = services.identity.ifAvailable ?: throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
         val context =
-            admission.ifAvailable?.context(request, parsed, identities, deadline)
+            services.admission.ifAvailable?.context(request, parsed, identities, deadline)
                 ?: unavailable()
         val result = graphql.execute(body.input, context)
         val headers = HttpHeaders()
