@@ -286,7 +286,7 @@ jobs:
           if [[ "$ACCEPTANCE_MODE" == runtime ]]; then
             npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --project chromium-1440-dark --project chromium-390-light --project account-chromium --project operations-chromium --max-failures=1
           else
-            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
+            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --max-failures=1
           fi
       - name: Retain safe owner diagnostics after browser journeys
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
