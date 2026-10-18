@@ -33,6 +33,8 @@ class AlertBoundaryTest {
             val client = alertClient(root)
             assertUnrelatedCsrf(fixture, "https://localhost:$port")
             assertEquals(403, send(fixture.client, uri, payload()).statusCode())
+            assertEquals(400, send(client, uri, "{}").statusCode())
+            assertEquals(403, send(client, "https://localhost:$port/actuator/health/liveness", "{}").statusCode())
             assertEquals(202, send(client, uri, payload()).statusCode())
             assertEquals(202, send(client, uri, payload()).statusCode())
             assertEquals(400, send(client, uri, payload().replace("core", "foreign")).statusCode())

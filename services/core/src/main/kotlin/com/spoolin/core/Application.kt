@@ -43,6 +43,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
@@ -213,11 +214,37 @@ class RuntimeConfiguration {
     fun serviceIdentity(): ServiceIdentityInterceptor = ServiceIdentityInterceptor()
 
     @Bean
-    fun httpSecurity(http: HttpSecurity): SecurityFilterChain {
+    fun httpSecurity(
+        http: HttpSecurity,
+        environment: Environment,
+    ): SecurityFilterChain {
         http.authorizeHttpRequests { it.anyRequest().permitAll() }
-        http.csrf { it.ignoringRequestMatchers("/graphql") }
+        http.csrf {
+            it.ignoringRequestMatchers("/graphql")
+            it.ignoringRequestMatchers(RequestMatcher { request -> alertMachineRequest(request, environment) })
+        }
         return http.build()
     }
+
+    // Boot 4.1.1's management child deliberately delegates to this parent's security proxy.
+    private fun alertMachineRequest(
+        request: HttpServletRequest,
+        environment: Environment,
+    ): Boolean {
+        val route = request.method == "POST" && request.requestURI == "/internal/alerts"
+        val port = environment.getProperty("local.management.port", Int::class.java)
+        val privateListener = request.isSecure && request.localPort == port
+        if (!route || !privateListener) return false
+        val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val leaf = certificates?.firstOrNull() as? X509Certificate ?: return false
+        return certificateDnsNames(leaf) == listOf("alertmanager")
+    }
+
+    private fun certificateDnsNames(certificate: X509Certificate): List<Any?> =
+        certificate.subjectAlternativeNames
+            .orEmpty()
+            .filter { it.size >= 2 && it[0] == 2 }
+            .map { it[1] }
 
     @Bean
     fun listenerBoundary(
