@@ -5,11 +5,12 @@ import {
   ResourceTemplate,
   fromJsonSchema,
 } from '@modelcontextprotocol/server';
-import type { JsonSchemaType } from '@modelcontextprotocol/server';
+import type { JsonSchemaType, RegisteredTool } from '@modelcontextprotocol/server';
 import { McpMetrics, mcpMetrics } from '../operations/metrics.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
 import { GatewayClient } from '../operations/gateway-client.js';
 import { Proposal } from '../generated/spoolin/v1/spoolin.js';
+import { effectiveInputSchemas, SessionPolicy, validateEffectiveInput } from '../tools/effective-policy.js';
 import { reviewHtml } from '../resources/review.js';
 import { buildProposeMovieCallToolResult } from '../transport/propose-tool-result.js';
 import {
@@ -30,8 +31,8 @@ const inputs = JSON.parse(
 const outputs = JSON.parse(readFileSync(schemaFile('mcp-outputs'), 'utf8')) as {
   $defs: Record<string, JsonSchemaType>;
 };
-const input = (name: string) =>
-  fromJsonSchema<Record<string, unknown>>(inputs[name]!);
+const input = (state: SessionState, name: string) =>
+  fromJsonSchema<Record<string, unknown>>(state.schemas[name]!);
 const output = (name: string) =>
   fromJsonSchema<Record<string, unknown>>(outputs.$defs[name]!);
 function result(value: Record<string, unknown>) {
@@ -115,103 +116,113 @@ type GatewayOperations = Pick<
   'policy' | 'context' | 'propose' | 'operation' | 'close'
 >;
 
+type ProposalCache = Map<string, { content: Record<string, unknown>; expires: number }>;
+type SessionState = {
+  gateway: GatewayOperations;
+  policy: SessionPolicy;
+  schemas: Record<string, JsonSchemaType>;
+  proposals: ProposalCache;
+  metrics: McpMetrics;
+  tools: Map<string, RegisteredTool>;
+};
+
 export async function createSession(
   token: string,
   gateway: GatewayOperations = new GatewayClient(token),
   metrics: McpMetrics = mcpMetrics,
 ): Promise<{ server: McpServer; close: () => Promise<void> }> {
-  let policy;
   try {
-    policy = await gateway.policy();
+    const initial = await gateway.policy();
+    const tools = new Map<string, RegisteredTool>();
+    const policy = new SessionPolicy(initial, () => gateway.policy(), (next) => {
+      state.schemas = effectiveInputSchemas(inputs, next);
+      for (const name of ['movie_context', 'propose_movie']) {
+        tools.get(name)?.update({ paramsSchema: input(state, name) });
+      }
+    });
+    const state: SessionState = {
+      gateway, policy, schemas: effectiveInputSchemas(inputs, policy.current),
+      proposals: new Map(), metrics, tools,
+    };
+    const server = new McpServer({ name: 'spoolin', version: '1.0.0' });
+    registerResources(server, state.proposals);
+    registerContext(server, state);
+    registerOperation(server, state);
+    registerProposal(server, state);
+    return { server, close: async () => {
+      state.proposals.clear();
+      gateway.close();
+      await server.close();
+    } };
   } catch (error) {
     gateway.close();
     throw error;
   }
-  const server = new McpServer({ name: 'spoolin', version: '1.0.0' });
-  const proposals = new Map<
-    string,
-    { content: Record<string, unknown>; expires: number }
-  >();
-  registerResources(server, proposals);
-  server.registerTool(
-    'movie_context',
-    {
-      description: 'Read current movie context and effective policy',
-      inputSchema: input('movie_context'),
-      outputSchema: output('context'),
-    },
-    safe('movie_context', metrics, async (args) =>
-      result(
-        contextProjection(
-          await gateway.context(String(args.query), Number(args.limit ?? 20)),
-        ),
-      ),
-    ),
-  );
-  server.registerTool(
-    'movie_operation',
-    {
-      description: 'Read the persisted operation result',
-      inputSchema: input('movie_operation'),
-      outputSchema: output('operationReceipt'),
-    },
-    safe('movie_operation', metrics, async (args) =>
-      result(
-        outcomeProjection(await gateway.operation(String(args.operationId))),
-      ),
-    ),
-  );
-  server.registerTool(
-    'propose_movie',
-    {
-      description:
-        'Prepare an immutable proposal for human review; does not publish',
-      _meta: { ui: { resourceUri: 'ui://spoolin/movie-review' } },
-      inputSchema: input('propose_movie'),
-      outputSchema: output('proposalReview'),
-    },
-    safe('propose_movie', metrics, async (args) => {
-      for (const [uri, entry] of proposals)
-        if (entry.expires <= Date.now()) proposals.delete(uri);
-      if (proposals.size >= 20) throw new GatewayFailure('RESOURCE_EXHAUSTED');
-      const { operationId, proposalId, expectedRevision, sources, ...values } =
-        args;
-      const revision = await gateway.propose(
-        Proposal.fromJSON({
-          context: {
-            operationId,
-            correlationId: randomUUID(),
-            policyRevision: policy.revision,
-          },
-          values,
-          sources,
-          proposalId,
-          expectedRevision,
-        }),
-      );
-      const projection = proposalProjection(revision, policy.revision);
-      const envelope = buildProposeMovieCallToolResult({
-        ...projection,
-        uiChallenge: revision.uiChallenge
-          ? Buffer.from(revision.uiChallenge).toString('utf8')
-          : '',
-      });
-      proposals.set(projection.reviewResourceUri, {
-        content: { ...projection, sources },
-        expires: Date.parse(projection.expiresAt),
-      });
-      return {
-        ...envelope,
-        content: result(envelope.structuredContent).content,
-      };
-    }),
-  );
-  return {
-    server,
-    close: async () => {
-      proposals.clear();
-      gateway.close();
-      await server.close();
-    },
-  };
+}
+
+async function refreshInput(state: SessionState, name: string, args: Record<string, unknown>) {
+  const advertised = state.policy.current.revision;
+  const policy = await state.policy.refresh();
+  if (name === 'propose_movie' && policy.revision !== advertised) throw new GatewayFailure('POLICY_CHANGED');
+  await validateEffectiveInput(state.schemas[name]!, args, policy);
+  return policy;
+}
+
+function registerContext(server: McpServer, state: SessionState) {
+  const tool = server.registerTool('movie_context', {
+    description: 'Read current movie context and effective policy',
+    inputSchema: input(state, 'movie_context'), outputSchema: output('context'),
+  }, safe('movie_context', state.metrics, async (args) => {
+    const policy = await refreshInput(state, 'movie_context', args);
+    const reply = await state.gateway.context(String(args.query), Number(args.limit ?? Math.min(20, policy.maxPage)));
+    if (!reply.policy) throw new GatewayFailure('UNAVAILABLE');
+    state.policy.accept(reply.policy);
+    return result(contextProjection(reply));
+  }));
+  state.tools.set('movie_context', tool);
+}
+
+function registerOperation(server: McpServer, state: SessionState) {
+  const tool = server.registerTool('movie_operation', {
+    description: 'Read the persisted operation result',
+    inputSchema: input(state, 'movie_operation'), outputSchema: output('operationReceipt'),
+  }, safe('movie_operation', state.metrics, async (args) =>
+    result(outcomeProjection(await state.gateway.operation(String(args.operationId))))));
+  state.tools.set('movie_operation', tool);
+}
+
+function registerProposal(server: McpServer, state: SessionState) {
+  const tool = server.registerTool('propose_movie', {
+    description: 'Prepare an immutable proposal for human review; does not publish',
+    _meta: { ui: { resourceUri: 'ui://spoolin/movie-review' } },
+    inputSchema: input(state, 'propose_movie'), outputSchema: output('proposalReview'),
+  }, safe('propose_movie', state.metrics, async (args) => propose(state, args)));
+  state.tools.set('propose_movie', tool);
+}
+
+async function propose(state: SessionState, args: Record<string, unknown>) {
+  const policy = await refreshInput(state, 'propose_movie', args);
+  for (const [uri, entry] of state.proposals) {
+    if (entry.expires <= Date.now()) state.proposals.delete(uri);
+  }
+  if (state.proposals.size >= 20) throw new GatewayFailure('RESOURCE_EXHAUSTED');
+  const { operationId, proposalId, expectedRevision, sources, ...values } = args;
+  try {
+    const revision = await state.gateway.propose(Proposal.fromJSON({
+      context: { operationId, correlationId: randomUUID(), policyRevision: policy.revision },
+      values, sources, proposalId, expectedRevision,
+    }));
+    const projection = proposalProjection(revision, policy.revision);
+    const envelope = buildProposeMovieCallToolResult({
+      ...projection,
+      uiChallenge: revision.uiChallenge ? Buffer.from(revision.uiChallenge).toString('utf8') : '',
+    });
+    state.proposals.set(projection.reviewResourceUri, {
+      content: { ...projection, sources }, expires: Date.parse(projection.expiresAt),
+    });
+    return { ...envelope, content: result(envelope.structuredContent).content };
+  } catch (failure) {
+    if (failure instanceof GatewayFailure && failure.problem.code === 'POLICY_CHANGED') await state.policy.refresh();
+    throw failure;
+  }
 }

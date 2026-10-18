@@ -1,3 +1,5 @@
+import { policyFixture } from '../fixtures/policy.js';
+import { GatewayFailure } from '../../src/operations/gateway-failure.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -24,10 +26,15 @@ describe('real SDK streamable HTTP session lifecycle', () => {
   let client: Client | undefined;
   let closed = 0;
   let endpoint: string;
-  const policy: PolicySnapshot = { revision: 'a'.repeat(64), textBounds: [] };
+  let policy: PolicySnapshot = policyFixture();
+  let proposals = 0;
+  let proposedPolicy: string | undefined;
+  let policyChangesOnWrite = false;
   beforeEach(async () => {
     process.env.MCP_PORT = '0';
     closed = 0;
+    proposals = 0; proposedPolicy = undefined; policyChangesOnWrite = false;
+    policy = policyFixture();
     server = new StreamableHttpTransport(async (token) => {
       if (token !== 'synthetic-connector') throw new Error('DENIED');
       return createSession(token, {
@@ -43,7 +50,13 @@ describe('real SDK streamable HTTP session lifecycle', () => {
           state: 'SUCCEEDED',
           resultExpired: false,
         }),
-        propose: async (): Promise<ProposalRevision> => {
+        propose: async (request): Promise<ProposalRevision> => {
+          proposals += 1;
+          proposedPolicy = request.context?.policyRevision;
+          if (policyChangesOnWrite) {
+            policy = nextPolicy();
+            throw new GatewayFailure('POLICY_CHANGED');
+          }
           throw new Error('synthetic upstream failure');
         },
         close: () => {
@@ -153,12 +166,7 @@ describe('real SDK streamable HTTP session lifecycle', () => {
       arguments: { query: '', limit: 100 },
     });
     expect(invalid.isError).toBe(true);
-    const unknown = await connected.callTool({
-      name: 'approve_movie',
-      arguments: {},
-    });
-    expect(unknown.isError).toBe(true);
-    expect(JSON.stringify(unknown)).not.toContain('synthetic-connector');
+    await expect(connected.callTool({ name: 'approve_movie', arguments: {} })).rejects.toThrow('Tool approve_movie not found');
     const failure = await connected.callTool({
       name: 'propose_movie',
       arguments: {
@@ -172,4 +180,45 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     expect(failure.isError).toBe(true);
     expect(JSON.stringify(failure)).not.toContain('synthetic upstream failure');
   });
+  function candidate(title = 'A movie') {
+    return { operationId: '00000000-0000-4000-8000-000000000001', title,
+      synopsis: 'A complete movie proposal', genreIds: ['00000000-0000-4000-8000-000000000002'], release: { year: 2024 } };
+  }
+  function nextPolicy() {
+    const next = policyFixture(); next.revision = 'b'.repeat(64);
+    next.textBounds.find((bound) => bound.field === 'title')!.maxCodePoints = 5;
+    return next;
+  }
+  it('advertises effective bounds and refreshes stale schemas without retrying or forwarding a stale write', async () => {
+    const connected = await connect();
+    policy = nextPolicy();
+    const stale = await connected.callTool({ name: 'propose_movie', arguments: candidate() });
+    expect(stale.structuredContent).toMatchObject({ problem: { code: 'POLICY_CHANGED' } });
+    expect(proposals).toBe(0);
+    const listed = await connected.listTools();
+    expect(listed.tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({ properties: { title: { maxLength: 5 } } });
+    await connected.callTool({ name: 'propose_movie', arguments: candidate('Movie') });
+    expect(proposals).toBe(1);
+    expect(proposedPolicy).toBe(policy.revision);
+  });
+  it('refreshes effective schemas on an empty context read and preserves required fields', async () => {
+    const connected = await connect();
+    policy = nextPolicy();
+    await connected.callTool({ name: 'movie_context', arguments: { query: '' } });
+    expect((await connected.listTools()).tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({
+      required: ['operationId', 'title', 'synopsis', 'genreIds', 'release'], properties: { title: { maxLength: 5 } },
+    });
+    const invalid = await connected.callTool({ name: 'propose_movie', arguments: candidate() });
+    expect(invalid.isError).toBe(true);
+    expect(proposals).toBe(0);
+  });
+  it('refreshes a downstream stale-policy rejection but never automatically repeats the write', async () => {
+    const connected = await connect();
+    policyChangesOnWrite = true;
+    const rejected = await connected.callTool({ name: 'propose_movie', arguments: candidate() });
+    expect(rejected.structuredContent).toMatchObject({ problem: { code: 'POLICY_CHANGED' } });
+    expect(proposals).toBe(1);
+    expect((await connected.listTools()).tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({ properties: { title: { maxLength: 5 } } });
+  });
+
 });

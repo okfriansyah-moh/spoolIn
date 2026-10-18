@@ -1,3 +1,4 @@
+import { policyFixture } from '../fixtures/policy.js';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -26,7 +27,7 @@ describe('typed Core gateway over real mutually authenticated gRPC', () => {
   let server: Server;
   let client: GatewayClient;
   const observed: string[] = [];
-  const policy: PolicySnapshot = { revision: 'a'.repeat(64), textBounds: [] };
+  const policy: PolicySnapshot = policyFixture();
   const savedEnvironment = new Map<string, string | undefined>();
   function certificate(name: string, serverCertificate = false) {
     const file = (suffix: string) => join(directory, `${name}.${suffix}`);

@@ -1,3 +1,4 @@
+import { policyFixture } from '../fixtures/policy.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   Client,
@@ -25,7 +26,7 @@ describe('private MCP exporter and logical observations', () => {
   let exporter: string;
   const secret = 'synthetic-credential-do-not-export';
   const id = '00000000-0000-4000-8000-000000000001';
-  const policy = { revision: 'a'.repeat(64), textBounds: [] };
+  const policy = policyFixture();
   beforeEach(async () => {
     process.env.MCP_PORT = '0';
     ready = false;
