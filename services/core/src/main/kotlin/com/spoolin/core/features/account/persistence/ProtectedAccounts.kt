@@ -6,11 +6,14 @@ import com.spoolin.core.features.crypto.KeyState
 import com.spoolin.core.features.crypto.ProtectedEnvelope
 import com.spoolin.core.features.crypto.ProtectedRead
 import com.spoolin.core.features.crypto.ProtectionAlert
+import com.spoolin.core.features.crypto.ProtectionFailure
 import com.spoolin.core.features.crypto.ProtectionUnavailable
 import com.spoolin.core.features.crypto.StoredPasswordHash
 import com.spoolin.core.features.crypto.committed
 import com.spoolin.core.features.crypto.executeBound
+import com.spoolin.core.features.crypto.observeProtection
 import com.spoolin.core.features.crypto.queryBound
+import com.spoolin.core.features.crypto.recordFailure
 import com.spoolin.core.features.crypto.readRows
 import java.sql.Connection
 import java.sql.SQLException
@@ -64,9 +67,13 @@ class ProtectedAccounts(
         connection: Connection,
         prepared: PreparedAccount,
     ): AccountProjection {
-        registry.requireCurrentWrite(connection, prepared.envelope.keyId, com.spoolin.core.features.crypto.KeyPurpose.PII)
-        val lookupKeys = registry.lookupKeys(connection)
-        if (lookupKeys.none { it.state == KeyState.WRITE }) throw ProtectionUnavailable()
+        val lookupKeys =
+            observeProtection(alert, ProtectionFailure.KEY) {
+                registry.requireCurrentWrite(connection, prepared.envelope.keyId, com.spoolin.core.features.crypto.KeyPurpose.PII)
+                registry.lookupKeys(connection).also { keys ->
+                    if (keys.none { it.state == KeyState.WRITE }) throw ProtectionUnavailable()
+                }
+            }
         val aliases = lookupKeys.map { it.id to crypto.lookupDigest(it, prepared.normalizedEmail) }
         insertAccount(connection, prepared.id, prepared.envelope, prepared.password, prepared.role)
         aliases.forEach { (key, digest) -> insertAlias(connection, prepared.id, key, digest) }
@@ -96,8 +103,7 @@ class ProtectedAccounts(
         try {
             dataSource.committed { connection ->
                 val matches =
-                    registry
-                        .lookupKeys(connection)
+                    observeProtection(alert, ProtectionFailure.KEY) { registry.lookupKeys(connection) }
                         .flatMap { key ->
                             credential(connection, key.id, crypto.lookupDigest(key, normalizedEmail))
                         }.distinctBy { it.id }
@@ -125,16 +131,20 @@ class ProtectedAccounts(
     private fun decodeIdentity(
         id: UUID,
         envelope: ProtectedEnvelope,
-    ): ProtectedRead<AccountIdentity> =
-        when (val decrypted = crypto.decrypt(id, envelope)) {
-            is ProtectedRead.Value ->
-                try {
-                    payload.decode(decrypted.value).also { if (it == ProtectedRead.Unavailable) alert.unavailable(id) }
-                } finally {
-                    decrypted.value.fill(0)
-                }
-            ProtectedRead.Unavailable -> ProtectedRead.Unavailable
+    ): ProtectedRead<AccountIdentity> {
+        val decrypted = crypto.decrypt(id, envelope)
+        if (decrypted !is ProtectedRead.Value) return ProtectedRead.Unavailable
+        return try {
+            val decoded = payload.decode(decrypted.value)
+            if (decoded == ProtectedRead.Unavailable) {
+                alert.recordFailure(ProtectionFailure.UNAVAILABLE)
+                alert.unavailable(id)
+            }
+            decoded
+        } finally {
+            decrypted.value.fill(0)
         }
+    }
 
     private fun insertAccount(
         connection: Connection,
