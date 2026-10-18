@@ -1,7 +1,6 @@
 package com.spoolin.integration.work.leases
 
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
-import com.spoolin.media.MigrationRunner
 import com.spoolin.support.maintenance.MaintenanceDataSources
 import com.spoolin.support.maintenance.RetentionMaintenance
 import com.spoolin.support.receipts.executeBound
@@ -421,28 +420,13 @@ class RetentionBoundaryTest {
             it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single()
         }
 
-    private fun migrate(
-        fixture: OwnerFixture,
-        owner: String,
-    ) {
-        fixture.pool(owner, "migrator").use {
-            if (owner == "media") {
-                MigrationRunner(it).migrate()
-            } else {
-                com.spoolin.catalog
-                    .MigrationRunner(it)
-                    .migrate()
-            }
-        }
-    }
-
     private fun fixture(
         owner: String = "media",
         block: (DataSource, RetentionMaintenance, DataSource) -> Unit,
     ) {
         OwnerFixture("retention.json").start().use { fixture ->
             fixture.membership(owner, "grant")
-            migrate(fixture, owner)
+            migrateOwner(fixture, owner)
             fixture.grants(owner)
             fixture.membership(owner, "revoke")
             val maintenance =

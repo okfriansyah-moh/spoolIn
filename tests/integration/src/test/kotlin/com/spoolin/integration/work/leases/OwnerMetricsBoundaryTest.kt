@@ -1,7 +1,6 @@
 package com.spoolin.integration.work.leases
 
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
-import com.spoolin.media.MigrationRunner
 import com.spoolin.support.observability.OwnerMetricRuntime
 import com.spoolin.support.observability.OwnerMetrics
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -160,7 +159,7 @@ class OwnerMetricsBoundaryTest {
     private fun fixture(block: (OwnerFixture) -> Unit) {
         OwnerFixture("owner-metrics.json").start().use { owner ->
             owner.membership("media", "grant")
-            owner.pool("media", "migrator").use { MigrationRunner(it).migrate() }
+            migrateOwner(owner, "media")
             owner.grants("media")
             owner.membership("media", "revoke")
             block(owner)

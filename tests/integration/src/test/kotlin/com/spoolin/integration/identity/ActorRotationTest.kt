@@ -165,6 +165,7 @@ private class RotationProof(
             com.spoolin.media.operations.receipts
                 .OwnerReceipts(pool, hashes)
                 .execute(intent, UUID.randomUUID(), true) { SafeResult(intent.id) }
+            ownedMediaAsset(pool, intent.id)
             val environment = StandardEnvironment()
             val quarantine = QuarantineStore(Files.createTempDirectory(root, "media-actor-rotation-"))
             com.spoolin.media.OwnerServiceConfiguration().mediaService(
@@ -173,6 +174,25 @@ private class RotationProof(
                 quarantineStore = quarantine,
                 channels = channels,
             )
+        }
+    }
+
+    private fun ownedMediaAsset(
+        pool: javax.sql.DataSource,
+        operation: UUID,
+    ) {
+        pool.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    "INSERT INTO appdata.asset(id, upload_operation_id, actor_id, state, " +
+                        "input_bytes, policy_revision) " +
+                        "VALUES (?, ?, ?, 'RECEIVING', 1, 'p1')",
+                ).use { statement ->
+                    statement.setObject(1, operation)
+                    statement.setObject(2, operation)
+                    statement.setObject(3, base.account)
+                    statement.executeUpdate()
+                }
         }
     }
 

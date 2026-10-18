@@ -1,7 +1,6 @@
 package com.spoolin.integration.work.leases
 
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
-import com.spoolin.media.MigrationRunner
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -218,7 +217,7 @@ class OperatorRecoveryBoundaryTest {
     ) {
         OwnerFixture("$name.json").start().use { fixture ->
             fixture.membership("media", "grant")
-            fixture.pool("media", "migrator").use { MigrationRunner(it).migrate() }
+            migrateOwner(fixture, "media")
             fixture.grants("media")
             fixture.membership("media", "revoke")
             fixture.pool("media").use(block)

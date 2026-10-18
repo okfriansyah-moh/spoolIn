@@ -112,35 +112,13 @@ class MaintenanceCliBoundaryTest {
                 }.single()
         }
 
-    private fun migrate(
-        fixture: OwnerFixture,
-        owner: String,
-    ) {
-        fixture.pool(owner, "migrator").use { source ->
-            when (owner) {
-                "core" ->
-                    com.spoolin.core
-                        .MigrationRunner(source)
-                        .migrate()
-                "catalog" ->
-                    com.spoolin.catalog
-                        .MigrationRunner(source)
-                        .migrate()
-                "media" ->
-                    com.spoolin.media
-                        .MigrationRunner(source)
-                        .migrate()
-            }
-        }
-    }
-
     private fun fixture(
         owner: String,
         check: (OwnerFixture) -> Unit,
     ) {
         OwnerFixture("maintenance-cli.json").start().use { fixture ->
             fixture.membership(owner, "grant")
-            migrate(fixture, owner)
+            migrateOwner(fixture, owner)
             fixture.grants(owner)
             fixture.membership(owner, "revoke")
             check(fixture)

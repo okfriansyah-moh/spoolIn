@@ -146,7 +146,15 @@ class OwnerReceiptBoundaryTest {
     ) {
         fixture.pool("catalog").use { pool ->
             val clock = Clock.fixed(now.plusSeconds(604800), ZoneOffset.UTC)
-            assertEquals(1, ReceiptExpiry(pool, clock).purgeBodies())
+            fixture.connection("catalog").use { connection ->
+                connection.executeBound(
+                    "UPDATE appdata.operation_receipt SET expires_at=CURRENT_TIMESTAMP-INTERVAL '1 second' WHERE id=?",
+                    intent.id,
+                )
+            }
+            fixture.pool("catalog", "maintenance").use { maintenance ->
+                assertEquals(1, ReceiptExpiry(maintenance).purgeBodies())
+            }
             pool.connection.use { it.executeBound("DELETE FROM receipt_domain") }
             val expired =
                 OwnerReceipts(pool, hashes, clock).execute(intent, UUID.randomUUID(), true) {

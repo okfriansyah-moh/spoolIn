@@ -25,6 +25,9 @@ tasks.named<Test>("test") {
 
 tasks.named<Test>("integrationTest") {
     classpath = foundationTestRuntime
+    doFirst {
+        classpath = classpath.filter { it != sourceSets["main"].output.resourcesDir }
+    }
     dependsOn("integrationTestClasses")
     filter { includeTestsMatching("com.spoolin.media.boundary.bootstrap.*BoundaryTest") }
 }
