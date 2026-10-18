@@ -2,6 +2,7 @@
 
 package com.spoolin.core.features.catalogview.credit
 
+import com.spoolin.core.boundary.graphql.GraphqlLongArguments
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
@@ -88,7 +89,7 @@ class ManagedCreditGraphql(
         val principal = context.principal ?: throw CredentialRejected()
         val operationId = id(env)
         val titleId = requireNotNull(env.getArgument<String>("titleId"))
-        val expectedVersion = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val expectedVersion = GraphqlLongArguments.required(env)
         val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
         val input = requireNotNull(env.getArgument<Map<String, Any?>>("input"))
         validateUuid(titleId)
@@ -114,7 +115,7 @@ class ManagedCreditGraphql(
         val operationId = id(env)
         val creditId = requireNotNull(env.getArgument<String>("id"))
         validateUuid(creditId)
-        val expectedVersion = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val expectedVersion = GraphqlLongArguments.required(env)
         val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
         val patch = requireNotNull(env.getArgument<Map<String, Any?>>("patch"))
         val paths = mutableListOf<String>()
@@ -149,7 +150,7 @@ class ManagedCreditGraphql(
         val operationId = id(env)
         val creditId = requireNotNull(env.getArgument<String>("id"))
         validateUuid(creditId)
-        val expectedVersion = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val expectedVersion = GraphqlLongArguments.required(env)
         val request =
             Spoolin.VersionedId
                 .newBuilder()

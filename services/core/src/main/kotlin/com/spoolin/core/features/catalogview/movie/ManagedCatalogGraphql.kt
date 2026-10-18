@@ -2,6 +2,7 @@
 
 package com.spoolin.core.features.catalogview.movie
 
+import com.spoolin.core.boundary.graphql.GraphqlLongArguments
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
@@ -85,7 +86,7 @@ class ManagedCatalogGraphql(
         val operationId = id(env)
         val titleId = requireNotNull(env.getArgument<String>("id"))
         validateUuid(titleId)
-        val expectedVersion = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val expectedVersion = GraphqlLongArguments.required(env)
         val policyRevision = requireNotNull(env.getArgument<String>("policyRevision"))
         val patch = requireNotNull(env.getArgument<Map<String, Any?>>("patch"))
         val (values, mask) = moviePatchFromInput(patch)

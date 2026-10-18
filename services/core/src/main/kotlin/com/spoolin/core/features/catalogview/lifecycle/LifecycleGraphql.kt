@@ -2,6 +2,7 @@
 
 package com.spoolin.core.features.catalogview.lifecycle
 
+import com.spoolin.core.boundary.graphql.GraphqlLongArguments
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
@@ -90,7 +91,7 @@ class LifecycleGraphql(
         impactToken: String?,
     ): Spoolin.Lifecycle {
         val targetId = requireNotNull(env.getArgument<String>("id"))
-        val version = requireNotNull(env.getArgument<Long>("expectedVersion"))
+        val version = GraphqlLongArguments.required(env)
         val action = requireNotNull(env.getArgument<String>("action"))
         val confirmed = env.getArgument<Boolean>("confirmed") == true
         val grpcContext =

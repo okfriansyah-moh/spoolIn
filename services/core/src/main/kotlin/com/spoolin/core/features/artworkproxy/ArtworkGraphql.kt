@@ -2,6 +2,7 @@
 
 package com.spoolin.core.features.artworkproxy
 
+import com.spoolin.core.boundary.graphql.GraphqlLongArguments
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
@@ -86,7 +87,7 @@ class ArtworkGraphql(
             .setAssetId(child(operation, "asset").toString())
             .setTitleId(titleId)
             .setActorId(principal.accountId.toString())
-            .setExpectedVersion(requireNotNull(env.getArgument<Long>("expectedVersion")))
+            .setExpectedVersion(GraphqlLongArguments.required(env))
             .build()
     }
 
