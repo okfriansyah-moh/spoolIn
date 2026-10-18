@@ -73,7 +73,9 @@ class AeadCipher {
         } catch (_: GeneralSecurityException) {
             unavailable(ProtectionFailure.UNAVAILABLE, failure)
         } catch (_: IllegalArgumentException) {
-            unavailable(if (key.size == AES_KEY_BYTES) ProtectionFailure.AUTHENTICATION else ProtectionFailure.KEY, failure)
+            unavailable(
+                if (key.size == AES_KEY_BYTES) ProtectionFailure.AUTHENTICATION else ProtectionFailure.KEY, failure,
+            )
         }
 
     private fun unavailable(

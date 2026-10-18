@@ -25,7 +25,8 @@ fun runInitializationCli(argument: String) {
     try {
         initializeFromFile(Path.of(argument.substringAfter('=')))
         println(
-            "Account initialization complete; prepared identity and role evidence verified; existing passwords preserved",
+            "Account initialization complete; prepared identity and role evidence verified; " +
+                "existing passwords preserved",
         )
     } catch (_: Exception) {
         System.err.println(

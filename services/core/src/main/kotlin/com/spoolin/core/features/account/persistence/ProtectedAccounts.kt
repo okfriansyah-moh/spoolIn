@@ -69,7 +69,9 @@ class ProtectedAccounts(
     ): AccountProjection {
         val lookupKeys =
             observeProtection(alert, ProtectionFailure.KEY) {
-                registry.requireCurrentWrite(connection, prepared.envelope.keyId, com.spoolin.core.features.crypto.KeyPurpose.PII)
+                registry.requireCurrentWrite(
+                    connection, prepared.envelope.keyId, com.spoolin.core.features.crypto.KeyPurpose.PII,
+                )
                 registry.lookupKeys(connection).also { keys ->
                     if (keys.none { it.state == KeyState.WRITE }) throw ProtectionUnavailable()
                 }

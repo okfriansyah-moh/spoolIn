@@ -39,21 +39,21 @@ class ProtectionMetricsRulesTest {
             assertSame(
                 database,
                 assertThrows(SQLException::class.java) {
-                    observeProtection(alert, ProtectionFailure.KEY) { throw database }
+                    observeProtection(alert, ProtectionFailure.KEY) { failWith(database) }
                 },
             )
             val unavailable = ProtectionUnavailable()
             assertSame(
                 unavailable,
                 assertThrows(ProtectionUnavailable::class.java) {
-                    observeProtection(alert, ProtectionFailure.KEY) { throw unavailable }
+                    observeProtection(alert, ProtectionFailure.KEY) { failWith(unavailable) }
                 },
             )
             val engine = GeneralSecurityException("synthetic engine failure")
             assertSame(
                 engine,
                 assertThrows(GeneralSecurityException::class.java) {
-                    observeProtection(alert, ProtectionFailure.UNAVAILABLE) { throw engine }
+                    observeProtection(alert, ProtectionFailure.UNAVAILABLE) { failWith(engine) }
                 },
             )
             assertEquals(
@@ -103,8 +103,12 @@ class ProtectionMetricsRulesTest {
         assertSame(ProtectedRead.Unavailable, cipher.decrypt(valid, ByteArray(31), binding) { codes.add(it) })
         val invalidVersion = ProtectedEnvelope(2, valid.keyId, valid.nonce(), valid.cipher())
         assertSame(ProtectedRead.Unavailable, cipher.decrypt(invalidVersion, key, binding) { codes.add(it) })
-        assertEquals(listOf(ProtectionFailure.AUTHENTICATION, ProtectionFailure.KEY, ProtectionFailure.AUTHENTICATION), codes)
-        assertSame(ProtectedRead.Unavailable, cipher.decrypt(corrupt, key, binding) { error("synthetic observer failure") })
+        assertEquals(
+            listOf(ProtectionFailure.AUTHENTICATION, ProtectionFailure.KEY, ProtectionFailure.AUTHENTICATION), codes,
+        )
+        assertSame(
+            ProtectedRead.Unavailable, cipher.decrypt(corrupt, key, binding) { error("synthetic observer failure") },
+        )
     }
 
     @Test
@@ -136,3 +140,5 @@ private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegis
     } finally {
         close()
     }
+
+private fun failWith(failure: Throwable): Nothing = throw failure

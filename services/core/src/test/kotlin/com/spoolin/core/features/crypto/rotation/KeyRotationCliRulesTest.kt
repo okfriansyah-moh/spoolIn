@@ -20,7 +20,9 @@ class KeyRotationCliRulesTest {
 
     @Test
     fun `native options preserve real dry-run registration and bounded batch contracts`() {
-        val options = RotationCliOptions.parse(valid + arrayOf("--dry-run", "--register-target", "--max-batches", "1"), map)
+        val options = RotationCliOptions.parse(
+            valid + arrayOf("--dry-run", "--register-target", "--max-batches", "1"), map,
+        )
         assertEquals(KeyPurpose.PII, options.purpose)
         assertTrue(options.dryRun)
         assertTrue(options.register)
@@ -51,7 +53,9 @@ class KeyRotationCliRulesTest {
                 arrayOf("--from", "same", "--to", "same"),
                 arrayOf("--from", "old", "--to", "new", "--purpose", "pii"),
             )
-        invalid.forEach { args -> assertThrows(IllegalArgumentException::class.java) { RotationCliOptions.parse(args, map) } }
+        invalid.forEach { args ->
+            assertThrows(IllegalArgumentException::class.java) { RotationCliOptions.parse(args, map) }
+        }
         assertThrows(IllegalArgumentException::class.java) { RotationCliOptions.parse(valid, null) }
     }
 
@@ -64,15 +68,21 @@ class KeyRotationCliRulesTest {
         MountedKeys(full, null).use { rotation ->
             MountedKeys(full, null).use { application -> validateApplicationMaterial(application, rotation, options) }
             MountedKeys(mapOf("old" to KeyMount(KeyPurpose.PII, old)), null).use { application ->
-                assertThrows(IllegalStateException::class.java) { validateApplicationMaterial(application, rotation, options) }
+                assertThrows(IllegalStateException::class.java) {
+                    validateApplicationMaterial(application, rotation, options)
+                }
             }
             val different = full + ("new" to KeyMount(KeyPurpose.PII, material("different", 13)))
             MountedKeys(different, null).use { application ->
-                assertThrows(IllegalStateException::class.java) { validateApplicationMaterial(application, rotation, options) }
+                assertThrows(IllegalStateException::class.java) {
+                    validateApplicationMaterial(application, rotation, options)
+                }
             }
             val wrongPurpose = full + ("new" to KeyMount(KeyPurpose.DRAFT, target))
             MountedKeys(wrongPurpose, null).use { application ->
-                assertThrows(IllegalStateException::class.java) { validateApplicationMaterial(application, rotation, options) }
+                assertThrows(IllegalStateException::class.java) {
+                    validateApplicationMaterial(application, rotation, options)
+                }
             }
         }
     }

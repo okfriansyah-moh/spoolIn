@@ -51,7 +51,8 @@ class AccountProtectionConfiguration {
     fun protectionAlert(metrics: ProtectionMetrics): ProtectionAlert =
         metrics.observing(
             ProtectionAlert { row ->
-                LoggerFactory.getLogger(AccountCryptography::class.java).error("Protected account unavailable row={}", row)
+                LoggerFactory.getLogger(AccountCryptography::class.java)
+                    .error("Protected account unavailable row={}", row)
             },
         )
 

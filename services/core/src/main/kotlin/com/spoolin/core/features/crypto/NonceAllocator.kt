@@ -29,7 +29,9 @@ class NonceAllocator(
                     listOf(keyId, purpose.name),
                 ) { it.getBoolean(1) }
                 .singleOrNull() == true
-        throw ProtectionUnavailable(if (exhausted) ProtectionFailure.NONCE_EXHAUSTION else ProtectionFailure.UNAVAILABLE)
+        throw ProtectionUnavailable(
+            if (exhausted) ProtectionFailure.NONCE_EXHAUSTION else ProtectionFailure.UNAVAILABLE,
+        )
     }
 
     fun reserve(

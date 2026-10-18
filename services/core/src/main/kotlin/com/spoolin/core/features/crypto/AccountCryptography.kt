@@ -42,7 +42,11 @@ class AccountCryptography(
     ): ProtectedRead<ByteArray> {
         val bytes =
             observeProtection(alert, ProtectionFailure.KEY) {
-                if (registry.readable(envelope.keyId, KeyPurpose.PII)) keys.key(envelope.keyId, KeyPurpose.PII) else null
+                if (registry.readable(envelope.keyId, KeyPurpose.PII)) {
+                    keys.key(envelope.keyId, KeyPurpose.PII)
+                } else {
+                    null
+                }
             }
         val result =
             decryptProtected(alert, bytes) { key ->

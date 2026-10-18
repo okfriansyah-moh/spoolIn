@@ -112,7 +112,9 @@ class AccountInitialization(
                 require(row.getString("setup_version") == config.version)
                 require(MessageDigest.isEqual(row.getBytes("setup_manifest_hash"), config.checksum()))
                 if (row.getString("state") == "SUCCEEDED") {
-                    validateStored(connection, config, row.getObject("setup_viewer_id", UUID::class.java), AccountRole.VIEWER)
+                    validateStored(
+                        connection, config, row.getObject("setup_viewer_id", UUID::class.java), AccountRole.VIEWER,
+                    )
                     validateStored(
                         connection,
                         config,
@@ -167,7 +169,8 @@ class AccountInitialization(
                 .takeIf { state == "SUCCEEDED" }
         connection
             .executeBound(
-                "INSERT INTO appdata.operation_receipt(id,actor_scope,kind,receipt_type,request_hash,state,correlation_id," +
+                "INSERT INTO appdata.operation_receipt(id,actor_scope,kind,receipt_type,request_hash,state," +
+                    "correlation_id," +
                     "setup_version,setup_manifest_hash,setup_viewer_id,setup_maintainer_id) " +
                     "VALUES (?,'SERVICE_INITIALIZER','INITIALIZE_ACCOUNTS','ACCOUNT_INITIALIZATION',?,?,?,?,?,?,?) " +
                     "ON CONFLICT (setup_version) DO UPDATE SET state=EXCLUDED.state," +
@@ -212,7 +215,8 @@ private fun receiptId(config: InitializationConfiguration): UUID {
             .array()
     val name = "initialization/core/ACCOUNT_INITIALIZATION/${config.version}".toByteArray(Charsets.UTF_8)
     val hash = MessageDigest.getInstance("SHA-1").digest(prefix + name)
-    hash[UUID_VERSION_OFFSET] = ((hash[UUID_VERSION_OFFSET].toInt() and UUID_VERSION_MASK) or UUID_VERSION_FIVE).toByte()
+    hash[UUID_VERSION_OFFSET] =
+        ((hash[UUID_VERSION_OFFSET].toInt() and UUID_VERSION_MASK) or UUID_VERSION_FIVE).toByte()
     hash[UUID_VARIANT_OFFSET] = ((hash[UUID_VARIANT_OFFSET].toInt() and UUID_VARIANT_MASK) or UUID_VARIANT_RFC).toByte()
     val bytes = ByteBuffer.wrap(hash)
     return UUID(bytes.long, bytes.long)
