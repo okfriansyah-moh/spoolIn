@@ -6,6 +6,10 @@ import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
 import com.spoolin.core.features.crypto.MountedKeys
 import com.spoolin.support.logging.applyNormalizedLogLevel
+import com.spoolin.support.receipts.committed
+import com.spoolin.support.receipts.executeBound
+import java.util.UUID
+import javax.sql.DataSource
 import com.spoolin.support.work.OperatorAccess
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor
 import org.springframework.boot.context.properties.bind.Bindable
@@ -22,11 +26,11 @@ import kotlin.system.exitProcess
 fun main(args: Array<String>) {
     applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), "core")
     val code = try {
-        OperatorAccess.operatorIdentity()
+        val operator = OperatorAccess.operatorIdentity()
         val options = RotationCliOptions.parse(args, System.getenv("ROTATION_KEYS_FILE"))
         val environment = StandardEnvironment()
         ConfigDataEnvironmentPostProcessor.applyTo(environment)
-        executeRotation(options, environment)
+        executeRotation(options, environment, operator)
     } catch (_: IllegalArgumentException) {
         refusal("ROTATION_INPUT_OR_CONFIGURATION_INVALID")
     } catch (_: java.io.IOException) {
@@ -40,21 +44,55 @@ fun main(args: Array<String>) {
     if (code != 0) exitProcess(code)
 }
 
-private fun executeRotation(options: RotationCliOptions, environment: ConfigurableEnvironment): Int {
+private fun executeRotation(options: RotationCliOptions, environment: ConfigurableEnvironment, operator: String): Int {
     val configured = Path.of(environment.getRequiredProperty("ROTATION_KEYS_FILE"))
     require(Files.isSameFile(configured, options.keys)) { "Use the application's configured rotation map" }
     val settings = Binder.get(environment).bind("spoolin.account-protection", Bindable.of(AccountProtectionSettings::class.java)).get()
     RotationKeys.load(configured).use { keys ->
         MountedKeys(settings.keys, null).use { application -> validateApplicationMaterial(application, keys, options) }
         DatabaseSettings.load(environment, "core", false).pool().use { pool ->
-            if (options.register && !options.dryRun) RotationKeys.registerTarget(pool, keys, options.to, options.purpose)
-            val result = KeyRotationPlan(options.from, options.to, options.purpose)
-                .rotate(pool, KeyRegistry(pool), options.dryRun, keys, options.maxBatches)
+            val result = rotate(pool, keys, options, operator)
             println(JsonMapper.builder().build().writeValueAsString(mapOf(
                 "ok" to result.ok, "purpose" to options.purpose.name, "dryRun" to options.dryRun,
                 "backfilled" to result.backfilled, "remaining" to result.remaining, "message" to result.message,
             )))
             return if (result.ok) 0 else 1
+        }
+    }
+}
+
+private fun rotate(pool: DataSource, keys: MountedKeys, options: RotationCliOptions, operator: String): RotationOutcome {
+    val plan = KeyRotationPlan(options.from, options.to, options.purpose)
+    if (options.dryRun) return plan.rotate(pool, KeyRegistry(pool), true, keys, options.maxBatches)
+    val audit = RotationCommandAudit(pool, options, operator)
+    audit.record("AUTHORIZED", "SUCCEEDED")
+    return try {
+        if (options.register) RotationKeys.registerTarget(pool, keys, options.to, options.purpose)
+        val result = plan.rotate(pool, KeyRegistry(pool), false, keys, options.maxBatches)
+        audit.record(if (result.ok) "COMPLETED" else "INCOMPLETE", if (result.ok) "SUCCEEDED" else "FAILED", result)
+        result
+    } catch (failure: RuntimeException) {
+        audit.record("FAILED", "FAILED")
+        throw failure
+    } catch (failure: java.sql.SQLException) {
+        audit.record("FAILED", "FAILED")
+        throw failure
+    }
+}
+
+private class RotationCommandAudit(private val pool: DataSource, private val options: RotationCliOptions, private val operator: String) {
+    private val correlation = UUID.randomUUID()
+
+    fun record(phase: String, outcome: String, result: RotationOutcome? = null) {
+        val changes = JsonMapper.builder().build().writeValueAsString(mapOf(
+            "purpose" to options.purpose.name, "fromKeyId" to options.from, "toKeyId" to options.to,
+            "phase" to phase, "maxBatches" to options.maxBatches,
+            "backfilled" to result?.backfilled, "remaining" to result?.remaining,
+        ))
+        pool.committed { connection ->
+            check(connection.executeBound("INSERT INTO operational_event(id,actor_kind,action,subject_kind,outcome,changes," +
+                "correlation_id,event_type,operator_id) VALUES(?,'HUMAN','KEY_ROTATION','CRYPTO_KEY',?,?::jsonb,?,'ACTIVITY',?)",
+                UUID.randomUUID(), outcome, changes, correlation, operator) == 1)
         }
     }
 }
