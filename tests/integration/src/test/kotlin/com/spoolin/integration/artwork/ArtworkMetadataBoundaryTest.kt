@@ -2,6 +2,12 @@ package com.spoolin.integration.artwork
 
 import com.google.protobuf.ByteString
 import com.spoolin.core.boundary.http.BrowserContext
+import com.spoolin.core.boundary.http.ArtworkServing
+import com.spoolin.core.boundary.http.BrowserIdentity
+import com.spoolin.core.features.ratelimit.TrustedAdmission
+import org.springframework.beans.factory.support.DefaultListableBeanFactory
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
 import com.spoolin.core.features.artworkproxy.ArtworkGraphql
 import com.spoolin.core.features.artworkproxy.ArtworkReadProxy
 import graphql.schema.idl.RuntimeWiring
@@ -63,6 +69,28 @@ class ArtworkMetadataBoundaryTest {
             wiring.type("Title") { it.dataFetcher("credits") { "credits" } }
             ArtworkGraphql(CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newStub(channel), null, reads = proxy).bind(wiring)
             assertTrue(wiring.build().getDataFetchersForType("Title").keys.containsAll(listOf("credits", "artwork")))
+        }
+    }
+
+    @Test
+    fun `HTTP rejects range and unknown view and fails closed without admission`() {
+        fixture { proxy, _, _, requests ->
+            val beans = DefaultListableBeanFactory()
+            val endpoint = ArtworkServing(proxy, beans.getBeanProvider(BrowserIdentity::class.java), beans.getBeanProvider(TrustedAdmission::class.java))
+            try {
+                fun response(request: MockHttpServletRequest): Int {
+                    val output = MockHttpServletResponse()
+                    endpoint.get(asset.toString(), request, output)
+                    assertEquals("no-store", output.getHeader("Cache-Control"))
+                    assertEquals("nosniff", output.getHeader("X-Content-Type-Options"))
+                    return output.status
+                }
+                assertEquals(416, response(MockHttpServletRequest().apply { addHeader("Range", "bytes=0-1") }))
+                assertEquals(404, response(MockHttpServletRequest().apply { addParameter("management", "true") }))
+                assertEquals(404, response(MockHttpServletRequest().apply { addParameter("view", "unknown") }))
+                assertEquals(503, response(MockHttpServletRequest()))
+                assertEquals(0, requests.get())
+            } finally { endpoint.close() }
         }
     }
 

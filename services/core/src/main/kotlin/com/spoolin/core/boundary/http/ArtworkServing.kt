@@ -73,7 +73,7 @@ class ArtworkServing(
         val async = request.startAsync()
         async.timeout = 15_000
         async.addListener(object : AsyncListener {
-            override fun onError(event: AsyncEvent) { cancellation.cancel(event.throwable) }
+            override fun onError(event: AsyncEvent) { cancellation.cancel(event.throwable); runCatching { async.complete() } }
             override fun onTimeout(event: AsyncEvent) {
                 cancellation.cancel(java.util.concurrent.TimeoutException())
                 if (!response.isCommitted) response.status = 503
@@ -85,7 +85,7 @@ class ArtworkServing(
         try {
             workers.execute {
                 try { cancellation.run { transfer(id, management, browser, response) } }
-                catch (failure: StatusRuntimeException) { if (!response.isCommitted) response.status = status(failure) }
+                catch (failure: StatusRuntimeException) { if (!response.isCommitted) response.status = if (!management && failure.status.code == Status.Code.PERMISSION_DENIED) 404 else status(failure) }
                 catch (_: Exception) { if (!response.isCommitted) response.status = 503 }
                 finally { cancellation.cancel(null); runCatching { async.complete() } }
             }
@@ -116,7 +116,6 @@ class ArtworkServing(
         Status.Code.NOT_FOUND -> 404
         Status.Code.UNAUTHENTICATED -> 401
         Status.Code.PERMISSION_DENIED -> 403
-        Status.Code.RESOURCE_EXHAUSTED -> 429
         else -> 503
     }
 }
