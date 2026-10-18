@@ -988,6 +988,108 @@
       ],
       "assessed_revision": "d8613467dc8ac0796c6d01ba1dc1a9d8d6916d92",
       "runtime_proof": "Pending remote execution and final independent combined review."
+    },
+    {
+      "id": "F-041",
+      "required": true,
+      "status": "open",
+      "area": "Make selection and helper controls",
+      "summary": "Make did not export TASK to its shell test wrappers; invalid selection test recursively invoked full suites. Actual hosted39092813499 log confirmed recursive process chain. Source7d2db4b exports TASK and bounds negative subprocess15s.",
+      "evidence_paths": [
+        "Makefile",
+        "build-tools/verification-tests/test_harness.py"
+      ],
+      "requirement_ids": [
+        "T001-A2",
+        "ATDD-134"
+      ],
+      "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+    },
+    {
+      "id": "F-042",
+      "required": true,
+      "status": "open",
+      "area": "Movie metadata production editing",
+      "summary": "Movie query/projection/form/patch/rebase dropped or omitted loaded month/day/runtime/language/countries. Complete paths correctedf1d087c and later recovery/pagination fixes; actual hosted339 FEtests on890 include metadata regressions, but live browser/DB behavior still pending.",
+      "evidence_paths": [
+        "frontend/src/lib/features/movie",
+        "tests/browser/flows/remote/manage.spec.ts"
+      ],
+      "requirement_ids": [
+        "ATDD-017",
+        "ATDD-260"
+      ],
+      "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+    },
+    {
+      "id": "F-043",
+      "required": true,
+      "status": "open",
+      "area": "UI cursor and exact outcome wiring",
+      "summary": "Audit used incompatible String cursor; lists and credits discarded pageInfo; reused routes retained old identities; artwork cancellation/attachment and direct outcomes ignored false/expired receipts. Corrected source milestones eefd1de/ceded94/4456499 and root parent refresh, actual new journeys pending.",
+      "evidence_paths": [
+        "docs/release/ui-production-wiring-assessment.md",
+        "frontend/src/lib/features/artwork",
+        "frontend/src/lib/state/pagination.ts"
+      ],
+      "requirement_ids": [
+        "ATDD-262",
+        "ATDD-263",
+        "ATDD-265"
+      ],
+      "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+    },
+    {
+      "id": "F-044",
+      "required": true,
+      "status": "open",
+      "area": "Challenge expiry boundary",
+      "summary": "Proposal UI challenge cache accepted equality at expiresAt. Source d58c49a uses strict live-before expiry, atomic expired removal and four focused rules tests. Native Core MCP proof and final review pending.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/ProposalUiChallengeStore.kt"
+      ],
+      "requirement_ids": [
+        "AC-119",
+        "ATDD-294"
+      ],
+      "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+    },
+    {
+      "id": "F-045",
+      "required": true,
+      "status": "open",
+      "area": "Required source quality gates",
+      "summary": "Actual hosted39092493474 detekt/ktlint failed across owner/shared modules and integration tests. Focused refactors preserve locks, nonce allocation, TLS, namespace restrictions, redaction and exact assertions. No new suppressions, baseline or threshold relaxations. Fresh remote formatting/gates remain required.",
+      "evidence_paths": [
+        ".github/workflows/remote-acceptance.yml"
+      ],
+      "requirement_ids": [
+        "T046-A1"
+      ],
+      "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+    },
+    {
+      "id": "F-046",
+      "required": true,
+      "status": "open",
+      "area": "Effective read policy",
+      "summary": "Core catalog reads and Catalog search/page handlers still used hardcoded limits and a nonexistent requestLimits.maxSearchCodePoints field rather than published search text bounds/defaultPage/maxPage. Active production correction; no passing override proof yet.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/catalogview/read/CatalogViewGraphql.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/search/TitleSearchSql.kt"
+      ],
+      "requirement_ids": [
+        "ATDD-050",
+        "ATDD-097",
+        "ATDD-177"
+      ],
+      "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
     }
   ],
   "pending_acceptance": [
