@@ -57,17 +57,18 @@ class AssetRpc(
         val (asset, hold, title) = stored
         val allowed = when (MediaPeer.current()) {
             "core" -> ActorRpc.current()?.accountId == asset.actorId
-            "catalog" -> {
-                val current = access.current(hold)
-                current.holdId == hold.toString() && current.assetId == asset.id.toString() &&
-                    current.titleId == title.toString() && current.hasActorId() &&
-                    current.actorId == asset.actorId.toString() &&
-                    current.state in setOf("PREPARING", "ACTIVE", "RELEASED")
-            }
+            "catalog" -> catalogReceipt(asset, hold, title)
             else -> false
         }
         if (!allowed) throw Status.NOT_FOUND.asRuntimeException()
         return "account:${asset.actorId}"
+    }
+
+    private fun catalogReceipt(asset: AssetRow, hold: UUID, title: UUID): Boolean {
+        val current = access.current(hold)
+        return current.holdId == hold.toString() && current.assetId == asset.id.toString() &&
+            current.titleId == title.toString() && current.hasActorId() &&
+            current.actorId == asset.actorId.toString() && current.state in setOf("PREPARING", "ACTIVE", "RELEASED")
     }
 
     fun readAsset(request: AssetReadRequest, response: StreamObserver<AssetReadChunk>) = protect(response) {

@@ -61,13 +61,10 @@ class ProcessorRunner(
         require(dimensions.first > 0)
         FileChannel.open(result, StandardOpenOption.WRITE).use { it.force(true) }
         // A hard link publishes complete bytes atomically without replacing a concurrent winner.
-        return try {
-            Files.createLink(target, result)
+        return if (linkOutput(target, result)) {
             FileChannel.open(output, StandardOpenOption.READ).use { it.force(true) }
             inspected.copy(outputPath = target)
-        } catch (_: java.nio.file.FileAlreadyExistsException) {
-            inspect(target, format, output, deadline)
-        }
+        } else inspect(target, format, output, deadline)
     }
 
     private fun inspect(path: Path, format: ImageFormat, outputDir: Path, deadline: Long): Outcome =
@@ -127,3 +124,10 @@ private fun validDimensions(width: Int, height: Int, bands: Int): Boolean =
     width in 1..ProcessingBounds.MAX_DIMENSION_PX && height in 1..ProcessingBounds.MAX_DIMENSION_PX &&
         bands in 1..ProcessingBounds.MAX_COLOR_BANDS && width.toLong() * height <= ProcessingBounds.MAX_PIXELS &&
         width.toLong() * height * bands <= ProcessingBounds.MAX_DECODED_BYTES
+
+private fun linkOutput(target: Path, result: Path): Boolean = try {
+    Files.createLink(target, result)
+    true
+} catch (_: java.nio.file.FileAlreadyExistsException) {
+    false
+}

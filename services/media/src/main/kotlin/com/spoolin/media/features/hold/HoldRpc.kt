@@ -38,6 +38,7 @@ class HoldRpc(
         catch (_: java.sql.SQLException) { unavailable(response) }
         catch (_: IllegalStateException) { unavailable(response) }
         catch (_: IllegalArgumentException) { unavailable(response) }
+        catch (_: java.security.GeneralSecurityException) { unavailable(response) }
     }
 
     private fun unavailable(response: StreamObserver<Attachment>) = response.onError(

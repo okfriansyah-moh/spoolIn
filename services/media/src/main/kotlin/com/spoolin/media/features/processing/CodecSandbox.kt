@@ -40,6 +40,7 @@ class CodecSandbox {
         catch (_: IOException) { "PROCESSING_SANDBOX_UNAVAILABLE" }
         catch (_: SecurityException) { "PROCESSING_SANDBOX_UNAVAILABLE" }
         catch (_: IllegalArgumentException) { "PROCESSING_SANDBOX_UNAVAILABLE" }
+        catch (_: UnsupportedOperationException) { "PROCESSING_SANDBOX_UNAVAILABLE" }
         catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
             "PROCESSING_SANDBOX_UNAVAILABLE"
