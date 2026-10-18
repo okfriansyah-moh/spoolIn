@@ -34,6 +34,7 @@ internal object ProtoHelpers {
             .setRetrievedAt(ts)
             .setReuseNote(row.reuseNote)
             .addAllLocallyChanged(row.locallyChanged)
+            .addAllFieldSources(FieldSourceProjection.parse(row.fieldSources))
             .also { b -> row.recordUrl?.let { b.recordUrl = it } }
             .build()
     }

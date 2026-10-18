@@ -6,6 +6,7 @@ import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
 import com.spoolin.core.boundary.http.BrowserContext
 import com.spoolin.core.features.account.application.CredentialRejected
+import com.spoolin.core.features.catalogview.read.CatalogMetadataProjection
 import com.spoolin.core.features.ratelimit.RateUnavailable
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
@@ -221,7 +222,7 @@ class ManagedCatalogGraphql(
             "recordUrl" to p.recordUrl.takeIf { it.isNotEmpty() },
             "retrievedAt" to Instant.ofEpochSecond(p.retrievedAt.seconds, p.retrievedAt.nanos.toLong()).toString(),
             "reuseNote" to p.reuseNote,
-            "fieldSources" to emptyMap<String, Any?>(),
+            "fieldSources" to CatalogMetadataProjection.fieldSources(p),
             "locallyChanged" to p.locallyChangedList,
         )
 
