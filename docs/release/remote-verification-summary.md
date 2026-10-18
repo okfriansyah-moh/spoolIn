@@ -49,11 +49,11 @@ All46 rows below remain In progress. Source-complete established:0; runtime-veri
 | T033 | G20 | Actual repeat-safe seed loading and restart persistence pass; complete assigned recovery/seed obligations pending. | Pending |
 | T034 | G21 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
 | T035 | G22 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
-| T036 | G22 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
+| T036 | G22 | All7monitoring cases pass actual configuration, isolation, scrape, delivery/dedup and durable episodes; complete task acceptance pending. | Pending |
 | T037 | G23 | Actual start/readiness plus15 partialMake exact-exit checks pass, including status/logs/seed/restart/stop. Complete target suites pending. | Pending |
 | T038 | G24 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
 | T039 | G24 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
-| T040 | G25 | All7monitoring cases pass actual configuration, isolation, scrape, delivery/dedup and durable episodes; complete task acceptance pending. | Pending |
+| T040 | G25 | Complete key-rotation proof remains pending; monitoring evidence does not establish rotation. | Pending |
 | T041 | G25 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
 | T042 | G26 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
 | T043 | G26 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
