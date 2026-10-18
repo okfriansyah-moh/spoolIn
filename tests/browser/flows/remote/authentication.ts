@@ -150,7 +150,9 @@ export async function authenticateMaintainer(
     await page.getByRole('button', { name: 'Sign out', exact: true }).waitFor();
   } catch {
     // Playwright's raw fill error may contain its argument. Retain only sanitized diagnostics after entry.
-    throw new Error('Maintainer authentication failed after credential entry. Inspect sanitized setup diagnostics.');
+    throw new Error(
+      'Maintainer authentication failed after credential entry. Inspect sanitized setup diagnostics.',
+    );
   }
 }
 
@@ -169,20 +171,34 @@ export type AuthenticationDiagnostics = {
 };
 
 function errorClass(message: string): string {
-  if (/content.security.policy|refused to (?:execute|load)|unsafe-eval|unsafe-inline/i.test(message)) return 'csp';
+  if (
+    /content.security.policy|refused to (?:execute|load)|unsafe-eval|unsafe-inline/i.test(
+      message,
+    )
+  )
+    return 'csp';
   if (/mime.type|module.script/i.test(message)) return 'module-or-mime';
   if (/syntaxerror|unexpected.token/i.test(message)) return 'syntax';
   if (/certificate|err_cert/i.test(message)) return 'tls';
-  if (/failed.to.fetch|network|err_connection|failed.to.load.resource/i.test(message)) return 'network';
+  if (
+    /failed.to.fetch|network|err_connection|failed.to.load.resource/i.test(
+      message,
+    )
+  )
+    return 'network';
   return 'other-javascript';
 }
 
 function publicAsset(raw: string): string | null {
   const url = new URL(raw);
-  if (url.origin !== 'https://localhost:8443' || url.search || url.hash) return null;
+  if (url.origin !== 'https://localhost:8443' || url.search || url.hash)
+    return null;
   return url.pathname === '/icon.svg' ||
-    /^\/_app\/immutable\/(?:entry|chunks|nodes|assets)\/[A-Za-z0-9._-]{1,120}\.(?:js|css|woff2)$/.test(url.pathname)
-    ? url.pathname : null;
+    /^\/_app\/immutable\/(?:entry|chunks|nodes|assets)\/[A-Za-z0-9._-]{1,120}\.(?:js|css|woff2)$/.test(
+      url.pathname,
+    )
+    ? url.pathname
+    : null;
 }
 
 async function policyCodes(response: Response): Promise<string[]> {
@@ -191,28 +207,49 @@ async function policyCodes(response: Response): Promise<string[]> {
     const bytes = await response.body();
     if (bytes.length > 65536) return ['BODY_EXCEEDS_DIAGNOSTIC_BOUND'];
     const body = JSON.parse(bytes.toString('utf8'));
-    const allowed = new Set(['UNAVAILABLE', 'UNAUTHENTICATED', 'FORBIDDEN', 'RATE_LIMITED',
-      'VALIDATION_FAILED', 'POLICY_CHANGED', 'INTERNAL_SERVER_ERROR']);
+    const allowed = new Set([
+      'UNAVAILABLE',
+      'UNAUTHENTICATED',
+      'FORBIDDEN',
+      'RATE_LIMITED',
+      'VALIDATION_FAILED',
+      'POLICY_CHANGED',
+      'INTERNAL_SERVER_ERROR',
+    ]);
     const errors = Array.isArray(body?.errors) ? body.errors : [];
-    return [...new Set<string>(errors.slice(0, 8).map((error: { extensions?: { code?: unknown } }) => {
-      const code = error?.extensions?.code;
-      return typeof code === 'string' && allowed.has(code) ? code : 'UNCLASSIFIED_GRAPHQL_ERROR';
-    }))];
-  } catch { return ['NON_JSON_OR_UNREADABLE']; }
+    return [
+      ...new Set<string>(
+        errors.slice(0, 8).map((error: { extensions?: { code?: unknown } }) => {
+          const code = error?.extensions?.code;
+          return typeof code === 'string' && allowed.has(code)
+            ? code
+            : 'UNCLASSIFIED_GRAPHQL_ERROR';
+        }),
+      ),
+    ];
+  } catch {
+    return ['NON_JSON_OR_UNREADABLE'];
+  }
 }
 
 async function visibleLoginState(page: Page) {
   return page.evaluate(() => {
     const text = document.body?.innerText ?? '';
-    const states = ['Checking your session', 'Sign-in is temporarily unavailable', 'Check before continuing',
-      'Sign in again before continuing protected work.', 'Signing in…'];
+    const states = [
+      'Checking your session',
+      'Sign-in is temporarily unavailable',
+      'Check before continuing',
+      'Sign in again before continuing protected work.',
+      'Signing in…',
+    ];
     return {
       readyState: document.readyState,
       mainCount: document.querySelectorAll('main').length,
       headingCount: document.querySelectorAll('h1,h2,[role="heading"]').length,
       formCount: document.querySelectorAll('form').length,
       emailInputs: document.querySelectorAll('input[type="email"]').length,
-      passwordInputs: document.querySelectorAll('input[type="password"]').length,
+      passwordInputs: document.querySelectorAll('input[type="password"]')
+        .length,
       moduleScripts: document.querySelectorAll('script[type="module"]').length,
       visibleCharacterCount: Math.min(text.length, 10000),
       knownStates: states.filter((state) => text.includes(state)),
@@ -222,37 +259,80 @@ async function visibleLoginState(page: Page) {
 
 async function safeLoginScreenshot(page: Page, path: string): Promise<string> {
   const url = new URL(page.url());
-  if (url.origin !== 'https://localhost:8443' || !['/sign-in', '/'].includes(url.pathname))
+  if (
+    url.origin !== 'https://localhost:8443' ||
+    !['/sign-in', '/'].includes(url.pathname)
+  )
     return 'omitted-unsupported-route';
   // Before entry or after failure, clear fields without dispatching input events or submissions.
   await page.locator('input,textarea').evaluateAll((inputs) => {
-    for (const input of inputs) (input as HTMLInputElement | HTMLTextAreaElement).value = '';
+    for (const input of inputs)
+      (input as HTMLInputElement | HTMLTextAreaElement).value = '';
   });
-  await page.screenshot({ path, fullPage: false, timeout: 5000,
-    mask: [page.locator('input,textarea,[contenteditable="true"],iframe')] });
+  await page.screenshot({
+    path,
+    fullPage: false,
+    timeout: 5000,
+    mask: [page.locator('input,textarea,[contenteditable="true"],iframe')],
+  });
   return 'captured-with-fields-and-frames-masked';
 }
 
-async function captureLoginDiagnostic(page: Page, state: DiagnosticState, stage: DiagnosticStage): Promise<void> {
-  const directory = fileURLToPath(new URL('../../../../artifacts/browser/setup/', import.meta.url));
+async function captureLoginDiagnostic(
+  page: Page,
+  state: DiagnosticState,
+  stage: DiagnosticStage,
+): Promise<void> {
+  const directory = fileURLToPath(
+    new URL('../../../../artifacts/browser/setup/', import.meta.url),
+  );
   mkdirSync(directory, { recursive: true });
-  const screenshot = await safeLoginScreenshot(page, join(directory, `${stage}.png`))
-    .catch(() => 'unavailable');
+  const screenshot = await safeLoginScreenshot(
+    page,
+    join(directory, `${stage}.png`),
+  ).catch(() => 'unavailable');
   const url = new URL(page.url());
-  const route = url.origin === 'https://localhost:8443' && ['/sign-in', '/'].includes(url.pathname)
-    ? url.pathname : 'other-route';
-  const dom = await visibleLoginState(page).catch(() => ({ unavailable: true }));
-  writeFileSync(join(directory, `${stage}.json`), JSON.stringify({
-    stage, route, navigationStatus: state.navigationStatus, dom, screenshot,
-    publicAssetStatuses: state.assets, javascriptErrorClasses: state.errors, policyReads: state.policy,
-    testedSha: process.env.TESTED_SHA ?? 'UNVERIFIED', runId: process.env.GITHUB_RUN_ID,
-    attempt: process.env.GITHUB_RUN_ATTEMPT, browser: 'chromium', viewport: page.viewportSize(),
-    proof: 'Setup diagnosis only; authentication assertion remains required.',
-  }, null, 2) + '\n');
+  const route =
+    url.origin === 'https://localhost:8443' &&
+    ['/sign-in', '/'].includes(url.pathname)
+      ? url.pathname
+      : 'other-route';
+  const dom = await visibleLoginState(page).catch(() => ({
+    unavailable: true,
+  }));
+  writeFileSync(
+    join(directory, `${stage}.json`),
+    JSON.stringify(
+      {
+        stage,
+        route,
+        navigationStatus: state.navigationStatus,
+        dom,
+        screenshot,
+        publicAssetStatuses: state.assets,
+        javascriptErrorClasses: state.errors,
+        policyReads: state.policy,
+        testedSha: process.env.TESTED_SHA ?? 'UNVERIFIED',
+        runId: process.env.GITHUB_RUN_ID,
+        attempt: process.env.GITHUB_RUN_ATTEMPT,
+        browser: 'chromium',
+        viewport: page.viewportSize(),
+        proof:
+          'Setup diagnosis only; authentication assertion remains required.',
+      },
+      null,
+      2,
+    ) + '\n',
+  );
 }
 
 export function observeAuthentication(page: Page): AuthenticationDiagnostics {
-  const state: DiagnosticState = { navigationStatus: null, assets: {}, errors: {}, policy: [] };
+  const state: DiagnosticState = {
+    navigationStatus: null,
+    assets: {},
+    errors: {},
+    policy: [],
+  };
   const recordError = (message: string) => {
     const kind = errorClass(message);
     state.errors[kind] = Math.min((state.errors[kind] ?? 0) + 1, 1000);
@@ -263,27 +343,46 @@ export function observeAuthentication(page: Page): AuthenticationDiagnostics {
   const onError = (error: Error) => recordError(error.message);
   const onResponse = (response: Response) => {
     const asset = publicAsset(response.url());
-    if (asset && Object.keys(state.assets).length < 60) state.assets[asset] = response.status();
+    if (asset && Object.keys(state.assets).length < 60)
+      state.assets[asset] = response.status();
     const url = new URL(response.url());
-    if (url.origin !== 'https://localhost:8443' || url.pathname !== '/graphql' || state.policy.length >= 16) return;
+    if (
+      url.origin !== 'https://localhost:8443' ||
+      url.pathname !== '/graphql' ||
+      state.policy.length >= 16
+    )
+      return;
     let query: unknown;
-    try { query = response.request().postDataJSON()?.query; }
-    catch { return; }
-    if (typeof query !== 'string' || !/^\s*(?:query\b|\{)/.test(query) || !/\bpolicy\s*\{/.test(query)) return;
+    try {
+      query = response.request().postDataJSON()?.query;
+    } catch {
+      return;
+    }
+    if (
+      typeof query !== 'string' ||
+      !/^\s*(?:query\b|\{)/.test(query) ||
+      !/\bpolicy\s*\{/.test(query)
+    )
+      return;
     const observation = { status: response.status(), codes: [] as string[] };
     state.policy.push(observation);
-    void policyCodes(response).then((codes) => { observation.codes = codes; });
+    void policyCodes(response).then((codes) => {
+      observation.codes = codes;
+    });
   };
   const onRequestFailed = (request: Request) => {
     const asset = publicAsset(request.url());
-    if (asset && Object.keys(state.assets).length < 60) state.assets[asset] = 'request-failed';
+    if (asset && Object.keys(state.assets).length < 60)
+      state.assets[asset] = 'request-failed';
   };
   page.on('requestfailed', onRequestFailed);
   page.on('console', onConsole);
   page.on('pageerror', onError);
   page.on('response', onResponse);
   return {
-    navigation: (status) => { state.navigationStatus = status; },
+    navigation: (status) => {
+      state.navigationStatus = status;
+    },
     capture: (stage) => captureLoginDiagnostic(page, state, stage),
     dispose() {
       page.off('requestfailed', onRequestFailed);

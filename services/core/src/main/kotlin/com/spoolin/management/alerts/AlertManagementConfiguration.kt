@@ -4,7 +4,6 @@ import com.spoolin.core.ListenerBoundary
 import com.spoolin.core.features.alerts.AlertPolicy
 import com.spoolin.core.features.alerts.AlertRecorder
 import jakarta.servlet.DispatcherType
-import java.util.EnumSet
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration
@@ -18,6 +17,7 @@ import org.springframework.core.env.Environment
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.FilterChainProxy
 import org.springframework.security.web.SecurityFilterChain
+import java.util.EnumSet
 
 /** Imported only into the separate management child context. */
 @ManagementContextConfiguration(value = ManagementContextType.CHILD, proxyBeanMethods = false)

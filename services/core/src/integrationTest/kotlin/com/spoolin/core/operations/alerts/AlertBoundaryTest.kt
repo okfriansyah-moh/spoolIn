@@ -66,12 +66,20 @@ class AlertBoundaryTest {
         }
     }
 
-    private fun assertUnrelatedCsrf(fixture: IdentityHttpFixture, origin: String) {
+    private fun assertUnrelatedCsrf(
+        fixture: IdentityHttpFixture,
+        origin: String,
+    ) {
         val uri = origin + "/actuator/health/liveness"
-        val healthy = fixture.client.send(
-            HttpRequest.newBuilder(URI(uri)).timeout(Duration.ofSeconds(5)).GET().build(),
-            HttpResponse.BodyHandlers.discarding(),
-        )
+        val healthy =
+            fixture.client.send(
+                HttpRequest
+                    .newBuilder(URI(uri))
+                    .timeout(Duration.ofSeconds(5))
+                    .GET()
+                    .build(),
+                HttpResponse.BodyHandlers.discarding(),
+            )
         assertEquals(200, healthy.statusCode())
         assertEquals(403, send(fixture.client, uri, "{}").statusCode())
     }

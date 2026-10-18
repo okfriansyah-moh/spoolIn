@@ -61,13 +61,16 @@ internal class ArtworkUploadFixture(
                 val failure = record.thrown as? io.grpc.StatusRuntimeException ?: return
                 if (failure.status.code == io.grpc.Status.Code.INTERNAL &&
                     failure.status.description == "Too many responses" &&
-                    com.spoolin.support.identity.ActorRpc.current()?.accountId == actor
+                    com.spoolin.support.identity.ActorRpc
+                        .current()
+                        ?.accountId == actor
                 ) {
                     protocolFailure.compareAndSet(null, failure.status)
                 }
             }
 
             override fun flush() = Unit
+
             override fun close() = Unit
         }
     val header = AtomicReference<Spoolin.UploadHeader>()
@@ -156,13 +159,20 @@ internal class ArtworkUploadFixture(
         val service = service().bindService()
         if (mode !in setOf(Mode.VALUE_ERROR, Mode.VALUE_HOLD)) return service
         // Only terminal-lifecycle faults need streaming flush; duplicate rejection retains the actual unary server.
-        val streaming = MediaServiceGrpc.getUploadMethod().toBuilder()
-            .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING).build()
-        val handler = io.grpc.stub.ServerCalls.asyncBidiStreamingCall<Spoolin.UploadChunk, Spoolin.Outcome> {
-            response -> service().upload(response)
-        }
-        return io.grpc.ServerServiceDefinition.builder(MediaServiceGrpc.SERVICE_NAME)
-            .addMethod(streaming, handler).build()
+        val streaming =
+            MediaServiceGrpc
+                .getUploadMethod()
+                .toBuilder()
+                .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
+                .build()
+        val handler =
+            io.grpc.stub.ServerCalls.asyncBidiStreamingCall<Spoolin.UploadChunk, Spoolin.Outcome> { response ->
+                service().upload(response)
+            }
+        return io.grpc.ServerServiceDefinition
+            .builder(MediaServiceGrpc.SERVICE_NAME)
+            .addMethod(streaming, handler)
+            .build()
     }
 
     private fun responseObserver(): io.grpc.ClientInterceptor =
@@ -175,7 +185,10 @@ internal class ArtworkUploadFixture(
                 object : io.grpc.ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(
                     next.newCall(method, options),
                 ) {
-                    override fun start(listener: io.grpc.ClientCall.Listener<RespT>, headers: io.grpc.Metadata) {
+                    override fun start(
+                        listener: io.grpc.ClientCall.Listener<RespT>,
+                        headers: io.grpc.Metadata,
+                    ) {
                         super.start(
                             object : io.grpc.ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
                                 listener,
@@ -229,7 +242,11 @@ internal class ArtworkUploadFixture(
                 response.onNext(outcome)
                 response.onCompleted()
             }
-            Mode.VALUE_ERROR -> response.onError(io.grpc.Status.UNAVAILABLE.asRuntimeException())
+            Mode.VALUE_ERROR ->
+                response.onError(
+                    io.grpc.Status.UNAVAILABLE
+                        .asRuntimeException(),
+                )
             Mode.VALUE_HOLD -> Unit
             else -> response.onCompleted()
         }

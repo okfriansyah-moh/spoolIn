@@ -47,16 +47,19 @@ class ProvenanceReads(
     ): Map<UUID, List<ProvenanceRow>> {
         if (subjectIds.isEmpty()) return emptyMap()
         return dataSource.connection.use { connection ->
-            subjectIds.distinct().chunked(PROVENANCE_BATCH_SIZE).flatMap { batch ->
-                val placeholders = batch.joinToString(",") { "?" }
-                connection.queryBound(
-                    "SELECT subject_id,source,external_id,record_url,retrieved_at,reuse_note," +
-                        "field_sources,locally_changed FROM provenance_record " +
-                        "WHERE subject_id IN ($placeholders) AND subject_kind=? AND deleted_at IS NULL " +
-                        "ORDER BY subject_id,source ASC",
-                    batch + subjectKind,
-                ) { row -> row.getObject("subject_id", UUID::class.java) to mapRow(row) }
-            }.groupBy({ it.first }, { it.second })
+            subjectIds
+                .distinct()
+                .chunked(PROVENANCE_BATCH_SIZE)
+                .flatMap { batch ->
+                    val placeholders = batch.joinToString(",") { "?" }
+                    connection.queryBound(
+                        "SELECT subject_id,source,external_id,record_url,retrieved_at,reuse_note," +
+                            "field_sources,locally_changed FROM provenance_record " +
+                            "WHERE subject_id IN ($placeholders) AND subject_kind=? AND deleted_at IS NULL " +
+                            "ORDER BY subject_id,source ASC",
+                        batch + subjectKind,
+                    ) { row -> row.getObject("subject_id", UUID::class.java) to mapRow(row) }
+                }.groupBy({ it.first }, { it.second })
         }
     }
 

@@ -34,9 +34,14 @@ class CatalogPageQueryBoundaryTest {
                 assertPage(public, ids, fixture.genre)
                 assertEquals(3, observed.completed.size)
                 observed.completed.clear()
-                val managed = fixture.managed("ManagedTitles").managedTitles(
-                    PageRequest.newBuilder().setFirst(20).setState("ACTIVE").build(),
-                )
+                val managed =
+                    fixture.managed("ManagedTitles").managedTitles(
+                        PageRequest
+                            .newBuilder()
+                            .setFirst(20)
+                            .setState("ACTIVE")
+                            .build(),
+                    )
                 assertEquals(public.nodesList, managed.nodesList)
                 assertEquals(3, observed.completed.size)
                 observed.completed.clear()
@@ -92,7 +97,12 @@ class CatalogPageQueryBoundaryTest {
         return ids
     }
 
-    private fun addSource(connection: java.sql.Connection, id: UUID, source: String, deleted: Boolean) {
+    private fun addSource(
+        connection: java.sql.Connection,
+        id: UUID,
+        source: String,
+        deleted: Boolean,
+    ) {
         connection.executeBound(
             "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,retrieved_at," +
                 "reuse_note,field_sources,deleted_at) VALUES(?,?,'TITLE',?,'2025-01-01T00:00:00Z'," +
@@ -104,7 +114,11 @@ class CatalogPageQueryBoundaryTest {
         )
     }
 
-    private fun assertPage(page: TitlePage, ids: List<UUID>, genre: UUID) {
+    private fun assertPage(
+        page: TitlePage,
+        ids: List<UUID>,
+        genre: UUID,
+    ) {
         assertEquals(ids.map(UUID::toString), page.nodesList.map { it.id })
         assertFalse(page.hasNextPage)
         page.nodesList.forEachIndexed { index, title ->

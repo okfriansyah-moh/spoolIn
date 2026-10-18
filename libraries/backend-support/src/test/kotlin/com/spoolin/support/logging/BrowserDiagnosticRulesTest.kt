@@ -50,9 +50,13 @@ class BrowserDiagnosticRulesTest {
                     it.argumentArray = arrayOf("private-secret")
                     it.setThrowableProxy(ThrowableProxy(SQLException("private-secret", "42501")))
                 }
-            val raw = DiagnosticEnvelope("core", "test", "test").encode(
-                DiagnosticLevel.WARNING, 0, DiagnosticEvents.classify(event),
-            ).toString(Charsets.UTF_8)
+            val raw =
+                DiagnosticEnvelope("core", "test", "test")
+                    .encode(
+                        DiagnosticLevel.WARNING,
+                        0,
+                        DiagnosticEvents.classify(event),
+                    ).toString(Charsets.UTF_8)
             val node = JsonMapper.builder().build().readTree(raw)
             assertEquals(expected, node["attributes"]["event"].asString())
             assertEquals("DATABASE_ACCESS_DENIED", node["attributes"]["code"].asString())
@@ -69,13 +73,19 @@ class BrowserDiagnosticRulesTest {
                 it.level = Level.WARN
                 it.setThrowableProxy(
                     ThrowableProxy(
-                        io.grpc.Status.UNAVAILABLE.withDescription("private-secret").asRuntimeException(),
+                        io.grpc.Status.UNAVAILABLE
+                            .withDescription("private-secret")
+                            .asRuntimeException(),
                     ),
                 )
             }
-        val raw = DiagnosticEnvelope("core", "test", "test").encode(
-            DiagnosticLevel.WARNING, 0, DiagnosticEvents.classify(event),
-        ).toString(Charsets.UTF_8)
+        val raw =
+            DiagnosticEnvelope("core", "test", "test")
+                .encode(
+                    DiagnosticLevel.WARNING,
+                    0,
+                    DiagnosticEvents.classify(event),
+                ).toString(Charsets.UTF_8)
         val node = JsonMapper.builder().build().readTree(raw)
         assertEquals("RPC_UNAVAILABLE", node["attributes"]["code"].asString())
         assertFalse(raw.contains("private-secret"))

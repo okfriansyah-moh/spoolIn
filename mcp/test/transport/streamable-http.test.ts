@@ -38,7 +38,8 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     policyChangesOnWrite = false;
     policy = policyFixture();
     server = new StreamableHttpTransport(async (token) => {
-      if (token !== 'synthetic-connector') throw new GatewayFailure('FORBIDDEN');
+      if (token !== 'synthetic-connector')
+        throw new GatewayFailure('FORBIDDEN');
       return createSession(token, {
         policy: async () => policy,
         context: async (): Promise<MovieContext> => ({
@@ -134,9 +135,16 @@ describe('real SDK streamable HTTP session lifecycle', () => {
         'content-type': 'application/json',
         accept: 'application/json, text/event-stream',
       },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {
-        protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'unit', version: '1' },
-      } }),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-11-25',
+          capabilities: {},
+          clientInfo: { name: 'unit', version: '1' },
+        },
+      }),
     });
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ problem: { code: 'FORBIDDEN' } });

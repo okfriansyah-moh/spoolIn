@@ -71,7 +71,15 @@ class AuditJsonEncodingRulesTest {
             assertTrue(parsed.path("summarised").booleanValue())
             assertFalse(parsed.has("truncated"))
             assertTrue(result.toByteArray(Charsets.UTF_8).size < 65536)
-            assertEquals(paths.sorted(), parsed.path("changes").elements().asSequence().map { it.path("path").stringValue() }.toList())
+            assertEquals(
+                paths.sorted(),
+                parsed
+                    .path("changes")
+                    .elements()
+                    .asSequence()
+                    .map { it.path("path").stringValue() }
+                    .toList(),
+            )
         }
     }
 }

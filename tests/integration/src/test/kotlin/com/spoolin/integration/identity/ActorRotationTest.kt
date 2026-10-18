@@ -91,14 +91,17 @@ private class RotationProof(
 
     private fun runOwner(owner: String) {
         migrate(base.fixture, owner)
-        base.fixture.owner.pool(owner).use { pool -> ownerProof(owner, pool) }
+        base.fixture.owner
+            .pool(owner)
+            .use { pool -> ownerProof(owner, pool) }
     }
 
     private fun mediaChannels(): NettyGrpcChannelFactory {
-        val customizer = GrpcChannelBuilderCustomizer<io.grpc.netty.NettyChannelBuilder> { target, builder ->
-            require(target == "catalog")
-            builder.overrideAuthority("catalog")
-        }
+        val customizer =
+            GrpcChannelBuilderCustomizer<io.grpc.netty.NettyChannelBuilder> { target, builder ->
+                require(target == "catalog")
+                builder.overrideAuthority("catalog")
+            }
         val interceptors = ClientInterceptorsConfigurer(clientContext).apply { afterPropertiesSet() }
         return NettyGrpcChannelFactory(listOf(customizer), interceptors).apply {
             setVirtualTargets { target ->

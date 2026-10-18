@@ -96,10 +96,11 @@ class BrowserGraphql(
         val upload = parsed.roots.singleOrNull() == "uploadArtwork"
         val limit = policy.policy.requestLimits.getValue(if (upload) "uploadEnvelopeBytes" else "metadataBytes")
         if (body.size > limit) throw BrowserRejected(BrowserBoundary.TOO_LARGE)
-        val identities = services.identity.ifAvailable ?: run {
-            logger.error("Browser identity unavailable")
-            throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
-        }
+        val identities =
+            services.identity.ifAvailable ?: run {
+                logger.error("Browser identity unavailable")
+                throw BrowserRejected(BrowserBoundary.UNAVAILABLE)
+            }
         val context =
             services.admission.ifAvailable?.context(request, parsed, identities, deadline)
                 ?: unavailable()
@@ -112,7 +113,8 @@ class BrowserGraphql(
 
     private fun unavailable(): Nothing {
         logger.error("Browser admission unavailable")
-        throw com.spoolin.core.features.ratelimit.RateUnavailable()
+        throw com.spoolin.core.features.ratelimit
+            .RateUnavailable()
     }
 
     private fun retryAfter(result: Map<String, Any?>): String? {

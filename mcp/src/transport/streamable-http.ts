@@ -102,15 +102,27 @@ export class StreamableHttpTransport {
     return listener;
   }
   private refuseFailure(res: http.ServerResponse, failure: unknown): void {
-    const code = failure instanceof GatewayFailure ? failure.problem.code : 'UNAVAILABLE';
-    const status = code === 'UNAUTHENTICATED' ? 401 : code === 'FORBIDDEN' ? 403 :
-      code === 'RESOURCE_EXHAUSTED' ? 429 : 503;
+    const code =
+      failure instanceof GatewayFailure ? failure.problem.code : 'UNAVAILABLE';
+    const status =
+      code === 'UNAUTHENTICATED'
+        ? 401
+        : code === 'FORBIDDEN'
+          ? 403
+          : code === 'RESOURCE_EXHAUSTED'
+            ? 429
+            : 503;
     mcpDiagnostics.emit(status === 503 ? 'request_failed' : 'request_denied', {
-      code, error_class: 'dependency', boundary: 'ingress',
+      code,
+      error_class: 'dependency',
+      boundary: 'ingress',
     });
     if (res.writableEnded) return;
     if (!res.headersSent) {
-      res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      res.writeHead(status, {
+        'content-type': 'application/json',
+        'cache-control': 'no-store',
+      });
       res.end(JSON.stringify({ problem: { code } }));
     } else {
       res.end();

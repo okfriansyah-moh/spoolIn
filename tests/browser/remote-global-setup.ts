@@ -27,7 +27,10 @@ export default async function setup() {
     try {
       await authenticateMaintainer(page, diagnostics);
       await expect(page.locator('input[type="password"]')).toHaveCount(0);
-      saveProtectedState(authenticatedStatePath(), await context.storageState());
+      saveProtectedState(
+        authenticatedStatePath(),
+        await context.storageState(),
+      );
     } catch (error) {
       await diagnostics.capture('failure').catch(() => {
         console.warn('Authentication failure diagnostic capture unavailable.');

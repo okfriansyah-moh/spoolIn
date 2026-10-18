@@ -77,9 +77,10 @@ class ArtworkUploadBoundaryTest {
     fun `first response received over TLS does not hide a later terminal error`() {
         ArtworkUploadFixture(ArtworkUploadFixture.Mode.VALUE_ERROR).use { fixture ->
             spool().use { saved ->
-                val failure = assertThrows(StatusRuntimeException::class.java) {
-                    ArtworkUpload.upload(fixture.request(saved))
-                }
+                val failure =
+                    assertThrows(StatusRuntimeException::class.java) {
+                        ArtworkUpload.upload(fixture.request(saved))
+                    }
                 assertEquals(Status.Code.UNAVAILABLE, failure.status.code)
                 assertTrue(fixture.received.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
                 assertEquals(1, fixture.attemptedResponses.get())

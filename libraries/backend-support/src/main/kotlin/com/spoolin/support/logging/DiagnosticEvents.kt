@@ -51,23 +51,28 @@ internal object DiagnosticEvents {
         event.loggerName == "org.springframework.boot.SpringApplication" &&
             event.message == "Application run failed" && event.level == Level.ERROR
 
-    private val boundaryEvents = mapOf(
-        (RATE_LOGGER to "Rate admission failed") to "rate_admission_failed",
-        ("com.spoolin.core.boundary.graphql.PolicyGraphql" to "Graphql execution failed") to
-            "graphql_execution_failed",
-        (BROWSER_REQUESTS_LOGGER to "Browser execution failed") to "browser_execution_failed",
-        (BROWSER_GRAPHQL_LOGGER to "Browser identity unavailable") to "browser_identity_unavailable",
-        (BROWSER_GRAPHQL_LOGGER to "Browser admission unavailable") to "browser_admission_unavailable",
-    )
+    private val boundaryEvents =
+        mapOf(
+            (RATE_LOGGER to "Rate admission failed") to "rate_admission_failed",
+            ("com.spoolin.core.boundary.graphql.PolicyGraphql" to "Graphql execution failed") to
+                "graphql_execution_failed",
+            (BROWSER_REQUESTS_LOGGER to "Browser execution failed") to "browser_execution_failed",
+            (BROWSER_GRAPHQL_LOGGER to "Browser identity unavailable") to "browser_identity_unavailable",
+            (BROWSER_GRAPHQL_LOGGER to "Browser admission unavailable") to "browser_admission_unavailable",
+        )
 
     private fun source(
         logger: String?,
         message: String?,
-    ): DiagnosticDetails = boundaryEvents[logger to message]?.let {
-        DiagnosticDetails("Browser boundary unavailable", mapOf("event" to it))
-    } ?: knownSource(logger, message)
+    ): DiagnosticDetails =
+        boundaryEvents[logger to message]?.let {
+            DiagnosticDetails("Browser boundary unavailable", mapOf("event" to it))
+        } ?: knownSource(logger, message)
 
-    private fun knownSource(logger: String?, message: String?): DiagnosticDetails =
+    private fun knownSource(
+        logger: String?,
+        message: String?,
+    ): DiagnosticDetails =
         when {
             logger == DRAFT_LOGGER && SafeJsonDiagnostics.isDraftFailure(message) ->
                 DiagnosticDetails(

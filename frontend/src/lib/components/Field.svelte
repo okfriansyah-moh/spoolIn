@@ -30,7 +30,8 @@
 </script>
 
 <div class="field">
-  <label for={id}><span id={`${id}-label`}>{label}</span><span aria-hidden="true"
+  <label for={id}
+    ><span id={`${id}-label`}>{label}</span><span aria-hidden="true"
       >{required ? ' · Required' : ' · Optional'}</span
     ></label
   >{#if multiline}<textarea

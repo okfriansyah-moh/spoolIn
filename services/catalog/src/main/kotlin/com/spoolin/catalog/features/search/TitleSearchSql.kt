@@ -160,16 +160,19 @@ class TitleSearchSql(
     fun findGenresForTitles(titleIds: List<UUID>): Map<UUID, List<UUID>> {
         if (titleIds.isEmpty()) return emptyMap()
         return dataSource.connection.use { connection ->
-            titleIds.distinct().chunked(GENRE_BATCH_SIZE).flatMap { batch ->
-                val placeholders = batch.joinToString(",") { "?" }
-                connection.queryBound(
-                    "SELECT title_id,genre_id FROM title_genre WHERE title_id IN ($placeholders) " +
-                        "ORDER BY title_id,genre_id",
-                    batch,
-                ) { row ->
-                    row.getObject("title_id", UUID::class.java) to row.getObject("genre_id", UUID::class.java)
-                }
-            }.groupBy({ it.first }, { it.second })
+            titleIds
+                .distinct()
+                .chunked(GENRE_BATCH_SIZE)
+                .flatMap { batch ->
+                    val placeholders = batch.joinToString(",") { "?" }
+                    connection.queryBound(
+                        "SELECT title_id,genre_id FROM title_genre WHERE title_id IN ($placeholders) " +
+                            "ORDER BY title_id,genre_id",
+                        batch,
+                    ) { row ->
+                        row.getObject("title_id", UUID::class.java) to row.getObject("genre_id", UUID::class.java)
+                    }
+                }.groupBy({ it.first }, { it.second })
         }
     }
 
