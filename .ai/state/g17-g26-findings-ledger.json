@@ -1337,11 +1337,23 @@
       {
         "run_id": 39092813499,
         "tested_sha": "0c641608e6149ecc5acf07734601c3379f27266b",
-        "result": "in_progress",
-        "detail": "Dispatched composed verification including actual make start, full browser/seed/Make/recovery checks and restricted Media codec container probe. No result yet.",
+        "result": "cancelled",
+        "detail": "Strict build failed Jackson seed map overload resolution; correctedf517ab6. Frontend310passed/2failed in312 actualtests; credit cursor-null and retainedversionparsingcorrected7d2db4b. Helpercheck recursively selectedallMake suites becauseTASK notexported; samecorrectionexportsTASK and boundstestprocess15s. Cancelledobsoletebuild, retainedactualreports; noapplication/browseracceptance.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39092813499",
         "artifact_retention_days": 14,
-        "inspected_artifact_ids": []
+        "inspected_artifact_ids": [
+          12123199476,
+          12122709083
+        ],
+        "job_id": 117572947865
+      },
+      {
+        "run_id": 39093336453,
+        "tested_sha": "648cb660afb86f2b9a745431f8b44ad91fc68e32",
+        "result": "in_progress",
+        "detail": "Actualcomposedverificationdispatchedafterseedcompilefix; laterMakeexportandqualityrefactorsnotinthisSHA.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39093336453",
+        "artifact_retention_days": 14
       }
     ],
     "progress_checkpoints": [
@@ -1407,6 +1419,20 @@
         "checks": "Hosted run39090751636 at97bd527 passed strict all-owner build/contract generation, FE/MCP check/build, authored behavior/transport suites and readiness regression cases. Codec preparation in progress; real startup/browser/operations and final gates have not passed. Dependency preparation39090435155 passed; source formatting39090631645 retained failures and inspected patch.",
         "remaining": "All46task records remain In progress. Source-complete established0; runtime task acceptance0; formal0. Verified supported host provenance, actual installed clients/readers, full runtime/gates/visual/operations evidence, final combined review and supported selection acceptance remain pending. Prior exhausted review history unchanged.",
         "next_action": "Inspect actual codec and owner boundary outcomes, correct concrete failures, rerun real make start and required composed checks on final source."
+      },
+      {
+        "at": "2026-10-18T03:25:17.668883+00:00",
+        "local_sha": "e8e4252a6f0572a604938202f0f5b1deeaf130fa",
+        "published_sha": "648cb660afb86f2b9a745431f8b44ad91fc68e32",
+        "actual_changed_behavior": [
+          "Movie full metadata form/projection/patch/draft rebase preserves date precision and optional clears.",
+          "Actual Make TASK selection exported; injection regression bounded to prevent recursive all-suite selection.",
+          "MCP challenge expiry equality rejects; audit uses Cursor; artwork cancellation/attachment respects actual receipt identity and expiry.",
+          "Seed Jackson arrays mapped as typed collections; domain persistence and structural validation split without policy changes.",
+          "Required shared/Core/Media quality findings refactored with same locks, TLS, namespace, redaction, retry and retention rules."
+        ],
+        "checks": "Hosted39092813499 cancelled after actual Catalog seed compilation failure and2of312 frontend tests failed (310 passed); inspected artifact12123199476 and strict-build12122709083. Helper log exposed recursive Make selection; TASK export correction7d2db4b pending remote rerun. Hosted39093336453 active648cb660afb86f2b9a745431f8b44ad91fc68e32. No new application readiness/browser acceptance.",
+        "remaining": "All46tasks In progress. Source-complete established0; runtime task acceptance0; formal0. Finish fresh remote checks/source corrections, clients/readers/host proof, allMake/seed/design/ops proof and one final combined review. Prior counters and findings preserved."
       }
     ]
   }
