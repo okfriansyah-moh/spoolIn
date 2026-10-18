@@ -1609,7 +1609,7 @@
           "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
           "coordinator": "remote-closure-coordinator",
           "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
-          "remote_result": "Real HTTPS policy/titles first20 probes passed; first100 seed order request returned503. Batching correction pending rerun.",
+          "remote_result": "Real HTTPS policy/titles first1 probes passed; first100 seed order request returned503. Batching correction pending rerun.",
           "runtime_verified": false,
           "formally_accepted": false,
           "evidence_links": [

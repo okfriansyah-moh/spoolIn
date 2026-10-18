@@ -1309,6 +1309,10 @@
         "owner": "remote-operations-implementer",
         "commit": "852c7ed",
         "detail": "Worker reported disabling commit hooks for this one commit, contrary to the user instruction. Contribution was integrated with ordinary Git; no hook success or acceptance is claimed. Worker instructed not to repeat it; later commits used no overrides. Required remote gates remain unchanged and blocking."
+      },
+      {
+        "at": "2026-10-18T05:43:00Z",
+        "detail": "Coordinator corrected an earlier narrative inference: probe-browser-api.py PublicCatalogProbe requests first1, not first20. Actual raw public-api-probes result remains PASS with request scope first1; complete first100 and rendered catalog remain failed/pending. No acceptance is inferred from the smaller probe."
       }
     ],
     "runs": [

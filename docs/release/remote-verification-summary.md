@@ -19,7 +19,7 @@ All46 rows below remain In progress. Source-complete established:0; runtime-veri
 | T009 | G07 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
 | T010 | G08 | Actual UI sign-in succeeded; separate helper session request omitted Origin and failed. Corrected helper pending rerun. | Pending |
 | T011 | G09 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
-| T012 | G10 | Real HTTPS policy/titles first20 probes passed; first100 seed order request returned503. Batching correction pending rerun. | Pending |
+| T012 | G10 | Real HTTPS policy/titles first1 probes passed; first100 seed order request returned503. Batching correction pending rerun. | Pending |
 | T013 | G10 | Real catalog rendered load failure; complete navigation/search/filter proof pending. | Pending |
 | T014 | G11 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
 | T015 | G11 | Complete assigned proof pending; no task pass inferred from nearby native results. | Pending |
