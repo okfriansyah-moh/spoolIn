@@ -88,9 +88,8 @@ def request(url):
 
 def candidates(kind):
     entity = 'Q11424' if kind == 'MOVIE' else 'Q5398426'
-    release_property = 'wdt:P577' if kind == 'MOVIE' else '(wdt:P577|wdt:P580)'
-    # Bound the indexed instance scan before date/genre/label joins; no global sort during the provider outage.
-    query = f'SELECT DISTINCT ?item WHERE {{ {{ SELECT ?item WHERE {{ ?item wdt:P31 wd:{entity} }} LIMIT 1200 }} ?item {release_property} ?date; wdt:P136 ?genre; rdfs:label ?label. FILTER(LANG(?label)="en") }} LIMIT 350'
+    # Fetch a bounded indexed type set; validate date, genre and English labels from frozen entity facts.
+    query = f'SELECT DISTINCT ?item WHERE {{ ?item wdt:P31 wd:{entity} }} LIMIT 500'
     url = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
     found = {row['item']['value'].rsplit('/', 1)[1] for row in request(url)['results']['bindings']}
     print(f'Wikidata bounded candidate response: kind={kind}, distinct={len(found)}', flush=True)
