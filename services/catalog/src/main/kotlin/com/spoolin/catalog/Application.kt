@@ -233,9 +233,12 @@ class CatalogWriteConfiguration {
     fun artworkRpc(
         dataSource: DataSource,
         receipts: OwnerReceipts,
+        environment: Environment,
     ): com.spoolin.catalog.features.artwork.ArtworkRpc =
         com.spoolin.catalog.features.artwork
-            .ArtworkRpc(dataSource, receipts)
+            .ArtworkRpc(dataSource, receipts, policyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+            })
 
     @Bean
     fun movieLifecycle(receipts: OwnerReceipts): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
