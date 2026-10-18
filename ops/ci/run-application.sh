@@ -12,11 +12,13 @@ mkdir -p artifacts/runtime
   docker compose version
   sha256sum data/seed/manifest.json
 } > artifacts/runtime/environment.txt
+export SPOOLIN_READINESS_REPORT="$PWD/artifacts/runtime/readiness-probes.json"
 make start > artifacts/runtime/start.log 2>&1 || {
   code=$?
+  make status > artifacts/runtime/readiness-failure.log 2>&1 || true
   make logs > artifacts/runtime/start-failure.log 2>&1 || true
   exit "$code"
 }
 make status > artifacts/runtime/readiness.log 2>&1
-curl --fail --silent --show-error --cacert "$SERVICE_CA_FILE" \
+curl --fail --silent --show-error --connect-timeout 2 --max-time 10 --cacert "$SERVICE_CA_FILE" \
   "https://localhost:${CORE_HTTPS_PORT:-8443}/" -o artifacts/runtime/index.html

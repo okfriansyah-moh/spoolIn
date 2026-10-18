@@ -23,13 +23,18 @@ SPOOLIN_SEED_APPLY=1 "$bin/seed.sh" --apply || exit 4
 compose_common_run "$root_dir" up -d core catalog media || exit 5
 compose_common_run "$root_dir" up -d mcp || exit 5
 compose_common_run "$root_dir" up -d --wait --wait-timeout 120 prometheus alertmanager grafana || exit 5
+umask 077
+probe="$(mktemp "${TMPDIR:-/tmp}/spoolin-readiness.XXXXXXXX")"
+trap 'rm -f -- "$probe"' EXIT
 start=$SECONDS
-until "$bin/status.sh" >/dev/null 2>&1; do
+until "$bin/status.sh" >"$probe" 2>&1; do
   if (( SECONDS - start >= 300 )); then
-    printf '%s\n' 'start: readiness deadline exceeded; inspect make logs' >&2
+    printf '%s\n' 'start: readiness deadline exceeded; last bounded readiness probe follows' >&2
+    head -c 16384 "$probe" >&2
     exit 5
   fi
   sleep 2
 done
+cat -- "$probe"
 printf '%s\n' 'start: Core, Catalog, Media and MCP ready; database migrations and catalog seed applied'
 printf '%s\n' 'start: external chat clients and monitoring are unverified; inspect acceptance obligations'
