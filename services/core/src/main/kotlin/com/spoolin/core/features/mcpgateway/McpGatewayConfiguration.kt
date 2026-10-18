@@ -12,7 +12,7 @@ import org.springframework.grpc.client.GrpcChannelFactory
 import spoolin.v1.CatalogServiceGrpc
 import java.nio.file.Path
 import java.nio.file.Files
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 
 @Configuration(proxyBeanMethods = false)
 class McpGatewayConfiguration {

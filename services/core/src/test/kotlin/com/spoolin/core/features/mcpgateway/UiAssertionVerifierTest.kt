@@ -1,6 +1,6 @@
 package com.spoolin.core.features.mcpgateway
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.spoolin.core.features.connector.ConnectorRecord
 import io.grpc.Context
 import io.grpc.StatusRuntimeException

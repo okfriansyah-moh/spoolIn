@@ -1,6 +1,6 @@
 package com.spoolin.core.features.mcpgateway
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.spoolin.core.features.connector.ConnectorRecord
 import io.grpc.Context
 import io.grpc.Status
@@ -28,7 +28,7 @@ class UiAssertionVerifier(
         if (!enabled || secret?.size != 32 || assertion.length > 4096) deny()
         try {
             verify(assertion, connector, input, method)
-        } catch (_: com.fasterxml.jackson.core.JsonProcessingException) {
+        } catch (_: tools.jackson.core.JacksonException) {
             deny()
         } catch (_: IllegalArgumentException) {
             deny()
@@ -54,7 +54,7 @@ class UiAssertionVerifier(
     }
 
     private fun requireBinding(
-        claims: com.fasterxml.jackson.databind.JsonNode,
+        claims: tools.jackson.databind.JsonNode,
         connector: ConnectorRecord,
         input: Spoolin.ApprovalInput,
         method: String,
