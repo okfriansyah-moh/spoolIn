@@ -37,6 +37,11 @@ class ArtworkReadProxy(
         }
         val grant = catalog.withDeadlineAfter(3, TimeUnit.SECONDS)
             .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata)).resolveArtworkAccess(request)
+        if (grant.assetId != assetId.toString() || grant.catalogVersion < 0 ||
+            runCatching { UUID.fromString(grant.holdId).toString() == grant.holdId &&
+                UUID.fromString(grant.titleId).toString() == grant.titleId }.getOrDefault(false).not()) {
+            throw Status.DATA_LOSS.asRuntimeException()
+        }
         val read = Spoolin.AssetReadRequest.newBuilder().setAssetId(grant.assetId).setHoldId(grant.holdId)
             .setCatalogVersion(grant.catalogVersion).build()
         val cancellation = io.grpc.Context.current().withCancellation()

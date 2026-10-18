@@ -12,6 +12,7 @@ export function safeProblem(value: unknown): SafeProblem | null {
   const retry = input.retryAfterMs;
   if (
     retry !== null &&
+    retry !== undefined &&
     (typeof retry !== 'number' ||
       !Number.isInteger(retry) ||
       retry < 0 ||

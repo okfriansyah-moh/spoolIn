@@ -1,4 +1,5 @@
 import type { GraphqlRequest, RequestOptions } from '../../transport/graphql';
+import { mutation } from '../session/outcome';
 import { record } from '../session/parse';
 import type { ArchiveListItem, ArchiveTab } from './types';
 
@@ -76,7 +77,7 @@ export async function fetchArchived(
     tab === 'movies' ? data.managedTitles : data.managedPeople,
   );
   const nodes = page.nodes;
-  if (!Array.isArray(nodes)) return Object.freeze([]);
+  if (!Array.isArray(nodes)) throw new Error('Archives unavailable.');
   return Object.freeze(
     nodes.map((node) => {
       const row = node as Record<string, unknown>;
@@ -128,9 +129,7 @@ export async function runMovieLifecycle(
       { mutation: true, csrf },
     ),
   );
-  const result = record(data.movieLifecycle);
-  const op = record(result.operation);
-  return String(op.state);
+  return lifecycleState(data.movieLifecycle, input.operationId);
 }
 
 export async function runPersonLifecycle(
@@ -152,7 +151,17 @@ export async function runPersonLifecycle(
       { mutation: true, csrf },
     ),
   );
-  const result = record(data.personLifecycle);
-  const op = record(result.operation);
-  return String(op.state);
+  return lifecycleState(data.personLifecycle, input.operationId);
+}
+
+export class LifecycleFailure extends Error {
+  constructor(readonly code: string) { super('Lifecycle change was not confirmed.'); }
+}
+
+function lifecycleState(value: unknown, expected: string): string {
+  const receipt = mutation(value, expected);
+  if (receipt.resultExpired) throw new LifecycleFailure('RESULT_EXPIRED');
+  if (receipt.problem) throw new LifecycleFailure(receipt.problem.code);
+  if (receipt.state === 'FAILED' || receipt.state === 'EXPIRED') throw new LifecycleFailure(receipt.state);
+  return receipt.state;
 }
