@@ -18,8 +18,9 @@ SpoolIn is a movie catalog for people who want to discover films and maintain th
 - [Use SpoolIn](#use-spoolin)
   - [Choose the right account](#choose-the-right-account)
   - [Viewer example: find a movie](#viewer-example-find-a-movie)
-  - [Explore a movie](#explore-a-movie)
-  - [Find cast and creators](#find-cast-and-creators)
+  - [Viewer example: explore movie details](#viewer-example-explore-movie-details)
+  - [Viewer example: read movie credits](#viewer-example-read-movie-credits)
+  - [Viewer example: explore cast and creator profiles](#viewer-example-explore-cast-and-creator-profiles)
   - [Maintainer example: create and edit a movie](#maintainer-example-create-and-edit-a-movie)
   - [Maintainer example: manage cast and creators](#maintainer-example-manage-cast-and-creators)
   - [Maintainer example: manage credits](#maintainer-example-manage-credits)
@@ -371,17 +372,58 @@ For example, find a seeded film and explore its credits:
 
 Filters help narrow the catalog. If no titles match, clear the search or broaden the filters to return to browsing.
 
-### Explore a movie
+### Viewer example: explore movie details
 
-A movie page shows its synopsis and available release details, with cast and creator credits below. Select a credited person to explore their profile. Missing optional information can appear as unknown; it doesn't mean the movie failed to load.
+The following examples use the fictional movie and people created in the [Maintainer walkthrough](#maintainer-example-create-and-edit-a-movie). On a fresh installation, ask a Maintainer to add those examples, or follow the same steps with a seeded movie and its credited people.
 
-![Movie details with synopsis, artwork, and credits](docs/assets/spoolin/movie-details.png)
+1. Sign in as a Viewer, open **Catalog**, and search for `Letters from Tomorrow`.
+2. Select the movie to open its public details page.
+3. Read the synopsis, release information, genres, and poster. This example shows a 2026 movie about a lighthouse keeper receiving letters dated one day ahead.
+4. Scroll to **Credits** to see the people involved. Use **← Catalog** to return to browsing.
 
-### Find cast and creators
+![Signed-in Viewer reading Letters from Tomorrow with its lighthouse poster, synopsis, release details, and public credits](docs/assets/spoolin/viewer-movie-details.png)
 
-Open **People** to browse or search for someone by name. A person's profile connects their biography with credited movies. Cast and creators share person records; a credit describes what that person did on a particular film. Two people with the same name can have separate records, so check their details before linking a credit.
+*Movie details example: the header identifies the Viewer account, while the page presents the movie's public information.*
 
-![People directory with search and person records](docs/assets/spoolin/people.png)
+Missing optional information can appear as unknown. Artwork can show a placeholder until a Maintainer uploads a poster.
+
+### Viewer example: read movie credits
+
+On the `Letters from Tomorrow` details page, find **Credits**:
+
+1. Read `Mira Vale — Actor as The Keeper` to identify the cast member and character.
+2. Read `A. Rivers — Director` to identify the creator's contribution.
+3. Select a person's name to open their public profile. If a longer credits list offers **Load more credits**, use it to continue browsing.
+
+![Viewer-facing movie credits listing Mira Vale as Actor playing The Keeper and A. Rivers as Director](docs/assets/spoolin/viewer-credits.png)
+
+*Credits example: cast entries can include character names; creator entries show contributions such as directing. Viewers browse these links; Maintainers edit the relationships.*
+
+### Viewer example: explore cast and creator profiles
+
+A person has one shared profile, with credits describing their contributions to individual movies.
+
+#### Cast profile
+
+1. In the movie's **Credits**, select **Mira Vale**.
+2. Read the biography, `Fictional actor playing the lighthouse keeper.`
+3. Under **Credits**, find `Letters from Tomorrow — Actor as The Keeper`. Select the movie title to return to its details.
+
+![Signed-in Viewer reading Mira Vale's cast profile, biography, and Actor credit for Letters from Tomorrow](docs/assets/spoolin/viewer-cast-profile.png)
+
+*Cast profile example: Mira Vale's biography and linked movie credit are available without editing controls.*
+
+#### Creator profile
+
+1. Back on the movie page, select **A. Rivers** in **Credits**.
+2. Read the biography, `Fictional director of Letters from Tomorrow.`
+3. Under **Credits**, find `Letters from Tomorrow — Director`. Select the movie title to return to its details.
+
+![Signed-in Viewer reading A. Rivers's creator profile, biography, and Director credit for Letters from Tomorrow](docs/assets/spoolin/viewer-creator-profile.png)
+
+*Creator profile example: A. Rivers's profile connects the person to their directing contribution.*
+
+You can also open **People** and search for either name directly. People with identical names can have separate profiles, so use their biographies and credits to identify the intended person. Longer profile credits lists provide **Load more credits** when more entries are available.
 
 ### Maintainer example: create and edit a movie
 
