@@ -429,7 +429,7 @@ export class MovieEditorController {
     receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
     operationId: string,
   ): Promise<void> {
-    if (receipt && 'resultExpired' in receipt && receipt.resultExpired === true) {
+    if (receipt?.state === 'EXPIRED' || (receipt && 'resultExpired' in receipt && receipt.resultExpired === true)) {
       this.publish({ ...this.current, phase: 'uncertain', message: 'Original save result expired. Review the current record; do not repeat the original change.' });
       return;
     }

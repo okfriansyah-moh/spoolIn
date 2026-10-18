@@ -360,58 +360,40 @@ export class PersonEditorController {
   }
 
   async checkOriginalResult(): Promise<void> {
-    const operationId =
-      this.current.pendingOperationId ?? this.pendingWriteId ?? null;
+    const operationId = this.current.pendingOperationId ?? this.pendingWriteId;
     if (!operationId || !this.writeContext) return;
     const signal = this.active?.signal ?? new AbortController().signal;
     try {
-      const receipt = await recoverCatalogOperation(
-        this.request,
-        operationId,
-        this.writeContext.csrf,
-        signal,
-      );
-      if (receipt && 'resultExpired' in receipt && receipt.resultExpired === true) {
-        this.publish({ ...this.current, phase: 'uncertain', message: 'Original save result expired. Review the current record; do not repeat the original change.' });
-        return;
-      }
-      if (receipt?.state === 'SUCCEEDED') {
-        const personId = receipt.resultId ?? this.personId;
-        if (personId) await this.publishSavedPerson(personId);
-        this.pendingWriteId = null;
-        this.publish({
-          ...this.current,
-          phase: 'resolved',
-          pendingOperationId: null,
-          message:
-            'Original save confirmed. The current record has been refreshed; no repeat submission is needed.',
-        });
-        return;
-      }
-      if (receipt?.state === 'FAILED') {
-        this.pendingWriteId = null;
-        this.publish({
-          ...this.current,
-          phase: 'failed',
-          pendingOperationId: null,
-          message: problemMessage(receipt.problemCode),
-        });
-        return;
-      }
-      this.publish({
-        ...this.current,
-        phase: 'uncertain',
-        message:
-          'Save result not confirmed. Check the original operation before repeating it.',
-      });
+      const receipt = await recoverCatalogOperation(this.request, operationId, this.writeContext.csrf, signal);
+      await this.applyOriginalReceipt(receipt);
     } catch {
-      this.publish({
-        ...this.current,
-        phase: 'uncertain',
-        message:
-          'Save result not confirmed. Check the original operation before repeating it.',
-      });
+      this.publish({ ...this.current, phase: 'uncertain',
+        message: 'Save result not confirmed. Check the original operation before repeating it.' });
     }
+  }
+
+  private async applyOriginalReceipt(receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>): Promise<void> {
+    if (receipt?.state === 'EXPIRED' || (receipt && 'resultExpired' in receipt && receipt.resultExpired === true)) {
+      this.publish({ ...this.current, phase: 'uncertain',
+        message: 'Original save result expired. Review the current record; do not repeat the original change.' });
+      return;
+    }
+    if (receipt?.state === 'SUCCEEDED') {
+      const personId = receipt.resultId ?? this.personId;
+      if (personId) await this.publishSavedPerson(personId);
+      this.pendingWriteId = null;
+      this.publish({ ...this.current, phase: 'resolved', pendingOperationId: null,
+        message: 'Original save confirmed. The current record has been refreshed; no repeat submission is needed.' });
+      return;
+    }
+    if (receipt?.state === 'FAILED') {
+      this.pendingWriteId = null;
+      this.publish({ ...this.current, phase: 'failed', pendingOperationId: null,
+        message: problemMessage(receipt.problemCode) });
+      return;
+    }
+    this.publish({ ...this.current, phase: 'uncertain',
+      message: 'Save result not confirmed. Check the original operation before repeating it.' });
   }
 
   private async finishWrite(
