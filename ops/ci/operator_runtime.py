@@ -53,6 +53,7 @@ class OperatorRuntime:
         self.record("writers", {"result": "PASS", "state": "STOPPED", "reason": "serialized controlled operational faults"})
         for name, action in (("migration", self.migrations), ("recovery", self.recovery), ("maintenance", self.maintenance)):
             try:
+                self.current_step = name + "-starting"
                 self.record(name, action())
             except Exception:
                 self.record(name, {"result": "FAIL", "reason": "actual-command-or-state-assertion-failed", "step": self.current_step, "rawOutput": "withheld"})
