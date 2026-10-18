@@ -38,6 +38,7 @@ private const val ASSERTION_SECONDS = 30L
 private const val RPC_SECONDS = 10L
 private const val STOP_SECONDS = 5L
 private const val NONCE_BYTES = 16
+internal const val PROPOSAL_GENRE_ID = "b0000002-0000-4000-8000-000000000001"
 
 /** Actual PostgreSQL and mutual TLS; synthetic signer admission isolates Catalog proposal rules from host proof. */
 internal class ProposalFixture : AutoCloseable {
@@ -62,7 +63,15 @@ internal class ProposalFixture : AutoCloseable {
 
     init {
         fixture.membership("catalog", "grant")
-        fixture.pool("catalog", "migrator").use { MigrationRunner(it).migrate() }
+        fixture.pool("catalog", "migrator").use { source ->
+            MigrationRunner(source).migrate()
+            source.connection.use { connection ->
+                connection.executeBound(
+                    "INSERT INTO genre(id,label,normalized_label) VALUES (?::uuid,?,?)",
+                    PROPOSAL_GENRE_ID, "Proposal fixture genre", "proposal fixture genre",
+                )
+            }
+        }
         fixture.grants("catalog")
         fixture.membership("catalog", "revoke")
         pool = fixture.pool("catalog")

@@ -238,6 +238,7 @@ class ProposalBoundaryTest {
                 .setTitle("  A movie  ")
                 .setSynopsis("A synopsis")
                 .setSynopsisLanguage("en")
+                .addGenreIds(PROPOSAL_GENRE_ID)
                 .setRelease(Spoolin.PartialDate.newBuilder().setYear(2020))
         return Spoolin.Proposal
             .newBuilder()

@@ -72,7 +72,7 @@ tasks.register<JavaExec>("keyRotationCli") {
     group = "application"
     description = "Execute Core KeyRotationPlan (ops/bin/rotate-keys.sh --execute)"
     classpath = coreMain.runtimeClasspath
-    mainClass.set("com.spoolin.core.features.crypto.rotation.KeyRotationCliKt")
+    mainClass.set("com.spoolin.core.operations.crypto.KeyRotationCliKt")
 }
 
 val receiptIntegrationTest by tasks.registering(Test::class) {
