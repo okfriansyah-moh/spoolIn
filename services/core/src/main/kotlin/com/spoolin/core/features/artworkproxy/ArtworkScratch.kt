@@ -9,9 +9,11 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 
+private const val SCRATCH_CAPACITY = 4
+
 internal object ArtworkScratch {
     private val root = Path.of(System.getProperty("java.io.tmpdir"), "spoolin-core-artwork")
-    private val permits = Semaphore(4)
+    private val permits = Semaphore(SCRATCH_CAPACITY)
     private val active = ConcurrentHashMap.newKeySet<Path>()
     private val fileMode = PosixFilePermissions.fromString("rw-------")
 
@@ -40,12 +42,14 @@ internal object ArtworkScratch {
 
     fun create(): Path {
         if (!permits.tryAcquire()) throw Status.RESOURCE_EXHAUSTED.withDescription("ARTWORK_BUSY").asRuntimeException()
-        return try {
-            Files.createTempFile(root, "asset-", ".tmp", PosixFilePermissions.asFileAttribute(fileMode))
-                .also { active.add(it) }
-        } catch (failure: Exception) {
-            permits.release()
-            throw failure
+        var created = false
+        try {
+            val path = Files.createTempFile(root, "asset-", ".tmp", PosixFilePermissions.asFileAttribute(fileMode))
+            active.add(path)
+            created = true
+            return path
+        } finally {
+            if (!created) permits.release()
         }
     }
 
