@@ -35,7 +35,7 @@ object SeedIdentities {
 
     private fun stableValue(node: JsonNode): Any? = when {
         node.isObject -> node.propertyNames().asSequence().filter { it !in excluded }.sorted().associateWith { stableValue(node[it]) }.toSortedMap()
-        node.isArray -> node.map(::stableValue)
+        node.isArray -> node.toList().map(::stableValue)
         node.isNull -> null
         node.isBoolean -> node.asBoolean()
         node.isIntegralNumber -> node.asLong()

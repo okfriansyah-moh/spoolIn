@@ -12,6 +12,7 @@ import urllib.request
 import uuid
 from collections import Counter
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,8 +44,31 @@ def identity(kind, external):
     return str(uuid.UUID(bytes=bytes(raw)))
 
 
+LAST_QUERY = 0.0
+
+
+def retry_delay(failure, attempt, query_service):
+    minimum = 65 if query_service and getattr(failure, 'code', None) == 429 else 2 ** attempt
+    header = getattr(failure, 'headers', {}).get('Retry-After')
+    if not header:
+        return minimum
+    try:
+        supplied = float(header)
+    except ValueError:
+        supplied = (parsedate_to_datetime(header) - datetime.now(timezone.utc)).total_seconds()
+    return max(minimum, supplied)
+
+
 def request(url):
+    global LAST_QUERY
+    started = time.monotonic()
+    query_service = urllib.parse.urlparse(url).hostname == 'query.wikidata.org'
     for attempt in range(3):
+        if query_service:
+            wait = max(0, 65 - (time.monotonic() - LAST_QUERY))
+            if wait:
+                time.sleep(wait)
+            LAST_QUERY = time.monotonic()
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as response:
                 body = response.read(16 * 1024 * 1024 + 1)
@@ -52,9 +76,14 @@ def request(url):
                 raise RuntimeError('Wikidata response exceeded 16 MiB bound')
             return json.loads(body)
         except (urllib.error.URLError, TimeoutError) as failure:
+            status = getattr(failure, 'code', 'transport')
             if attempt == 2:
-                raise RuntimeError(f'Wikidata endpoint unavailable after three bounded attempts: {type(failure).__name__}') from failure
-            time.sleep(2 ** attempt)
+                raise RuntimeError(f'Wikidata endpoint {urllib.parse.urlparse(url).hostname} unavailable after three bounded attempts; status={status}') from failure
+            delay = retry_delay(failure, attempt, query_service)
+            if time.monotonic() - started + delay + 60 > 360:
+                raise RuntimeError(f'Wikidata retry guidance exceeds six-minute request budget; status={status}') from failure
+            print(f'Wikidata request status={status}; bounded remote retry in {delay:.0f}s', flush=True)
+            time.sleep(delay)
 
 
 def candidates(kind):
