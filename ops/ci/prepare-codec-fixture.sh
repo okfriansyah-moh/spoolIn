@@ -30,7 +30,13 @@ docker build --file ops/containers/media.Dockerfile --target codec \
 container=$(docker create --label "spoolin.test.namespace=$namespace" --entrypoint /bin/true "$image")
 mkdir "$staging/local"
 docker cp "$container:/usr/local/." "$staging/local"
-sudo cp -a "$staging/local/." /usr/local/
+# Copy installed codec payloads without replacing runner-owned prefix links
+# such as /usr/local/man with links inherited from the codec base image.
+for directory in bin lib share; do
+  [[ -d "$staging/local/$directory" ]] || continue
+  sudo mkdir -p "/usr/local/$directory"
+  sudo cp -a "$staging/local/$directory/." "/usr/local/$directory/"
+done
 sudo ldconfig
 export LD_LIBRARY_PATH="/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/aarch64-linux-gnu"
 [[ "$(/usr/local/bin/vips --version)" == vips-8.18.7 ]] || {
