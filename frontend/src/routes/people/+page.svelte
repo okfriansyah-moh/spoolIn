@@ -102,7 +102,7 @@
     const cursor = peopleState.pageInfo?.endCursor;
     if (!cursor) return;
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
-    void goto(page.url.href, { state: { ...page.state, peopleCursor: cursor }, noScroll: true, keepFocus: true });
+    void goto(page.url.href, { state: { ...page.state, peopleCursor: cursor }, reset: false });
   }
 </script>
 
