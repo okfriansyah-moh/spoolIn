@@ -199,6 +199,7 @@ services:
       CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CATALOG_DB_USER: spoolin_catalog_runtime
       CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
+      SPOOLIN_SEED_ID: wikidata-2026-10-v1
     command: [--seed-manifest=/app/seed/manifest.json]
     networks: [private]
     read_only: true

@@ -8,6 +8,7 @@ import com.spoolin.core.features.crypto.ProtectedRead
 import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.crypto.queryBound
 import com.spoolin.core.requireProtectedFile
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.security.MessageDigest
 import java.sql.Connection
@@ -130,6 +131,14 @@ class AccountInitialization(
         )
     }
 
-    private fun receiptId(config: InitializationConfiguration): UUID =
-        UUID.nameUUIDFromBytes(("account-initialization:" + config.version).toByteArray(Charsets.UTF_8))
+    private fun receiptId(config: InitializationConfiguration): UUID {
+        val namespace = UUID.fromString("9da61864-80f5-5c70-bc79-3914da94079e")
+        val prefix = ByteBuffer.allocate(16).putLong(namespace.mostSignificantBits).putLong(namespace.leastSignificantBits).array()
+        val name = "initialization/core/ACCOUNT_INITIALIZATION/${config.version}".toByteArray(Charsets.UTF_8)
+        val hash = MessageDigest.getInstance("SHA-1").digest(prefix + name)
+        hash[6] = ((hash[6].toInt() and 15) or 80).toByte()
+        hash[8] = ((hash[8].toInt() and 63) or 128).toByte()
+        val bytes = ByteBuffer.wrap(hash)
+        return UUID(bytes.long, bytes.long)
+    }
 }
