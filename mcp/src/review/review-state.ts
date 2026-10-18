@@ -37,6 +37,15 @@ function sourceLabel(source: unknown): string {
   return url ? `${field}: ${url}` : field;
 }
 
+function displayValue(value: unknown): string {
+  if (value === null || value === undefined) return 'Unknown';
+  if (Array.isArray(value)) return value.length ? value.map(displayValue).join(', ') : 'None';
+  if (typeof value === 'object') {
+    return Object.entries(value).map(([key, nested]) => `${key}: ${displayValue(nested)}`).join('; ');
+  }
+  return value === '' ? 'Not provided' : String(value);
+}
+
 export function renderReview(root: HTMLElement, model: ReviewModel): void {
   root.replaceChildren();
   const heading = document.createElement('h1');
@@ -47,7 +56,7 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
     const term = document.createElement('dt');
     term.append(escapeText(key));
     const detail = document.createElement('dd');
-    detail.append(escapeText(String(value ?? '')));
+    detail.append(escapeText(displayValue(value)));
     list.append(term, detail);
   }
   root.append(list);
