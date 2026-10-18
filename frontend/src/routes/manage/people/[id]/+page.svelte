@@ -73,6 +73,9 @@
     onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
     onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
     onStartNewDraft={() => controller?.startNewDraft()}
+    onDiscardOpen={() => controller?.openDiscardDialog()}
+    onDiscardClose={() => controller?.closeDiscardDialog()}
+    onDiscardConfirm={() => void controller?.confirmDiscard()}
     onDraftChange={(field, value) => {
       if (!controller || !editorState) return;
       controller.updateDraft({ ...editorState.draft, [field]: value });

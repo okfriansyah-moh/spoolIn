@@ -47,7 +47,7 @@ test('ATDD-026/028 partial: shared person credit persists and can be removed vis
   await signInMaintainer(page);
   const person = await createPerson(page);
   await createMovie(page);
-  await page.getByLabel('Person', { exact: true }).selectOption(person.id);
+  await chooseCreditPerson(page, person.id);
   await page.getByLabel('Role', { exact: true }).selectOption({ index: 1 });
   await page.getByRole('button', { name: 'Add credit', exact: true }).click();
   await expect(page.getByText('Credit saved.', { exact: true })).toBeVisible();
@@ -242,6 +242,21 @@ test('ATDD-260 partial: explicit retained-draft picker preserves the selected or
 });
 
 
+async function chooseCreditPerson(page: import('@playwright/test').Page, personId: string) {
+  const picker = page.getByLabel('Person', { exact: true });
+  while ((await picker.locator(`option[value="${personId}"]`).count()) === 0) {
+    await expect(page.getByRole('button', { name: 'Load more people', exact: true })).toBeVisible();
+    const next = page.waitForResponse((response) => new URL(response.url()).pathname === '/graphql' &&
+      response.request().postDataJSON()?.query?.includes('query ManagedPeople'));
+    await page.getByRole('button', { name: 'Load more people', exact: true }).click();
+    const response = await next;
+    expect(response.ok()).toBe(true);
+    expect((await response.json()).errors).toBeUndefined();
+    await expect(picker).toBeEnabled();
+  }
+  await picker.selectOption(personId);
+}
+
 async function currentCredits(page: import('@playwright/test').Page, titleId: string) {
   const data = await readApi(page, `query BrowserCredits($titleId: UUID!) {
     managedCredits(titleId: $titleId, first: 48) {
@@ -255,7 +270,7 @@ async function currentCredits(page: import('@playwright/test').Page, titleId: st
 }
 
 async function addActorCredit(page: import('@playwright/test').Page, personId: string, names: string[]) {
-  await page.getByLabel('Person', { exact: true }).selectOption(personId);
+  await chooseCreditPerson(page, personId);
   await page.getByLabel('Role', { exact: true }).selectOption({ label: 'Actor (CAST)' });
   await page.getByLabel('Character names · one per line').fill(names.join('\n'));
   await page.getByRole('button', { name: 'Add credit', exact: true }).click();
@@ -298,7 +313,7 @@ test('ATDD-026/027/028 partial: update ordered complete character names without 
   expect(updated[0].characters).toEqual(reordered);
   await expect(credit).toContainText('Maya / Echo, Maya, Young Maya');
   await capture(page, info, ['ATDD-026'], 'credit-updated-persisted');
-  await page.getByLabel('Person', { exact: true }).selectOption(person.id);
+  await chooseCreditPerson(page, person.id);
   await page.getByLabel('Role', { exact: true }).selectOption({ label: 'Actor (CAST)' });
   await page.getByRole('button', { name: 'Add credit', exact: true }).click();
   await expect(page.getByText('Review the credit — no duplicate added.', { exact: true })).toBeVisible();
@@ -354,8 +369,11 @@ test('ATDD-179/261 partial: person backed biography reloads under the original d
   await page.reload();
   await expect(page).toHaveURL(new RegExp(`/people/${person.id}$`));
   await expect(page.getByText(revision, { exact: true })).toBeVisible();
-  const drafts = await readApi(page, 'query { drafts { id } }');
-  expect(drafts.drafts.some((draft: { id: string }) => draft.id === draftId)).toBe(false);
+  const drafts = await readApi(page, 'query { drafts { id baseVersion values operationId } }');
+  const retained = drafts.drafts.find((draft: { id: string }) => draft.id === draftId);
+  expect(retained.values).toMatchObject({ name: person.name, biography: revision });
+  expect(retained.operationId).toBeNull();
+  expect(retained.baseVersion).not.toBeNull();
   await capture(page, info, ['ATDD-179', 'ATDD-261'], 'person-recovered-draft-committed');
 });
 

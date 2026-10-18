@@ -57,6 +57,8 @@ export type EditorState = Readonly<{
   message: string;
   pendingOperationId: string | null;
   staleReviewOpen: boolean;
+  discardDialogOpen: boolean;
+  discardPending: boolean;
 }>;
 
 export const EMPTY_PERSON_DRAFT: PersonDraft = Object.freeze({

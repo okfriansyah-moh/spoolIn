@@ -1,6 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import Button from '../../../components/Button.svelte';
+  import ConfirmDialog from '../../../components/ConfirmDialog.svelte';
   import type { Policy } from '../../../policy/types';
   import type { EditorState } from './types';
   import PersonSaveFeedback from './PersonSaveFeedback.svelte';
@@ -16,6 +17,9 @@
     onRebase,
     onSelectDraft,
     onStartNewDraft,
+    onDiscardOpen,
+    onDiscardClose,
+    onDiscardConfirm,
     onDraftChange,
   }: {
     state: EditorState;
@@ -27,6 +31,9 @@
     onRebase: (reviewed: boolean) => void;
     onSelectDraft: (id: string) => void;
     onStartNewDraft: () => void;
+    onDiscardOpen: () => void;
+    onDiscardClose: () => void;
+    onDiscardConfirm: () => void;
     onDraftChange: (field: 'name' | 'biography', value: string) => void;
   } = $props();
 
@@ -37,7 +44,7 @@
     editorState.mode === 'create' ? 'Save person' : 'Save person',
   );
   const submitDisabled = $derived(
-    disabled ||
+    disabled || editorState.discardPending ||
       editorState.phase === 'submitting' ||
       editorState.phase === 'uncertain' ||
       editorState.phase === 'stale' ||
@@ -53,7 +60,7 @@
     reviewedCurrent = false;
   });
   const inputDisabled = $derived(
-    disabled ||
+    disabled || editorState.discardPending ||
       editorState.draftChoices.length > 0 ||
       editorState.phase === 'submitting' ||
       editorState.phase === 'uncertain' ||
@@ -184,6 +191,10 @@
         {errorFor('person-biography')}
       </p>{/if}
   </div>
+  <Button type="button" variant="secondary"
+    disabledReason={editorState.phase === 'uncertain' || editorState.phase === 'submitting' || editorState.discardPending
+      ? 'Check the original result before leaving.' : ''}
+    onclick={onDiscardOpen}>Leave draft</Button>
   <Button
     type="submit"
     pending={editorState.phase === 'submitting'}
@@ -192,6 +203,13 @@
       : ''}>{submitLabel}</Button
   >
 </form>
+
+<ConfirmDialog open={editorState.discardDialogOpen} title="Discard this unsaved person draft?"
+  action="Discard draft" pending={editorState.discardPending}
+  onconfirm={onDiscardConfirm} oncancel={onDiscardClose}>
+  <p>The unsaved person draft is cleared. Saved person information and shared credits stay unchanged.</p>
+  {#if editorState.message}<p role="status">{editorState.message}</p>{/if}
+</ConfirmDialog>
 
 <style>
   .recovery-panel {

@@ -2,8 +2,8 @@
   import { onMount } from 'svelte';
   import Notice from '../../components/Notice.svelte';
   import Button from '../../components/Button.svelte';
+  import RoleCreator from './RoleCreator.svelte';
   import ConfirmDialog from '../../components/ConfirmDialog.svelte';
-  import type { IdentityOutcome } from '../session/commands';
   import { fetchManagedMovie } from '../movie/api';
   import { createTransport } from '../../transport/graphql';
   import type { Policy } from '../../policy/types';
@@ -11,11 +11,12 @@
   import type { DraftSource } from '../draft/types';
   import { CreditDraftSync } from './draft-sync';
   import {
+    type CreditCommandOutcome,
     addCredit,
     updateCredit,
     removeCredit,
     recoverCredit,
-    fetchActivePeople,
+    fetchActivePeoplePage,
     fetchCreditRoles,
     fetchTitleCredits,
   } from './api';
@@ -42,6 +43,8 @@
   let roles = $state<readonly CreditRoleOption[]>([]);
   let people = $state<readonly PersonOption[]>([]);
   let loading = $state(true);
+  let loadingPeople = $state(false);
+  let nextPeople = $state<string | null>(null);
   let message = $state('');
   let personId = $state('');
   let roleId = $state('');
@@ -51,7 +54,7 @@
   let removing = $state<ManagedCredit | null>(null);
   let pendingId = $state<string | null>(null);
   let pendingKind: 'save' | 'remove' = 'save';
-  let retryOriginal: (() => Promise<IdentityOutcome>) | null = null;
+  let retryOriginal: (() => Promise<CreditCommandOutcome>) | null = null;
 
   const selectedRole = $derived(
     roles.find((role) => role.id === roleId) ?? null,
@@ -90,12 +93,13 @@
         const [loadedCredits, loadedRoles, loadedPeople] = await Promise.all([
           fetchTitleCredits(transport, titleId, context.csrf, abort.signal),
           fetchCreditRoles(transport, abort.signal),
-          fetchActivePeople(transport, context.csrf, abort.signal),
+          fetchActivePeoplePage(transport, context.csrf, null, abort.signal),
         ]);
         if (abort.signal.aborted) return;
         credits = loadedCredits;
         roles = loadedRoles;
-        people = loadedPeople;
+        people = loadedPeople.nodes;
+        nextPeople = loadedPeople.next;
       } catch {
         if (!abort.signal.aborted)
           message =
@@ -106,6 +110,25 @@
     })();
     return () => abort.abort();
   });
+
+  async function loadMorePeople() {
+    if (!nextPeople || loadingPeople) return;
+    loadingPeople = true;
+    try {
+      const page = await fetchActivePeoplePage(createTransport(), context.csrf, nextPeople);
+      const known = new Set(people.map((person) => person.id));
+      people = [...people, ...page.nodes.filter((person) => !known.has(person.id))];
+      nextPeople = page.next;
+    } catch { message = 'More people could not be loaded. Retry before choosing a missing person.'; }
+    finally { loadingPeople = false; }
+  }
+
+  async function refreshCreatedRole(id: string) {
+    const current = await fetchCreditRoles(createTransport());
+    if (!current.some((role) => role.id === id)) throw new Error('Created role is not available yet.');
+    roles = current;
+    roleId = id;
+  }
 
   function parseCreditCharacters(
     role: CreditRoleOption | undefined,
@@ -132,10 +155,16 @@
     characterText = credit.characters.join('\n');
   }
 
-  async function applyReceipt(receipt: IdentityOutcome | null) {
+  async function applyReceipt(receipt: CreditCommandOutcome | null) {
     if (!receipt || receipt.state === 'PENDING') {
       message =
         'Credit result not confirmed. Check the original result before repeating it.';
+      return;
+    }
+    if (receipt.state === 'REJECTED') {
+      pendingId = null; retryOriginal = null;
+      message = receipt.problem.code === 'ALREADY_EXISTS' || receipt.problem.code === 'CREDIT_DUPLICATE'
+        ? 'Review the credit — no duplicate added.' : 'Changes were not saved. Review the current credit.';
       return;
     }
     if (receipt.state === 'EXPIRED' || receipt.resultExpired) {
@@ -323,13 +352,15 @@
       <select
         id="credit-person"
         bind:value={personId}
-        disabled={submitting || !!pendingId || !!editing}
+        disabled={submitting || !!pendingId || !!editing || loadingPeople}
       >
         <option value="">Select an active person</option>
         {#each people as person (person.id)}
           <option value={person.id}>{person.name}</option>
         {/each}
       </select>
+      {#if nextPeople}<button type="button" disabled={loadingPeople || submitting || !!pendingId || !!editing}
+        aria-busy={loadingPeople} onclick={() => void loadMorePeople()}>Load more people</button>{/if}
     </div>
     <div class="field">
       <label for="credit-role">Role</label>
@@ -344,6 +375,7 @@
         {/each}
       </select>
     </div>
+    <RoleCreator {policy} {context} disabled={submitting || !!pendingId} onCreated={refreshCreatedRole} />
     {#if selectedRole?.allowsCharacters}
       <div class="field">
         <label for="credit-characters">Character names · one per line</label>

@@ -1,9 +1,13 @@
 import type { GraphqlRequest } from '../../transport/graphql';
 import { withCsrfAndSignal, withSignal } from '../../transport/request-options';
 import { record } from '../session/parse';
-import { mutation, operation } from '../session/outcome';
+import { mutation, operation, safeProblem } from '../session/outcome';
 import type { IdentityOutcome } from '../session/commands';
 import type { CreditRoleOption, ManagedCredit, PersonOption } from './types';
+
+export type CreditCommandOutcome = IdentityOutcome | Readonly<{
+  state: 'REJECTED'; operationId: string; problem: NonNullable<IdentityOutcome['problem']>;
+}>;
 
 const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48) {
   managedCredits(titleId: $titleId, first: $first) {
@@ -16,9 +20,10 @@ const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48)
 
 const CREDIT_ROLES = `query CreditRoles { creditRoles { id label category allowsCharacters } }`;
 
-const MANAGED_PEOPLE = `query ManagedPeople($state: RecordState!, $first: Int = 48) {
-  managedPeople(state: $state, first: $first) {
+const MANAGED_PEOPLE = `query ManagedPeople($state: RecordState!, $first: Int = 48, $after: Cursor) {
+  managedPeople(state: $state, first: $first, after: $after) {
     nodes { id name state }
+    pageInfo { hasNextPage endCursor }
   }
 }`;
 
@@ -102,26 +107,27 @@ export async function fetchCreditRoles(
 }
 
 export async function fetchActivePeople(
-  request: GraphqlRequest,
-  csrf: string,
-  signal?: AbortSignal,
+  request: GraphqlRequest, csrf: string, signal?: AbortSignal,
 ): Promise<readonly PersonOption[]> {
-  const data = record(
-    await request(
-      MANAGED_PEOPLE,
-      { state: 'ACTIVE' },
-      withCsrfAndSignal(csrf, signal),
-    ),
-  );
+  return (await fetchActivePeoplePage(request, csrf, null, signal)).nodes;
+}
+
+export async function fetchActivePeoplePage(
+  request: GraphqlRequest, csrf: string, after: string | null, signal?: AbortSignal,
+): Promise<Readonly<{ nodes: readonly PersonOption[]; next: string | null }>> {
+  const data = record(await request(MANAGED_PEOPLE, { state: 'ACTIVE', after }, withCsrfAndSignal(csrf, signal)));
   const page = record(data.managedPeople);
-  const nodes = page.nodes;
-  if (!Array.isArray(nodes)) throw new Error('Credit data unavailable.');
-  return Object.freeze(
-    nodes.map((node) => {
-      const row = node as Record<string, unknown>;
-      return Object.freeze({ id: String(row.id), name: String(row.name) });
-    }),
-  );
+  if (!Array.isArray(page.nodes)) throw new Error('Credit people unavailable.');
+  const info = record(page.pageInfo);
+  if (typeof info.hasNextPage !== 'boolean') throw new Error('Credit people page unavailable.');
+  const next = info.hasNextPage ? info.endCursor : null;
+  if (next !== null && (typeof next !== 'string' || !next || next === after)) throw new Error('Credit people cursor unavailable.');
+  const nodes = page.nodes.map((node) => {
+    const row = record(node);
+    return Object.freeze({ id: String(row.id), name: String(row.name) });
+  });
+  if (new Set(nodes.map((person) => person.id)).size !== nodes.length) throw new Error('Duplicate credit people page.');
+  return Object.freeze({ nodes: Object.freeze(nodes), next: next as string | null });
 }
 
 const UPDATE_CREDIT = `mutation UpdateCredit(
@@ -149,11 +155,17 @@ async function writeCredit(
   variables: Record<string, unknown>,
   csrf: string,
   signal: AbortSignal,
-): Promise<IdentityOutcome> {
+): Promise<CreditCommandOutcome> {
   const data = record(
     await request(document, variables, { mutation: true, csrf, signal }),
   );
-  return mutation(data[field], String(variables.operationId));
+  const result = record(data[field]);
+  if (result.operation === null) {
+    const problem = safeProblem(result.problem);
+    if (!problem) throw new Error('Credit rejection unavailable.');
+    return Object.freeze({ state: 'REJECTED', operationId: String(variables.operationId), problem });
+  }
+  return mutation(result, String(variables.operationId));
 }
 
 export async function addCredit(
@@ -165,7 +177,7 @@ export async function addCredit(
   input: { personId: string; roleId: string; characters: string[] },
   csrf: string,
   signal: AbortSignal,
-): Promise<IdentityOutcome> {
+): Promise<CreditCommandOutcome> {
   return writeCredit(
     request,
     ADD_CREDIT,
@@ -191,7 +203,7 @@ export async function updateCredit(
   patch: { roleId?: string; characters?: string[] },
   csrf: string,
   signal: AbortSignal,
-): Promise<IdentityOutcome> {
+): Promise<CreditCommandOutcome> {
   return writeCredit(
     request,
     UPDATE_CREDIT,
@@ -215,7 +227,7 @@ export async function removeCredit(
   expectedVersion: string,
   csrf: string,
   signal: AbortSignal,
-): Promise<IdentityOutcome> {
+): Promise<CreditCommandOutcome> {
   return writeCredit(
     request,
     REMOVE_CREDIT,
