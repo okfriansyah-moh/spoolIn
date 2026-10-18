@@ -18,8 +18,6 @@ import java.util.UUID
 private const val KEY_PURPOSE_COUNT = 3
 private const val CONFIGURATION_FILE_LIMIT = 16384L
 
-private const val INITIAL_KEY_COUNT = 3
-
 class InitializationAccount(
     val id: UUID,
     val identity: AccountIdentity,
@@ -80,7 +78,7 @@ class InitializationConfiguration(
             val accounts = requireNotNull(root.get("accounts"))
             require(accounts.isArray && accounts.size() == 2)
             val keys = requireNotNull(root.get("keys"))
-            require(keys.isObject && keys.size() == INITIAL_KEY_COUNT)
+            require(keys.isObject && keys.size() == KEY_PURPOSE_COUNT)
             return InitializationConfiguration(
                 text(root, "setupVersion"),
                 (0 until accounts.size()).map { account(accounts.get(it), rules) },
