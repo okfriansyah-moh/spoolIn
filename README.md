@@ -17,6 +17,7 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
   - [Ubuntu Linux](#ubuntu-linux)
   - [Download SpoolIn](#download-spoolin)
   - [Start and sign in](#start-and-sign-in)
+  - [Seeded catalog](#seeded-catalog)
   - [Everyday commands](#everyday-commands)
   - [Troubleshooting](#troubleshooting)
   - [Verification limits](#verification-limits)
@@ -212,10 +213,10 @@ mkdir -p ~/projects
 cd ~/projects
 git clone https://github.com/okfriansyah-moh/spoolIn.git
 cd spoolIn
-git switch codex/remote-acceptance-closure
+git switch main
 ```
 
-The `codex/remote-acceptance-closure` branch includes the local setup helpers used here. `git clone` creates the `spoolIn` folder. You only need it once. If you already have this repository, open its folder with `cd` and continue. Every `make local-*` command below runs from the folder containing `Makefile`.
+The `main` branch includes the local setup helpers and packaged catalog described here. `git clone` creates the `spoolIn` folder. You only need it once. If you already have this repository, open its folder with `cd` and continue. Every `make local-*` command below runs from the folder containing `Makefile`.
 
 ### Start and sign in
 
@@ -277,7 +278,47 @@ Firefox provides the same certificate import route on Windows, macOS, and Linux.
 
 Local certificates expire after 365 days. Renewal needs manual attention; don't delete valued data just to renew a certificate. If you reset the installation, it creates a new local CA, so remove the old SpoolIn local authority from Firefox and repeat the import. Remove that authority when you're finished using this local installation.
 
-Seed data provides 100 movies and 100 TV entries, plus people, genres, and credits for browsing. The frozen package includes a genuine poster for every title and records each poster's public source link. Setup imports those local files through Media; startup does not contact external data providers. Changes you make locally stay in Docker volumes across normal stops and restarts. The [stakeholder guide](#use-spoolin) explains the first journeys to try.
+### Seeded catalog
+
+A fresh installation loads the `public-pages-2026-10-v2` package:
+
+| Included data | Count |
+| --- | ---: |
+| Movies | 100 |
+| TV series | 100 |
+| Packaged posters | 200, one for each title |
+| Shared people | 1,213 |
+| Credits | 1,475 |
+| Genres | 165 |
+| Credit roles | 4 |
+
+These are real films, series, and credited people. The package includes original factual synopses, release dates at their known precision, genres, and available language, country, and runtime information. Unknown information stays unknown; a TV series' total running time isn't presented as an episode runtime. Credits reflect the packaged selection and aren't complete cast lists or filmographies.
+
+Structured facts come from Wikidata, with enrichment and posters collected from public TMDB pages. Metadata and artwork source links are recorded separately. Each title's poster attribution links to its source; supplied creator or license details appear when available. Wikidata's CC0 metadata license does not grant rights to the posters, and the package makes no open-license claim for unspecified artwork rights.
+
+The [seed manifest](data/seed/manifest.json) records the title identities, metadata, poster files, hashes, and attribution. The [public-page source ledger](data/seed/sources/tmdb-pages.json) records the collected sources. Preparation downloads are already packaged in the repository: startup reads local files through Media and doesn't request provider APIs, source accounts, or API keys. The first Docker build still needs internet access to download toolchains and dependencies.
+
+#### Explore the loaded data
+
+1. In **Catalog**, search for `Star Wars` and open **Star Wars: Episode VII – The Force Awakens**. Its details show the packaged poster, release information, synopsis, credits, and poster source link.
+
+![Seeded Star Wars The Force Awakens movie details with its genuine poster and TMDB artwork attribution](docs/assets/spoolin/seed-movie.png)
+
+*Movie example: a real seeded title and its packaged poster, viewed in the running application.*
+
+2. Return to **Catalog**, choose **TV series**, and search for `Nashville`. Open its details to see the TV metadata, credits, poster, and source link. TV records remain read-only in movie management.
+
+![Seeded Nashville TV series details with its genuine poster, series metadata, and TMDB artwork attribution](docs/assets/spoolin/seed-tv.png)
+
+*TV example: the seeded series has its own artwork and metadata; unknown episode runtime remains explicit.*
+
+#### Updating an existing local catalog
+
+After pulling the latest `main`, run `make local-setup` and `make local-start` as usual. Setup preserves local credentials. The seed refresh retains stable record IDs and preserves user edits, credits, uploads, explicit artwork removals, archives, and deleted-record markers. Interrupted imports can resume, and repeating startup doesn't duplicate the seed records.
+
+An existing installation can contain more or fewer active titles than the fresh package because of local creations, archives, and deletions. Your own artwork can also take precedence over a packaged poster. Don't use `make local-reset` to obtain the updated seed: it deletes your stored data.
+
+The [seed upgrade record](docs/release/seed-public-pages-verification.md) documents the earlier fresh-load, preservation, and recovery checks. The counts above describe the frozen package, not a new verification run. Continue with the [stakeholder guide](#use-spoolin) for editing examples.
 
 ### Everyday commands
 
@@ -347,7 +388,7 @@ Platform instructions follow the linked vendor installation guides. Successful t
 
 ## Use SpoolIn
 
-The screenshots show fictional walkthrough records alongside the seeded catalog. The lighthouse poster was uploaded through the application.
+The catalog screenshots and seeded movie/TV examples show the updated real catalog with packaged posters. The later editing walkthrough uses fictional records so you can try changes without altering a seeded title. Its lighthouse poster was uploaded through the application.
 
 ### Choose the right account
 
@@ -374,7 +415,7 @@ For example, find a seeded film and explore its credits:
 
 ![Signed-in Viewer searching Star Wars, with Viewer role and Catalog and People navigation visible](docs/assets/spoolin/viewer-catalog.png)
 
-*Viewer example: the header identifies the account role. This search shows a seeded movie; this screenshot predates the packaged seed posters. Current seed titles include posters and source links.*
+*Viewer example: the signed-in account searches the updated seed catalog, with packaged posters visible in the results.*
 
 Filters help narrow the catalog. If no titles match, clear the search or broaden the filters to return to browsing.
 
