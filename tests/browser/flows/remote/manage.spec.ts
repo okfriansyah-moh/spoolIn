@@ -35,6 +35,7 @@ test('ATDD-026/028 partial: shared person credit persists and can be removed vis
   await expect(credit).toHaveCount(1);
   await capture(page, info, ['ATDD-026'], 'credit-persisted');
   await credit.getByRole('button', { name: 'Remove credit', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Remove credit', exact: true }).click();
   await expect(credit).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.credit-list li').filter({ hasText: person.name })).toHaveCount(0);

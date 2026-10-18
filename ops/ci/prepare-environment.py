@@ -112,6 +112,7 @@ def main():
     protected(runtime / "actor-trust", json.dumps({"active": base64.b64encode(public).decode()}))
     runtime_config(runtime)
     prepared_accounts(runtime)
+    exports["SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE"] = str(protected(base / "browser-maintainer-password", (runtime / "maintainer-password").read_bytes()))
     exports["SPOOLIN_ACCOUNT_INITIALIZATION_FILE"] = "/run/spoolin-config/account-initialization.json"
     rate_agreement(runtime)
     for file in runtime.iterdir():

@@ -143,7 +143,7 @@ export async function updatePerson(
       {
         operationId,
         id,
-        expectedVersion: Number(expectedVersion),
+        expectedVersion,
         policyRevision,
         patch,
       },
@@ -159,6 +159,7 @@ export type RecoveredCatalogOperation = Readonly<{
   resultId: string | null;
   version: string | null;
   problemCode: string | null;
+  resultExpired: boolean;
 }>;
 
 export async function recoverCatalogOperation(
@@ -187,5 +188,6 @@ export async function recoverCatalogOperation(
     resultId,
     version,
     problemCode: receipt.problem?.code ?? null,
+    resultExpired: receipt.resultExpired,
   });
 }

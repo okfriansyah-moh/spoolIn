@@ -105,7 +105,7 @@ class DraftApi implements DraftSource {
         {
           operationId,
           id: draftId,
-          expectedVersion,
+          ...(expectedVersion === null ? {} : { expectedVersion }),
           input: {
             targetKind: input.targetKind,
             targetId: input.targetId ?? null,
