@@ -21,27 +21,30 @@ class GrpcClientConfigurationRulesTest {
                 "catalog" to setOf("core", "media"),
                 "media" to setOf("catalog"),
             )
-        for ((owner, expected) in peers) {
-            val environment = StandardEnvironment()
-            val resource = FileSystemResource(root.resolve("services/$owner/src/main/resources/application.yaml"))
-            YamlPropertySourceLoader().load(owner, resource).reversed().forEach {
-                environment.propertySources.addFirst(it)
-            }
-            val bound = Binder.get(environment).bind("spring.grpc.client", GrpcClientProperties::class.java).get()
-            assertEquals(expected, bound.channel.keys, owner)
-            for ((peer, channel) in bound.channel) {
-                assertEquals("dns:///$peer:9090", channel.target, "$owner to $peer")
-                assertEquals(true, channel.ssl.enabled)
-                assertEquals("service", channel.ssl.bundle)
-                assertFalse(channel.isBypassCertificateValidation)
-                val seconds =
-                    when {
-                        owner == "core" || owner == "media" -> 2L
-                        peer == "core" -> 1L
-                        else -> 5L
-                    }
-                assertEquals(Duration.ofSeconds(seconds), channel.default.deadline)
-            }
+        for ((owner, expected) in peers) assertOwner(root, owner, expected)
+    }
+
+    private fun assertOwner(root: Path, owner: String, expected: Set<String>) {
+        val environment = StandardEnvironment()
+        val resource = FileSystemResource(root.resolve("services/$owner/src/main/resources/application.yaml"))
+        YamlPropertySourceLoader().load(owner, resource).reversed().forEach {
+            environment.propertySources.addFirst(it)
+        }
+        val bound = Binder.get(environment).bind("spring.grpc.client", GrpcClientProperties::class.java).get()
+        assertEquals(expected, bound.channel.keys, owner)
+        for ((peer, channel) in bound.channel) {
+            assertEquals("dns:///$peer:9090", channel.target, "$owner to $peer")
+            assertEquals(true, channel.ssl.enabled)
+            assertEquals("service", channel.ssl.bundle)
+            assertFalse(channel.isBypassCertificateValidation)
+            assertEquals(Duration.ofSeconds(deadline(owner, peer)), channel.default.deadline)
         }
     }
+
+    private fun deadline(owner: String, peer: String): Long =
+        when {
+            owner == "core" || owner == "media" -> 2L
+            peer == "core" -> 1L
+            else -> 5L
+        }
 }
