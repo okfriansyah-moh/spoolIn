@@ -62,3 +62,12 @@ val catalogReadsTest by tasks.registering(Test::class) {
     useJUnitPlatform()
     maxHeapSize = "768m"
 }
+
+val logicalMetricsTest by tasks.registering(Test::class) {
+    dependsOn(":services:core:integrationTestClasses", ":services:catalog:classes", ":services:media:classes")
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter { includeTestsMatching("com.spoolin.integration.observability.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}

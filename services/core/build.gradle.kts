@@ -337,3 +337,13 @@ val mcpGatewayUnitTest by tasks.registering(Test::class) {
     maxHeapSize = "512m"
 }
 tasks.named("koverXmlReport") { dependsOn(mcpGatewayUnitTest) }
+
+val artworkProxyIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath = files(bootstrapTests.output.classesDirs, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
+    filter { includeTestsMatching("com.spoolin.core.features.artworkproxy.*BoundaryTest") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+tasks.named("koverXmlReport") { dependsOn(artworkProxyIntegrationTest) }

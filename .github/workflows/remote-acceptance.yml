@@ -105,7 +105,7 @@ jobs:
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
         run: |
           mkdir -p artifacts/source-checks
-          ./gradlew --no-daemon --console plain :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:core:alertUnitTest :services:core:mcpGatewayUnitTest :services:core:alertIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :services:catalog:catalogProposalIntegrationTest :tests:integration:leasesTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
+          ./gradlew --no-daemon --console plain :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:core:alertUnitTest :services:core:mcpGatewayUnitTest :services:core:alertIntegrationTest :services:core:artworkProxyUnitTest :services:core:artworkProxyIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :services:catalog:catalogProposalIntegrationTest :tests:integration:leasesTest :tests:integration:logicalMetricsTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
       - name: Provision isolated synthetic environment
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: python3 ops/ci/prepare-environment.py

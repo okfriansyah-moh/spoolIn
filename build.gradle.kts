@@ -110,6 +110,9 @@ configure(subprojects.filter { it.path.startsWith(":services:") }) {
     }
     tasks.named<Jar>("jar") { enabled = true }
     val integrationTest = extensions.getByType<SourceSetContainer>().create("integrationTest")
+    extensions.configure<KotlinJvmProjectExtension> {
+        target.compilations.getByName("integrationTest").associateWith(target.compilations.getByName("main"))
+    }
     integrationTest.compileClasspath += sourceSets["main"].output
     integrationTest.runtimeClasspath += sourceSets["main"].output
     configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations["testImplementation"])
