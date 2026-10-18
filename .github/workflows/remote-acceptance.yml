@@ -163,6 +163,7 @@ jobs:
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
         run: |
           python3 ops/ci/verify-capacity-test.py
+          python3 ops/monitoring/verify_test.py
           python3 ops/ci/test-codec-profile-package.py
           python3 ops/ci/codec-diagnostics-test.py
           python3 ops/ci/readiness-helper-test.py
