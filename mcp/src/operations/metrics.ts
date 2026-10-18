@@ -41,12 +41,20 @@ export class McpMetrics {
 
   async logical<T>(operation: string, handle: () => Promise<T>): Promise<T> {
     const started = process.hrtime.bigint();
-    const value = await handle();
-    const result = toolResult(value);
+    try {
+      const value = await handle();
+      this.logicalResult(operation, toolResult(value), started);
+      return value;
+    } catch (failure) {
+      this.logicalResult(operation, { outcome: 'UNCERTAIN', code: 'UNKNOWN' }, started);
+      throw failure;
+    }
+  }
+
+  private logicalResult(operation: string, result: Result, started: bigint): void {
     const state = this.context.getStore();
     if (state) state.result = result;
     this.record(operation, 'owner', result, started);
-    return value;
   }
 
   sessionOpened(): void { this.opened += 1; }
@@ -85,7 +93,8 @@ export class McpMetrics {
 
 function httpResult(status: number, finished: boolean): Result {
   if (!finished) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
-  if (status < 400) return { outcome: 'SUCCESS', code: 'OK' };
+  // HTTP 200 alone cannot establish the SDK's logical JSON-RPC outcome.
+  if (status < 400) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
   const code = new Map([[400, 'INVALID_ARGUMENT'], [401, 'UNAUTHENTICATED'], [403, 'PERMISSION_DENIED'],
     [404, 'NOT_FOUND'], [413, 'INVALID_ARGUMENT'], [429, 'RATE_LIMITED']]).get(status);
   return code ? { outcome: 'DOMAIN_REJECTED', code } : { outcome: 'SYSTEM_FAILED', code: 'UNAVAILABLE' };
@@ -96,7 +105,7 @@ function toolResult(value: unknown): Result {
   const result = value as { isError?: boolean; structuredContent?: { state?: string; problem?: { code?: string } } };
   const problem = result.structuredContent?.problem;
   if (problem) {
-    if (!problem.code || !codes.has(problem.code)) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
+    if (!problem.code || problem.code === 'OK' || !codes.has(problem.code)) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
     return { outcome: problem.code === 'UNAVAILABLE' ? 'SYSTEM_FAILED' : 'DOMAIN_REJECTED', code: problem.code };
   }
   if (result.isError) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
