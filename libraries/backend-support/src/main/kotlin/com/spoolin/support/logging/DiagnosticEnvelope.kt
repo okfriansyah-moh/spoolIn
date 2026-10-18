@@ -1,6 +1,7 @@
 package com.spoolin.support.logging
 
 import tools.jackson.databind.json.JsonMapper
+import com.spoolin.support.tracing.TraceContexts
 import java.time.Instant
 
 internal const val DIAGNOSTIC_BYTES = 16 * 1024
@@ -32,12 +33,14 @@ internal class DiagnosticEnvelope(val service: String, version: String, environm
     fun invalid(timestamp: Long): ByteArray = record(DiagnosticLevel.ERROR, timestamp, "Logger contract invalid")
 
     fun invalidLogLevel(timestamp: Long): ByteArray =
-        record(DiagnosticLevel.FATAL, timestamp, "LOG_LEVEL must be info or debug")
+        record(DiagnosticLevel.FATAL, timestamp, "LOG_LEVEL must be info or debug", traced = false)
 
-    private fun record(level: DiagnosticLevel, timestamp: Long, message: String): ByteArray {
+    private fun record(level: DiagnosticLevel, timestamp: Long, message: String, traced: Boolean = true): ByteArray {
+        val (trace, span) = if (traced) TraceContexts.identifiers() else
+            "00000000000000000000000000000000" to "0000000000000000"
         val fields = linkedMapOf<String, Any>(
             "level" to level.label, "timestamp" to Instant.ofEpochMilli(timestamp).toString(),
-            "trace_id" to "00000000000000000000000000000000", "span_id" to "0000000000000000",
+            "trace_id" to trace, "span_id" to span,
             "message" to message, "resource" to resource,
         )
         val encoded = mapper.writeValueAsBytes(fields) + byteArrayOf('\n'.code.toByte())

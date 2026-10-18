@@ -347,3 +347,6 @@ val artworkProxyIntegrationTest by tasks.registering(Test::class) {
     maxHeapSize = "768m"
 }
 tasks.named("koverXmlReport") { dependsOn(artworkProxyIntegrationTest) }
+
+// Managed by the pinned Boot BOM; used only for servlet async boundary tests.
+dependencies { testImplementation("org.springframework:spring-test") }
