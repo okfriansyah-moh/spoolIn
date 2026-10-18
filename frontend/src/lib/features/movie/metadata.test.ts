@@ -85,3 +85,53 @@ describe('movie metadata production projection and write paths', () => {
     ).toEqual(['ID', 'GB']);
   });
 });
+
+it('edits release precision without losing other date fields and clears blank numbers', () => {
+  const original = movieToDraft(movie);
+  const changed = applyMovieDraftField(original, 'releaseMonth', ' 3 ').draft;
+  expect(changed.release).toEqual({ year: 2024, month: 3, day: 29 });
+  expect(original.release).toEqual({ year: 2024, month: 2, day: 29 });
+  expect(applyMovieDraftField(changed, 'releaseDay', '').draft.release).toEqual(
+    {
+      year: 2024,
+      month: 3,
+      day: null,
+    },
+  );
+  expect(applyMovieDraftField({}, 'releaseYear', '2025').draft.release).toEqual(
+    {
+      year: 2025,
+      month: null,
+      day: null,
+    },
+  );
+  expect(
+    applyMovieDraftField(original, 'runtimeMinutes', '').draft.runtimeMinutes,
+  ).toBeNull();
+  expect(applyMovieDraftField(original, 'originalTitle', '')).toMatchObject({
+    originalTitleTouched: true,
+    draft: { originalTitle: '' },
+  });
+  expect(applyMovieDraftField(original, 'title', 'New title').draft.title).toBe(
+    'New title',
+  );
+});
+
+it('accepts valid optional metadata and reports invalid fields in form order', () => {
+  expect(metadataErrors(movieToDraft(movie))).toEqual([]);
+  expect(
+    metadataErrors({
+      release: { year: 2024, month: 13, day: 1 },
+      runtimeMinutes: 100001,
+      originalLanguage: 'bad_tag',
+      synopsisLanguage: 'x'.repeat(36),
+      countries: ['id'],
+    }).map((error) => error.id),
+  ).toEqual([
+    'movie-releaseMonth',
+    'movie-runtimeMinutes',
+    'movie-originalLanguage',
+    'movie-synopsisLanguage',
+    'movie-countries',
+  ]);
+});

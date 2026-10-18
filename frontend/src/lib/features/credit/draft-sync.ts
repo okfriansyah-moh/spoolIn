@@ -242,6 +242,28 @@ export class CreditDraftSync {
     return this.accept(outcome.receipt);
   }
 
+  private acceptDiscard(
+    outcome: Awaited<ReturnType<DraftSource['discardDraft']>>,
+    pending: NonNullable<CreditDraftSync['pendingDiscard']>,
+  ): boolean {
+    if (
+      outcome.receipt.operationId !== pending.operationId ||
+      outcome.receipt.resultExpired
+    )
+      return false;
+    if (outcome.receipt.state === 'FAILED') {
+      this.pendingDiscard = null;
+      return false;
+    }
+    if (
+      outcome.receipt.state !== 'SUCCEEDED' ||
+      outcome.receipt.resultId !== pending.draftId ||
+      !outcome.discarded
+    )
+      return false;
+    return true;
+  }
+
   async discard(context: WriteContext): Promise<boolean> {
     globalThis.clearTimeout(this.timer);
     await this.queue;
@@ -264,21 +286,7 @@ export class CreditDraftSync {
         context.csrf,
         new AbortController().signal,
       );
-      if (
-        outcome.receipt.operationId !== pending.operationId ||
-        outcome.receipt.resultExpired
-      )
-        return false;
-      if (outcome.receipt.state === 'FAILED') {
-        this.pendingDiscard = null;
-        return false;
-      }
-      if (
-        outcome.receipt.state !== 'SUCCEEDED' ||
-        outcome.receipt.resultId !== pending.draftId ||
-        !outcome.discarded
-      )
-        return false;
+      if (!this.acceptDiscard(outcome, pending)) return false;
       this.pendingDiscard = null;
       this.reset();
       return true;

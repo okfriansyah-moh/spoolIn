@@ -17,6 +17,29 @@ export type MovieDraftFieldUpdate = Readonly<{
   originalTitleTouched?: boolean;
 }>;
 
+function releaseFieldUpdate(
+  draft: MovieDraft,
+  field: 'releaseYear' | 'releaseMonth' | 'releaseDay',
+  value: string,
+): MovieDraftFieldUpdate {
+  const key = {
+    releaseYear: 'year',
+    releaseMonth: 'month',
+    releaseDay: 'day',
+  }[field];
+  return {
+    draft: {
+      ...draft,
+      release: {
+        year: draft.release?.year ?? null,
+        month: draft.release?.month ?? null,
+        day: draft.release?.day ?? null,
+        [key]: value.trim() === '' ? null : Number(value),
+      },
+    },
+  };
+}
+
 export function applyMovieDraftField(
   draft: MovieDraft,
   field: MovieDraftField,
@@ -27,22 +50,7 @@ export function applyMovieDraftField(
     field === 'releaseMonth' ||
     field === 'releaseDay'
   ) {
-    const key = {
-      releaseYear: 'year',
-      releaseMonth: 'month',
-      releaseDay: 'day',
-    }[field];
-    return {
-      draft: {
-        ...draft,
-        release: {
-          year: draft.release?.year ?? null,
-          month: draft.release?.month ?? null,
-          day: draft.release?.day ?? null,
-          [key]: value.trim() === '' ? null : Number(value),
-        },
-      },
-    };
+    return releaseFieldUpdate(draft, field, value);
   }
   if (field === 'runtimeMinutes')
     return {

@@ -13,7 +13,7 @@ import { MovieDraftSync } from './draft-sync';
 import { draftToCreateInput, draftToUpdatePatch, patchIsEmpty } from './patch';
 import { rebaseMovieMetadata } from './metadata';
 import { movieToDraft } from './projection';
-import type { EditorState, WriteContext } from './types';
+import type { EditorState, ManagedMovie, WriteContext } from './types';
 import { EMPTY_MOVIE_DRAFT } from './types';
 import { problemMessage, validateMovieDraft } from './validation';
 import type { DraftSource, DraftRecord } from '../draft/types';
@@ -40,6 +40,17 @@ function initialState(
     mediaOutage: false,
     discardDialogOpen: false,
   });
+}
+
+function receiptExpired(
+  receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
+): boolean {
+  return (
+    receipt?.state === 'EXPIRED' ||
+    (receipt !== null &&
+      'resultExpired' in receipt &&
+      receipt.resultExpired === true)
+  );
 }
 
 export class MovieEditorController {
@@ -385,25 +396,7 @@ export class MovieEditorController {
         });
         return;
       }
-      const draft = this.rebaseDraft(latest);
-      this.pendingWriteId = null;
-      this.publish({
-        ...this.current,
-        saved: latest,
-        current: latest,
-        draft,
-        draftBaseKnown: true,
-        phase: 'idle',
-        pendingOperationId: null,
-        staleReviewOpen: false,
-        message:
-          'Current values reviewed. Your draft is retained; save when ready to apply it.',
-      });
-      this.draftSync.schedule(
-        this.current.draft,
-        this.writeContext,
-        latest.version,
-      );
+      this.acceptReviewedDraft(latest, this.writeContext);
     } catch {
       this.publish({
         ...this.current,
@@ -411,6 +404,27 @@ export class MovieEditorController {
           'The current record could not be checked. Review again before continuing.',
       });
     }
+  }
+
+  private acceptReviewedDraft(
+    latest: ManagedMovie,
+    context: WriteContext,
+  ): void {
+    const draft = this.rebaseDraft(latest);
+    this.pendingWriteId = null;
+    this.publish({
+      ...this.current,
+      saved: latest,
+      current: latest,
+      draft,
+      draftBaseKnown: true,
+      phase: 'idle',
+      pendingOperationId: null,
+      staleReviewOpen: false,
+      message:
+        'Current values reviewed. Your draft is retained; save when ready to apply it.',
+    });
+    this.draftSync.schedule(this.current.draft, context, latest.version);
   }
 
   private rebaseText<K extends 'title' | 'synopsis'>(
@@ -643,10 +657,7 @@ export class MovieEditorController {
     receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
     operationId: string,
   ): Promise<void> {
-    if (
-      receipt?.state === 'EXPIRED' ||
-      (receipt && 'resultExpired' in receipt && receipt.resultExpired === true)
-    ) {
+    if (receiptExpired(receipt)) {
       this.publish({
         ...this.current,
         phase: 'uncertain',
@@ -716,12 +727,12 @@ export class MovieEditorController {
       });
       return;
     }
+    this.applyExternalChange(latest, this.current.saved);
+  }
+
+  private applyExternalChange(latest: ManagedMovie, saved: ManagedMovie): void {
     const dirty = !patchIsEmpty(
-      draftToUpdatePatch(
-        this.current.saved,
-        this.current.draft,
-        this.originalTitleTouched,
-      ),
+      draftToUpdatePatch(saved, this.current.draft, this.originalTitleTouched),
     );
     if (dirty || this.current.draftChoices.length) {
       this.publish({
@@ -807,17 +818,7 @@ export class MovieEditorController {
     }
     if (state === 'FAILED') {
       this.pendingWriteId = null;
-      if (problemCode === 'STALE_VERSION') {
-        await this.enterStaleReview();
-        return;
-      }
-      this.publish({
-        ...this.current,
-        phase: 'failed',
-        pendingOperationId: null,
-        fieldErrors: Object.freeze([]),
-        message: problemMessage(problemCode),
-      });
+      await this.finishFailedWrite(problemCode);
       return;
     }
     this.pendingWriteId = operationId;
@@ -827,6 +828,20 @@ export class MovieEditorController {
       pendingOperationId: operationId,
       message:
         'Save result not confirmed. Check the original operation before repeating it.',
+    });
+  }
+
+  private async finishFailedWrite(problemCode: string | null): Promise<void> {
+    if (problemCode === 'STALE_VERSION') {
+      await this.enterStaleReview();
+      return;
+    }
+    this.publish({
+      ...this.current,
+      phase: 'failed',
+      pendingOperationId: null,
+      fieldErrors: Object.freeze([]),
+      message: problemMessage(problemCode),
     });
   }
 

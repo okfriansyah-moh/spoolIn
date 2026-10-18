@@ -500,6 +500,10 @@
     return `${draft.targetId ? 'Edit' : 'Add'} ${person} · ${role}${names ? ` · ${names}` : ''} · expires ${draft.expiresAt}`;
   }
 
+  function creditDraftBacked(): boolean {
+    return !!draftSync?.snapshot.backed && !draftSync.snapshot.unbacked;
+  }
+
   async function clearRejectedCreditDraft(
     baseVersion: string | null = editing?.version ?? titleVersion,
   ): Promise<boolean> {
@@ -518,7 +522,7 @@
         context,
         baseVersion,
       );
-    return !!draftSync?.snapshot.backed && !draftSync.snapshot.unbacked;
+    return creditDraftBacked();
   }
 
   function creditFailureMessage(code: string | undefined): string {

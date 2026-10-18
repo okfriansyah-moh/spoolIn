@@ -318,16 +318,23 @@ export class SessionController {
       );
       const current = await this.source.bootstrap(attempt.signal);
       if (generation !== this.generation) return;
-      if (result?.resultExpired) {
-        this.uncertainLogout(attempt);
-        return;
-      }
-      if (result?.state === 'SUCCEEDED' && !current.session.authenticated)
-        this.endLogout(attempt);
-      else this.reconcileActiveLogout(attempt, result?.state, current);
+      this.applySignOutReceipt(attempt, result, current);
     } catch {
       if (generation === this.generation) this.uncertainLogout(attempt);
     }
+  }
+  private applySignOutReceipt(
+    attempt: LogoutAttempt,
+    result: Awaited<ReturnType<AccountCommands['operation']>>,
+    current: SessionBootstrap,
+  ): void {
+    if (result?.resultExpired) {
+      this.uncertainLogout(attempt);
+      return;
+    }
+    if (result?.state === 'SUCCEEDED' && !current.session.authenticated)
+      this.endLogout(attempt);
+    else this.reconcileActiveLogout(attempt, result?.state, current);
   }
   private reconcileActiveLogout(
     attempt: LogoutAttempt,

@@ -44,6 +44,17 @@ function personToDraft(person: ManagedPerson): PersonDraft {
   });
 }
 
+function receiptExpired(
+  receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
+): boolean {
+  return (
+    receipt?.state === 'EXPIRED' ||
+    (receipt !== null &&
+      'resultExpired' in receipt &&
+      receipt.resultExpired === true)
+  );
+}
+
 export class PersonEditorController {
   private current = initialState('create', null);
   private readonly listeners = new Set<(state: EditorState) => void>();
@@ -125,16 +136,7 @@ export class PersonEditorController {
         });
         return;
       }
-      this.draftSync.reset({
-        catalogOperationId: null,
-      });
-      this.publish({
-        ...this.current,
-        saved: person,
-        current: person,
-        draft: personToDraft(person),
-        summaryTitle: person.name,
-      });
+      this.acceptLoadedPerson(person);
     } catch {
       if (signal.aborted) return;
       this.publish({
@@ -143,6 +145,19 @@ export class PersonEditorController {
         message: 'Person details could not be loaded.',
       });
     }
+  }
+
+  private acceptLoadedPerson(person: ManagedPerson): void {
+    this.draftSync.reset({
+      catalogOperationId: null,
+    });
+    this.publish({
+      ...this.current,
+      saved: person,
+      current: person,
+      draft: personToDraft(person),
+      summaryTitle: person.name,
+    });
   }
 
   updateDraft(next: PersonDraft): void {
@@ -372,25 +387,7 @@ export class PersonEditorController {
         });
         return;
       }
-      const draft = this.rebaseDraft(latest);
-      this.pendingWriteId = null;
-      this.publish({
-        ...this.current,
-        saved: latest,
-        current: latest,
-        draft,
-        draftBaseKnown: true,
-        phase: 'idle',
-        pendingOperationId: null,
-        staleReviewOpen: false,
-        message:
-          'Current values reviewed. Your draft is retained; save when ready to apply it.',
-      });
-      this.draftSync.schedule(
-        this.current.draft,
-        this.writeContext,
-        latest.version,
-      );
+      this.acceptReviewedDraft(latest, this.writeContext);
     } catch {
       this.publish({
         ...this.current,
@@ -398,6 +395,27 @@ export class PersonEditorController {
           'The current record could not be checked. Review again before continuing.',
       });
     }
+  }
+
+  private acceptReviewedDraft(
+    latest: ManagedPerson,
+    context: WriteContext,
+  ): void {
+    const draft = this.rebaseDraft(latest);
+    this.pendingWriteId = null;
+    this.publish({
+      ...this.current,
+      saved: latest,
+      current: latest,
+      draft,
+      draftBaseKnown: true,
+      phase: 'idle',
+      pendingOperationId: null,
+      staleReviewOpen: false,
+      message:
+        'Current values reviewed. Your draft is retained; save when ready to apply it.',
+    });
+    this.draftSync.schedule(this.current.draft, context, latest.version);
   }
 
   private rebaseDraft(latest: ManagedPerson): PersonDraft {
@@ -629,10 +647,7 @@ export class PersonEditorController {
   private async applyOriginalReceipt(
     receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
   ): Promise<void> {
-    if (
-      receipt?.state === 'EXPIRED' ||
-      (receipt && 'resultExpired' in receipt && receipt.resultExpired === true)
-    ) {
+    if (receiptExpired(receipt)) {
       this.publish({
         ...this.current,
         phase: 'uncertain',

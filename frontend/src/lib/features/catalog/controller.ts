@@ -169,18 +169,16 @@ export class CatalogController {
     this.listeners.clear();
   }
 
+  private validSearchInput(criteria: Criteria) {
+    if (!validateText(criteria.text, MAX_SEARCH_CODE_POINTS).valid) return null;
+    return buildSearchInput(criteria);
+  }
+
   private async search(
     criteria: Criteria,
     after: string | null = null,
   ): Promise<void> {
-    // Validate text before issuing a query
-    const textCheck = validateText(criteria.text, MAX_SEARCH_CODE_POINTS);
-    if (!textCheck.valid) {
-      this.invalidate(criteria);
-      return;
-    }
-
-    const input = buildSearchInput(criteria);
+    const input = this.validSearchInput(criteria);
     if (input === null) {
       this.invalidate(criteria);
       return;
@@ -221,8 +219,7 @@ export class CatalogController {
         invalidField: null,
       });
     } catch (err) {
-      if (generation !== this.generation) return; // stale
-      if (err instanceof Error && err.name === 'AbortError') return;
+      if (this.obsoleteSearch(generation, err)) return;
       this.publish({
         kind: 'failure',
         criteria,
@@ -231,6 +228,13 @@ export class CatalogController {
         invalidField: null,
       });
     }
+  }
+
+  private obsoleteSearch(generation: number, error: unknown): boolean {
+    return (
+      generation !== this.generation ||
+      (error instanceof Error && error.name === 'AbortError')
+    );
   }
 
   private invalidate(criteria: Criteria): void {

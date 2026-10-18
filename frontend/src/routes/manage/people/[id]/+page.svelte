@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
-  import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
@@ -85,11 +84,11 @@
 <section class="person-editor-page">
   <EditorPageHeading
     sectionLabel="People"
-    sectionHref={resolve('/manage/people')}
+    sectionHref="manage/people"
     title={editorState?.saved?.name ?? 'Edit person'}
     description="Update this person’s public name and biography."
     actionHref={editorState?.saved
-      ? resolve('/people/[id]', { id: editorState.saved.id })
+      ? `people/${encodeURIComponent(editorState.saved.id)}`
       : undefined}
     actionLabel={editorState?.saved ? 'Review public record' : undefined}
   />

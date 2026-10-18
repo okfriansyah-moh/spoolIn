@@ -7,13 +7,17 @@ export type PageSlice<T> = Readonly<{
   pageInfo: PageInfo;
 }>;
 
+function pageRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Page information unavailable.');
+  return Object.fromEntries(Object.entries(value));
+}
+
 export function readPageInfo(
   value: unknown,
   after: string | null = null,
 ): PageInfo {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    throw new Error('Page information unavailable.');
-  const input = Object.fromEntries(Object.entries(value));
+  const input = pageRecord(value);
   if (typeof input.hasNextPage !== 'boolean')
     throw new Error('Page state unavailable.');
   const cursor = input.endCursor;

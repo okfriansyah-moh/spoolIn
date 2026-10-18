@@ -119,7 +119,7 @@
             <td>
               <details>
                 <summary>Inspect changes</summary>
-                {#each Object.entries(row.changes) as [field, change]}
+                {#each Object.entries(row.changes) as [field, change] (field)}
                   <p>
                     <strong>{fieldLabel(field)}</strong>: {displayChange(
                       change,
@@ -160,7 +160,7 @@
           <details>
             <summary>Review changes</summary>
             <div class="history-changes">
-              {#each Object.entries(row.changes) as [field, change]}
+              {#each Object.entries(row.changes) as [field, change] (field)}
                 <p>
                   <strong>{fieldLabel(field)}</strong>: {displayChange(change)}
                 </p>

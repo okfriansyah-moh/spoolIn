@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
@@ -60,7 +59,7 @@
 <section class="person-editor-page">
   <EditorPageHeading
     sectionLabel="People"
-    sectionHref={resolve('/manage/people')}
+    sectionHref="manage/people"
     title="Create person"
     description="Add someone who has contributed to a movie in the catalog."
   />

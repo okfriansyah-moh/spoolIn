@@ -1,35 +1,30 @@
 import type { MovieDraft } from '../../generated/json-types';
 import type { FieldError } from './types';
 
-export function metadataErrors(draft: MovieDraft): FieldError[] {
-  const errors: FieldError[] = [];
-  const month = draft.release?.month,
-    day = draft.release?.day;
-  if (month != null && (!Number.isInteger(month) || month < 1 || month > 12))
-    errors.push({
-      id: 'movie-releaseMonth',
-      message: 'Release month: Use 1–12 or leave blank.',
-    });
-  if (
+function invalidMonth(month: number | null | undefined): boolean {
+  return month != null && (!Number.isInteger(month) || month < 1 || month > 12);
+}
+
+function invalidDay(draft: MovieDraft): boolean {
+  const day = draft.release?.day;
+  return (
     day != null &&
     (!Number.isInteger(day) ||
-      month == null ||
+      draft.release?.month == null ||
       day < 1 ||
       day > daysInMonth(draft))
-  )
-    errors.push({
-      id: 'movie-releaseDay',
-      message: 'Release day: Enter a valid day with a known release month.',
-    });
-  const runtime = draft.runtimeMinutes;
-  if (
+  );
+}
+
+function invalidRuntime(runtime: number | null | undefined): boolean {
+  return (
     runtime != null &&
     (!Number.isInteger(runtime) || runtime < 1 || runtime > 100000)
-  )
-    errors.push({
-      id: 'movie-runtimeMinutes',
-      message: 'Runtime: Use 1–100000 whole minutes or leave blank.',
-    });
+  );
+}
+
+function languageErrors(draft: MovieDraft): FieldError[] {
+  const errors: FieldError[] = [];
   for (const field of ['originalLanguage', 'synopsisLanguage'] as const) {
     const value = draft[field]?.trim();
     if (
@@ -41,6 +36,27 @@ export function metadataErrors(draft: MovieDraft): FieldError[] {
         message: 'Language: Use a BCP47 tag up to 35 characters.',
       });
   }
+  return errors;
+}
+
+export function metadataErrors(draft: MovieDraft): FieldError[] {
+  const errors: FieldError[] = [];
+  if (invalidMonth(draft.release?.month))
+    errors.push({
+      id: 'movie-releaseMonth',
+      message: 'Release month: Use 1–12 or leave blank.',
+    });
+  if (invalidDay(draft))
+    errors.push({
+      id: 'movie-releaseDay',
+      message: 'Release day: Enter a valid day with a known release month.',
+    });
+  if (invalidRuntime(draft.runtimeMinutes))
+    errors.push({
+      id: 'movie-runtimeMinutes',
+      message: 'Runtime: Use 1–100000 whole minutes or leave blank.',
+    });
+  errors.push(...languageErrors(draft));
   if (draft.countries?.some((country) => !/^[A-Z]{2}$/.test(country)))
     errors.push({
       id: 'movie-countries',

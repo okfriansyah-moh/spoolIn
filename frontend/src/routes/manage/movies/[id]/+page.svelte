@@ -1,7 +1,6 @@
 <script lang="ts">
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
-  import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
@@ -80,11 +79,11 @@
 <section class="movie-editor-page">
   <EditorPageHeading
     sectionLabel="Movies"
-    sectionHref={resolve('/manage/movies')}
+    sectionHref="manage/movies"
     title={editorState?.saved?.title ?? 'Edit movie'}
     description="Update the details people use to recognize and find this film."
     actionHref={editorState?.saved
-      ? resolve('/titles/[id]', { id: editorState.saved.id })
+      ? `titles/${encodeURIComponent(editorState.saved.id)}`
       : undefined}
     actionLabel={editorState?.saved ? 'Review public record' : undefined}
   />

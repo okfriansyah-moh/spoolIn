@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
+  import type { Path } from '$app/types';
   let {
     sectionLabel,
     sectionHref,
@@ -8,16 +10,16 @@
     actionLabel,
   }: {
     sectionLabel: string;
-    sectionHref: string;
+    sectionHref: Path;
     title: string;
     description: string;
-    actionHref?: string | undefined;
+    actionHref?: Path | undefined;
     actionLabel?: string | undefined;
   } = $props();
 </script>
 
 <nav class="breadcrumbs" aria-label="Breadcrumb">
-  <a href={sectionHref}>{sectionLabel}</a>
+  <a href={resolve(sectionHref)}>{sectionLabel}</a>
   <span aria-hidden="true">/</span>
   <span aria-current="page">{title}</span>
 </nav>
@@ -25,7 +27,7 @@
   <h1 tabindex="-1">{title}</h1>
   <p>{description}</p>
   {#if actionHref && actionLabel}
-    <a class="button secondary" href={actionHref}>{actionLabel}</a>
+    <a class="button secondary" href={resolve(actionHref)}>{actionLabel}</a>
   {/if}
 </header>
 

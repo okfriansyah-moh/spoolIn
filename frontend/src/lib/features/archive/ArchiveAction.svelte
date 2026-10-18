@@ -40,6 +40,21 @@
     }
   }
 
+  async function checkArchiveResult(originalOperationId: string, csrf: string) {
+    const receipt = await recoverCatalogOperation(
+      createTransport(),
+      originalOperationId,
+      csrf,
+      abort.signal,
+    );
+    if (receipt?.resultExpired) {
+      message =
+        'The retained result has expired. Reload the record to inspect its current state.';
+    } else {
+      await outcome(receipt?.state ?? 'UNKNOWN');
+    }
+  }
+
   async function submit(checkOriginal = false) {
     if (pending || disabled) return;
     pending = true;
@@ -51,18 +66,7 @@
       }
       const transport = createTransport();
       if (checkOriginal && operationId) {
-        const receipt = await recoverCatalogOperation(
-          transport,
-          operationId,
-          context.csrf,
-          abort.signal,
-        );
-        if (receipt?.resultExpired) {
-          message =
-            'The retained result has expired. Reload the record to inspect its current state.';
-        } else {
-          await outcome(receipt?.state ?? 'UNKNOWN');
-        }
+        await checkArchiveResult(operationId, context.csrf);
       } else {
         operationId = globalThis.crypto.randomUUID();
         const input = {

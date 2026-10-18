@@ -165,10 +165,9 @@
     {#each peopleState.people as person (person.id)}
       <li>
         <article class="person-result">
-          <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic person id segment -->
           <a
             class="person-name"
-            href={`${resolve('/')}people/${encodeURIComponent(person.id)}`}
+            href={resolve('/people/[id]', { id: person.id })}
           >
             {person.name}
           </a>

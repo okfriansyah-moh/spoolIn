@@ -80,6 +80,18 @@ function applyTextAndGenrePatch(
   if (draftGenres !== savedGenres) patch.genreIds = [...(draft.genreIds ?? [])];
 }
 
+function releaseUnchanged(
+  saved: ManagedMovie,
+  draft: MovieDraft,
+  year: number,
+): boolean {
+  return (
+    String(year) === saved.releaseYear &&
+    (draft.release?.month ?? null) === (saved.releaseMonth ?? null) &&
+    (draft.release?.day ?? null) === (saved.releaseDay ?? null)
+  );
+}
+
 function applyReleasePatch(
   patch: Record<string, unknown>,
   saved: ManagedMovie,
@@ -87,12 +99,7 @@ function applyReleasePatch(
 ): void {
   const year = draft.release?.year;
   if (year === null || year === undefined) return;
-  if (
-    String(year) === saved.releaseYear &&
-    (draft.release?.month ?? null) === (saved.releaseMonth ?? null) &&
-    (draft.release?.day ?? null) === (saved.releaseDay ?? null)
-  )
-    return;
+  if (releaseUnchanged(saved, draft, year)) return;
   patch.release = {
     year,
     month: draft.release?.month ?? null,
@@ -138,21 +145,29 @@ function applyMetadataPatch(
     draft.runtimeMinutes !== (saved.runtimeMinutes ?? null)
   )
     patch.runtimeMinutes = draft.runtimeMinutes;
-  if (
-    draft.originalLanguage !== undefined &&
-    (draft.originalLanguage?.trim() || null) !==
-      (saved.originalLanguage ?? null)
-  )
-    patch.originalLanguage = draft.originalLanguage?.trim() || null;
-  if (
-    draft.synopsisLanguage !== undefined &&
-    draft.synopsisLanguage.trim() !== (saved.synopsisLanguage ?? 'und')
-  )
-    patch.synopsisLanguage = draft.synopsisLanguage.trim();
+  applyLanguagePatch(patch, saved, draft);
   if (
     draft.countries !== undefined &&
     [...draft.countries].sort().join(',') !==
       [...(saved.countries ?? [])].sort().join(',')
   )
     patch.countries = [...draft.countries];
+}
+
+function applyLanguagePatch(
+  patch: Record<string, unknown>,
+  saved: ManagedMovie,
+  draft: MovieDraft,
+): void {
+  const originalLanguage = draft.originalLanguage?.trim() || null;
+  if (
+    draft.originalLanguage !== undefined &&
+    originalLanguage !== (saved.originalLanguage ?? null)
+  )
+    patch.originalLanguage = originalLanguage;
+  if (
+    draft.synopsisLanguage !== undefined &&
+    draft.synopsisLanguage.trim() !== (saved.synopsisLanguage ?? 'und')
+  )
+    patch.synopsisLanguage = draft.synopsisLanguage.trim();
 }
