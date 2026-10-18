@@ -1122,7 +1122,16 @@
         "12957d8",
         "83df6ef"
       ],
-      "runtime_proof": "Pending current-input full owner boundary rerun; original failures retained. No fixture-only correction is production runtime acceptance."
+      "runtime_proof": "Pending current-input full owner boundary rerun; original failures retained. No fixture-only correction is production runtime acceptance.",
+      "continuation_assessments": [
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "runtime_accepted": false,
+          "detail": "Native3227 executed/1failure with two separate compilation blockers; corrected source0f87d739/81d6f42f/3191f50f requires rerun.",
+          "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
+        }
+      ]
     },
     {
       "id": "F-048",
@@ -1193,6 +1202,13 @@
           "source": "Actual same-origin helper omission corrected42d85c35; new runtime still exposed first-draft argument-presence failure. Actual codec diagnostic awk denied, corrected04b5b483 with POSIX built-ins and no security policy widening.",
           "runtime_accepted": false,
           "evidence": "run39100851587 artifacts12126387376 and12126577212; browser reports1timeout/83skipped/0passed."
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "runtime_accepted": false,
+          "detail": "Actual startup and complete seed pass; browser and codec failed. Cancellation preserves evidence and leaves unexecuted operations/gates pending.",
+          "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
         }
       ]
     },
@@ -1244,6 +1260,13 @@
           "source": "Allow exact approved end evidence field; preserve frozen data/hash and unknown-field rejection. Add all200 source projection regression; align API expected shape with approved url/reuseBasis/retrievedAt/precision while preserving raw DB ledger comparison.",
           "runtime_accepted": false,
           "remote_proof_required": "Actual first100 pages, all200 title/credit/provenance API comparisons, repeated make seed and restart persistence."
+        },
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "runtime_accepted": false,
+          "detail": "Every frozen seed database and HTTPS API record passes, including all100TV end fields, repeat-safe loading and restart persistence. Whole-task acceptance remains pending.",
+          "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
         }
       ]
     },
@@ -1266,7 +1289,16 @@
         "frontend/src/lib/features/movie/editor-controller.ts"
       ],
       "runtime_accepted": false,
-      "source_disposition": "Correction in progress using coerced argument presence; preserve explicit-null rejection and protected persistence."
+      "source_disposition": "Correction in progress using coerced argument presence; preserve explicit-null rejection and protected persistence.",
+      "continuation_assessments": [
+        {
+          "assessed_revision": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+          "run_id": 39102353927,
+          "runtime_accepted": false,
+          "detail": "Real GraphQL engine draft cases5/5 and Long coercion3/3 pass; complete rendered creation/persistence journey still pending.",
+          "evidence_link": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927"
+        }
+      ]
     },
     {
       "id": "F-052",
@@ -1888,6 +1920,76 @@
         "inspected_artifact_ids": [
           12125799774
         ],
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39102230123,
+        "tested_sha": "d50bfc36716adab07f2526c85316ff1a41155961",
+        "result": "succeeded-preparation",
+        "detail": "Remote formatting patch applied as2d3db725; source preparation only.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102230123",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39102353927,
+        "tested_sha": "2d3db725d8f3d445ccfa0537015eae601fc21405",
+        "result": "cancelled-after-retained-runtime-results",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39102353927",
+        "artifact_retention_days": 14,
+        "runner": {
+          "environment": "github-hosted",
+          "os": "Ubuntu24.04",
+          "arch": "X64",
+          "image": "20261012.334.1",
+          "job_id": 117601039980
+        },
+        "results": {
+          "strict_build_and_contracts": "pass",
+          "frontend": "381/381 pass; no pending",
+          "mcp": "76/76 pass; no failures/errors",
+          "native": "3227 executed,1failure,0errors,0skips PLUS Catalog and cross-service compilation failures; absent suites not counted as passes",
+          "make_start": "pass, all8 services ready with trusted private TLS",
+          "public_api_probes": "policy200 and first1 title200",
+          "seed": "PASS: every200 database/HTTPS API record,100MOVIE/100TV/1213people/1475credits/3057members;202requests0throttles; repeat-safe and restart persistence PASS",
+          "codec": "FAIL exit126 in versions after vips and bwrap; actual UID/GID10001,zero capabilities,NNP1,Seccomp2,Media profile observed; pipeline not executed",
+          "browser": "FAIL completed; actual report inspection pending",
+          "monitoring": "completed; actual artifact inspection pending",
+          "make_lifecycle": "interrupted; not pass"
+        },
+        "artifacts": [
+          {
+            "id": 12126707650,
+            "boundary": "frontend/MCP behavior",
+            "inspected": true
+          },
+          {
+            "id": 12126984183,
+            "boundary": "native reports and compile diagnostics",
+            "inspected": true
+          },
+          {
+            "id": 12127054177,
+            "boundary": "make start readiness and public probes",
+            "inspected": true
+          },
+          {
+            "id": 12126979707,
+            "boundary": "complete seed, SDK connector and codec",
+            "inspected": true
+          },
+          {
+            "id": 12127518388,
+            "boundary": "final browser/monitoring/partialMake",
+            "inspected": false
+          }
+        ]
+      },
+      {
+        "run_id": 39103621949,
+        "tested_sha": "3191f50fccbb75fb132d47673143f23e85f2646e",
+        "result": "in_progress",
+        "detail": "Fresh corrected native Catalog iterator, actual Media owner factory and highest-order public alert concealment; no outcome claimed.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39103621949",
         "artifact_retention_days": 14
       }
     ],
