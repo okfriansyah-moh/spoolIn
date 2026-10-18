@@ -11,6 +11,13 @@ export function metadataErrors(draft: MovieDraft): FieldError[] {
   const runtime = draft.runtimeMinutes;
   if (runtime != null && (!Number.isInteger(runtime) || runtime < 1 || runtime > 100000))
     errors.push({ id: 'movie-runtimeMinutes', message: 'Runtime: Use 1–100000 whole minutes or leave blank.' });
+  for (const field of ['originalLanguage', 'synopsisLanguage'] as const) {
+    const value = draft[field]?.trim();
+    if (value && (value.length > 35 || !/^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/.test(value)))
+      errors.push({ id: `movie-${field}`, message: 'Language: Use a BCP47 tag up to 35 characters.' });
+  }
+  if (draft.countries?.some(country => !/^[A-Z]{2}$/.test(country)))
+    errors.push({ id: 'movie-countries', message: 'Countries: Use uppercase two-letter ISO codes separated by commas.' });
   return errors;
 }
 

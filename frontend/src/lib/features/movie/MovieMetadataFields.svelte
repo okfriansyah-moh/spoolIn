@@ -5,6 +5,22 @@
     draft: MovieDraft; disabled: boolean; errorFor: (id: string) => string;
     onChange: (field: MovieDraftField, value: string) => void;
   } = $props();
+  let countryText = $state('');
+  let countrySnapshot = '';
+  $effect(() => {
+    const current = JSON.stringify(draft.countries ?? []);
+    if (current !== countrySnapshot) {
+      countrySnapshot = current;
+      countryText = (draft.countries ?? []).join(', ');
+    }
+  });
+  function change(field: MovieDraftField, raw: string) {
+    if (field === 'countries') {
+      countryText = raw;
+      countrySnapshot = JSON.stringify(raw.split(',').map(item => item.trim()).filter(Boolean));
+    }
+    onChange(field, raw);
+  }
   const fields: readonly { field: MovieDraftField; label: string; help: string; numeric?: boolean }[] = [
     { field: 'releaseMonth', label: 'Release month', help: 'Optional, 1–12. Leave blank when only the year is known.', numeric: true },
     { field: 'releaseDay', label: 'Release day', help: 'Optional calendar day; requires a release month.', numeric: true },
@@ -16,7 +32,7 @@
   function value(field: MovieDraftField): string {
     if (field === 'releaseMonth') return String(draft.release?.month ?? '');
     if (field === 'releaseDay') return String(draft.release?.day ?? '');
-    if (field === 'countries') return (draft.countries ?? []).join(', ');
+    if (field === 'countries') return countryText;
     return String(draft[field as keyof MovieDraft] ?? '');
   }
 </script>
@@ -28,7 +44,7 @@
       inputmode={field.numeric ? 'numeric' : 'text'}
       aria-invalid={!!errorFor(`movie-${field.field}`)}
       aria-describedby="movie-{field.field}-help movie-{field.field}-error"
-      oninput={(event) => onChange(field.field, event.currentTarget.value)} />
+      oninput={(event) => change(field.field, event.currentTarget.value)} />
     <small id="movie-{field.field}-help">{field.help}</small>
     <p id="movie-{field.field}-error" class="field-error">{errorFor(`movie-${field.field}`)}</p>
   </div>
