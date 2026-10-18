@@ -3,12 +3,11 @@ package com.spoolin.core.features.artworkproxy
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermissions
 import java.security.MessageDigest
 import java.util.Base64
 
 internal class ArtworkSpool private constructor(val path: Path, val size: Long, val sha256: ByteArray) : AutoCloseable {
-    override fun close() { Files.deleteIfExists(path) }
+    override fun close() { ArtworkScratch.delete(path) }
 
     companion object {
         fun decode(encoded: String, maximum: Long): ArtworkSpool {
@@ -20,7 +19,7 @@ internal class ArtworkSpool private constructor(val path: Path, val size: Long, 
                 value in 'A'..'Z' || value in 'a'..'z' || value in '0'..'9' || value == '+' || value == '/'
             }) { "FILE_INVALID" }
             require(encoded.takeLast(padding).all { it == '=' }) { "FILE_INVALID" }
-            val path = Files.createTempFile("spoolin-upload-", ".tmp", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
+            val path = ArtworkScratch.create()
             try {
                 val digest = MessageDigest.getInstance("SHA-256")
                 var size = 0L
@@ -49,7 +48,7 @@ internal class ArtworkSpool private constructor(val path: Path, val size: Long, 
                 require(size > 0) { "FILE_INVALID" }
                 return ArtworkSpool(path, size, digest.digest())
             } catch (failure: Exception) {
-                Files.deleteIfExists(path)
+                ArtworkScratch.delete(path)
                 throw failure
             }
         }

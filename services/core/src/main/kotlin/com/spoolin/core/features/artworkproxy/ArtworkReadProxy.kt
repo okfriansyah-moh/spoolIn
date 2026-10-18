@@ -12,7 +12,6 @@ import spoolin.v1.MediaServiceGrpc
 import spoolin.v1.Spoolin
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermissions
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -23,7 +22,7 @@ class ArtworkReadProxy(
     private val issuer: ActorIssuer?,
 ) {
     data class VerifiedAsset(val path: Path, val contentType: String, val bytes: Long) : AutoCloseable {
-        override fun close() { Files.deleteIfExists(path) }
+        override fun close() { ArtworkScratch.delete(path) }
     }
 
     fun read(assetId: UUID, management: Boolean, context: BrowserContext): VerifiedAsset {
@@ -51,7 +50,7 @@ class ArtworkReadProxy(
         if (!first.hasHeader()) throw Status.DATA_LOSS.asRuntimeException()
         val header = first.header
         val contentType = contentType(header)
-        val path = Files.createTempFile("spoolin-artwork-", ".tmp", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
+        val path = ArtworkScratch.create()
         try {
             val hash = MessageDigest.getInstance("SHA-256")
             var bytes = 0L
@@ -68,7 +67,7 @@ class ArtworkReadProxy(
             }
             if (bytes != header.outputBytes || !MessageDigest.isEqual(hash.digest(), header.contentHash.toByteArray())) throw Status.DATA_LOSS.asRuntimeException()
             return VerifiedAsset(path, contentType, bytes)
-        } catch (failure: Exception) { Files.deleteIfExists(path); throw failure }
+        } catch (failure: Exception) { ArtworkScratch.delete(path); throw failure }
     }
 
     private fun contentType(header: Spoolin.AssetReadHeader): String {
