@@ -78,7 +78,7 @@ class ExactApprovalBindingRulesTest {
                 movieId = null,
                 expiresAt = Instant.parse("2030-01-01T00:00:00Z"),
             )
-        assertEquals("POLICY_REVISION_MISMATCH", binding.verify(row, row.challengeHash)?.description)
+        assertEquals("POLICY_CHANGED", binding.verify(row, row.challengeHash)?.description)
     }
 
     @Test

@@ -210,12 +210,13 @@ class Application {
         dataSource: DataSource,
         schema: SchemaReadiness,
         quarantineStore: QuarantineStore,
+        registry: io.micrometer.core.instrument.MeterRegistry,
     ): com.spoolin.media.operations.work.MediaWorkDispatcher =
         com.spoolin.media.operations.work.MediaWorkDispatcher(
             dataSource,
             schema,
             com.spoolin.media.features.processing
-                .MediaProcessingHandler(dataSource, quarantineStore),
+                .MediaProcessingHandler(dataSource, quarantineStore, metrics = com.spoolin.media.features.processing.ProcessingMetrics(registry)),
             { quarantineStore.sweepAbandonedScratch() },
             com.spoolin.support.notifications.ExhaustionNotifications
                 .configured(dataSource, "media") { environment.getProperty(it) },

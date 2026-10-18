@@ -350,7 +350,7 @@ class ProposalWrites(
 
     private fun checkPolicy(revision: String) {
         if (revision != livePolicyRevision()) {
-            throw Status.FAILED_PRECONDITION.withDescription("POLICY_REVISION_MISMATCH").asRuntimeException()
+            throw Status.FAILED_PRECONDITION.withDescription("POLICY_CHANGED").asRuntimeException()
         }
     }
 

@@ -27,7 +27,7 @@ class AlertWebhook(
             if (truncated != null && (!truncated.isIntegralNumber || truncated.asLong() != 0L)) invalid()
             val alerts = root.get("alerts") ?: invalid()
             if (!alerts.isArray || alerts.size() !in 1..20) invalid()
-            alerts.map { episode(it) }.also { episodes ->
+            alerts.toList().map { episode(it) }.also { episodes ->
                 if (text(root, "status") == "resolved" && episodes.any { it.status != "resolved" }) invalid()
             }
         } catch (failure: AlertCapacity) {

@@ -68,7 +68,7 @@ data class ExactApprovalBinding(
     fun reviewProblem(row: ProposalRow): Status? {
         val boundPolicy = ProposalContent.policyRevision(ProposalContent.parseJson(row.contentJson))
         return when {
-            policyRevision != boundPolicy -> Status.FAILED_PRECONDITION.withDescription("POLICY_REVISION_MISMATCH")
+            policyRevision != boundPolicy -> Status.FAILED_PRECONDITION.withDescription("POLICY_CHANGED")
             !now.isBefore(row.expiresAt) -> Status.FAILED_PRECONDITION.withDescription("PROPOSAL_EXPIRED")
             row.state !in setOf("REVIEW", "CREATED") ->
                 Status.FAILED_PRECONDITION.withDescription("PROPOSAL_NOT_REVIEWABLE")
