@@ -1470,7 +1470,7 @@
       {
         "run_id": 39093635908,
         "tested_sha": "890ff3d807fb2c90e6adf102495b836fe6d0daf2",
-        "result": "cancel-requested",
+        "result": "cancelled",
         "detail": "Strict all-owner build/contracts passed;339 frontend tests passed. FEcheck failed pinnedKit goto options, corrected38efa19/4456499. Actual retained native XML totals686tests/41failures/0skips; shared testcompile also failed, so totals do not include unexecuted obligations. Host codec AppArmor denial observed and pinned restrictive profile support added, not yet remotely proved. Cancel requested during obsolete gates to prioritize user-directed real startup/browser run. No application readiness/browser/task acceptance.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39093635908",
         "artifact_retention_days": 14,
@@ -1492,9 +1492,40 @@
       {
         "run_id": 39095266826,
         "tested_sha": "9ca527329756295a84af98246e1953d6b6c94550",
-        "result": "pending",
-        "detail": "Focused hosted runtime run dispatched following explicit user direction to prioritize actual make start, seed, real browsers/design and monitoring. Broad suites and final gates remain separately required; focused runtime cannot establish complete acceptance.",
+        "result": "cancelled",
+        "detail": "Focused hosted runtime run dispatched following explicit user direction to prioritize actual make start, seed, real browsers/design and monitoring. Broad suites and final gates remain separately required; focused runtime cannot establish complete acceptance. Cancelled before completion to include actual Make wrapper selection correction and avoid recursively launching unrelated test suites during focused startup.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095266826",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": []
+      },
+      {
+        "run_id": 39095395324,
+        "tested_sha": "8a65fbec87b1118d97f502deb53af27fae92c32f",
+        "result": "failed",
+        "detail": "Hosted Ubuntu24.04 image20261012.334.1 strict all-owner build/contracts passed. FE check failed exact optional personArchived typing and archive tabpanel warning; corrected3b05541. Codec profile helper failed missing rg; explicit runner package corrected3b05541. Focused helper scanner tests had no gitleaks setup; broad scanner regressions retained in full verify mode with pinned scanner installation. App never started, no browser proof.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095395324",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12124129180
+        ]
+      },
+      {
+        "run_id": 39095558816,
+        "tested_sha": "821033bca160bdc027514952e657735e054b6882",
+        "result": "succeeded-preparation",
+        "detail": "Hosted formatting preparation passed; inspected527864byte patch applied170files84457d9 preserving newer credit typing and archive ARIA fixes. Formatting preparation does not establish runtime acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095558816",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12124721022
+        ]
+      },
+      {
+        "run_id": 39095711013,
+        "tested_sha": "3b055414c7992dde3529b13b90d097bfb78dbb48",
+        "result": "in_progress",
+        "detail": "Focused actual application build/start/seed/browser/design/monitoring rerun dispatched with observed frontend and codec prerequisite corrections. No execution success inferred.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39095711013",
         "artifact_retention_days": 14,
         "inspected_artifact_ids": []
       }
@@ -1576,6 +1607,21 @@
         ],
         "checks": "Hosted39092813499 cancelled after actual Catalog seed compilation failure and2of312 frontend tests failed (310 passed); inspected artifact12123199476 and strict-build12122709083. Helper log exposed recursive Make selection; TASK export correction7d2db4b pending remote rerun. Hosted39093336453 active648cb660afb86f2b9a745431f8b44ad91fc68e32. No new application readiness/browser acceptance.",
         "remaining": "All46tasks In progress. Source-complete established0; runtime task acceptance0; formal0. Finish fresh remote checks/source corrections, clients/readers/host proof, allMake/seed/design/ops proof and one final combined review. Prior counters and findings preserved."
+      },
+      {
+        "at": "2026-10-18T04:03:35.432341+00:00",
+        "local_sha": "84457d96894d0d68121f72183f6b5b970fdff370",
+        "published_sha": "3b055414c7992dde3529b13b90d097bfb78dbb48",
+        "actual_changed_behavior": [
+          "Effective Core/Catalog search/page policy and signed reader/session/filter/policy cursor binding; frontend omission uses server defaults.",
+          "Active credited-person title search and typed allowlisted audit changes; UI labels retained omission metadata.",
+          "Actual Make wrappers consume TASK safely; archived-person credit state preserves unknown optional state.",
+          "Rotation operator orchestration separated from crypto dependency direction while maintaining actual entry point.",
+          "Protected custom-only Core JFR volume supports graceful-stop measurement collection."
+        ],
+        "checks": "Native686 XML tests/41failures/0skips inspected from39093635908, plus shared test compile failure. Strict build passed39095395324 but FE/preconditions failed. Native fixture/classpath/architecture/required-genre corrections remain pending rerun. Fresh39095711013 running. No make start/browser acceptance.",
+        "remaining": "All46tasks In progress; current source-complete established0/runtime0/formal0. Actual runtime/gates/all assigned proof, hosts/readers and final independent combined review pending. Existing review history and selection overlap unchanged.",
+        "next_action": "Inspect real focused startup/browser artifacts, fix concrete failures, complete current-input required checks and one final combined review."
       }
     ],
     "prioritization_history": [
