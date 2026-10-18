@@ -1020,7 +1020,10 @@
         "tests/browser/flows/discovery/**",
         "tests/browser/run-discovery.mjs"
       ],
-      "argv": ["node", "tests/browser/run-discovery.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-discovery.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1032,7 +1035,10 @@
         "tests/browser/flows/archives/**",
         "tests/browser/run-archives.mjs"
       ],
-      "argv": ["node", "tests/browser/run-archives.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-archives.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1044,7 +1050,10 @@
         "tests/browser/flows/artwork/**",
         "tests/browser/run-artwork.mjs"
       ],
-      "argv": ["node", "tests/browser/run-artwork.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-artwork.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1056,7 +1065,10 @@
         "tests/browser/flows/movies/**",
         "tests/browser/run-movies.mjs"
       ],
-      "argv": ["node", "tests/browser/run-movies.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-movies.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1068,7 +1080,10 @@
         "tests/browser/flows/people/**",
         "tests/browser/run-people.mjs"
       ],
-      "argv": ["node", "tests/browser/run-people.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-people.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1080,7 +1095,10 @@
         "tests/browser/flows/credits/**",
         "tests/browser/run-credits.mjs"
       ],
-      "argv": ["node", "tests/browser/run-credits.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-credits.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1092,7 +1110,10 @@
         "tests/browser/flows/draft-component/**",
         "tests/browser/run-draft-component.mjs"
       ],
-      "argv": ["node", "tests/browser/run-draft-component.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-draft-component.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
