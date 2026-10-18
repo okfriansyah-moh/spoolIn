@@ -5,6 +5,7 @@ import java.io.DataOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.GeneralSecurityException
 import java.util.UUID
+import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -60,17 +61,28 @@ class AeadCipher {
         envelope: ProtectedEnvelope,
         key: ByteArray,
         binding: ProtectionBinding,
+        failure: (ProtectionFailure) -> Unit = { },
     ): ProtectedRead<ByteArray> =
         try {
             require(envelope.version == 1 && envelope.cipher().size in GCM_TAG_BYTES..MAX_CIPHER_BYTES)
             val engine = engine(Cipher.DECRYPT_MODE, key, envelope.nonce())
             engine.updateAAD(aad(envelope.version, envelope.keyId, binding))
             ProtectedRead.Value(engine.doFinal(envelope.cipher()))
+        } catch (_: AEADBadTagException) {
+            unavailable(ProtectionFailure.AUTHENTICATION, failure)
         } catch (_: GeneralSecurityException) {
-            ProtectedRead.Unavailable
+            unavailable(ProtectionFailure.UNAVAILABLE, failure)
         } catch (_: IllegalArgumentException) {
-            ProtectedRead.Unavailable
+            unavailable(if (key.size == AES_KEY_BYTES) ProtectionFailure.AUTHENTICATION else ProtectionFailure.KEY, failure)
         }
+
+    private fun unavailable(
+        code: ProtectionFailure,
+        failure: (ProtectionFailure) -> Unit,
+    ): ProtectedRead.Unavailable {
+        runCatching { failure(code) }
+        return ProtectedRead.Unavailable
+    }
 
     private fun engine(
         mode: Int,

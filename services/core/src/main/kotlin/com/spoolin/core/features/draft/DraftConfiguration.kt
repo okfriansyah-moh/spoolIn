@@ -1,13 +1,14 @@
 package com.spoolin.core.features.draft
 
-import com.spoolin.core.features.account.persistence.AccountProtectionSettings
 import com.spoolin.core.features.crypto.AeadCipher
-import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
 import com.spoolin.core.features.crypto.MountedKeys
 import com.spoolin.core.features.crypto.NonceAllocator
+import com.spoolin.core.features.crypto.ProtectionAlert
+import com.spoolin.core.features.crypto.ProtectionMetrics
 import com.spoolin.core.operations.receipts.OwnerReceipts
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,23 +32,23 @@ class DraftConfiguration {
         registry: KeyRegistry,
         keys: MountedKeys,
         nonces: NonceAllocator,
-    ): DraftCryptography = DraftCryptography(registry, keys, nonces, AeadCipher())
+        @Qualifier("draftAlert") alert: ProtectionAlert,
+    ): DraftCryptography = DraftCryptography(registry, keys, nonces, AeadCipher(), alert)
 
     @Bean
-    fun draftAlert(): com.spoolin.core.features.crypto.ProtectionAlert =
-        com.spoolin.core.features.crypto.ProtectionAlert { row: UUID ->
-            LoggerFactory.getLogger(DraftCryptography::class.java).error(
-                "Protected draft unavailable row={}",
-                row,
-            )
-        }
+    fun draftAlert(metrics: ProtectionMetrics): ProtectionAlert =
+        metrics.observing(
+            ProtectionAlert { row: UUID ->
+                LoggerFactory.getLogger(DraftCryptography::class.java).error("Protected draft unavailable row={}", row)
+            },
+        )
 
     @Bean
     fun protectedDrafts(
         dataSource: DataSource,
         draftCrypto: DraftCryptography,
         draftPayload: DraftPayload,
-        alert: com.spoolin.core.features.crypto.ProtectionAlert,
+        @Qualifier("draftAlert") alert: ProtectionAlert,
     ): ProtectedDrafts = ProtectedDrafts(dataSource, draftCrypto, draftPayload, alert)
 
     @Bean

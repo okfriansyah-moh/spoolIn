@@ -11,8 +11,11 @@ import com.spoolin.core.features.crypto.NewPasswordPolicy
 import com.spoolin.core.features.crypto.NonceAllocator
 import com.spoolin.core.features.crypto.PasswordHasher
 import com.spoolin.core.features.crypto.ProtectionAlert
+import com.spoolin.core.features.crypto.ProtectionMetrics
 import com.spoolin.core.features.policy.PolicyProvider
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -42,10 +45,15 @@ class AccountProtectionConfiguration {
     }
 
     @Bean
-    fun protectionAlert(): ProtectionAlert =
-        ProtectionAlert { row ->
-            LoggerFactory.getLogger(AccountCryptography::class.java).error("Protected account unavailable row={}", row)
-        }
+    fun protectionMetrics(registry: MeterRegistry): ProtectionMetrics = ProtectionMetrics(registry)
+
+    @Bean
+    fun protectionAlert(metrics: ProtectionMetrics): ProtectionAlert =
+        metrics.observing(
+            ProtectionAlert { row ->
+                LoggerFactory.getLogger(AccountCryptography::class.java).error("Protected account unavailable row={}", row)
+            },
+        )
 
     @Bean
     fun keyRegistry(dataSource: DataSource): KeyRegistry = KeyRegistry(dataSource)
@@ -58,7 +66,7 @@ class AccountProtectionConfiguration {
         registry: KeyRegistry,
         keys: MountedKeys,
         nonces: NonceAllocator,
-        alert: ProtectionAlert,
+        @Qualifier("protectionAlert") alert: ProtectionAlert,
     ): AccountCryptography = AccountCryptography(registry, keys, nonces, AeadCipher(), alert)
 
     @Bean
@@ -66,7 +74,7 @@ class AccountProtectionConfiguration {
         dataSource: DataSource,
         registry: KeyRegistry,
         crypto: AccountCryptography,
-        alert: ProtectionAlert,
+        @Qualifier("protectionAlert") alert: ProtectionAlert,
         rules: IdentityRules,
     ): ProtectedAccounts = ProtectedAccounts(dataSource, registry, crypto, AccountPayload(), alert, rules)
 

@@ -6,6 +6,8 @@ import javax.crypto.spec.SecretKeySpec
 
 fun interface ProtectionAlert {
     fun unavailable(rowId: UUID)
+
+    fun failed(code: ProtectionFailure) = Unit
 }
 
 class AccountCryptography(
@@ -19,11 +21,16 @@ class AccountCryptography(
         rowId: UUID,
         plaintext: ByteArray,
     ): ProtectedEnvelope {
-        val key = registry.writeKey(KeyPurpose.PII)
-        val bytes = keys.key(key.id, key.purpose) ?: throw ProtectionUnavailable()
+        val key = observeProtection(alert, ProtectionFailure.KEY) { registry.writeKey(KeyPurpose.PII) }
+        val bytes =
+            observeProtection(alert, ProtectionFailure.KEY) {
+                keys.key(key.id, key.purpose) ?: throw ProtectionUnavailable()
+            }
         return try {
-            val nonce = nonces.reserve(key.id, key.purpose)
-            cipher.encrypt(key.id, bytes, nonce.bytes(), binding(rowId), plaintext)
+            val nonce = observeProtection(alert, ProtectionFailure.UNAVAILABLE) { nonces.reserve(key.id, key.purpose) }
+            observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
+                cipher.encrypt(key.id, bytes, nonce.bytes(), binding(rowId), plaintext)
+            }
         } finally {
             bytes.fill(0)
         }
@@ -34,25 +41,12 @@ class AccountCryptography(
         envelope: ProtectedEnvelope,
     ): ProtectedRead<ByteArray> {
         val bytes =
-            if (registry.readable(
-                    envelope.keyId,
-                    KeyPurpose.PII,
-                )
-            ) {
-                keys.key(envelope.keyId, KeyPurpose.PII)
-            } else {
-                null
+            observeProtection(alert, ProtectionFailure.KEY) {
+                if (registry.readable(envelope.keyId, KeyPurpose.PII)) keys.key(envelope.keyId, KeyPurpose.PII) else null
             }
-        val result =
-            if (bytes == null) {
-                ProtectedRead.Unavailable
-            } else {
-                try {
-                    cipher.decrypt(envelope, bytes, binding(rowId))
-                } finally {
-                    bytes.fill(0)
-                }
-            }
+        val result = decryptProtected(alert, bytes) { key ->
+            cipher.decrypt(envelope, key, binding(rowId)) { alert.recordFailure(it) }
+        }
         if (result == ProtectedRead.Unavailable) alert.unavailable(rowId)
         return result
     }
@@ -62,12 +56,17 @@ class AccountCryptography(
         normalizedEmail: String,
     ): ByteArray {
         require(key.purpose == KeyPurpose.EMAIL_LOOKUP)
-        val bytes = keys.key(key.id, KeyPurpose.EMAIL_LOOKUP) ?: throw ProtectionUnavailable()
+        val bytes =
+            observeProtection(alert, ProtectionFailure.KEY) {
+                keys.key(key.id, KeyPurpose.EMAIL_LOOKUP) ?: throw ProtectionUnavailable()
+            }
         return try {
-            Mac
-                .getInstance("HmacSHA256")
-                .also { it.init(SecretKeySpec(bytes, "HmacSHA256")) }
-                .doFinal(("email-lookup-v1\u0000" + normalizedEmail).toByteArray(Charsets.UTF_8))
+            observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
+                Mac
+                    .getInstance("HmacSHA256")
+                    .also { it.init(SecretKeySpec(bytes, "HmacSHA256")) }
+                    .doFinal(("email-lookup-v1\u0000" + normalizedEmail).toByteArray(Charsets.UTF_8))
+            }
         } finally {
             bytes.fill(0)
         }
