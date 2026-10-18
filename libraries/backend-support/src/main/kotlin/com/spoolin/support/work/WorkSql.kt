@@ -45,9 +45,14 @@ object WorkSql {
         connection: Connection,
         now: Instant,
         batchSize: Int = MAX_BATCH,
+        allowedKinds: Set<String>? = null,
     ): List<WorkClaim> {
         require(!connection.autoCommit) { "Work claims require an explicit transaction" }
         require(batchSize in 1..MAX_BATCH) { "Batch size must be between 1 and $MAX_BATCH" }
+        val kinds = allowedKinds?.sorted().orEmpty()
+        require(allowedKinds == null || (kinds.isNotEmpty() && kinds.size <= 10 &&
+            kinds.all { it.matches(Regex("[A-Z][A-Z0-9_]{0,63}")) })) { "Work kinds are invalid" }
+        val kindFilter = if (allowedKinds == null) "" else "AND kind IN (${kinds.joinToString(",") { "?" }})"
         val sql =
             """
             SELECT id, operation_id, kind, payload::text, attempt_count, max_attempts,
@@ -56,13 +61,17 @@ object WorkSql {
             FROM durable_work
             WHERE state = 'READY' AND next_attempt_at <= ?
               AND deadline_at > GREATEST(?, clock_timestamp()) AND attempt_count < max_attempts
+              $kindFilter
             ORDER BY next_attempt_at, id
             LIMIT ?
             FOR UPDATE SKIP LOCKED
             """.trimIndent()
         val ts = Timestamp.from(now)
-        return connection.queryBound(sql, listOf(ts, ts, batchSize)) { rs ->
-            WorkClaim(
+        return connection.queryBound(sql, listOf(ts, ts) + kinds + batchSize, ::candidate)
+    }
+
+    private fun candidate(rs: java.sql.ResultSet): WorkClaim =
+        WorkClaim(
                 workId = rs.getObject("id", UUID::class.java),
                 operationId = rs.getObject("operation_id", UUID::class.java),
                 kind = rs.getString("kind"),
@@ -70,7 +79,7 @@ object WorkSql {
                 attemptCount = rs.getInt("attempt_count"),
                 maxAttempts = rs.getInt("max_attempts"),
                 deadlineAt = rs.getTimestamp("deadline_at").toInstant(),
-                leaseOwner = UUID.randomUUID(), // placeholder — replaced by commitClaim
+                leaseOwner = UUID.randomUUID(),
                 leaseEpoch = rs.getLong("lease_epoch"),
                 correlationId = rs.getObject("correlation_id", UUID::class.java),
                 baseDelayMs = rs.getInt("base_delay_ms"),
@@ -78,8 +87,7 @@ object WorkSql {
                 backoffMultiplier = rs.getInt("backoff_multiplier"),
                 generation = rs.getInt("generation"),
             )
-        }
-    }
+
 
     /**
      * Atomically transitions a READY row to LEASED and inserts the ATTEMPT_STARTED event.

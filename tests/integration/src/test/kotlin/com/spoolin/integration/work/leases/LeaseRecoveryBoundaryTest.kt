@@ -28,6 +28,27 @@ import javax.sql.DataSource
 /** Real PostgreSQL lease/deadline fencing and controlled recovery regressions for TD7.3/7.7. */
 class LeaseRecoveryBoundaryTest {
     @Test
+    fun `kind-specific consumers cannot lease a ready external notification`() {
+        fixture("kind-scope") { pool ->
+            val now = databaseNow(pool)
+            val media = insertWork(pool, now)
+            val notification = insertWork(pool, now)
+            pool.committed { connection ->
+                connection.executeBound("UPDATE durable_work SET kind='MEDIA_PROCESS' WHERE id=?", media)
+                connection.executeBound("UPDATE durable_work SET kind='NOTIFICATION',notification_key=?,notification_mode='slack'," +
+                    "notification_state='PENDING',notification_summary='{}'::jsonb WHERE id=?", notification.toString(), notification)
+                val selected = WorkSql.selectForClaim(connection, now, allowedKinds = setOf("MEDIA_PROCESS"))
+                assertEquals(listOf(media), selected.map { it.workId })
+                assertNotNull(WorkSql.commitClaim(connection, selected.single(), UUID.randomUUID(), now))
+            }
+            val state = pool.connection.use { connection -> connection.queryBound(
+                "SELECT state,attempt_count FROM durable_work WHERE id=?", listOf(notification),
+            ) { it.getString("state") to it.getInt("attempt_count") }.single() }
+            assertEquals("READY" to 0, state)
+        }
+    }
+
+    @Test
     fun `expiry equality fences renewal and completion without recording a false finish`() {
         fixture("expiry") { pool ->
             for (column in listOf("lease_until", "deadline_at")) {

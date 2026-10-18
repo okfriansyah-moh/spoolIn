@@ -35,7 +35,7 @@ class WorkClaimer(
             ) { it.getInt("count") }.single()
             val capacity = minOf(batchSize, 2 - active)
             if (capacity <= 0) return@committed emptyList()
-            val candidates = WorkSql.selectForClaim(connection, now, capacity)
+            val candidates = WorkSql.selectForClaim(connection, now, capacity, setOf("MEDIA_PROCESS"))
             val workerId = UUID.randomUUID()
             candidates.mapNotNull { candidate ->
                 WorkSql.commitClaim(connection, candidate, workerId, now)
