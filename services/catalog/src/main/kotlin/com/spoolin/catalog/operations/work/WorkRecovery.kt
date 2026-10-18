@@ -3,7 +3,6 @@ package com.spoolin.catalog.operations.work
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.work.WorkRecoveryCommit
 import com.spoolin.support.work.WorkRecoveryRequest
-import java.time.Clock
 import javax.sql.DataSource
 
 /**
@@ -14,7 +13,6 @@ import javax.sql.DataSource
  */
 class WorkRecovery(
     private val dataSource: DataSource,
-    private val clock: Clock = Clock.systemUTC(),
 ) {
     fun recover(request: WorkRecoveryRequest): Boolean =
         dataSource.committed { connection ->
