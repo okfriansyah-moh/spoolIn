@@ -11,6 +11,12 @@ const MAX_SESSIONS = 100;
 const SESSION_IDLE_MS = 15 * 60_000;
 
 export class StreamableHttpTransport {
+  constructor(private readonly sessionFactory = createSession) {}
+  get port(): number {
+    const address = this.listener?.address();
+    if (!address || typeof address === 'string') throw new Error('MCP listener unavailable');
+    return address.port;
+  }
   private readonly sessions = new Map<string, Session>();
   private listener?: http.Server;
   private health?: http.Server;
@@ -59,7 +65,7 @@ export class StreamableHttpTransport {
     }
     if (req.method !== 'POST' || this.sessions.size >= MAX_SESSIONS) { res.writeHead(req.method === 'POST' ? 429 : 400).end(); return; }
     // Core validates the live credential before an MCP session or any tool is allocated.
-    const service = await createSession(token);
+    const service = await this.sessionFactory(token);
     let sessionId: string | undefined;
     const transport = new NodeStreamableHTTPServerTransport({
       sessionIdGenerator: randomUUID,

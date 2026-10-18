@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { McpServer, ResourceTemplate, fromJsonSchema } from '@modelcontextprotocol/server';
 import type { JsonSchemaType } from '@modelcontextprotocol/server';
 import { GatewayClient } from '../operations/gateway-client.js';
@@ -8,8 +8,12 @@ import { reviewHtml } from '../resources/review.js';
 import { buildProposeMovieCallToolResult } from '../transport/propose-tool-result.js';
 import { contextProjection, outcomeProjection, proposalProjection } from './projections.js';
 
-const inputs = JSON.parse(readFileSync(new URL('../mcp-inputs.schema.json', import.meta.url), 'utf8')) as Record<string, JsonSchemaType>;
-const outputs = JSON.parse(readFileSync(new URL('../mcp-outputs.schema.json', import.meta.url), 'utf8')) as { $defs: Record<string, JsonSchemaType> };
+const schemaFile = (name: string) => {
+  const built = new URL(`../${name}.schema.json`, import.meta.url);
+  return existsSync(built) ? built : new URL(`../../../contracts/json/${name}.schema.json`, import.meta.url);
+};
+const inputs = JSON.parse(readFileSync(schemaFile('mcp-inputs'), 'utf8')) as Record<string, JsonSchemaType>;
+const outputs = JSON.parse(readFileSync(schemaFile('mcp-outputs'), 'utf8')) as { $defs: Record<string, JsonSchemaType> };
 const input = (name: string) => fromJsonSchema<Record<string, unknown>>(inputs[name]!);
 const output = (name: string) => fromJsonSchema<Record<string, unknown>>(outputs.$defs[name]!);
 function result(value: Record<string, unknown>) {
@@ -36,8 +40,9 @@ function registerResources(server: McpServer, proposals: Map<string, { content: 
   });
 }
 
-export async function createSession(token: string): Promise<{ server: McpServer; close: () => Promise<void> }> {
-  const gateway = new GatewayClient(token);
+type GatewayOperations = Pick<GatewayClient, 'policy' | 'context' | 'propose' | 'operation' | 'close'>;
+
+export async function createSession(token: string, gateway: GatewayOperations = new GatewayClient(token)): Promise<{ server: McpServer; close: () => Promise<void> }> {
   let policy;
   try { policy = await gateway.policy(); } catch (error) { gateway.close(); throw error; }
   const server = new McpServer({ name: 'spoolin', version: '1.0.0' });

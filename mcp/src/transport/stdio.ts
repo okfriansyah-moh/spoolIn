@@ -25,7 +25,12 @@ const close = async () => {
   await upstream.close();
   await stdio.close();
 };
-upstream.onmessage = (message) => { void stdio.send(message).catch(close); };
+upstream.onmessage = (message) => {
+  if ('result' in message && typeof message.result.protocolVersion === 'string') {
+    upstream.setProtocolVersion(message.result.protocolVersion);
+  }
+  void stdio.send(message).catch(close);
+};
 stdio.onmessage = (message) => { void upstream.send(message).catch(() => { process.stderr.write('MCP upstream unavailable\n'); void close(); }); };
 upstream.onerror = () => { process.stderr.write('MCP transport failure\n'); };
 stdio.onclose = () => { void close(); };
