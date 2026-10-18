@@ -23,8 +23,8 @@ class SeedProvenance(private val connection: Connection, private val seed: SeedM
         val fields = node["sources"].associate { it["field"].asText() to mapper.convertValue(it, Map::class.java) }
         val first = node["sources"].first()
         connection.executeBound(
-            "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,record_url,retrieved_at,reuse_note,field_sources) " +
-                "VALUES(?,?,?,?,?,?,?,?::jsonb)",
+            "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,record_url," +
+                "retrieved_at,reuse_note,field_sources) VALUES(?,?,?,?,?,?,?,?::jsonb)",
             node["source"].asText(), node["externalId"].asText(), kind, id,
             first["url"].asText(), Timestamp.from(Instant.parse(first["retrievedAt"].asText())),
             "CC0-1.0 Wikidata facts; original factual synopsis where applicable", mapper.writeValueAsString(fields),
@@ -36,20 +36,28 @@ class SeedProvenance(private val connection: Connection, private val seed: SeedM
         expected += seed.records.map { it to "TITLE" }
         expected += seed.people.map { it to "PERSON" }
         expected += seed.roles.map { it to "ROLE" }
-        expected += seed.records.flatMap { it["genres"].toList() }.distinctBy { it["externalId"].asText() }.map { it to "GENRE" }
+        expected += seed.records.flatMap { it["genres"].toList() }
+            .distinctBy { it["externalId"].asText() }.map { it to "GENRE" }
         expected += seed.records.flatMap { it["credits"].toList() }.map { it to "CREDIT" }
         expected.forEach { (node, kind) -> verifyMember(node, kind) }
-        val count = connection.queryBound("SELECT count(*) AS total FROM seed_member WHERE seed_id=?", listOf(version)) { it.getInt("total") }.single()
+        val count = connection.queryBound(
+            "SELECT count(*) AS total FROM seed_member WHERE seed_id=?", listOf(version),
+        ) { it.getInt("total") }.single()
         require(count == expected.size) { "Seed receipt membership differs from the frozen snapshot" }
     }
 
     private fun verifyMember(node: JsonNode, kind: String) {
         val rows = connection.queryBound(
-            "SELECT subject_id,content_hash,removed_at FROM seed_member WHERE seed_id=? AND member_key=? AND subject_kind=?",
+            "SELECT subject_id,content_hash,removed_at FROM seed_member " +
+                "WHERE seed_id=? AND member_key=? AND subject_kind=?",
             listOf(version, key(node, kind), kind),
-        ) { Triple(it.getObject("subject_id", UUID::class.java), it.getBytes("content_hash"), it.getTimestamp("removed_at")) }
+        ) {
+            Triple(it.getObject("subject_id", UUID::class.java), it.getBytes("content_hash"), it.getTimestamp("removed_at"))
+        }
         val row = rows.singleOrNull() ?: error("Seed receipt member missing; automatic recreation prohibited")
-        require(java.security.MessageDigest.isEqual(row.second, SeedIdentities.hash(node))) { "Seed member checksum mismatch" }
+        require(java.security.MessageDigest.isEqual(row.second, SeedIdentities.hash(node))) {
+            "Seed member checksum mismatch"
+        }
         if (kind != "ROLE") require(row.first.toString() == node["stableUUID"].asText())
         if (kind in setOf("TITLE", "PERSON")) verifySource(node, kind, row.first, row.third != null)
     }

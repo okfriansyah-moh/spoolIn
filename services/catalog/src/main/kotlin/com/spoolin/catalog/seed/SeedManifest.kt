@@ -15,20 +15,49 @@ class SeedManifest private constructor(val root: JsonNode) {
     val snapshotHash: ByteArray = SeedIdentities.hash(root)
 
     private fun validate() {
-        require(root.path("schemaVersion").asInt() == 2 && version.matches(Regex("[A-Za-z0-9_.-]{1,64}")))
-        require(root.path("expectedMovieCount").asInt() == 100 && root.path("expectedTVCount").asInt() == 100)
-        require(root.path("sourcePolicyVersion").asText().isNotBlank() && root.path("licenseSummary").asText().isNotBlank())
-        require(root.path("snapshotSHA256").asText() == SeedIdentities.hashHex(root)) { "Seed snapshot checksum mismatch" }
-        require(records.size == 200 && records.count { it.path("kind").asText() == "MOVIE" } == 100)
-        require(records.count { it.path("kind").asText() == "TV" } == 100)
-        require(records.map { it.path("externalId").asText() }.distinct().size == 200)
-        require(people.map { it.path("externalId").asText() }.distinct().size == people.size)
+        validateHeader()
+        validateCounts()
         validateDistribution()
         records.forEach(::validateRecord)
-        people.forEach { identity(it, "PERSON"); checksum(it); sources(it, setOf("name")); text(it, "name", 255) }
-        roles.forEach { identity(it, "ROLE"); sources(it, setOf("label", "category", "allowsCharacters")); require(it.path("category").asText() in setOf("CAST", "CREATOR")) }
+        people.forEach(::validatePerson)
+        roles.forEach(::validateRole)
         require(roles.map { it.path("label").asText() }.toSet() == setOf("Actor", "Director", "Writer", "Producer"))
-        require(root.path("files").isArray && root.path("files").size() == 0) { "Unreviewed seed artwork is prohibited" }
+        require(root.path("files").isArray && root.path("files").size() == 0) {
+            "Unreviewed seed artwork is prohibited"
+        }
+    }
+
+    private fun validateHeader() {
+        require(root.path("schemaVersion").asInt() == SeedLimits.SCHEMA_VERSION)
+        require(version.matches(Regex("[A-Za-z0-9_.-]{1,64}")))
+        require(root.path("expectedMovieCount").asInt() == SeedLimits.MOVIES)
+        require(root.path("expectedTVCount").asInt() == SeedLimits.SERIES)
+        require(root.path("sourcePolicyVersion").asText().isNotBlank())
+        require(root.path("licenseSummary").asText().isNotBlank())
+        require(root.path("snapshotSHA256").asText() == SeedIdentities.hashHex(root)) {
+            "Seed snapshot checksum mismatch"
+        }
+    }
+
+    private fun validateCounts() {
+        require(records.size == SeedLimits.TITLES)
+        require(records.count { it.path("kind").asText() == "MOVIE" } == SeedLimits.MOVIES)
+        require(records.count { it.path("kind").asText() == "TV" } == SeedLimits.SERIES)
+        require(records.map { it.path("externalId").asText() }.distinct().size == SeedLimits.TITLES)
+        require(people.map { it.path("externalId").asText() }.distinct().size == people.size)
+    }
+
+    private fun validatePerson(person: JsonNode) {
+        identity(person, "PERSON")
+        checksum(person)
+        sources(person, setOf("name"))
+        text(person, "name", SeedLimits.LABEL_CODE_POINTS)
+    }
+
+    private fun validateRole(role: JsonNode) {
+        identity(role, "ROLE")
+        sources(role, setOf("label", "category", "allowsCharacters"))
+        require(role.path("category").asText() in setOf("CAST", "CREATOR"))
     }
 
     private fun validateDistribution() {
@@ -49,19 +78,35 @@ class SeedManifest private constructor(val root: JsonNode) {
         checksum(record)
         sources(record, setOf("title", "synopsis", "release", "genres"))
         val values = record["normalized"]
-        text(values, "title", 255); text(values, "synopsis", 5000)
+        text(values, "title", SeedLimits.LABEL_CODE_POINTS)
+        text(values, "synopsis", SeedLimits.SYNOPSIS_CODE_POINTS)
         require(values.path("synopsisLanguage").asText() == "en")
         date(values["release"])
-        if (kind == "TV") {
-            require(values.path("tvStatus").asText() in setOf("CONTINUING", "ENDED", "CANCELLED", "UNKNOWN"))
-            if (!values.path("end").isNull && !values.path("end").isMissingNode) date(values["end"])
-        }
-        val genres = record["genres"].toList()
-        require(genres.size in 1..20 && genres.map { it["stableUUID"].asText() }.distinct().size == genres.size)
-        genres.forEach { identity(it, "GENRE"); sources(it, setOf("label")); text(it, "label", 255) }
-        require(values["genreIds"].toList().map { it.asText() } == genres.map { it["stableUUID"].asText() })
+        if (kind == "TV") validateSeries(values)
+        validateGenres(record)
         record["credits"].forEach(::validateCredit)
         require(record.path("artwork").isNull) { "Artwork requires a separately reviewed file license" }
+    }
+
+    private fun validateSeries(values: JsonNode) {
+        require(values.path("tvStatus").asText() in setOf("CONTINUING", "ENDED", "CANCELLED", "UNKNOWN"))
+        val end = values.path("end")
+        if (!end.isNull && !end.isMissingNode) date(end)
+    }
+
+    private fun validateGenres(record: JsonNode) {
+        val genres = record["genres"].toList()
+        require(genres.size in 1..SeedLimits.GENRES_PER_TITLE)
+        require(genres.map { it["stableUUID"].asText() }.distinct().size == genres.size)
+        genres.forEach(::validateGenre)
+        require(record["normalized"]["genreIds"].toList().map { it.asText() } ==
+            genres.map { it["stableUUID"].asText() })
+    }
+
+    private fun validateGenre(genre: JsonNode) {
+        identity(genre, "GENRE")
+        sources(genre, setOf("label"))
+        text(genre, "label", SeedLimits.LABEL_CODE_POINTS)
     }
 
     private fun validateCredit(credit: JsonNode) {
@@ -86,11 +131,14 @@ class SeedManifest private constructor(val root: JsonNode) {
     private fun sources(node: JsonNode, fields: Set<String>) {
         val sources = node.path("sources").toList()
         require(sources.map { it.path("field").asText() }.toSet().containsAll(fields))
-        sources.forEach {
-            require(it.path("url").asText().startsWith("https://www.wikidata.org/wiki/"))
-            require(it.path("license").asText() == "CC0-1.0" && it.path("permissionBasis").asText().isNotBlank())
-            java.time.Instant.parse(it.path("retrievedAt").asText())
-        }
+        sources.forEach(::validateSource)
+    }
+
+    private fun validateSource(source: JsonNode) {
+        require(source.path("url").asText().startsWith("https://www.wikidata.org/wiki/"))
+        require(source.path("license").asText() == "CC0-1.0")
+        require(source.path("permissionBasis").asText().isNotBlank())
+        java.time.Instant.parse(source.path("retrievedAt").asText())
     }
 
     private fun text(node: JsonNode, field: String, maximum: Int) {
@@ -100,16 +148,22 @@ class SeedManifest private constructor(val root: JsonNode) {
 
     private fun date(node: JsonNode) {
         val year = node.path("year").asInt()
-        require(year in 1..9999)
+        require(year in 1..SeedLimits.MAXIMUM_YEAR)
         val month = node.path("month").takeUnless { it.isNull }?.asInt()
         val day = node.path("day").takeUnless { it.isNull }?.asInt()
-        require(month == null || month in 1..12)
+        require(month == null || month in 1..SeedLimits.MONTHS_PER_YEAR)
         require(day == null || month != null)
         if (day != null) LocalDate.of(year, requireNotNull(month), day)
-        require(node.path("precision").asText() == if (day != null) "DAY" else if (month != null) "MONTH" else "YEAR")
+        val precision = when {
+            day != null -> "DAY"
+            month != null -> "MONTH"
+            else -> "YEAR"
+        }
+        require(node.path("precision").asText() == precision)
     }
 
     companion object {
-        fun read(path: Path): SeedManifest = SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
+        fun read(path: Path): SeedManifest =
+            SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
     }
 }
