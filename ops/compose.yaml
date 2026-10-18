@@ -1,4 +1,56 @@
 name: ${SPOOLIN_INSTALLATION:?Set installation identifier}
+x-owner-settings: &owner-settings
+  # Unresolved keys stay absent; explicit empty/zero values reach strict validation.
+  REGISTRATION_NAME_MIN_CODE_POINTS:
+  REGISTRATION_NAME_MAX_CODE_POINTS:
+  PERSON_NAME_MIN_CODE_POINTS:
+  PERSON_NAME_MAX_CODE_POINTS:
+  TITLE_MIN_CODE_POINTS:
+  TITLE_MAX_CODE_POINTS:
+  ORIGINAL_TITLE_MIN_CODE_POINTS:
+  ORIGINAL_TITLE_MAX_CODE_POINTS:
+  SYNOPSIS_MIN_CODE_POINTS:
+  SYNOPSIS_MAX_CODE_POINTS:
+  CREDIT_ROLE_MIN_CODE_POINTS:
+  CREDIT_ROLE_MAX_CODE_POINTS:
+  CHARACTER_NAME_MIN_CODE_POINTS:
+  CHARACTER_NAME_MAX_CODE_POINTS:
+  BIOGRAPHY_MIN_CODE_POINTS:
+  BIOGRAPHY_MAX_CODE_POINTS:
+  EMAIL_MAX_CODE_POINTS:
+  PASSWORD_MIN_CODE_POINTS:
+  PASSWORD_MAX_CODE_POINTS:
+  SEARCH_MAX_CODE_POINTS:
+  SOURCE_URL_MAX_CODE_POINTS:
+  REUSE_BASIS_MAX_CODE_POINTS:
+  ARTWORK_MAX_INPUT_BYTES:
+  ARTWORK_FORMATS:
+  REQUEST_METADATA_BYTES:
+  REQUEST_UPLOAD_ENVELOPE_BYTES:
+  REQUEST_GRAPHQL_QUERY_BYTES:
+  REQUEST_MAX_DEPTH:
+  REQUEST_MAX_FIELDS:
+  REQUEST_MAX_ALIASES:
+  REQUEST_MAX_COST:
+  REQUEST_DEFAULT_PAGE:
+  REQUEST_MAX_PAGE:
+  RETRY_MAX_RETRIES:
+  RETRY_BASE_DELAY_MS:
+  RETRY_MAX_DELAY_MS:
+  RETRY_DEADLINE_MS:
+  RETRY_MULTIPLIER:
+  RATE_LIMIT_SIGNIN_ACCOUNT_MAX_REQUESTS:
+  RATE_LIMIT_SIGNIN_ACCOUNT_WINDOW_SECONDS:
+  RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS:
+  RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS:
+  RATE_LIMIT_REGISTER_MAX_REQUESTS:
+  RATE_LIMIT_REGISTER_WINDOW_SECONDS:
+  RATE_LIMIT_MUTATION_MAX_REQUESTS:
+  RATE_LIMIT_MUTATION_WINDOW_SECONDS:
+  RATE_LIMIT_READ_MAX_REQUESTS:
+  RATE_LIMIT_READ_WINDOW_SECONDS:
+  MCP_RATE_LIMIT_MAX_BINDINGS:
+  LOG_LEVEL:
 services:
   postgres:
     build:
@@ -42,6 +94,7 @@ services:
       dockerfile: ops/containers/core.Dockerfile
     image: spoolin-core-foundation:0.0.0
     environment:
+      <<: *owner-settings
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_runtime
       ROTATION_KEYS_FILE: ${ROTATION_KEYS_FILE-/run/spoolin-config/rotation-keys.json}
@@ -98,6 +151,7 @@ services:
       dockerfile: ops/containers/catalog.Dockerfile
     image: spoolin-catalog-foundation:0.0.0
     environment:
+      <<: *owner-settings
       CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CATALOG_DB_USER: spoolin_catalog_runtime
       SPRING_CONFIG_IMPORT: file:/run/spoolin-config/catalog.json[.yaml]
@@ -153,6 +207,7 @@ services:
       dockerfile: ops/containers/media.Dockerfile
     image: spoolin-media-foundation:0.0.0
     environment:
+      <<: *owner-settings
       MEDIA_DB_URL: jdbc:postgresql://postgres:5432/spoolin_media?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       MEDIA_DB_USER: spoolin_media_runtime
       SPRING_CONFIG_IMPORT: file:/run/spoolin-config/media.json[.yaml]
@@ -206,6 +261,7 @@ services:
     image: spoolin-catalog-foundation:0.0.0
     profiles: [seed]
     environment:
+      <<: *owner-settings
       CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CATALOG_DB_USER: spoolin_catalog_runtime
       CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
@@ -226,6 +282,7 @@ services:
       context: ..
       dockerfile: ops/containers/mcp.Dockerfile
     environment:
+      <<: *owner-settings
       CORE_GRPC_TARGET: core:9090
       GRPC_CA_FILE: /run/secrets/service-ca
       GRPC_CLIENT_KEY_FILE: /run/secrets/mcp-key
