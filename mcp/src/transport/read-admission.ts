@@ -34,21 +34,23 @@ export class ReadAdmission {
     this.previousTime = now;
     const identity = createHmac('sha256', this.key).update('mcp-read-v1\0').update(verifiedDigest).digest('hex');
     const window = Math.floor(now / this.windowMs) * this.windowMs;
-    let binding = this.bindings.get(identity);
-    if (binding && binding.expires <= now) { this.bindings.delete(identity); binding = undefined; }
-    if (!binding) {
-      this.purge(now);
-      if (this.bindings.size >= this.capacity) {
-        let next = now + 2 * this.windowMs;
-        for (const retained of this.bindings.values()) next = Math.min(next, retained.expires);
-        throw new ReadLimited(Math.max(1, next - now));
-      }
-      binding = { window, hits: 0, expires: window + 2 * this.windowMs };
-      this.bindings.set(identity, binding);
-    }
+    const binding = this.binding(identity, window, now);
     if (binding.window !== window) { binding.window = window; binding.hits = 0; binding.expires = window + 2 * this.windowMs; }
     if (binding.hits >= this.maximum) throw new ReadLimited(Math.max(1, window + this.windowMs - now));
     binding.hits += 1;
+  }
+  private binding(identity: string, window: number, now: number): Binding {
+    const existing = this.bindings.get(identity);
+    if (existing && existing.expires > now) return existing;
+    this.purge(now);
+    if (this.bindings.size >= this.capacity) {
+      let next = now + 2 * this.windowMs;
+      for (const retained of this.bindings.values()) next = Math.min(next, retained.expires);
+      throw new ReadLimited(Math.max(1, next - now));
+    }
+    const binding = { window, hits: 0, expires: window + 2 * this.windowMs };
+    this.bindings.set(identity, binding);
+    return binding;
   }
   private purge(now: number): void {
     for (const [identity, binding] of this.bindings) if (binding.expires <= now) this.bindings.delete(identity);

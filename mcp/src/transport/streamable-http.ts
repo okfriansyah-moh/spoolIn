@@ -32,6 +32,8 @@ export class StreamableHttpTransport {
         res.end();
       });
     });
+    this.listener.maxConnections = 128;
+    this.listener.maxRequestsPerSocket = 1000;
     this.listener.requestTimeout = 30_000;
     this.listener.headersTimeout = 10_000;
     this.health = http.createServer((req, res) => {
@@ -49,30 +51,39 @@ export class StreamableHttpTransport {
     }, 60_000).unref();
   }
   private async handle(req: http.IncomingMessage, res: http.ServerResponse, path: string, origins: Set<string>, hosts: Set<string>): Promise<void> {
-    if (req.url !== path) { res.writeHead(404).end(); return; }
-    const host = new URL(`http://${req.headers.host ?? ''}`).hostname;
-    if (!hosts.has(host) || (req.headers.origin && !origins.has(req.headers.origin))) { res.writeHead(403).end(); return; }
-    const authorization = req.headers.authorization;
-    if (!authorization?.startsWith('Bearer ') || authorization.length > 4096) { res.writeHead(401).end(); return; }
-    const token = authorization.slice(7).trim();
-    if (!token) { res.writeHead(401).end(); return; }
+    const token = this.authorize(req, res, path, origins, hosts);
+    if (!token) return;
     const digest = connectorTokenDigest(token);
     const id = req.headers['mcp-session-id'];
-    if (typeof id === 'string') {
-      const session = this.sessions.get(id);
-      if (!session || !timingSafeEqual(session.digest, digest)) { res.writeHead(404).end(); return; }
-      const body = await this.body(req, res);
-      if (res.writableEnded || !this.admit(req, res, digest, body, true)) return;
-      session.touched = Date.now();
-      await session.transport.handleRequest(req, res, body);
-      return;
-    }
-    if (req.method !== 'POST' || this.sessions.size + this.initializing >= MAX_SESSIONS) { res.writeHead(req.method === 'POST' ? 429 : 400, req.method === 'POST' ? { 'Retry-After': '1' } : {}).end(); return; }
+    if (typeof id === 'string') { await this.existing(req, res, id, digest); return; }
+    if (req.method !== 'POST') { res.writeHead(400).end(); return; }
     const body = await this.body(req, res);
     if (res.writableEnded) return;
+    if (this.sessions.size + this.initializing >= MAX_SESSIONS) { res.writeHead(429, { 'Retry-After': '1' }).end(); return; }
     // Core validates the live credential before an MCP session or any tool is allocated.
     this.initializing += 1;
     try { await this.initialize(req, res, token, digest, body); } finally { this.initializing -= 1; }
+  }
+  private authorize(req: http.IncomingMessage, res: http.ServerResponse, path: string, origins: Set<string>, hosts: Set<string>): string | undefined {
+    if (req.url !== path) { res.writeHead(404).end(); return undefined; }
+    if (!this.allowed(req, origins, hosts)) { res.writeHead(403).end(); return undefined; }
+    const authorization = req.headers.authorization;
+    if (!authorization?.startsWith('Bearer ') || authorization.length > 4096) { res.writeHead(401).end(); return undefined; }
+    const token = authorization.slice(7).trim();
+    if (!token) { res.writeHead(401).end(); return undefined; }
+    return token;
+  }
+  private allowed(req: http.IncomingMessage, origins: Set<string>, hosts: Set<string>): boolean {
+    const host = new URL(`http://${req.headers.host ?? ''}`).hostname;
+    return hosts.has(host) && (!req.headers.origin || origins.has(req.headers.origin));
+  }
+  private async existing(req: http.IncomingMessage, res: http.ServerResponse, id: string, digest: Buffer): Promise<void> {
+    const session = this.sessions.get(id);
+    if (!session || !timingSafeEqual(session.digest, digest)) { res.writeHead(404).end(); return; }
+    const body = await this.body(req, res);
+    if (res.writableEnded || !this.admit(req, res, digest, body, true)) return;
+    session.touched = Date.now();
+    await session.transport.handleRequest(req, res, body);
   }
   private async initialize(req: http.IncomingMessage, res: http.ServerResponse, token: string, digest: Buffer, body: unknown): Promise<void> {
     const service = await this.sessionFactory(token);
@@ -115,18 +126,20 @@ export class StreamableHttpTransport {
     if (established && req.method === 'POST' && message?.method === 'tools/call') return true;
     try { this.admission.admit(digest); return true; }
     catch (failure) {
-      const limited = failure instanceof ReadLimited;
-      const retryAfterMs = limited ? failure.retryAfterMs : undefined;
-      const status = limited ? 429 : 503;
-      const problem = limited ? { code: 'RATE_LIMITED', retryAfterMs } : { code: 'UNAVAILABLE' };
-      res.writeHead(status, { 'content-type': 'application/json',
-        ...(limited ? { 'Retry-After': String(Math.max(1, Math.ceil(failure.retryAfterMs / 1000))) } : {}) });
-      res.end(JSON.stringify(established && req.method === 'POST' ? {
-        jsonrpc: '2.0', id: typeof message?.id === 'string' || typeof message?.id === 'number' ? message.id : null,
-        error: { code: -32000, message: limited ? 'Request limit reached.' : 'Service unavailable.', data: problem },
-      } : { problem }));
+      this.denied(req, res, message, established, failure);
       return false;
     }
+  }
+  private denied(req: http.IncomingMessage, res: http.ServerResponse, message: { id?: unknown } | undefined, established: boolean, failure: unknown): void {
+    const limited = failure instanceof ReadLimited;
+    const problem = limited ? { code: 'RATE_LIMITED', retryAfterMs: failure.retryAfterMs } : { code: 'UNAVAILABLE' };
+    res.writeHead(limited ? 429 : 503, { 'content-type': 'application/json',
+      ...(limited ? { 'Retry-After': String(Math.max(1, Math.ceil(failure.retryAfterMs / 1000))) } : {}) });
+    const id = message?.id;
+    res.end(JSON.stringify(established && req.method === 'POST' ? {
+      jsonrpc: '2.0', id: typeof id === 'string' || typeof id === 'number' ? id : null,
+      error: { code: -32000, message: limited ? 'Request limit reached.' : 'Service unavailable.', data: problem },
+    } : { problem }));
   }
   async close(): Promise<void> {
     if (this.cleanup) clearInterval(this.cleanup);
