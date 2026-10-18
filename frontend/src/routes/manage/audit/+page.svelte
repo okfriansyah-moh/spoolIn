@@ -73,17 +73,25 @@
     }
     return displayValue(value);
   }
+
+  function fieldLabel(field: string): string {
+    const words = field
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+      .replaceAll('_', ' ')
+      .replaceAll('-', ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
 </script>
 
 <svelte:head><title>Audit history · SpoolIn</title></svelte:head>
 <h1 tabindex="-1">Audit history</h1>
-<p class="muted">Read-only catalog and approval outcomes.</p>
+<p class="muted">A clear record of catalog changes and approval outcomes.</p>
 <p role="status" aria-live="polite">{loading ? 'Loading history…' : message}</p>
 
 {#if rows.length}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users must be able to scroll the history table.) -->
   <div
-    class="table-wrap"
+    class="table-wrap desktop-history"
     tabindex="0"
     role="region"
     aria-label="Catalog history"
@@ -112,7 +120,11 @@
               <details>
                 <summary>Inspect changes</summary>
                 {#each Object.entries(row.changes) as [field, change]}
-                  <p><strong>{field}</strong>: {displayChange(change)}</p>
+                  <p>
+                    <strong>{fieldLabel(field)}</strong>: {displayChange(
+                      change,
+                    )}
+                  </p>
                 {:else}
                   <p>No field changes recorded.</p>
                 {/each}
@@ -123,6 +135,44 @@
       </tbody>
     </table>
   </div>
+  <ul class="mobile-history" aria-label="Catalog history">
+    {#each rows as row (row.id)}
+      <li class="history-entry">
+        <article>
+          <header class="history-entry-heading">
+            <time datetime={row.at}>{row.at}</time>
+            <span class="history-outcome">{row.outcome}</span>
+          </header>
+          <dl class="history-fields">
+            <div>
+              <dt>Actor</dt>
+              <dd>{row.actorRef ?? '—'}</dd>
+            </div>
+            <div>
+              <dt>Action</dt>
+              <dd>{row.action}</dd>
+            </div>
+            <div>
+              <dt>Record</dt>
+              <dd>{row.subjectKind} {row.subjectId ?? '—'}</dd>
+            </div>
+          </dl>
+          <details>
+            <summary>Review changes</summary>
+            <div class="history-changes">
+              {#each Object.entries(row.changes) as [field, change]}
+                <p>
+                  <strong>{fieldLabel(field)}</strong>: {displayChange(change)}
+                </p>
+              {:else}
+                <p>No field changes recorded.</p>
+              {/each}
+            </div>
+          </details>
+        </article>
+      </li>
+    {/each}
+  </ul>
 {/if}
 {#if (permitted && hasNextPage) || message.includes('Retry')}
   <button
@@ -136,6 +186,12 @@
 {/if}
 
 <style>
+  .mobile-history {
+    display: none;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
   .table-wrap {
     overflow-x: auto;
   }
@@ -153,5 +209,60 @@
   }
   .muted {
     margin-bottom: var(--space-4, 1rem);
+  }
+  .history-entry {
+    padding: var(--primitive-space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .history-entry-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--primitive-space-2);
+    padding-bottom: var(--primitive-space-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .history-entry-heading time {
+    overflow-wrap: anywhere;
+    color: var(--muted);
+    font-size: var(--primitive-type-small);
+  }
+  .history-outcome {
+    padding: var(--primitive-space-1) var(--primitive-space-2);
+    border-radius: 999px;
+    background: var(--selected);
+  }
+  .history-fields {
+    display: grid;
+    gap: var(--primitive-space-3);
+    margin: var(--primitive-space-4) 0;
+  }
+  .history-fields div {
+    min-width: 0;
+  }
+  .history-fields dt {
+    font-size: var(--primitive-type-small);
+  }
+  .history-changes {
+    max-width: 70ch;
+    padding-top: var(--primitive-space-2);
+  }
+  .history-changes p {
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 699px) {
+    .desktop-history {
+      display: none;
+    }
+    .mobile-history {
+      display: grid;
+      gap: var(--primitive-space-3);
+    }
+    .mobile-history li {
+      min-width: 0;
+    }
   }
 </style>

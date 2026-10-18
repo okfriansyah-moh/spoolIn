@@ -47,17 +47,24 @@
     );
     explicit = true;
   }
+  function isCurrentRoute(href: string): boolean {
+    return (
+      currentPath === href ||
+      (href !== '/' && currentPath.startsWith(`${href}/`))
+    );
+  }
 </script>
 
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="app-header">
-  <a href={resolve('/')} aria-label="SpoolIn home"><Brand /></a>
-  <nav aria-label="Main navigation">
+  <a class="app-home" href={resolve('/')} aria-label="SpoolIn home"><Brand /></a
+  >
+  <nav class="primary-navigation" aria-label="Main navigation">
     {#each navigation(capabilities) as item (item.href)}
       <!-- eslint-disable svelte/no-navigation-without-resolve -- Downstream route owners provide these declared routes; prefix the actual base without claiming generated routes exist. -->
       <a
         href={`${resolve('/')}${item.href.slice(1)}`}
-        aria-current={currentPath === item.href ? 'page' : undefined}
+        aria-current={isCurrentRoute(item.href) ? 'page' : undefined}
         >{item.label}</a
       ><!-- eslint-enable svelte/no-navigation-without-resolve -->{/each}
   </nav>

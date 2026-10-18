@@ -254,6 +254,7 @@ export async function createMovie(page: Page, title = uniqueName('Movie')) {
     .getByLabel('Synopsis · Required', { exact: true })
     .fill('A remote acceptance movie with persisted metadata.');
   await page.getByLabel('Release year · Required').fill('2024');
+  await page.getByText('Choose genres', { exact: true }).click();
   await page.locator('#movie-genres input[type="checkbox"]').first().check();
   const id = await saveCreated(page, 'CreateMovie', 'Create movie');
   await expect(page.getByText('Movie saved', { exact: true })).toBeVisible();

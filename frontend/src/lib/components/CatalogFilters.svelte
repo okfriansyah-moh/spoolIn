@@ -13,6 +13,17 @@
   let customYear = $state(false);
   let customYearText = $state('');
   let yearError = $state('');
+  let genreOpen = $state(false);
+  let genreSearch = $state('');
+  const selectedGenres = $derived(
+    genres.filter((genre) => criteria.genres.includes(genre.id)),
+  );
+  const visibleGenres = $derived.by(() => {
+    const query = genreSearch.trim().toLocaleLowerCase();
+    return genres.filter((genre) =>
+      genre.name.toLocaleLowerCase().includes(query),
+    );
+  });
   const selectedYear = $derived(
     customYear || (!!criteria.year && !years.includes(criteria.year))
       ? 'other'
@@ -93,26 +104,62 @@
     </div>
     <fieldset class="genre-choice">
       <legend>Genres · match any selected</legend>
-      <div
-        class="genre-options"
-        role="region"
-        aria-label="Genre choices"
-        aria-describedby={`${id}-genres-help`}
-        tabindex="0"
-      >
-        {#each genres as genre (genre.id)}<label class="check"
-            ><input
-              type="checkbox"
-              value={genre.id}
-              checked={criteria.genres.includes(genre.id)}
-              onchange={(event) =>
-                toggleGenre(genre.id, event.currentTarget.checked)}
-            />{genre.name}</label
-          >{/each}
-      </div>
-      <small id={`${id}-genres-help`}
-        >Scroll or use the keyboard to reach every genre.</small
-      >
+      {#if selectedGenres.length}
+        <ul class="selected-genre-filters" aria-label="Selected genres">
+          {#each selectedGenres as genre (genre.id)}
+            <li>
+              <span>{genre.name}</span>
+              <button
+                type="button"
+                class="remove-genre"
+                aria-label="Remove {genre.name} filter"
+                onclick={() => toggleGenre(genre.id, false)}>×</button
+              >
+            </li>
+          {/each}
+        </ul>
+      {/if}
+      <details class="genre-filter-disclosure" bind:open={genreOpen}>
+        <summary>
+          {criteria.genres.length ? 'Change genres' : 'Choose genres'}
+          <span>{criteria.genres.length} selected</span>
+        </summary>
+        <div class="genre-filter-panel">
+          <label for={`${id}-genre-search`}>Find a genre</label>
+          <input
+            id={`${id}-genre-search`}
+            type="search"
+            bind:value={genreSearch}
+            placeholder="Search genres"
+          />
+          <small role="status" aria-live="polite">
+            {visibleGenres.length}
+            {visibleGenres.length === 1 ? 'genre' : 'genres'}
+          </small>
+          <div
+            class="genre-options"
+            role="region"
+            aria-label="Genre choices"
+            aria-describedby={`${id}-genres-help`}
+            tabindex="0"
+          >
+            {#each visibleGenres as genre (genre.id)}<label class="check"
+                ><input
+                  type="checkbox"
+                  value={genre.id}
+                  checked={criteria.genres.includes(genre.id)}
+                  onchange={(event) =>
+                    toggleGenre(genre.id, event.currentTarget.checked)}
+                />{genre.name}</label
+              >{:else}<p>
+                No genres match that search. Try another name.
+              </p>{/each}
+          </div>
+          <small id={`${id}-genres-help`}
+            >Every genre stays available. Scroll the list or search by name.</small
+          >
+        </div>
+      </details>
     </fieldset>
     <div class="field">
       <label for={`${id}-year`}>Release year</label><select
@@ -168,6 +215,57 @@
     inline-size: 100%;
     max-inline-size: 280px;
   }
+  .genre-filter-disclosure {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .genre-filter-disclosure summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--primitive-space-2);
+    padding-inline: var(--primitive-space-3);
+    font-weight: 600;
+  }
+  .genre-filter-disclosure summary span {
+    color: var(--muted);
+    font-size: var(--primitive-type-small);
+    font-weight: 400;
+  }
+  .genre-filter-panel {
+    display: grid;
+    gap: var(--primitive-space-2);
+    padding: 0 var(--primitive-space-3) var(--primitive-space-3);
+  }
+  .selected-genre-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-1);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .selected-genre-filters li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--primitive-space-1);
+    padding-left: var(--primitive-space-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--selected);
+  }
+  .selected-genre-filters .remove-genre {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    font-size: 1.2rem;
+  }
   .genre-options {
     display: grid;
     max-block-size: calc(5 * var(--primitive-space-12));
@@ -189,6 +287,10 @@
     }
     .genre-choice {
       max-inline-size: none;
+    }
+    .genre-filter-disclosure summary {
+      align-items: flex-start;
+      flex-direction: column;
     }
   }
 </style>

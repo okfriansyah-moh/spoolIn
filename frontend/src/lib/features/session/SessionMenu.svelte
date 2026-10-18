@@ -35,11 +35,12 @@
       }}>Sign out</button
     >
   {:else}
-    <a href={resolve('/sign-in')}
+    <a class="button secondary" href={resolve('/sign-in')}
       >{controller.hasUnconfirmedLogout ? 'Sign in again' : 'Sign in'}</a
     >
-    {#if !controller.hasUnconfirmedLogout}<a href={resolve('/register')}
-        >Register</a
+    {#if !controller.hasUnconfirmedLogout}<a
+        class="button secondary"
+        href={resolve('/register')}>Register</a
       >{/if}
     {#if session.kind === 'uncertain' && controller.hasUnconfirmedLogout}<button
         class="secondary"

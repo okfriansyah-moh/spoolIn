@@ -9,6 +9,7 @@
   import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import PersonEditorForm from '../../../../lib/features/person/write/PersonEditorForm.svelte';
+  import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
   import type { EditorState } from '../../../../lib/features/person/write/types';
   import { isRecordId } from '../../../../lib/components/safe-url';
 
@@ -81,56 +82,61 @@
 </script>
 
 <svelte:head><title>Edit person · SpoolIn</title></svelte:head>
-<h1 tabindex="-1">{editorState?.saved?.name ?? 'Edit person'}</h1>
-<p class="muted">
-  <a href={resolve('/manage/people')}>People</a>
-  {#if editorState?.saved}
-    · <a href={resolve('/people/[id]', { id: editorState.saved.id })}
-      >Review public record</a
-    >
-  {/if}
-</p>
-
-{#if !isRecordId(personId)}
-  <p role="alert">This person link is not valid.</p>
-{:else if ready && editorState && sessionCtl.snapshot.policy}
-  <PersonEditorForm
-    state={editorState}
-    policy={sessionCtl.snapshot.policy}
-    disabled={editorState.phase === 'target-changed'}
-    onSubmit={() => void controller?.submit()}
-    onCheckOriginal={() => void controller?.checkOriginalResult()}
-    onReviewStale={() => controller?.toggleStaleReview()}
-    onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
-    onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
-    onStartNewDraft={() => controller?.startNewDraft()}
-    onDiscardOpen={() => controller?.openDiscardDialog()}
-    onDiscardClose={() => controller?.closeDiscardDialog()}
-    onDiscardConfirm={() => void controller?.confirmDiscard()}
-    onDraftChange={(field, value) => {
-      if (!controller || !editorState) return;
-      controller.updateDraft({ ...editorState.draft, [field]: value });
-    }}
+<section class="person-editor-page">
+  <EditorPageHeading
+    sectionLabel="People"
+    sectionHref={resolve('/manage/people')}
+    title={editorState?.saved?.name ?? 'Edit person'}
+    description="Update this person’s public name and biography."
+    actionHref={editorState?.saved
+      ? resolve('/people/[id]', { id: editorState.saved.id })
+      : undefined}
+    actionLabel={editorState?.saved ? 'Review public record' : undefined}
   />
-  {#if editorState.saved?.state === 'ACTIVE'}
-    <ArchiveAction
-      kind="person"
-      id={editorState.saved.id}
-      version={editorState.saved.version}
-      disabled={editorState.phase === 'submitting'}
+
+  {#if !isRecordId(personId)}
+    <p role="alert">This person link is not valid.</p>
+  {:else if ready && editorState && sessionCtl.snapshot.policy}
+    <PersonEditorForm
+      state={editorState}
+      policy={sessionCtl.snapshot.policy}
+      disabled={editorState.phase === 'target-changed'}
+      onSubmit={() => void controller?.submit()}
+      onCheckOriginal={() => void controller?.checkOriginalResult()}
+      onReviewStale={() => controller?.toggleStaleReview()}
+      onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+      onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+      onStartNewDraft={() => controller?.startNewDraft()}
+      onDiscardOpen={() => controller?.openDiscardDialog()}
+      onDiscardClose={() => controller?.closeDiscardDialog()}
+      onDiscardConfirm={() => void controller?.confirmDiscard()}
+      onDraftChange={(field, value) => {
+        if (!controller || !editorState) return;
+        controller.updateDraft({ ...editorState.draft, [field]: value });
+      }}
     />
+    {#if editorState.saved?.state === 'ACTIVE'}
+      <ArchiveAction
+        kind="person"
+        id={editorState.saved.id}
+        version={editorState.saved.version}
+        disabled={editorState.phase === 'submitting'}
+      />
+    {/if}
+  {:else if bootstrapError}
+    <p role="alert">{bootstrapError}</p>
+    <button type="button" onclick={() => loadEditor(personId)}
+      >Retry person editor</button
+    >
+  {:else}
+    <p role="status">Loading person editor…</p>
   {/if}
-{:else if bootstrapError}
-  <p role="alert">{bootstrapError}</p>
-  <button type="button" onclick={() => loadEditor(personId)}
-    >Retry person editor</button
-  >
-{:else}
-  <p role="status">Loading person editor…</p>
-{/if}
+</section>
 
 <style>
-  .muted {
-    margin-bottom: 1rem;
+  .person-editor-page {
+    width: 100%;
+    max-width: 52rem;
+    margin-inline: auto;
   }
 </style>

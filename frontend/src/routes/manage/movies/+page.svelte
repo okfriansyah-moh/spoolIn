@@ -35,8 +35,13 @@
 </script>
 
 <svelte:head><title>Movies · SpoolIn</title></svelte:head>
-<h1 tabindex="-1">Movies</h1>
-<a class="button" href={resolve('/manage/movies/new')}>Create movie</a>
+<header class="list-page-heading">
+  <div>
+    <h1 tabindex="-1">Movies</h1>
+    <p>Manage movie records and review the titles in your catalog.</p>
+  </div>
+  <a class="button" href={resolve('/manage/movies/new')}>Create movie</a>
+</header>
 
 {#if listState.kind === 'loading'}
   <p role="status">Loading managed titles…</p>
@@ -51,7 +56,7 @@
   </Notice>
 {:else}
   <div class="table-wrap">
-    <table>
+    <table class="desktop-records">
       <thead>
         <tr>
           <th scope="col">Title</th>
@@ -87,6 +92,34 @@
       </tbody>
     </table>
   </div>
+  <ul class="mobile-records" aria-label="Managed movies">
+    {#each listState.titles as row (row.id)}
+      <li>
+        <div class="record-heading">
+          <strong>{row.title}</strong>
+          <span
+            >{row.releaseContext} · {row.state === 'ACTIVE'
+              ? 'Active'
+              : 'Archived'}</span
+          >
+        </div>
+        <div class="record-actions">
+          {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
+            <a
+              class="button secondary"
+              href={resolve('/manage/movies/[id]', { id: row.id })}>Edit</a
+            >
+            <a
+              class="button secondary"
+              href={resolve('/titles/[id]', { id: row.id })}>Review</a
+            >
+          {:else}
+            <span class="muted">Read-only TV</span>
+          {/if}
+        </div>
+      </li>
+    {/each}
+  </ul>
   {#if listState.pagingError}<p role="alert">
       More movies could not be loaded. Retry the same page.
     </p>{/if}
@@ -108,6 +141,24 @@
 </Notice>
 
 <style>
+  .list-page-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-4);
+    margin-bottom: var(--primitive-space-6);
+  }
+  .list-page-heading h1 {
+    margin-bottom: var(--primitive-space-2);
+  }
+  .list-page-heading p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .mobile-records {
+    display: none;
+  }
   .table-wrap {
     overflow-x: auto;
     margin: 1rem 0;
@@ -124,5 +175,49 @@
   }
   .muted {
     opacity: 0.8;
+  }
+  @media (max-width: 699px) {
+    .list-page-heading {
+      align-items: stretch;
+    }
+    .list-page-heading > a {
+      width: 100%;
+    }
+    .table-wrap {
+      display: none;
+    }
+    .mobile-records {
+      display: grid;
+      gap: var(--primitive-space-3);
+      padding: 0;
+      margin: 0 0 var(--primitive-space-6);
+      list-style: none;
+    }
+    .mobile-records li {
+      display: grid;
+      gap: var(--primitive-space-3);
+      padding: var(--primitive-space-4);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .record-heading {
+      display: grid;
+      gap: var(--primitive-space-1);
+      overflow-wrap: anywhere;
+    }
+    .record-heading span {
+      color: var(--muted);
+      font-size: var(--primitive-type-small);
+    }
+    .record-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--primitive-space-2);
+    }
+    .record-actions .button {
+      flex: 1 1 7rem;
+      text-align: center;
+    }
   }
 </style>

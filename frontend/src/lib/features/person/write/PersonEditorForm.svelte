@@ -49,7 +49,18 @@
       editorState.phase === 'submitting' ||
       editorState.phase === 'uncertain' ||
       editorState.phase === 'stale' ||
-      editorState.phase === 'target-changed',
+      editorState.phase === 'target-changed' ||
+      (editorState.mode === 'create' && editorState.saved !== null),
+  );
+  const savedCreate = $derived(
+    editorState.mode === 'create' && editorState.saved !== null,
+  );
+  const submitDisabledReason = $derived(
+    savedCreate
+      ? 'This person is saved. Use one of the links above to continue.'
+      : submitDisabled
+        ? 'Review the current changes before saving again.'
+        : '',
   );
   const reviewId = $props.id();
   let reviewedCurrent = $state(false);
@@ -142,11 +153,18 @@
   </section>
 {/if}
 {#if editorState.mode === 'create' && editorState.saved}
-  <section class="recovery-panel" aria-label="Continue with this person">
-    <a href={resolve('/manage/people/[id]', { id: editorState.saved.id })}
+  <section
+    class="recovery-panel saved-person-actions"
+    aria-label="Continue with this person"
+  >
+    <a
+      class="button secondary"
+      href={resolve('/manage/people/[id]', { id: editorState.saved.id })}
       >Edit saved person</a
     >
-    <a href={resolve('/people/[id]', { id: editorState.saved.id })}
+    <a
+      class="button secondary"
+      href={resolve('/people/[id]', { id: editorState.saved.id })}
       >Review public record</a
     >
   </section>
@@ -154,6 +172,7 @@
 
 <form
   id="person-editor-form"
+  class="person-editor-form"
   aria-label={editorState.mode === 'create' ? 'Create person' : 'Edit person'}
   onsubmit={(event) => {
     event.preventDefault();
@@ -193,23 +212,23 @@
         {errorFor('person-biography')}
       </p>{/if}
   </div>
-  <Button
-    type="button"
-    variant="secondary"
-    disabledReason={editorState.phase === 'uncertain' ||
-    editorState.phase === 'submitting' ||
-    editorState.discardPending
-      ? 'Check the original result before leaving.'
-      : ''}
-    onclick={onDiscardOpen}>Leave draft</Button
-  >
-  <Button
-    type="submit"
-    pending={editorState.phase === 'submitting'}
-    disabledReason={submitDisabled
-      ? 'Review current changes before saving again.'
-      : ''}>{submitLabel}</Button
-  >
+  <div class="editor-actions">
+    <Button
+      type="button"
+      variant="secondary"
+      disabledReason={editorState.phase === 'uncertain' ||
+      editorState.phase === 'submitting' ||
+      editorState.discardPending
+        ? 'Check the original result before leaving.'
+        : ''}
+      onclick={onDiscardOpen}>Leave draft</Button
+    >
+    <Button
+      type="submit"
+      pending={editorState.phase === 'submitting'}
+      disabledReason={submitDisabledReason}>{submitLabel}</Button
+    >
+  </div>
 </form>
 
 <ConfirmDialog
@@ -262,10 +281,41 @@
     width: auto;
   }
 
+  form {
+    display: grid;
+    gap: var(--primitive-space-6);
+    width: 100%;
+    max-width: 48rem;
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--line);
+    border-radius: var(--component-artwork-radius);
+    background: var(--surface);
+  }
+  .saved-person-actions,
+  .editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--primitive-space-3);
+  }
   .field {
     margin-bottom: 1rem;
   }
   .field-error {
     color: var(--danger);
+  }
+  @media (max-width: 699px) {
+    form {
+      padding: var(--primitive-space-4);
+    }
+    .editor-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .editor-actions :global(.button-group),
+    .editor-actions :global(button),
+    .saved-person-actions :global(.button) {
+      width: 100%;
+    }
   }
 </style>

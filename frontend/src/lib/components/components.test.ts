@@ -328,6 +328,15 @@ it('shell defaults to public navigation with no demo role selection', () => {
       },
     }).body,
   ).toContain('aria-current="page"');
+  expect(
+    render(AppShell, {
+      props: {
+        children,
+        capabilities: { verified: true, manageCatalog: true },
+        currentPath: '/manage/movies/new',
+      },
+    }).body,
+  ).toMatch(/href="\/manage\/movies"[^>]*aria-current="page"/);
 });
 
 it('large genre collections retain every native choice and selection inside a labelled region', () => {
@@ -350,7 +359,9 @@ it('large genre collections retain every native choice and selection inside a la
   }).body;
   expect(body).toContain('role="region"');
   expect(body).toContain('aria-label="Genre choices"');
-  expect(body).toContain('Scroll or use the keyboard to reach every genre.');
+  expect(body).toContain(
+    'Every genre stays available. Scroll the list or search by name.',
+  );
   expect(body.match(/type="checkbox"/g)).toHaveLength(120);
   for (const genre of genres) expect(body).toContain(`value="${genre.id}"`);
   expect(body.match(/ checked/g)).toHaveLength(1);

@@ -7,6 +7,7 @@
   import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
+  import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
   import type { EditorState } from '../../../../lib/features/movie/types';
   import ConfirmDialog from '../../../../lib/components/ConfirmDialog.svelte';
   import { applyMovieDraftField } from '../../../../lib/features/movie/draft-field-update';
@@ -56,42 +57,50 @@
 </script>
 
 <svelte:head><title>Create movie · SpoolIn</title></svelte:head>
-<h1 tabindex="-1">Create movie</h1>
-<p class="muted"><a href={resolve('/manage/movies')}>Back to movies</a></p>
-
-{#if ready && editorState && sessionCtl.snapshot.policy}
-  <MovieEditorForm
-    state={editorState}
-    policy={sessionCtl.snapshot.policy}
-    onSubmit={() => void controller?.submit()}
-    onCheckOriginal={() => void controller?.checkOriginalResult()}
-    onReviewStale={() => controller?.toggleStaleReview()}
-    onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
-    onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
-    onStartNewDraft={() => controller?.startNewDraft()}
-    onDraftChange={draftChange}
-    onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
-    onDiscardOpen={() => controller?.openDiscardDialog()}
+<section class="movie-editor-page">
+  <EditorPageHeading
+    sectionLabel="Movies"
+    sectionHref={resolve('/manage/movies')}
+    title="Create movie"
+    description="Start with the details people use to recognize and find this film."
   />
-{:else}
-  <p role="status">Loading create form…</p>
-{/if}
 
-<ConfirmDialog
-  open={editorState?.discardDialogOpen ?? false}
-  title="Leave this draft?"
-  action="Discard draft"
-  oncancel={() => controller?.closeDiscardDialog()}
-  onconfirm={() => void controller?.confirmDiscard()}
->
-  <p>
-    Leaving discards the current unsaved form values. Saved movie information
-    stays unchanged.
-  </p>
-</ConfirmDialog>
+  {#if ready && editorState && sessionCtl.snapshot.policy}
+    <MovieEditorForm
+      state={editorState}
+      policy={sessionCtl.snapshot.policy}
+      onSubmit={() => void controller?.submit()}
+      onCheckOriginal={() => void controller?.checkOriginalResult()}
+      onReviewStale={() => controller?.toggleStaleReview()}
+      onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+      onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+      onStartNewDraft={() => controller?.startNewDraft()}
+      onDraftChange={draftChange}
+      onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
+      onDiscardOpen={() => controller?.openDiscardDialog()}
+    />
+  {:else}
+    <p role="status">Loading create form…</p>
+  {/if}
+
+  <ConfirmDialog
+    open={editorState?.discardDialogOpen ?? false}
+    title="Leave this draft?"
+    action="Discard draft"
+    oncancel={() => controller?.closeDiscardDialog()}
+    onconfirm={() => void controller?.confirmDiscard()}
+  >
+    <p>
+      Leaving discards the current unsaved form values. Saved movie information
+      stays unchanged.
+    </p>
+  </ConfirmDialog>
+</section>
 
 <style>
-  .muted {
-    margin-bottom: 1rem;
+  .movie-editor-page {
+    width: 100%;
+    max-width: 52rem;
+    margin-inline: auto;
   }
 </style>

@@ -7,6 +7,7 @@
   import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import PersonEditorForm from '../../../../lib/features/person/write/PersonEditorForm.svelte';
+  import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
   import type { EditorState } from '../../../../lib/features/person/write/types';
 
   const sessionCtl = sessionController();
@@ -56,38 +57,46 @@
 </script>
 
 <svelte:head><title>Create person · SpoolIn</title></svelte:head>
-<h1 tabindex="-1">Create person</h1>
-<p class="muted"><a href={resolve('/manage/people')}>Back to people</a></p>
-
-{#if bootstrapError}
-  <p role="alert">{bootstrapError}</p>
-  <button type="button" onclick={() => void retryBootstrap()}
-    >Retry person editor</button
-  >
-{:else if ready && editorState && sessionCtl.snapshot.policy}
-  <PersonEditorForm
-    state={editorState}
-    policy={sessionCtl.snapshot.policy}
-    onSubmit={() => void controller?.submit()}
-    onCheckOriginal={() => void controller?.checkOriginalResult()}
-    onReviewStale={() => controller?.toggleStaleReview()}
-    onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
-    onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
-    onStartNewDraft={() => controller?.startNewDraft()}
-    onDiscardOpen={() => controller?.openDiscardDialog()}
-    onDiscardClose={() => controller?.closeDiscardDialog()}
-    onDiscardConfirm={() => void controller?.confirmDiscard()}
-    onDraftChange={(field, value) => {
-      if (!controller || !editorState) return;
-      controller.updateDraft({ ...editorState.draft, [field]: value });
-    }}
+<section class="person-editor-page">
+  <EditorPageHeading
+    sectionLabel="People"
+    sectionHref={resolve('/manage/people')}
+    title="Create person"
+    description="Add someone who has contributed to a movie in the catalog."
   />
-{:else}
-  <p role="status">Loading person editor…</p>
-{/if}
+
+  {#if bootstrapError}
+    <p role="alert">{bootstrapError}</p>
+    <button type="button" onclick={() => void retryBootstrap()}
+      >Retry person editor</button
+    >
+  {:else if ready && editorState && sessionCtl.snapshot.policy}
+    <PersonEditorForm
+      state={editorState}
+      policy={sessionCtl.snapshot.policy}
+      onSubmit={() => void controller?.submit()}
+      onCheckOriginal={() => void controller?.checkOriginalResult()}
+      onReviewStale={() => controller?.toggleStaleReview()}
+      onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+      onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+      onStartNewDraft={() => controller?.startNewDraft()}
+      onDiscardOpen={() => controller?.openDiscardDialog()}
+      onDiscardClose={() => controller?.closeDiscardDialog()}
+      onDiscardConfirm={() => void controller?.confirmDiscard()}
+      onDraftChange={(field, value) => {
+        if (!controller || !editorState) return;
+        controller.updateDraft({ ...editorState.draft, [field]: value });
+      }}
+    />
+  {:else}
+    <p role="status">Loading person editor…</p>
+  {/if}
+</section>
 
 <style>
-  .muted {
-    margin-bottom: 1rem;
+  .person-editor-page {
+    width: 100%;
+    max-width: 52rem;
+    margin-inline: auto;
   }
 </style>

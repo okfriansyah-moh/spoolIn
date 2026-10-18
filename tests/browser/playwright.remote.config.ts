@@ -37,11 +37,11 @@ export default defineConfig({
   },
   projects: [
     ...(['chromium', 'firefox', 'webkit'] as const).flatMap((browserName) =>
-      [1440, 390, 320].flatMap((width) =>
+      [1440, 1024, 768, 390, 320].flatMap((width) =>
         (['dark', 'light'] as const).map((colorScheme) => ({
           name: `${browserName}-${width}-${colorScheme}`,
           testMatch:
-            /(?:catalog|manage|artwork|lifecycle|audit|presentation|references)\.spec\.ts/,
+            /(?:catalog|manage|artwork|lifecycle|audit|presentation(?:-responsive)?|references)\.spec\.ts/,
           metadata: { inputMethods: ['pointer', 'keyboard'], sourceStates: 97 },
           grep: /^(?!.*input-touch).*$/,
           use: {
@@ -55,7 +55,7 @@ export default defineConfig({
       ),
     ),
     ...(['chromium', 'webkit'] as const).flatMap((browserName) =>
-      [1440, 390, 320].flatMap((width) =>
+      [1440, 1024, 768, 390, 320].flatMap((width) =>
         (['dark', 'light'] as const).map((colorScheme) => ({
           name: `${browserName}-${width}-${colorScheme}-touch`,
           testMatch: 'presentation.spec.ts',

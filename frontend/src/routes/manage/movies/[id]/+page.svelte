@@ -8,6 +8,7 @@
   import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
+  import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
   import type {
     EditorState,
     WriteContext,
@@ -76,88 +77,93 @@
 </script>
 
 <svelte:head><title>Edit movie · SpoolIn</title></svelte:head>
-<h1 tabindex="-1">{editorState?.saved?.title ?? 'Edit movie'}</h1>
-<p class="muted">
-  <a href={resolve('/manage/movies')}>Movies</a>
-  {#if editorState?.saved}
-    · <a href={resolve('/titles/[id]', { id: editorState.saved.id })}
-      >Review public record</a
-    >
-  {/if}
-</p>
-
-{#if !isRecordId(movieId)}
-  <p role="alert">This movie link is not valid.</p>
-{:else if ready && editorState && sessionCtl.snapshot.policy}
-  <MovieEditorForm
-    state={editorState}
-    policy={sessionCtl.snapshot.policy}
-    disabled={editorState.phase === 'target-changed'}
-    onSubmit={() => void controller?.submit()}
-    onCheckOriginal={() => void controller?.checkOriginalResult()}
-    onReviewStale={() => controller?.toggleStaleReview()}
-    onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
-    onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
-    onStartNewDraft={() => controller?.startNewDraft()}
-    onDraftChange={draftChange}
-    onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
-    onDiscardOpen={() => controller?.openDiscardDialog()}
+<section class="movie-editor-page">
+  <EditorPageHeading
+    sectionLabel="Movies"
+    sectionHref={resolve('/manage/movies')}
+    title={editorState?.saved?.title ?? 'Edit movie'}
+    description="Update the details people use to recognize and find this film."
+    actionHref={editorState?.saved
+      ? resolve('/titles/[id]', { id: editorState.saved.id })
+      : undefined}
+    actionLabel={editorState?.saved ? 'Review public record' : undefined}
   />
-  {#if editorState.saved && writeContext && sessionCtl.snapshot.policy}
-    <ArtworkUploadField
-      request={createTransport()}
-      csrf={writeContext.csrf}
-      titleId={editorState.saved.id}
-      expectedVersion={editorState.saved.version}
-      policyRevision={sessionCtl.snapshot.policy.revision}
-      artworkPolicy={sessionCtl.snapshot.policy.artwork}
-      disabled={editorState.phase === 'target-changed' ||
-        editorState.phase === 'stale'}
-      onAttached={async () => {
-        await controller?.refreshExternalChange();
-        creditTitleVersion = null;
-      }}
-    />
-    {@const version = creditTitleVersion ?? editorState.saved.version}
-    <CreditPanel
-      titleId={editorState.saved.id}
-      titleVersion={version}
-      policy={sessionCtl.snapshot.policy}
-      context={writeContext}
-      draftSource={createDraftSource(createTransport())}
-      onTitleVersionChange={(next) => {
-        creditTitleVersion = next;
-        void controller?.refreshExternalChange();
-      }}
-    />
-  {/if}
-  {#if editorState.saved?.state === 'ACTIVE'}
-    <ArchiveAction
-      kind="movie"
-      id={editorState.saved.id}
-      version={editorState.saved.version}
-      disabled={editorState.phase === 'submitting'}
-    />
-  {/if}
-{:else}
-  <p role="status">Loading movie editor…</p>
-{/if}
 
-<ConfirmDialog
-  open={editorState?.discardDialogOpen ?? false}
-  title="Leave this draft?"
-  action="Discard draft"
-  oncancel={() => controller?.closeDiscardDialog()}
-  onconfirm={() => void controller?.confirmDiscard()}
->
-  <p>
-    Leaving discards the current unsaved form values. Saved movie information
-    stays unchanged.
-  </p>
-</ConfirmDialog>
+  {#if !isRecordId(movieId)}
+    <p role="alert">This movie link is not valid.</p>
+  {:else if ready && editorState && sessionCtl.snapshot.policy}
+    <MovieEditorForm
+      state={editorState}
+      policy={sessionCtl.snapshot.policy}
+      disabled={editorState.phase === 'target-changed'}
+      onSubmit={() => void controller?.submit()}
+      onCheckOriginal={() => void controller?.checkOriginalResult()}
+      onReviewStale={() => controller?.toggleStaleReview()}
+      onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
+      onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
+      onStartNewDraft={() => controller?.startNewDraft()}
+      onDraftChange={draftChange}
+      onGenreToggle={(id, checked) => controller?.toggleGenre(id, checked)}
+      onDiscardOpen={() => controller?.openDiscardDialog()}
+    />
+    {#if editorState.saved && writeContext && sessionCtl.snapshot.policy}
+      <ArtworkUploadField
+        request={createTransport()}
+        csrf={writeContext.csrf}
+        titleId={editorState.saved.id}
+        expectedVersion={editorState.saved.version}
+        policyRevision={sessionCtl.snapshot.policy.revision}
+        artworkPolicy={sessionCtl.snapshot.policy.artwork}
+        disabled={editorState.phase === 'target-changed' ||
+          editorState.phase === 'stale'}
+        onAttached={async () => {
+          await controller?.refreshExternalChange();
+          creditTitleVersion = null;
+        }}
+      />
+      {@const version = creditTitleVersion ?? editorState.saved.version}
+      <CreditPanel
+        titleId={editorState.saved.id}
+        titleVersion={version}
+        policy={sessionCtl.snapshot.policy}
+        context={writeContext}
+        draftSource={createDraftSource(createTransport())}
+        onTitleVersionChange={(next) => {
+          creditTitleVersion = next;
+          void controller?.refreshExternalChange();
+        }}
+      />
+    {/if}
+    {#if editorState.saved?.state === 'ACTIVE'}
+      <ArchiveAction
+        kind="movie"
+        id={editorState.saved.id}
+        version={editorState.saved.version}
+        disabled={editorState.phase === 'submitting'}
+      />
+    {/if}
+  {:else}
+    <p role="status">Loading movie editor…</p>
+  {/if}
+
+  <ConfirmDialog
+    open={editorState?.discardDialogOpen ?? false}
+    title="Leave this draft?"
+    action="Discard draft"
+    oncancel={() => controller?.closeDiscardDialog()}
+    onconfirm={() => void controller?.confirmDiscard()}
+  >
+    <p>
+      Leaving discards the current unsaved form values. Saved movie information
+      stays unchanged.
+    </p>
+  </ConfirmDialog>
+</section>
 
 <style>
-  .muted {
-    margin-bottom: 1rem;
+  .movie-editor-page {
+    width: 100%;
+    max-width: 52rem;
+    margin-inline: auto;
   }
 </style>

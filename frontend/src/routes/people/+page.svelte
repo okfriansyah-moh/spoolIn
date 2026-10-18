@@ -116,13 +116,23 @@
       reset: false,
     });
   }
+
+  function biographyPreview(biography: string): string {
+    const codePoints = Array.from(biography);
+    return codePoints.length > 120
+      ? `${codePoints.slice(0, 120).join('')}…`
+      : biography;
+  }
 </script>
 
 <svelte:head><title>People · SpoolIn</title></svelte:head>
 
-<h1 tabindex="-1">People</h1>
+<header class="people-heading">
+  <h1 tabindex="-1">People</h1>
+  <p>Meet the people behind the films and series in the catalog.</p>
+</header>
 
-<div class="field">
+<div class="field people-search">
   <label for="people-search">Search people</label>
   <input
     id="people-search"
@@ -154,17 +164,24 @@
   <ul class="people-list" aria-label="People">
     {#each peopleState.people as person (person.id)}
       <li>
-        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic person id segment -->
-        <a href={`${resolve('/')}people/${encodeURIComponent(person.id)}`}>
-          {person.name}
-        </a>
-        {#if person.biography}
-          <p class="bio-excerpt">
-            {person.biography.slice(0, 120)}{person.biography.length > 120
-              ? '…'
-              : ''}
-          </p>
-        {/if}
+        <article class="person-result">
+          <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- dynamic person id segment -->
+          <a
+            class="person-name"
+            href={`${resolve('/')}people/${encodeURIComponent(person.id)}`}
+          >
+            {person.name}
+          </a>
+          {#if person.biography}
+            <p class="bio-excerpt">{biographyPreview(person.biography)}</p>
+            {#if Array.from(person.biography).length > 120}
+              <details class="biography-details">
+                <summary>Read full biography</summary>
+                <p>{person.biography}</p>
+              </details>
+            {/if}
+          {/if}
+        </article>
       </li>
     {/each}
   </ul>
@@ -173,3 +190,84 @@
       onclick={nextPage}>Next people page</button
     >{/if}
 {/if}
+
+<style>
+  .people-heading {
+    margin-bottom: var(--primitive-space-8);
+  }
+  .people-heading h1 {
+    margin-bottom: var(--primitive-space-2);
+  }
+  .people-heading p {
+    max-width: 65ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 18px;
+  }
+  .people-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--primitive-space-3);
+    max-width: 48rem;
+    margin-bottom: var(--primitive-space-8);
+  }
+  .people-search label {
+    grid-column: 1 / -1;
+  }
+  .people-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--primitive-space-4);
+    padding: 0;
+    list-style: none;
+  }
+  .people-list li {
+    min-width: 0;
+  }
+  .person-result {
+    height: 100%;
+    padding: var(--primitive-space-4);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .person-name {
+    display: inline-block;
+    margin-bottom: var(--primitive-space-2);
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 650;
+    text-underline-offset: 0.2em;
+  }
+  .bio-excerpt {
+    margin-bottom: var(--primitive-space-2);
+    color: var(--muted);
+  }
+  .biography-details summary {
+    color: var(--accent);
+    font-size: var(--primitive-type-small);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .biography-details p {
+    margin-top: var(--primitive-space-2);
+    white-space: pre-wrap;
+  }
+  @media (max-width: 699px) {
+    .people-heading p {
+      font-size: 16px;
+    }
+    .people-search {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .people-search label {
+      grid-column: auto;
+    }
+    .people-search button {
+      width: 100%;
+    }
+    .people-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

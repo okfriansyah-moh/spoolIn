@@ -325,7 +325,7 @@
     deletion separately.
   </p>
 
-  <div role="tablist" aria-label="Archive kind">
+  <div class="archive-tabs" role="tablist" aria-label="Archive kind">
     <button
       type="button"
       role="tab"
@@ -374,18 +374,25 @@
     {:else}
       <ul>
         {#each listState.items as item (item.id)}
-          <li>
-            <span>{item.label} · {item.state}</span>
-            <button
-              type="button"
-              disabled={busy || intent !== null}
-              onclick={() => restoreRow(item)}>Restore</button
-            >
-            <button
-              type="button"
-              disabled={busy || intent !== null}
-              onclick={() => openConfirm(item)}>Delete permanently</button
-            >
+          <li class="archive-record">
+            <div class="archive-record-heading">
+              <strong>{item.label}</strong>
+              <span>{item.state}</span>
+            </div>
+            <div class="archive-actions">
+              <button
+                type="button"
+                class="secondary"
+                disabled={busy || intent !== null}
+                onclick={() => restoreRow(item)}>Restore</button
+              >
+              <button
+                type="button"
+                class="danger"
+                disabled={busy || intent !== null}
+                onclick={() => openConfirm(item)}>Delete permanently</button
+              >
+            </div>
           </li>
         {/each}
       </ul>
@@ -432,7 +439,29 @@
   }
   .actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
+  }
+  .archive-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-1);
+    width: fit-content;
+    max-width: 100%;
+    padding: var(--primitive-space-1);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) + var(--primitive-space-1));
+    background: var(--surface);
+  }
+  .archive-tabs [role='tab'] {
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+  }
+  .archive-tabs [role='tab'][aria-selected='true'] {
+    border-color: var(--line);
+    background: var(--selected);
+    color: var(--text);
   }
   ul {
     list-style: none;
@@ -443,8 +472,47 @@
   }
   li {
     display: flex;
-    gap: 0.75rem;
+    gap: var(--primitive-space-3);
     align-items: center;
     flex-wrap: wrap;
+  }
+  .archive-record {
+    justify-content: space-between;
+    padding: var(--primitive-space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .archive-record-heading {
+    display: grid;
+    min-width: 0;
+    gap: var(--primitive-space-1);
+    overflow-wrap: anywhere;
+  }
+  .archive-record-heading span {
+    color: var(--muted);
+    font-size: var(--primitive-type-small);
+  }
+  .archive-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-2);
+  }
+  @media (max-width: 699px) {
+    .archive-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+    }
+    .archive-record {
+      align-items: stretch;
+    }
+    .archive-record-heading,
+    .archive-actions {
+      flex-basis: 100%;
+    }
+    .archive-actions button {
+      flex: 1 1 100%;
+    }
   }
 </style>
