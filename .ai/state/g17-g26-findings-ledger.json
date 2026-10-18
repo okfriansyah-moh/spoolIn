@@ -1751,15 +1751,48 @@
       {
         "run_id": 39098882348,
         "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
-        "result": "in_progress",
-        "detail": "Actual make start readiness and public policy/titles HTTPS probes passed. Actual SDK stdio\u2192HTTP MCP\u2192mTLS Core\u2192Catalog\u2192PostgreSQL positive flow, reconnect and actual revoked HTTP403/stdio refusal passed. 380 frontend/76 MCP tests passed. Retained native XML records3408 executions/6 failures/0errors/0skips; cross-service test compilation also failed, so those suites were not executed. Complete seed verifier failed HTTPError; actual restricted Media probe failed before process-context/stage evidence. Real full browser matrix in progress. No task, host, visual, operational or final gate acceptance inferred.",
+        "result": "cancelled-after-retained-failures",
+        "detail": "Actual make start readiness and public policy/titles HTTPS probes passed. Actual SDK stdio\u2192HTTP MCP\u2192mTLS Core\u2192Catalog\u2192PostgreSQL positive flow, reconnect and actual revoked HTTP403/stdio refusal passed. 380 frontend/76 MCP tests passed. Retained native XML records3408 executions/6 failures/0errors/0skips; cross-service test compilation also failed, so those suites were not executed. Complete seed verifier failed HTTPError; actual restricted Media probe failed before process-context/stage evidence. Real full browser matrix in progress. No task, host, visual, operational or final gate acceptance inferred. Coordinator cancelled this superseded baseline after26 actual browser attempts failed; cancellation preserved. Final browser JUnit/JSON did not flush, so screenshots/error-context and actual job action log support diagnosis only. Browser helper omitted required Origin and was corrected in42d85c35; catalog error remains subject to fresh runtime. No full browser matrix completion.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348",
         "artifact_retention_days": 14,
         "inspected_artifact_ids": [
           12125867168,
           12125918394,
-          12125154907
+          12125154907,
+          12125449140
         ]
+      },
+      {
+        "run_id": 39100570536,
+        "tested_sha": "f66da3e01f9ef60508fa3530389cbcfed2d4df6c",
+        "result": "passed-format-preparation-only",
+        "detail": "Actual hosted formatting completed; inspected48,481-byte patch for22 sourcefiles applied in e4f53506. No runtime/gate acceptance inferred.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100570536",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12126168664
+        ]
+      },
+      {
+        "run_id": 39100809232,
+        "tested_sha": "e4f535067634115a6811d7dfe6cfa4f443a465c7",
+        "result": "cancelled-invalid-dispatch-input",
+        "detail": "Coordinator supplied an incorrectly expanded short revision, detected immediately and cancelled; no check result claimed. Corrected dispatch39100820810 uses git-reported fullSHA.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100809232"
+      },
+      {
+        "run_id": 39100820810,
+        "tested_sha": "e4f535068bac5cf62a75ce10af1222af0f30a032",
+        "result": "in_progress-quality",
+        "detail": "Actual hosted detekt/ktlint execution in progress; gates and thresholds unchanged.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100820810"
+      },
+      {
+        "run_id": 39100851587,
+        "tested_sha": "42d85c35e5076a642125f4d10983a5e75521a18d",
+        "result": "dispatched-focused-runtime",
+        "detail": "Corrected ordinary title batching, exact management security proxy, native fixture fixes, bounded codec/seed diagnostics and same-origin browser helper. Focused4-project browser feedback stops at first failure; unexecuted cases remain pending. Full32-project final composed verification still required.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39100851587"
       }
     ],
     "progress_checkpoints": [
