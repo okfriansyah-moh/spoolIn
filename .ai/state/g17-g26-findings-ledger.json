@@ -25,7 +25,24 @@
         "mcp/src/review/main.ts",
         "mcp/src/tools/propose-movie-ui-meta.ts"
       ],
-      "requirement_ids": ["AC-119", "AC-119-C02", "TD-C-022", "TD-C-053", "T029-A1"]
+      "requirement_ids": [
+        "AC-119",
+        "AC-119-C02",
+        "TD-C-022",
+        "TD-C-053",
+        "T029-A1"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Original unauthenticated HTTP challenge retrieval is closed at route returning 404; full trusted host delivery/assertion control remains incomplete.",
+          "evidence": {
+            "path": "services/core/src/main/kotlin/com/spoolin/core/boundary/http/McpReviewUiGateway.kt",
+            "line": 15
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-002",
@@ -36,7 +53,21 @@
       "evidence_paths": [
         "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBinding.kt"
       ],
-      "requirement_ids": ["ATDD-294", "T029-A1"]
+      "requirement_ids": [
+        "ATDD-294",
+        "T029-A1"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present: live policy revision compared to stored proposal revision; expiry equality denies.",
+          "evidence": {
+            "path": "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ExactApprovalBinding.kt",
+            "line": 63
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-003",
@@ -49,7 +80,22 @@
         "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalContent.kt",
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/proposal/DeterministicContentRulesTest.kt"
       ],
-      "requirement_ids": ["ATDD-283", "F-DETERMINISTIC-CONTENT", "T029-A2"]
+      "requirement_ids": [
+        "ATDD-283",
+        "F-DETERMINISTIC-CONTENT",
+        "T029-A2"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present: map keys and named string sets sorted; other arrays retain order.",
+          "evidence": {
+            "path": "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/DeterministicContentSerializer.kt",
+            "line": 12
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-004",
@@ -61,7 +107,21 @@
         "mcp/src/review/main.ts",
         "mcp/src/review/review-state.ts"
       ],
-      "requirement_ids": ["AC-116", "T030"]
+      "requirement_ids": [
+        "AC-116",
+        "T030"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present for stale closure/text sinks/origin allowlist and source rendering; full updated revision/host flow unproved.",
+          "evidence": {
+            "path": "mcp/src/review/review-state.ts",
+            "line": 110
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-005",
@@ -72,7 +132,21 @@
       "evidence_paths": [
         "services/core/src/main/kotlin/com/spoolin/core/features/connector/ConnectorStore.kt"
       ],
-      "requirement_ids": ["T028", "AC-119"]
+      "requirement_ids": [
+        "T028",
+        "AC-119"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present: credential SQL joins account epoch equality on lookup.",
+          "evidence": {
+            "path": "services/core/src/main/kotlin/com/spoolin/core/features/connector/ConnectorStore.kt",
+            "line": 25
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-006",
@@ -86,7 +160,21 @@
         "services/catalog/src/main/resources/db/migration/V002__catalog_read_model.sql",
         "services/catalog/src/main/resources/db/migration/V001__operation_records.sql"
       ],
-      "requirement_ids": ["T032", "T033-A1"]
+      "requirement_ids": [
+        "T032",
+        "T033-A1"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Original insert/default/receipt-order defects fixed in source, but seed has new completeness/identity/snapshot defects.",
+          "evidence": {
+            "path": "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedLoader.kt",
+            "line": 105
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-007",
@@ -100,7 +188,22 @@
         "ops/bin/logs.sh",
         "ops/bin/migrate.sh"
       ],
-      "requirement_ids": ["T037-A1", "TD-ROW-L6075", "TD-ROW-L6079"]
+      "requirement_ids": [
+        "T037-A1",
+        "TD-ROW-L6075",
+        "TD-ROW-L6079"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Original missing lock precondition fails source guard, but fresh startup/readiness remain defective.",
+          "evidence": {
+            "path": "ops/bin/start.sh",
+            "line": 13
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-008",
@@ -114,7 +217,23 @@
         "services/catalog/src/main/kotlin/com/spoolin/catalog/operations/receipts/OwnerReceipts.kt",
         "services/catalog/src/main/resources/db/migration/V003__catalog_audit.sql"
       ],
-      "requirement_ids": ["PRD-POLICY-15", "AC-117", "T029-A3", "T031"]
+      "requirement_ids": [
+        "PRD-POLICY-15",
+        "AC-117",
+        "T029-A3",
+        "T031"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "ProposalWrites calls AuditInsert.record using mutation connection; real foreign-key/transaction acceptance pending.",
+          "evidence": {
+            "path": "services/catalog/src/main/kotlin/com/spoolin/catalog/features/proposal/ProposalWrites.kt",
+            "line": 238
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-009",
@@ -125,7 +244,20 @@
       "evidence_paths": [
         "frontend/src/lib/features/credit/draft-sync.ts"
       ],
-      "requirement_ids": ["T027"]
+      "requirement_ids": [
+        "T027"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present: returned draft version retained and failed save marks unbacked.",
+          "evidence": {
+            "path": "frontend/src/lib/features/credit/draft-sync.ts",
+            "line": 69
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-010",
@@ -140,7 +272,22 @@
         "services/core/src/main/kotlin/com/spoolin/core/Application.kt",
         "services/catalog/src/main/resources/logback-spring.xml"
       ],
-      "requirement_ids": ["T035", "TD-LOG-CONFIG", "ATDD-340"]
+      "requirement_ids": [
+        "T035",
+        "TD-LOG-CONFIG",
+        "ATDD-340"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present: blank/unknown severity throws and startup exits 78; real readiness/log proof pending.",
+          "evidence": {
+            "path": "libraries/backend-support/src/main/kotlin/com/spoolin/support/logging/LogLevelNormalization.kt",
+            "line": 13
+          },
+          "runtime_accepted": false
+        }
+      ]
     },
     {
       "id": "F-011",
@@ -152,7 +299,640 @@
         "services/core/src/main/kotlin/com/spoolin/core/operations/metrics/WorkPendingMetrics.kt",
         "ops/monitoring/alerts.yml"
       ],
-      "requirement_ids": ["T034", "T036"]
+      "requirement_ids": [
+        "T034",
+        "T036"
+      ],
+      "continuation_assessments": [
+        {
+          "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+          "source": "Source fix present: durable-work/pending-receipt gauge distinct from alert-episode counter; runtime scrape/episode behavior pending.",
+          "evidence": {
+            "path": "services/core/src/main/kotlin/com/spoolin/core/operations/metrics/WorkPendingMetrics.kt",
+            "line": 20
+          },
+          "runtime_accepted": false
+        }
+      ]
+    },
+    {
+      "id": "F-012",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-001",
+      "task_ids": [
+        "T028",
+        "T038",
+        "T039"
+      ],
+      "summary": "HTTP adapter is a hand-written partial JSON handler. No SDK initialize/session lifecycle or stdio bridge exists. propose_movie accepts caller-supplied gatewayRevision instead of invoking Core. Generic HTTP GatewayClient is disconnected. Health always reports starting.",
+      "evidence_paths": [
+        "mcp/src/transport/streamable-http.ts",
+        "mcp/src/server.ts",
+        "mcp/src/operations/gateway-client.ts"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-013",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-002",
+      "task_ids": [
+        "T029",
+        "T030",
+        "T038",
+        "T039"
+      ],
+      "summary": "Review frame depends on host postMessage delivery of connectorToken and challenge; no production host delivery implementation found. MCP_UI_ASSERTION signer is absent. Real host isolation and exact human binding remain unproved.",
+      "evidence_paths": [
+        "mcp/src/review/main.ts",
+        "services/core/src/main/kotlin/com/spoolin/core/features/mcpgateway/McpGatewayRpc.kt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-014",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-003",
+      "task_ids": [
+        "T032",
+        "T033",
+        "T013",
+        "T044"
+      ],
+      "summary": "Manifest contains generated Seed MOVIE/Seed SERIES labels and frozen synthetic synopsis strings, one Drama genre, no artwork/provenance/people/credit fields. Loader creates random title identities and only titles/genres/membership. Exact approved dataset/artwork requirement is not implemented.",
+      "evidence_paths": [
+        "data/seed/manifest.json",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedLoader.kt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-015",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-004",
+      "task_ids": [
+        "T033"
+      ],
+      "summary": "Successful initialization checks only seed version and returns before comparing manifest snapshot digest. Changed same-version manifest is silently ignored. Counts are hardcoded 100/100 instead of verified inserted kinds; concurrent initialization is not serialized explicitly.",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/seed/CatalogSeedLoader.kt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-016",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-005",
+      "task_ids": [
+        "T037",
+        "T033"
+      ],
+      "summary": "Fresh start runs migrate.sh compose exec postgres before bringing PostgreSQL up. Seed invokes host Gradle against private database. Final compose up -d lacks readiness wait. Compose has no MCP/monitoring services, no media volume, and incomplete application feature/key configuration.",
+      "evidence_paths": [
+        "ops/bin/start.sh",
+        "ops/bin/migrate.sh",
+        "ops/bin/seed.sh",
+        "ops/compose.yaml"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-017",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-006",
+      "task_ids": [
+        "T040"
+      ],
+      "summary": "Rotation only changes key registry states, without backfill/resume or retained-reference retirement proof. It does not check affected-row counts and can report success when no target READ key exists.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/rotation/KeyRotationPlan.kt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-018",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-007",
+      "task_ids": [
+        "T041",
+        "T045",
+        "T037"
+      ],
+      "summary": "Backup and restore cover catalog dump only, default to spoolin_owner, and do not coordinate Core/Media data, artwork, protection material, restored credential invalidation or fresh key/nonce state. Restore has no owned-disposable-target guard.",
+      "evidence_paths": [
+        "ops/bin/backup.sh",
+        "ops/bin/restore.sh"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-019",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-008",
+      "task_ids": [
+        "T031",
+        "T044"
+      ],
+      "summary": "Audit UI fetches subject and changes but renders neither. Adapter discards pagination metadata, leaving only first 24 entries. Complete affected-record/change history is unavailable.",
+      "evidence_paths": [
+        "frontend/src/routes/manage/audit/+page.svelte",
+        "frontend/src/lib/features/audit/api.ts"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-020",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-009",
+      "task_ids": [
+        "T013",
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T026",
+        "T027",
+        "T044"
+      ],
+      "summary": "Feature browser config starts Vite development server; discovery/movie fixtures fulfill successful GraphQL responses. Those tests prove controlled UI components only and cannot establish required make-start FE/API/BE acceptance.",
+      "evidence_paths": [
+        "tests/browser/playwright.app.config.ts",
+        "tests/browser/flows/discovery/fixture.ts",
+        "tests/browser/flows/movies/fixture.ts"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-021",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-010",
+      "task_ids": [
+        "T038",
+        "T039"
+      ],
+      "summary": "Client harnesses compare static string checklists, do not launch or inspect actual Claude Desktop or ChatGPT hosts, and cannot establish host compatibility or trusted UI isolation.",
+      "evidence_paths": [
+        "tests/clients/claude",
+        "tests/clients/chatgpt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-022",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-011",
+      "task_ids": [
+        "T046"
+      ],
+      "summary": "Matrix states F-001 through F-011 source resolved while retained JSON keeps F-001/F-006/F-007/F-008/F-010 open with post-limit attempts. Source verdicts conflict; runtime closure must not be inferred.",
+      "evidence_paths": [
+        "docs/release/g01-g26-closure-matrix.md",
+        ".ai/state/g17-g26-findings-ledger.json"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-023",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-012",
+      "task_ids": [
+        "T017",
+        "T019",
+        "T021",
+        "T025",
+        "T044"
+      ],
+      "summary": "FrontendNavigation only registers management list routes. Deep links/reloads of /manage/movies/new, /manage/movies/{id}, /manage/people/new and /manage/people/{id} have no explicit SPA fallback although their Svelte routes exist. Verify actual production routing before acceptance.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/Application.kt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-024",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-013",
+      "task_ids": [
+        "T033"
+      ],
+      "summary": "Prepared account command only checks example file and prints runtime pending, then exits zero. No creation, replay safety or existing-user no-promotion behavior is implemented.",
+      "evidence_paths": [
+        "ops/bin/bootstrap-accounts.sh"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-025",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-014",
+      "task_ids": [
+        "T011",
+        "T037",
+        "T041",
+        "T045"
+      ],
+      "summary": "Production search finds no WorkClaimer/WorkRecovery construction or processing loop. recover-work.sh invokes an undefined recoverWork Gradle task, defaults JAVA_HOME to a Mac path, and accepts operator identity as unverified string. Recovery SQL helpers alone are not a running worker or authenticated operator boundary.",
+      "evidence_paths": [
+        "ops/bin/recover-work.sh",
+        "services/core/src/main/kotlin/com/spoolin/core/operations/work/WorkClaimer.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/operations/work/WorkRecovery.kt"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-026",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-015",
+      "task_ids": [
+        "T008",
+        "T010",
+        "T012",
+        "T013",
+        "T037"
+      ],
+      "summary": "All BrowserGraphql execution requires BrowserIdentity and BrowserAdmission. Account feature is disabled unless explicitly enabled, and default Compose supplies neither enabling flag nor required account/CSRF/rate protection configuration; even public GraphQL is unavailable.",
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/boundary/http/BrowserGraphql.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/account/application/AuthenticationConfiguration.kt",
+        "ops/compose.yaml"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-027",
+      "required": true,
+      "status": "open",
+      "area": "Remote closure source assessment",
+      "preparation_id": "PREP-016",
+      "task_ids": [
+        "T028",
+        "T029",
+        "T030",
+        "T031",
+        "T032",
+        "T033",
+        "T034",
+        "T035",
+        "T036",
+        "T037",
+        "T038",
+        "T039",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T044",
+        "T045",
+        "T046"
+      ],
+      "summary": "All T028 through T046 unit/integration task command arrays are empty and marked pending. Release matrix remains a source-described stub. Existing test filenames cannot satisfy unselected cases or real contract rows.",
+      "evidence_paths": [
+        "build-tools/verification-map.json",
+        "tests/contracts/release-matrix/README.md"
+      ],
+      "assessed_revision": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+      "runtime_accepted": false
+    },
+    {
+      "id": "F-028",
+      "diagnosis_id": "WORK-001",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Expired owner can renew/complete because SQL checks owner/epoch/state but not live lease/deadline; claims omit attempt budget condition. Pure WorkFence predicate does not make SQL atomic.",
+      "task_ids": [
+        "T011"
+      ],
+      "case_ids": [
+        "ATDD-154",
+        "ATDD-155",
+        "ATDD-156",
+        "ATDD-285",
+        "ATDD-286",
+        "ATDD-309"
+      ],
+      "evidence_paths": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/work/WorkSql.kt"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Add live lease/deadline/budget SQL predicates and generation/started-tuple checks with actual PostgreSQL stale-owner race tests. Root has assigned primitives elsewhere.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-029",
+      "diagnosis_id": "WORK-002",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Claim/lease wrappers have no production dispatcher or watchdog. Scheduled service work only refreshes readiness (Core additionally rate maintenance); READY/expired LEASED/exhausted work has no executing recovery lifecycle.",
+      "task_ids": [
+        "T011"
+      ],
+      "case_ids": [
+        "ATDD-057",
+        "ATDD-058",
+        "ATDD-059",
+        "ATDD-060",
+        "ATDD-066",
+        "ATDD-157"
+      ],
+      "evidence_paths": [
+        "services/media/src/main/kotlin/com/spoolin/media/operations/work/WorkClaimer.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/operations/work/WorkClaimer.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/operations/work/WorkClaimer.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/Application.kt"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Add bounded lifecycle-managed dispatch and watchdog with typed owner handlers. Do not create generic success handler or mark unknown kinds done.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-030",
+      "diagnosis_id": "WORK-003",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Upload commit updates asset.processing_work_id before inserting its immediately referenced durable_work row, violating FK ordering. MEDIA_PROCESS is the only concrete WorkRequest kind produced in current application.",
+      "task_ids": [
+        "T022",
+        "T011"
+      ],
+      "case_ids": [
+        "ATDD-168",
+        "ATDD-248",
+        "ATDD-250"
+      ],
+      "evidence_paths": [
+        "services/media/src/main/kotlin/com/spoolin/media/features/upload/UploadRpc.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/features/asset/AssetSql.kt",
+        "services/media/src/main/resources/db/migration/V002__assets_and_references.sql"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Insert durable work before asset reference in the same transaction; rollback both on acceptance failure; create persistent processing receipt before acknowledging PENDING.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-031",
+      "diagnosis_id": "WORK-004",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "ProcessorRunner exists but is not called. Media image lacks vips. Runner applies wall timeout but no enforced CPU/RSS/temp/network sandbox. Output UUID is random and header stream read precedes timeout. Staging/output/DB crash gaps are not reconciled.",
+      "task_ids": [
+        "T022",
+        "T011"
+      ],
+      "case_ids": [
+        "ATDD-158",
+        "ATDD-159",
+        "ATDD-160",
+        "ATDD-161",
+        "ATDD-168",
+        "ATDD-250",
+        "ATDD-325"
+      ],
+      "evidence_paths": [
+        "services/media/src/main/kotlin/com/spoolin/media/features/processing/ProcessorRunner.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/features/upload/QuarantineStore.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/Application.kt",
+        "ops/containers/media.Dockerfile"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Implement typed MEDIA_PROCESS worker and sandboxed pinned processor environment; stable asset output publication and fenced atomic asset+receipt+work completion; bounded header/error IO and kill/wait on timeout.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-032",
+      "diagnosis_id": "WORK-005",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "BeginArtwork inserts PREPARING with synchronous successful receipt and no follow-up work. No consumer waits for Media READY/reserves/commits title reference/enqueues confirm or prior-hold release. Deletion lacks release outbox. Hold handlers are not sufficient to create attachment orchestration.",
+      "task_ids": [
+        "T023",
+        "T011",
+        "T024"
+      ],
+      "case_ids": [
+        "ATDD-057",
+        "ATDD-164",
+        "ATDD-165",
+        "ATDD-166",
+        "ATDD-167"
+      ],
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/artwork/ArtworkRpc.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/artwork/ArtworkAttachmentSql.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/features/lifecycle",
+        "services/media/src/main/kotlin/com/spoolin/media/features/hold/HoldRpc.kt"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Commit PENDING+intent+attachment work atomically; owner handler reconciles upload receipt, reserves, rechecks actor/title/policy/version, commits title/audit/outbox and outcome, then confirms/releases via stable child operations outside domain locks.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-033",
+      "diagnosis_id": "WORK-006",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Reserve repeated same hold attempts duplicate INSERT instead of idempotent reconciliation; confirm only RESERVED predicate and release trusts hold UUID without immutable Catalog intent/tuple/version reconciliation. No reference-safe cleanup worker.",
+      "task_ids": [
+        "T023",
+        "T041"
+      ],
+      "case_ids": [
+        "ATDD-164",
+        "ATDD-165",
+        "ATDD-167",
+        "ATDD-208"
+      ],
+      "evidence_paths": [
+        "services/media/src/main/kotlin/com/spoolin/media/features/hold/HoldRpc.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/features/hold/HoldSql.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/features/asset/AssetSql.kt"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Make reserve/confirm/release exact tuple/idempotent/version-aware with Catalog-authenticated downstream reconciliation, and implement locks+DELETING+idempotent unlink+DELETED plus orphan grace checks.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-034",
+      "diagnosis_id": "WORK-007",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "AlertRecorder inserts an extra actionable_alert row, contradicting required single NOTIFICATION variant in durable_work. No notification dedupe, required typed recorded state or exhaustion producer exists.",
+      "task_ids": [
+        "T034",
+        "T036",
+        "T011"
+      ],
+      "case_ids": [
+        "ATDD-061",
+        "ATDD-062",
+        "ATDD-063",
+        "ATDD-195",
+        "ATDD-225",
+        "ATDD-227"
+      ],
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/alerts/AlertRecorder.kt",
+        "docs/04-spoolin-techdoc.md"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Use typed deduplicated NOTIFICATION rows in existing durable_work. Database default commits DONE/RECORDED zero attempts and sends; only explicitly selected external mode dispatches with truthful provider evidence and nonrecursive failures.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-035",
+      "diagnosis_id": "WORK-008",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Recovery resets generation/count without new deadline, does not reconcile uncertain destination outcome, and script invokes absent recoverWork Gradle task with Mac-only JAVA_HOME fallback. Operator-id argument alone is not verified operator authority.",
+      "task_ids": [
+        "T011",
+        "T041"
+      ],
+      "case_ids": [
+        "ATDD-157",
+        "ATDD-309",
+        "ATDD-310"
+      ],
+      "evidence_paths": [
+        "libraries/backend-support/src/main/kotlin/com/spoolin/support/work/WorkSql.kt",
+        "ops/bin/recover-work.sh"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Provide authenticated local owner CLI, retained evidence inspection and destination reconciliation before authorized reset; persist new bounded deadline while keeping same work/effect identity and prior events.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-036",
+      "diagnosis_id": "ROTATE-001",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Plan only flips WRITE/READ states without target-material canary, affected-row checks, ciphertext CAS backfill, alias backfill or retirement reference/backup checks. Current ProtectedAccounts already inserts and queries all READ/WRITE lookup aliases, which is useful reuse.",
+      "task_ids": [
+        "T040"
+      ],
+      "case_ids": [
+        "ATDD-098",
+        "ATDD-102",
+        "ATDD-182",
+        "ATDD-183"
+      ],
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/rotation/KeyRotationPlan.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/rotation/KeyRotationCli.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/crypto/KeyRegistry.kt",
+        "services/core/src/main/kotlin/com/spoolin/core/features/account/persistence/ProtectedAccounts.kt"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Validate target key/purpose/material and canary before atomic switch; resumable keyset batches<=100 allocate fresh nonces outside row transaction and CAS key/version before ciphertext commit; independently backfill aliases for all compatible lookup keys; retirement requires zero live references plus backup horizon proof.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-037",
+      "diagnosis_id": "RESTORE-001",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Backup/restore covers only Catalog dump; no coordinated quiesced Core/Catalog/Media/artwork/config/key checkpoint, encrypted backup manifest or isolated restore identity checks. No credential invalidation/new WRITE material/reconciliation path. Maintenance only vacuum/reindex.",
+      "task_ids": [
+        "T041",
+        "T045"
+      ],
+      "case_ids": [
+        "ATDD-198",
+        "ATDD-200",
+        "ATDD-201",
+        "ATDD-208",
+        "ATDD-209",
+        "ATDD-210",
+        "ATDD-310"
+      ],
+      "evidence_paths": [
+        "ops/bin/backup.sh",
+        "ops/bin/restore.sh",
+        "ops/bin/maintenance.sh",
+        "docs/04-spoolin-techdoc.md"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Build protected quiesced checkpoint of all owners/artwork/nonsecret version config with separately encrypted key recovery material and hashes. Restore only owned isolated resources, provision fresh write/lookup key versions before enabling writes, revoke sessions/connectors/increment epochs, reconcile decrypt/uniqueness/tombstones/holds, preserve source installation.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
+    },
+    {
+      "id": "F-038",
+      "diagnosis_id": "PURGE-001",
+      "required": true,
+      "status": "open",
+      "area": "Durable work, recovery and operations",
+      "summary": "Receipt expiry helpers are not complete scheduled retention: no complete hourly session/credential/draft keyset purge, daily paired attempt/work/notification purge or processing-metadata dependency ordering.",
+      "task_ids": [
+        "T041"
+      ],
+      "case_ids": [
+        "ATDD-198",
+        "ATDD-208",
+        "ATDD-310"
+      ],
+      "evidence_paths": [
+        "services/core/src/main/kotlin/com/spoolin/core/operations/maintenance/ReceiptExpiry.kt",
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/operations/maintenance/ReceiptExpiry.kt",
+        "services/media/src/main/kotlin/com/spoolin/media/operations/maintenance/ReceiptExpiry.kt",
+        "docs/04-spoolin-techdoc.md"
+      ],
+      "assessed_revision": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+      "required_correction": "Use separate maintenance credential and bounded keyset batches with logical-expiry controls; retain permanent receipts/seed/provenance/approval tombstones and unresolved work, purge attempt pairs together only after dependencies clear.",
+      "runtime_proof": "Pending remote execution; diagnosis is not acceptance"
     }
   ],
   "pending_acceptance": [
@@ -165,8 +945,15 @@
     "G04-G16 remaining required findings from prior selection"
   ],
   "permitted_checks_executed": [
-    {"id": "git-diff-check", "result": "pass"},
-    {"id": "validate_manifest.py", "result": "pass", "detail": "100 movies, 100 series"}
+    {
+      "id": "git-diff-check",
+      "result": "pass"
+    },
+    {
+      "id": "validate_manifest.py",
+      "result": "pass",
+      "detail": "100 movies, 100 series"
+    }
   ],
   "skipped_checks": [
     "Gradle builds/tests",
@@ -176,5 +963,145 @@
     "integration selectors",
     "client hosts",
     "delivery gate stage"
-  ]
+  ],
+  "authorizations": [
+    {
+      "recorded_date": "2026-10-18",
+      "scope": "T001\u2013T046 / G01\u2013G26, from fetched origin/main; remote heavy verification and additional source correction/review/draft PR work explicitly authorized by the user.",
+      "baseline_sha": "2764ca8bcdb5ee182852e2bdb26c95247c81c5ed",
+      "preserved_history": {
+        "cycle": 3,
+        "correction_round": 2,
+        "max_correction_rounds": 2,
+        "verdict": "changes_required"
+      },
+      "limits": "Existing prior exhausted rounds and workflow controls retained; no counter reset or invented formal acceptance.",
+      "branch": "codex/remote-acceptance-closure",
+      "draft_pr": "https://github.com/okfriansyah-moh/spoolIn/pull/10"
+    }
+  ],
+  "remote_continuation": {
+    "coordinator": "remote-closure-coordinator",
+    "initial_main_sha": "2764ca8bcdb5ee182852e2bdb26c95247c81c5ed",
+    "assessment": "docs/release/remote-acceptance-assessment.json",
+    "source_complete_established": 0,
+    "runtime_verified_task_total": 0,
+    "formally_accepted_task_total": 0,
+    "formal_selection_control": {
+      "result": "blocked",
+      "plan_error": "T006 unsupported execution status (retained Implementation complete). Current continuation reopens tasks In progress without removing historical evidence.",
+      "start_error": "Overlapping unfinished selection; resume ['selection-24a6332c4dab45ea', 'selection-76f14edbf2224085']",
+      "action": "No unsupported state rewrite, budget reset or false accept operation performed."
+    },
+    "source_corrections_pending_remote_proof": [
+      "Real MCP SDK HTTP sessions, stdio bridge and live authenticated gRPC client; private approval remains disabled pending authoritative host channel/session/replay design.",
+      "Database-first startup, explicit required configuration, trusted health readiness and real prepared account initialization.",
+      "Compiled Catalog proposal bindings and Core HTTP DTO/context fixes; actual live policy revision wiring still needs proof.",
+      "Audit schema at field, subjects/changes/pagination; UUID management deep links.",
+      "Atomic schema-v2 seed identity/provenance/credits loader; actual reusable frozen snapshot unavailable from source endpoint.",
+      "Live work lease fencing/recovery deadlines; Media durable processing, codec sandbox and terminal transactional evidence.",
+      "Visible movie/person archive controls with original operation reconciliation."
+    ],
+    "process_deviations": [
+      {
+        "owner": "remote-operations-implementer",
+        "commit": "852c7ed",
+        "detail": "Worker reported disabling commit hooks for this one commit, contrary to the user instruction. Contribution was integrated with ordinary Git; no hook success or acceptance is claimed. Worker instructed not to repeat it; later commits used no overrides. Required remote gates remain unchanged and blocking."
+      }
+    ],
+    "runs": [
+      {
+        "run_id": 39082121651,
+        "tested_sha": "2764ca8bcdb5ee182852e2bdb26c95247c81c5ed",
+        "result": "failed",
+        "detail": "strict main baseline; six dependency metadata verification failures; npm/pinned setup passed",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082121651",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39082231555,
+        "tested_sha": "d81d9a9b452c36cab74ee70bd70f5df262de23cc",
+        "result": "succeeded-preparation",
+        "detail": "dependency metadata/strict lock preparation only; not runtime acceptance",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082231555",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39082387527,
+        "tested_sha": null,
+        "result": "failed",
+        "detail": "orchestration error: invalid abbreviated target; no application SHA tested",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082387527",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39082395165,
+        "tested_sha": "744135a1d601dda511f84df1060941ec73ae689d",
+        "result": "failed",
+        "detail": "strict dependencies, Java and TypeScript protobuf generation passed; Core/Catalog compilation failed",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082395165",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39082548519,
+        "tested_sha": "aee4dce6d43b4e93c33be203d81cd34d7e8fa4ac",
+        "result": "succeeded-preparation",
+        "detail": "npm workspace lock preparation; hosted Linux ubuntu24 image20261012.334.1 provenance inspected",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082548519",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39082771777,
+        "tested_sha": "6bdee2fd8de6ca6c4910a5076c9bb362f32620a4",
+        "result": "failed",
+        "detail": "strict build failed bootstrap JsonNode list mapping; correction committed bc5fa5c; startup/browser/gates not reached",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082771777",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39082899514,
+        "tested_sha": "76d2b76582462b3408472b62c1f706532da3cfcd",
+        "result": "failed",
+        "detail": "Wikidata seed preparation HTTP429 outage rate limit; failure preserved",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39082899514",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39083122521,
+        "tested_sha": "793478c2fb6c320a4cd5f6773ede24d13d27202e",
+        "result": "failed",
+        "detail": "rate-aware Wikidata query preparation timed out after three bounded requests; no dataset accepted",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39083122521",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39083972129,
+        "tested_sha": "0976461a82f049ac07036a1f9f5a126481e5b54c",
+        "result": "in_progress",
+        "detail": "bounded query correction for permitted seed facts; no dataset accepted yet",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39083972129",
+        "artifact_retention_days": 14
+      }
+    ],
+    "progress_checkpoints": [
+      {
+        "at": "2026-10-18T00:48:54.326194+00:00",
+        "local_sha": "d381c49d01c5e5923d7056dd82ca6bc429362219",
+        "published_sha": "0976461a82f049ac07036a1f9f5a126481e5b54c",
+        "actual_changed_behavior": [
+          "Core protected account initialization and seed transaction loading",
+          "MCP SDK HTTP sessions, real stdio bridge and mTLS gateway client",
+          "Media bounded codec worker and authenticated asset streaming",
+          "SQL lease expiry, generation and attempt fencing",
+          "Catalog deferred artwork receipts and intent-first upload path",
+          "Credit edit/remove and backed movie/person draft recovery",
+          "Archive confirmation and audit GraphQL projection",
+          "Shared policy revisions and production MCP lifecycle"
+        ],
+        "checks": "Strict remote dependency verification and protobuf/TypeScript generation passed on744135a1d601dda511f84df1060941ec73ae689d; latest full build blocked by previously fixed bootstrap compile defect; later contributions unverified. No make start/browser readiness or task runtime acceptance established.",
+        "remaining": "All46tasks In progress; complete new worker integration, real dataset, remote build/runtime/gates/browser/operations evidence, required host/reader observations, final combined review and formal selection control.",
+        "next_action": "Integrate fenced artwork work and rerun composed production build/start remotely"
+      }
+    ]
+  }
 }

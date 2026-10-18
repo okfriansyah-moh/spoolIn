@@ -9,7 +9,7 @@ depends_on:
 - T015
 - T018
 readiness: Ready
-status: Implementation complete
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: required

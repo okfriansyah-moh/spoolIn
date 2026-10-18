@@ -11,7 +11,7 @@ depends_on:
 - T020
 - T023
 readiness: Ready
-status: Implementation complete
+status: In progress
 risk: high
 test_strategy: test-first
 visual_review: not-applicable
