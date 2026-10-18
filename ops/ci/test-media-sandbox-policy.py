@@ -59,7 +59,8 @@ class MediaSandboxPolicyTest(unittest.TestCase):
     def test_compound_transition_has_no_inherit_fallback_and_missing_codec_is_a_failed_prerequisite(self):
         files, _ = POLICY.validate_source()
         text = files['media-apparmor'].decode()
-        transition = [line.strip() for line in text.splitlines() if '/usr/bin/prlimit ' in line]
+        outer = text.split('profile spoolin-media-codec ', 1)[0]
+        transition = [line.strip() for line in outer.splitlines() if '/usr/bin/prlimit ' in line]
         self.assertEqual(['/usr/bin/prlimit px -> spoolin-media//&spoolin-media-codec,'], transition)
         # A target-only &label requires an executable attachment or fallback; neither is the production design.
         self.assertNotIn('px -> &spoolin-media-codec', text)
