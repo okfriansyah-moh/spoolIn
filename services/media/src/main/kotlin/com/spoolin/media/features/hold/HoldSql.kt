@@ -28,7 +28,7 @@ object HoldSql {
             command.operation, command.scope, command.action.kind, command.hash(), command.correlation,
             Timestamp.from(now), Timestamp.from(now.plusSeconds(604800)),
         ) == 1
-        val matches = connection.queryBound(
+        connection.queryBound(
             "SELECT actor_scope,kind,request_hash,state,result,expires_at FROM operation_receipt WHERE id=? FOR UPDATE",
             listOf(command.operation),
         ) { row ->
@@ -40,9 +40,8 @@ object HoldSql {
                 !row.getTimestamp("expires_at").toInstant().isAfter(now))) {
                 throw Status.FAILED_PRECONDITION.withDescription("HOLD_RECEIPT_UNAVAILABLE_OR_EXPIRED").asRuntimeException()
             }
-            true
+            Unit
         }.single()
-        if (!matches) throw Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException()
         return inserted
     }
 

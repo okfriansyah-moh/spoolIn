@@ -70,6 +70,7 @@ class HoldBoundaryTest {
             val core = channel(fixture, "core", "media", media.port)
             try {
                 val client = MediaServiceGrpc.newBlockingStub(caller).withDeadlineAfter(10, TimeUnit.SECONDS)
+                assertInvalidCommands(client)
                 assertReserve(pool, client)
                 assertLifecycle(pool, client)
                 val wrong = MediaServiceGrpc.newBlockingStub(core).withDeadlineAfter(5, TimeUnit.SECONDS)
@@ -86,6 +87,29 @@ class HoldBoundaryTest {
                 listOf(media, catalogServer).forEach { it.shutdownNow().awaitTermination(5, TimeUnit.SECONDS) }
             }
         }
+    }
+
+    private fun assertInvalidCommands(client: MediaServiceGrpc.MediaServiceBlockingStub) {
+        val reserve = command("media-reserve")
+        val badOperation = reserve.toBuilder().setContext(reserve.context.toBuilder()
+            .setOperationId(UUID.randomUUID().toString())).build()
+        assertEquals(Status.Code.INVALID_ARGUMENT, assertThrows(StatusRuntimeException::class.java) {
+            client.reserve(badOperation)
+        }.status.code)
+        assertEquals(Status.Code.INVALID_ARGUMENT, assertThrows(StatusRuntimeException::class.java) {
+            client.reserve(reserve.toBuilder().clearActorId().build())
+        }.status.code)
+        assertEquals(Status.Code.PERMISSION_DENIED, assertThrows(StatusRuntimeException::class.java) {
+            client.reserve(reserve.toBuilder().setAssetId(UUID.randomUUID().toString()).build())
+        }.status.code)
+        assertEquals(Status.Code.FAILED_PRECONDITION, assertThrows(StatusRuntimeException::class.java) {
+            client.confirm(command("media-confirm", 7))
+        }.status.code)
+        projection.set(attachment("UNKNOWN", 6))
+        assertEquals(Status.Code.UNAVAILABLE, assertThrows(StatusRuntimeException::class.java) {
+            client.reserve(reserve)
+        }.status.code)
+        projection.set(attachment("PREPARING", 6))
     }
 
     private fun assertReserve(pool: DataSource, client: MediaServiceGrpc.MediaServiceBlockingStub) {
