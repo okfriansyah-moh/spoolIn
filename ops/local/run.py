@@ -73,9 +73,9 @@ def tooling(*args, root=False, cache=True, docker=False):
 
 def check_tools():
     if sys.version_info < (3, 10):
-        raise RuntimeError('Python 3.10 or newer is required. Install it using docs/local-setup.md, then run this command again.')
+        raise RuntimeError('Python 3.10 or newer is required. Install it using README.md#run-spoolin-on-your-computer, then run this command again.')
     if not shutil.which('docker'):
-        raise RuntimeError('Install Docker and start its engine; see docs/local-setup.md.')
+        raise RuntimeError('Install Docker and start its engine; see README.md#run-spoolin-on-your-computer.')
     run('docker', 'info', capture=True)
     run('docker', 'compose', 'version', capture=True)
 
