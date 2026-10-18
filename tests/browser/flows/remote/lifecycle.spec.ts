@@ -1,7 +1,7 @@
 import { test, expect, signInMaintainer, createMovie, createPerson, capture } from './helpers';
 
 for (const kind of ['movie', 'person'] as const) {
-  test(`ATDD lifecycle ${kind}: archive, restore, cancel and permanent deletion persist`, async ({ page }, info) => {
+  test(`ATDD lifecycle ${kind} partial: archive, restore, cancel and permanent deletion persist`, async ({ page }, info) => {
     await signInMaintainer(page);
     const record = kind === 'movie' ? await createMovie(page) : await createPerson(page);
     const label = 'title' in record ? record.title : record.name;

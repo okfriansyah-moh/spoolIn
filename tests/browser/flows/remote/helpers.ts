@@ -9,7 +9,7 @@ test.afterEach(async ({ page }, info) => {
   if (page.isClosed() || info.status === info.expectedStatus) return;
   await page.locator('input[type="password"]').fill('').catch(() => {});
   if (await page.locator('input[type="password"]').count() === 0) {
-    await capture(page, info, [], 'failure');
+    await capture(page, info, info.title.match(/ATDD-\d+/g) ?? [], 'failure');
   }
 });
 

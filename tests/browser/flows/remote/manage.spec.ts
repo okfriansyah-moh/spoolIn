@@ -22,7 +22,7 @@ test('ATDD-016/017/023: movie and person writes survive public-route reload', as
   await capture(page, info, ['ATDD-016', 'ATDD-017'], 'movie-persisted');
 });
 
-test('ATDD-026/028: shared person credit persists and can be removed visibly', async ({ page }, info) => {
+test('ATDD-026/028 partial: shared person credit persists and can be removed visibly', async ({ page }, info) => {
   await signInMaintainer(page);
   const person = await createPerson(page);
   await createMovie(page);
@@ -41,7 +41,7 @@ test('ATDD-026/028: shared person credit persists and can be removed visibly', a
   await capture(page, info, ['ATDD-028'], 'credit-removed');
 });
 
-test('ATDD-079: competing real editor retains draft and reports stale save', async ({ page, context }, info) => {
+test('ATDD-079 partial: competing real editor retains draft and reports stale save', async ({ page, context }, info) => {
   await signInMaintainer(page);
   await createMovie(page);
   const competing = await context.newPage();
