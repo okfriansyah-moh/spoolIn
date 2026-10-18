@@ -34,14 +34,14 @@ jobs:
         shell: bash
         run: |
           test "$RUNNER_ENVIRONMENT" = github-hosted
-          mkdir -p .ai/evidence/remote
+          mkdir -p artifacts/provenance
           python3 - <<'PY'
           import json, os, platform, subprocess
           from pathlib import Path
           record = {k: os.environ.get(k) for k in ['GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'GITHUB_JOB', 'RUNNER_OS', 'RUNNER_ARCH', 'RUNNER_ENVIRONMENT', 'ImageOS', 'ImageVersion']}
           record['tested_sha'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
           record['platform'] = platform.platform()
-          Path('.ai/evidence/remote/runner.json').write_text(json.dumps(record, indent=2) + '\n')
+          Path('artifacts/provenance/runner.json').write_text(json.dumps(record, indent=2) + '\n')
           PY
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -51,6 +51,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '21.0.12+1'
+      - name: Prepare npm lock metadata
+        if: ${{ inputs.mode == 'dependencies' }}
+        run: npm install --package-lock-only --ignore-scripts
       - name: Install locked npm dependencies
         run: npm ci
       - name: Prepare dependency locks and verification entries
@@ -59,6 +62,9 @@ jobs:
       - name: Strict build and contract generation
         if: ${{ inputs.mode == 'verify' }}
         run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
+      - name: Check production frontend and MCP
+        if: ${{ inputs.mode == 'verify' }}
+        run: npm run check && npm run build
       - name: Provision isolated synthetic environment
         if: ${{ inputs.mode == 'verify' }}
         run: python3 ops/ci/prepare-environment.py
@@ -71,7 +77,8 @@ jobs:
         with:
           name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            .ai/evidence/remote
+            artifacts/provenance
+            package-lock.json
             artifacts/runtime
             artifacts/make
             gradle/verification-metadata.xml

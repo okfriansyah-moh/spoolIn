@@ -81,7 +81,7 @@ allprojects {
         }
         extensions.configure<KtlintExtension> { version.set(rootProject.libs.versions.ktlint) }
         extensions.configure<DetektExtension> {
-            config.setFrom(rootProject.file(".ai/bundles/1.1.0/profiles/kotlin/detekt.yml"))
+            config.setFrom(rootProject.file(".ai/bundles/1.2.1/profiles/kotlin/detekt.yml"))
             buildUponDefaultConfig = true
         }
     }

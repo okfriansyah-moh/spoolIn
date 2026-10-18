@@ -686,7 +686,7 @@
         "tests/browser/playwright.policy.config.ts",
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
-        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
         ".ai/bundles/1.1.1/docs/verification-tools.json"
       ],
       "argv": [
@@ -754,7 +754,7 @@
         "build-tools/verification-tests/*.py",
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
-        ".ai/bundles/1.1.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
         ".ai/bundles/1.1.1/docs/verification-tools.json"
       ],
       "argv": [
