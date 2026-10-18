@@ -2,6 +2,8 @@
 
 package com.spoolin.catalog.features.person.write
 
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
@@ -43,6 +45,7 @@ private const val WRITE_KIND = "WritePerson"
 class PersonWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
+    private val policy: CatalogWritePolicy = CatalogWritePolicy(),
 ) {
     fun writePerson(
         request: PersonWrite,
@@ -66,10 +69,11 @@ class PersonWrites(
                 )
             val outcome =
                 receipts.execute(intent, correlationId, true) { conn ->
+                    val command = policy.bind(request, request.context.policyRevision)
                     if (isCreate) {
-                        create(conn, request, claims.accountId, operationId, correlationId)
+                        create(conn, command, claims.accountId, operationId, correlationId)
                     } else {
-                        update(conn, request, claims.accountId, operationId, correlationId)
+                        update(conn, command, claims.accountId, operationId, correlationId)
                     }
                 }
             response.onNext(outcomeProto(outcome))
@@ -107,12 +111,13 @@ class PersonWrites(
 
     private fun create(
         conn: Connection,
-        request: PersonWrite,
+        command: PolicyWrite<PersonWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
-        val validated = PersonValidation.validateCreate(request.values)
+        val request = command.input
+        val validated = PersonValidation.validateCreate(request.values, command.policy)
         val personId = UUID.randomUUID()
         val now = Timestamp.from(clock.instant())
         conn.executeBound(
@@ -143,11 +148,12 @@ class PersonWrites(
 
     private fun update(
         conn: Connection,
-        request: PersonWrite,
+        command: PolicyWrite<PersonWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
+        val request = command.input
         val personId = parseId(request.id)
         val expectedVersion = request.expectedVersion
         val current =
@@ -162,7 +168,7 @@ class PersonWrites(
         if (current.version != expectedVersion) {
             throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
         }
-        val patch = PersonValidation.validatePatch(request)
+        val patch = PersonValidation.validatePatch(request, command.policy)
         val newVersion = expectedVersion + 1
         val now = Timestamp.from(clock.instant())
         applyPatch(conn, personId, patch, newVersion, now)

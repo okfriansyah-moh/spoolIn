@@ -2,6 +2,8 @@
 
 package com.spoolin.catalog.features.movie
 
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PartialDate
 import com.spoolin.support.policy.PatchValue
@@ -10,10 +12,6 @@ import com.spoolin.support.policy.TextRules
 import spoolin.v1.Spoolin.MovieValues
 import spoolin.v1.Spoolin.MovieWrite
 
-// Source-prescribed catalog text bounds.
-private val TITLE_BOUND = TextBound(1, 255)
-private val SYNOPSIS_BOUND = TextBound(1, 5000)
-private val OPTIONAL_TITLE_BOUND = TextBound(1, 255, required = false)
 private val BCP47_BOUND = TextBound(1, 35)
 private const val RUNTIME_MAX = 100000
 
@@ -53,13 +51,16 @@ data class ValidatedMoviePatch(
  * PRD-POLICY-26: Plain text only; no markup execution.
  */
 object MovieValidation {
-    fun validateCreate(values: MovieValues): ValidatedMovieCreate {
-        val title = TextRules.ordinary(values.title, TITLE_BOUND, "title")
+    fun validateCreate(
+        values: MovieValues,
+        policy: PublicPolicy = CatalogWritePolicy.environment(),
+    ): ValidatedMovieCreate {
+        val title = TextRules.ordinary(values.title, policy.textBounds.getValue("title"), "title")
         val originalTitle =
             values.originalTitle.takeIf { it.isNotEmpty() }?.let {
-                TextRules.ordinary(it, OPTIONAL_TITLE_BOUND, "originalTitle")
+                TextRules.ordinary(it, policy.textBounds.getValue("originalTitle"), "originalTitle")
             }
-        val synopsis = TextRules.ordinary(values.synopsis, SYNOPSIS_BOUND, "synopsis")
+        val synopsis = TextRules.ordinary(values.synopsis, policy.textBounds.getValue("synopsis"), "synopsis")
         val synopsisLang = TextRules.ordinary(values.synopsisLanguage, BCP47_BOUND, "synopsisLanguage")
         val originalLang =
             values.originalLanguage.takeIf { it.isNotEmpty() }?.let {
@@ -84,13 +85,16 @@ object MovieValidation {
         )
     }
 
-    fun validatePatch(write: MovieWrite): ValidatedMoviePatch {
+    fun validatePatch(
+        write: MovieWrite,
+        policy: PublicPolicy = CatalogWritePolicy.environment(),
+    ): ValidatedMoviePatch {
         val mask = write.updateMask.pathsList.toSet()
         val v = write.values
         return ValidatedMoviePatch(
-            displayTitle = patchText("values.title", mask, v.title, TITLE_BOUND, "title"),
-            originalTitle = patchOptText("values.original_title", mask, v.originalTitle, OPTIONAL_TITLE_BOUND, "originalTitle"),
-            synopsis = patchText("values.synopsis", mask, v.synopsis, SYNOPSIS_BOUND, "synopsis"),
+            displayTitle = patchText("values.title", mask, v.title, policy.textBounds.getValue("title"), "title"),
+            originalTitle = patchOptText("values.original_title", mask, v.originalTitle, policy.textBounds.getValue("originalTitle"), "originalTitle"),
+            synopsis = patchText("values.synopsis", mask, v.synopsis, policy.textBounds.getValue("synopsis"), "synopsis"),
             synopsisLanguage = patchText("values.synopsis_language", mask, v.synopsisLanguage, BCP47_BOUND, "synopsisLanguage"),
             originalLanguage = patchOptText("values.original_language", mask, v.originalLanguage, BCP47_BOUND, "originalLanguage"),
             countries = patchCountries("values.countries", mask, v),

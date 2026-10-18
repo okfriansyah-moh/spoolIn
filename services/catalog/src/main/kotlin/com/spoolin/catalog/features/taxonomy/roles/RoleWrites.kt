@@ -2,7 +2,9 @@
 
 package com.spoolin.catalog.features.taxonomy.roles
 
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.operations.audit.AuditInsert
+import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
@@ -31,6 +33,7 @@ private const val WRITE_KIND = "CreateRole"
 class RoleWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
+    private val policy: CatalogWritePolicy = CatalogWritePolicy(),
 ) {
     fun createRole(
         request: RoleWrite,
@@ -42,17 +45,18 @@ class RoleWrites(
             val operationId = parseId(request.context.operationId)
             val correlationId = parseId(request.context.correlationId)
             val actorScope = "account:${claims.accountId}"
-            val validated = RoleValidation.validateCreate(request.category, request.label)
             val intent =
                 OperationIntent(
                     operationId,
                     actorScope,
                     WRITE_KIND,
                     request.context.policyRevision,
-                    listOf("category" to validated.category, "label" to validated.label),
+                    listOf("category" to request.category, "label" to request.label),
                 )
             val outcome =
                 receipts.execute(intent, correlationId, true) { conn ->
+                    val effective = policy.bind(request, request.context.policyRevision).policy
+                    val validated = RoleValidation.validateCreate(request.category, request.label, effective)
                     create(conn, validated, claims.accountId, operationId, correlationId)
                 }
             response.onNext(outcomeProto(outcome))
@@ -94,7 +98,7 @@ class RoleWrites(
             "ROLE",
             roleId,
             "SUCCEEDED",
-            """{"changes":[{"path":"label","before":null,"after":"${validated.label}"}],"summarised":false}""",
+            AuditDiff.compute(emptyMap(), mapOf("label" to validated.label), setOf("label")),
             correlationId,
             clock.instant(),
         )

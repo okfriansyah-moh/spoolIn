@@ -10,6 +10,8 @@
 
 package com.spoolin.catalog.features.credit
 
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.ActorRejected
@@ -40,6 +42,7 @@ private const val REMOVE_KIND = "RemoveCredit"
 class CreditWrites(
     private val receipts: OwnerReceipts,
     private val clock: Clock = Clock.systemUTC(),
+    private val policy: CatalogWritePolicy = CatalogWritePolicy(),
 ) {
     fun writeCredit(
         request: CreditWrite,
@@ -63,10 +66,11 @@ class CreditWrites(
                 )
             val outcome =
                 receipts.execute(intent, correlationId, true) { conn ->
+                    val command = policy.bind(request, request.context.policyRevision)
                     if (isCreate) {
-                        create(conn, request, claims.accountId, operationId, correlationId)
+                        create(conn, command, claims.accountId, operationId, correlationId)
                     } else {
-                        update(conn, request, claims.accountId, operationId, correlationId)
+                        update(conn, command, claims.accountId, operationId, correlationId)
                     }
                 }
             response.onNext(outcomeProto(outcome))
@@ -122,6 +126,7 @@ class CreditWrites(
                 )
             val outcome =
                 receipts.execute(intent, correlationId, true) { conn ->
+                    policy.bind(request, request.context.policyRevision)
                     remove(conn, creditId, expectedVersion, claims.accountId, operationId, correlationId)
                 }
             response.onNext(outcomeProto(outcome))
@@ -135,12 +140,13 @@ class CreditWrites(
 
     private fun create(
         conn: Connection,
-        request: CreditWrite,
+        command: PolicyWrite<CreditWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
-        val validated = CreditValidation.validateCreate(request)
+        val request = command.input
+        val validated = CreditValidation.validateCreate(request, command.policy)
         val titleId = parseId(request.titleId)
         val personId = parseId(validated.personId)
         val roleId = parseId(validated.roleId)
@@ -192,11 +198,12 @@ class CreditWrites(
 
     private fun update(
         conn: Connection,
-        request: CreditWrite,
+        command: PolicyWrite<CreditWrite>,
         actorId: UUID,
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
+        val request = command.input
         val creditId = parseId(request.id)
         val expectedVersion = request.expectedVersion
         val current =
@@ -215,7 +222,7 @@ class CreditWrites(
         if (person.status != STATUS_ACTIVE) {
             throw Status.FAILED_PRECONDITION.withDescription("PERSON_ARCHIVED").asRuntimeException()
         }
-        val patch = CreditValidation.validatePatch(request)
+        val patch = CreditValidation.validatePatch(request, command.policy)
         val roleId =
             when (patch.roleId) {
                 is PatchValue.Value -> parseId(patch.roleId.value)

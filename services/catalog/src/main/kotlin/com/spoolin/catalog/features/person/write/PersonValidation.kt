@@ -2,20 +2,13 @@
 
 package com.spoolin.catalog.features.person.write
 
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PatchValue
 import com.spoolin.support.policy.TextBound
 import com.spoolin.support.policy.TextRules
 import spoolin.v1.Spoolin.PersonValues
 import spoolin.v1.Spoolin.PersonWrite
-
-// PRD-BOUND-01: Catalog person name 1–100 code points.
-// Distinct from account registration name defaults (2–100, PRD-CONCEPT-09).
-// PRD-POLICY-18: Support mononyms, Unicode, spaces, hyphens, apostrophes;
-//   no given-name/family-name split required.
-private val NAME_BOUND = TextBound(1, 100)
-
-// TD-ROW-L4490: Optional plain text, default max 5000 code points.
-private val BIOGRAPHY_BOUND = TextBound(1, 5000, required = false)
 
 data class ValidatedPersonCreate(
     val name: String,
@@ -35,21 +28,27 @@ data class ValidatedPersonPatch(
  * AC-140-C01: Accept 1 and 100, reject 0 and 101 with a field-specific error and no partial change.
  */
 object PersonValidation {
-    fun validateCreate(values: PersonValues): ValidatedPersonCreate {
-        val name = TextRules.ordinary(values.name, NAME_BOUND, "name")
+    fun validateCreate(
+        values: PersonValues,
+        policy: PublicPolicy = CatalogWritePolicy.environment(),
+    ): ValidatedPersonCreate {
+        val name = TextRules.ordinary(values.name, policy.textBounds.getValue("personName"), "name")
         val biography =
             values.biography
                 .takeIf { it.isNotEmpty() }
-                ?.let { TextRules.ordinary(it, BIOGRAPHY_BOUND, "biography") }
+                ?.let { TextRules.ordinary(it, policy.textBounds.getValue("biography"), "biography") }
         return ValidatedPersonCreate(name = name, biography = biography)
     }
 
-    fun validatePatch(write: PersonWrite): ValidatedPersonPatch {
+    fun validatePatch(
+        write: PersonWrite,
+        policy: PublicPolicy = CatalogWritePolicy.environment(),
+    ): ValidatedPersonPatch {
         val mask = write.updateMask.pathsList.toSet()
         val v = write.values
         return ValidatedPersonPatch(
-            name = patchName("values.name", mask, v.name),
-            biography = patchBiography("values.biography", mask, v.biography),
+            name = patchName("values.name", mask, v.name, policy.textBounds.getValue("personName")),
+            biography = patchBiography("values.biography", mask, v.biography, policy.textBounds.getValue("biography")),
         )
     }
 
@@ -57,9 +56,10 @@ object PersonValidation {
         path: String,
         mask: Set<String>,
         raw: String,
+        bound: TextBound,
     ): PatchValue<String> =
         if (path in mask) {
-            PatchValue.Value(TextRules.ordinary(raw, NAME_BOUND, "name"))
+            PatchValue.Value(TextRules.ordinary(raw, bound, "name"))
         } else {
             PatchValue.Omitted
         }
@@ -68,12 +68,13 @@ object PersonValidation {
         path: String,
         mask: Set<String>,
         raw: String,
+        bound: TextBound,
     ): PatchValue<String> =
         if (path !in mask) {
             PatchValue.Omitted
         } else if (raw.isEmpty()) {
             PatchValue.Clear
         } else {
-            PatchValue.Value(TextRules.ordinary(raw, BIOGRAPHY_BOUND, "biography"))
+            PatchValue.Value(TextRules.ordinary(raw, bound, "biography"))
         }
 }
