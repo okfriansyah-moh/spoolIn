@@ -45,12 +45,7 @@ class DraftGraphql(
         val principal = context.principal ?: throw CredentialRejected()
         val operationId = uuid(env, "operationId")
         val draftId = uuid(env, "id")
-        val expectedVersion = env.getArgument<Long>("expectedVersion")
-        val omittedOrValid =
-            env.getField().arguments.none { it.name == "expectedVersion" && it.value != null }
-        require(expectedVersion != null || omittedOrValid) {
-            "Explicit null for expectedVersion is not permitted; omit the argument for create"
-        }
+        val expectedVersion = draftExpectedVersion(env)
         val rawInput = requireNotNull(env.getArgument<Map<String, Any?>>("input"))
         val input = parseDraftGraphqlInput(rawInput)
         val outcome =
@@ -79,7 +74,7 @@ class DraftGraphql(
         val operationId = uuid(env, "operationId")
         val draftId = uuid(env, "id")
         val expectedVersion =
-            requireNotNull(env.getArgument<Long>("expectedVersion")) {
+            requireNotNull(draftExpectedVersion(env)) {
                 "expectedVersion is required for discardDraft"
             }
         val outcome =
@@ -108,4 +103,12 @@ class DraftGraphql(
         env: DataFetchingEnvironment,
         name: String,
     ): UUID = UUID.fromString(requireNotNull(env.getArgument<String>(name)))
+}
+
+internal fun draftExpectedVersion(env: DataFetchingEnvironment): Long? {
+    val version = env.getArgument<String>("expectedVersion")
+    require(version != null || !env.containsArgument("expectedVersion")) {
+        "Explicit null for expectedVersion is not permitted; omit the argument for create"
+    }
+    return version?.toLong()
 }

@@ -58,7 +58,7 @@ internal fun parseDraftGraphqlInput(raw: Map<String, Any?>): DraftInput =
     DraftInput(
         targetKind = requireNotNull(raw["targetKind"] as? String) { "targetKind is required" },
         targetId = (raw["targetId"] as? String)?.let { UUID.fromString(it) },
-        baseVersion = raw["baseVersion"] as? Long,
+        baseVersion = (raw["baseVersion"] as? String)?.toLong(),
         values =
             requireNotNull(
                 when (val v = raw["values"]) {
