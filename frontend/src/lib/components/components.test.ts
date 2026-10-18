@@ -87,6 +87,10 @@ it('fields associate exact help and errors with native controls', () => {
       required: true,
     },
   }).body;
+  expect(body).toContain('id="title-label"');
+  expect(body).toContain('aria-labelledby="title-label"');
+  expect(body).toContain('aria-hidden="true"');
+  expect(body).toContain(' · Required');
   expect(body).toContain('title-help title-error');
   expect(body).toContain('aria-invalid="true"');
   expect(body).toContain('&lt;script>');
