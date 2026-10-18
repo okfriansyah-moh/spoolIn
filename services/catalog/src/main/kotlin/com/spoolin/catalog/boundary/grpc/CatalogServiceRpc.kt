@@ -82,6 +82,16 @@ class CatalogServiceRpc(
     private val deletionImpact: com.spoolin.catalog.features.lifecycle.DeletionImpact? = null,
     private val proposalWrites: com.spoolin.catalog.features.proposal.ProposalWrites? = null,
 ) : CatalogServiceGrpc.CatalogServiceImplBase() {
+    override fun getAttachment(request: Id, response: StreamObserver<spoolin.v1.Spoolin.Attachment>) {
+        val handler = artwork ?: return response.onError(Status.UNAVAILABLE.asRuntimeException())
+        handler.getAttachment(request, response)
+    }
+
+    override fun resolveArtworkAccess(request: spoolin.v1.Spoolin.ArtworkAccessRequest, response: StreamObserver<spoolin.v1.Spoolin.ArtworkGrant>) {
+        val handler = artwork ?: return response.onError(Status.UNAVAILABLE.asRuntimeException())
+        handler.resolveArtworkAccess(request, response)
+    }
+
     // ── GetOperation ─────────────────────────────────────────────────────────
 
     override fun getOperation(

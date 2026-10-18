@@ -11,7 +11,7 @@ internal data class ArtworkUploadContext(
     val uploadOperationId: UUID,
     val policyRevision: String,
     val assetId: UUID,
-    val content: ByteArray,
+    val spool: ArtworkSpool,
 )
 
 internal data class ArtworkAttachContext(

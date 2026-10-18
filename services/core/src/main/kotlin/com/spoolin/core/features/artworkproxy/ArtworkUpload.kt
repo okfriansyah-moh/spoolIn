@@ -6,7 +6,6 @@ import io.grpc.StatusRuntimeException
 import io.grpc.stub.MetadataUtils
 import io.grpc.stub.StreamObserver
 import spoolin.v1.Spoolin
-import java.security.MessageDigest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -16,7 +15,7 @@ private const val UPLOAD_TIMEOUT_SECONDS = 30L
 
 internal object ArtworkUpload {
     fun upload(request: ArtworkUploadRequest): Spoolin.Outcome {
-        val digest = MessageDigest.getInstance("SHA-256").digest(request.content)
+        val digest = request.spool.sha256
         val header =
             Spoolin.UploadHeader
                 .newBuilder()
@@ -28,10 +27,10 @@ internal object ArtworkUpload {
                         .setPolicyRevision(request.policyRevision)
                         .build(),
                 ).setActorId(request.principal.accountId.toString())
-                .setInputBytes(request.content.size.toLong())
+                .setInputBytes(request.spool.size)
                 .setAssetId(request.assetId.toString())
                 .setInputSha256(ByteString.copyFrom(digest))
-                .setIntentId("artwork")
+                .setIntentId(request.intentId.toString())
                 .build()
         val latch = CountDownLatch(1)
         val outcome = AtomicReference<Spoolin.Outcome>()
@@ -52,7 +51,7 @@ internal object ArtworkUpload {
                 }
             }
         val meta = Metadata().apply { put(com.spoolin.support.identity.ActorRpc.metadata, request.actorToken) }
-        val stub = request.media.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
+        val stub = request.media.withDeadlineAfter(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS).withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
         val stream = stub.upload(response)
         stream.onNext(
             Spoolin.UploadChunk
@@ -60,16 +59,14 @@ internal object ArtworkUpload {
                 .setHeader(header)
                 .build(),
         )
-        var offset = 0
-        while (offset < request.content.size) {
-            val end = minOf(offset + UPLOAD_CHUNK_BYTES, request.content.size)
-            stream.onNext(
-                Spoolin.UploadChunk
-                    .newBuilder()
-                    .setData(ByteString.copyFrom(request.content, offset, end - offset))
-                    .build(),
-            )
-            offset = end
+        java.nio.file.Files.newInputStream(request.spool.path).use { input ->
+            val buffer = ByteArray(UPLOAD_CHUNK_BYTES)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                if (error.get() != null) break
+                stream.onNext(Spoolin.UploadChunk.newBuilder().setData(ByteString.copyFrom(buffer, 0, count)).build())
+            }
         }
         stream.onCompleted()
         return awaitUploadOutcome(latch, error, outcome)
