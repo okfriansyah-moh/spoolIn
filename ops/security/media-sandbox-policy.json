@@ -59,6 +59,6 @@
   ],
   "files": {
     "media-seccomp.json": "ffaa1e6a9b2ebeedc43c61c52150ce956a07f97f2632039379ce748698d80a7c",
-    "media-apparmor": "bbf441c955716bcfae902bceea93c6e54a8844581de029fd9dd856123573df60"
+    "media-apparmor": "c10758ecbfd0ae0fce09607de05b486db45eb336b5d3489faf50439408401ae7"
   }
 }
