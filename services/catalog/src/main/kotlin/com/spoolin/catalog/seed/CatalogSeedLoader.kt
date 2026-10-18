@@ -4,10 +4,10 @@ import com.spoolin.support.policy.PolicyEnvironment
 import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
-import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Path
 import java.sql.Connection
+import java.util.UUID
 import javax.sql.DataSource
 
 /** Applies one validated frozen snapshot atomically; successful reruns verify retained evidence. */
