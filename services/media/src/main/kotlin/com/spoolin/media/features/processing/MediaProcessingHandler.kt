@@ -23,6 +23,7 @@ class MediaProcessingHandler(
     private val store: QuarantineStore,
     private val processor: ProcessorRunner = ProcessorRunner(),
     private val clock: Clock = Clock.systemUTC(),
+    private val metrics: ProcessingMetrics? = null,
 ) {
     fun handle(claim: WorkClaim) {
         require(claim.kind == "MEDIA_PROCESS")
@@ -35,15 +36,16 @@ class MediaProcessingHandler(
             }
         check(asset.uploadOperationId == claim.operationId && asset.state == AssetState.PROCESSING)
         val outcome = process(asset)
-        val committed = finish(claim, asset, outcome)
+        val committed = finish(claim, asset, outcome.result)
+        if (committed && outcome.processorRan) metrics?.committed(outcome.result)
         // Only the winning terminal transaction may discard accepted input.
         if (committed) Files.deleteIfExists(store.stagingPath(asset.id))
     }
 
-    private fun process(asset: AssetRow): ProcessorRunner.Outcome {
+    private fun process(asset: AssetRow): Processed {
         val input = store.stagingPath(asset.id)
         val error = inputError(asset, input)
-        return if (error != null) ProcessorRunner.Outcome.Rejected(error) else validate(asset, input)
+        return if (error != null) Processed(ProcessorRunner.Outcome.Rejected(error), false) else validate(asset, input)
     }
 
     private fun inputError(
@@ -60,13 +62,13 @@ class MediaProcessingHandler(
     private fun validate(
         asset: AssetRow,
         input: java.nio.file.Path,
-    ): ProcessorRunner.Outcome {
+    ): Processed {
         val validation =
             Files.newInputStream(input).use {
                 ImageValidator.validate(it, ProcessingBounds.MAX_INPUT_BYTES)
             }
         return when (validation) {
-            is ImageValidator.ValidationResult.Invalid -> ProcessorRunner.Outcome.Rejected(validation.errorCode)
+            is ImageValidator.ValidationResult.Invalid -> Processed(ProcessorRunner.Outcome.Rejected(validation.errorCode), false)
             is ImageValidator.ValidationResult.Valid -> processValidated(asset, input, validation)
         }
     }
@@ -75,7 +77,7 @@ class MediaProcessingHandler(
         asset: AssetRow,
         input: java.nio.file.Path,
         validation: ImageValidator.ValidationResult.Valid,
-    ): ProcessorRunner.Outcome {
+    ): Processed {
         val error =
             when {
                 !java.security.MessageDigest.isEqual(validation.inputHash, asset.processingInputHash) ->
@@ -84,9 +86,10 @@ class MediaProcessingHandler(
                 else -> null
             }
         return if (error != null) {
-            ProcessorRunner.Outcome.Rejected(error)
+            Processed(ProcessorRunner.Outcome.Rejected(error), false)
         } else {
-            processor.process(input, store.outputDirectory(), validation.format, asset.id)
+            val action = { processor.process(input, store.outputDirectory(), validation.format, asset.id) }
+            Processed(metrics?.measure(action) ?: action(), true)
         }
     }
 
@@ -152,3 +155,8 @@ class MediaProcessingHandler(
         )
     }
 }
+
+private data class Processed(
+    val result: ProcessorRunner.Outcome,
+    val processorRan: Boolean,
+)
