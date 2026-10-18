@@ -4,10 +4,12 @@ import fcntl
 import hashlib
 import json
 import os
+import selectors
 from pathlib import Path
 import stat
 import subprocess
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
 SECURITY = ROOT / 'ops/security'
@@ -91,6 +93,44 @@ def install_file(target, content):
         os.fsync(output.fileno())
 
 
+def load_profile():
+    retained = bytearray()
+    observed = 0
+    timed_out = False
+    with subprocess.Popen(['/sbin/apparmor_parser', '--add', str(APPARMOR)],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
+        os.set_blocking(process.stderr.fileno(), False)
+        deadline = time.monotonic() + 30
+        with selectors.DefaultSelector() as selector:
+            selector.register(process.stderr, selectors.EVENT_READ)
+            while selector.get_map():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    timed_out = True
+                    process.kill()
+                    break
+                if not selector.select(min(remaining, 0.25)):
+                    continue
+                chunk = os.read(process.stderr.fileno(), 4096)
+                if not chunk:
+                    selector.unregister(process.stderr)
+                    break
+                observed += len(chunk)
+                retained.extend(chunk[:max(0, 4096 - len(retained))])
+        try:
+            code = process.wait(timeout=max(0.01, deadline - time.monotonic()))
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            process.kill()
+            code = process.wait(timeout=5)
+    if code != 0 or timed_out:
+        print(json.dumps({'boundary': 'Media AppArmor profile loading', 'exit': code,
+                          'timedOut': timed_out, 'diagnostic': retained.decode('utf-8', errors='replace'),
+                          'observedBytes': observed, 'retainedByteLimit': 4096,
+                          'truncated': observed > len(retained)}), file=sys.stderr)
+    require(code == 0 and not timed_out, 'Media AppArmor compilation or loading failed; profiles remain unverified')
+
+
 def install(files):
     require(os.geteuid() == 0, 'Root is required for explicit host policy provisioning')
     for directory in (Path('/etc/spoolin'), DESTINATION):
@@ -106,9 +146,7 @@ def install(files):
         install_file(DESTINATION / 'media-seccomp.json', files['media-seccomp.json'])
         install_file(APPARMOR, files['media-apparmor'])
         if not loaded():
-            result = subprocess.run(['/sbin/apparmor_parser', '--add', str(APPARMOR)],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, check=False)
-            require(result.returncode == 0, 'Media AppArmor compilation or loading failed; profiles remain unverified')
+            load_profile()
         check_installed(files)
 
 
