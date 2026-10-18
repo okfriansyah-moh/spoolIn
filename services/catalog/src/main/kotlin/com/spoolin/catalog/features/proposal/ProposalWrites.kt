@@ -47,17 +47,17 @@ class ProposalWrites(
             var freshChallenge: String? = null
             val intent = proposalIntent(normalized, claims)
             val correlation = parseId(request.context.correlationId)
-            val outcome = receipts.execute(intent, correlation, true) { conn ->
+            val mutation: (java.sql.Connection) -> SafeResult = { conn ->
                 checkPolicy(normalized.context.policyRevision)
-                val challenge = randomChallenge()
-                freshChallenge = challenge
+                val challenge = randomChallenge().also { freshChallenge = it }
                 ProposalRevisions.insert(conn, normalized, claims, challenge, clock.instant())
             }
-            val result = outcome.result ?: throw Status.FAILED_PRECONDITION
-                .withDescription("RESULT_EXPIRED").asRuntimeException()
-            val row = dataSource.connection.use { conn ->
-                ProposalStore.loadForUpdate(conn, result.resultId, Math.toIntExact(requireNotNull(result.version)))
-            } ?: throw Status.NOT_FOUND.asRuntimeException()
+            val outcome = if (normalized.hasProposalId()) {
+                receipts.execute(intent, correlation, true, mutation = mutation)
+            } else {
+                receipts.defer(intent, correlation, true) { mutation(it) }
+            }
+            val row = proposalRow(normalized, outcome)
             ProposalRevisions.assertOwner(row, claims)
             ProposalRevisions.requireReview(row, clock.instant())
             response.onNext(ProposalResponse.fromRow(row, freshChallenge))
@@ -72,6 +72,20 @@ class ProposalWrites(
             response.onError(Status.ALREADY_EXISTS.withDescription("OPERATION_CONFLICT").asRuntimeException())
         } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
             response.onError(Status.PERMISSION_DENIED.asRuntimeException())
+        }
+    }
+
+    private fun proposalRow(
+        request: Spoolin.Proposal,
+        outcome: com.spoolin.support.receipts.ReceiptOutcome,
+    ): ProposalRow = dataSource.connection.use { conn ->
+        if (!request.hasProposalId()) {
+            ProposalStore.initialForOperation(conn, parseId(request.context.operationId))
+                ?: throw Status.NOT_FOUND.asRuntimeException()
+        } else {
+            val result = outcome.result ?: throw Status.FAILED_PRECONDITION
+                .withDescription("RESULT_EXPIRED").asRuntimeException()
+            ProposalStore.requireForUpdate(conn, result.resultId, Math.toIntExact(requireNotNull(result.version)))
         }
     }
 
@@ -217,6 +231,7 @@ class ProposalWrites(
             outcome
         } else {
             ProposalStore.markRejected(conn, proposalId, revision)
+            receipts.completePending(conn, row.operationId, SafeResult(proposalId, revision.toLong()), "PROPOSAL_REJECTED")
         AuditInsert.record(
             conn,
             operationId,
@@ -253,6 +268,7 @@ class ProposalWrites(
                 correlationId,
             )
         ProposalStore.markCreated(conn, row, movieOutcome.resultId, approvedAt, approvalExpires)
+        receipts.completePending(conn, row.operationId, movieOutcome)
         return movieOutcome
     }
 

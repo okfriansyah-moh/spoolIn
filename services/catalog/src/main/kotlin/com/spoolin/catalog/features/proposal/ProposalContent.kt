@@ -56,14 +56,14 @@ object ProposalContent {
         val release = releaseMap(values)
         return buildMap {
             put("title", values.title)
-            if (values.hasOriginalTitle()) put("original_title", values.originalTitle)
+            put("original_title", values.originalTitle.takeIf { values.hasOriginalTitle() })
             put("synopsis", values.synopsis)
             put("synopsis_language", values.synopsisLanguage)
-            if (values.hasOriginalLanguage()) put("original_language", values.originalLanguage)
-            if (values.hasRuntimeMinutes()) put("runtime_minutes", values.runtimeMinutes)
-            if (values.genreIdsCount > 0) put("genre_ids", values.genreIdsList.sorted())
-            if (values.countriesCount > 0) put("countries", values.countriesList.sorted())
-            if (release != null) put("release", release)
+            put("original_language", values.originalLanguage.takeIf { values.hasOriginalLanguage() })
+            put("runtime_minutes", values.runtimeMinutes.takeIf { values.hasRuntimeMinutes() })
+            put("genre_ids", values.genreIdsList.sorted())
+            put("countries", values.countriesList.sorted())
+            put("release", release)
         }.entries.sortedBy { it.key }.associate { it.key to it.value }
     }
 

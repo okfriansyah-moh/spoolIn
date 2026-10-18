@@ -24,6 +24,13 @@ object ProposalStore {
                 ::mapRow,
             ).singleOrNull()
 
+    fun initialForOperation(conn: Connection, operation: UUID): ProposalRow? = conn.queryBound(
+        "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
+            "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
+            "FROM movie_proposal WHERE operation_id=? AND revision=1 FOR UPDATE",
+        listOf(operation), ::mapRow,
+    ).singleOrNull()
+
     fun latestForUpdate(conn: Connection, proposalId: UUID): ProposalRow? = conn.queryBound(
         "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
             "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
