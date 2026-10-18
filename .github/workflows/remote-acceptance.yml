@@ -80,7 +80,9 @@ jobs:
       - name: Strict build and contract generation
         id: build
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
-        run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
+        run: |
+          mkdir -p artifacts/source-checks
+          ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar 2>&1 | tee artifacts/source-checks/strict-build.log
       - name: Check production frontend and MCP
         id: frontend
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
@@ -123,6 +125,9 @@ jobs:
         id: application
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: bash ops/ci/run-application.sh
+      - name: Verify complete loaded seed and restart persistence
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/verify-seed-runtime.py
       - name: Exercise real production application in browsers
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         env:
