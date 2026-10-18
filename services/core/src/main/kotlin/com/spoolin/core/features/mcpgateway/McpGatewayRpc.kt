@@ -83,7 +83,7 @@ class McpGatewayRpc(
             correlationId = UUID.fromString(request.context.correlationId),
         ) { token ->
             val revision = catalogStub(token).proposeMovie(request)
-            if (revision.hasUiChallenge()) {
+            if (revision.hasUiChallenge() && !revision.uiChallenge.isEmpty) {
                 uiChallenges.put(
                     revision.proposalId,
                     revision.revision,
@@ -92,7 +92,7 @@ class McpGatewayRpc(
                 )
             }
             // Adapter relocates ui_challenge into MCP _meta.ui and omits it from model content.
-            revision.toBuilder().clearUiBindingToken().build()
+            revision
         }
     }
 

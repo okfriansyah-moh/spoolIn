@@ -217,3 +217,14 @@ tasks.named("koverXmlReport") { dependsOn(catalogLifecycleIntegrationTest) }
 dependencies {
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 }
+
+val catalogProposalIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath = files(sourceSets["integrationTest"].output.classesDirs, sourceSets["main"].output,
+        configurations["integrationTestRuntimeClasspath"])
+    filter { includeTestsMatching("com.spoolin.catalog.features.proposal.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+tasks.named("koverXmlReport") { dependsOn(catalogProposalIntegrationTest) }
