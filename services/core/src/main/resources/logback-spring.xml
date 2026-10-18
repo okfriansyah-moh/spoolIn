@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <conversionRule conversionWord="jsonMsg" converterClass="com.spoolin.support.logging.JsonLogMessageConverter"/>
   <springProperty scope="context" name="LOG_LEVEL" source="LOG_LEVEL" defaultValue="INFO"/>
-  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-      <pattern>{"@timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}","level":"%level","logger":"%logger{36}","message":%jsonMsg,"thread":"%thread"}%n</pattern>
-    </encoder>
+  <springProperty scope="context" name="SERVICE_VERSION" source="APP_VERSION" defaultValue="0.0.0-foundation"/>
+  <springProperty scope="context" name="SERVICE_ENV" source="SPOOLIN_ENVIRONMENT" defaultValue="local"/>
+  <appender name="JSON" class="com.spoolin.support.logging.BoundedJsonAppender">
+    <serviceName>core</serviceName>
+    <serviceVersion>${SERVICE_VERSION}</serviceVersion>
+    <serviceEnvironment>${SERVICE_ENV}</serviceEnvironment>
   </appender>
   <logger name="com.spoolin.core" level="${LOG_LEVEL}"/>
   <root level="${LOG_LEVEL}">
-    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="JSON"/>
   </root>
 </configuration>

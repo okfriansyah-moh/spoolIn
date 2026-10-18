@@ -31,4 +31,5 @@ dependencies {
     implementation(rootProject.libs.protobuf)
     implementation("tools.jackson.core:jackson-databind:${rootProject.libs.versions.jackson.get()}")
     compileOnly("ch.qos.logback:logback-classic:1.5.38")
+    testImplementation("ch.qos.logback:logback-classic:1.5.38")
 }
