@@ -1211,7 +1211,8 @@
       ],
       "source_disposition": "Prepared bounded parameterized genre/provenance batches of 100 IDs. Both actual list handlers prefetch once per page; detail paths retain their existing behavior.",
       "runtime_proof": "Pending corrected remote catalogReadsTest real PostgreSQL/mTLS successful-query counts for page sizes 1/20, managed/empty pages and 201-ID helper boundaries, plus actual completed-query deltas in the owned capacity installation. No runtime acceptance is inferred from these authored tests.",
-      "owner": "remote-media-implementer; coordinator retains closure authority"
+      "owner": "remote-media-implementer; coordinator retains closure authority",
+      "remaining_obligation": "Ordinary title-list batching is prepared in fe3ab578. Nested titles.nodes.credits still invokes unary TitleCredits per title; ordinary list results cannot establish nested-query closure. Current contracts expose no approved batch carrier. Capacity SQL stage now measures both paths and must retain any failure."
     }
   ],
   "pending_acceptance": [
@@ -1285,7 +1286,23 @@
       "Scheduled least-privilege retention, typed external notification transports and once-per-generation exhaustion recording.",
       "Pinned private monitoring stack, actual owner-state scrapes, authenticated alert receiver and MCP dependency readiness/metrics.",
       "Remote-only production codec fixture preparation, independent reference renders and strict visual differences, protected real UI sessions and rendered Grafana assertions.",
-      "Actual encrypted checkpoint and isolated restore/restart CI orchestration; no completed operational result yet."
+      "Actual encrypted checkpoint and isolated restore/restart CI orchestration; no completed operational result yet.",
+      {
+        "revision": "331f796ce9ce9fac2b10d260b8bd4d4668c98499",
+        "detail": "Honor configured search minimum including zero; repair fresh logging event, Jackson child iteration and owned schema fixture errors while retaining original assertions."
+      },
+      {
+        "revision": "73561455",
+        "detail": "Bind actual management servlet proxy to existing child machine security chain; retain listener/TLS/identity restrictions and real alert persistence assertions."
+      },
+      {
+        "revision": "2d17e384",
+        "detail": "Verify exact real gRPC duplicate unary response cancellation and server INTERNAL evidence; add first-value/error and pending-terminal regressions."
+      },
+      {
+        "revision": "a835789a",
+        "detail": "Repair cross-service fixture compilation with actual production Media factory and real owned mTLS channel factory; preserve session and policy cases."
+      }
     ],
     "process_deviations": [
       {
@@ -1735,11 +1752,13 @@
         "run_id": 39098882348,
         "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
         "result": "in_progress",
-        "detail": "Full composed verification dispatched. Protected Media policy, strict bootJar/contracts, source check/build, 380 frontend tests and 76 MCP tests passed; inspected source logs and MCP JUnit show zero failures. Native owner suites and actual application/browser/operations/gates remain pending. Later batching correction fe3ab578 is outside this run and needs separate corrected proof.",
+        "detail": "Actual make start readiness and public policy/titles HTTPS probes passed. Actual SDK stdio\u2192HTTP MCP\u2192mTLS Core\u2192Catalog\u2192PostgreSQL positive flow, reconnect and actual revoked HTTP403/stdio refusal passed. 380 frontend/76 MCP tests passed. Retained native XML records3408 executions/6 failures/0errors/0skips; cross-service test compilation also failed, so those suites were not executed. Complete seed verifier failed HTTPError; actual restricted Media probe failed before process-context/stage evidence. Real full browser matrix in progress. No task, host, visual, operational or final gate acceptance inferred.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348",
         "artifact_retention_days": 14,
         "inspected_artifact_ids": [
-          12125867168
+          12125867168,
+          12125918394,
+          12125154907
         ]
       }
     ],
@@ -1835,6 +1854,20 @@
         "checks": "Native686 XML tests/41failures/0skips inspected from39093635908, plus shared test compile failure. Strict build passed39095395324 but FE/preconditions failed. Native fixture/classpath/architecture/required-genre corrections remain pending rerun. Fresh39095711013 running. No make start/browser acceptance.",
         "remaining": "All46tasks In progress; current source-complete established0/runtime0/formal0. Actual runtime/gates/all assigned proof, hosts/readers and final independent combined review pending. Existing review history and selection overlap unchanged.",
         "next_action": "Inspect real focused startup/browser artifacts, fix concrete failures, complete current-input required checks and one final combined review."
+      },
+      {
+        "at": "2026-10-18T05:26:14.259293+00:00",
+        "local_sha": "47da18a5530ec08026b17e896b958f0f0636e4f4",
+        "published_sha": "f8f6819126d70a9d54e1f0a881e9322dc61e5753",
+        "actual_changed_behavior": [
+          "Configurable search minimum production wiring",
+          "Actual child management security proxy",
+          "Bounded ordinary title list database reads",
+          "Real unary terminal semantics and actual mTLS factory fixture corrections"
+        ],
+        "checks": "Actual make start readiness and public policy/titles HTTPS probes passed. Actual SDK stdio\u2192HTTP MCP\u2192mTLS Core\u2192Catalog\u2192PostgreSQL positive flow, reconnect and actual revoked HTTP403/stdio refusal passed. 380 frontend/76 MCP tests passed. Retained native XML records3408 executions/6 failures/0errors/0skips; cross-service test compilation also failed, so those suites were not executed. Complete seed verifier failed HTTPError; actual restricted Media probe failed before process-context/stage evidence. Real full browser matrix in progress. No task, host, visual, operational or final gate acceptance inferred.",
+        "remaining": "All46 tasks remain In progress; source-complete established0/runtime task acceptance0/formal0. Actual host provenance/client/reader environments, current-input runtime/gates, seed/codec/UI/operations evidence and one final combined independent review remain pending. Prior exhausted review and separate workflow counter histories preserved.",
+        "next_action": "Inspect current browser artifacts, correct seed/codec failures, run focused corrected remote runtime and required native/gate checks."
       }
     ],
     "prioritization_history": [
