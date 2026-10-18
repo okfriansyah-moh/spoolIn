@@ -233,7 +233,7 @@ def finish_backup(installation, output, stage, data, keys, recipient, owners):
     pack(keys, stage / "keys.tar")
     encrypt(stage / "keys.tar", output / "keys.cms", recipient)
     manifest = {"format": 1, "installation": installation.name, "createdAt": datetime.now(timezone.utc).isoformat(),
-        "checkoutSha": run(["git", "rev-parse", "HEAD"]), "owners": owners, "images": runtime_images(installation),
+        "checkoutSha": run(["git", "-C", str(ROOT), "rev-parse", "HEAD"]), "owners": owners, "images": runtime_images(installation),
         "roles": role_inventory(installation),
         "postgresVersion": installation.sql("core", "SELECT version()"),
         "files": {path.name: digest(path) for path in data.iterdir()}, "keysArchiveSha256": digest(output / "keys.cms")}
@@ -532,7 +532,7 @@ def restore(installation, arguments):
     with installation_lock(installation), tempfile.TemporaryDirectory(prefix="spoolin-restore-") as temporary:
         stage = Path(temporary)
         data, keys, manifest, checksum = verified_archives(arguments, stage)
-        if manifest["installation"] == installation.name or manifest["checkoutSha"] != run(["git", "rev-parse", "HEAD"]):
+        if manifest["installation"] == installation.name or manifest["checkoutSha"] != run(["git", "-C", str(ROOT), "rev-parse", "HEAD"]):
             raise ValueError("Source/destination installation must differ and exact source revision must match")
         verify_images(installation, manifest)
         runtime = runtime_snapshot(installation, stage)
@@ -592,7 +592,7 @@ def wait_status():
     deadline = time.monotonic() + 300
     while True:
         try:
-            run(["make", "status"])
+            run(["make", "-C", str(ROOT), "status"])
             return
         except RuntimeError:
             if time.monotonic() >= deadline:
@@ -627,7 +627,7 @@ def serve_artwork(installation, client, origin, assets):
 def finish_restore(installation, marker, checksum, counts, artwork, holds, proof, arguments, stage):
     report = {"checkpointSha256": checksum, "destination": installation.name, "epoch": marker["epoch"],
         "preStartupOwners": counts, "currentOwners": metadata(installation), "verifiedStoredArtwork": artwork, "verifiedActiveHolds": holds, "actualApplication": proof,
-        "checkedAt": datetime.now(timezone.utc).isoformat(), "checkoutSha": run(["git", "rev-parse", "HEAD"])}
+        "checkedAt": datetime.now(timezone.utc).isoformat(), "checkoutSha": run(["git", "-C", str(ROOT), "rev-parse", "HEAD"])}
     directory = stage / "completion"
     directory.mkdir(mode=0o700)
     marker["phase"] = "verified"
