@@ -50,7 +50,12 @@ internal class SignedReceiptFixture(
     val sessions = SessionStore(fixture.pool, SessionCsrf(ByteArray(32) { 29 }))
     val issued = fixture.pool.committed { sessions.issue(it, account, 0, null) }
     private val core =
-        transport.server(root, "core", IdentityRpc { sessions }, com.spoolin.core.ServiceIdentityInterceptor())
+        transport.server(
+            root,
+            "core",
+            IdentityRpc(sessions = { sessions }, connectors = { null }),
+            com.spoolin.core.ServiceIdentityInterceptor(),
+        )
     val identity = transport.channel(root, "catalog", "core", core.port)
     private val pool = migrate().let { fixture.owner.pool("catalog") }
     val operation = UUID.randomUUID()

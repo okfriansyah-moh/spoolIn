@@ -136,16 +136,16 @@ class CatalogPolicyBoundaryTest {
                         "CHARACTER_NAME_MAX_CODE_POINTS" to "3",
                     ),
                 )
-            val invalid = assertThrows(StatusRuntimeException::class.java) { fixture.role("x") }
-            assertEquals("FIELD_INVALID", invalid.status.description)
+            val invalidRole = assertThrows(StatusRuntimeException::class.java) { fixture.role("x") }
+            assertEquals("FIELD_INVALID", invalidRole.status.description)
             val custom = fixture.role("a\"b")
             assertEquals("SUCCEEDED", custom.state)
             assertEquals("a\"b", fixture.text("SELECT label FROM credit_role WHERE id=?", custom.resultId))
             val title = fixture.movie(fixture.movie("Movie"))
             val person = fixture.person(fixture.person("Person"))
             val role = fixture.characterRole()
-            val invalid = fixture.credit(title.resultId, person.resultId, role, "x")
-            assertEquals("FIELD_INVALID", fixture.credit(invalid).problem.code)
+            val invalidCredit = fixture.credit(title.resultId, person.resultId, role, "x")
+            assertEquals("FIELD_INVALID", fixture.credit(invalidCredit).problem.code)
             assertEquals(0, fixture.count("SELECT count(*) FROM credit"))
             val created = fixture.credit(fixture.credit(title.resultId, person.resultId, role, "e\u0301"))
             assertEquals("SUCCEEDED", created.state)
