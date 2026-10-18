@@ -132,6 +132,7 @@ jobs:
         timeout-minutes: 10
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: |
+          python3 ops/ci/test-codec-profile-package.py
           python3 ops/ci/codec-diagnostics-test.py
           python3 ops/ci/readiness-helper-test.py
           python3 ops/ci/ports-test.py
@@ -151,6 +152,8 @@ jobs:
           name: codec-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/source-checks/codec-profile-prerequisite.json
+            artifacts/source-checks/codec-profile-setup.log
             artifacts/source-checks/codec-host-before.json
             artifacts/source-checks/codec-host-after.json
             artifacts/source-checks/codec-environment.txt
