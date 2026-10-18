@@ -280,6 +280,9 @@ def main():
         verify_titles(manifest, before)
         roles = verify_people_credits(manifest, before, validator)
         verify_provenance(manifest, before, validator, roles)
+        report['database_comparison'] = {'result': 'passed', 'movies': 100, 'series': 100,
+                                         'people': len(before['person']), 'credits': len(before['credit']),
+                                         'seed_members': len(before['seed_member'])}
         verify_api_order(manifest)
         verify_api(manifest, roles, report['records'])
         for label, arguments in (('repeat-seed', ['seed']), ('seed-restart', ['restart'])):

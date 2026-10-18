@@ -166,6 +166,7 @@ jobs:
           python3 ops/monitoring/verify_test.py
           python3 ops/ci/test-codec-profile-package.py
           python3 ops/ci/codec-diagnostics-test.py
+          python3 ops/ci/verify-seed-runtime-test.py
           python3 ops/ci/readiness-helper-test.py
           python3 ops/ci/ports-test.py
           node --test ops/ci/private-readiness-test.mjs
