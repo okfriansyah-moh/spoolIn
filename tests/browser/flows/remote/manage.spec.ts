@@ -602,7 +602,7 @@ test('ATDD-026/179 partial: new credit drafts use no edit target and an explicit
   await expect(page.getByRole('heading', { name: 'Choose a retained credit draft', exact: true })).toBeVisible();
   await expect(page.getByLabel('Person', { exact: true })).toBeDisabled();
   await capture(page, info, ['ATDD-179'], 'credit-draft-picker');
-  await page.getByRole('button').filter({ hasText: `Resume Add ${person.name} · Actor · ${selectedNames.join(', ')}` }).click();
+  await page.getByRole('button', { name: /^Resume Add / }).filter({ hasText: selectedNames.join(', ') }).click();
   await expect(page.getByLabel('Character names · one per line')).toHaveValue(selectedNames.join('\n'));
   await expect(page.getByRole('button', { name: 'Add credit', exact: true })).toBeEnabled();
   const finalNames = ['Young Maya', 'Maya / Echo'];
