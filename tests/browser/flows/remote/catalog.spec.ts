@@ -76,18 +76,24 @@ test('Public catalog uses real GraphQL, seeded artwork and durable detail naviga
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
     expect(apiFailures).toEqual([]);
   });
-  await page
-    .locator('img')
-    .evaluateAll((images) =>
-      Promise.all(images.map((image) => image.decode())),
-    );
-  const broken = await page
-    .locator('img')
-    .evaluateAll((images) =>
-      images
-        .filter((image) => !image.complete || image.naturalWidth === 0)
-        .map((image) => image.getAttribute('src')),
-    );
+  await page.locator('img').evaluateAll((images) =>
+    Promise.all(
+      images.map((image) => {
+        if (!(image instanceof HTMLImageElement))
+          throw new Error('Artwork element is not an image.');
+        return image.decode();
+      }),
+    ),
+  );
+  const broken = await page.locator('img').evaluateAll((images) =>
+    images
+      .filter((image) => {
+        if (!(image instanceof HTMLImageElement))
+          throw new Error('Artwork element is not an image.');
+        return !image.complete || image.naturalWidth === 0;
+      })
+      .map((image) => image.getAttribute('src')),
+  );
   expect(broken).toEqual([]);
   await capture(page, info, ['ATDD-001', 'ATDD-257'], 'detail');
 });
