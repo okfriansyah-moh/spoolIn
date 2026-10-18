@@ -249,14 +249,25 @@ class CatalogWriteConfiguration {
     fun personLifecycle(
         dataSource: DataSource,
         receipts: OwnerReceipts,
+        tokens: com.spoolin.catalog.features.lifecycle.ImpactToken,
     ): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
         com.spoolin.catalog.features.lifecycle
-            .PersonLifecycle(dataSource, receipts)
+            .PersonLifecycle(dataSource, receipts, tokens)
 
     @Bean
-    fun deletionImpact(dataSource: DataSource): com.spoolin.catalog.features.lifecycle.DeletionImpact =
+    fun impactToken(environment: Environment): com.spoolin.catalog.features.lifecycle.ImpactToken =
+        com.spoolin.catalog.features.lifecycle.ImpactToken.fromKeyFile(
+            java.nio.file.Path.of(environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")),
+            environment.getRequiredProperty("CATALOG_HMAC_KEY_ID"),
+        )
+
+    @Bean
+    fun deletionImpact(
+        dataSource: DataSource,
+        tokens: com.spoolin.catalog.features.lifecycle.ImpactToken,
+    ): com.spoolin.catalog.features.lifecycle.DeletionImpact =
         com.spoolin.catalog.features.lifecycle
-            .DeletionImpact(dataSource)
+            .DeletionImpact(dataSource, tokens)
 
     @Bean
     fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
