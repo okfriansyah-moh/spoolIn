@@ -250,7 +250,7 @@ export async function recoverCredit(
 ): Promise<IdentityOutcome | null> {
   const document = `query CreditOperation($id: UUID!) {
     operation(id: $id, owner: CATALOG) {
-      id state resultExpired problem { code retryAfterMs }
+      id state resultId version resultExpired problem { code retryAfterMs }
     }
   }`;
   const data = record(

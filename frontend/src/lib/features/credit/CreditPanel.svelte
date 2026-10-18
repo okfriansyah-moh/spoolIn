@@ -8,8 +8,9 @@
   import { createTransport } from '../../transport/graphql';
   import type { Policy } from '../../policy/types';
   import type { WriteContext } from '../movie/types';
-  import type { DraftSource } from '../draft/types';
-  import { CreditDraftSync } from './draft-sync';
+  import type { DraftSource, DraftRecord } from '../draft/types';
+  import { fetchManagedPerson } from '../person/write/api';
+  import { CreditDraftSync, type CreditDraftValues } from './draft-sync';
   import {
     type CreditCommandOutcome,
     addCredit,
@@ -54,6 +55,7 @@
   let removing = $state<ManagedCredit | null>(null);
   let pendingId = $state<string | null>(null);
   let pendingKind: 'save' | 'remove' = 'save';
+  let retainedSubmissionDraft: DraftRecord | null = null;
   let retryOriginal: (() => Promise<CreditCommandOutcome>) | null = null;
 
   const selectedRole = $derived(
@@ -61,33 +63,35 @@
   );
 
   let draftSync = $state<CreditDraftSync | null>(null);
+  let creditDraftChoices = $state<readonly DraftRecord[]>([]);
+  let creditReviewRequired = $state(false);
+  let reviewedCredit = $state(false);
+  let creditDirty = $state(false);
+  let discardingDraft = $state(false);
+  let draftUnavailable = $state(false);
+  let backup = $state({ backed: false, unbacked: false, pendingOperationId: null as string | null });
+
 
   $effect(() => {
-    const sync = new CreditDraftSync(draftSource, titleId);
-    draftSync = sync;
-    return () => sync.dispose();
-  });
-
-  $effect(() => {
-    if (!draftSync || !personId || !roleId || pendingId || editing) return;
+    if (!creditDirty || !draftSync || loading || creditDraftChoices.length || draftUnavailable || creditReviewRequired || !personId || !roleId || pendingId) return;
     draftSync.schedule(
       {
         titleId,
         personId,
         roleId,
-        characters: parseCreditCharacters(
-          selectedRole ?? undefined,
-          characterText,
-        ),
+        characters: selectedRole?.allowsCharacters ? characterText.split('\n') : [],
       },
       context,
-      titleVersion,
+      editing?.version ?? titleVersion,
     );
+    creditDirty = false;
   });
 
   onMount(() => {
     const transport = createTransport();
     const abort = new AbortController();
+    const sync = new CreditDraftSync(draftSource, titleId, (next) => { backup = next; });
+    draftSync = sync;
     void (async () => {
       try {
         const [loadedCredits, loadedRoles, loadedPeople] = await Promise.all([
@@ -100,16 +104,100 @@
         roles = loadedRoles;
         people = loadedPeople.nodes;
         nextPeople = loadedPeople.next;
+        const drafts = await sync.load(context, abort.signal);
+        if (abort.signal.aborted) return;
+        if (drafts.length > 1) creditDraftChoices = drafts;
+        else if (drafts[0]) await resumeCreditDraft(drafts[0]);
       } catch {
-        if (!abort.signal.aborted)
+        if (!abort.signal.aborted) {
+          draftUnavailable = true;
           message =
             'Credits could not be loaded. Reload before making changes.';
+        }
       } finally {
         if (!abort.signal.aborted) loading = false;
       }
     })();
-    return () => abort.abort();
+    return () => { abort.abort(); sync.dispose(); };
   });
+
+  function draftValues(draft: DraftRecord): CreditDraftValues {
+    const value = draft.values as Partial<CreditDraftValues>;
+    if (value.titleId !== titleId || typeof value.personId !== 'string' || typeof value.roleId !== 'string' ||
+      !Array.isArray(value.characters) || !value.characters.every((name) => typeof name === 'string')) {
+      throw new Error('Saved credit draft shape unavailable.');
+    }
+    return { titleId, personId: value.personId, roleId: value.roleId, characters: value.characters };
+  }
+
+  async function currentDraftReferences(values: CreditDraftValues) {
+    const transport = createTransport();
+    const [person, movie] = await Promise.all([
+      fetchManagedPerson(transport, values.personId, context.csrf),
+      fetchManagedMovie(transport, titleId, context.csrf),
+    ]);
+    return person?.state === 'ACTIVE' && movie?.state === 'ACTIVE' && roles.some((role) => role.id === values.roleId)
+      ? { person, movie } : null;
+  }
+
+  async function resumeCreditDraft(draft: DraftRecord) {
+    try { await restoreCreditDraft(draft); }
+    catch { draftUnavailable = true; message = 'Saved credit draft could not be checked. Reload before continuing.'; }
+  }
+
+  async function restoreCreditDraft(draft: DraftRecord) {
+    if (!draftSync) return;
+    creditDraftChoices = [];
+    draftSync.adopt(draft);
+    if (draft.operationId) {
+      pendingId = draft.operationId;
+      retainedSubmissionDraft = draft;
+      retryOriginal = null;
+      const receipt = await recoverCredit(createTransport(), pendingId, context.csrf, new AbortController().signal);
+      if (!receipt || receipt.state !== 'FAILED' || receipt.resultExpired) { await applyReceipt(receipt); return; }
+      pendingId = null;
+      retainedSubmissionDraft = null;
+    }
+    const values = draftValues(draft);
+    const references = await currentDraftReferences(values);
+    if (!references) {
+      draftUnavailable = true;
+      message = 'Saved credit references changed. Discard this draft or restore its references before adding a credit.';
+      return;
+    }
+    const target = draft.targetId ? credits.find((credit) => credit.id === draft.targetId) : null;
+    if (draft.targetId && (!target || target.personId !== values.personId || target.personArchived)) {
+      draftUnavailable = true;
+      message = 'The saved credit is unavailable. Discard this draft or restore its references before editing.';
+      return;
+    }
+    const { person, movie } = references;
+    editing = target ?? null;
+    if (!people.some((entry) => entry.id === person.id)) people = [...people, { id: person.id, name: person.name }];
+    personId = values.personId; roleId = values.roleId; characterText = values.characters.join('\n');
+    creditReviewRequired = draft.baseVersion !== (target?.version ?? movie.version);
+    onTitleVersionChange(movie.version);
+    message = creditReviewRequired ? 'The saved relationship changed. Review its current values and retained edits before continuing.' : 'Saved credit draft recovered.';
+    if (draft.operationId && !(await clearRejectedCreditDraft(draft.baseVersion)))
+      message = 'Original failure confirmed. Retained edits are not backed up yet. Retry their backup before submitting.';
+  }
+
+  async function discardCreditDraft() {
+    if (!draftSync || pendingId || submitting) return;
+    submitting = true;
+    try {
+      if (!(await draftSync.discard(context))) { message = 'Credit draft discard is not confirmed. Retry its original result.'; return; }
+      resetFields(); creditReviewRequired = false; reviewedCredit = false; draftUnavailable = false;
+      discardingDraft = false;
+      backup = draftSync.snapshot; message = 'Credit draft discarded. Saved credits are unchanged.';
+    } finally { submitting = false; }
+  }
+
+  async function backOriginalCredit(operationId: string, values: CreditDraftValues, version: string) {
+    if (!draftSync || !(await draftSync.prepareSubmission(operationId, values, context, version))) {
+      throw new Error('Credit draft is not backed up.');
+    }
+  }
 
   async function loadMorePeople() {
     if (!nextPeople || loadingPeople) return;
@@ -128,6 +216,7 @@
     if (!current.some((role) => role.id === id)) throw new Error('Created role is not available yet.');
     roles = current;
     roleId = id;
+    creditDirty = true;
   }
 
   function parseCreditCharacters(
@@ -142,6 +231,7 @@
   }
 
   function resetFields() {
+    creditDirty = false;
     editing = null;
     personId = '';
     roleId = '';
@@ -149,10 +239,32 @@
   }
 
   function editCredit(credit: ManagedCredit) {
+    if (!draftSync || backup.backed || backup.unbacked || creditDirty || personId || roleId || pendingId) return;
+    draftSync.reset({ targetId: credit.id });
+    creditDirty = false;
     editing = credit;
     personId = credit.personId;
     roleId = credit.role.id;
     characterText = credit.characters.join('\n');
+  }
+
+  function cancelCreditEdit() {
+    discardingDraft = true;
+  }
+
+  function draftLabel(draft: DraftRecord): string {
+    const values = draft.values as Partial<CreditDraftValues>;
+    const person = people.find((entry) => entry.id === values.personId)?.name ?? 'Saved person';
+    const role = roles.find((entry) => entry.id === values.roleId)?.label ?? 'saved role';
+    const names = Array.isArray(values.characters) ? values.characters.join(', ') : '';
+    return `${draft.targetId ? 'Edit' : 'Add'} ${person} · ${role}${names ? ` · ${names}` : ''} · expires ${draft.expiresAt}`;
+  }
+
+  async function clearRejectedCreditDraft(baseVersion: string | null = editing?.version ?? titleVersion): Promise<boolean> {
+    if (pendingKind === 'remove') return true;
+    if (draftSync && personId && roleId) await draftSync.clearSubmission({ titleId, personId, roleId,
+      characters: parseCreditCharacters(selectedRole ?? undefined, characterText) }, context, baseVersion);
+    return !!draftSync?.snapshot.backed && !draftSync.snapshot.unbacked;
   }
 
   async function applyReceipt(receipt: CreditCommandOutcome | null) {
@@ -162,6 +274,7 @@
       return;
     }
     if (receipt.state === 'REJECTED') {
+      if (!(await clearRejectedCreditDraft())) { message = 'The original failure is confirmed, but draft recovery is not backed up. Check the original result again.'; return; }
       pendingId = null; retryOriginal = null;
       message = receipt.problem.code === 'ALREADY_EXISTS' || receipt.problem.code === 'CREDIT_DUPLICATE'
         ? 'Review the credit — no duplicate added.' : 'Changes were not saved. Review the current credit.';
@@ -173,6 +286,8 @@
       return;
     }
     if (receipt.state === 'FAILED') {
+      if (retainedSubmissionDraft) { await restoreCreditDraft(retainedSubmissionDraft); return; }
+      if (!(await clearRejectedCreditDraft())) { message = 'The original failure is confirmed, but draft recovery is not backed up. Check the original result again.'; return; }
       pendingId = null;
       retryOriginal = null;
       message =
@@ -188,7 +303,14 @@
       throw new Error('Current movie unavailable.');
     credits = await fetchTitleCredits(transport, titleId, context.csrf);
     onTitleVersionChange(movie.version);
+    if (draftSync && !(await draftSync.discard(context))) {
+      message = 'Credit result confirmed, but its draft cleanup is not confirmed. Check the original result again.';
+      return;
+    }
+    if (draftSync) backup = draftSync.snapshot;
+    creditReviewRequired = false; reviewedCredit = false; draftUnavailable = false;
     pendingId = null;
+    retainedSubmissionDraft = null;
     retryOriginal = null;
     resetFields();
     message = pendingKind === 'remove' ? 'Credit removed.' : 'Credit saved.';
@@ -227,7 +349,7 @@
   }
 
   async function submitCredit(): Promise<void> {
-    if (!personId || !roleId || submitting || pendingId) return;
+    if (!personId || !roleId || submitting || pendingId || creditDraftChoices.length || creditReviewRequired || draftUnavailable) return;
     const characters = parseCreditCharacters(
       selectedRole ?? undefined,
       characterText,
@@ -251,7 +373,7 @@
     const { policyRevision, csrf } = context;
     pendingKind = 'save';
     pendingId = operationId;
-    retryOriginal = selected
+    const send = selected
       ? () =>
           updateCredit(
             transport,
@@ -274,6 +396,11 @@
             csrf,
             signal,
           );
+    retryOriginal = async () => {
+      await backOriginalCredit(operationId, { titleId: originalTitleId, personId: input.personId,
+        roleId: input.roleId, characters: input.characters }, selected?.version ?? originalTitleVersion);
+      return send();
+    };
     await executeOriginal();
   }
 
@@ -310,7 +437,32 @@
   {#if loading}
     <p role="status">Loading credits…</p>
   {:else}
-    {#if draftSync?.snapshot.unbacked}
+    {#if creditDraftChoices.length}
+      <section aria-label="Retained credit drafts">
+        <h3>Choose a retained credit draft</h3>
+        {#each creditDraftChoices as draft (draft.id)}
+          <Button type="button" variant="secondary" onclick={() => void resumeCreditDraft(draft)}>
+            Resume {draftLabel(draft)}
+          </Button>
+        {/each}
+      </section>
+    {/if}
+    {#if creditReviewRequired}
+      <Notice title="Review the current credit" tone="warning">
+        <p>{message}</p>
+        {#if editing}<p>Current saved role: {editing.role.label}. Current saved character names: {editing.characters.join(', ') || 'None'}.</p>{/if}
+        <label><input type="checkbox" bind:checked={reviewedCredit} />I reviewed the current person, role and retained character names.</label>
+        <Button type="button" disabledReason={reviewedCredit ? '' : 'Review the current relationship first.'}
+          onclick={() => { creditReviewRequired = false; message = 'Current references reviewed. Save the retained credit deliberately.'; }}>
+          Use reviewed version for this credit
+        </Button>
+      </Notice>
+    {/if}
+    {#if backup.backed || backup.unbacked || draftUnavailable}
+      <Button type="button" variant="secondary" disabledReason={!!pendingId || submitting ? 'Check the original result first.' : ''}
+        onclick={() => (discardingDraft = true)}>Discard credit draft</Button>
+    {/if}
+    {#if backup.unbacked}
       <Notice title="Draft not backed up" tone="info">
         <p>Recent credit edits could not be saved to a draft yet.</p>
       </Notice>
@@ -333,12 +485,12 @@
           {/if}
           <button
             type="button"
-            disabled={submitting || !!pendingId}
+            disabled={submitting || !!pendingId || !!creditDraftChoices.length || draftUnavailable || !!personId || !!roleId || backup.backed || backup.unbacked}
             onclick={() => editCredit(credit)}>Edit credit</button
           >
           <button
             type="button"
-            disabled={submitting || !!pendingId}
+            disabled={submitting || !!pendingId || !!creditDraftChoices.length || !!personId || !!roleId || backup.backed || backup.unbacked}
             onclick={() => (removing = credit)}>Remove credit</button
           >
         </li>
@@ -352,7 +504,8 @@
       <select
         id="credit-person"
         bind:value={personId}
-        disabled={submitting || !!pendingId || !!editing || loadingPeople}
+        onchange={() => { creditDirty = true; reviewedCredit = false; }}
+        disabled={submitting || !!pendingId || !!editing || loadingPeople || !!creditDraftChoices.length || draftUnavailable}
       >
         <option value="">Select an active person</option>
         {#each people as person (person.id)}
@@ -367,7 +520,8 @@
       <select
         id="credit-role"
         bind:value={roleId}
-        disabled={submitting || !!pendingId}
+        onchange={() => { creditDirty = true; reviewedCredit = false; }}
+        disabled={submitting || !!pendingId || !!creditDraftChoices.length || draftUnavailable}
       >
         <option value="">Select Cast or Creator role</option>
         {#each roles as role (role.id)}
@@ -375,7 +529,7 @@
         {/each}
       </select>
     </div>
-    <RoleCreator {policy} {context} disabled={submitting || !!pendingId} onCreated={refreshCreatedRole} />
+    <RoleCreator {policy} {context} disabled={submitting || !!pendingId || !!creditDraftChoices.length || draftUnavailable} onCreated={refreshCreatedRole} />
     {#if selectedRole?.allowsCharacters}
       <div class="field">
         <label for="credit-characters">Character names · one per line</label>
@@ -383,19 +537,20 @@
           id="credit-characters"
           rows="3"
           bind:value={characterText}
-          disabled={submitting || !!pendingId}></textarea>
+          oninput={() => { creditDirty = true; reviewedCredit = false; }}
+          disabled={submitting || !!pendingId || !!creditDraftChoices.length || draftUnavailable}></textarea>
       </div>
     {/if}
     <Button
       type="button"
       pending={submitting}
-      disabledReason={!personId || !roleId || !!pendingId
+      disabledReason={!personId || !roleId || !!pendingId || !!creditDraftChoices.length || creditReviewRequired || draftUnavailable
         ? 'Choose a person and role first.'
         : ''}
       onclick={() => void submitCredit()}
       >{editing ? 'Save credit' : 'Add credit'}</Button
     >
-    {#if editing && !pendingId}<button type="button" onclick={resetFields}
+    {#if editing && !pendingId}<button type="button" onclick={cancelCreditEdit}
         >Cancel credit edit</button
       >{/if}
     {#if pendingId}
@@ -406,9 +561,10 @@
       >
       <button
         type="button"
-        disabled={submitting}
+        disabled={submitting || !retryOriginal}
         onclick={() => void executeOriginal()}>Retry original credit</button
       >
+      {#if !retryOriginal}<p>Retry inputs are unavailable after reload. Check the original result before further changes.</p>{/if}
     {/if}
   {/if}
 </section>
@@ -422,6 +578,12 @@
   <p>
     Remove this movie credit. The shared person and their other credits remain.
   </p>
+</ConfirmDialog>
+
+<ConfirmDialog open={discardingDraft} title="Discard this unsaved credit draft?" action="Discard credit draft"
+  pending={submitting} onconfirm={() => void discardCreditDraft()} oncancel={() => (discardingDraft = false)}>
+  <p>Clear this unsaved credit draft. Saved credits and the shared person stay unchanged.</p>
+  {#if message}<p role="status">{message}</p>{/if}
 </ConfirmDialog>
 
 <style>

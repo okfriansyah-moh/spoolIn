@@ -132,3 +132,16 @@ it('known credit domain rejection is distinct from a retained failed operation r
   expect(await addCredit(request, id, id, '1', 'p1', { personId: id, roleId: id, characters: [] }, 'csrf', new AbortController().signal))
     .toMatchObject({ state: 'REJECTED', operationId: id, problem: { code: 'ALREADY_EXISTS' } });
 });
+
+
+it('checks the exact Catalog operation until its actual terminal result without issuing another write', async () => {
+  const request = vi.fn<GraphqlRequest>();
+  request.mockResolvedValueOnce({ operation: { id, state: 'PENDING', resultExpired: false, problem: null } });
+  request.mockResolvedValueOnce({ operation: { id, state: 'SUCCEEDED', resultId: id, version: '9', resultExpired: false, problem: null } });
+  expect(await recoverCredit(request, id, 'csrf', new AbortController().signal)).toMatchObject({ operationId: id, state: 'PENDING' });
+  expect(await recoverCredit(request, id, 'csrf', new AbortController().signal)).toMatchObject({ operationId: id, state: 'SUCCEEDED', version: '9' });
+  for (const call of request.mock.calls) {
+    expect(call[0]).toContain('query CreditOperation');
+    expect(call[1]).toEqual({ id });
+  }
+});

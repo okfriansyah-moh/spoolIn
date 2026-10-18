@@ -320,6 +320,7 @@ test('ATDD-026/027/028 partial: update ordered complete character names without 
   await expect(credit).toHaveCount(1);
   expect((await currentCredits(page, movie.id)).filter((row) => row.personId === person.id)).toHaveLength(1);
   await capture(page, info, ['ATDD-027'], 'credit-duplicate-rejected');
+  await discardVisibleCreditDraft(page);
   await page.reload();
   await removeCreditAfterCancel(page, credit);
   expect((await currentCredits(page, movie.id)).filter((row) => row.personId === person.id)).toHaveLength(0);
@@ -404,4 +405,177 @@ test('ATDD-025/261 partial: person conflict preserves biography until explicit c
   await expect(page.getByText('My permitted retained biography.', { exact: true })).toBeVisible();
   await capture(page, info, ['ATDD-025', 'ATDD-261'], 'person-conflict-reviewed-persisted');
   await competing.close();
+});
+
+
+async function createVisibleRole(page: import('@playwright/test').Page, label: string, category: 'CAST' | 'CREATOR') {
+  await page.getByLabel('Custom role name · Required').fill(label);
+  await page.getByLabel('Custom role category · Required').selectOption(category);
+  const response = page.waitForResponse((item) => new URL(item.url()).pathname === '/graphql' &&
+    item.request().postDataJSON()?.query?.includes('mutation CreateCreditRole') &&
+    item.request().postDataJSON()?.variables?.label === label);
+  await page.getByRole('button', { name: 'Create role', exact: true }).click();
+  const result = await response;
+  expect(result.ok()).toBe(true);
+  const body = await result.json();
+  expect(body.errors).toBeUndefined();
+  expect(body.data.createRole.operation.state).toBe('SUCCEEDED');
+  await expect(page.getByText('Role created. It is selected for this credit.', { exact: true })).toBeVisible();
+  const id = String(body.data.createRole.operation.resultId);
+  await expect(page.getByLabel('Role', { exact: true })).toHaveValue(id);
+  await expect(page.getByLabel('Character names · one per line')).toHaveCount(0);
+  return id;
+}
+
+async function addSelectedRole(page: import('@playwright/test').Page, personId: string, label: string) {
+  await chooseCreditPerson(page, personId);
+  await page.getByLabel('Role', { exact: true }).selectOption({ label });
+  await page.getByRole('button', { name: 'Add credit', exact: true }).click();
+  await expect(page.getByText('Credit saved.', { exact: true })).toBeVisible();
+}
+
+test('ATDD-026/027 partial: actual custom Cast and Creator roles keep one person and reject a normalized duplicate', async ({ page }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const movie = await createMovie(page);
+  for (const label of ['Actor (CAST)', 'Director (CREATOR)', 'Writer (CREATOR)', 'Producer (CREATOR)']) {
+    await expect(page.getByRole('option', { name: label, exact: true })).toHaveCount(1);
+  }
+  await addActorCredit(page, person.id, ['Maya', 'Young Maya', 'Maya / Echo']);
+  await addSelectedRole(page, person.id, 'Director (CREATOR)');
+  await addSelectedRole(page, person.id, 'Writer (CREATOR)');
+  const stunt = uniqueName('Stunt');
+  const editor = uniqueName('Editor');
+  const stuntId = await createVisibleRole(page, stunt, 'CAST');
+  await addSelectedRole(page, person.id, `${stunt} (CAST)`);
+  const editorId = await createVisibleRole(page, editor, 'CREATOR');
+  await addSelectedRole(page, person.id, `${editor} (CREATOR)`);
+  await page.reload();
+  const credits = (await currentCredits(page, movie.id)).filter((row) => row.personId === person.id);
+  expect(credits).toHaveLength(5);
+  expect(new Set(credits.map((row) => row.personId))).toEqual(new Set([person.id]));
+  expect(credits.find((row) => row.role.label === 'Actor')?.characters).toEqual(['Maya', 'Young Maya', 'Maya / Echo']);
+  for (const roleId of [stuntId, editorId]) {
+    const credit = credits.find((row) => row.role.id === roleId);
+    expect(credit?.characters).toEqual([]);
+    expect(credit?.role.allowsCharacters).toBe(false);
+  }
+  await capture(page, info, ['ATDD-026'], 'custom-roles-shared-person-persisted');
+  await page.getByLabel('Custom role name · Required').fill(stunt.toUpperCase());
+  await page.getByLabel('Custom role category · Required').selectOption('CAST');
+  await page.getByRole('button', { name: 'Create role', exact: true }).click();
+  await expect(page.getByText('This role already exists. Choose the existing role or correct its name.', { exact: true })).toBeVisible();
+  const roles = await readApi(page, 'query { creditRoles { id label category allowsCharacters } }');
+  expect(roles.creditRoles.filter((role: { label: string }) => role.label.toLowerCase() === stunt.toLowerCase())).toHaveLength(1);
+  expect((await currentCredits(page, movie.id)).filter((row) => row.personId === person.id)).toHaveLength(5);
+  await capture(page, info, ['ATDD-027'], 'custom-role-duplicate-rejected');
+});
+
+async function discardPersonDraft(page: import('@playwright/test').Page, draftId: string) {
+  await page.getByRole('button', { name: 'Leave draft', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+  const discarded = page.waitForResponse((response) => new URL(response.url()).pathname === '/graphql' &&
+    response.request().postDataJSON()?.query?.includes('mutation DiscardPersonDraft') &&
+    response.request().postDataJSON()?.variables?.id === draftId);
+  await dialog.getByRole('button', { name: 'Discard draft', exact: true }).click();
+  const body = await (await discarded).json();
+  expect(body.errors).toBeUndefined();
+  expect(body.data.discardDraft.operation.state).toBe('SUCCEEDED');
+  expect(body.data.discardDraft.discarded).toBe(true);
+  await expect(dialog).not.toBeVisible();
+}
+
+test('ATDD-179/261 partial: person create picker resumes the chosen original draft and discards only that selection', async ({ page, context }, info) => {
+  await signInMaintainer(page);
+  await page.goto('/manage/people/new');
+  await expect(page.getByLabel('Professional name · Required')).toBeEnabled();
+  const second = await context.newPage();
+  await second.goto('/manage/people/new');
+  await expect(second.getByLabel('Professional name · Required')).toBeEnabled();
+  const firstName = uniqueName('First Person Draft');
+  const chosenName = uniqueName('Chosen Person Draft');
+  const firstId = await backPersonDraft(page, 'Professional name · Required', 'name', firstName);
+  const chosenId = await backPersonDraft(second, 'Professional name · Required', 'name', chosenName);
+  await second.close();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Choose a retained draft', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Professional name · Required')).toBeDisabled();
+  await capture(page, info, ['ATDD-179'], 'person-draft-picker');
+  await page.getByRole('button', { name: `Resume ${chosenName}`, exact: true }).click();
+  await expect(page.getByLabel('Professional name · Required')).toHaveValue(chosenName);
+  await backPersonDraft(page, 'Biography · Optional', 'biography', 'Selected person draft keeps its original identity.', chosenId);
+  await page.getByRole('button', { name: 'Leave draft', exact: true }).click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+  await capture(page, info, ['ATDD-179'], 'person-draft-discard-confirmation');
+  await page.keyboard.press('Escape');
+  await expect(page.getByLabel('Professional name · Required')).toHaveValue(chosenName);
+  await discardPersonDraft(page, chosenId);
+  const drafts = await readApi(page, 'query { drafts { id } }');
+  expect(drafts.drafts.some((draft: { id: string }) => draft.id === chosenId)).toBe(false);
+  expect(drafts.drafts.some((draft: { id: string }) => draft.id === firstId)).toBe(true);
+  await page.reload();
+  await expect(page.getByLabel('Professional name · Required')).toHaveValue(firstName);
+  await capture(page, info, ['ATDD-179'], 'person-other-draft-preserved');
+  await discardPersonDraft(page, firstId);
+  await page.reload();
+  await expect(page.getByLabel('Professional name · Required')).toHaveValue('');
+});
+
+async function discardVisibleCreditDraft(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: 'Discard credit draft', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Discard this unsaved credit draft?' });
+  await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+  await dialog.getByRole('button', { name: 'Discard credit draft', exact: true }).click();
+  await expect(page.getByText('Credit draft discarded. Saved credits are unchanged.', { exact: true })).toBeVisible();
+}
+
+async function backCreditNames(page: import('@playwright/test').Page, names: string[], targetId: string | null, expectedDraft?: string) {
+  const response = page.waitForResponse((item) => {
+    if (new URL(item.url()).pathname !== '/graphql') return false;
+    const variables = item.request().postDataJSON()?.variables;
+    return variables?.input?.targetKind === 'CREDIT' && variables.input.targetId === targetId &&
+      JSON.stringify(variables.input.values?.characters) === JSON.stringify(names) &&
+      (!expectedDraft || variables.id === expectedDraft);
+  });
+  await page.getByLabel('Character names · one per line').fill(names.join('\n'));
+  const actual = await response;
+  expect(actual.ok()).toBe(true);
+  const body = await actual.json();
+  expect(body.errors).toBeUndefined();
+  expect(body.data.saveDraft.operation.state).toBe('SUCCEEDED');
+  return String(body.data.saveDraft.operation.resultId);
+}
+
+test('ATDD-026/179/262 partial: exact credit edit draft reloads and retains ordered names under its original ID', async ({ page }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const movie = await createMovie(page);
+  await addActorCredit(page, person.id, ['Maya']);
+  const original = (await currentCredits(page, movie.id)).find((credit) => credit.personId === person.id);
+  expect(original).toBeDefined();
+  const row = page.locator('.credit-list li').filter({ hasText: person.name });
+  await row.getByRole('button', { name: 'Edit credit', exact: true }).click();
+  const names = ['Maya / Echo', 'Young Maya', 'Maya'];
+  const draftId = await backCreditNames(page, names, original!.id);
+  const before = await readApi(page, 'query { drafts { id targetKind targetId baseVersion values operationId } }');
+  expect(before.drafts.find((draft: { id: string }) => draft.id === draftId)).toMatchObject({
+    targetKind: 'CREDIT', targetId: original!.id, values: { titleId: movie.id, personId: person.id, characters: names }, operationId: null });
+  await page.reload();
+  await expect(page.getByLabel('Person', { exact: true })).toBeDisabled();
+  await expect(page.getByLabel('Character names · one per line')).toHaveValue(names.join('\n'));
+  await expect(page.getByRole('button', { name: 'Save credit', exact: true })).toBeEnabled();
+  await capture(page, info, ['ATDD-026', 'ATDD-179', 'ATDD-262'], 'credit-edit-draft-restored');
+  const revised = ['Young Maya', 'Maya / Echo', 'Maya'];
+  await backCreditNames(page, revised, original!.id, draftId);
+  await page.getByRole('button', { name: 'Save credit', exact: true }).click();
+  await expect(page.getByText('Credit saved.', { exact: true })).toBeVisible();
+  await page.reload();
+  const current = (await currentCredits(page, movie.id)).filter((credit) => credit.personId === person.id);
+  expect(current).toHaveLength(1);
+  expect(current[0]).toMatchObject({ id: original!.id, characters: revised });
+  const after = await readApi(page, 'query { drafts { id } }');
+  expect(after.drafts.some((draft: { id: string }) => draft.id === draftId)).toBe(false);
+  await expect(row).toContainText(revised.join(', '));
+  await capture(page, info, ['ATDD-026', 'ATDD-179', 'ATDD-262'], 'credit-edit-draft-committed');
 });
