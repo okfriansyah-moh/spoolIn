@@ -48,7 +48,7 @@ internal data class LifecycleCommand(
             claims: com.spoolin.support.identity.ActorClaims,
         ): LifecycleCommand =
             try {
-                require(request.target.expectedVersion >= 0)
+                require(request.target.hasExpectedVersion() && request.target.expectedVersion >= 0)
                 val command =
                     LifecycleCommand(
                         id(request.target.id),
