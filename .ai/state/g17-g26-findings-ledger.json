@@ -1026,7 +1026,7 @@
       "Database-first startup, explicit required configuration, trusted health readiness and real prepared account initialization.",
       "Compiled Catalog proposal bindings and Core HTTP DTO/context fixes; actual live policy revision wiring still needs proof.",
       "Audit schema at field, subjects/changes/pagination; UUID management deep links.",
-      "Atomic schema-v2 seed identity/provenance/credits loader; actual reusable frozen snapshot unavailable from source endpoint.",
+      "Atomic schema-v2 seed identity/provenance/credits loader; frozen100MOVIE/100TV CC0 snapshot committed; actual application/persistence/API comparison remains pending.",
       "Live work lease fencing/recovery deadlines; Media durable processing, codec sandbox and terminal transactional evidence.",
       "Visible movie/person archive controls with original operation reconciliation.",
       "Catalog deletion impact complete-set validation and transactional lifecycle effects; original receipt UI recovery and strict Long/artwork bindings.",
@@ -1149,17 +1149,61 @@
       {
         "run_id": 39086423436,
         "tested_sha": "ad4008ce4787daffb3461da79957f81dcdb9f7aa",
-        "result": "in_progress",
-        "detail": "Bounded ActionAPI candidate search replaces outage-dependent SPARQL; seed preparation only.",
+        "result": "cancelled",
+        "detail": "ActionAPI returned500 MOVIE/500TV candidates; initial relationship expansion too broad and repeated provider429 delays. Superseded with bounded selected enrichment; no seed accepted from this run.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39086423436",
-        "artifact_retention_days": 14
+        "artifact_retention_days": 14,
+        "history": [
+          {
+            "result": "in_progress",
+            "detail": "Bounded ActionAPI candidate search replaces outage-dependent SPARQL; seed preparation only."
+          }
+        ]
       },
       {
         "run_id": 39086682399,
         "tested_sha": "700bdf089076780190b48547e5c86fd8c8de187d",
-        "result": "pending",
-        "detail": "Dependency preparation for Boot-managed Prometheus libraries; not an acceptance run.",
+        "result": "succeeded-preparation",
+        "detail": "Strict dependency lock/verification preparation completed; bounded metadata artifact inspected and committed. This is not runtime acceptance.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39086682399",
+        "artifact_retention_days": 14,
+        "history": [
+          {
+            "result": "pending",
+            "detail": "Dependency preparation for Boot-managed Prometheus libraries; not an acceptance run."
+          }
+        ]
+      },
+      {
+        "run_id": 39087155457,
+        "tested_sha": "066c26da326327b2585178c47e59e0c14bfb05cf",
+        "result": "succeeded-preparation",
+        "detail": "Frozen CC0 manifest artifact inspected:100distinctMOVIE100distinctTV1213people1475credits1578source revisions;0artworkfiles, approvedoptionalplaceholders. Committed manifest0c677c3. Dataset application/persistence/display unverified.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39087155457",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39087761691,
+        "tested_sha": "b72d1fee825fb440cd4abf88c3e967f1c1fad296",
+        "result": "failed",
+        "detail": "Required formatting preparation retained non-auto-correctable Kotlin failures; bounded1.2MiB patch inspected/applied16f9e1c preserving newer production fixes. Later manual source corrections pending rerun.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39087761691",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39088261605,
+        "tested_sha": null,
+        "result": "cancelled",
+        "detail": "Dispatch used an incorrect full input SHA; cancelled immediately. No application revision assessed and no pass claimed.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39088261605",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39088271262,
+        "tested_sha": "7e6262f399a197fafed9269d60aaa8e9c640b44e",
+        "result": "cancellation-requested",
+        "detail": "Actual hosted strict build and FE types failed before application startup. MCP52/53 and FE296/297 authored tests passed with one failure each; bounded source artifacts inspected. Corrections are source-only pending rerun; obsolete ongoing gates cancelled without acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39088271262",
         "artifact_retention_days": 14
       }
     ],
@@ -1197,6 +1241,20 @@
         "checks": "Inspected strict build success and actual frontend/MCP/JUnit/gate failures from39084168562. Types and concrete fixture issues corrected in source only. Seed provider outage retained. No make start or browser acceptance has passed. Formatting preparation failed required Kotlin findings; gate controls retained.",
         "remaining": "All46 tasks In progress; source completeness0 established, runtime task acceptance0, formal0. Unassigned task selectors, required host/reader observations, missing seed data, required gates and one final combined review remain pending. Existing overlapping unfinished selection controls remain unchanged.",
         "next_action": "Complete required gate source fixes, retrieve remote dependency/seed results, format remotely and execute corrected composed build/make start/browser/operations."
+      },
+      {
+        "at": "2026-10-18T02:00:53.517453+00:00",
+        "local_sha": "8e3004a5c9ddc4ab0a9d379a6472f5f8af280ce9",
+        "published_sha": "8e3004a5c9ddc4ab0a9d379a6472f5f8af280ce9",
+        "actual_changed_behavior": [
+          "Real RPC/GraphQL logical observations, committed Core owner receipts and actual lifecycle classifiers.",
+          "Complete frozen permitted seed facts and live full-dataset PostgreSQL/HTTPS/restart verifier.",
+          "Catalog cancellation audit/receipt privacy/atomicity, real signed-mTLS stream integrity/cancellation regressions.",
+          "Frontend reactive stale-review controls corrected from actual remote compiler diagnostics."
+        ],
+        "checks": "Hosted run39088271262 failed build/FE check and one MCP/FE test each; bounded actual reports inspected. make start/browser not reached. Required gates retained.",
+        "remaining": "All46task records remain In progress. Source-complete established0; runtime task acceptance0; formal0. Required actual hosts/readers, full source and gate closure, remote startup/browser/operations proof, final combined review and supported selection acceptance remain pending.",
+        "next_action": "Inspect actual compiler log, correct failures, rerun composed remote application and required gates."
       }
     ]
   }
