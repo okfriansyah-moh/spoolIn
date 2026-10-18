@@ -61,6 +61,9 @@ class ProposalBoundaryTest {
             assertEquals(2, second.revision)
             assertTrue(first.uiChallenge != second.uiChallenge, "A corrected revision requires a fresh challenge")
             assertEquals("SUPERSEDED", f.row(first.proposalId, 1).state)
+            assertEquals(Status.Code.FAILED_PRECONDITION, failure {
+                f.stub("ApproveAndCreate").approveAndCreate(approval(first))
+            })
             assertEquals(UUID.fromString(initial.context.operationId), f.row(first.proposalId, 2).operationId)
             val stale = proposal(first.proposalId, 1)
             assertEquals(Status.Code.ABORTED, failure { propose(f, stale) })
@@ -97,6 +100,7 @@ class ProposalBoundaryTest {
             val correction = proposal(first.proposalId, 1)
             assertThrows(StatusRuntimeException::class.java) { propose(f, correction) }
             assertEquals("REVIEW", f.row(first.proposalId, 1).state)
+            assertEquals("PENDING", f.receipt(f.row(first.proposalId, 1).operationId).first)
             assertEquals(1, f.count("SELECT count(*) FROM movie_proposal WHERE id=?", UUID.fromString(first.proposalId)))
             assertEquals(0, f.count("SELECT count(*) FROM operation_receipt WHERE id=?", UUID.fromString(correction.context.operationId)))
         }
