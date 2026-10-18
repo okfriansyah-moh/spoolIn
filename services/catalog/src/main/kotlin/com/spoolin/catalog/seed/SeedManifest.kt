@@ -46,7 +46,7 @@ class SeedManifest private constructor(val root: JsonNode) {
         val genres = record["genres"].toList()
         require(genres.size in 1..20 && genres.map { it["stableUUID"].asText() }.distinct().size == genres.size)
         genres.forEach { identity(it, "GENRE"); sources(it, setOf("label")); text(it, "label", 255) }
-        require(values["genreIds"].map { it.asText() } == genres.map { it["stableUUID"].asText() })
+        require(values["genreIds"].toList().map { it.asText() } == genres.map { it["stableUUID"].asText() })
         record["credits"].forEach(::validateCredit)
         require(record.path("artwork").isNull) { "Artwork requires a separately reviewed file license" }
     }
