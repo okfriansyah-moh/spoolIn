@@ -9,6 +9,7 @@ import com.spoolin.support.policy.PartialDate
 import com.spoolin.support.policy.PatchValue
 import com.spoolin.support.policy.TextBound
 import com.spoolin.support.policy.TextRules
+import com.spoolin.support.policy.StructuralRules
 import spoolin.v1.Spoolin.MovieValues
 import spoolin.v1.Spoolin.MovieWrite
 
@@ -57,16 +58,16 @@ object MovieValidation {
     ): ValidatedMovieCreate {
         val title = TextRules.ordinary(values.title, policy.textBounds.getValue("title"), "title")
         val originalTitle =
-            values.originalTitle.takeIf { it.isNotEmpty() }?.let {
+            values.originalTitle.takeIf { values.hasOriginalTitle() && !TextRules.blank(it) }?.let {
                 TextRules.ordinary(it, policy.textBounds.getValue("originalTitle"), "originalTitle")
             }
         val synopsis = TextRules.ordinary(values.synopsis, policy.textBounds.getValue("synopsis"), "synopsis")
-        val synopsisLang = TextRules.ordinary(values.synopsisLanguage, BCP47_BOUND, "synopsisLanguage")
+        val synopsisLang = if (values.hasSynopsisLanguage()) language(values.synopsisLanguage, "synopsisLanguage") else "und"
         val originalLang =
-            values.originalLanguage.takeIf { it.isNotEmpty() }?.let {
-                TextRules.ordinary(it, BCP47_BOUND, "originalLanguage")
+            values.originalLanguage.takeIf { values.hasOriginalLanguage() && !TextRules.blank(it) }?.let {
+                language(it, "originalLanguage")
             }
-        val countries = values.countriesList.map { TextRules.ordinary(it, BCP47_BOUND, "countries") }
+        val countries = values.countriesList.map(::country)
         TextRules.genres(values.genreIdsList)
         val release = parseRelease(values, requireYear = true)
         val runtime = runtimeMinutes(values)
@@ -91,12 +92,17 @@ object MovieValidation {
     ): ValidatedMoviePatch {
         val mask = write.updateMask.pathsList.toSet()
         val v = write.values
+        if (mask.any { it.startsWith("values.release.") }) {
+            throw InputViolation("release", "Replace the complete release date.")
+        }
+        if ("values.release" in mask) parseRelease(v, requireYear = true)
         return ValidatedMoviePatch(
             displayTitle = patchText("values.title", mask, v.title, policy.textBounds.getValue("title"), "title"),
-            originalTitle = patchOptText("values.original_title", mask, v.originalTitle, policy.textBounds.getValue("originalTitle"), "originalTitle"),
+            originalTitle = patchOptText("values.original_title", mask, v.originalTitle.takeIf { v.hasOriginalTitle() }, policy.textBounds.getValue("originalTitle"), "originalTitle"),
             synopsis = patchText("values.synopsis", mask, v.synopsis, policy.textBounds.getValue("synopsis"), "synopsis"),
-            synopsisLanguage = patchText("values.synopsis_language", mask, v.synopsisLanguage, BCP47_BOUND, "synopsisLanguage"),
-            originalLanguage = patchOptText("values.original_language", mask, v.originalLanguage, BCP47_BOUND, "originalLanguage"),
+            synopsisLanguage = patchLanguage("values.synopsis_language", mask, v.synopsisLanguage, false, "synopsisLanguage"),
+            originalLanguage = patchLanguage("values.original_language", mask,
+                v.originalLanguage.takeIf { v.hasOriginalLanguage() }, true, "originalLanguage"),
             countries = patchCountries("values.countries", mask, v),
             genreIds = patchGenres("values.genre_ids", mask, v),
             releaseYear = patchReleaseYear("values.release", mask, v),
@@ -117,16 +123,32 @@ object MovieValidation {
     private fun patchOptText(
         path: String,
         mask: Set<String>,
-        raw: String,
+        raw: String?,
         bound: TextBound,
         field: String,
     ) = if (path !in mask) {
         PatchValue.Omitted
-    } else if (raw.isEmpty()) {
+    } else if (raw == null || TextRules.blank(raw)) {
         PatchValue.Clear
     } else {
         PatchValue.Value(TextRules.ordinary(raw, bound, field))
     }
+
+    private fun language(raw: String, field: String): String {
+        val value = TextRules.ordinary(raw, BCP47_BOUND, field)
+        return try { StructuralRules.language(value) } catch (failure: InputViolation) {
+            throw InputViolation(field, failure.correction)
+        }
+    }
+
+    private fun country(raw: String): String = StructuralRules.country(TextRules.ordinary(raw, BCP47_BOUND, "countries"))
+
+    private fun patchLanguage(path: String, mask: Set<String>, raw: String?, optional: Boolean, field: String): PatchValue<String> =
+        when {
+            path !in mask -> PatchValue.Omitted
+            optional && (raw == null || TextRules.blank(raw)) -> PatchValue.Clear
+            else -> PatchValue.Value(language(raw ?: "", field))
+        }
 
     private fun patchCountries(
         path: String,
@@ -136,7 +158,7 @@ object MovieValidation {
         if (path !in mask) {
             PatchValue.Omitted
         } else {
-            PatchValue.Value(v.countriesList.map { TextRules.ordinary(it, BCP47_BOUND, "countries") })
+            PatchValue.Value(v.countriesList.map(::country))
         }
 
     private fun patchGenres(
@@ -168,7 +190,7 @@ object MovieValidation {
         mask: Set<String>,
         v: MovieValues,
     ): PatchValue<Int?> =
-        if (path !in mask) {
+        if (path !in mask && "values.release" !in mask) {
             PatchValue.Omitted
         } else if (v.release.hasMonth()) {
             PatchValue.Value(v.release.month)
@@ -181,7 +203,7 @@ object MovieValidation {
         mask: Set<String>,
         v: MovieValues,
     ): PatchValue<Int?> =
-        if (path !in mask) {
+        if (path !in mask && "values.release" !in mask) {
             PatchValue.Omitted
         } else if (v.release.hasDay()) {
             PatchValue.Value(v.release.day)

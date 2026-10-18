@@ -8,6 +8,10 @@ import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.features.person.write.PersonWrites
 import com.spoolin.catalog.features.taxonomy.roles.RoleWrites
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.catalog.operations.receipts.OwnerReceiptReads
+import com.spoolin.catalog.operations.receipts.ReceiptRpc
+import com.spoolin.catalog.operations.audit.AuditInsert
+import com.spoolin.support.receipts.ReceiptAuthority
 import com.spoolin.integration.identity.ScopedActorTest
 import com.spoolin.integration.identity.SignedReceiptFixture
 import com.spoolin.support.identity.ActorInterceptor
@@ -25,6 +29,7 @@ import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Metadata
 import io.grpc.StatusRuntimeException
+import io.grpc.Status
 import io.grpc.stub.MetadataUtils
 import io.grpc.stub.StreamObserver
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -38,6 +43,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Calls actual write handlers through signed mTLS and live Core identity, then reads separately committed PostgreSQL rows. */
 class CatalogPolicyBoundaryTest {
@@ -151,7 +157,7 @@ class CatalogPolicyBoundaryTest {
     }
 }
 
-private class CatalogPolicyFixture : AutoCloseable {
+internal class CatalogPolicyFixture : AutoCloseable {
     private val proof = SignedReceiptFixture("catalog-effective-policy-boundary.json")
     private val pool = proof.fixture.owner.pool("catalog")
     @Volatile var policy: PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), emptyMap()))
@@ -161,14 +167,22 @@ private class CatalogPolicyFixture : AutoCloseable {
     private val people = PersonWrites(receipts, policy = provider)
     private val credits = CreditWrites(receipts, policy = provider)
     private val roles = RoleWrites(receipts, policy = provider)
+    private val receiptReads = ReceiptRpc(ReceiptAuthority { ActorRpc.current()?.let { "account:${it.accountId}" } }) {
+            id, scope -> OwnerReceiptReads(pool).find(id, scope)
+    }
+    val loseNextPersonReply = AtomicBoolean(false)
     private val service = object : CatalogServiceGrpc.CatalogServiceImplBase() {
         override fun writeMovie(request: Spoolin.MovieWrite, response: StreamObserver<Spoolin.Outcome>) =
             movies.writeMovie(request, response)
         override fun writePerson(request: Spoolin.PersonWrite, response: StreamObserver<Spoolin.Outcome>) =
-            people.writePerson(request, response)
+            people.writePerson(request, LostPersonReply(response, loseNextPersonReply))
         override fun writeCredit(request: Spoolin.CreditWrite, response: StreamObserver<Spoolin.Outcome>) =
             credits.writeCredit(request, response)
         override fun createRole(request: Spoolin.RoleWrite, response: StreamObserver<Spoolin.Outcome>) = roles.createRole(request, response)
+        override fun removeCredit(request: Spoolin.VersionedId, response: StreamObserver<Spoolin.Outcome>) =
+            credits.removeCredit(request, response)
+        override fun getOperation(request: Spoolin.Id, response: StreamObserver<Spoolin.Outcome>) =
+            receiptReads.getOperation(request, response)
     }
     private val transport = ScopedActorTest()
     private val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(proof.identity))
@@ -190,10 +204,10 @@ private class CatalogPolicyFixture : AutoCloseable {
         .setValues(Spoolin.MovieValues.newBuilder().setTitle(title).setSynopsis("Synopsis").setSynopsisLanguage("en")
             .addGenreIds(genre.toString()).setRelease(Spoolin.PartialDate.newBuilder().setYear(2024))).build()
     fun movie(request: Spoolin.MovieWrite): Spoolin.Outcome = client("WriteMovie", request.context).writeMovie(request)
-    fun role(label: String): Spoolin.Outcome {
-        val request = Spoolin.RoleWrite.newBuilder().setContext(context()).setCategory("CAST").setLabel(label).build()
-        return client("CreateRole", request.context).createRole(request)
-    }
+    fun roleRequest(label: String): Spoolin.RoleWrite =
+        Spoolin.RoleWrite.newBuilder().setContext(context()).setCategory("CAST").setLabel(label).build()
+    fun role(request: Spoolin.RoleWrite): Spoolin.Outcome = client("CreateRole", request.context).createRole(request)
+    fun role(label: String): Spoolin.Outcome = role(roleRequest(label))
     fun characterRole(): String = UUID.randomUUID().also { role -> pool.committed {
         it.executeBound("INSERT INTO credit_role(id,category,label,normalized_label,allows_characters) " +
             "VALUES (?,'CAST','Policy actor','policy actor',true)", role)
@@ -205,6 +219,31 @@ private class CatalogPolicyFixture : AutoCloseable {
     fun count(sql: String): Int = pool.connection.use { it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single() }
     fun text(sql: String, id: String): String = pool.connection.use {
         it.queryBound(sql, listOf(UUID.fromString(id))) { row -> row.getString(1) }.single()
+    }
+
+    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome = client("RemoveCredit", request.context).removeCredit(request)
+    fun lookup(operation: String): Spoolin.Outcome = client("GetOperation", context().toBuilder().setOperationId(operation).build())
+        .getOperation(Spoolin.Id.newBuilder().setId(operation).build())
+    fun receipt(operation: String): String = text(
+        "SELECT kind||':'||encode(request_hash,'hex')||':'||state||':'||COALESCE(result::text,'null')||':'||" +
+            "created_at::text FROM operation_receipt WHERE id=?", operation,
+    )
+
+    // Controlled historical fixture uses the old incomplete typed hash; no row is rewritten during upgrade.
+    fun legacyPerson(request: Spoolin.PersonWrite): UUID {
+        val operation = UUID.fromString(request.context.operationId)
+        val correlation = UUID.fromString(request.context.correlationId)
+        val id = UUID.randomUUID()
+        val fields = listOf("name" to request.values.name, "updateMask" to request.updateMask.pathsList.sorted().joinToString(","))
+        val intent = OperationIntent(operation, "account:${proof.account}", "WritePerson", request.context.policyRevision, fields)
+        receipts.execute(intent, correlation, true) { connection ->
+            connection.executeBound("INSERT INTO person(id,name,biography,status,version,impact_version) VALUES (?,?,?,'ACTIVE',0,0)",
+                id, request.values.name, request.values.biography.takeIf { request.values.hasBiography() })
+            AuditInsert.record(connection, operation, proof.account, "HUMAN", "CREATE_PERSON", "PERSON", id,
+                "SUCCEEDED", "{}", correlation, Instant.now())
+            SafeResult(id, version = 0)
+        }
+        return id
     }
 
     // This calls the actual post-approval owner publisher; it does not claim MCP host or approval transport proof.
@@ -241,4 +280,19 @@ private class CatalogPolicyFixture : AutoCloseable {
         pool.close()
         proof.close()
     }
+}
+
+private class LostPersonReply(
+    private val delegate: StreamObserver<Spoolin.Outcome>,
+    private val lose: AtomicBoolean,
+) : StreamObserver<Spoolin.Outcome> {
+    private var lost = false
+    override fun onNext(value: Spoolin.Outcome) {
+        if (lose.compareAndSet(true, false)) {
+            lost = true
+            delegate.onError(Status.UNAVAILABLE.withDescription("Fixture response loss").asRuntimeException())
+        } else delegate.onNext(value)
+    }
+    override fun onError(failure: Throwable) { if (!lost) delegate.onError(failure) }
+    override fun onCompleted() { if (!lost) delegate.onCompleted() }
 }

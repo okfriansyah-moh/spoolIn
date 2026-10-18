@@ -47,6 +47,26 @@ class EffectiveCatalogPolicyRulesTest {
         assertEquals(PatchValue.Value(emptyList<String>()), CreditValidation.validatePatch(credit, policy).characters)
     }
 
+    @Test
+    fun `Unicode blank optional text clears and whole date replacement never retains omitted month or day`() {
+        val values = movie().toBuilder().setOriginalTitle("\u00a0 ").setOriginalLanguage(" ").build()
+        assertEquals(null, MovieValidation.validateCreate(values).originalTitle)
+        val person = Spoolin.PersonWrite.newBuilder().setValues(Spoolin.PersonValues.newBuilder().setBiography("\u00a0 "))
+            .setUpdateMask(FieldMask.newBuilder().addPaths("values.biography")).build()
+        assertEquals(PatchValue.Clear, PersonValidation.validatePatch(person).biography)
+        val update = Spoolin.MovieWrite.newBuilder().setValues(movie().toBuilder().setRelease(
+            Spoolin.PartialDate.newBuilder().setYear(2024),
+        )).setUpdateMask(FieldMask.newBuilder().addPaths("values.release")).build()
+        val patch = MovieValidation.validatePatch(update)
+        assertEquals(PatchValue.Value(2024), patch.releaseYear)
+        assertEquals(PatchValue.Clear, patch.releaseMonth)
+        assertEquals(PatchValue.Clear, patch.releaseDay)
+        val invalid = update.toBuilder().setValues(update.values.toBuilder().setRelease(
+            Spoolin.PartialDate.newBuilder().setYear(2023).setMonth(2).setDay(29),
+        )).build()
+        assertThrows(InputViolation::class.java) { MovieValidation.validatePatch(invalid) }
+    }
+
     private data class Field(val prefix: String, val validate: (String, PublicPolicy) -> String)
 
     private fun cases(): List<Field> = listOf(

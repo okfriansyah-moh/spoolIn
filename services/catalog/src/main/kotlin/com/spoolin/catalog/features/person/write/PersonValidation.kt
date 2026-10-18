@@ -35,7 +35,7 @@ object PersonValidation {
         val name = TextRules.ordinary(values.name, policy.textBounds.getValue("personName"), "name")
         val biography =
             values.biography
-                .takeIf { it.isNotEmpty() }
+                .takeIf { values.hasBiography() && !TextRules.blank(it) }
                 ?.let { TextRules.ordinary(it, policy.textBounds.getValue("biography"), "biography") }
         return ValidatedPersonCreate(name = name, biography = biography)
     }
@@ -48,7 +48,9 @@ object PersonValidation {
         val v = write.values
         return ValidatedPersonPatch(
             name = patchName("values.name", mask, v.name, policy.textBounds.getValue("personName")),
-            biography = patchBiography("values.biography", mask, v.biography, policy.textBounds.getValue("biography")),
+            biography = patchBiography(
+                "values.biography", mask, v.biography.takeIf { v.hasBiography() }, policy.textBounds.getValue("biography"),
+            ),
         )
     }
 
@@ -67,12 +69,12 @@ object PersonValidation {
     private fun patchBiography(
         path: String,
         mask: Set<String>,
-        raw: String,
+        raw: String?,
         bound: TextBound,
     ): PatchValue<String> =
         if (path !in mask) {
             PatchValue.Omitted
-        } else if (raw.isEmpty()) {
+        } else if (raw == null || TextRules.blank(raw)) {
             PatchValue.Clear
         } else {
             PatchValue.Value(TextRules.ordinary(raw, bound, "biography"))
