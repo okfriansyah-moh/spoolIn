@@ -66,3 +66,9 @@ Actual Claude Desktop/ChatGPT registration, approved private tunnel identity, tr
 All32 browser projects remain selected for final verification. A failed attempt stops early with a nonzero result; unexecuted cases remain pending. Current focused runtime uses four Chromium projects. Source layout corrections require fresh matching browser evidence. No exact pixel identity, release readiness, independent-review acceptance or formal selection acceptance is claimed.
 
 CI artifacts retain reports for14days. Failed artifacts remain linked to their own source revision. One final independent combined review and current complete check/evidence receipts are still required; overlapping retained selection ownership has not been altered.
+
+## Cost-bounded wrap-up
+
+The user requested a wrap-up with35%usage remaining and selected GPT-6Luna high for the remaining worker. Earlier workers are interrupted. The corrected [focused runtime39104220294](https://github.com/okfriansyah-moh/spoolIn/actions/runs/39104220294) tests `287c050587ad3c35995c6c9dac7bec03be35d886`; its last observed step is actual documented application startup. It remains running, not accepted. This source includes mandatory draft resolver wiring and the explicit fail-closed codec profile stack. The preceding3191f50f native run39103621949 was cancelled while executing; partial reports do not establish complete suite success.
+
+No final independent combined review or formal selection acceptance has occurred. Complete native/Make suites, recovery/rotation/capacity/gates, the required browser/design matrix, actual host approval/rejection and assistive-reader proof remain pending. The draftPR is a published correction and evidence checkpoint; it is not a release-readiness declaration.
