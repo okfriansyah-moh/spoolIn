@@ -97,6 +97,9 @@ jobs:
         run: |
           mkdir -p artifacts/source-checks
           npm run test:coverage --workspace frontend 2>&1 | tee artifacts/source-checks/frontend-tests.log
+      - name: Provision pinned production codec prerequisites
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
+        run: bash ops/ci/prepare-codec-fixture.sh
       - name: Exercise real owner and cross-service boundaries
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
         run: |
