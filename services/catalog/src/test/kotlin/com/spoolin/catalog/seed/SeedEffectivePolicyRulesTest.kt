@@ -4,6 +4,7 @@ import com.spoolin.support.policy.ConfigurationSources
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PolicyEnvironment
 import com.spoolin.support.policy.PolicySettings
+import com.spoolin.support.policy.PublicPolicy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -134,7 +135,9 @@ class SeedEffectivePolicyRulesTest {
         assertTrue(policy.revision.isNotBlank())
     }
 
-    private fun configured(values: Map<String, String> = emptyMap()) = PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    private fun configured(values: Map<String, String> = emptyMap()): PublicPolicy {
+        return PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    }
 
     private fun snapshot() = mapper.readTree(repository().resolve("data/seed/manifest.json").toFile()) as ObjectNode
 

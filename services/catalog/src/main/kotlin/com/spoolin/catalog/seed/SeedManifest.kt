@@ -66,7 +66,10 @@ class SeedManifest private constructor(
     }
 
     companion object {
-        fun read(path: Path): SeedManifest = SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
+        fun read(path: Path): SeedManifest {
+            val root = JsonMapper.builder().build().readTree(path.toFile())
+            return SeedManifest(root).also { it.validate() }
+        }
 
         fun prepare(
             path: Path,

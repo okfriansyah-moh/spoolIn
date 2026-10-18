@@ -9,9 +9,13 @@ import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
+import com.spoolin.support.observability.LogicalMetrics
 import com.spoolin.support.policy.PolicyEnvironment
 import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.receipts.ComparisonKeys
+import com.spoolin.support.tracing.OwnerTracing
+import com.spoolin.support.tracing.TraceClientInterceptor
+import com.spoolin.support.tracing.TraceServerInterceptor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -22,6 +26,7 @@ import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.protobuf.services.HealthStatusManager
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -100,7 +105,7 @@ class ObservabilityConfiguration {
 
     @Bean
     fun ownerMetrics(
-        registry: io.micrometer.core.instrument.MeterRegistry,
+        registry: MeterRegistry,
         dataSource: HikariDataSource,
         schema: SchemaReadiness,
     ): com.spoolin.support.observability.OwnerMetrics =
@@ -116,15 +121,15 @@ class ObservabilityConfiguration {
         )
 
     @Bean(destroyMethod = "close")
-    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing =
+    fun ownerTracing(): OwnerTracing =
         com.spoolin.support.tracing
             .OwnerTracing("catalog")
 
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
-    fun traceServer(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceServerInterceptor =
-        com.spoolin.support.tracing.TraceServerInterceptor(tracing) { attributes ->
+    fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
+        TraceServerInterceptor(tracing) { attributes ->
             runCatching {
                 val certificate =
                     attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
@@ -134,12 +139,12 @@ class ObservabilityConfiguration {
 
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
-    fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
+    fun traceClient(tracing: OwnerTracing): TraceClientInterceptor =
         com.spoolin.support.tracing
             .TraceClientInterceptor(tracing)
 
     @Bean
-    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
+    fun logicalMetrics(registry: MeterRegistry): LogicalMetrics {
         com.spoolin.support.logging.DiagnosticDropMetrics.shared
             .bind("catalog", registry)
         return com.spoolin.support.observability
@@ -150,7 +155,7 @@ class ObservabilityConfiguration {
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     fun logicalRpcMetrics(
-        metrics: com.spoolin.support.observability.LogicalMetrics,
+        metrics: LogicalMetrics,
     ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
@@ -456,7 +461,7 @@ class CatalogWriteConfiguration {
 
     @Bean
     fun proposalMetrics(
-        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        registry: org.springframework.beans.factory.ObjectProvider<MeterRegistry>,
         dataSource: DataSource,
     ): com.spoolin.catalog.operations.metrics.ProposalMetrics? =
         registry.ifAvailable?.let {

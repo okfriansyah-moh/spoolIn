@@ -195,6 +195,8 @@ class EffectiveCatalogPolicyRulesTest {
     companion object {
         private const val ID = "00000000-0000-0000-0000-000000000001"
 
-        private fun configured(values: Map<String, String>): PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        private fun configured(values: Map<String, String>): PublicPolicy {
+            return PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        }
     }
 }

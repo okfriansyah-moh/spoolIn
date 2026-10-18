@@ -56,7 +56,10 @@ object SeedIdentities {
         return UUID(bytes.long, bytes.long)
     }
 
-    fun hash(node: JsonNode): ByteArray = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(stableValue(node)))
+    fun hash(node: JsonNode): ByteArray {
+        val encoded = mapper.writeValueAsBytes(stableValue(node))
+        return MessageDigest.getInstance("SHA-256").digest(encoded)
+    }
 
     fun hashHex(node: JsonNode): String = HexFormat.of().formatHex(hash(node))
 

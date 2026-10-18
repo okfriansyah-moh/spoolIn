@@ -152,7 +152,9 @@ class ArtworkWorkHandler(
             .also { if (version != null) it.catalogVersion = version }
             .build()
 
-    private fun mediaStub(): MediaServiceGrpc.MediaServiceBlockingStub = media.withDeadlineAfter(MEDIA_REQUEST_SECONDS, TimeUnit.SECONDS)
+    private fun mediaStub(): MediaServiceGrpc.MediaServiceBlockingStub {
+        return media.withDeadlineAfter(MEDIA_REQUEST_SECONDS, TimeUnit.SECONDS)
+    }
 }
 
 private const val ACTOR_CHECK_SECONDS = 2L

@@ -105,17 +105,22 @@ internal object DiagnosticEvents {
         default: String,
     ): String {
         val throwable = (proxy as? ThrowableProxy)?.throwable
-        if (throwable is io.grpc.StatusRuntimeException) return "RPC_" + throwable.status.code.name
-        if (throwable is io.grpc.StatusException) return "RPC_" + throwable.status.code.name
-        val failure = throwable as? SQLException ?: return default
-        return when (failure.sqlState) {
+        return when (throwable) {
+            is io.grpc.StatusRuntimeException -> "RPC_" + throwable.status.code.name
+            is io.grpc.StatusException -> "RPC_" + throwable.status.code.name
+            is SQLException -> databaseFailureCode(throwable, default)
+            else -> default
+        }
+    }
+
+    private fun databaseFailureCode(failure: SQLException, default: String): String =
+        when (failure.sqlState) {
             "28P01", "28000" -> "DATABASE_AUTHENTICATION_FAILED"
             "42501" -> "DATABASE_ACCESS_DENIED"
             "42P01", "42703", "3F000" -> "DATABASE_SCHEMA_MISSING"
             "08001", "08003", "08004", "08006", "57P03" -> "DATABASE_CONNECTION_UNAVAILABLE"
             else -> default
         }
-    }
 }
 
 private data class KnownFailure(

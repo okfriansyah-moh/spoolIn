@@ -7,6 +7,7 @@ import com.spoolin.integration.identity.SignedReceiptFixture
 import com.spoolin.support.policy.ConfigurationSources
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PolicySettings
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -241,7 +242,9 @@ class CatalogSeedPolicyBoundaryTest {
         fixture.fixture.owner.repository
             .resolve("data/seed/manifest.json")
 
-    private fun configured(values: Map<String, String> = emptyMap()) = PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    private fun configured(values: Map<String, String> = emptyMap()): PublicPolicy {
+        return PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    }
 
     private fun count(
         pool: DataSource,
