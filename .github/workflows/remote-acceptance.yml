@@ -1,0 +1,68 @@
+name: Remote application acceptance
+on:
+  push:
+    branches: [codex/remote-acceptance-closure]
+  workflow_dispatch:
+    inputs:
+      tested_ref:
+        description: Full application SHA to assess
+        required: true
+        default: '2764ca8bcdb5ee182852e2bdb26c95247c81c5ed'
+permissions:
+  contents: read
+concurrency:
+  group: movie-app-remote-acceptance
+  cancel-in-progress: false
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      TESTED_REF: ${{ inputs.tested_ref || '2764ca8bcdb5ee182852e2bdb26c95247c81c5ed' }}
+      CI: 'true'
+      GRADLE_OPTS: '-Dorg.gradle.daemon=false'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.TESTED_REF }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify hosted runner and record assessed inputs
+        shell: bash
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          mkdir -p .ai/evidence/remote
+          python3 - <<'PY'
+          import json, os, platform, subprocess
+          from pathlib import Path
+          record = {k: os.environ.get(k) for k in ['GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'GITHUB_JOB', 'RUNNER_OS', 'RUNNER_ARCH', 'RUNNER_ENVIRONMENT', 'ImageOS', 'ImageVersion']}
+          record['tested_sha'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          record['platform'] = platform.platform()
+          Path('.ai/evidence/remote/runner.json').write_text(json.dumps(record, indent=2) + '\n')
+          PY
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21.0.12+1'
+      - name: Install locked npm dependencies
+        run: npm ci
+      - name: Strict build and contract generation
+        run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
+      - name: Start documented application
+        run: make start
+      - name: Retain reports including failed baseline
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .ai/evidence/remote
+            .ai/reports
+            **/build/reports/dependency-verification
+            **/build/test-results
+          retention-days: 14
+          if-no-files-found: error
