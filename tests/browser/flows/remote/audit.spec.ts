@@ -34,6 +34,9 @@ test('ATDD-053/088/101 partial: actual movie mutation is readable in immutable a
   await expect(row.first()).toBeVisible();
   await expect(row.first()).toContainText('SUCCEEDED');
   await row.first().getByText('Inspect changes', { exact: true }).click();
+  await expect(row.first()).toContainText('After:');
+  await expect(row.first()).toContainText(movie.title);
+  await expect(row.first()).not.toContainText('No field changes recorded.');
   await expect(row.first()).not.toContainText('maintainer@example.invalid');
   await expect(
     page.getByRole('button', { name: /edit|delete|approve|reject/i }),
