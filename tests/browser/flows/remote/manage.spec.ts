@@ -622,3 +622,32 @@ test('ATDD-026/179 partial: new credit drafts use no edit target and an explicit
   expect((await currentCredits(page, movie.id)).filter((credit) => credit.personId === person.id)).toHaveLength(1);
   await capture(page, info, ['ATDD-026', 'ATDD-179'], 'credit-selected-draft-persisted');
 });
+
+
+test('ATDD-017 partial: movie metadata survives a real update and editor reload', async ({ page }, info) => {
+  await signInMaintainer(page);
+  const movie = await createMovie(page);
+  await page.getByLabel('Release year · Required').fill('2024');
+  await page.getByLabel('Release month', { exact: true }).fill('2');
+  await page.getByLabel('Release day', { exact: true }).fill('29');
+  await page.getByLabel('Runtime in minutes', { exact: true }).fill('123');
+  await page.getByLabel('Original language', { exact: true }).fill('id');
+  await page.getByLabel('Synopsis language', { exact: true }).fill('en-GB');
+  await page.getByLabel('Countries', { exact: true }).fill('ID, GB');
+  await page.getByRole('button', { name: 'Save movie', exact: true }).click();
+  await expect(page.getByText('Movie saved', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('Release month', { exact: true })).toHaveValue('2');
+  await expect(page.getByLabel('Release day', { exact: true })).toHaveValue('29');
+  await expect(page.getByLabel('Runtime in minutes', { exact: true })).toHaveValue('123');
+  await expect(page.getByLabel('Original language', { exact: true })).toHaveValue('id');
+  await expect(page.getByLabel('Synopsis language', { exact: true })).toHaveValue('en-GB');
+  await expect(page.getByLabel('Countries', { exact: true })).toHaveValue('ID, GB');
+  const loaded = await readApi(page, `query Metadata($id: UUID!) {
+    managedTitle(id: $id) { release { year month day } runtimeMinutes originalLanguage synopsisLanguage countries }
+  }`, { id: movie.id });
+  expect(loaded.managedTitle).toMatchObject({ release: { year: 2024, month: 2, day: 29 },
+    runtimeMinutes: 123, originalLanguage: 'id', synopsisLanguage: 'en-GB' });
+  expect([...loaded.managedTitle.countries].sort()).toEqual(['GB', 'ID']);
+  await capture(page, info, ['ATDD-017'], 'movie-complete-metadata-persisted');
+});
