@@ -1,6 +1,7 @@
 package com.spoolin.core.features.draft
 
 import com.spoolin.core.features.account.application.CredentialRejected
+import com.spoolin.core.features.crypto.ProtectedEnvelope
 import com.spoolin.core.operations.events.ReceiptAction
 import com.spoolin.core.operations.events.ReceiptAudit
 import com.spoolin.core.operations.receipts.OwnerReceipts
@@ -27,6 +28,7 @@ class SaveDraft(
     private val receipts: OwnerReceipts,
 ) {
     private val logger = LoggerFactory.getLogger(SaveDraft::class.java)
+
     /**
      * Saves a draft owned by [accountId].
      *
@@ -43,25 +45,7 @@ class SaveDraft(
         }
         val plaintext = payload.encode(command.input.targetKind, command.input.values)
         // Reserve nonce in a separately committed transaction BEFORE domain locks (§7.3.1).
-        val envelope =
-            try {
-                try {
-                    crypto.encrypt(command.draftId, plaintext)
-                } catch (failure: Exception) {
-                    logger.warn(
-                        SafeJsonDiagnostics.emit(
-                            mapOf(
-                                "event" to "draft_encrypt_failed",
-                                "draftId" to command.draftId.toString(),
-                                "targetKind" to command.input.targetKind,
-                            ),
-                        ),
-                    )
-                    throw failure
-                }
-            } finally {
-                plaintext.fill(0)
-            }
+        val envelope = encrypt(command, plaintext)
         val intent =
             OperationIntent(
                 id = command.operationId,
@@ -99,5 +83,34 @@ class SaveDraft(
                 )
             SafeResult(resultId = command.draftId, version = newVersion)
         }
+    }
+
+    private fun encrypt(
+        command: DraftSaveCommand,
+        plaintext: ByteArray,
+    ): ProtectedEnvelope =
+        try {
+            runCatching { crypto.encrypt(command.draftId, plaintext) }.getOrElse { failure ->
+                failedEncryption(command, failure)
+            }
+        } finally {
+            plaintext.fill(0)
+        }
+
+    private fun failedEncryption(
+        command: DraftSaveCommand,
+        failure: Throwable,
+    ): Nothing {
+        if (failure is Error) throw failure
+        logger.warn(
+            SafeJsonDiagnostics.emit(
+                mapOf(
+                    "event" to "draft_encrypt_failed",
+                    "draftId" to command.draftId.toString(),
+                    "targetKind" to command.input.targetKind,
+                ),
+            ),
+        )
+        throw failure
     }
 }

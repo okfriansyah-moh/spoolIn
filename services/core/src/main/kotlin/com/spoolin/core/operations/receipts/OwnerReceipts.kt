@@ -78,19 +78,14 @@ class OwnerReceipts(
         val started = System.nanoTime()
         var observed = LogicalResult.unknown()
         try {
-            val result = operation()
+            val result =
+                runCatching(operation).getOrElse { failure ->
+                    observed = receiptFailure(failure)
+                    throw failure
+                }
             val code = if (result.resultExpired && result.state == ReceiptState.SUCCEEDED) null else result.errorCode
             observed = LogicalResult.fromReceipt(result.state.name, code)
             return result
-        } catch (failure: ReceiptConflict) {
-            observed = LogicalResult.fromProblem("IDEMPOTENCY_CONFLICT")
-            throw failure
-        } catch (failure: ReceiptHidden) {
-            observed = LogicalResult.fromProblem("NOT_FOUND")
-            throw failure
-        } catch (failure: io.grpc.StatusRuntimeException) {
-            observed = LogicalResult.fromStatus(failure.status, true)
-            throw failure
         } finally {
             // A failed collector must not undo or replace an already committed owner result.
             runCatching { metrics?.complete(kind, "owner", observed, started) }
@@ -210,3 +205,11 @@ private data class ReceiptExecution(
     val work: List<WorkRequest> = emptyList(),
     val audit: ReceiptAudit = ReceiptAudit(),
 )
+
+private fun receiptFailure(failure: Throwable): LogicalResult =
+    when (failure) {
+        is ReceiptConflict -> LogicalResult.fromProblem("IDEMPOTENCY_CONFLICT")
+        is ReceiptHidden -> LogicalResult.fromProblem("NOT_FOUND")
+        is io.grpc.StatusRuntimeException -> LogicalResult.fromStatus(failure.status, true)
+        else -> LogicalResult.unknown()
+    }

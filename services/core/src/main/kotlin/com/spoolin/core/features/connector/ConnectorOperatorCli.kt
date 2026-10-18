@@ -7,7 +7,6 @@ import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Files
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.nio.file.StandardOpenOption.WRITE
 import java.nio.file.attribute.PosixFilePermissions
 import java.security.SecureRandom
@@ -17,6 +16,8 @@ import java.util.Base64
 import java.util.UUID
 import kotlin.system.exitProcess
 
+private const val OPERATOR_FAILURE_EXIT = 4
+private const val MAXIMUM_CREDENTIAL_LIST = 100
 private const val TOKEN_BYTES = 32
 private const val MAX_TTL_SECONDS = 604800L
 
@@ -31,8 +32,10 @@ object ConnectorOperatorCli {
                 println(JsonMapper.builder().build().writeValueAsString(execute(connection, command, operator)))
             }
         } catch (_: Exception) {
-            System.err.println("Connector operation refused: verify operator authority, account/client, protected output and database")
-            exitProcess(4)
+            System.err.println(
+                "Connector operation refused: verify operator authority, account/client, protected output and database",
+            )
+            exitProcess(OPERATOR_FAILURE_EXIT)
         }
     }
 
@@ -124,7 +127,9 @@ object ConnectorOperatorCli {
             ) == 1,
         )
         audit(connection, id, "CONNECTOR_ISSUE", operator)
-        return mapOf("id" to id.toString(), "client" to command.client, "expiresAt" to expiry.toString(), "issued" to true)
+        return mapOf(
+            "id" to id.toString(), "client" to command.client, "expiresAt" to expiry.toString(), "issued" to true,
+        )
     }
 
     private fun revoke(
@@ -152,7 +157,8 @@ object ConnectorOperatorCli {
     ): Map<String, Any?> {
         val rows =
             connection.queryBound(
-                "SELECT id,expires_at,revoked_at FROM mcp_credential WHERE account_id=? AND client_kind=? ORDER BY created_at,id LIMIT 101",
+                "SELECT id,expires_at,revoked_at FROM mcp_credential WHERE account_id=? AND client_kind=? " +
+                    "ORDER BY created_at,id LIMIT 101",
                 listOf(command.account, command.client),
             ) {
                 mapOf(
@@ -161,7 +167,7 @@ object ConnectorOperatorCli {
                     "revoked" to (it.getTimestamp("revoked_at") != null),
                 )
             }
-        require(rows.size <= 100) { "Bound connector listing exceeds local command limit" }
+        require(rows.size <= MAXIMUM_CREDENTIAL_LIST) { "Bound connector listing exceeds local command limit" }
         return mapOf("client" to command.client, "credentials" to rows)
     }
 
@@ -210,7 +216,9 @@ data class ConnectorOperatorCommand(
             require(
                 values.size == args.size &&
                     values.keys.all {
-                        it in setOf("--command", "--account", "--client", "--output", "--credential-id", "--ttl-seconds")
+                        it in setOf(
+                            "--command", "--account", "--client", "--output", "--credential-id", "--ttl-seconds",
+                        )
                     },
             )
             return ConnectorOperatorCommand(

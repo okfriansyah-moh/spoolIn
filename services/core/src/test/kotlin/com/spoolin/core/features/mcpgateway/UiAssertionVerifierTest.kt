@@ -23,7 +23,8 @@ class UiAssertionVerifierTest {
     private val mapper = ObjectMapper()
     private val key = ByteArray(32) { 7 }
     private val now = Instant.ofEpochSecond(1000)
-    private val connector = ConnectorRecord(UUID.randomUUID(), UUID.randomUUID(), "CLAUDE", 1, "MOVIE", now.plusSeconds(600), null)
+    private val connector =
+        ConnectorRecord(UUID.randomUUID(), UUID.randomUUID(), "CLAUDE", 1, "MOVIE", now.plusSeconds(600), null)
     private val hash = Base64.getEncoder().encodeToString(ByteArray(32) { 9 })
     private val input =
         Spoolin.ApprovalInput
@@ -35,7 +36,8 @@ class UiAssertionVerifierTest {
             .build()
     private val method = "/spoolin.v1.McpGatewayService/ApproveMovie"
 
-    private fun verifier(enabled: Boolean = true) = UiAssertionVerifier(enabled, "test-v1", key, mapper, Clock.fixed(now, ZoneOffset.UTC))
+    private fun verifier(enabled: Boolean = true) =
+        UiAssertionVerifier(enabled, "test-v1", key, mapper, Clock.fixed(now, ZoneOffset.UTC))
 
     private fun claims(): MutableMap<String, Any> =
         sortedMapOf(
@@ -82,7 +84,9 @@ class UiAssertionVerifierTest {
         request: Spoolin.ApprovalInput = input,
         rpc: String = method,
     ) {
-        assertThrows(StatusRuntimeException::class.java) { trusted(token) { verifier.requireTrustedUi(actor, request, rpc) } }
+        assertThrows(StatusRuntimeException::class.java) {
+            trusted(token) { verifier.requireTrustedUi(actor, request, rpc) }
+        }
     }
 
     @Test
@@ -156,7 +160,7 @@ class UiAssertionVerifierTest {
                 override fun withZone(zone: java.time.ZoneId): Clock = this
             }
         val fresh = ByteArray(32) { 8 }
-        val keys = UiAssertionKeys.rotated("test-v2", fresh, "test-v1", key, 1000, epoch)
+        val keys = UiAssertionKeys.rotated("test-v2", fresh, PreviousUiAssertionKey("test-v1", key, 1000), epoch)
         val verifier = UiAssertionVerifier(true, keys, mapper, clock)
         val prior = assertion(claims().also { it["expiry"] = 1089 })
         trusted(prior) { verifier.requireTrustedUi(connector, input, method) }

@@ -8,6 +8,9 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.security.MessageDigest
 import java.time.Clock
 
+private const val READ_OVERLAP_SECONDS = 60L
+private const val UI_KEY_BYTES = 32
+
 /** One active key and one explicitly timed previous read key; restart never extends its deadline. */
 class UiAssertionKeys private constructor(
     private val activeId: String,
@@ -23,14 +26,25 @@ class UiAssertionKeys private constructor(
         id: String,
         now: Long,
     ): ByteArray? {
-        if (closed) return null
-        if (rotatedAt != null && now >= rotatedAt + 60) {
+        if (!closed) expirePrevious(now)
+        return when {
+            closed -> null
+            id == activeId -> active.copyOf()
+            previousReadable(id, now) -> previous?.copyOf()
+            else -> null
+        }
+    }
+
+    private fun expirePrevious(now: Long) {
+        if (rotatedAt != null && now >= rotatedAt + READ_OVERLAP_SECONDS) {
             previous?.fill(0)
             previous = null
         }
-        if (id == activeId) return active.copyOf()
-        if (id != previousId || rotatedAt == null || now < rotatedAt || now >= rotatedAt + 60) return null
-        return previous?.copyOf()
+    }
+
+    private fun previousReadable(id: String, now: Long): Boolean {
+        val rotated = rotatedAt ?: return false
+        return id == previousId && now >= rotated && now < rotated + READ_OVERLAP_SECONDS
     }
 
     @Synchronized
@@ -53,16 +67,16 @@ class UiAssertionKeys private constructor(
         fun rotated(
             id: String,
             key: ByteArray,
-            previousId: String,
-            previous: ByteArray,
-            rotatedAt: Long,
+            prior: PreviousUiAssertionKey,
             now: Long,
         ): UiAssertionKeys {
             requireKey(id, key)
-            requireKey(previousId, previous)
-            require(id != previousId && !MessageDigest.isEqual(key, previous))
-            require(rotatedAt in 1..(Long.MAX_VALUE - 60) && rotatedAt <= now) { "Invalid absolute UI key rotation time" }
-            return UiAssertionKeys(id, key.copyOf(), previousId, previous.copyOf(), rotatedAt)
+            requireKey(prior.id, prior.material)
+            require(id != prior.id && !MessageDigest.isEqual(key, prior.material))
+            require(prior.rotatedAt in 1..(Long.MAX_VALUE - READ_OVERLAP_SECONDS) && prior.rotatedAt <= now) {
+                "Invalid absolute UI key rotation time"
+            }
+            return UiAssertionKeys(id, key.copyOf(), prior.id, prior.material.copyOf(), prior.rotatedAt)
         }
 
         fun load(
@@ -71,21 +85,26 @@ class UiAssertionKeys private constructor(
         ): UiAssertionKeys {
             val id = environment.getRequiredProperty("MCP_UI_ASSERTION_KEY_ID")
             val active = read(Path.of(environment.getRequiredProperty("MCP_UI_ASSERTION_KEY_FILE")))
-            val names = listOf("MCP_UI_ASSERTION_PREVIOUS_KEY_ID", "MCP_UI_ASSERTION_PREVIOUS_KEY_FILE", "MCP_UI_ASSERTION_ROTATED_AT")
+            val names =
+                listOf(
+                    "MCP_UI_ASSERTION_PREVIOUS_KEY_ID",
+                    "MCP_UI_ASSERTION_PREVIOUS_KEY_FILE",
+                    "MCP_UI_ASSERTION_ROTATED_AT",
+                )
             val prior = names.map { environment.getProperty(it) }
             try {
                 distinctPurpose(environment, active)
                 if (prior.all { it == null }) return single(id, active)
-                require(prior.all { !it.isNullOrBlank() }) { "Supply the complete previous UI key and absolute rotation time" }
+                require(prior.all { !it.isNullOrBlank() }) {
+                    "Supply the complete previous UI key and absolute rotation time"
+                }
                 val old = read(Path.of(requireNotNull(prior[1])))
                 try {
                     distinctPurpose(environment, old)
                     return rotated(
                         id,
                         active,
-                        requireNotNull(prior[0]),
-                        old,
-                        requireNotNull(prior[2]).toLong(),
+                        PreviousUiAssertionKey(requireNotNull(prior[0]), old, requireNotNull(prior[2]).toLong()),
                         clock.instant().epochSecond,
                     )
                 } finally {
@@ -100,18 +119,24 @@ class UiAssertionKeys private constructor(
             id: String,
             key: ByteArray,
         ) {
-            require(id.matches(Regex("[A-Za-z0-9_-]{1,64}")) && key.size == 32) { "Invalid private UI key configuration" }
+            require(id.matches(Regex("[A-Za-z0-9_-]{1,64}")) && key.size == UI_KEY_BYTES) {
+                "Invalid private UI key configuration"
+            }
         }
 
         private fun distinctPurpose(
             environment: Environment,
             key: ByteArray,
         ) {
-            for (name in listOf("CSRF_KEY_FILE", "RATE_LIMIT_KEY_FILE", "CURSOR_KEY_FILE", "OPERATION_HMAC_KEY_FILE")) {
+            val purposeNames =
+                listOf("CSRF_KEY_FILE", "RATE_LIMIT_KEY_FILE", "CURSOR_KEY_FILE", "OPERATION_HMAC_KEY_FILE")
+            for (name in purposeNames) {
                 val file = environment.getProperty(name) ?: continue
                 val other = read(Path.of(file))
                 try {
-                    require(!MessageDigest.isEqual(key, other)) { "UI assertion material must have an independent purpose" }
+                    require(!MessageDigest.isEqual(key, other)) {
+                        "UI assertion material must have an independent purpose"
+                    }
                 } finally {
                     other.fill(0)
                 }
@@ -119,15 +144,25 @@ class UiAssertionKeys private constructor(
         }
 
         private fun read(path: Path): ByteArray {
-            require(path.isAbsolute && Files.isRegularFile(path, NOFOLLOW_LINKS) && Files.size(path) == 32L) {
+            val protectedFile = path.isAbsolute && Files.isRegularFile(path, NOFOLLOW_LINKS)
+            require(protectedFile && Files.size(path) == UI_KEY_BYTES.toLong()) {
                 "Supply a protected32-byte UI assertion key"
             }
             require(Files.getPosixFilePermissions(path) == PosixFilePermissions.fromString("rw-------")) {
                 "UI assertion keys require0600 permissions"
             }
             return Files.newInputStream(path, java.nio.file.StandardOpenOption.READ, NOFOLLOW_LINKS).use { input ->
-                input.readNBytes(33).also { require(it.size == 32) }
+                input.readNBytes(UI_KEY_BYTES + 1).also { require(it.size == UI_KEY_BYTES) }
             }
         }
     }
+}
+
+/** Explicit prior read epoch; material stays outside diagnostics. */
+class PreviousUiAssertionKey(
+    val id: String,
+    val material: ByteArray,
+    val rotatedAt: Long,
+) {
+    override fun toString(): String = "PreviousUiAssertionKey(redacted)"
 }

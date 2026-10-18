@@ -8,6 +8,8 @@ import java.time.Instant
 import java.util.UUID
 import javax.sql.DataSource
 
+private const val TOKEN_HASH_BYTES = 32
+
 class ConnectorStore(
     private val dataSource: DataSource,
     private val clock: Clock = Clock.systemUTC(),
@@ -38,7 +40,7 @@ class ConnectorStore(
         }
 
     fun findByTokenHash(tokenHash: ByteArray): ConnectorRecord? {
-        require(tokenHash.size == 32)
+        require(tokenHash.size == TOKEN_HASH_BYTES)
         return dataSource.connection.use { connection ->
             connection
                 .queryBound(
@@ -60,27 +62,20 @@ class ConnectorStore(
         }
     }
 
-    fun insert(
-        id: UUID,
-        tokenHash: ByteArray,
-        accountId: UUID,
-        clientKind: String,
-        authEpoch: Long,
-        expiresAt: Instant,
-    ) {
-        require(tokenHash.size == 32)
-        require(clientKind in setOf("CLAUDE", "CHATGPT"))
+    fun insert(credential: ConnectorInsert) {
+        require(credential.tokenHash.size == TOKEN_HASH_BYTES)
+        require(credential.clientKind in setOf("CLAUDE", "CHATGPT"))
         dataSource.connection.use { connection ->
             connection.executeBound(
                 "INSERT INTO mcp_credential " +
                     "(id, token_hash, account_id, client_kind, auth_epoch, scope, expires_at) " +
                     "VALUES (?, ?, ?, ?, ?, 'movie:propose movie:approve', ?)",
-                id,
-                tokenHash,
-                accountId,
-                clientKind,
-                authEpoch,
-                Timestamp.from(expiresAt),
+                credential.id,
+                credential.tokenHash,
+                credential.accountId,
+                credential.clientKind,
+                credential.authEpoch,
+                Timestamp.from(credential.expiresAt),
             )
         }
     }
@@ -97,4 +92,16 @@ class ConnectorStore(
                     it.getString("role")
                 }.singleOrNull()
         }
+}
+
+/** One credential insertion; token hashes are never diagnostic output. */
+data class ConnectorInsert(
+    val id: UUID,
+    val tokenHash: ByteArray,
+    val accountId: UUID,
+    val clientKind: String,
+    val authEpoch: Long,
+    val expiresAt: Instant,
+) {
+    override fun toString(): String = "ConnectorInsert(redacted)"
 }

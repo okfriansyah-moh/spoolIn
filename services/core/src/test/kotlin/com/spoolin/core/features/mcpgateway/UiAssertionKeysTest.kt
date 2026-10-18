@@ -90,7 +90,10 @@ class UiAssertionKeysTest {
             )
         }
         assertThrows(IllegalArgumentException::class.java) {
-            UiAssertionKeys.load(environment().withProperty("RATE_LIMIT_KEY_FILE", key("reused", active).toString()), clock(1000))
+            UiAssertionKeys.load(
+                environment().withProperty("RATE_LIMIT_KEY_FILE", key("reused", active).toString()),
+                clock(1000),
+            )
         }
     }
 
@@ -101,7 +104,10 @@ class UiAssertionKeysTest {
         assertNull(keys.keyFor("v1", 1000))
         McpGatewayConfiguration().uiAssertionVerifier(MockEnvironment(), ObjectMapper()).close()
         assertThrows(IllegalStateException::class.java) {
-            McpGatewayConfiguration().uiAssertionVerifier(MockEnvironment().withProperty("MCP_PUBLICATION_ENABLED", "true"), ObjectMapper())
+            McpGatewayConfiguration().uiAssertionVerifier(
+                MockEnvironment().withProperty("MCP_PUBLICATION_ENABLED", "true"),
+                ObjectMapper(),
+            )
         }
     }
 }

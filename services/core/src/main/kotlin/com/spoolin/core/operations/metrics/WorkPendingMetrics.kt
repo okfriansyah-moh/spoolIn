@@ -39,7 +39,8 @@ class WorkPendingMetrics(
                 val receipts =
                     connection
                         .queryBound(
-                            "SELECT count(*) FROM operation_receipt WHERE receipt_type = 'REQUEST' AND state = 'PENDING'",
+                            "SELECT count(*) FROM operation_receipt " +
+                                "WHERE receipt_type = 'REQUEST' AND state = 'PENDING'",
                             emptyList(),
                         ) { it.getLong(1) }
                         .single()
