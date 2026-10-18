@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / '.ai/evidence'
-MODULES = ('run.py', 'provision.py', 'readiness.py')
+MODULES = ('run.py', 'provision.py', 'readiness.py', 'trust.py')
 
 
 class RecordedResult(unittest.TextTestResult):

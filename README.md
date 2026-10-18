@@ -236,9 +236,15 @@ The `main` branch includes the local setup helpers and packaged catalog describe
    make local-start
    ```
 
-   Wait for readiness checks to finish, then open `https://localhost:8443`. Use the Viewer or Maintainer account listed in step 4 to sign in. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
+   Wait for readiness checks to finish, then continue with certificate trust below. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
 
-3. Trust the generated public local certificate using [the Firefox steps below](#trust-the-local-certificate), then open `https://localhost:8443`. Don't import a private key or turn off certificate validation.
+3. Trust the local HTTPS certificate (once per installation):
+
+   ```bash
+   make local-trust
+   ```
+
+   Approve your operating system's prompt if asked, restart your browser, and open [SpoolIn](https://localhost:8443). See [certificate help](#trust-the-local-certificate) if a warning remains.
 
 4. Select **Sign in** and choose one of these accounts for a fresh local installation:
 
@@ -257,35 +263,15 @@ The `main` branch includes the local setup helpers and packaged catalog describe
 
 #### Trust the local certificate
 
-Firefox provides the same certificate import route on Windows, macOS, and Linux. You can install it from [Mozilla's download page](https://www.mozilla.org/firefox/new/) if your usual browser's certificate settings are unfamiliar. This changes trust in that Firefox profile.
+Run `make local-trust` after `make local-setup`. This installs `.local/local-ca.crt` so your browser can recognize the app's local HTTPS certificate. It never imports a private key or disables certificate validation.
 
-1. Locate `.local/local-ca.crt` inside your project. `.local` is a hidden folder. From the project terminal, open it with the command for your platform:
+- **macOS:** adds trust for `localhost` to your login keychain. macOS may ask for your password or confirmation.
+- **Windows through Ubuntu/WSL:** adds the certificate to your Windows user's Trusted Root store. Windows may ask you to confirm. Open the app in your Windows browser.
+- **Ubuntu/Debian:** updates the system certificate store using `sudo`, which may ask for your password.
 
-   Windows, inside Ubuntu:
+Restart your browser after running the command. Firefox on Windows and macOS normally uses [certificates trusted by the operating system](https://support.mozilla.org/en-US/kb/automatically-trust-third-party-certificates). Some Linux browsers use a separate store. If a warning remains, or your OS isn't supported, import `.local/local-ca.crt` in your browser's certificate settings. In Firefox: **Settings → Privacy & Security → Certificates → View Certificates → Authorities → Import**, then enable trust for identifying websites. Use `open .local` on macOS or `xdg-open .local` on Linux to find the certificate. Never import files from `.local/identities`.
 
-   ```bash
-   explorer.exe "$(wslpath -w .local)"
-   ```
-
-   macOS:
-
-   ```bash
-   open .local
-   ```
-
-   Linux:
-
-   ```bash
-   xdg-open .local
-   ```
-
-   In a Linux file picker, press `Ctrl+H` to show hidden folders. On macOS use `Command+Shift+G` and paste the project folder path followed by `/.local` if needed. In Windows, copy the folder address from Explorer into the import dialog.
-
-2. In Firefox open **Settings**, search for **certificates**, and choose **View Certificates**. Select **Authorities**, then **Import**.
-3. Select only the generated public `local-ca.crt` file. Confirm trust for identifying websites when Firefox asks. Never import `.local` private key files or share the folder. Mozilla documents [manual certificate import and trust settings](https://wiki.mozilla.org/CA/Changing_Trust_Settings).
-4. Open `https://localhost:8443` again. If a warning remains, check that you imported the certificate from this checkout and that the address is exactly `localhost`. Resolve the warning before signing in.
-
-Local certificates expire after 365 days. Renewal needs manual attention; don't delete valued data just to renew a certificate. If you reset the installation, it creates a new local CA, so remove the old SpoolIn local authority from Firefox and repeat the import. Remove that authority when you're finished using this local installation.
+Normal restarts don't require this command again. A reset generates a new certificate authority: remove the old **SpoolIn local development CA** from your certificate store and run `make local-trust` again. Remove that authority when you stop using this installation. Certificates expire after 365 days; don't reset valued data to renew them.
 
 ### Seeded catalog
 
@@ -336,6 +322,7 @@ Run these commands from the repository folder when you need the corresponding ac
 | Command | What it does |
 | --- | --- |
 | `make local-setup` | Prepares configuration and preserves existing credentials |
+| `make local-trust` | Trusts the generated local HTTPS certificate in the host certificate store |
 | `make local-start` | Builds and starts services, loads seed data, and checks readiness and codec isolation |
 | `make local-status` | Checks container state, service readiness, and codec isolation |
 | `make local-logs` | Prints the latest 200 log lines per service, then returns to the terminal |

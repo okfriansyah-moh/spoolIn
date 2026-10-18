@@ -22,3 +22,7 @@ test-integration:
 .PHONY: local-setup local-start local-status local-logs local-stop local-test local-reset
 local-setup local-start local-status local-logs local-stop local-test local-reset:
 	@python3 ops/local/run.py $(patsubst local-%,%,$@)
+
+.PHONY: local-trust
+local-trust:
+	@python3 ops/local/trust.py
