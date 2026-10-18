@@ -47,16 +47,7 @@ class WebhookTransport(override val mode: String, private val endpoint: URI, all
     private fun response(input: InputStream, item: NotificationClaim): NotificationResult {
         val line = boundedLine(input)
         val status = line.split(' ').getOrNull(1)?.toIntOrNull() ?: return unknown()
-        var size = line.length
-        val headers = mutableMapOf<String, String>()
-        while (true) {
-            val next = boundedLine(input); size += next.length + 2
-            require(size <= 16384)
-            if (next.isEmpty()) break
-            val pair = next.split(':', limit = 2); require(pair.size == 2)
-            val key = pair[0].lowercase(); require(key !in headers)
-            headers[key] = pair[1].trim()
-        }
+        val headers = headers(input, line.length)
         if (status == 429) return NotificationResult(AttemptOutcome.TRANSIENT, "NOTIFICATION_RATE_LIMITED",
             retryAfterMs = (headers["retry-after"]?.toLongOrNull() ?: 1).coerceIn(1, 3600) * 1000)
         if (status in 400..499 || status in 300..399) return NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_REJECTED")
@@ -71,22 +62,36 @@ class WebhookTransport(override val mode: String, private val endpoint: URI, all
         return NotificationResult(AttemptOutcome.SUCCEEDED, reference = reference)
     }
 
-    private fun responseBody(input: InputStream, headers: Map<String, String>): ByteArray {
-        if (headers["transfer-encoding"]?.lowercase() == "chunked") {
-            val output = java.io.ByteArrayOutputStream()
-            while (true) {
-                val size = boundedLine(input).substringBefore(';').toInt(16)
-                require(size >= 0 && size <= 8192 - output.size())
-                if (size == 0) { require(boundedLine(input).isEmpty()); return output.toByteArray() }
-                val bytes = input.readNBytes(size); require(bytes.size == size)
-                output.write(bytes); require(boundedLine(input).isEmpty())
-            }
+    private fun headers(input: InputStream, firstLineSize: Int): Map<String, String> {
+        var size = firstLineSize
+        val headers = mutableMapOf<String, String>()
+        while (true) {
+            val next = boundedLine(input); size += next.length + 2
+            require(size <= 16384)
+            if (next.isEmpty()) return headers
+            val pair = next.split(':', limit = 2); require(pair.size == 2)
+            val key = pair[0].lowercase(); require(key !in headers)
+            headers[key] = pair[1].trim()
         }
+    }
+
+    private fun responseBody(input: InputStream, headers: Map<String, String>): ByteArray {
+        if (headers["transfer-encoding"]?.lowercase() == "chunked") return chunks(input)
         require(headers["transfer-encoding"] == null)
         val length = headers["content-length"]?.toInt()?.also { require(it in 0..8192) }
         val bytes = input.readNBytes(length ?: 8193)
         require(bytes.size <= 8192 && (length == null || bytes.size == length))
         return bytes
+    }
+    private fun chunks(input: InputStream): ByteArray {
+        val output = java.io.ByteArrayOutputStream()
+        while (true) {
+            val size = boundedLine(input).substringBefore(';').toInt(16)
+            require(size >= 0 && size <= 8192 - output.size())
+            if (size == 0) { require(boundedLine(input).isEmpty()); return output.toByteArray() }
+            val bytes = input.readNBytes(size); require(bytes.size == size)
+            output.write(bytes); require(boundedLine(input).isEmpty())
+        }
     }
     private fun unknown() = NotificationResult(AttemptOutcome.UNCERTAIN, "NOTIFICATION_UNCERTAIN")
 }
@@ -121,7 +126,10 @@ internal class TimedConnection(host: String, port: Int, timeoutMs: Long) : AutoC
     private val watchdog = timer.schedule({ try { raw.close() } catch (_: Exception) { } }, timeoutMs, TimeUnit.MILLISECONDS)
     private val hostName = host
     init {
-        try { raw.connect(InetSocketAddress(host, port), timeoutMs.coerceAtMost(3000).coerceAtLeast(1).toInt())
+        try { val address = resolver.submit<java.net.InetAddress> { java.net.InetAddress.getAllByName(host).first() }
+            val resolved = try { address.get(timeoutMs.coerceIn(1, 3000), TimeUnit.MILLISECONDS) }
+                finally { address.cancel(true) }
+            raw.connect(InetSocketAddress(resolved, port), timeoutMs.coerceAtMost(3000).coerceAtLeast(1).toInt())
             raw.soTimeout = timeoutMs.coerceIn(1, 14000).toInt()
         } catch (failure: Exception) { close(); throw failure }
     }
@@ -131,6 +139,10 @@ internal class TimedConnection(host: String, port: Int, timeoutMs: Long) : AutoC
     }
     override fun close() { watchdog.cancel(false); raw.close() }
     companion object {
+        private val resolver = java.util.concurrent.ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS,
+            java.util.concurrent.ArrayBlockingQueue(2), java.util.concurrent.ThreadFactory { task ->
+                Thread(task, "notification-dns").apply { isDaemon = true }
+            }, java.util.concurrent.ThreadPoolExecutor.AbortPolicy())
         private val timer = ScheduledThreadPoolExecutor(1) { task -> Thread(task, "notification-timeout").apply { isDaemon = true } }
             .apply { removeOnCancelPolicy = true }
     }

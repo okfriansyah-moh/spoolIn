@@ -3,13 +3,20 @@ package com.spoolin.support.notifications
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
-import com.spoolin.support.work.*
+import com.spoolin.support.work.AttemptOutcome
+import com.spoolin.support.work.WorkAttemptCompletion
+import com.spoolin.support.work.WorkClaim
+import com.spoolin.support.work.WorkFence
+import com.spoolin.support.work.WorkSchedule
+import com.spoolin.support.work.WorkSql
 import java.sql.Connection
 import java.time.Instant
 import java.util.UUID
 import javax.sql.DataSource
 
-data class NotificationClaim(val work: WorkClaim, val mode: String, val summary: String)
+data class NotificationClaim(val work: WorkClaim, val mode: String, val summary: String) {
+    override fun toString(): String = "NotificationClaim(redacted)"
+}
 
 class NotificationStore(private val dataSource: DataSource) {
     fun claim(): NotificationClaim? = dataSource.committed { connection ->
