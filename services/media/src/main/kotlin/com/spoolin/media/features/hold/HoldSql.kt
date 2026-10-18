@@ -11,6 +11,8 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
 
+private const val RECEIPT_RETENTION_SECONDS = 604800L
+
 internal data class HoldRecord(val id: UUID, val asset: UUID, val title: UUID, val state: String, val version: Long?)
 
 object HoldSql {
@@ -26,7 +28,7 @@ object HoldSql {
                 "(id,actor_scope,kind,request_hash,state,correlation_id,created_at,expires_at) " +
                 "VALUES (?,?,?,?,'PENDING',?,?,?) ON CONFLICT(id) DO NOTHING",
             command.operation, command.scope, command.action.kind, command.hash(), command.correlation,
-            Timestamp.from(now), Timestamp.from(now.plusSeconds(604800)),
+            Timestamp.from(now), Timestamp.from(now.plusSeconds(RECEIPT_RETENTION_SECONDS)),
         ) == 1
         connection.queryBound(
             "SELECT actor_scope,kind,request_hash,state FROM operation_receipt WHERE id=? FOR UPDATE",
@@ -35,7 +37,8 @@ object HoldSql {
             if (row.getString("actor_scope") != command.scope) throw Status.NOT_FOUND.asRuntimeException()
             val compatible = row.getString("kind") == command.action.kind &&
                 MessageDigest.isEqual(row.getBytes("request_hash"), command.hash())
-            if (!compatible) throw Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException()
+            if (!compatible) throw Status.ALREADY_EXISTS
+                .withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException()
             if (!inserted && row.getString("state") != "SUCCEEDED") {
                 throw Status.FAILED_PRECONDITION.withDescription("HOLD_RECEIPT_UNAVAILABLE").asRuntimeException()
             }
@@ -43,10 +46,12 @@ object HoldSql {
         }.single()
         if (!inserted) {
             val bound = connection.queryBound(
-                "SELECT count(*) FROM hold_operation_binding WHERE operation_id=? AND hold_id=? AND actor_id=? AND verb=?",
+                "SELECT count(*) FROM hold_operation_binding " +
+                    "WHERE operation_id=? AND hold_id=? AND actor_id=? AND verb=?",
                 listOf(command.operation, command.hold, command.actor, command.action.name),
             ) { it.getInt(1) }.single()
-            if (bound != 1) throw Status.UNAVAILABLE.withDescription("HOLD_RECEIPT_BINDING_UNAVAILABLE").asRuntimeException()
+            if (bound != 1) throw Status.UNAVAILABLE
+                .withDescription("HOLD_RECEIPT_BINDING_UNAVAILABLE").asRuntimeException()
         }
         return inserted
     }

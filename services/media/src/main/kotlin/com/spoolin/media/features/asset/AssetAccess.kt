@@ -20,26 +20,32 @@ class AssetAccess(private val dataSource: DataSource, private val catalog: Catal
         it.getObject("title_id", UUID::class.java), it.getString("state")) }.singleOrNull()
 
     internal fun checkRead(local: AssetHold?, remote: Attachment, asset: UUID, hold: UUID, version: Long) {
-        val exact = local != null && local.id == hold && local.asset == asset &&
-            remote.holdId == hold.toString() && remote.assetId == asset.toString() &&
-            remote.titleId == local.title.toString()
         val active = local?.state in setOf("RESERVED", "ACTIVE") && remote.state == "ACTIVE"
         val current = remote.hasCatalogVersion() && remote.catalogVersion == version && version > 0
-        if (!exact || !active || !current) throw Status.NOT_FOUND.asRuntimeException()
+        if (!sameReadTuple(local, remote, asset, hold) || !active || !current) throw Status.NOT_FOUND.asRuntimeException()
     }
+
+    private fun sameReadTuple(local: AssetHold?, remote: Attachment, asset: UUID, hold: UUID): Boolean =
+        local != null && local.id == hold && local.asset == asset && remote.holdId == hold.toString() &&
+            remote.assetId == asset.toString() && remote.titleId == local.title.toString()
 
     fun catalogMetadata(asset: AssetRow): Boolean {
         val intentId = dataSource.connection.use { connection -> connection.queryBound(
             "SELECT payload->>'intentId' AS intent FROM durable_work WHERE id=? AND kind='MEDIA_PROCESS'",
             listOf(asset.processingWorkId),
         ) { it.getString("intent") }.singleOrNull() }
-        if (intentId != null) {
-            val intent = runCatching { UUID.fromString(intentId) }.getOrNull() ?: return false
-            val remote = catalog.find(intent)
-            return remote.holdId == intent.toString() && remote.assetId == asset.id.toString() &&
-                remote.hasActorId() && remote.actorId == asset.actorId.toString() &&
-                remote.state in setOf("PREPARING", "ACTIVE", "RELEASED")
-        }
+        return if (intentId != null) intentMetadata(intentId, asset) else holdMetadata(asset)
+    }
+
+    private fun intentMetadata(intentId: String, asset: AssetRow): Boolean {
+        val intent = runCatching { UUID.fromString(intentId) }.getOrNull() ?: return false
+        val remote = catalog.find(intent)
+        return remote.holdId == intent.toString() && remote.assetId == asset.id.toString() &&
+            remote.hasActorId() && remote.actorId == asset.actorId.toString() &&
+            remote.state in setOf("PREPARING", "ACTIVE", "RELEASED")
+    }
+
+    private fun holdMetadata(asset: AssetRow): Boolean {
         val holds = dataSource.connection.use { connection -> connection.queryBound(
             "SELECT id,asset_id,title_id,state FROM asset_reference WHERE asset_id=? ORDER BY id LIMIT 10",
             listOf(asset.id),

@@ -30,7 +30,9 @@ class AssetRpc(
             row.width?.let { builder.width = it }
             row.height?.let { builder.height = it }
             row.outputBytes?.let { builder.outputBytes = it }
-            row.errorCode?.let { builder.problem = spoolin.v1.Spoolin.Problem.newBuilder().setCode("FIELD_INVALID").build() }
+            row.errorCode?.let {
+                builder.problem = spoolin.v1.Spoolin.Problem.newBuilder().setCode("FIELD_INVALID").build()
+            }
         }.build()
     }
 
@@ -67,24 +69,28 @@ class AssetRpc(
         return "account:${asset.actorId}"
     }
 
-    fun readAsset(request: AssetReadRequest, response: StreamObserver<AssetReadChunk>) {
-        try {
-            if (MediaPeer.current() != "core") throw Status.PERMISSION_DENIED.asRuntimeException()
-            val asset = parseId(request.assetId)
-            val hold = parseId(request.holdId)
-            val remote = access.current(hold)
-            val opened = dataSource.committed { connection ->
-                val row = AssetSql.findLocked(connection, asset) ?: throw Status.NOT_FOUND.asRuntimeException()
-                if (row.state != AssetState.READY) throw Status.NOT_FOUND.asRuntimeException()
-                access.checkRead(access.hold(connection, hold), remote, asset, hold, request.catalogVersion)
-                AssetFile.open(store.outputDirectory(), row)
-            }
-            val stream = response as? ServerCallStreamObserver<AssetReadChunk>
-            if (stream == null) { opened.close(); throw Status.INTERNAL.asRuntimeException() }
-            AssetStream(opened, stream, io.grpc.Context.current()).start()
-        } catch (failure: Exception) {
-            response.onError(safeStatus(failure))
+    fun readAsset(request: AssetReadRequest, response: StreamObserver<AssetReadChunk>) = protect(response) {
+        if (MediaPeer.current() != "core") throw Status.PERMISSION_DENIED.asRuntimeException()
+        val opened = openAsset(request)
+        val stream = response as? ServerCallStreamObserver<AssetReadChunk>
+        if (stream == null) { opened.close(); throw Status.INTERNAL.asRuntimeException() }
+        AssetStream(opened, stream, io.grpc.Context.current()).start()
+    }
+
+    private fun openAsset(request: AssetReadRequest): AssetFile {
+        val asset = parseId(request.assetId)
+        val hold = parseId(request.holdId)
+        val remote = access.current(hold)
+        return dataSource.committed { connection ->
+            val row = readable(AssetSql.findLocked(connection, asset))
+            access.checkRead(access.hold(connection, hold), remote, asset, hold, request.catalogVersion)
+            AssetFile.open(store.outputDirectory(), row)
         }
+    }
+
+    private fun readable(row: AssetRow?): AssetRow {
+        if (row == null || row.state != AssetState.READY) throw Status.NOT_FOUND.asRuntimeException()
+        return row
     }
 
     private fun authorized(id: UUID): AssetRow {
@@ -102,15 +108,25 @@ class AssetRpc(
         if (!allowed) throw Status.NOT_FOUND.asRuntimeException()
     }
 
-    private fun <T> respond(response: StreamObserver<T>, result: () -> T) {
-        try { response.onNext(result()); response.onCompleted() } catch (failure: Exception) {
-            response.onError(safeStatus(failure))
-        }
+    private fun <T> respond(response: StreamObserver<T>, result: () -> T) = protect(response) {
+        response.onNext(result()); response.onCompleted()
     }
 
-    private fun safeStatus(failure: Exception): StatusRuntimeException =
-        if (failure is StatusRuntimeException) failure else Status.UNAVAILABLE.withDescription("ASSET_UNAVAILABLE")
-            .asRuntimeException()
+    private fun <T> protect(response: StreamObserver<T>, operation: () -> Unit) {
+        try { operation() }
+        catch (failure: StatusRuntimeException) { response.onError(failure) }
+        catch (_: java.sql.SQLException) { unavailable(response) }
+        catch (_: java.io.IOException) { unavailable(response) }
+        catch (_: IllegalArgumentException) { unavailable(response) }
+        catch (_: IllegalStateException) { unavailable(response) }
+        catch (_: SecurityException) { unavailable(response) }
+        catch (_: java.security.GeneralSecurityException) { unavailable(response) }
+        catch (_: UnsupportedOperationException) { unavailable(response) }
+    }
+
+    private fun <T> unavailable(response: StreamObserver<T>) = response.onError(
+        Status.UNAVAILABLE.withDescription("ASSET_UNAVAILABLE").asRuntimeException(),
+    )
 
     private fun parseId(value: String): UUID = runCatching {
         UUID.fromString(value).also { require(it.toString() == value) }

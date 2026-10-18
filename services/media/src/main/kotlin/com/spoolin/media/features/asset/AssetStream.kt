@@ -31,19 +31,25 @@ internal class AssetStream(
         if (closed) return
         try {
             while (response.isReady && !closed) {
-                if (response.isCancelled || context.isCancelled) { close(); return }
-                if (!headerSent) {
-                    response.onNext(header())
-                    headerSent = true
-                } else {
-                    emitChunk()
-                }
+                if (!emitReady()) break
             }
-        } catch (_: Exception) {
-            close()
-            if (!response.isCancelled) response.onError(Status.UNAVAILABLE.withDescription("ASSET_STREAM_FAILED")
-                .asRuntimeException())
-        }
+        } catch (_: java.io.IOException) { unavailable() }
+        catch (_: IllegalStateException) { unavailable() }
+        catch (_: IllegalArgumentException) { unavailable() }
+        catch (_: io.grpc.StatusRuntimeException) { unavailable() }
+    }
+
+    private fun emitReady(): Boolean {
+        if (response.isCancelled || context.isCancelled) { close(); return false }
+        if (!headerSent) { response.onNext(header()); headerSent = true } else emitChunk()
+        return !closed
+    }
+
+    private fun unavailable() {
+        close()
+        if (!response.isCancelled) response.onError(
+            Status.UNAVAILABLE.withDescription("ASSET_STREAM_FAILED").asRuntimeException(),
+        )
     }
 
     private fun emitChunk() {
@@ -63,7 +69,8 @@ internal class AssetStream(
 
     private fun header(): AssetReadChunk {
         val row = file.row
-        val header = AssetReadHeader.newBuilder().setFormat(requireNotNull(row.format)).setOutputBytes(requireNotNull(row.outputBytes))
+        val header = AssetReadHeader.newBuilder().setFormat(requireNotNull(row.format))
+            .setOutputBytes(requireNotNull(row.outputBytes))
             .setWidth(requireNotNull(row.width)).setHeight(requireNotNull(row.height))
             .setContentHash(ByteString.copyFrom(requireNotNull(row.contentHash))).build()
         return AssetReadChunk.newBuilder().setHeader(header).build()

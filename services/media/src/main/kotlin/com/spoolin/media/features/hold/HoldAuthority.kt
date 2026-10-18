@@ -12,12 +12,22 @@ internal class HoldAuthority(private val catalog: CatalogAttachments?) {
         val authority = catalog ?: throw Status.UNAVAILABLE.withDescription("ATTACHMENT_AUTHORITY_UNAVAILABLE")
             .asRuntimeException()
         val current = authority.find(command.hold)
-        val exact = current.holdId == command.hold.toString() && current.assetId == command.asset.toString() &&
-            current.titleId == command.title.toString() && current.hasActorId() && current.actorId == command.actor.toString()
-        if (!exact) throw Status.PERMISSION_DENIED.withDescription("HOLD_TUPLE_INVALID").asRuntimeException()
-        if (current.state !in setOf("PREPARING", "ACTIVE", "RELEASED")) throw Status.UNAVAILABLE.asRuntimeException()
-        if (!current.hasCatalogVersion() || current.catalogVersion < 0) throw Status.UNAVAILABLE.asRuntimeException()
+        verifyTuple(command, current)
+        verifyProjection(current)
         return current
+    }
+
+    private fun verifyTuple(command: HoldCommand, current: Attachment) {
+        val exact = current.holdId == command.hold.toString() && current.assetId == command.asset.toString() &&
+            current.titleId == command.title.toString() && current.hasActorId() &&
+            current.actorId == command.actor.toString()
+        if (!exact) throw Status.PERMISSION_DENIED.withDescription("HOLD_TUPLE_INVALID").asRuntimeException()
+    }
+
+    private fun verifyProjection(current: Attachment) {
+        val permitted = current.state in setOf("PREPARING", "ACTIVE", "RELEASED")
+        val versioned = current.hasCatalogVersion() && current.catalogVersion >= 0
+        if (!permitted || !versioned) throw Status.UNAVAILABLE.asRuntimeException()
     }
 
     fun ownedUpload(asset: AssetRow, command: HoldCommand) {

@@ -8,6 +8,8 @@ import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 
+private const val MAX_POLICY_REVISION_CHARS = 64
+
 internal enum class HoldAction(val step: String, val kind: String) {
     RESERVE("media-reserve", "HOLD_RESERVE"),
     CONFIRM("media-confirm", "HOLD_CONFIRM"),
@@ -24,7 +26,8 @@ internal data class HoldCommand(
     fun hash(): ByteArray = MessageDigest.getInstance("SHA-256").digest(OperationIntent(
         operation, scope, action.kind, policy,
         listOf("hold" to hold.toString(), "asset" to asset.toString(), "title" to title.toString(),
-            "actor" to actor.toString(), "version" to version?.toString(), "expectedVersion" to expectedVersion?.toString()),
+            "actor" to actor.toString(), "version" to version?.toString(),
+            "expectedVersion" to expectedVersion?.toString()),
     ).serialized())
 
     companion object {
@@ -36,7 +39,7 @@ internal data class HoldCommand(
                 if (request.hasExpectedVersion()) request.expectedVersion else null,
                 request.context.policyRevision, action,
             )
-            if (command.policy.length > 64 || command.version?.let { it < 0 } == true ||
+            if (command.policy.length > MAX_POLICY_REVISION_CHARS || command.version?.let { it < 0 } == true ||
                 command.expectedVersion?.let { it < 0 } == true) throw Status.INVALID_ARGUMENT.asRuntimeException()
             if (command.operation != command.child(action.step)) throw Status.INVALID_ARGUMENT
                 .withDescription("HOLD_OPERATION_BINDING_INVALID").asRuntimeException()

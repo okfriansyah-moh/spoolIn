@@ -31,50 +31,65 @@ class HoldRpc(
             if (MediaPeer.current() != "catalog") throw Status.PERMISSION_DENIED.asRuntimeException()
             val command = HoldCommand.parse(request, action)
             val current = authority.verify(command)
-            val result = dataSource.committed { connection ->
-                val first = HoldSql.reserveReceipt(connection, command, clock.instant())
-                val asset = AssetSql.findLocked(connection, command.asset) ?: throw Status.NOT_FOUND.asRuntimeException()
-                authority.ownedUpload(asset, command)
-                val existing = HoldSql.lock(connection, command.hold)
-                if (existing != null && (existing.asset != command.asset || existing.title != command.title)) {
-                    throw Status.ALREADY_EXISTS.withDescription("HOLD_TUPLE_CONFLICT").asRuntimeException()
-                }
-                if (!first) return@committed requireNotNull(existing)
-                authority.transition(command, current, existing)
-                if (action != HoldAction.RELEASE && asset.state != AssetState.READY) {
-                    throw Status.FAILED_PRECONDITION.withDescription("ASSET_NOT_READY").asRuntimeException()
-                }
-                mutate(connection, command, existing)
-                val committed = requireNotNull(HoldSql.lock(connection, command.hold))
-                HoldSql.completeReceipt(connection, command, committed)
-                committed
-            }
+            val result = perform(command, current)
             response.onNext(projection(result, command))
             response.onCompleted()
-        } catch (failure: Exception) {
-            val status = if (failure is StatusRuntimeException) failure else Status.UNAVAILABLE
-                .withDescription("HOLD_UNAVAILABLE").asRuntimeException()
-            response.onError(status)
+        } catch (failure: StatusRuntimeException) { response.onError(failure) }
+        catch (_: java.sql.SQLException) { unavailable(response) }
+        catch (_: IllegalStateException) { unavailable(response) }
+        catch (_: IllegalArgumentException) { unavailable(response) }
+    }
+
+    private fun unavailable(response: StreamObserver<Attachment>) = response.onError(
+        Status.UNAVAILABLE.withDescription("HOLD_UNAVAILABLE").asRuntimeException(),
+    )
+
+    private fun perform(command: HoldCommand, current: Attachment): HoldRecord = dataSource.committed { connection ->
+        val first = HoldSql.reserveReceipt(connection, command, clock.instant())
+        val asset = AssetSql.findLocked(connection, command.asset) ?: throw Status.NOT_FOUND.asRuntimeException()
+        authority.ownedUpload(asset, command)
+        val existing = HoldSql.lock(connection, command.hold)
+        verifyExisting(command, existing)
+        if (!first) return@committed requireNotNull(existing)
+        authority.transition(command, current, existing)
+        if (command.action != HoldAction.RELEASE && asset.state != AssetState.READY) {
+            throw Status.FAILED_PRECONDITION.withDescription("ASSET_NOT_READY").asRuntimeException()
+        }
+        mutate(connection, command, existing)
+        val committed = requireNotNull(HoldSql.lock(connection, command.hold))
+        HoldSql.completeReceipt(connection, command, committed)
+        committed
+    }
+
+    private fun verifyExisting(command: HoldCommand, existing: HoldRecord?) {
+        if (existing != null && (existing.asset != command.asset || existing.title != command.title)) {
+            throw Status.ALREADY_EXISTS.withDescription("HOLD_TUPLE_CONFLICT").asRuntimeException()
         }
     }
 
     private fun mutate(connection: Connection, command: HoldCommand, existing: HoldRecord?) {
         val updated = when (command.action) {
-            HoldAction.RESERVE -> if (existing == null) {
-                HoldSql.insertReserved(connection, command.hold, command.asset, command.title)
-            } else if (existing.state == "RESERVED") 1 else 0
-            HoldAction.CONFIRM -> when (existing?.state) {
-                "RESERVED" -> HoldSql.confirmActive(connection, command.hold, requireNotNull(command.version))
-                "ACTIVE" -> if (existing.version == command.version) 1 else 0
-                else -> 0
-            }
-            HoldAction.RELEASE -> when (existing?.state) {
-                "RESERVED", "ACTIVE" -> HoldSql.release(connection, command.hold, requireNotNull(command.version))
-                "RELEASED" -> 1
-                else -> 0
-            }
+            HoldAction.RESERVE -> reserve(connection, command, existing)
+            HoldAction.CONFIRM -> confirm(connection, command, existing)
+            HoldAction.RELEASE -> release(connection, command, existing)
         }
         if (updated != 1) throw Status.FAILED_PRECONDITION.withDescription("HOLD_STATE_CONFLICT").asRuntimeException()
+    }
+
+    private fun reserve(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int =
+        if (existing == null) HoldSql.insertReserved(connection, command.hold, command.asset, command.title)
+        else if (existing.state == "RESERVED") 1 else 0
+
+    private fun confirm(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int = when (existing?.state) {
+        "RESERVED" -> HoldSql.confirmActive(connection, command.hold, requireNotNull(command.version))
+        "ACTIVE" -> if (existing.version == command.version) 1 else 0
+        else -> 0
+    }
+
+    private fun release(connection: Connection, command: HoldCommand, existing: HoldRecord?): Int = when (existing?.state) {
+        "RESERVED", "ACTIVE" -> HoldSql.release(connection, command.hold, requireNotNull(command.version))
+        "RELEASED" -> 1
+        else -> 0
     }
 
     private fun projection(hold: HoldRecord, command: HoldCommand): Attachment = Attachment.newBuilder()
