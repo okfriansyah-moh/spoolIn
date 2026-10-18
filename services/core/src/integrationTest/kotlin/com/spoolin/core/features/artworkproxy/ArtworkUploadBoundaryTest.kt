@@ -64,24 +64,32 @@ class ArtworkUploadBoundaryTest {
 
     @Test
     fun `parent request expiry cancels actual hanging downstream stream and releases scratch`() {
+        ArtworkUploadFixture(ArtworkUploadFixture.Mode.HOLD).use { assertCancellation(it) }
+    }
+
+    private fun assertCancellation(fixture: ArtworkUploadFixture) {
         val scheduler = Executors.newSingleThreadScheduledExecutor()
         try {
-            ArtworkUploadFixture(ArtworkUploadFixture.Mode.HOLD).use { f ->
-                val saved = spool()
-                val path = saved.path
-                saved.use { spool ->
-                    val deadline = Context.current().withDeadlineAfter(CANCEL_AFTER_MS, TimeUnit.MILLISECONDS, scheduler)
-                    try {
-                        val error = assertThrows(StatusRuntimeException::class.java) {
-                            deadline.call(Callable { ArtworkUpload.upload(f.request(spool)) })
-                        }
-                        assertTrue(error.status.code in setOf(Status.Code.DEADLINE_EXCEEDED, Status.Code.CANCELLED))
-                        assertTrue(f.cancelled.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
-                    } finally { deadline.cancel(null) }
-                }
-                assertFalse(java.nio.file.Files.exists(path))
-            }
+            val saved = spool()
+            val path = saved.path
+            saved.use { assertDeadline(fixture, it, scheduler) }
+            assertFalse(java.nio.file.Files.exists(path))
         } finally { scheduler.shutdownNow() }
+    }
+
+    private fun assertDeadline(
+        fixture: ArtworkUploadFixture,
+        spool: ArtworkSpool,
+        scheduler: java.util.concurrent.ScheduledExecutorService,
+    ) {
+        val deadline = Context.current().withDeadlineAfter(CANCEL_AFTER_MS, TimeUnit.MILLISECONDS, scheduler)
+        try {
+            val error = assertThrows(StatusRuntimeException::class.java) {
+                deadline.call(Callable { ArtworkUpload.upload(fixture.request(spool)) })
+            }
+            assertTrue(error.status.code in setOf(Status.Code.DEADLINE_EXCEEDED, Status.Code.CANCELLED))
+            assertTrue(fixture.cancelled.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
+        } finally { deadline.cancel(null) }
     }
 
     private fun spool(): ArtworkSpool = ArtworkSpool.decode(Base64.getEncoder().encodeToString(input), SPOOL_LIMIT)
