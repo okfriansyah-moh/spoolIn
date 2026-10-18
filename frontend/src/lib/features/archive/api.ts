@@ -117,15 +117,15 @@ export async function runMovieLifecycle(
     operationId: string;
     id: string;
     expectedVersion: string;
-    action: 'RESTORE' | 'DELETE';
+    action: 'ARCHIVE' | 'RESTORE' | 'DELETE';
     confirmed: boolean;
   },
 ): Promise<string> {
   const data = record(
     await request(
       MOVIE_LIFECYCLE,
-      { ...input, expectedVersion: Number(input.expectedVersion) },
-      { csrf },
+      { ...input },
+      { mutation: true, csrf },
     ),
   );
   const result = record(data.movieLifecycle);
@@ -140,7 +140,7 @@ export async function runPersonLifecycle(
     operationId: string;
     id: string;
     expectedVersion: string;
-    action: 'RESTORE' | 'DELETE';
+    action: 'ARCHIVE' | 'RESTORE' | 'DELETE';
     impactToken?: string;
     confirmed: boolean;
   },
@@ -148,8 +148,8 @@ export async function runPersonLifecycle(
   const data = record(
     await request(
       PERSON_LIFECYCLE,
-      { ...input, expectedVersion: Number(input.expectedVersion) },
-      { csrf },
+      { ...input },
+      { mutation: true, csrf },
     ),
   );
   const result = record(data.personLifecycle);

@@ -17,23 +17,6 @@ import {
   GenresDocument,
 } from '../../generated/graphql';
 
-function print(doc: { definitions: unknown[] }): string {
-  // The generated documents are AST objects; we use the graphql-tag ast → string approach.
-  // For runtime use, extract the query string directly from the document.
-  // The TypedDocumentNode stores the query as the first OperationDefinition's loc?.source.body
-  // or reconstructs it. Since this project uses codegen-produced inline ASTs, we serialise
-  // them at build time via the query field embedded in the document node.
-  // Workaround: access the printed form via the __meta__ or reconstruct.
-  // The simpler approach: import the raw .graphql files directly.
-  // Here we use the document's string representation (compatible with Apollo / urql style).
-  // We rely on the fact that createTransport accepts the query string.
-  // The TypedDocumentNode's `loc.source.body` is available when processed by graphql-tag.
-  // For safety, we fall back to JSON.stringify which works with all-operations.graphql content.
-  void doc;
-  throw new Error('Use query string imports instead');
-}
-void print;
-
 // Raw query strings – imported from the shared all-operations.graphql
 // so the transport layer receives the exact wire format.
 const TITLES_QUERY = `query Titles($filter: SearchInput!, $first: Int = 24, $after: Cursor) {

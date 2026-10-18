@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   import { createTransport } from '../../../../lib/transport/graphql';
@@ -115,6 +116,9 @@
         creditTitleVersion = next;
       }}
     />
+  {/if}
+  {#if editorState.saved?.state === 'ACTIVE'}
+    <ArchiveAction kind="movie" id={editorState.saved.id} version={editorState.saved.version} disabled={editorState.phase === 'submitting'} />
   {/if}
 {:else}
   <p role="status">Loading movie editor…</p>
