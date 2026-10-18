@@ -81,6 +81,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Strict locked production compilation passed; reproducibility and final gates pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -171,6 +183,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Actual protobuf/TypeScript generation and consumer production builds passed; full assigned contract proof pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -243,6 +267,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Actual owner migrations and seed initialization reached readiness; complete migration/recovery proof pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -328,6 +364,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Real shell rendered; catalog failure screenshot exposed unbounded genre layout. Corrected source needs rerun.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -439,6 +487,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -541,6 +601,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native search minimum failure exposed missing configuration wiring; correction pending runtime rerun.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -638,6 +710,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -774,6 +858,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Actual maintainer UI sign-in reached authenticated navigation; complete session/role cases pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -908,6 +1004,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -1106,6 +1214,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Actual UI sign-in succeeded; separate helper session request omitted Origin and failed. Corrected helper pending rerun.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -1301,6 +1421,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -1472,6 +1604,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Real HTTPS policy/titles first20 probes passed; first100 seed order request returned503. Batching correction pending rerun.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -1709,6 +1853,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Real catalog rendered load failure; complete navigation/search/filter proof pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -1838,6 +1994,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -1921,6 +2089,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2064,6 +2244,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2190,6 +2382,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2266,6 +2470,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2381,6 +2597,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2467,6 +2695,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2589,6 +2829,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2697,6 +2949,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Restricted production Media probe failed before process-context and codec evidence. No codec pass.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2824,6 +3088,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -2926,6 +3202,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -3180,6 +3468,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -3448,6 +3748,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -3553,6 +3865,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -3644,6 +3968,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Actual SDK stdio\u2192HTTP MCP\u2192mTLS Core\u2192Catalog\u2192PostgreSQL flow, proposal revision/replay, reconnect and revoked connector HTTP403/stdio refusal passed. Required hosts remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -3768,6 +4104,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Signer/verifier source exists, but trusted host authentication and production signer invocation remain incomplete. Publication disabled.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -3841,6 +4189,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Approved private host challenge/connector delivery and authentic UI-origin path remain incomplete; required actual host proof pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4005,6 +4365,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4072,6 +4444,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Original100movie/100series receipt observed; complete database checks returned before API-order503. Complete retained all-record/API/artwork/restart proof remains pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4260,6 +4644,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Initial application seed loaded; full repeat-load/restart verifier stopped at API-order503.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4379,6 +4775,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4501,6 +4909,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4628,6 +5048,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -4874,6 +5306,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Actual make start and make status passed with private mTLS owner readiness. Other supported targets remain pending.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -5011,6 +5455,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -5193,6 +5649,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -5277,6 +5745,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -5397,6 +5877,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -6051,6 +6543,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -6327,6 +6831,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -6673,6 +7189,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -6754,6 +7282,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     },
@@ -6905,6 +7445,18 @@
           "formally_accepted": false,
           "evidence_ledger": ".ai/state/g17-g26-findings-ledger.json",
           "proof_obligations": "Every assigned requirement/case in this row remains pending unless current boundary-specific execution and final combined review establish it."
+        },
+        {
+          "assessed_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+          "coordinator": "remote-closure-coordinator",
+          "source_and_wiring": "Retained earlier source-path assessment plus corrections in shared findings ledger; source completeness is not established for the complete task.",
+          "remote_result": "Native owner execution is recorded separately; no complete current task-boundary acceptance established.",
+          "runtime_verified": false,
+          "formally_accepted": false,
+          "evidence_links": [
+            "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+          ],
+          "proof_obligations": "Every assigned requirement/case remains pending unless its exact required boundary is established by current evidence and the one final combined review."
         }
       ]
     }
@@ -7438,6 +7990,72 @@
     "data/seed/manifest.json": "e6b45414eadccc4cefa297e0f8e5f3d100404783827ceeb79364a24de042e78d",
     "ops/monitoring/alerts.yml": "6195c88b22fb321e514631046b0117705982d3d28b19f31c42a98d9e66553300"
   },
-  "latest_continuation_sha": "0d0beafeb8aef9961efd888e9fc4821b7e14c45e",
-  "latest_continuation_scope": "Every task row assessed for current corrections and known remaining obligations; no exhaustive source-complete or runtime acceptance claim. Initial assessment and all histories remain intact."
+  "latest_continuation_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+  "latest_continuation_scope": "All46 task rows explicitly assessed; native3408 executions/6failures plus cross-service compilation failure, actual startup/API/MCP evidence and cancelled browser baseline remain separate. Source completeness0/runtime whole-task verification0/formal acceptance0.",
+  "latest_make_target_results": [
+    {
+      "target": "start",
+      "script": "ops/bin/start.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "passed actual documented command and readiness",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "stop",
+      "script": "ops/bin/stop.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "pending: not executed to completion in retained baseline",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "restart",
+      "script": "ops/bin/restart.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "pending: not executed to completion in retained baseline",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "status",
+      "script": "ops/bin/status.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "passed actual documented command and readiness",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "logs",
+      "script": "ops/bin/logs.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "pending: not executed to completion in retained baseline",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "seed",
+      "script": "ops/bin/seed.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "pending: not executed to completion in retained baseline",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "test-unit",
+      "script": "ops/bin/test-unit.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "pending: not executed to completion in retained baseline",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    },
+    {
+      "target": "test-integration",
+      "script": "ops/bin/test-integration.sh",
+      "tested_sha": "61cb1006879dfb391e7b0ab7f4f5733423348c49",
+      "run_id": 39098882348,
+      "result": "pending: not executed to completion in retained baseline",
+      "evidence": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39098882348"
+    }
+  ]
 }
