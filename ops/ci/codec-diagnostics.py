@@ -87,6 +87,8 @@ def profile_name(value):
         return raw
     if raw in ('bwrap', '/usr/bin/bwrap', 'bubblewrap', '/usr/bin/bubblewrap'):
         return 'bwrap'
+    if raw in ('unpriv_bwrap', 'bwrap//&unpriv_bwrap', 'bwrap//unpriv_bwrap'):
+        return 'unpriv_bwrap'
     return 'other'
 
 
@@ -124,9 +126,9 @@ def loaded_profiles(value):
     results = set()
     for line in value.splitlines():
         name, _, mode = line.partition(' ')
-        if name in ('bwrap', '/usr/bin/bwrap', 'bubblewrap', '/usr/bin/bubblewrap'):
+        if name in ('bwrap', '/usr/bin/bwrap', 'bubblewrap', '/usr/bin/bubblewrap', 'unpriv_bwrap', 'bwrap//&unpriv_bwrap', 'bwrap//unpriv_bwrap'):
             mode = mode.strip().strip('()')
-            results.add(('bwrap', mode if mode in ('enforce', 'complain', 'unconfined') else 'other'))
+            results.add((profile_name(name), mode if mode in ('enforce', 'complain', 'unconfined') else 'other'))
     return [{'profile': name, 'mode': mode} for name, mode in sorted(results)]
 
 
@@ -136,7 +138,7 @@ def host_diagnostics(since=None):
         value = limited_read('/proc/sys/' + name, 64)
         text = value.decode().strip() if value is not None else ''
         report['sysctls'][name] = int(text) if re.fullmatch(r'[0-9]{1,20}', text) else None
-    for name in ('bwrap', 'bubblewrap', 'usr.bin.bwrap'):
+    for name in ('bwrap', 'bubblewrap', 'usr.bin.bwrap', 'bwrap-userns-restrict'):
         file = Path('/etc/apparmor.d') / name
         value = None if file.is_symlink() else limited_read(file, 65536)
         report['vendorProfiles'].append({'name': name, 'present': file.is_file(), 'symlink': file.is_symlink(),

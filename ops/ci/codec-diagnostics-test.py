@@ -39,6 +39,8 @@ class DiagnosticRules(unittest.TestCase):
         self.assertEqual({'CapEff': '0000000000000000', 'CapBnd': '0000000000000000', 'NoNewPrivs': '1', 'Seccomp': '2'}, status)
         self.assertEqual([{'profile': 'bwrap', 'mode': 'enforce'}], DIAG.loaded_profiles('/usr/bin/bwrap (enforce)\nsecret-profile (enforce)'))
         self.assertEqual('other', DIAG.profile_name('private-profile (enforce)'))
+        self.assertEqual('unpriv_bwrap', DIAG.profile_name('bwrap//&unpriv_bwrap (enforce)'))
+        self.assertEqual([{'profile': 'unpriv_bwrap', 'mode': 'enforce'}], DIAG.loaded_profiles('unpriv_bwrap (enforce)'))
 
     def test_capture_is_bounded_and_timeout_is_an_observed_failure(self):
         state, content = DIAG.bounded_command([sys.executable, '-c', 'import sys;sys.stdout.write("x"*1000000)'], limit=512)
