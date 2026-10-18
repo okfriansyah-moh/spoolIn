@@ -300,7 +300,7 @@ object WorkSql {
         WorkRecoveryRequest(workId, commit.operatorId, commit.reason, commit.correlationId)
         val previous = connection.queryBound(
             "SELECT generation,lease_epoch,operation_id,deadline_at FROM durable_work " +
-                "WHERE id=? AND state='EXHAUSTED' FOR UPDATE",
+                "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' FOR UPDATE",
             listOf(workId),
         ) { row ->
             RecoveryRow(row.getInt("generation"), row.getLong("lease_epoch"),
@@ -309,7 +309,7 @@ object WorkSql {
         val updated = connection.executeBound(
             "UPDATE durable_work SET state='READY', generation=generation+1, attempt_count=0," +
                 "lease_owner=NULL,lease_until=NULL,last_error=NULL,next_attempt_at=?,deadline_at=?,updated_at=? " +
-                "WHERE id=? AND state='EXHAUSTED' AND generation=? AND lease_epoch=? " +
+                "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' AND generation=? AND lease_epoch=? " +
                 "AND ? > clock_timestamp()",
             Timestamp.from(now), Timestamp.from(recoveryDeadlineAt), Timestamp.from(now), workId,
             previous.generation, previous.epoch, Timestamp.from(recoveryDeadlineAt),

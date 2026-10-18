@@ -55,9 +55,13 @@ function parseUploadResponse(
       ? String(record(problem).code)
       : null;
   const op = record(result.operation);
+  if (op.id !== operationId || !['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(String(op.state)) || typeof op.resultExpired !== 'boolean') {
+    throw new TransportFailure('uncertain');
+  }
+  if (op.resultExpired) throw new TransportFailure('uncertain');
   return Object.freeze({
     state: String(op.state),
-    operationId: String(op.id ?? operationId),
+    operationId,
     problemCode,
   });
 }
@@ -68,7 +72,7 @@ function artworkUploadBody(input: UploadArtworkInput): string {
     variables: {
       operationId: input.operationId,
       titleId: input.titleId,
-      expectedVersion: Number(input.expectedVersion),
+      expectedVersion: input.expectedVersion,
       policyRevision: input.policyRevision,
       content: input.contentBase64,
     },

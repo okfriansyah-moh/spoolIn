@@ -39,7 +39,11 @@
       const transport = createTransport();
       if (checkOriginal && operationId) {
         const receipt = await recoverCatalogOperation(transport, operationId, context.csrf, abort.signal);
-        await outcome(receipt?.state ?? 'UNKNOWN');
+        if (receipt?.resultExpired) {
+          message = 'The retained result has expired. Reload the record to inspect its current state.';
+        } else {
+          await outcome(receipt?.state ?? 'UNKNOWN');
+        }
       } else {
         operationId = globalThis.crypto.randomUUID();
         const input = { operationId, id, expectedVersion: version, action: 'ARCHIVE' as const, confirmed: true };

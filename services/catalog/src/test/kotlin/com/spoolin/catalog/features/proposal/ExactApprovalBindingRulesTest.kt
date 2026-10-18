@@ -69,7 +69,7 @@ class ExactApprovalBindingRulesTest {
                 clientKind = "CLAUDE",
                 contentJson = """{"policy_revision":"policy-v1"}""",
                 contentHash = binding.contentHash,
-                challengeHash = ByteArray(32),
+                challengeHash = java.security.MessageDigest.getInstance("SHA-256").digest(binding.challenge.toByteArray()),
                 state = "REVIEW",
                 operationId = UUID.randomUUID(),
                 movieId = null,
