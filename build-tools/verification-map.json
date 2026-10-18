@@ -25,7 +25,8 @@
             "build-tools/verification-tests/test_harness.py"
           ],
           "report": ".ai/evidence/numbering-v1/t001-harness.json",
-          "timeout": 120
+          "timeout": 120,
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         },
         {
           "id": "locked-build-twice",
@@ -34,11 +35,29 @@
             "build-tools/verification-tests/test_build.py"
           ],
           "report": ".ai/evidence/numbering-v1/t001-build.json",
-          "timeout": 1800
+          "timeout": 1800,
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": "Real PostgreSQL/Core/Catalog/Media and browser fixture is pending its owning tasks"
+      "integration": [
+        {
+          "id": "t001-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual disposable application/browser/client harness prerequisites and complete isolation/failure propagation remain required beyond build fixture/owner bootstrap support.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Real PostgreSQL/Core/Catalog/Media and browser fixture is pending its owning tasks",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-134"
+        ],
+        "source_reference": "docs/plan/01-reproducible-foundation/tasks/T001-lock-the-build-and-isolated-verification-harness.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual disposable application/browser/client harness prerequisites and complete isolation/failure propagation remain required beyond build fixture/owner bootstrap support."
+      },
+      "pending_reason": "Actual disposable application/browser/client harness prerequisites and complete isolation/failure propagation remain required beyond build fixture/owner bootstrap support."
     },
     "T002": {
       "source": "docs/plan/01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md",
@@ -59,11 +78,30 @@
             "tests/contracts/run.py"
           ],
           "report": ".ai/evidence/numbering-v1/t002-contract-tests.json",
-          "timeout": 1200
+          "timeout": 1200,
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "integration": [
+        {
+          "id": "t002-integration-blocked",
+          "kind": "blocked",
+          "reason": "Assigned contract cases have Unit proof; no standalone live Integration selector exists. Do not relabel generated/source contract checks as runtime integration.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-278",
+          "ATDD-302"
+        ],
+        "source_reference": "docs/plan/01-reproducible-foundation/tasks/T002-generate-and-validate-the-shared-wire-contracts.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Assigned contract cases have Unit proof; no standalone live Integration selector exists. Do not relabel generated/source contract checks as runtime integration."
+      },
+      "pending_reason": "Assigned contract cases have Unit proof; no standalone live Integration selector exists. Do not relabel generated/source contract checks as runtime integration."
     },
     "T003": {
       "source": "docs/plan/01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md",
@@ -72,7 +110,14 @@
         "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/boundary/bootstrap/",
         "services/media/src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/"
       ],
-      "unit": [],
+      "unit": [
+        {
+          "id": "t003-unit-blocked",
+          "kind": "blocked",
+          "reason": "No actual unit suite is selected for this assigned task; required proof remains pending.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
       "integration": [
         {
           "id": "owner-bootstrap-boundaries",
@@ -88,10 +133,21 @@
             "services/media/src/integrationTest/kotlin/com/spoolin/media/boundary/bootstrap/**/*.kt"
           ],
           "report": ".ai/evidence/numbering-v1/t003-owner-tests.json",
-          "timeout": 1800
+          "timeout": 1800,
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-135",
+          "ATDD-136"
+        ],
+        "source_reference": "docs/plan/01-reproducible-foundation/tasks/T003-establish-private-service-and-database-ownership.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T004": {
       "source": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
@@ -107,11 +163,42 @@
             "build-tools/verification-tests/frontend/run-tests.mjs"
           ],
           "report": ".ai/evidence/numbering-v1/t004-unit.json",
-          "timeout": 1800
+          "timeout": 1800,
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "integration": [
+        {
+          "id": "t004-integration-blocked",
+          "kind": "blocked",
+          "reason": "Approved production shell/theme/viewport/input matrix and required actual reader observations remain required; existing fixture components are partial.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-069",
+          "ATDD-070",
+          "ATDD-071",
+          "ATDD-136",
+          "ATDD-260",
+          "ATDD-268",
+          "ATDD-269",
+          "ATDD-270",
+          "ATDD-271",
+          "ATDD-272",
+          "ATDD-273",
+          "ATDD-274",
+          "ATDD-321",
+          "ATDD-335"
+        ],
+        "source_reference": "docs/plan/02-application-shell/tasks/T004-build-the-shared-themed-and-accessible-shell.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Approved production shell/theme/viewport/input matrix and required actual reader observations remain required; existing fixture components are partial."
+      },
+      "pending_reason": "Approved production shell/theme/viewport/input matrix and required actual reader observations remain required; existing fixture components are partial."
     },
     "T005": {
       "source": "docs/plan/03-account-access-credential-storage/tasks/T005-protect-account-identities-and-credential-storage.md",
@@ -135,7 +222,8 @@
           "report": ".ai/evidence/numbering-v1/t005-unit-results.json",
           "required_paths": [
             "services/core/src/test/kotlin/com/spoolin/core/features/crypto/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -153,9 +241,37 @@
           "report": ".ai/evidence/numbering-v1/t005-integration-results.json",
           "required_paths": [
             "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/*IntegrationTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-047",
+          "ATDD-085",
+          "ATDD-086",
+          "ATDD-099",
+          "ATDD-115",
+          "ATDD-120",
+          "ATDD-171",
+          "ATDD-172",
+          "ATDD-175",
+          "ATDD-176",
+          "ATDD-180",
+          "ATDD-181",
+          "ATDD-228",
+          "ATDD-229",
+          "ATDD-230",
+          "ATDD-258",
+          "ATDD-277",
+          "ATDD-296",
+          "ATDD-297"
+        ],
+        "source_reference": "docs/plan/03-account-access-credential-storage/tasks/T005-protect-account-identities-and-credential-storage.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T006": {
       "source": "docs/plan/04-effective-input-policy/tasks/T006-implement-effective-policy-and-precise-input-semantics.md",
@@ -184,11 +300,84 @@
             "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/*Test.kt",
             "services/core/src/test/kotlin/com/spoolin/core/boundary/graphql/*Test.kt",
             "frontend/src/lib/policy/policy.test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": "T006 has isolated unit and controlled browser checks; full transport integration belongs to its consuming tasks"
+      "integration": [
+        {
+          "id": "t006-actual-writer-policy",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:policyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/policyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t006-actual-writer-policy.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual signed mTLS Catalog writer/policy/receipt calls, live Core session checks and PostgreSQL outcomes; partial assigned cases, not browser or all API rows"
+        },
+        {
+          "id": "t006-integration-remaining",
+          "kind": "blocked",
+          "reason": "Complete assigned policy vectors across frontend/Core/Catalog/Media/MCP consumers remain required beyond the selected real four-writer subset.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "T006 has isolated unit and controlled browser checks; full transport integration belongs to its consuming tasks",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-050",
+          "ATDD-051",
+          "ATDD-052",
+          "ATDD-097",
+          "ATDD-113",
+          "ATDD-116",
+          "ATDD-117",
+          "ATDD-118",
+          "ATDD-119",
+          "ATDD-121",
+          "ATDD-122",
+          "ATDD-127",
+          "ATDD-128",
+          "ATDD-129",
+          "ATDD-131",
+          "ATDD-140",
+          "ATDD-177",
+          "ATDD-184",
+          "ATDD-212",
+          "ATDD-251",
+          "ATDD-255",
+          "ATDD-267",
+          "ATDD-276",
+          "ATDD-278",
+          "ATDD-279",
+          "ATDD-289",
+          "ATDD-290",
+          "ATDD-291",
+          "ATDD-292",
+          "ATDD-323",
+          "ATDD-324",
+          "ATDD-325",
+          "ATDD-326",
+          "ATDD-328",
+          "ATDD-334",
+          "ATDD-336",
+          "ATDD-337",
+          "ATDD-338"
+        ],
+        "source_reference": "docs/plan/04-effective-input-policy/tasks/T006-implement-effective-policy-and-precise-input-semantics.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Complete assigned policy vectors across frontend/Core/Catalog/Media/MCP consumers remain required beyond the selected real four-writer subset."
+      },
+      "pending_reason": "Complete assigned policy vectors across frontend/Core/Catalog/Media/MCP consumers remain required beyond the selected real four-writer subset."
     },
     "T007": {
       "source": "docs/plan/05-reliable-work-mutation-receipts/tasks/T007-implement-owner-receipts-and-atomic-mutation-evidence.md",
@@ -220,7 +409,8 @@
           "report": ".ai/evidence/numbering-v1/t007-unit-results.json",
           "required_paths": [
             "libraries/backend-support/src/test/kotlin/com/spoolin/support/receipts/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -238,9 +428,28 @@
           "report": ".ai/evidence/numbering-v1/t007-integration-results.json",
           "required_paths": [
             "services/*/src/integrationTest/kotlin/com/spoolin/*/operations/receipts/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-151",
+          "ATDD-152",
+          "ATDD-153",
+          "ATDD-223",
+          "ATDD-226",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-254",
+          "ATDD-284",
+          "ATDD-288"
+        ],
+        "source_reference": "docs/plan/05-reliable-work-mutation-receipts/tasks/T007-implement-owner-receipts-and-atomic-mutation-evidence.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T008": {
       "source": "docs/plan/06-account-access-registration-and-sessions/tasks/T008-implement-registration-and-authoritative-sessions.md",
@@ -270,7 +479,8 @@
           "report": ".ai/evidence/numbering-v1/t008-unit-results.json",
           "required_paths": [
             "services/core/src/test/kotlin/com/spoolin/core/features/session/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -288,9 +498,33 @@
           "report": ".ai/evidence/numbering-v1/t008-integration-results.json",
           "required_paths": [
             "services/core/src/integrationTest/kotlin/com/spoolin/core/features/session/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-047",
+          "ATDD-085",
+          "ATDD-086",
+          "ATDD-099",
+          "ATDD-115",
+          "ATDD-120",
+          "ATDD-153",
+          "ATDD-171",
+          "ATDD-172",
+          "ATDD-175",
+          "ATDD-176",
+          "ATDD-231",
+          "ATDD-251",
+          "ATDD-258",
+          "ATDD-337"
+        ],
+        "source_reference": "docs/plan/06-account-access-registration-and-sessions/tasks/T008-implement-registration-and-authoritative-sessions.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T009": {
       "source": "docs/plan/07-guarded-access/tasks/T009-enforce-scoped-service-identity-and-shared-admission.md",
@@ -312,7 +546,8 @@
             "unit"
           ],
           "timeout": 1800,
-          "report": ".ai/evidence/numbering-v1/t009-unit-results.json"
+          "report": ".ai/evidence/numbering-v1/t009-unit-results.json",
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -327,9 +562,64 @@
             "integration"
           ],
           "timeout": 1800,
-          "report": ".ai/evidence/numbering-v1/t009-integration-results.json"
+          "report": ".ai/evidence/numbering-v1/t009-integration-results.json",
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-047",
+          "ATDD-050",
+          "ATDD-051",
+          "ATDD-052",
+          "ATDD-085",
+          "ATDD-086",
+          "ATDD-097",
+          "ATDD-099",
+          "ATDD-113",
+          "ATDD-115",
+          "ATDD-116",
+          "ATDD-117",
+          "ATDD-118",
+          "ATDD-119",
+          "ATDD-120",
+          "ATDD-121",
+          "ATDD-122",
+          "ATDD-127",
+          "ATDD-128",
+          "ATDD-129",
+          "ATDD-131",
+          "ATDD-140",
+          "ATDD-171",
+          "ATDD-172",
+          "ATDD-173",
+          "ATDD-174",
+          "ATDD-177",
+          "ATDD-184",
+          "ATDD-212",
+          "ATDD-234",
+          "ATDD-252",
+          "ATDD-258",
+          "ATDD-267",
+          "ATDD-280",
+          "ATDD-295",
+          "ATDD-318",
+          "ATDD-323",
+          "ATDD-324",
+          "ATDD-325",
+          "ATDD-326",
+          "ATDD-327",
+          "ATDD-328",
+          "ATDD-334",
+          "ATDD-336",
+          "ATDD-337",
+          "ATDD-338"
+        ],
+        "source_reference": "docs/plan/07-guarded-access/tasks/T009-enforce-scoped-service-identity-and-shared-admission.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T010": {
       "source": "docs/plan/08-account-access-browser-journeys/tasks/T010-connect-account-and-session-browser-journeys.md",
@@ -357,7 +647,8 @@
           "report": ".ai/evidence/numbering-v1/t010-unit-results.json",
           "required_paths": [
             "frontend/src/lib/features/session/*test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -376,9 +667,39 @@
           "required_paths": [
             "tests/browser/flows/account/account.spec.ts",
             "services/core/src/integrationTest/kotlin/com/spoolin/core/features/session/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t010-integration-remaining",
+          "kind": "blocked",
+          "reason": "The existing account browser fixture and backend tests do not establish every assigned make-start production session/browser journey; current real application browser evidence remains required.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-047",
+          "ATDD-048",
+          "ATDD-085",
+          "ATDD-086",
+          "ATDD-099",
+          "ATDD-115",
+          "ATDD-120",
+          "ATDD-171",
+          "ATDD-172",
+          "ATDD-258",
+          "ATDD-259",
+          "ATDD-336",
+          "ATDD-337",
+          "ATDD-338"
+        ],
+        "source_reference": "docs/plan/08-account-access-browser-journeys/tasks/T010-connect-account-and-session-browser-journeys.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "The existing account browser fixture and backend tests do not establish every assigned make-start production session/browser journey; current real application browser evidence remains required."
+      },
+      "pending_reason": "The existing account browser fixture and backend tests do not establish every assigned make-start production session/browser journey; current real application browser evidence remains required."
     },
     "T011": {
       "source": "docs/plan/09-reliable-work-recovery-and-retries/tasks/T011-run-fenced-recovery-and-bounded-retries.md",
@@ -403,7 +724,8 @@
           "report": ".ai/evidence/numbering-v1/t011-unit-results.json",
           "required_paths": [
             "services/core/src/test/kotlin/com/spoolin/core/operations/work/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -421,9 +743,34 @@
           "report": ".ai/evidence/numbering-v1/t011-integration-results.json",
           "required_paths": [
             "tests/integration/src/test/kotlin/com/spoolin/integration/work/leases/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-057",
+          "ATDD-058",
+          "ATDD-059",
+          "ATDD-060",
+          "ATDD-066",
+          "ATDD-067",
+          "ATDD-154",
+          "ATDD-155",
+          "ATDD-156",
+          "ATDD-157",
+          "ATDD-158",
+          "ATDD-225",
+          "ATDD-285",
+          "ATDD-286",
+          "ATDD-287",
+          "ATDD-309"
+        ],
+        "source_reference": "docs/plan/09-reliable-work-recovery-and-retries/tasks/T011-run-fenced-recovery-and-bounded-retries.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T012": {
       "source": "docs/plan/10-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",
@@ -453,7 +800,8 @@
           "required_paths": [
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/search/*RulesTest.kt",
             "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -471,9 +819,60 @@
           "report": ".ai/evidence/numbering-v1/t012-integration-results.json",
           "required_paths": [
             "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/reads/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing Catalog operation receipt read under live identity only; not search/title/person read acceptance"
+        },
+        {
+          "id": "t012-integration-remaining",
+          "kind": "blocked",
+          "reason": "Existing catalogReadsTest only reads an operation receipt; actual SearchTitles/title/person/taxonomy API reads, keyset ordering/filtering and assigned persistence/error cases need real route evidence.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-001",
+          "ATDD-002",
+          "ATDD-003",
+          "ATDD-004",
+          "ATDD-005",
+          "ATDD-006",
+          "ATDD-007",
+          "ATDD-008",
+          "ATDD-009",
+          "ATDD-010",
+          "ATDD-011",
+          "ATDD-012",
+          "ATDD-013",
+          "ATDD-014",
+          "ATDD-015",
+          "ATDD-022",
+          "ATDD-030",
+          "ATDD-031",
+          "ATDD-032",
+          "ATDD-133",
+          "ATDD-137",
+          "ATDD-138",
+          "ATDD-139",
+          "ATDD-236",
+          "ATDD-238",
+          "ATDD-239",
+          "ATDD-242",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-256",
+          "ATDD-257",
+          "ATDD-281",
+          "ATDD-282",
+          "ATDD-303",
+          "ATDD-317"
+        ],
+        "source_reference": "docs/plan/10-catalog-discovery/tasks/T012-serve-precise-public-catalog-and-people-reads.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Existing catalogReadsTest only reads an operation receipt; actual SearchTitles/title/person/taxonomy API reads, keyset ordering/filtering and assigned persistence/error cases need real route evidence."
+      },
+      "pending_reason": "Existing catalogReadsTest only reads an operation receipt; actual SearchTitles/title/person/taxonomy API reads, keyset ordering/filtering and assigned persistence/error cases need real route evidence."
     },
     "T013": {
       "source": "docs/plan/10-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
@@ -498,7 +897,8 @@
             "frontend/src/lib/features/catalog/filter.test.ts",
             "frontend/src/lib/features/catalog/controller.test.ts",
             "frontend/src/lib/features/person/read/read.test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -512,10 +912,51 @@
           "timeout": 1800,
           "required_paths": [
             "tests/browser/flows/discovery/discovery.spec.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t013-integration-remaining",
+          "kind": "blocked",
+          "reason": "Existing browser wrapper uses a controlled fixture. Actual make-start catalog/details/people journeys and assigned error/page states remain required.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": "Real Catalog/People service fixture required for full integration boundary"
+      "prior_pending_reason": "Real Catalog/People service fixture required for full integration boundary",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-001",
+          "ATDD-002",
+          "ATDD-003",
+          "ATDD-004",
+          "ATDD-005",
+          "ATDD-006",
+          "ATDD-007",
+          "ATDD-008",
+          "ATDD-009",
+          "ATDD-010",
+          "ATDD-011",
+          "ATDD-012",
+          "ATDD-013",
+          "ATDD-014",
+          "ATDD-015",
+          "ATDD-022",
+          "ATDD-029",
+          "ATDD-030",
+          "ATDD-031",
+          "ATDD-032",
+          "ATDD-133",
+          "ATDD-139",
+          "ATDD-256",
+          "ATDD-257",
+          "ATDD-303"
+        ],
+        "source_reference": "docs/plan/10-catalog-discovery/tasks/T013-connect-discovery-details-and-public-people-views.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Existing browser wrapper uses a controlled fixture. Actual make-start catalog/details/people journeys and assigned error/page states remain required."
+      },
+      "pending_reason": "Existing browser wrapper uses a controlled fixture. Actual make-start catalog/details/people journeys and assigned error/page states remain required."
     },
     "T014": {
       "source": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
@@ -538,7 +979,8 @@
           "report": ".ai/evidence/numbering-v1/t014-unit-results.json",
           "required_paths": [
             "services/core/src/test/kotlin/com/spoolin/core/features/draft/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -556,9 +998,33 @@
           "report": ".ai/evidence/numbering-v1/t014-integration-results.json",
           "required_paths": [
             "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/drafts/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-048",
+          "ATDD-178",
+          "ATDD-179",
+          "ATDD-180",
+          "ATDD-233",
+          "ATDD-251",
+          "ATDD-259",
+          "ATDD-293",
+          "ATDD-319",
+          "ATDD-320",
+          "ATDD-329",
+          "ATDD-330",
+          "ATDD-331",
+          "ATDD-332",
+          "ATDD-333"
+        ],
+        "source_reference": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T014-persist-encrypted-drafts-with-durable-save-and-discard-receipts.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T015": {
       "source": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T015-build-account-isolated-browser-draft-controllers.md",
@@ -581,7 +1047,8 @@
           "report": ".ai/evidence/numbering-v1/t015-unit-results.json",
           "required_paths": [
             "frontend/src/lib/features/draft/draft-controller.test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -599,9 +1066,31 @@
           "report": ".ai/evidence/numbering-v1/t015-integration-results.json",
           "required_paths": [
             "tests/browser/flows/draft-component/draft-component.spec.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t015-integration-remaining",
+          "kind": "blocked",
+          "reason": "Component draft-controller checks do not establish production account-isolated backed-draft editor recovery and restart behavior.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
-      ]
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-048",
+          "ATDD-179",
+          "ATDD-259",
+          "ATDD-304",
+          "ATDD-322",
+          "ATDD-333"
+        ],
+        "source_reference": "docs/plan/11-draft-recovery-storage-and-controllers/tasks/T015-build-account-isolated-browser-draft-controllers.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Component draft-controller checks do not establish production account-isolated backed-draft editor recovery and restart behavior."
+      },
+      "pending_reason": "Component draft-controller checks do not establish production account-isolated backed-draft editor recovery and restart behavior."
     },
     "T016": {
       "source": "docs/plan/12-movie-management/tasks/T016-implement-authoritative-movie-creation-and-edits.md",
@@ -629,11 +1118,67 @@
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/movie/*RulesTest.kt",
             "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/audit/*RulesTest.kt",
             "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/movie/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": null
+      "integration": [
+        {
+          "id": "t016-actual-writer-policy",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:policyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/policyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t016-actual-writer-policy.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual signed mTLS Catalog writer/policy/receipt calls, live Core session checks and PostgreSQL outcomes; partial assigned cases, not browser or all API rows"
+        },
+        {
+          "id": "t016-integration-remaining",
+          "kind": "blocked",
+          "reason": "Real writer suite covers actual movie writes/policy/replay, but each assigned movie mask/error/conflict/authorization case still needs explicit case-level coverage.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-016",
+          "ATDD-017",
+          "ATDD-018",
+          "ATDD-021",
+          "ATDD-053",
+          "ATDD-054",
+          "ATDD-055",
+          "ATDD-056",
+          "ATDD-080",
+          "ATDD-088",
+          "ATDD-089",
+          "ATDD-101",
+          "ATDD-147",
+          "ATDD-148",
+          "ATDD-151",
+          "ATDD-185",
+          "ATDD-224",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-265",
+          "ATDD-298",
+          "ATDD-307"
+        ],
+        "source_reference": "docs/plan/12-movie-management/tasks/T016-implement-authoritative-movie-creation-and-edits.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Real writer suite covers actual movie writes/policy/replay, but each assigned movie mask/error/conflict/authorization case still needs explicit case-level coverage."
+      },
+      "pending_reason": "Real writer suite covers actual movie writes/policy/replay, but each assigned movie mask/error/conflict/authorization case still needs explicit case-level coverage."
     },
     "T017": {
       "source": "docs/plan/12-movie-management/tasks/T017-connect-movie-editors-and-confirmed-outcomes.md",
@@ -655,7 +1200,8 @@
             "frontend/src/lib/features/movie/patch.test.ts",
             "frontend/src/lib/features/movie/validation.test.ts",
             "frontend/src/lib/features/movie/editor-controller.test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -669,10 +1215,36 @@
           "timeout": 1800,
           "required_paths": [
             "tests/browser/flows/movies/movies.spec.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t017-integration-remaining",
+          "kind": "blocked",
+          "reason": "Existing editor browser fixture is not the make-start application. Assigned real movie editor persistence/recovery/error journeys remain required.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": "Real Catalog/Media service fixture required for full integration boundary"
+      "prior_pending_reason": "Real Catalog/Media service fixture required for full integration boundary",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-016",
+          "ATDD-017",
+          "ATDD-018",
+          "ATDD-020",
+          "ATDD-021",
+          "ATDD-064",
+          "ATDD-079",
+          "ATDD-080",
+          "ATDD-081",
+          "ATDD-260"
+        ],
+        "source_reference": "docs/plan/12-movie-management/tasks/T017-connect-movie-editors-and-confirmed-outcomes.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Existing editor browser fixture is not the make-start application. Assigned real movie editor persistence/recovery/error journeys remain required."
+      },
+      "pending_reason": "Existing editor browser fixture is not the make-start application. Assigned real movie editor persistence/recovery/error journeys remain required."
     },
     "T018": {
       "source": "docs/plan/13-people-and-credits/tasks/T018-implement-shared-person-writes-and-identity.md",
@@ -698,11 +1270,56 @@
           "required_paths": [
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/write/*RulesTest.kt",
             "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/person/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": null
+      "integration": [
+        {
+          "id": "t018-actual-writer-policy",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:policyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/policyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t018-actual-writer-policy.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual signed mTLS Catalog writer/policy/receipt calls, live Core session checks and PostgreSQL outcomes; partial assigned cases, not browser or all API rows"
+        },
+        {
+          "id": "t018-integration-remaining",
+          "kind": "blocked",
+          "reason": "Real writer suite covers actual person writes/policy/replay, but assigned person identity/search-linked update and error cases require explicit case-level completion.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-023",
+          "ATDD-026",
+          "ATDD-027",
+          "ATDD-079",
+          "ATDD-081",
+          "ATDD-114",
+          "ATDD-237",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-261",
+          "ATDD-262"
+        ],
+        "source_reference": "docs/plan/13-people-and-credits/tasks/T018-implement-shared-person-writes-and-identity.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Real writer suite covers actual person writes/policy/replay, but assigned person identity/search-linked update and error cases require explicit case-level completion."
+      },
+      "pending_reason": "Real writer suite covers actual person writes/policy/replay, but assigned person identity/search-linked update and error cases require explicit case-level completion."
     },
     "T019": {
       "source": "docs/plan/13-people-and-credits/tasks/T019-connect-people-management-and-retained-edits.md",
@@ -723,7 +1340,8 @@
           "required_paths": [
             "frontend/src/lib/features/person/write/validation.test.ts",
             "frontend/src/lib/features/person/write/editor-controller.test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -737,10 +1355,34 @@
           "timeout": 1800,
           "required_paths": [
             "tests/browser/flows/people/people.spec.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t019-integration-remaining",
+          "kind": "blocked",
+          "reason": "Existing person browser fixture does not establish every assigned production person/editor retained-draft case.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-023",
+          "ATDD-025",
+          "ATDD-026",
+          "ATDD-027",
+          "ATDD-079",
+          "ATDD-081",
+          "ATDD-114",
+          "ATDD-261",
+          "ATDD-262"
+        ],
+        "source_reference": "docs/plan/13-people-and-credits/tasks/T019-connect-people-management-and-retained-edits.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Existing person browser fixture does not establish every assigned production person/editor retained-draft case."
+      },
+      "pending_reason": "Existing person browser fixture does not establish every assigned production person/editor retained-draft case."
     },
     "T020": {
       "source": "docs/plan/13-people-and-credits/tasks/T020-implement-ordered-credits-and-custom-contribution-roles.md",
@@ -767,11 +1409,54 @@
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/credit/*RulesTest.kt",
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/roles/*RulesTest.kt",
             "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/credit/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "integration": [],
-      "pending_reason": null
+      "integration": [
+        {
+          "id": "t020-actual-writer-policy",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:policyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/policyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t020-actual-writer-policy.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual signed mTLS Catalog writer/policy/receipt calls, live Core session checks and PostgreSQL outcomes; partial assigned cases, not browser or all API rows"
+        },
+        {
+          "id": "t020-integration-remaining",
+          "kind": "blocked",
+          "reason": "Real writer suite exercises actual role/credit writes, ordered characters, removal and replay; complete assigned authorization/order/conflict cases remain required.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-026",
+          "ATDD-027",
+          "ATDD-079",
+          "ATDD-081",
+          "ATDD-240",
+          "ATDD-241",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-262"
+        ],
+        "source_reference": "docs/plan/13-people-and-credits/tasks/T020-implement-ordered-credits-and-custom-contribution-roles.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Real writer suite exercises actual role/credit writes, ordered characters, removal and replay; complete assigned authorization/order/conflict cases remain required."
+      },
+      "pending_reason": "Real writer suite exercises actual role/credit writes, ordered characters, removal and replay; complete assigned authorization/order/conflict cases remain required."
     },
     "T021": {
       "source": "docs/plan/13-people-and-credits/tasks/T021-connect-credit-editing-and-verify-the-people-outcome.md",
@@ -790,7 +1475,8 @@
           "timeout": 1800,
           "required_paths": [
             "frontend/src/lib/features/credit/validation.test.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -804,10 +1490,31 @@
           "timeout": 1800,
           "required_paths": [
             "tests/browser/flows/credits/credits.spec.ts"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t021-integration-remaining",
+          "kind": "blocked",
+          "reason": "Controlled credit components do not establish all assigned real production people/credits edit and recovery outcomes.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-026",
+          "ATDD-027",
+          "ATDD-028",
+          "ATDD-079",
+          "ATDD-081",
+          "ATDD-262"
+        ],
+        "source_reference": "docs/plan/13-people-and-credits/tasks/T021-connect-credit-editing-and-verify-the-people-outcome.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Controlled credit components do not establish all assigned real production people/credits edit and recovery outcomes."
+      },
+      "pending_reason": "Controlled credit components do not establish all assigned real production people/credits edit and recovery outcomes."
     },
     "T022": {
       "source": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T022-accept-and-process-bounded-artwork-streams.md",
@@ -832,7 +1539,8 @@
           "report": ".ai/evidence/numbering-v1/t022-unit-results.json",
           "required_paths": [
             "services/media/src/test/kotlin/com/spoolin/media/features/processing/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -850,10 +1558,47 @@
           "report": ".ai/evidence/numbering-v1/t022-integration-results.json",
           "required_paths": [
             "services/media/src/integrationTest/kotlin/com/spoolin/media/recovery/processing/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-038",
+          "ATDD-039",
+          "ATDD-040",
+          "ATDD-041",
+          "ATDD-042",
+          "ATDD-043",
+          "ATDD-044",
+          "ATDD-045",
+          "ATDD-046",
+          "ATDD-064",
+          "ATDD-123",
+          "ATDD-124",
+          "ATDD-125",
+          "ATDD-126",
+          "ATDD-159",
+          "ATDD-160",
+          "ATDD-161",
+          "ATDD-162",
+          "ATDD-163",
+          "ATDD-168",
+          "ATDD-169",
+          "ATDD-170",
+          "ATDD-248",
+          "ATDD-250",
+          "ATDD-254",
+          "ATDD-263",
+          "ATDD-305",
+          "ATDD-315",
+          "ATDD-325"
+        ],
+        "source_reference": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T022-accept-and-process-bounded-artwork-streams.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE"
+      },
+      "pending_reason": "Current selected suites must execute with fresh nonempty evidence before acceptance."
     },
     "T023": {
       "source": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T023-coordinate-protective-holds-attachment-and-cleanup.md",
@@ -881,7 +1626,8 @@
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/artwork/*RulesTest.kt",
             "services/media/src/test/kotlin/com/spoolin/media/features/hold/*RulesTest.kt",
             "services/core/src/test/kotlin/com/spoolin/core/features/artworkproxy/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -899,10 +1645,94 @@
           "report": ".ai/evidence/numbering-v1/t023-integration-results.json",
           "required_paths": [
             "tests/integration/src/test/kotlin/com/spoolin/integration/artwork/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t023-actual-media-hold-read-processing",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:media:artworkIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/media/build/test-results/artworkIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t023-actual-media-hold-read-processing.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual PostgreSQL, pinned codec, Media hold tuple/read authorization/processing worker and controlled downstream boundaries; not complete application/browser proof"
+        },
+        {
+          "id": "t023-actual-core-artwork-streaming",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:artworkProxyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/artworkProxyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t023-actual-core-artwork-streaming.json",
+          "timeout": 2400,
+          "proof_boundary": "Production Core artwork streaming with actual mutual TLS and controlled downstream faults; no whole attachment-flow claim"
+        },
+        {
+          "id": "t023-integration-remaining",
+          "kind": "blocked",
+          "reason": "Existing cross-owner tests exercise real Catalog begin/cancel SQL and mTLS subsets. Full live Media reserve/confirm/release/cleanup plus restart and actual UI attachment/serving cases remain required.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-038",
+          "ATDD-039",
+          "ATDD-040",
+          "ATDD-041",
+          "ATDD-042",
+          "ATDD-043",
+          "ATDD-044",
+          "ATDD-045",
+          "ATDD-046",
+          "ATDD-064",
+          "ATDD-123",
+          "ATDD-124",
+          "ATDD-125",
+          "ATDD-126",
+          "ATDD-159",
+          "ATDD-160",
+          "ATDD-161",
+          "ATDD-162",
+          "ATDD-163",
+          "ATDD-164",
+          "ATDD-165",
+          "ATDD-166",
+          "ATDD-167",
+          "ATDD-169",
+          "ATDD-170",
+          "ATDD-245",
+          "ATDD-249",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-254",
+          "ATDD-263",
+          "ATDD-305",
+          "ATDD-315"
+        ],
+        "source_reference": "docs/plan/14-artwork-management-processing-and-attachment/tasks/T023-coordinate-protective-holds-attachment-and-cleanup.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Existing cross-owner tests exercise real Catalog begin/cancel SQL and mTLS subsets. Full live Media reserve/confirm/release/cleanup plus restart and actual UI attachment/serving cases remain required."
+      },
+      "pending_reason": "Existing cross-owner tests exercise real Catalog begin/cancel SQL and mTLS subsets. Full live Media reserve/confirm/release/cleanup plus restart and actual UI attachment/serving cases remain required."
     },
     "T024": {
       "source": "docs/plan/15-archive-management/tasks/T024-implement-current-impact-archive-restore-and-deletion.md",
@@ -927,7 +1757,8 @@
           "required_paths": [
             "services/catalog/src/test/kotlin/com/spoolin/catalog/features/lifecycle/*RulesTest.kt",
             "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/lifecycle/*RulesTest.kt"
-          ]
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
@@ -945,10 +1776,67 @@
           "report": ".ai/evidence/numbering-v1/t024-integration-results.json",
           "required_paths": [
             "tests/integration/src/test/kotlin/com/spoolin/integration/lifecycle/*Test.kt"
-          ]
+          ],
+          "proof_boundary": "Existing lifecycle pure rules plus signed operation receipt read only; not archive/restore/delete mutation acceptance"
+        },
+        {
+          "id": "t024-actual-owner-lifecycle",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:catalog:catalogLifecycleIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/catalog/build/test-results/catalogLifecycleIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t024-actual-owner-lifecycle.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual PostgreSQL and signed mTLS production Catalog lifecycle mutations/current impact/receipt/audit; full assigned matrix still required"
+        },
+        {
+          "id": "t024-integration-remaining",
+          "kind": "blocked",
+          "reason": "Existing lifecycleIntegrationTest exercises rules and receipt reads. Added Catalog owner lifecycle RPC mutations are meaningful; each assigned archive/restore/delete/current-impact/authorization case still needs case-level evidence.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-019",
+          "ATDD-020",
+          "ATDD-024",
+          "ATDD-025",
+          "ATDD-028",
+          "ATDD-082",
+          "ATDD-083",
+          "ATDD-084",
+          "ATDD-087",
+          "ATDD-103",
+          "ATDD-104",
+          "ATDD-105",
+          "ATDD-106",
+          "ATDD-107",
+          "ATDD-108",
+          "ATDD-109",
+          "ATDD-110",
+          "ATDD-111",
+          "ATDD-149",
+          "ATDD-150",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-264",
+          "ATDD-311"
+        ],
+        "source_reference": "docs/plan/15-archive-management/tasks/T024-implement-current-impact-archive-restore-and-deletion.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Existing lifecycleIntegrationTest exercises rules and receipt reads. Added Catalog owner lifecycle RPC mutations are meaningful; each assigned archive/restore/delete/current-impact/authorization case still needs case-level evidence."
+      },
+      "pending_reason": "Existing lifecycleIntegrationTest exercises rules and receipt reads. Added Catalog owner lifecycle RPC mutations are meaningful; each assigned archive/restore/delete/current-impact/authorization case still needs case-level evidence."
     },
     "T025": {
       "source": "docs/plan/15-archive-management/tasks/T025-connect-private-archives-and-irreversible-confirmations.md",
@@ -960,22 +1848,68 @@
       "unit": [
         {
           "id": "t025-archive-unit",
-          "argv": ["node", "build-tools/verification-tests/frontend/run-t025-tests.mjs"],
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t025-tests.mjs"
+          ],
           "timeout": 1800,
           "report": ".ai/evidence/numbering-v1/t025-unit.json",
-          "required_paths": ["frontend/src/lib/features/archive/archive-rules.test.ts"]
+          "required_paths": [
+            "frontend/src/lib/features/archive/archive-rules.test.ts"
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
         {
           "id": "t025-archives-browser",
-          "argv": ["node", "tests/browser/run-archives.mjs"],
+          "argv": [
+            "node",
+            "tests/browser/run-archives.mjs"
+          ],
           "timeout": 1800,
           "report": ".ai/evidence/numbering-v1/t025-integration.json",
-          "required_paths": ["tests/browser/flows/archives/archives.spec.ts"]
+          "required_paths": [
+            "tests/browser/flows/archives/archives.spec.ts"
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t025-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual make-start movie/person archive/delete/restore journeys and current-impact/retry cases remain required beyond fixture browser checks.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-019",
+          "ATDD-020",
+          "ATDD-024",
+          "ATDD-025",
+          "ATDD-028",
+          "ATDD-082",
+          "ATDD-083",
+          "ATDD-084",
+          "ATDD-087",
+          "ATDD-103",
+          "ATDD-104",
+          "ATDD-105",
+          "ATDD-106",
+          "ATDD-107",
+          "ATDD-108",
+          "ATDD-109",
+          "ATDD-110",
+          "ATDD-111",
+          "ATDD-112",
+          "ATDD-264"
+        ],
+        "source_reference": "docs/plan/15-archive-management/tasks/T025-connect-private-archives-and-irreversible-confirmations.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual make-start movie/person archive/delete/restore journeys and current-impact/retry cases remain required beyond fixture browser checks."
+      },
+      "pending_reason": "Actual make-start movie/person archive/delete/restore journeys and current-impact/retry cases remain required beyond fixture browser checks."
     },
     "T026": {
       "source": "docs/plan/16-artwork-management-browser-journeys/tasks/T026-connect-measured-progress-and-recover-attachment-outcomes.md",
@@ -986,22 +1920,72 @@
       "unit": [
         {
           "id": "t026-artwork-unit",
-          "argv": ["node", "build-tools/verification-tests/frontend/run-t026-tests.mjs"],
+          "argv": [
+            "node",
+            "build-tools/verification-tests/frontend/run-t026-tests.mjs"
+          ],
           "timeout": 1800,
           "report": ".ai/evidence/numbering-v1/t026-unit.json",
-          "required_paths": ["frontend/src/lib/features/artwork/progress.test.ts"]
+          "required_paths": [
+            "frontend/src/lib/features/artwork/progress.test.ts"
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
         }
       ],
       "integration": [
         {
           "id": "t026-artwork-browser",
-          "argv": ["node", "tests/browser/run-artwork.mjs"],
+          "argv": [
+            "node",
+            "tests/browser/run-artwork.mjs"
+          ],
           "timeout": 1800,
           "report": ".ai/evidence/numbering-v1/t026-integration.json",
-          "required_paths": ["tests/browser/flows/artwork/artwork.spec.ts"]
+          "required_paths": [
+            "tests/browser/flows/artwork/artwork.spec.ts"
+          ],
+          "proof_boundary": "Existing task-owned runner; its actual report boundary does not imply whole-task acceptance"
+        },
+        {
+          "id": "t026-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual upload/attachment/serving/progress browser cases and all assigned retry/conflict/reload states remain required beyond controlled components.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
         }
       ],
-      "pending_reason": null
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-038",
+          "ATDD-039",
+          "ATDD-040",
+          "ATDD-041",
+          "ATDD-042",
+          "ATDD-043",
+          "ATDD-044",
+          "ATDD-045",
+          "ATDD-046",
+          "ATDD-064",
+          "ATDD-123",
+          "ATDD-124",
+          "ATDD-125",
+          "ATDD-126",
+          "ATDD-159",
+          "ATDD-160",
+          "ATDD-161",
+          "ATDD-162",
+          "ATDD-163",
+          "ATDD-169",
+          "ATDD-170",
+          "ATDD-263",
+          "ATDD-305",
+          "ATDD-315"
+        ],
+        "source_reference": "docs/plan/16-artwork-management-browser-journeys/tasks/T026-connect-measured-progress-and-recover-attachment-outcomes.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual upload/attachment/serving/progress browser cases and all assigned retry/conflict/reload states remain required beyond controlled components."
+      },
+      "pending_reason": "Actual upload/attachment/serving/progress browser cases and all assigned retry/conflict/reload states remain required beyond controlled components."
     },
     "T027": {
       "source": "docs/plan/17-draft-recovery-editor-integration/tasks/T027-prove-recovery-through-real-movie-person-and-credit-editors.md",
@@ -1009,9 +1993,60 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/identity/draft-recovery/",
         "tests/browser/flows/draft-recovery/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t027-editor-controller-rules",
+          "kind": "native",
+          "argv": [
+            "npm",
+            "exec",
+            "--workspace",
+            "frontend",
+            "--",
+            "vitest",
+            "run",
+            "--config",
+            "vitest.config.ts",
+            "src/lib/features/movie/editor-controller.test.ts",
+            "src/lib/features/person/write/editor-controller.test.ts",
+            "src/lib/features/credit/draft-sync.test.ts",
+            "--reporter=json",
+            "--outputFile=../.ai/evidence/numbering-v1/t027-editor-controller-rules-native.json"
+          ],
+          "native_format": "vitest",
+          "native_reports": [
+            ".ai/evidence/numbering-v1/t027-editor-controller-rules-native.json"
+          ],
+          "report": ".ai/evidence/numbering-v1/t027-editor-controller-rules.json",
+          "timeout": 1800,
+          "proof_boundary": "Isolated production editor/controller retained draft and receipt behavior; no rendered browser/restart proof"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t027-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual movie/person/credit editor recovery journeys at assigned browser and persisted restart boundaries are not callable as an isolated disposable integration selector; remote workflow journeys remain separately required.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-048",
+          "ATDD-179",
+          "ATDD-259",
+          "ATDD-260",
+          "ATDD-261",
+          "ATDD-262",
+          "ATDD-333"
+        ],
+        "source_reference": "docs/plan/17-draft-recovery-editor-integration/tasks/T027-prove-recovery-through-real-movie-person-and-credit-editors.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual movie/person/credit editor recovery journeys at assigned browser and persisted restart boundaries are not callable as an isolated disposable integration selector; remote workflow journeys remain separately required."
+      },
+      "pending_reason": "Actual movie/person/credit editor recovery journeys at assigned browser and persisted restart boundaries are not callable as an isolated disposable integration selector; remote workflow journeys remain separately required."
     },
     "T028": {
       "source": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T028-implement-isolated-mcp-transport-and-connector-identity.md",
@@ -1022,9 +2057,91 @@
         "services/core/src/test/kotlin/com/spoolin/core/features/mcpgateway/",
         "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/connector/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t028-ui-assertion-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:mcpGatewayUnitTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/mcpGatewayUnitTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t028-ui-assertion-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Core private UI assertion signatures, exact bindings, expiry and replay rules; no real host provenance"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t028-actual-sdk-transports",
+          "kind": "native",
+          "argv": [
+            "npm",
+            "exec",
+            "--workspace",
+            "mcp",
+            "--",
+            "vitest",
+            "run",
+            "--config",
+            "vitest.config.ts",
+            "test/transport/streamable-http.test.ts",
+            "test/transport/gateway-client.test.ts",
+            "--reporter=json",
+            "--outputFile=../.ai/evidence/numbering-v1/t028-actual-sdk-transports-native.json"
+          ],
+          "native_format": "vitest",
+          "native_reports": [
+            ".ai/evidence/numbering-v1/t028-actual-sdk-transports-native.json"
+          ],
+          "report": ".ai/evidence/numbering-v1/t028-actual-sdk-transports.json",
+          "timeout": 1800,
+          "proof_boundary": "Actual pinned MCP SDK HTTP/session and gRPC client transport with explicitly controlled gateway fixtures; no actual Claude/ChatGPT host compatibility"
+        },
+        {
+          "id": "t028-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual stdio process lifecycle and live production gateway/client integration plus client-specific host provenance remain required; pinned SDK fixture transport does not establish both hosts.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-090",
+          "ATDD-091",
+          "ATDD-092",
+          "ATDD-093",
+          "ATDD-094",
+          "ATDD-095",
+          "ATDD-096",
+          "ATDD-100",
+          "ATDD-130",
+          "ATDD-186",
+          "ATDD-187",
+          "ATDD-188",
+          "ATDD-191",
+          "ATDD-192",
+          "ATDD-221",
+          "ATDD-222",
+          "ATDD-232",
+          "ATDD-255",
+          "ATDD-266",
+          "ATDD-313",
+          "ATDD-314"
+        ],
+        "source_reference": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T028-implement-isolated-mcp-transport-and-connector-identity.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual stdio process lifecycle and live production gateway/client integration plus client-specific host provenance remain required; pinned SDK fixture transport does not establish both hosts."
+      },
+      "pending_reason": "Actual stdio process lifecycle and live production gateway/client integration plus client-specific host provenance remain required; pinned SDK fixture transport does not establish both hosts."
     },
     "T029": {
       "source": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T029-commit-immutable-proposals-and-exact-approval-once.md",
@@ -1032,9 +2149,79 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/proposal/",
         "tests/integration/src/test/kotlin/com/spoolin/integration/catalog/proposals/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t029-unit-blocked",
+          "kind": "blocked",
+          "reason": "Selected real proposal transaction suite must be mapped to every assigned case; production trusted host approval/rejection boundaries remain separately required.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t029-proposal-transactions",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:catalog:catalogProposalIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/catalog/build/test-results/catalogProposalIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t029-proposal-transactions.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual PostgreSQL and signed mTLS proposal revision, identity, replay, expiry, approval/rejection transaction boundaries"
+        },
+        {
+          "id": "t029-integration-remaining",
+          "kind": "blocked",
+          "reason": "Selected real proposal transaction suite must be mapped to every assigned case; production trusted host approval/rejection boundaries remain separately required.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-090",
+          "ATDD-091",
+          "ATDD-092",
+          "ATDD-093",
+          "ATDD-094",
+          "ATDD-095",
+          "ATDD-096",
+          "ATDD-100",
+          "ATDD-130",
+          "ATDD-145",
+          "ATDD-186",
+          "ATDD-187",
+          "ATDD-188",
+          "ATDD-189",
+          "ATDD-190",
+          "ATDD-191",
+          "ATDD-192",
+          "ATDD-221",
+          "ATDD-222",
+          "ATDD-246",
+          "ATDD-247",
+          "ATDD-253",
+          "ATDD-255",
+          "ATDD-266",
+          "ATDD-283",
+          "ATDD-294",
+          "ATDD-308",
+          "ATDD-313",
+          "ATDD-314"
+        ],
+        "source_reference": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T029-commit-immutable-proposals-and-exact-approval-once.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Selected real proposal transaction suite must be mapped to every assigned case; production trusted host approval/rejection boundaries remain separately required."
+      },
+      "pending_reason": "Selected real proposal transaction suite must be mapped to every assigned case; production trusted host approval/rejection boundaries remain separately required."
     },
     "T030": {
       "source": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T030-build-the-trusted-in-chat-review-resource.md",
@@ -1042,9 +2229,72 @@
         "mcp/test/review/",
         "tests/integration/src/test/kotlin/com/spoolin/integration/mcp/reviewresource/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t030-review-component-state",
+          "kind": "native",
+          "argv": [
+            "npm",
+            "exec",
+            "--workspace",
+            "mcp",
+            "--",
+            "vitest",
+            "run",
+            "--config",
+            "vitest.config.ts",
+            "test/review/review-state.test.ts",
+            "test/identity/ui-assertion.test.ts",
+            "--reporter=json",
+            "--outputFile=../.ai/evidence/numbering-v1/t030-review-component-state-native.json"
+          ],
+          "native_format": "vitest",
+          "native_reports": [
+            ".ai/evidence/numbering-v1/t030-review-component-state-native.json"
+          ],
+          "report": ".ai/evidence/numbering-v1/t030-review-component-state.json",
+          "timeout": 1800,
+          "proof_boundary": "Review state and signing rules in controlled component/unit environment; no trusted host UI delivery proof"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t030-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual required host delivers connector bearer and challenge into review frame, signs private assertions and enforces trusted interaction. Harness/component proof cannot substitute.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-090",
+          "ATDD-091",
+          "ATDD-092",
+          "ATDD-093",
+          "ATDD-094",
+          "ATDD-095",
+          "ATDD-096",
+          "ATDD-100",
+          "ATDD-130",
+          "ATDD-186",
+          "ATDD-187",
+          "ATDD-188",
+          "ATDD-191",
+          "ATDD-192",
+          "ATDD-221",
+          "ATDD-222",
+          "ATDD-266",
+          "ATDD-306",
+          "ATDD-313",
+          "ATDD-314"
+        ],
+        "source_reference": "docs/plan/18-assisted-movie-creation-transport-and-review/tasks/T030-build-the-trusted-in-chat-review-resource.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual required host delivers connector bearer and challenge into review frame, signs private assertions and enforces trusted interaction. Harness/component proof cannot substitute."
+      },
+      "pending_reason": "Actual required host delivers connector bearer and challenge into review frame, signs private assertions and enforces trusted interaction. Harness/component proof cannot substitute."
     },
     "T031": {
       "source": "docs/plan/19-accountable-history/tasks/T031-expose-complete-read-only-audit-outcomes.md",
@@ -1054,16 +2304,115 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/audit/",
         "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/audit/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t031-audit-diff-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:catalog:test",
+            "--console",
+            "plain",
+            "--rerun-tasks",
+            "--tests",
+            "com.spoolin.catalog.operations.audit.AuditDiffRulesTest"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/catalog/build/test-results/test/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t031-audit-diff-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Isolated production audit diff shape/privacy rules; not read-only audit API/UI acceptance"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t031-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual authorized read-only audit API/UI pagination/redaction/immutable outcome cases remain required; audit diff unit tests are partial.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-053",
+          "ATDD-054",
+          "ATDD-055",
+          "ATDD-056",
+          "ATDD-088",
+          "ATDD-089",
+          "ATDD-101",
+          "ATDD-185",
+          "ATDD-251",
+          "ATDD-253",
+          "ATDD-265",
+          "ATDD-307"
+        ],
+        "source_reference": "docs/plan/19-accountable-history/tasks/T031-expose-complete-read-only-audit-outcomes.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual authorized read-only audit API/UI pagination/redaction/immutable outcome cases remain required; audit diff unit tests are partial."
+      },
+      "pending_reason": "Actual authorized read-only audit API/UI pagination/redaction/immutable outcome cases remain required; audit diff unit tests are partial."
     },
     "T032": {
       "source": "docs/plan/20-reproducible-seed/tasks/T032-assemble-the-permitted-frozen-100-movie-and-100-series-dataset.md",
       "test_paths": [],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t032-seed-identity-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:catalog:test",
+            "--console",
+            "plain",
+            "--rerun-tasks",
+            "--tests",
+            "com.spoolin.catalog.seed.*RulesTest"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/catalog/build/test-results/test/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t032-seed-identity-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Pure seed identity, deterministic serialization and role mapping rules; not loaded dataset/artwork provenance proof"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t032-integration-blocked",
+          "kind": "blocked",
+          "reason": "Complete approved frozen source/provenance/dataset/artwork validation and actual storage/serving associations remain required beyond pure identity rules.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-029",
+          "ATDD-033",
+          "ATDD-034",
+          "ATDD-035",
+          "ATDD-036",
+          "ATDD-037",
+          "ATDD-049",
+          "ATDD-112",
+          "ATDD-132",
+          "ATDD-196",
+          "ATDD-197",
+          "ATDD-199",
+          "ATDD-301"
+        ],
+        "source_reference": "docs/plan/20-reproducible-seed/tasks/T032-assemble-the-permitted-frozen-100-movie-and-100-series-dataset.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Complete approved frozen source/provenance/dataset/artwork validation and actual storage/serving associations remain required beyond pure identity rules."
+      },
+      "pending_reason": "Complete approved frozen source/provenance/dataset/artwork validation and actual storage/serving associations remain required beyond pure identity rules."
     },
     "T033": {
       "source": "docs/plan/20-reproducible-seed/tasks/T033-initialize-and-replay-seed-and-prepared-accounts-safely.md",
@@ -1072,9 +2421,62 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/seed/",
         "services/core/src/test/kotlin/com/spoolin/core/features/bootstrap/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t033-prepared-account-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:test",
+            "--console",
+            "plain",
+            "--rerun-tasks",
+            "--tests",
+            "com.spoolin.core.features.bootstrap.*RulesTest"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/test/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t033-prepared-account-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Prepared-account initialization/replay/key invariants in isolated rules; not real complete seed load"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t033-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual protected prepared accounts and exact 100-movie/100-series seed application, repeat safety and restart persistence must run via make start and retained machine-readable evidence.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-029",
+          "ATDD-033",
+          "ATDD-034",
+          "ATDD-035",
+          "ATDD-036",
+          "ATDD-037",
+          "ATDD-049",
+          "ATDD-112",
+          "ATDD-132",
+          "ATDD-196",
+          "ATDD-197",
+          "ATDD-198",
+          "ATDD-199",
+          "ATDD-235",
+          "ATDD-243",
+          "ATDD-244"
+        ],
+        "source_reference": "docs/plan/20-reproducible-seed/tasks/T033-initialize-and-replay-seed-and-prepared-accounts-safely.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual protected prepared accounts and exact 100-movie/100-series seed application, repeat safety and restart persistence must run via make start and retained machine-readable evidence."
+      },
+      "pending_reason": "Actual protected prepared accounts and exact 100-movie/100-series seed application, repeat safety and restart persistence must run via make start and retained machine-readable evidence."
     },
     "T034": {
       "source": "docs/plan/21-operational-notifications/tasks/T034-record-actionable-alerts-through-one-selected-mode.md",
@@ -1085,9 +2487,72 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/notifications/",
         "services/media/src/test/kotlin/com/spoolin/media/operations/notifications/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t034-alert-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:alertUnitTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/alertUnitTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t034-alert-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Isolated alert webhook authentication/summary rules"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t034-notification-database-provider-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:alertIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/alertIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t034-notification-database-provider-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual PostgreSQL alert/notification persistence and controlled local provider acceptance/failure boundaries; not live third-party receipt proof"
+        },
+        {
+          "id": "t034-integration-remaining",
+          "kind": "blocked",
+          "reason": "Every assigned selected notification mode/retry/UNKNOWN/exhaustion and operator acknowledgement case needs current boundary evidence; simulated provider endpoints are explicitly limited.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-061",
+          "ATDD-062",
+          "ATDD-063",
+          "ATDD-067",
+          "ATDD-158",
+          "ATDD-193",
+          "ATDD-194",
+          "ATDD-195",
+          "ATDD-227",
+          "ATDD-299"
+        ],
+        "source_reference": "docs/plan/21-operational-notifications/tasks/T034-record-actionable-alerts-through-one-selected-mode.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Every assigned selected notification mode/retry/UNKNOWN/exhaustion and operator acknowledgement case needs current boundary evidence; simulated provider endpoints are explicitly limited."
+      },
+      "pending_reason": "Every assigned selected notification mode/retry/UNKNOWN/exhaustion and operator acknowledgement case needs current boundary evidence; simulated provider endpoints are explicitly limited."
     },
     "T035": {
       "source": "docs/plan/22-operational-evidence/tasks/T035-emit-bounded-private-safe-json-diagnostics.md",
@@ -1096,9 +2561,50 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/operations/logging/",
         "libraries/backend-support/src/test/kotlin/com/spoolin/support/logging/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t035-json-logging-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":libraries:backend-support:test",
+            "--console",
+            "plain",
+            "--rerun-tasks",
+            "--tests",
+            "com.spoolin.support.logging.*"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "libraries/backend-support/build/test-results/test/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t035-json-logging-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Production diagnostic encoder/Logback configuration and bounded sink rules under controlled synthetic inputs"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t035-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual JVM/MCP physical log/stdio streams, queue/rotation/sink failures and durable outcome independence require the assigned real boundary matrix.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-339",
+          "ATDD-340",
+          "ATDD-341",
+          "ATDD-342"
+        ],
+        "source_reference": "docs/plan/22-operational-evidence/tasks/T035-emit-bounded-private-safe-json-diagnostics.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual JVM/MCP physical log/stdio streams, queue/rotation/sink failures and durable outcome independence require the assigned real boundary matrix."
+      },
+      "pending_reason": "Actual JVM/MCP physical log/stdio streams, queue/rotation/sink failures and durable outcome independence require the assigned real boundary matrix."
     },
     "T036": {
       "source": "docs/plan/22-operational-evidence/tasks/T036-expose-logical-metrics-dashboards-and-alert-episodes.md",
@@ -1108,36 +2614,244 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/operations/metrics/",
         "services/media/src/test/kotlin/com/spoolin/media/operations/metrics/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t036-crypto-metric-rules",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:test",
+            "--console",
+            "plain",
+            "--rerun-tasks",
+            "--tests",
+            "com.spoolin.core.features.crypto.ProtectionMetricsRulesTest"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/test/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t036-crypto-metric-rules.json",
+          "timeout": 2400,
+          "proof_boundary": "Isolated crypto failure metric classification; not complete metrics/dashboard acceptance"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t036-logical-rpc-metrics",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:logicalMetricsTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/logicalMetricsTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t036-logical-rpc-metrics.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual transport logical-outcome metric boundaries; not rendered Grafana/dashboard or full monitoring stack proof"
+        },
+        {
+          "id": "t036-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual private Prometheus/Alertmanager/Grafana rendered panels/data, alerts and complete metric contract cases remain required beyond logical RPC metrics.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-166",
+          "ATDD-195",
+          "ATDD-206",
+          "ATDD-207",
+          "ATDD-300",
+          "ATDD-312"
+        ],
+        "source_reference": "docs/plan/22-operational-evidence/tasks/T036-expose-logical-metrics-dashboards-and-alert-episodes.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual private Prometheus/Alertmanager/Grafana rendered panels/data, alerts and complete metric contract cases remain required beyond logical RPC metrics."
+      },
+      "pending_reason": "Actual private Prometheus/Alertmanager/Grafana rendered panels/data, alerts and complete metric contract cases remain required beyond logical RPC metrics."
     },
     "T037": {
       "source": "docs/plan/23-local-operations/tasks/T037-implement-the-seven-reproducible-lifecycle-commands.md",
       "test_paths": [
         "tests/integration/src/test/kotlin/com/spoolin/integration/operations/commands/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t037-unit-blocked",
+          "kind": "blocked",
+          "reason": "Actual make start/status/logs/seed/restart/stop/test suites and supported backup/restore/migration/key/recovery/connector/tunnel commands require remote lifecycle effects. Do not recursively invoke lifecycle verifier from make test-integration.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t037-core-operator-recovery",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:workIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/workIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t037-core-operator-recovery.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual owner PostgreSQL fenced work and restricted recovery state transitions; actual Make commands/lifecycle remain separately required"
+        },
+        {
+          "id": "t037-catalog-operator-recovery",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:catalog:workIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/catalog/build/test-results/workIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t037-catalog-operator-recovery.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual owner PostgreSQL fenced work and restricted recovery state transitions; actual Make commands/lifecycle remain separately required"
+        },
+        {
+          "id": "t037-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual make start/status/logs/seed/restart/stop/test suites and supported backup/restore/migration/key/recovery/connector/tunnel commands require remote lifecycle effects. Do not recursively invoke lifecycle verifier from make test-integration.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-065",
+          "ATDD-068",
+          "ATDD-072",
+          "ATDD-073",
+          "ATDD-074",
+          "ATDD-075",
+          "ATDD-134",
+          "ATDD-135",
+          "ATDD-202",
+          "ATDD-203",
+          "ATDD-204",
+          "ATDD-205",
+          "ATDD-214",
+          "ATDD-215",
+          "ATDD-216",
+          "ATDD-217",
+          "ATDD-218",
+          "ATDD-219",
+          "ATDD-220",
+          "ATDD-327",
+          "ATDD-342"
+        ],
+        "source_reference": "docs/plan/23-local-operations/tasks/T037-implement-the-seven-reproducible-lifecycle-commands.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual make start/status/logs/seed/restart/stop/test suites and supported backup/restore/migration/key/recovery/connector/tunnel commands require remote lifecycle effects. Do not recursively invoke lifecycle verifier from make test-integration."
+      },
+      "pending_reason": "Actual make start/status/logs/seed/restart/stop/test suites and supported backup/restore/migration/key/recovery/connector/tunnel commands require remote lifecycle effects. Do not recursively invoke lifecycle verifier from make test-integration."
     },
     "T038": {
       "source": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T038-verify-trusted-approval-in-claude-desktop.md",
       "test_paths": [
         "tests/clients/claude/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t038-unit-blocked",
+          "kind": "blocked",
+          "reason": "Required actual Claude Desktop host/stdio/trusted review approval/rejection observations unavailable to selector; SDK harness is not host proof.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t038-integration-blocked",
+          "kind": "blocked",
+          "reason": "Required actual Claude Desktop host/stdio/trusted review approval/rejection observations unavailable to selector; SDK harness is not host proof.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-090",
+          "ATDD-091",
+          "ATDD-092",
+          "ATDD-093",
+          "ATDD-094",
+          "ATDD-095",
+          "ATDD-100",
+          "ATDD-130",
+          "ATDD-186",
+          "ATDD-221",
+          "ATDD-266",
+          "ATDD-313"
+        ],
+        "source_reference": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T038-verify-trusted-approval-in-claude-desktop.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Required actual Claude Desktop host/stdio/trusted review approval/rejection observations unavailable to selector; SDK harness is not host proof."
+      },
+      "pending_reason": "Required actual Claude Desktop host/stdio/trusted review approval/rejection observations unavailable to selector; SDK harness is not host proof."
     },
     "T039": {
       "source": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T039-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
       "test_paths": [
         "tests/clients/chatgpt/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t039-unit-blocked",
+          "kind": "blocked",
+          "reason": "Required actual ChatGPT host/registered Secure MCP Tunnel/trusted review observations unavailable to selector; no host compatibility claim.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t039-integration-blocked",
+          "kind": "blocked",
+          "reason": "Required actual ChatGPT host/registered Secure MCP Tunnel/trusted review observations unavailable to selector; no host compatibility claim.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-096",
+          "ATDD-186",
+          "ATDD-187",
+          "ATDD-188",
+          "ATDD-191",
+          "ATDD-192",
+          "ATDD-222",
+          "ATDD-266",
+          "ATDD-314"
+        ],
+        "source_reference": "docs/plan/24-assisted-movie-creation-client-acceptance/tasks/T039-verify-chatgpt-approval-and-complete-both-client-acceptance.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Required actual ChatGPT host/registered Secure MCP Tunnel/trusted review observations unavailable to selector; no host compatibility claim."
+      },
+      "pending_reason": "Required actual ChatGPT host/registered Secure MCP Tunnel/trusted review observations unavailable to selector; no host compatibility claim."
     },
     "T040": {
       "source": "docs/plan/25-protected-recovery/tasks/T040-rotate-keys-and-aliases-without-losing-access.md",
@@ -1146,9 +2860,54 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/crypto/",
         "services/core/src/test/kotlin/com/spoolin/core/features/crypto/rotation/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t040-unit-blocked",
+          "kind": "blocked",
+          "reason": "Actual key-rotation CLI plus browser/session/alias/restore continuity and all assigned failures remain required beyond database crypto suites.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t040-crypto-rotation-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:cryptoIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/cryptoIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t040-crypto-rotation-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual PostgreSQL protected account/draft rotation, live key reload and restore epoch boundaries; browser alias/read continuity remains separate"
+        },
+        {
+          "id": "t040-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual key-rotation CLI plus browser/session/alias/restore continuity and all assigned failures remain required beyond database crypto suites.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-098",
+          "ATDD-102",
+          "ATDD-182",
+          "ATDD-183"
+        ],
+        "source_reference": "docs/plan/25-protected-recovery/tasks/T040-rotate-keys-and-aliases-without-losing-access.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual key-rotation CLI plus browser/session/alias/restore continuity and all assigned failures remain required beyond database crypto suites."
+      },
+      "pending_reason": "Actual key-rotation CLI plus browser/session/alias/restore continuity and all assigned failures remain required beyond database crypto suites."
     },
     "T041": {
       "source": "docs/plan/25-protected-recovery/tasks/T041-verify-migrations-purge-and-coordinated-restore.md",
@@ -1156,9 +2915,75 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/migration/",
         "tests/integration/src/test/kotlin/com/spoolin/integration/operations/restore/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t041-unit-blocked",
+          "kind": "blocked",
+          "reason": "Actual coordinated backup/restore/migration/retention and recovery restart on uniquely owned resources remain required beyond database epoch/worker subsets.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t041-retention-recovery-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:leasesTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/leasesTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t041-retention-recovery-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual PostgreSQL worker/recovery/retention boundaries; full coordinated backup/restore and migration upgrade remain separate"
+        },
+        {
+          "id": "t041-restore-epoch-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:cryptoIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/cryptoIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t041-restore-epoch-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual protected restore epoch/nonces/credential invalidation; not whole-installation backup restore"
+        },
+        {
+          "id": "t041-integration-remaining",
+          "kind": "blocked",
+          "reason": "Actual coordinated backup/restore/migration/retention and recovery restart on uniquely owned resources remain required beyond database epoch/worker subsets.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-198",
+          "ATDD-200",
+          "ATDD-201",
+          "ATDD-208",
+          "ATDD-209",
+          "ATDD-210",
+          "ATDD-310"
+        ],
+        "source_reference": "docs/plan/25-protected-recovery/tasks/T041-verify-migrations-purge-and-coordinated-restore.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual coordinated backup/restore/migration/retention and recovery restart on uniquely owned resources remain required beyond database epoch/worker subsets."
+      },
+      "pending_reason": "Actual coordinated backup/restore/migration/retention and recovery restart on uniquely owned resources remain required beyond database epoch/worker subsets."
     },
     "T042": {
       "source": "docs/plan/26-release-assurance/tasks/T042-reconcile-every-real-api-and-rpc-boundary-row.md",
@@ -1166,9 +2991,109 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/contracts/",
         "tests/contracts/release-matrix/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t042-unit-blocked",
+          "kind": "blocked",
+          "reason": "Every assigned route/RPC/API contract row needs individual current source/wiring and real request/response/persistence evidence; selected suites are partial, never sampled whole-API acceptance.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t042-actual-policy-writer-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:policyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/policyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t042-actual-policy-writer-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual signed mTLS four-writer policy/identity/idempotency/persistence boundaries; no sampling claim for every API row or complete browser security flow"
+        },
+        {
+          "id": "t042-artwork-http-transport",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:artworkProxyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/artworkProxyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t042-artwork-http-transport.json",
+          "timeout": 2400,
+          "proof_boundary": "Real production artwork streaming HTTP/gRPC helper transport and TLS failure boundaries; not every API row"
+        },
+        {
+          "id": "t042-integration-remaining",
+          "kind": "blocked",
+          "reason": "Every assigned route/RPC/API contract row needs individual current source/wiring and real request/response/persistence evidence; selected suites are partial, never sampled whole-API acceptance.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-141",
+          "ATDD-142",
+          "ATDD-143",
+          "ATDD-144",
+          "ATDD-145",
+          "ATDD-146",
+          "ATDD-152",
+          "ATDD-223",
+          "ATDD-224",
+          "ATDD-225",
+          "ATDD-226",
+          "ATDD-227",
+          "ATDD-228",
+          "ATDD-229",
+          "ATDD-230",
+          "ATDD-231",
+          "ATDD-232",
+          "ATDD-233",
+          "ATDD-234",
+          "ATDD-235",
+          "ATDD-236",
+          "ATDD-237",
+          "ATDD-238",
+          "ATDD-239",
+          "ATDD-240",
+          "ATDD-241",
+          "ATDD-242",
+          "ATDD-243",
+          "ATDD-244",
+          "ATDD-245",
+          "ATDD-246",
+          "ATDD-247",
+          "ATDD-248",
+          "ATDD-249",
+          "ATDD-250",
+          "ATDD-251",
+          "ATDD-252",
+          "ATDD-253",
+          "ATDD-254",
+          "ATDD-255",
+          "ATDD-316"
+        ],
+        "source_reference": "docs/plan/26-release-assurance/tasks/T042-reconcile-every-real-api-and-rpc-boundary-row.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Every assigned route/RPC/API contract row needs individual current source/wiring and real request/response/persistence evidence; selected suites are partial, never sampled whole-API acceptance."
+      },
+      "pending_reason": "Every assigned route/RPC/API contract row needs individual current source/wiring and real request/response/persistence evidence; selected suites are partial, never sampled whole-API acceptance."
     },
     "T043": {
       "source": "docs/plan/26-release-assurance/tasks/T043-verify-policy-authorization-and-injection-across-complete-flows.md",
@@ -1177,9 +3102,101 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/security/",
         "tests/browser/flows/security/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t043-unit-blocked",
+          "kind": "blocked",
+          "reason": "Complete assigned authorization/injection/policy/security flow matrix remains required beyond selected real owner writer/admission tests.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t043-actual-policy-writer-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":tests:integration:policyIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "tests/integration/build/test-results/policyIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t043-actual-policy-writer-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual signed mTLS four-writer policy/identity/idempotency/persistence boundaries; no sampling claim for every API row or complete browser security flow"
+        },
+        {
+          "id": "t043-shared-admission-boundaries",
+          "kind": "native",
+          "argv": [
+            "./gradlew",
+            ":services:core:admissionIntegrationTest",
+            "--console",
+            "plain",
+            "--rerun-tasks"
+          ],
+          "native_format": "junit",
+          "native_reports": [
+            "services/core/build/test-results/admissionIntegrationTest/TEST-*.xml"
+          ],
+          "report": ".ai/evidence/numbering-v1/t043-shared-admission-boundaries.json",
+          "timeout": 2400,
+          "proof_boundary": "Actual shared owner database admission and identity/security boundaries; no rendered injection/client proof"
+        },
+        {
+          "id": "t043-integration-remaining",
+          "kind": "blocked",
+          "reason": "Complete assigned authorization/injection/policy/security flow matrix remains required beyond selected real owner writer/admission tests.",
+          "proof_boundary": "Remaining assigned acceptance obligations beyond the executable subset"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-050",
+          "ATDD-051",
+          "ATDD-052",
+          "ATDD-097",
+          "ATDD-113",
+          "ATDD-116",
+          "ATDD-117",
+          "ATDD-118",
+          "ATDD-119",
+          "ATDD-121",
+          "ATDD-122",
+          "ATDD-127",
+          "ATDD-128",
+          "ATDD-129",
+          "ATDD-131",
+          "ATDD-140",
+          "ATDD-177",
+          "ATDD-184",
+          "ATDD-212",
+          "ATDD-259",
+          "ATDD-260",
+          "ATDD-265",
+          "ATDD-266",
+          "ATDD-267",
+          "ATDD-323",
+          "ATDD-324",
+          "ATDD-325",
+          "ATDD-326",
+          "ATDD-328",
+          "ATDD-334",
+          "ATDD-336",
+          "ATDD-337",
+          "ATDD-338"
+        ],
+        "source_reference": "docs/plan/26-release-assurance/tasks/T043-verify-policy-authorization-and-injection-across-complete-flows.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Complete assigned authorization/injection/policy/security flow matrix remains required beyond selected real owner writer/admission tests."
+      },
+      "pending_reason": "Complete assigned authorization/injection/policy/security flow matrix remains required beyond selected real owner writer/admission tests."
     },
     "T044": {
       "source": "docs/plan/26-release-assurance/tasks/T044-complete-visual-interaction-and-accessibility-evidence.md",
@@ -1187,9 +3204,55 @@
         "tests/browser/flows/presentation/",
         "tests/browser/fixtures/visual-contexts/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t044-unit-blocked",
+          "kind": "blocked",
+          "reason": "Approved 97-state design mappings, full actual browser/theme/viewport/input matrix, required independent references and actual assistive readers remain required; no fabricated pixel/reader acceptance.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t044-integration-blocked",
+          "kind": "blocked",
+          "reason": "Approved 97-state design mappings, full actual browser/theme/viewport/input matrix, required independent references and actual assistive readers remain required; no fabricated pixel/reader acceptance.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-069",
+          "ATDD-070",
+          "ATDD-071",
+          "ATDD-136",
+          "ATDD-256",
+          "ATDD-257",
+          "ATDD-258",
+          "ATDD-259",
+          "ATDD-260",
+          "ATDD-261",
+          "ATDD-262",
+          "ATDD-263",
+          "ATDD-264",
+          "ATDD-265",
+          "ATDD-266",
+          "ATDD-267",
+          "ATDD-268",
+          "ATDD-269",
+          "ATDD-270",
+          "ATDD-271",
+          "ATDD-272",
+          "ATDD-273",
+          "ATDD-274"
+        ],
+        "source_reference": "docs/plan/26-release-assurance/tasks/T044-complete-visual-interaction-and-accessibility-evidence.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Approved 97-state design mappings, full actual browser/theme/viewport/input matrix, required independent references and actual assistive readers remain required; no fabricated pixel/reader acceptance."
+      },
+      "pending_reason": "Approved 97-state design mappings, full actual browser/theme/viewport/input matrix, required independent references and actual assistive readers remain required; no fabricated pixel/reader acceptance."
     },
     "T045": {
       "source": "docs/plan/26-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
@@ -1197,16 +3260,68 @@
         "tests/integration/src/test/kotlin/com/spoolin/integration/performance/",
         "tests/integration/src/test/kotlin/com/spoolin/integration/operations/release/"
       ],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t045-unit-blocked",
+          "kind": "blocked",
+          "reason": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t045-integration-blocked",
+          "kind": "blocked",
+          "reason": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-211"
+        ],
+        "source_reference": "docs/plan/26-release-assurance/tasks/T045-measure-capacity-and-prove-operational-recovery-limits.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests."
+      },
+      "pending_reason": "Actual assigned capacity/startup/recovery/load measurements with pinned environment and resource evidence are not replaced by nearby work/crypto unit tests."
     },
     "T046": {
       "source": "docs/plan/26-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md",
       "test_paths": [],
-      "unit": [],
-      "integration": [],
-      "pending_reason": "Suite implementation is pending its owning task"
+      "unit": [
+        {
+          "id": "t046-unit-blocked",
+          "kind": "blocked",
+          "reason": "Final current gates, one independent combined review, formal selection acceptance and reviewed release handoff are coordinator-owned prerequisites, not a passing script placeholder.",
+          "proof_boundary": "Required unit obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "integration": [
+        {
+          "id": "t046-integration-blocked",
+          "kind": "blocked",
+          "reason": "Final current gates, one independent combined review, formal selection acceptance and reviewed release handoff are coordinator-owned prerequisites, not a passing script placeholder.",
+          "proof_boundary": "Required integration obligation unresolved; no executed cases claimed"
+        }
+      ],
+      "prior_pending_reason": "Suite implementation is pending its owning task",
+      "selector_assessment": {
+        "scope": "Executable subset assessment; source selection is not runtime or formal acceptance",
+        "assigned_acceptance_ids": [
+          "ATDD-076",
+          "ATDD-077",
+          "ATDD-078",
+          "ATDD-213",
+          "ATDD-275"
+        ],
+        "source_reference": "docs/plan/26-release-assurance/tasks/T046-prepare-the-reviewed-repository-and-release-handoff.md",
+        "execution_status": "NOT_RUN_BY_THIS_SOURCE_CHANGE",
+        "remaining_obligation": "Final current gates, one independent combined review, formal selection acceptance and reviewed release handoff are coordinator-owned prerequisites, not a passing script placeholder."
+      },
+      "pending_reason": "Final current gates, one independent combined review, formal selection acceptance and reviewed release handoff are coordinator-owned prerequisites, not a passing script placeholder."
     }
   }
 }

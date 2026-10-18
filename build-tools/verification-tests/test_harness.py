@@ -125,6 +125,78 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(selector.report_path("integration", ["T003"]).name, "t003-tests.json")
         self.assertEqual(selector.report_path("unit", ["../../outside"]).name, "unit-selection-tests.json")
 
+    def test_explicit_blocked_obligation_never_dispatches_a_command(self):
+        entry = {"id": "actual-host", "kind": "blocked", "reason": "Actual required host unavailable"}
+        with patch.object(selector.subprocess, "run") as command:
+            code, result = selector.execute(entry)
+        self.assertEqual(2, code)
+        self.assertEqual(0, result["executed"])
+        self.assertEqual(entry["reason"], result["blocked_reason"])
+        command.assert_not_called()
+
+    def test_blocked_obligation_does_not_hide_later_real_suite_results(self):
+        entries = [{"id": "host", "kind": "blocked", "reason": "Actual host unavailable"},
+                   {"id": "owner", "argv": ["actual-owner-command"]}]
+        observed = [(2, {"selected": 1, "executed": 0, "failed": 0, "blocked_reason": "Actual host unavailable"}),
+                    (0, {"selected": 2, "executed": 2, "failed": 0})]
+        with tempfile.TemporaryDirectory() as temporary, patch.object(selector, "execute", side_effect=observed) as execute:
+            report = Path(temporary) / "selection.json"
+            self.assertEqual(2, selector.run(entries, report, "integration"))
+            result = json.loads(report.read_text())
+            self.assertEqual(2, execute.call_count)
+            self.assertEqual(2, result["executed"])
+            self.assertEqual(1, len(result["blocked_obligations"]))
+            self.assertEqual("owner", result["entries"][1]["id"])
+
+    def test_real_failure_retains_failure_exit_alongside_blocked_required_proof(self):
+        entries = [{"id": "owner", "argv": ["owner"]}, {"id": "host", "kind": "blocked"}]
+        observed = [(1, {"selected": 1, "executed": 1, "failed": 1}),
+                    (2, {"selected": 1, "executed": 0, "failed": 0, "blocked_reason": "Missing host"})]
+        with tempfile.TemporaryDirectory() as temporary, patch.object(selector, "execute", side_effect=observed):
+            report = Path(temporary) / "selection.json"
+            self.assertEqual(1, selector.run(entries, report, "integration"))
+            self.assertEqual(1, json.loads(report.read_text())["failed"])
+
+    def test_all_46_task_rows_have_assessed_nonempty_or_explicitly_blocked_selections(self):
+        mapping = json.loads((ROOT / "build-tools/verification-map.json").read_text())
+        self.assertEqual({f"T{number:03}" for number in range(1, 47)}, set(mapping["tasks"]))
+        for task, row in mapping["tasks"].items():
+            self.assertEqual(row["source"], row["selector_assessment"]["source_reference"])
+            for level in ("unit", "integration"):
+                self.assertTrue(row[level], f"{task}/{level} silently empty")
+                for entry in row[level]:
+                    if entry.get("kind") == "blocked":
+                        self.assertTrue(entry["reason"].strip())
+                    else:
+                        self.assertTrue(entry["argv"])
+                        self.assertTrue(entry["proof_boundary"].strip())
+
+    def test_native_reuse_requires_identical_commands_formats_reports_and_timeouts(self):
+        entry = {"id": "first", "kind": "native", "argv": ["actual", "boundary"], "native_format": "junit",
+                 "native_reports": ["owner/TEST-*.xml"], "timeout": 60}
+        self.assertEqual(selector.native_identity(entry), selector.native_identity(dict(entry, id="second")))
+        self.assertNotEqual(selector.native_identity(entry), selector.native_identity(dict(entry, argv=["different"])))
+        self.assertNotEqual(selector.native_identity(entry), selector.native_identity(dict(entry, native_reports=["other.xml"])))
+        self.assertIsNone(selector.native_identity({"kind": "blocked"}))
+
+    def test_native_case_parser_keeps_skips_and_failures_out_of_success_counts(self):
+        import run_declared_suite
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "TEST-boundary.xml"
+            path.write_text('<testsuite><testcase classname="Owner" name="ok"/>'
+                            '<testcase classname="Owner" name="missing"><skipped/></testcase>'
+                            '<testcase classname="Owner" name="bad"><failure/></testcase></testsuite>')
+            cases = run_declared_suite.parse_cases([path], "junit")
+            self.assertEqual(3, len(cases))
+            self.assertEqual(2, sum(case["executed"] for case in cases))
+            self.assertEqual(1, sum(case["failed"] for case in cases))
+            path.write_text('{"testResults":[{"name":"transport","assertionResults":['
+                            '{"fullName":"passed","status":"passed"},'
+                            '{"fullName":"not run","status":"pending"}]}]}')
+            cases = run_declared_suite.parse_cases([path], "vitest")
+            self.assertEqual(1, sum(case["executed"] for case in cases))
+            self.assertEqual(0, sum(case["failed"] for case in cases))
+
     def test_missing_required_sources_refuse_execution(self):
         with tempfile.TemporaryDirectory() as directory:
             entry = {"argv": [sys.executable, "-c", "raise RuntimeError('must not execute')"],
