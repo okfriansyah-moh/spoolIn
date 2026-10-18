@@ -51,6 +51,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21.0.12+1'
+          cache: gradle
       - name: Prepare npm lock metadata
         if: ${{ inputs.mode == 'dependencies' }}
         run: npm install --package-lock-only --ignore-scripts
@@ -68,9 +69,30 @@ jobs:
       - name: Provision isolated synthetic environment
         if: ${{ inputs.mode == 'verify' }}
         run: python3 ops/ci/prepare-environment.py
+      - name: Install pinned browser engines and trust the isolated CA
+        if: ${{ inputs.mode == 'verify' }}
+        run: |
+          npm exec --workspace tests/browser -- playwright install --with-deps chromium firefox webkit
+          sudo apt-get install --no-install-recommends -y libnss3-tools
+          sudo cp "$SERVICE_CA_FILE" /usr/local/share/ca-certificates/spoolin-ci.crt
+          sudo update-ca-certificates
+          mkdir -p "$HOME/.pki/nssdb"
+          certutil -N --empty-password -d sql:"$HOME/.pki/nssdb"
+          certutil -A -d sql:"$HOME/.pki/nssdb" -n spoolin-ci -t 'C,,' -i "$SERVICE_CA_FILE"
       - name: Start documented application
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/run-application.sh
+      - name: Exercise real production application in browsers
+        if: ${{ inputs.mode == 'verify' }}
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
+        run: npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
+      - name: Verify documented Make lifecycle and suites
+        if: ${{ inputs.mode == 'verify' }}
+        run: bash ops/ci/verify-make-targets.sh
+      - name: Configured delivery gates
+        if: ${{ inputs.mode == 'verify' }}
+        run: python3 .ai/bin/agent-workflow gate --repo . --stage delivery --base 2764ca8bcdb5ee182852e2bdb26c95247c81c5ed
       - name: Retain reports including failed baseline
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -81,6 +103,9 @@ jobs:
             package-lock.json
             artifacts/runtime
             artifacts/make
+            artifacts/browser
+            mcp/coverage
+            frontend/coverage
             gradle/verification-metadata.xml
             gradle/locks
             contracts/grpc/gradle.lockfile

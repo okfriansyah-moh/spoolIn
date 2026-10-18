@@ -52,6 +52,7 @@
 <p role="status" aria-live="polite">{loading ? 'Loading history…' : message}</p>
 
 {#if rows.length}
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users must be able to scroll the history table.) -->
   <div class="table-wrap" tabindex="0" role="region" aria-label="Catalog history" aria-busy={loading}>
     <table>
       <thead>

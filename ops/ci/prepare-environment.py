@@ -77,6 +77,21 @@ def provision_identity_files(base, exports):
             command("sudo", "chown", "10001:10001", str(file))
 
 
+def prepared_accounts(directory):
+    roles = (("VIEWER", "00000000-0000-4000-8000-000000000001"),
+             ("MAINTAINER", "00000000-0000-4000-8000-000000000002"))
+    accounts = []
+    for role, identity in roles:
+        password_file = role.lower() + "-password"
+        protected(directory / password_file, secrets.token_urlsafe(32))
+        accounts.append({"id": identity, "name": "Prepared " + role.title(),
+                         "email": role.lower() + "@example.invalid", "role": role,
+                         "passwordFile": "/run/spoolin-config/" + password_file})
+    keys = {purpose.lower(): {"purpose": purpose, "file": "/run/spoolin-config/" + purpose.lower()}
+            for purpose in ("PII", "DRAFT", "EMAIL_LOOKUP")}
+    protected(directory / "account-initialization.json", json.dumps({"setupVersion": "ci-v1", "accounts": accounts, "keys": keys}))
+
+
 def main():
     if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("RUNNER_ENVIRONMENT") != "github-hosted" or os.uname().sysname != "Linux":
         raise SystemExit("Refusing credentials provisioning outside GitHub-hosted Linux")
@@ -96,6 +111,8 @@ def main():
     public = subprocess.check_output(["openssl", "pkey", "-inform", "DER", "-in", str(runtime / "actor-key"), "-pubout", "-outform", "DER"])
     protected(runtime / "actor-trust", json.dumps({"active": base64.b64encode(public).decode()}))
     runtime_config(runtime)
+    prepared_accounts(runtime)
+    exports["SPOOLIN_ACCOUNT_INITIALIZATION_FILE"] = "/run/spoolin-config/account-initialization.json"
     rate_agreement(runtime)
     for file in runtime.iterdir():
         file.chmod(0o600)

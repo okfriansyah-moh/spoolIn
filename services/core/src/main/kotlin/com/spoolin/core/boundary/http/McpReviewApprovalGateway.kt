@@ -52,7 +52,7 @@ class McpReviewApprovalGateway(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         val hash = ConnectorTokenDigest.sha256(token.toByteArray(Charsets.UTF_8))
-        return ConnectorRpcContext.context(hash).run {
+        return ConnectorRpcContext.context(hash).call {
             try {
                 val input =
                     Spoolin.ApprovalInput
@@ -85,12 +85,12 @@ class McpReviewApprovalGateway(
             "state" to outcome.state,
             "resultExpired" to outcome.resultExpired,
             "resultId" to outcome.resultId.takeIf { it.isNotBlank() },
-            "version" to outcome.version.takeIf { it.isNotBlank() },
+            "version" to outcome.version.takeIf { outcome.hasVersion() },
             "problem" to
                 if (outcome.hasProblem()) {
                     mapOf(
                         "code" to outcome.problem.code,
-                        "message" to outcome.problem.message,
+                        "message" to "The request could not be completed.",
                         "fields" to emptyList<Any>(),
                         "retryAfterMs" to null,
                     )

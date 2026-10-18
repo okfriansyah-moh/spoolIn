@@ -55,7 +55,7 @@ object ProposalContent {
     private fun valuesMap(values: MovieValues): Map<String, Any?> {
         val release =
             if (values.hasRelease()) {
-                buildMap {
+                buildMap<String, Int> {
                     put("year", values.release.year)
                     if (values.release.hasMonth()) put("month", values.release.month)
                     if (values.release.hasDay()) put("day", values.release.day)

@@ -13,6 +13,7 @@ compose_common_run "$root_dir" up -d --wait --wait-timeout 120 postgres || exit 
 for owner in core catalog media; do
   "$bin/migrate.sh" "$owner" || exit 4
 done
+"$bin/bootstrap-accounts.sh" || exit 4
 SPOOLIN_SEED_APPLY=1 "$bin/seed.sh" --apply || exit 4
 compose_common_run "$root_dir" up -d core catalog media || exit 5
 start=$SECONDS

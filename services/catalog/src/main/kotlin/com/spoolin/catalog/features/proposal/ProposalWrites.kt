@@ -25,8 +25,8 @@ import java.util.Base64
 import java.util.UUID
 import javax.sql.DataSource
 
-private const val PROPOSAL_TTL = Duration.ofMinutes(10)
-private const val APPROVAL_TTL = Duration.ofMinutes(2)
+private val PROPOSAL_TTL = Duration.ofMinutes(10)
+private val APPROVAL_TTL = Duration.ofMinutes(2)
 private const val MAX_PENDING = 20
 private const val APPROVE_METHOD = "/spoolin.v1.CatalogService/ApproveAndCreate"
 private const val REJECT_METHOD = "/spoolin.v1.CatalogService/RejectProposal"
@@ -52,16 +52,20 @@ class ProposalWrites(
             val operationId = parseId(request.context.operationId)
             val correlationId = parseId(request.context.correlationId)
             val actorScope = "account:${claims.accountId}"
+            val content = ProposalContent.fromProposal(request)
             val intent =
                 OperationIntent(
                     operationId,
                     actorScope,
                     "ProposeMovie",
                     request.context.policyRevision,
-                    mapOf("proposal" to "v1"),
+                    listOf(
+                        "proposalId" to request.proposalId,
+                        "expectedRevision" to request.expectedRevision.takeIf { request.hasExpectedRevision() }?.toString(),
+                        "content" to DeterministicContentSerializer.json(content),
+                    ),
                 )
             val challenge = randomChallenge()
-            val content = ProposalContent.fromProposal(request)
             val contentHash = DeterministicContentSerializer.digest(content)
             val outcome =
                 receipts.execute(intent, correlationId, true) { conn ->
@@ -99,7 +103,7 @@ class ProposalWrites(
                     .setValues(request.values)
                     .setContentHash(Base64.getEncoder().encodeToString(contentHash))
                     .setExpiresAt(protoTime(clock.instant().plus(PROPOSAL_TTL)))
-                    .setUiChallenge(challenge.toByteArray())
+                    .setUiChallenge(com.google.protobuf.ByteString.copyFromUtf8(challenge))
                     .build(),
             )
             response.onCompleted()
@@ -202,7 +206,11 @@ class ProposalWrites(
                 actorScope,
                 kind,
                 binding.policyRevision,
-                mapOf("proposalId" to proposalId.toString(), "revision" to revision.toString()),
+                listOf(
+                    "proposalId" to proposalId.toString(),
+                    "revision" to revision.toString(),
+                    "contentHash" to Base64.getEncoder().encodeToString(binding.contentHash),
+                ),
             )
         return receipts.execute(intent, correlationId, true) { conn ->
             applyApprovalMutation(conn, claims, binding, proposalId, revision, approve, operationId, correlationId)
