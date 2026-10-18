@@ -3,6 +3,9 @@ import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node';
 import { createSession } from '../gateway/session.js';
 import { connectorTokenDigest } from '../identity/connector.js';
+import { McpMetrics, mcpMetrics } from '../operations/metrics.js';
+import { CoreReadiness } from '../operations/readiness.js';
+import type { ReadinessProbe } from '../operations/readiness.js';
 import { ReadAdmission, ReadLimited } from './read-admission.js';
 export { composeProposeMovieToolResult } from '../tools/propose-movie-result.js';
 export { buildProposeMovieCallToolResult } from './propose-tool-result.js';
@@ -12,12 +15,19 @@ const MAX_SESSIONS = 100;
 const SESSION_IDLE_MS = 15 * 60_000;
 
 export class StreamableHttpTransport {
-  constructor(private readonly sessionFactory = createSession, private readonly admission = new ReadAdmission()) {}
+  constructor(private readonly sessionFactory = createSession, private readonly admission = new ReadAdmission(),
+    private readonly metrics: McpMetrics = mcpMetrics, private readonly readiness: ReadinessProbe = new CoreReadiness()) {}
   get port(): number {
     const address = this.listener?.address();
     if (!address || typeof address === 'string') throw new Error('MCP listener unavailable');
     return address.port;
   }
+  get healthPort(): number {
+    const address = this.health?.address();
+    if (!address || typeof address === 'string') throw new Error('MCP exporter unavailable');
+    return address.port;
+  }
+  private closing = false;
   private initializing = 0;
   private readonly sessions = new Map<string, Session>();
   private listener?: http.Server;
@@ -27,7 +37,7 @@ export class StreamableHttpTransport {
     const origins = new Set((process.env.MCP_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean));
     const hosts = new Set((process.env.MCP_ALLOWED_HOSTS ?? 'localhost,127.0.0.1,mcp').split(','));
     this.listener = http.createServer((req, res) => {
-      void this.handle(req, res, options.httpPath, origins, hosts).catch(() => {
+      void this.metrics.ingress(req, res, () => this.handle(req, res, options.httpPath, origins, hosts)).catch(() => {
         if (!res.headersSent) res.writeHead(503);
         res.end();
       });
@@ -37,18 +47,35 @@ export class StreamableHttpTransport {
     this.listener.requestTimeout = 30_000;
     this.listener.headersTimeout = 10_000;
     this.health = http.createServer((req, res) => {
-      res.writeHead(req.url === '/health' ? 200 : 404, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ status: 'UP' }));
+      void this.operational(req, res).catch(() => { res.writeHead(503).end(); });
     });
+    this.health.maxConnections = 16;
+    this.health.maxRequestsPerSocket = 100;
+    this.health.requestTimeout = 2000;
+    this.health.headersTimeout = 2000;
     await Promise.all([
       new Promise<void>((resolve, reject) => this.listener!.once('error', reject).listen(Number(process.env.MCP_PORT ?? '8787'), '0.0.0.0', resolve)),
       new Promise<void>((resolve, reject) => this.health!.once('error', reject).listen(options.healthPort, '0.0.0.0', resolve)),
     ]);
     this.cleanup = setInterval(() => {
       for (const [id, session] of this.sessions) {
-        if (Date.now() - session.touched > SESSION_IDLE_MS) { this.sessions.delete(id); void session.close(); }
+        if (Date.now() - session.touched > SESSION_IDLE_MS) { if (this.sessions.delete(id)) this.metrics.sessionClosed(); void session.close(); }
       }
     }, 60_000).unref();
+  }
+  private async operational(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (req.method !== 'GET') { res.writeHead(405, { Allow: 'GET' }).end(); return; }
+    if (req.url === '/health' || req.url === '/health/live') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({ status: 'UP' })); return;
+    }
+    if (req.url !== '/health/ready' && req.url !== '/metrics') { res.writeHead(404).end(); return; }
+    const ready = !this.closing && await this.readiness.check();
+    if (req.url === '/health/ready') {
+      res.writeHead(ready ? 200 : 503, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+        .end(JSON.stringify({ status: ready ? 'UP' : 'DOWN' })); return;
+    }
+    res.writeHead(200, { 'content-type': 'text/plain; version=0.0.4; charset=utf-8', 'cache-control': 'no-store' })
+      .end(this.metrics.render(this.sessions.size, this.initializing, ready));
   }
   private async handle(req: http.IncomingMessage, res: http.ServerResponse, path: string, origins: Set<string>, hosts: Set<string>): Promise<void> {
     const token = this.authorize(req, res, path, origins, hosts);
@@ -95,8 +122,9 @@ export class StreamableHttpTransport {
       onsessioninitialized: (value) => {
         sessionId = value;
         this.sessions.set(value, { transport, digest, touched: Date.now(), close: service.close });
+        this.metrics.sessionOpened();
       },
-      onsessionclosed: async (value) => { this.sessions.delete(value); await service.close(); },
+      onsessionclosed: async (value) => { if (this.sessions.delete(value)) this.metrics.sessionClosed(); await service.close(); },
     });
     try {
       await service.server.connect(transport);
@@ -118,6 +146,7 @@ export class StreamableHttpTransport {
     try {
       const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'));
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid request');
+      this.metrics.protocol(parsed);
       return parsed;
     } catch { res.writeHead(400).end(); return undefined; }
   }
@@ -142,8 +171,10 @@ export class StreamableHttpTransport {
     } : { problem }));
   }
   async close(): Promise<void> {
+    this.closing = true; this.readiness.close();
     if (this.cleanup) clearInterval(this.cleanup);
     await Promise.all([...this.sessions.values()].map((session) => session.close()));
+    this.sessions.forEach(() => this.metrics.sessionClosed());
     this.sessions.clear();
     this.listener?.closeAllConnections(); this.health?.closeAllConnections();
     await Promise.all([this.listener, this.health].filter((server) => server !== undefined).map((server) =>

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { McpServer, ResourceTemplate, fromJsonSchema } from '@modelcontextprotocol/server';
 import type { JsonSchemaType } from '@modelcontextprotocol/server';
+import { McpMetrics, mcpMetrics } from '../operations/metrics.js';
 import { GatewayClient } from '../operations/gateway-client.js';
 import { Proposal } from '../generated/spoolin/v1/spoolin.js';
 import { reviewHtml } from '../resources/review.js';
@@ -21,12 +22,12 @@ function result(value: Record<string, unknown>) {
   if (Buffer.byteLength(text) > 128 * 1024) throw new Error('RESOURCE_EXHAUSTED');
   return { content: [{ type: 'text' as const, text }], structuredContent: value };
 }
-function safe<T extends Record<string, unknown>>(handler: (args: T) => Promise<ReturnType<typeof result>>) {
-  return async (args: T) => {
+function safe<T extends Record<string, unknown>>(operation: string, metrics: McpMetrics, handler: (args: T) => Promise<ReturnType<typeof result>>) {
+  return async (args: T) => metrics.logical(operation, async () => {
     try { return await handler(args); } catch {
       return { isError: true, content: [{ type: 'text' as const, text: 'The gateway operation could not be completed.' }] };
     }
-  };
+  });
 }
 
 function registerResources(server: McpServer, proposals: Map<string, { content: Record<string, unknown>; expires: number }>): void {
@@ -42,7 +43,7 @@ function registerResources(server: McpServer, proposals: Map<string, { content: 
 
 type GatewayOperations = Pick<GatewayClient, 'policy' | 'context' | 'propose' | 'operation' | 'close'>;
 
-export async function createSession(token: string, gateway: GatewayOperations = new GatewayClient(token)): Promise<{ server: McpServer; close: () => Promise<void> }> {
+export async function createSession(token: string, gateway: GatewayOperations = new GatewayClient(token), metrics: McpMetrics = mcpMetrics): Promise<{ server: McpServer; close: () => Promise<void> }> {
   let policy;
   try { policy = await gateway.policy(); } catch (error) { gateway.close(); throw error; }
   const server = new McpServer({ name: 'spoolin', version: '1.0.0' });
@@ -50,14 +51,14 @@ export async function createSession(token: string, gateway: GatewayOperations = 
   registerResources(server, proposals);
   server.registerTool('movie_context', { description: 'Read current movie context and effective policy',
     inputSchema: input('movie_context'), outputSchema: output('context'),
-  }, safe(async (args) => result(contextProjection(await gateway.context(String(args.query), Number(args.limit ?? 20))))));
+  }, safe('movie_context', metrics, async (args) => result(contextProjection(await gateway.context(String(args.query), Number(args.limit ?? 20))))));
   server.registerTool('movie_operation', { description: 'Read the persisted operation result',
     inputSchema: input('movie_operation'), outputSchema: output('operationReceipt'),
-  }, safe(async (args) => result(outcomeProjection(await gateway.operation(String(args.operationId))))));
+  }, safe('movie_operation', metrics, async (args) => result(outcomeProjection(await gateway.operation(String(args.operationId))))));
   server.registerTool('propose_movie', { description: 'Prepare an immutable proposal for human review; does not publish',
     _meta: { ui: { resourceUri: 'ui://spoolin/movie-review' } },
     inputSchema: input('propose_movie'), outputSchema: output('proposalReview'),
-  }, safe(async (args) => {
+  }, safe('propose_movie', metrics, async (args) => {
     for (const [uri, entry] of proposals) if (entry.expires <= Date.now()) proposals.delete(uri);
     if (proposals.size >= 20) throw new Error('RESOURCE_EXHAUSTED');
     const { operationId, proposalId, expectedRevision, sources, ...values } = args;
