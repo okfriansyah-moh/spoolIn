@@ -309,7 +309,7 @@ class SelectionTests(unittest.TestCase):
     def test_make_passes_task_argument_without_shell_evaluation(self):
         with tempfile.TemporaryDirectory() as directory:
             sentinel = Path(directory) / "must-not-exist"
-            result = subprocess.run(["make", "test-unit", f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True)
+            result = subprocess.run(["make", "test-unit", f"TASK=T999; touch {sentinel}"], cwd=ROOT, capture_output=True, timeout=15)
             self.assertEqual(result.returncode, 2)
             self.assertFalse(sentinel.exists())
 
@@ -433,8 +433,8 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
     """Run the pinned detector on marked fragments, never a claimed workflow run."""
 
     marker = '[[allowlists]]\ndescription = "Independently verified shared policy source snapshot SHA-256 lines in workflow receipts"'
-    # cd55bc8 added two reviewed provenance blocks before this selected-policy marker.
-    baseline_sha256 = "aa3cf252a96dd98089c62d6f62b04010cd7fffaabc02b940c46c94e5c774e58b"
+    # eaa39c8 changed only the pinned bundle path in the previously reviewed policy prefix.
+    baseline_sha256 = "4e79459074b497e90b5833aa4e352ddc1583ac1a23669ee202c89b113751609d"
     shared_paths = (
         "libraries/backend-support/src/main/kotlin/com/spoolin/support/policy/ActorKeyRules.kt",
         "libraries/backend-support/src/test/kotlin/com/spoolin/support/policy/ActorKeyRulesTest.kt",
@@ -459,7 +459,7 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
         cls.binary = shutil.which("gitleaks")
         if not cls.binary:
             raise SetupError("Pinned Gitleaks executable is required")
-        tool = next(item for item in json.loads((ROOT / ".ai/bundles/1.1.1/docs/verification-tools.json").read_text())["tools"] if item["name"] == "gitleaks")
+        tool = next(item for item in json.loads((ROOT / ".ai" / json.loads((ROOT / ".ai/config.json").read_text())["bundle"] / "docs/verification-tools.json").read_text())["tools"] if item["name"] == "gitleaks")
         version = subprocess.run([cls.binary, "version"], capture_output=True, text=True, check=True).stdout.strip()
         if version != tool["version"].removeprefix("v"):
             raise SetupError("Gitleaks version differs from the selected tool pin")

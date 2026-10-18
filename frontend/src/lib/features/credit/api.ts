@@ -137,7 +137,7 @@ export async function fetchActivePeoplePage(
   if (typeof info.hasNextPage !== 'boolean')
     throw new Error('Credit people page unavailable.');
   const next = info.hasNextPage ? info.endCursor : null;
-  if (next !== null && (typeof next !== 'string' || !next || next === after))
+  if (info.hasNextPage && (typeof next !== 'string' || !next || next === after))
     throw new Error('Credit people cursor unavailable.');
   const nodes = page.nodes.map((node) => {
     const row = record(node);
@@ -272,7 +272,7 @@ export async function recoverCredit(
   operationId: string,
   csrf: string,
   signal: AbortSignal,
-): Promise<IdentityOutcome | null> {
+): Promise<(IdentityOutcome & Readonly<{ resultId: string | null; version: string | null }>) | null> {
   const document = `query CreditOperation($id: UUID!) {
     operation(id: $id, owner: CATALOG) {
       id state resultId version resultExpired problem { code retryAfterMs }
@@ -285,7 +285,11 @@ export async function recoverCredit(
       withCsrfAndSignal(csrf, signal),
     ),
   );
-  return data.operation === null
-    ? null
-    : operation(data.operation, operationId);
+  if (data.operation === null) return null;
+  const raw = record(data.operation);
+  const receipt = operation(raw, operationId);
+  const resultId = typeof raw.resultId === 'string' ? raw.resultId : null;
+  const version = typeof raw.version === 'string' && /^(0|[1-9][0-9]*)$/.test(raw.version) &&
+    BigInt(raw.version) <= 9223372036854775807n ? raw.version : null;
+  return Object.freeze({ ...receipt, resultId, version });
 }

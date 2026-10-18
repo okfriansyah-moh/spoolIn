@@ -18,7 +18,7 @@
   let original = $state<RoleIntent | null>(null);
   let message = $state('');
   let error = $state(false);
-  let feedback: HTMLDivElement;
+  let feedback = $state<HTMLDivElement>();
   const id = $props.id();
   let active: AbortController | null = null;
   onDestroy(() => active?.abort());

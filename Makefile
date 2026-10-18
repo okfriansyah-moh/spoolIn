@@ -1,4 +1,4 @@
-export SERVICE
+export SERVICE TASK
 
 .PHONY: start stop restart status logs seed test-unit test-integration
 
