@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Provision isolated synthetic credentials on a GitHub-hosted Linux runner only."""
+import argparse
 import base64
 import hashlib
 import hmac
@@ -95,11 +96,17 @@ def prepared_accounts(directory):
 def main():
     if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("RUNNER_ENVIRONMENT") != "github-hosted" or os.uname().sysname != "Linux":
         raise SystemExit("Refusing credentials provisioning outside GitHub-hosted Linux")
-    base = Path(os.environ["RUNNER_TEMP"]) / ("spoolin-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--namespace", choices=("primary", "restore"), default="primary")
+    namespace = parser.parse_args().namespace
+    suffix = "" if namespace == "primary" else "-restore"
+    base = Path(os.environ["RUNNER_TEMP"]) / ("spoolin-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"] + suffix)
     base.mkdir(mode=0o700)
     runtime = base / "runtime"
     runtime.mkdir(mode=0o700)
-    exports = {"SPOOLIN_INSTALLATION": "ci-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"], "SPOOLIN_LOCK_DIR": str(base / "locks"), "SPOOLIN_RUNTIME_CONFIG_DIR": str(runtime)}
+    exports = {"SPOOLIN_INSTALLATION": "ci-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"] + suffix, "SPOOLIN_LOCK_DIR": str(base / "locks"), "SPOOLIN_RUNTIME_CONFIG_DIR": str(runtime)}
+    if namespace == "restore":
+        exports.update({"CORE_HTTPS_PORT": "9443", "CORE_MANAGEMENT_PORT": "19443", "CATALOG_MANAGEMENT_PORT": "19444", "MEDIA_MANAGEMENT_PORT": "19445", "MCP_HTTP_PORT": "9787"})
     (base / "locks").mkdir(mode=0o700)
     command("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "2", "-subj", "/CN=Spoolin disposable CI CA", "-keyout", str(base / "ca-key"), "-out", str(base / "service-ca"))
     (base / "ca-key").chmod(0o600)
@@ -114,6 +121,8 @@ def main():
     prepared_accounts(runtime)
     exports["SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE"] = str(protected(base / "browser-maintainer-password", (runtime / "maintainer-password").read_bytes()))
     exports["SPOOLIN_ACCOUNT_INITIALIZATION_FILE"] = "/run/spoolin-config/account-initialization.json"
+    exports["SPOOLIN_RESTORE_CANARY_PASSWORD_FILE"] = exports["SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE"]
+    exports["SPOOLIN_RESTORE_CANARY_EMAIL"] = "maintainer@example.invalid"
     rate_agreement(runtime)
     for file in runtime.iterdir():
         file.chmod(0o600)
