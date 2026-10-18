@@ -103,6 +103,16 @@ class Application {
             mapOf("artwork" to Path.of("/var/spoolin/media")),
         )
 
+    @Bean
+    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics =
+        com.spoolin.support.observability.LogicalMetrics(registry, "media")
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+    fun logicalRpcMetrics(metrics: com.spoolin.support.observability.LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability.LogicalRpcMetricsInterceptor(metrics)
+
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
         com.spoolin.support.maintenance.MaintenanceDataSources.open(

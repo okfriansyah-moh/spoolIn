@@ -24,12 +24,14 @@ class BrowserGraphql(
     private val identity: org.springframework.beans.factory.ObjectProvider<BrowserIdentity>,
     private val requests: BrowserRequests,
     private val admission: org.springframework.beans.factory.ObjectProvider<BrowserAdmission>,
+    private val metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.LogicalMetrics>,
 ) {
     @RequestMapping("/graphql")
     fun execute(request: HttpServletRequest): DeferredResult<ResponseEntity<Map<String, Any?>>> {
         val started = System.nanoTime()
+        val observation = GraphqlObservation(metrics.ifAvailable, started)
         return try {
-            submit(request, started)
+            submit(request, started, observation)
         } catch (failure: BrowserRejected) {
             BrowserResponses.complete(failure(failure.status))
         } catch (_: GraphqlSizeExceeded) {
@@ -38,16 +40,18 @@ class BrowserGraphql(
             BrowserResponses.complete(failure(BrowserBoundary.BAD_REQUEST))
         } catch (_: IllegalArgumentException) {
             BrowserResponses.complete(failure(BrowserBoundary.BAD_REQUEST))
-        }
+        }.also(observation::attach)
     }
 
     private fun submit(
         request: HttpServletRequest,
         started: Long,
+        observation: GraphqlObservation,
     ): DeferredResult<ResponseEntity<Map<String, Any?>>> {
         boundary.check(request)
         val body = body(request)
         val parsed = GraphqlEnvelope(policy.policy).prepare(body.input)
+        observation.roots = parsed.roots.toSet()
         val identity = parsed.roots.any { it in setOf("register", "signIn", "signOut", "session") }
         val budget = if (identity) IDENTITY_BUDGET_MS else METADATA_BUDGET_MS
         val elapsed =

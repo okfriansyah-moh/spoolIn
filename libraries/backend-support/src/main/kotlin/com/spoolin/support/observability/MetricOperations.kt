@@ -43,6 +43,9 @@ internal object MetricOperations {
     fun rpc(service: String, method: String): MetricOperation? = rpc[service]?.get(method)
 
     fun named(service: String, name: String, boundary: String): MetricOperation? {
+        if (service == "core" && name == "GraphQL" && boundary == "ingress") {
+            return MetricOperation("GraphQL", "ingress", "", false)
+        }
         val graphql = if (service == "core") graphql(name) else null
         return (graphql ?: rpc[service]?.values?.find { it.name == name })?.takeIf { it.boundary == boundary }
     }
