@@ -2,10 +2,8 @@ package com.spoolin.catalog.features.proposal
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -15,7 +13,6 @@ import java.util.UUID
 
 private const val PROPOSAL_EXPIRY_SECONDS = 600L
 private const val PENDING_QUOTA = 20
-private const val OVERSIZED_SOURCE_BYTES = 140000
 
 class ProposalBoundaryTest {
     @Test
@@ -26,8 +23,10 @@ class ProposalBoundaryTest {
             assertEquals("PENDING", f.receipt(UUID.fromString(request.context.operationId)).first)
             val row = f.row(first.proposalId, first.revision)
             assertEquals("A movie", first.values.title)
-            assertArrayEquals(row.contentHash, java.util.Base64.getDecoder().decode(first.contentHash))
-            assertArrayEquals(row.challengeHash, MessageDigest.getInstance("SHA-256").digest(first.uiChallenge.toByteArray()))
+            assertTrue(MessageDigest.isEqual(row.contentHash, java.util.Base64.getDecoder().decode(first.contentHash)))
+            assertTrue(MessageDigest.isEqual(
+                row.challengeHash, MessageDigest.getInstance("SHA-256").digest(first.uiChallenge.toByteArray()),
+            ))
             f.now = f.now.plusSeconds(1)
             val replay = propose(f, request)
             assertEquals(first.expiresAt, replay.expiresAt)
@@ -60,7 +59,7 @@ class ProposalBoundaryTest {
             assertEquals(0, f.count("SELECT count(*) FROM operation_receipt WHERE id=?", operation))
             val second = propose(f, correction)
             assertEquals(2, second.revision)
-            assertNotEquals(first.uiChallenge, second.uiChallenge)
+            assertTrue(first.uiChallenge != second.uiChallenge, "A corrected revision requires a fresh challenge")
             assertEquals("SUPERSEDED", f.row(first.proposalId, 1).state)
             assertEquals(UUID.fromString(initial.context.operationId), f.row(first.proposalId, 2).operationId)
             val stale = proposal(first.proposalId, 1)
@@ -94,9 +93,8 @@ class ProposalBoundaryTest {
     fun `revision insert failure restores original review and leaves no receipt or partial revision`() {
         ProposalFixture().use { f ->
             val first = propose(f, proposal())
-            val correction = proposal(first.proposalId, 1).toBuilder().addSources(
-                Spoolin.FieldSource.newBuilder().setField("title").setUrl("x".repeat(OVERSIZED_SOURCE_BYTES)),
-            ).build()
+            f.rejectSecondRevision()
+            val correction = proposal(first.proposalId, 1)
             assertThrows(StatusRuntimeException::class.java) { propose(f, correction) }
             assertEquals("REVIEW", f.row(first.proposalId, 1).state)
             assertEquals(1, f.count("SELECT count(*) FROM movie_proposal WHERE id=?", UUID.fromString(first.proposalId)))

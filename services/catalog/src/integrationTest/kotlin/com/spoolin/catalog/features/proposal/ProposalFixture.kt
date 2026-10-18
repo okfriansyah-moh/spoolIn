@@ -12,6 +12,7 @@ import com.spoolin.support.identity.ActorSigner
 import com.spoolin.support.identity.ActorVerifier
 import com.spoolin.support.receipts.IntentHashes
 import com.spoolin.support.receipts.queryBound
+import com.spoolin.support.receipts.executeBound
 import io.grpc.Metadata
 import io.grpc.ServerInterceptors
 import io.grpc.netty.GrpcSslContexts
@@ -116,6 +117,21 @@ internal class ProposalFixture : AutoCloseable {
 
     fun count(sql: String, value: Any): Int = pool.connection.use {
         it.queryBound(sql, listOf(value)) { rows -> rows.getInt(1) }.single()
+    }
+
+    fun rejectSecondRevision() {
+        fixture.membership("catalog", "grant")
+        try {
+            fixture.pool("catalog", "migrator").use { source ->
+                source.connection.use { conn ->
+                    conn.executeBound(
+                        "ALTER TABLE movie_proposal ADD CONSTRAINT proposal_fixture_rollback CHECK (revision <> 2)",
+                    )
+                }
+            }
+        } finally {
+            fixture.membership("catalog", "revoke")
+        }
     }
 
     fun receipt(id: UUID): Pair<String, String?> = pool.connection.use {
