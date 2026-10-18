@@ -288,7 +288,7 @@ jobs:
           NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
         run: |
           if [[ "$ACCEPTANCE_MODE" == runtime ]]; then
-            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --project chromium-1440-dark --project chromium-390-light --project account-chromium --project operations-chromium --max-failures=1
+            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --project chromium-1440-dark --project chromium-390-light --project chromium-responsive-matrix --project account-chromium --project operations-chromium --max-failures=1
           else
             npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --max-failures=1
           fi

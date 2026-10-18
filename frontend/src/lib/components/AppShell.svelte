@@ -50,6 +50,7 @@
   function isCurrentRoute(href: string): boolean {
     return (
       currentPath === href ||
+      (href === '/' && currentPath.startsWith('/titles/')) ||
       (href !== '/' && currentPath.startsWith(`${href}/`))
     );
   }

@@ -366,3 +366,13 @@ it('large genre collections retain every native choice and selection inside a la
   for (const genre of genres) expect(body).toContain(`value="${genre.id}"`);
   expect(body.match(/ checked/g)).toHaveLength(1);
 });
+
+it('marks the catalog as current on a title detail route', () => {
+  const body = render(AppShell, {
+    props: {
+      children,
+      currentPath: '/titles/seeded-title-id',
+    },
+  }).body;
+  expect(body).toMatch(/href="\/" aria-current="page">Catalog/);
+});

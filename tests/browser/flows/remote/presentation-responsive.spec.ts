@@ -127,9 +127,19 @@ test('Responsive route review: production pages reflow across approved widths an
         const currentNavigation = page
           .getByRole('navigation', { name: 'Main navigation' })
           .locator('[aria-current="page"]');
-        if (route.path.startsWith('/manage/movies/'))
+        if (route.path === '/' || route.path.startsWith('/titles/'))
+          await expect(currentNavigation).toHaveText('Catalog');
+        else if (route.path === '/people' || route.path.startsWith('/people/'))
+          await expect(currentNavigation).toHaveText('People');
+        else if (
+          route.path === '/manage/movies' ||
+          route.path.startsWith('/manage/movies/')
+        )
           await expect(currentNavigation).toHaveText('Movies');
-        else if (route.path.startsWith('/manage/people/'))
+        else if (
+          route.path === '/manage/people' ||
+          route.path.startsWith('/manage/people/')
+        )
           await expect(currentNavigation).toHaveText('Manage people');
         observations.push({
           route: route.path,

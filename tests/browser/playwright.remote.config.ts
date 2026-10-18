@@ -41,7 +41,7 @@ export default defineConfig({
         (['dark', 'light'] as const).map((colorScheme) => ({
           name: `${browserName}-${width}-${colorScheme}`,
           testMatch:
-            /(?:catalog|manage|artwork|lifecycle|audit|presentation(?:-responsive)?|references)\.spec\.ts/,
+            /(?:catalog|manage|artwork|lifecycle|audit|presentation|references)\.spec\.ts/,
           metadata: { inputMethods: ['pointer', 'keyboard'], sourceStates: 97 },
           grep: /^(?!.*input-touch).*$/,
           use: {
@@ -71,6 +71,21 @@ export default defineConfig({
         })),
       ),
     ),
+    {
+      name: 'chromium-responsive-matrix',
+      testMatch: 'presentation-responsive.spec.ts',
+      metadata: {
+        inputMethods: ['pointer', 'keyboard'],
+        scope: 'Production route review across five widths and both themes',
+      },
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 1440, height: 900 },
+        colorScheme: 'dark',
+        reducedMotion: 'reduce',
+        storageState: authenticatedStatePath(),
+      },
+    },
     {
       name: 'operations-chromium',
       testMatch: 'operations.spec.ts',
