@@ -160,10 +160,10 @@ private fun retryAfter(response: HttpServletResponse, failure: RateLimited) {
     response.sendError(HTTP_RATE_LIMITED)
 }
 
-private fun artworkStatus(failure: StatusRuntimeException, public: Boolean): Int = when (failure.status.code) {
+private fun artworkStatus(failure: StatusRuntimeException, publicRead: Boolean): Int = when (failure.status.code) {
     Status.Code.NOT_FOUND -> HttpServletResponse.SC_NOT_FOUND
     Status.Code.UNAUTHENTICATED -> HttpServletResponse.SC_UNAUTHORIZED
-    Status.Code.PERMISSION_DENIED -> if (public) HttpServletResponse.SC_NOT_FOUND else HttpServletResponse.SC_FORBIDDEN
+    Status.Code.PERMISSION_DENIED -> if (publicRead) HttpServletResponse.SC_NOT_FOUND else HttpServletResponse.SC_FORBIDDEN
     else -> HttpServletResponse.SC_SERVICE_UNAVAILABLE
 }
 
