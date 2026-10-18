@@ -16,7 +16,7 @@ class ConnectorAuthInterceptor : ServerInterceptor {
         headers: Metadata,
         next: ServerCallHandler<ReqT, RespT>,
     ): ServerCall.Listener<ReqT> {
-        if (!call.methodDescriptor.serviceName.endsWith("McpGatewayService")) {
+        if (call.methodDescriptor.serviceName?.endsWith("McpGatewayService") != true) {
             return next.startCall(call, headers)
         }
         val token = bearerToken(headers.get(AUTHORIZATION))

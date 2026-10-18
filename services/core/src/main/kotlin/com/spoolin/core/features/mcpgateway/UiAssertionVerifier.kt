@@ -21,6 +21,12 @@ class UiAssertionVerifier(
     private val mapper: ObjectMapper,
     private val clock: Clock = Clock.systemUTC(),
 ) {
+    init {
+        require(!enabled || (secret?.size == 32 && keyId?.matches(Regex("[A-Za-z0-9_-]{1,64}")) == true)) {
+            "Invalid private UI assertion configuration"
+        }
+    }
+
     private val consumed = ConcurrentHashMap<String, Long>()
 
     fun requireTrustedUi(connector: ConnectorRecord, input: Spoolin.ApprovalInput, method: String) {
