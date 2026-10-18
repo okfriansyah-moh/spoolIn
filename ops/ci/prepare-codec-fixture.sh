@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 [[ "${GITHUB_ACTIONS:-}" == true && "${RUNNER_ENVIRONMENT:-}" == github-hosted && "${RUNNER_OS:-}" == Linux ]] || {
-  printf '%s\n' 'Pinned codec preparation requires a verified GitHub-hosted Linux runner.' >&2
+  python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
+printf '%s\n' 'Pinned codec preparation requires a verified GitHub-hosted Linux runner.' >&2
   exit 2
 }
 [[ "${ImageOS:-}" == ubuntu24 && -n "${RUNNER_TEMP:-}" && -n "${GITHUB_RUN_ID:-}" && -n "${GITHUB_RUN_ATTEMPT:-}" ]] || {
@@ -56,6 +57,8 @@ export LD_LIBRARY_PATH="/usr/local/lib/x86_64-linux-gnu:/usr/local/lib/aarch64-l
 } > artifacts/source-checks/codec-environment.txt
 # Exercise the actual helper under production namespace/mount/resource restrictions.
 # A denied namespace is a real setup failure; do not weaken AppArmor, seccomp or global user-namespace controls here.
+python3 ops/ci/codec-diagnostics.py --output artifacts/source-checks/codec-host-before.json
+probe_started="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 : > "$staging/dimensions"
 if ! timeout 15s /usr/bin/bwrap --unshare-all --die-with-parent --new-session \
   --ro-bind /usr /usr --ro-bind /lib /lib --ro-bind /lib64 /lib64 --proc /proc --dev /dev \
@@ -66,6 +69,10 @@ if ! timeout 15s /usr/bin/bwrap --unshare-all --die-with-parent --new-session \
   /usr/bin/prlimit --as=268435456 --cpu=5 --fsize=64 --nofile=64 -- \
   /usr/local/bin/spoolin-image-header /input /output/dimensions \
   > artifacts/source-checks/codec-sandbox-preflight.log 2>&1; then
+  python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
+  # The input and arguments above are fixed public fixture values; bound retained stderr and CI output.
+  head -c 4096 artifacts/source-checks/codec-sandbox-preflight.log > "$staging/preflight-bounded"
+  mv "$staging/preflight-bounded" artifacts/source-checks/codec-sandbox-preflight.log
   cat artifacts/source-checks/codec-sandbox-preflight.log >&2
   printf '%s\n' 'Production codec sandbox preflight failed. Inspect the runner namespace policy and dependencies; no unrestricted fallback was used.' >&2
   exit 2
@@ -74,4 +81,5 @@ fi
   printf '%s\n' 'Production header helper did not return valid bounded dimensions.' >&2
   exit 2
 }
+python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
 printf '%s\n' 'Pinned codec and namespace prerequisites are ready. Actual artworkIntegrationTest execution remains required.'
