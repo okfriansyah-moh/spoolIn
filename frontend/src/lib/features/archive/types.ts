@@ -16,4 +16,7 @@ export type ArchiveListState =
       kind: 'ready';
       tab: ArchiveTab;
       items: readonly ArchiveListItem[];
+      pageInfo?: import('../../state/pagination').PageInfo;
+      pageError?: string | null;
+      loadingMore?: boolean;
     };

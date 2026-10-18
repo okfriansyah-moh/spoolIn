@@ -10,6 +10,7 @@
    * SSR note: hero/head always rendered; interactive sections are client-side only.
    */
   import { onMount } from 'svelte';
+  import { historyCursor } from '../lib/state/pagination';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
@@ -49,10 +50,9 @@
 
   // Non-reactive: track last criteria dispatched to controller to avoid duplicate sends.
   let lastDispatched: Criteria = EMPTY_CRITERIA;
-  // Non-reactive: debounce timer for text changes.
-  let textDebounceTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
   // Non-reactive: guard to prevent URL sync loop.
   let applyingUrlCriteria = false;
+  let lastPageCursor: string | null = null;
 
   const filterTextErrorId = 'catalog-text-error';
 
@@ -78,11 +78,11 @@
     const initial = parseCriteria(page.url.searchParams);
     criteria = { ...initial };
     lastDispatched = initial;
-    controller.load(initial);
+    lastPageCursor = historyCursor(page.state, 'catalogCursor');
+    controller.load(initial, lastPageCursor);
 
     return () => {
       unsubscribe();
-      globalThis.clearTimeout(textDebounceTimer);
       controller?.dispose();
     };
   });
@@ -94,28 +94,14 @@
     const qs = params.toString();
     const root = resolve('/');
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve catalog query string on /
-    void goto(qs ? `${root}?${qs}` : root, { replaceState: true });
+    void goto(qs ? `${root}?${qs}` : root, { replaceState: true, state: { ...page.state, catalogCursor: null } });
   }
 
   // Dispatch criteria to the controller, with optional debounce for text.
   function dispatch(c: Criteria, textChanged: boolean): void {
     lastDispatched = c;
-    if (textChanged) {
-      // Text changes: debounce 250ms and validate length.
-      globalThis.clearTimeout(textDebounceTimer);
-      if (!validateText(c.text, MAX_SEARCH_CODE_POINTS).valid) {
-        // Invalid text: update controller immediately so it shows 'invalid' state
-        // without issuing a query.
-        controller?.setCriteria(c);
-        return;
-      }
-      textDebounceTimer = globalThis.setTimeout(() => {
-        controller?.setCriteria(c);
-      }, 250);
-    } else {
-      // Filter changes (kind/genre/year/month): apply immediately.
-      controller?.setCriteria(c);
-    }
+    lastPageCursor = null;
+    controller?.setCriteria(c, { debounce: textChanged });
   }
 
   // Called when CatalogFilters mutates criteria via two-way binding.
@@ -133,16 +119,7 @@
     }
 
     // Skip if this criteria was already dispatched (e.g., set from URL sync below).
-    if (
-      safe.text === lastDispatched.text &&
-      safe.kind === lastDispatched.kind &&
-      safe.year === lastDispatched.year &&
-      safe.month === lastDispatched.month &&
-      [...safe.genres].sort().join(',') ===
-        [...lastDispatched.genres].sort().join(',')
-    ) {
-      return;
-    }
+    if (sameCriteria(safe, lastDispatched)) return;
 
     const textChanged = safe.text !== lastDispatched.text;
     pushUrl(safe);
@@ -156,21 +133,34 @@
     const fromUrl = parseCriteria(params);
     const cur = criteria;
 
-    const same =
-      fromUrl.text === cur.text &&
-      fromUrl.kind === cur.kind &&
-      fromUrl.year === cur.year &&
-      fromUrl.month === cur.month &&
-      [...fromUrl.genres].sort().join(',') === [...cur.genres].sort().join(',');
+    const cursor = historyCursor(page.state, 'catalogCursor');
+    const same = cursor === lastPageCursor && sameCriteria(fromUrl, cur);
 
     if (!same && !applyingUrlCriteria) {
       applyingUrlCriteria = true;
       criteria = { ...fromUrl };
       lastDispatched = fromUrl;
-      controller.load(fromUrl);
+      lastPageCursor = cursor;
+      controller.load(fromUrl, cursor);
       applyingUrlCriteria = false;
     }
   });
+
+  function sameCriteria(a: Criteria, b: Criteria): boolean {
+    return a.text === b.text && a.kind === b.kind && a.year === b.year && a.month === b.month &&
+      [...a.genres].sort().join(',') === [...b.genres].sort().join(',');
+  }
+
+  async function nextTitlesPage() {
+    const cursor = catalogState.pageInfo?.endCursor;
+    if (!cursor || !controller) return;
+    const criteriaKey = JSON.stringify(controller.snapshot.criteria);
+    await controller.loadMore();
+    if (controller.snapshot.pageError || JSON.stringify(controller.snapshot.criteria) !== criteriaKey) return;
+    lastPageCursor = cursor;
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
+    await goto(page.url.href, { state: { ...page.state, catalogCursor: cursor }, noScroll: true, keepFocus: true });
+  }
 
   const textInvalid = $derived(
     mounted &&
@@ -261,6 +251,11 @@
           </li>
         {/each}
       </ul>
+      {#if catalogState.pageError}<p role="alert">{catalogState.pageError}</p>{/if}
+      {#if catalogState.pageInfo?.hasNextPage}<button type="button" disabled={catalogState.loadingMore}
+        aria-busy={catalogState.loadingMore} onclick={() => void nextTitlesPage()}>
+        {catalogState.pageError ? 'Retry next titles page' : catalogState.loadingMore ? 'Loading more titles…' : 'Next titles page'}
+      </button>{/if}
     </section>
   {/if}
 {:else}

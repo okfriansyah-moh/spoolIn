@@ -104,7 +104,7 @@
     </table>
   </div>
 {/if}
-{#if permitted && (hasNextPage || message.includes('Retry'))}
+{#if (permitted && hasNextPage) || message.includes('Retry')}
   <button
     type="button"
     class="secondary"

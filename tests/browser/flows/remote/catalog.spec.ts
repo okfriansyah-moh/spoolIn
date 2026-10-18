@@ -120,3 +120,31 @@ test('ATDD-006/007/014 partial: visible search and filter changes produce actual
   await expect(page.getByLabel('Month', { exact: true })).toHaveValue('');
   await capture(page, info, ['ATDD-006', 'ATDD-014'], 'filters-cleared');
 });
+
+test('ATDD-001 partial: actual catalog cursor pages survive reload and browser Back', async ({ page }, info) => {
+  await page.goto('/');
+  await expect(page.getByRole('list', { name: 'Titles' })).toBeVisible();
+  const first = await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  const response = page.waitForResponse((item) => {
+    if (new URL(item.url()).pathname !== '/graphql') return false;
+    const input = item.request().postDataJSON();
+    return input?.query?.includes('query Titles(') && typeof input?.variables?.after === 'string';
+  });
+  await page.getByRole('button', { name: 'Next titles page', exact: true }).click();
+  const actual = await response;
+  expect(actual.ok()).toBe(true);
+  const body = await actual.json();
+  expect(body.errors).toBeUndefined();
+  expect(body.data.titles.nodes.length).toBeGreaterThan(0);
+  const nextId = String(body.data.titles.nodes[0].id);
+  await expect(page.locator(`.title-card h3 a[href$="/${nextId}"]`)).toBeVisible();
+  const second = await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  expect(second.every((href) => !first.includes(href))).toBe(true);
+  await capture(page, info, ['ATDD-001'], 'catalog-next-page');
+  await page.reload();
+  await expect(page.locator(`.title-card h3 a[href$="/${nextId}"]`)).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('.title-card h3 a').first()).toHaveAttribute('href', first[0]!);
+  expect(await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')))).toEqual(first);
+  await capture(page, info, ['ATDD-001'], 'catalog-cursor-history-restored');
+});

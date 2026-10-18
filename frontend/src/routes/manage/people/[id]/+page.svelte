@@ -18,35 +18,36 @@
   let controller: ReturnType<typeof createPersonEditorController> | null = null;
   const personId = $derived(page.params.id ?? '');
 
-  onMount(() => {
-    if (!isRecordId(personId)) {
-      ready = true;
-      return;
-    }
+  let mounted = $state(false);
+  let bootstrapError = $state('');
+  let cleanupEditor = () => {};
+  onMount(() => { mounted = true; return () => cleanupEditor(); });
+  $effect(() => { if (mounted) loadEditor(personId); });
+
+  function loadEditor(id: string) {
+    cleanupEditor();
+    ready = false; editorState = null; bootstrapError = '';
+    if (!isRecordId(id)) { ready = true; return; }
     const transport = createTransport();
-    controller = createPersonEditorController(
-      transport,
-      createDraftSource(transport),
-      'edit',
-      personId,
-    );
-    const unsubscribe = controller.subscribe((next) => {
-      editorState = next;
-    });
+    const next = createPersonEditorController(transport, createDraftSource(transport), 'edit', id);
+    controller = next;
+    const unsubscribe = next.subscribe((state) => { editorState = state; });
     const abort = new AbortController();
-    void (async () => {
-      const context = await loadWriteContext(abort.signal);
+    cleanupEditor = () => { abort.abort(); unsubscribe(); next.dispose(); };
+    void bootstrapEditor(next, abort.signal);
+  }
+
+  async function bootstrapEditor(next: NonNullable<typeof controller>, signal: AbortSignal) {
+    try {
+      const context = await loadWriteContext(signal);
       const policy = sessionCtl.snapshot.policy;
-      if (!context || !policy || abort.signal.aborted) return;
-      await controller?.bootstrap(policy, context, abort.signal);
-      ready = true;
-    })();
-    return () => {
-      abort.abort();
-      unsubscribe();
-      controller?.dispose();
-    };
-  });
+      if (signal.aborted) return;
+      if (!context || !policy) { bootstrapError = 'Check your Maintainer session before loading this editor.'; return; }
+      await next.bootstrap(policy, context, signal);
+      if (!signal.aborted) ready = true;
+    } catch { if (!signal.aborted) bootstrapError = 'Person editor could not load. Retry the read.'; }
+  }
+
 </script>
 
 <svelte:head><title>Edit person · SpoolIn</title></svelte:head>
@@ -89,6 +90,9 @@
       disabled={editorState.phase === 'submitting'}
     />
   {/if}
+{:else if bootstrapError}
+  <p role="alert">{bootstrapError}</p>
+  <button type="button" onclick={() => loadEditor(personId)}>Retry person editor</button>
 {:else}
   <p role="status">Loading person editor…</p>
 {/if}

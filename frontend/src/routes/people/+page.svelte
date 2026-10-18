@@ -12,7 +12,7 @@
   import { createTransport } from '../../lib/transport/graphql';
   import { fetchPeople } from '../../lib/features/person/read/api';
   import type { PeopleState } from '../../lib/features/person/read/types';
-  import { isRecordId } from '../../lib/components/safe-url';
+  import { readPageInfo, historyCursor } from '../../lib/state/pagination';
 
   let peopleState = $state<PeopleState>({
     kind: 'loading',
@@ -26,17 +26,24 @@
   let generation = 0;
   let activeController: AbortController | null = null;
 
+  let mounted = $state(false);
+  let requested = '';
   onMount(() => {
-    const initial = page.url.searchParams.get('q') ?? '';
-    searchText = initial;
-    void load(initial);
-    return () => {
-      globalThis.clearTimeout(debounceTimer);
-      activeController?.abort();
-    };
+    mounted = true;
+    return () => { globalThis.clearTimeout(debounceTimer); activeController?.abort(); };
+  });
+  $effect(() => {
+    if (!mounted) return;
+    const text = page.url.searchParams.get('q') ?? '';
+    const after = historyCursor(page.state, 'peopleCursor');
+    const key = JSON.stringify([text, after]);
+    if (key === requested) return;
+    requested = key;
+    searchText = text;
+    void load(text, after);
   });
 
-  async function load(text: string): Promise<void> {
+  async function load(text: string, after: string | null = historyCursor(page.state, 'peopleCursor')): Promise<void> {
     const gen = ++generation;
     activeController?.abort();
     activeController = new AbortController();
@@ -46,7 +53,7 @@
     try {
       const result = await fetchPeople(
         createTransport(),
-        text ? { text } : {},
+        { ...(text ? { text } : {}), after },
         signal,
       );
       if (gen !== generation) return;
@@ -60,7 +67,7 @@
         kind: isEmpty ? (text ? 'no-match' : 'empty') : 'people',
         text,
         people,
-        pageInfo: result.pageInfo,
+        pageInfo: readPageInfo(result.pageInfo, after),
       };
     } catch (err) {
       if (gen !== generation) return;
@@ -79,20 +86,24 @@
         value
           ? `${resolve('/people')}?q=${encodeURIComponent(value)}`
           : resolve('/people'),
-        { replaceState: false },
+        { replaceState: false, state: { ...page.state, peopleCursor: null } },
       );
       /* eslint-enable svelte/no-navigation-without-resolve */
-      void load(value);
     }, 250);
   }
 
   function clearSearch() {
+    globalThis.clearTimeout(debounceTimer);
     searchText = '';
-    void goto(resolve('/people'), { replaceState: false });
-    void load('');
+    void goto(resolve('/people'), { replaceState: false, state: { ...page.state, peopleCursor: null } });
   }
 
-  void isRecordId; // ensure import is used
+  function nextPage() {
+    const cursor = peopleState.pageInfo?.endCursor;
+    if (!cursor) return;
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
+    void goto(page.url.href, { state: { ...page.state, peopleCursor: cursor }, noScroll: true, keepFocus: true });
+  }
 </script>
 
 <svelte:head><title>People · SpoolIn</title></svelte:head>
@@ -145,4 +156,5 @@
       </li>
     {/each}
   </ul>
+  {#if peopleState.pageInfo?.hasNextPage}<button type="button" onclick={nextPage}>Next people page</button>{/if}
 {/if}

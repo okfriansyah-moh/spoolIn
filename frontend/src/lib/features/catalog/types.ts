@@ -57,6 +57,8 @@ export type CatalogState = Readonly<{
   pageInfo: Readonly<{ endCursor: string | null; hasNextPage: boolean }> | null;
   /** For invalid state: which field has correction */
   invalidField: 'text' | 'month' | null;
+  loadingMore?: boolean;
+  pageError?: string | null;
 }>;
 
 export const MAX_SEARCH_CODE_POINTS = 200;

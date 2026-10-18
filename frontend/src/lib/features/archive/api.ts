@@ -1,17 +1,20 @@
 import type { GraphqlRequest, RequestOptions } from '../../transport/graphql';
 import { mutation } from '../session/outcome';
+import { readPageInfo, type PageSlice } from '../../state/pagination';
 import { record } from '../session/parse';
 import type { ArchiveListItem, ArchiveTab } from './types';
 
-const ARCHIVED_TITLES = `query ArchivedTitles($first: Int = 48) {
-  managedTitles(state: ARCHIVED, first: $first) {
+const ARCHIVED_TITLES = `query ArchivedTitles($first: Int = 48, $after: Cursor) {
+  managedTitles(state: ARCHIVED, first: $first, after: $after) {
     nodes { id title state version }
+    pageInfo { endCursor hasNextPage }
   }
 }`;
 
-const ARCHIVED_PEOPLE = `query ArchivedPeople($first: Int = 48) {
-  managedPeople(state: ARCHIVED, first: $first) {
+const ARCHIVED_PEOPLE = `query ArchivedPeople($first: Int = 48, $after: Cursor) {
+  managedPeople(state: ARCHIVED, first: $first, after: $after) {
     nodes { id name state version }
+    pageInfo { endCursor hasNextPage }
   }
 }`;
 
@@ -64,31 +67,28 @@ const PERSON_LIFECYCLE = `mutation PersonLifecycle(
 export type ArchiveRow = ArchiveListItem;
 
 export async function fetchArchived(
-  request: GraphqlRequest,
-  tab: ArchiveTab,
-  csrf: string,
-  signal?: AbortSignal,
+  request: GraphqlRequest, tab: ArchiveTab, csrf: string, signal?: AbortSignal,
 ): Promise<readonly ArchiveRow[]> {
+  return (await fetchArchivedPage(request, tab, csrf, null, signal)).nodes;
+}
+
+function archiveRow(node: unknown, tab: ArchiveTab): ArchiveRow {
+  const row = record(node);
+  return Object.freeze({ id: String(row.id), label: String(tab === 'movies' ? row.title : row.name),
+    state: String(row.state), version: String(row.version) });
+}
+
+export async function fetchArchivedPage(
+  request: GraphqlRequest, tab: ArchiveTab, csrf: string, after: string | null, signal?: AbortSignal,
+): Promise<PageSlice<ArchiveRow>> {
   const query = tab === 'movies' ? ARCHIVED_TITLES : ARCHIVED_PEOPLE;
   const options: RequestOptions = { csrf };
   if (signal) options.signal = signal;
-  const data = record(await request(query, { first: 48 }, options));
-  const page = record(
-    tab === 'movies' ? data.managedTitles : data.managedPeople,
-  );
-  const nodes = page.nodes;
-  if (!Array.isArray(nodes)) throw new Error('Archives unavailable.');
-  return Object.freeze(
-    nodes.map((node) => {
-      const row = node as Record<string, unknown>;
-      return {
-        id: String(row.id),
-        label: String(tab === 'movies' ? row.title : row.name),
-        state: String(row.state),
-        version: String(row.version),
-      };
-    }),
-  );
+  const data = record(await request(query, { first: 48, after }, options));
+  const page = record(tab === 'movies' ? data.managedTitles : data.managedPeople);
+  if (!Array.isArray(page.nodes)) throw new Error('Archives unavailable.');
+  return Object.freeze({ nodes: Object.freeze(page.nodes.map((node) => archiveRow(node, tab))),
+    pageInfo: readPageInfo(page.pageInfo, after) });
 }
 
 export async function fetchDeletionImpact(

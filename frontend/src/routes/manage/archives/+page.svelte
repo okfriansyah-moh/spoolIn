@@ -2,12 +2,13 @@
   import ConfirmDialog from '../../../lib/components/ConfirmDialog.svelte';
   import { recoverCatalogOperation } from '../../../lib/features/movie/api';
   import { LifecycleFailure } from '../../../lib/features/archive/api';
+  import { appendDistinct, type PageInfo } from '../../../lib/state/pagination';
   import { onMount } from 'svelte';
   import { createTransport } from '../../../lib/transport/graphql';
   import { sessionController } from '../../../lib/features/session/context';
   import { loadWriteContext } from '../../../lib/features/movie/write-context';
   import {
-    fetchArchived,
+    fetchArchivedPage,
     fetchDeletionImpact,
     runMovieLifecycle,
     runPersonLifecycle,
@@ -40,9 +41,19 @@
     impactToken?: string;
   };
   let intent = $state<Intent | null>(null);
+  let listGeneration = 0;
+  let activeList: AbortController | null = null;
+
+  function listCurrent(generation: number, signal?: AbortSignal): boolean {
+    return generation === listGeneration && !signal?.aborted;
+  }
 
   async function reload(signal?: AbortSignal) {
     if (!csrf) return;
+    const generation = ++listGeneration;
+    const selectedTab = tab;
+    activeList?.abort();
+    activeList = new AbortController();
     listState = { kind: 'loading' };
     const role = sessionCtl.snapshot.identity?.role;
     if (role !== 'MAINTAINER') {
@@ -50,12 +61,15 @@
       return;
     }
     try {
-      const items = await fetchArchived(createTransport(), tab, csrf, signal);
+      const page = await fetchArchivedPage(createTransport(), selectedTab, csrf, null, activeList.signal);
+      if (!listCurrent(generation, signal)) return;
+      const items = page.nodes;
       listState =
         items.length === 0
           ? { kind: 'empty' }
-          : { kind: 'ready', tab, items: [...items] };
+          : { kind: 'ready', tab: selectedTab, items: [...items], pageInfo: page.pageInfo };
     } catch {
+      if (!listCurrent(generation, signal)) return;
       listState = {
         kind: 'error',
         message: 'Archives could not be loaded. Try again.',
@@ -66,12 +80,33 @@
   onMount(() => {
     const abort = new AbortController();
     void loadWriteContext(abort.signal).then((context) => {
-      if (!context || abort.signal.aborted) return;
+      if (abort.signal.aborted) return;
+      if (!context) { listState = { kind: 'denied' }; return; }
       csrf = context.csrf;
       void reload(abort.signal);
-    });
-    return () => abort.abort();
+    }).catch(() => { if (!abort.signal.aborted) listState = { kind: 'error', message: 'Archives could not be loaded. Reload this page to check your current session.' }; });
+    return () => { abort.abort(); activeList?.abort(); listGeneration += 1; };
   });
+
+  function archivePageReady(state: ArchiveListState): state is Extract<ArchiveListState, { kind: 'ready' }> & { pageInfo: PageInfo } {
+    return state.kind === 'ready' && !state.loadingMore && !!state.pageInfo?.hasNextPage;
+  }
+
+  async function moreArchived() {
+    const current = listState;
+    if (!archivePageReady(current) || !activeList) return;
+    const generation = listGeneration;
+    const signal = activeList.signal;
+    listState = { ...current, loadingMore: true, pageError: null };
+    try {
+      const page = await fetchArchivedPage(createTransport(), current.tab, csrf, current.pageInfo.endCursor, signal);
+      if (generation !== listGeneration || signal.aborted) return;
+      listState = { ...current, items: appendDistinct(current.items, page.nodes), pageInfo: page.pageInfo, loadingMore: false };
+    } catch {
+      if (generation === listGeneration && !signal.aborted)
+        listState = { ...current, loadingMore: false, pageError: 'More archives could not be loaded. Retry this page.' };
+    }
+  }
 
   async function switchTab(next: ArchiveTab) {
     tab = next;
@@ -249,6 +284,7 @@
     <p role="alert">You do not have access to private archives.</p>
   {:else if listState.kind === 'error'}
     <p role="alert">{listState.message}</p>
+    {#if csrf}<button type="button" onclick={() => void reload()}>Retry archives</button>{/if}
   {:else if listState.kind === 'empty'}
     <p>No archived records in this view.</p>
   {:else}
@@ -269,6 +305,10 @@
         </li>
       {/each}
     </ul>
+    {#if listState.pageError}<p role="alert">{listState.pageError}</p>{/if}
+    {#if listState.pageInfo?.hasNextPage}<button type="button" disabled={listState.loadingMore || busy || !!intent} onclick={() => void moreArchived()}>
+      {listState.pageError ? 'Retry more archives' : 'Load more archives'}
+    </button>{/if}
   {/if}
 
   <p role="status">{message}</p>

@@ -8,6 +8,8 @@
   import type { ListState } from '../../../lib/features/person/write/types';
 
   let listState = $state<ListState>({ kind: 'loading' });
+  let reload = async () => {};
+  let loadMore = async () => {};
 
   onMount(() => {
     const transport = createTransport();
@@ -16,10 +18,16 @@
       listState = next;
     });
     const abort = new AbortController();
-    void loadWriteContext(abort.signal).then((context) => {
-      if (!context || abort.signal.aborted) return;
-      void controller.load(context.csrf, abort.signal);
-    });
+    reload = async () => {
+      try {
+        const context = await loadWriteContext(abort.signal);
+        if (abort.signal.aborted) return;
+        if (!context) { listState = { kind: 'failure' }; return; }
+        loadMore = () => controller.loadMore(context.csrf, abort.signal);
+        await controller.load(context.csrf, abort.signal);
+      } catch { if (!abort.signal.aborted) listState = { kind: 'failure' }; }
+    };
+    void reload();
     return () => {
       abort.abort();
       unsubscribe();
@@ -37,6 +45,7 @@
 {:else if listState.kind === 'failure'}
   <Notice title="People could not load" tone="error">
     <p>Try again after confirming your Maintainer session.</p>
+    <button type="button" onclick={() => void reload()}>Retry people</button>
   </Notice>
 {:else if !listState.people.length}
   <Notice title="No people available" tone="info">
@@ -70,6 +79,10 @@
       </tbody>
     </table>
   </div>
+  {#if listState.pageError}<p role="alert">{listState.pageError}</p>{/if}
+  {#if listState.pageInfo?.hasNextPage}<button type="button" disabled={listState.loadingMore} onclick={() => void loadMore()}>
+    {listState.pageError ? 'Retry more people' : 'Load more people'}
+  </button>{/if}
 {/if}
 
 <style>
