@@ -27,7 +27,8 @@ process.stdout.write(JSON.stringify({status:response.status,body}));})().catch((
 """
 DENIED = r"""
 const https=require('node:https'),fs=require('node:fs');
-const request=https.request({hostname:'core',port:8081,path:process.argv[1],method:'GET',
+const [hostname,path]=process.argv.slice(1);
+const request=https.request({hostname,port:8081,path,method:'GET',
 ca:fs.readFileSync('/run/secrets/service-ca'),cert:fs.readFileSync('/run/secrets/mcp-cert'),
 key:fs.readFileSync('/run/secrets/mcp-key'),timeout:5000},response=>{
 response.resume(); response.on('end',()=>process.stdout.write(String(response.statusCode)));});
@@ -126,10 +127,15 @@ def scrape():
 
 
 def authorization():
-    for path in ("/actuator/prometheus", "/internal/alerts"):
-        result = compose("exec", "-T", "mcp", "node", "-e", DENIED, path)
-        assert result == "403", "MCP identity must be denied on restricted management path"
-    return {"mcpMetrics": 403, "mcpAlertIngress": 403, "approvedScrapeIdentity": "prometheus"}
+    observed = {}
+    for owner in ("core", "catalog", "media"):
+        paths = ("/actuator/prometheus", "/internal/alerts") if owner == "core" else ("/actuator/prometheus",)
+        for path in paths:
+            result = compose("exec", "-T", "mcp", "node", "-e", DENIED, owner, path)
+            status = int(result) if result.isdecimal() else None
+            observed[owner + path] = status
+            assert status == 403, "MCP identity must be denied at " + owner + path + "; observed HTTP " + str(status)
+    return {"mcpDenied": observed, "approvedScrapeIdentity": "prometheus"}
 
 
 def dashboard():
@@ -201,11 +207,19 @@ def identities():
         doc = json.loads(command("docker", "inspect", container))[0]
         assert doc["State"]["Running"] and doc["Config"]["User"] == "10001:10001"
         assert doc["HostConfig"]["ReadonlyRootfs"] is True
-        if service != "grafana":
-            assert not doc["HostConfig"].get("PortBindings"), "Metrics and alert APIs must stay private"
-        else:
-            assert all(binding["HostIp"] == "127.0.0.1" for bindings in doc["HostConfig"]["PortBindings"].values() for binding in bindings)
-        result[service] = {"imageId": doc["Image"], "imageTag": doc["Config"]["Image"], "user": doc["Config"]["User"]}
+        port, setting = {
+            "prometheus": (9090, "PROMETHEUS_HTTP_PORT"),
+            "alertmanager": (9093, "ALERTMANAGER_HTTP_PORT"),
+            "grafana": (3000, "GRAFANA_HTTPS_PORT"),
+        }[service]
+        configured = os.environ.get(setting, str(port))
+        expected = {str(port) + "/tcp": [{"HostIp": "127.0.0.1", "HostPort": configured}]}
+        assert doc["HostConfig"].get("PortBindings") == expected, "Operator monitoring port must bind only configured loopback"
+        published = {port: bindings for port, bindings in doc["NetworkSettings"]["Ports"].items() if bindings}
+        assert published == expected, "Actual monitoring listener publication differs from loopback contract"
+        result[service] = {"imageId": doc["Image"], "imageTag": doc["Config"]["Image"],
+                           "user": doc["Config"]["User"], "publishedPorts": expected}
+
     return result
 
 
