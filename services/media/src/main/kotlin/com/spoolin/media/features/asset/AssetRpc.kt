@@ -37,9 +37,19 @@ class AssetRpc(
     fun receiptScope(operation: UUID): String {
         val row = dataSource.connection.use { connection -> connection.queryBound(
             "SELECT * FROM asset WHERE upload_operation_id=?", listOf(operation),
-        ) { AssetRow.decode(it) }.singleOrNull() } ?: throw Status.NOT_FOUND.asRuntimeException()
+        ) { AssetRow.decode(it) }.singleOrNull() } ?: holdReceiptAsset(operation)
         authorize(row)
         return "account:${row.actorId}"
+    }
+
+    private fun holdReceiptAsset(operation: UUID): AssetRow = dataSource.connection.use { connection ->
+        connection.queryBound(
+            "SELECT a.* FROM operation_receipt r JOIN asset_reference h " +
+                "ON h.id::text=r.result->>'resultId' JOIN asset a ON a.id=h.asset_id " +
+                "WHERE r.id=? AND r.kind IN ('HOLD_RESERVE','HOLD_CONFIRM','HOLD_RELEASE') " +
+                "AND r.actor_scope='account:'||a.actor_id::text AND r.state='SUCCEEDED'",
+            listOf(operation),
+        ) { AssetRow.decode(it) }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
     }
 
     fun readAsset(request: AssetReadRequest, response: StreamObserver<AssetReadChunk>) {
