@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Remote-only operator boundary checks against the existing disposable make-start installation."""
 import json
+import hashlib
+import time
 import os
 from pathlib import Path
 import re
@@ -9,10 +11,24 @@ import subprocess
 import tempfile
 import uuid
 
+from operator_runtime import OperatorRuntime, require_owned_runner
 
-def invoke(script, *arguments, expected=0):
-    result = subprocess.run(["bash", str(Path("ops/bin") / script), *arguments],
-                            text=True, capture_output=True, timeout=90, check=False)
+COMMAND_RESULTS = []
+
+
+def invoke(script, *arguments, expected=0, timeout=90):
+    started = time.monotonic()
+    try:
+        result = subprocess.run(["bash", str(Path("ops/bin") / script), *arguments],
+                                text=True, capture_output=True, timeout=timeout, check=False)
+    except subprocess.TimeoutExpired:
+        COMMAND_RESULTS.append({"script": script, "exit": None, "expected": expected, "result": "TIMEOUT"})
+        raise RuntimeError("Actual operator command timed out; raw output withheld") from None
+    COMMAND_RESULTS.append({"script": script, "exit": result.returncode, "expected": expected,
+                            "elapsedSeconds": round(time.monotonic() - started, 3),
+                            "stdoutSHA256": hashlib.sha256(result.stdout.encode()).hexdigest(),
+                            "stderrSHA256": hashlib.sha256(result.stderr.encode()).hexdigest(),
+                            "result": "PASS" if result.returncode == expected else "FAIL"})
     if result.returncode != expected:
         raise RuntimeError(f"{script} returned {result.returncode}; expected {expected}; output withheld")
     return result.stdout, result.stderr
@@ -76,21 +92,49 @@ def tunnel():
             "unmetRequirement": "approved pinned registered Secure MCP Tunnel runner and protected identity"}
 
 
+def report_exit(report):
+    results = [value.get("result") for value in report["phases"].values()]
+    required = {"connector", "tunnel", "migration", "recovery", "maintenance"}
+    if not required.issubset(report["phases"]) or "FAIL" in results:
+        return 1
+    return 78 if "PENDING" in results else 0
+
+
 def main():
-    if os.environ.get("GITHUB_ACTIONS") != "true" or os.environ.get("RUNNER_ENVIRONMENT") != "github-hosted":
-        raise RuntimeError("Requires a verified GitHub-hosted disposable runner")
+    os.umask(0o077)
+    require_owned_runner()
     account = str(uuid.UUID(os.environ["SPOOLIN_OPERATOR_ACCOUNT_ID"]))
     report = {"sha": os.environ["TESTED_SHA"], "runId": os.environ["GITHUB_RUN_ID"],
-              "runnerOS": os.environ["RUNNER_OS"], "connector": None, "tunnel": None}
+              "runAttempt": os.environ["GITHUB_RUN_ATTEMPT"], "runnerOS": os.environ["RUNNER_OS"],
+              "runnerImage": os.environ.get("ImageOS"), "runnerImageVersion": os.environ.get("ImageVersion"),
+              "phases": {}, "commands": COMMAND_RESULTS,
+              "cases": ["ATDD-158", "ATDD-200", "ATDD-208"],
+              "proofLimit": "actual packaged operator/database boundaries; no client compatibility or UI action claim"}
+    target = Path(os.environ.get("SPOOLIN_OPERATOR_REPORT", ".ai/reports/operator-commands.json"))
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    def record(name, value):
+        report["phases"][name] = value
+        target.write_text(json.dumps(report, indent=2) + "\n")
+
     with tempfile.TemporaryDirectory(prefix="operator-check-", dir=os.environ["RUNNER_TEMP"]) as temporary:
         parent = Path(temporary)
         parent.chmod(0o700)
-        report["connector"] = connector(account, parent)
-    report["tunnel"] = tunnel()
-    target = Path(os.environ.get("SPOOLIN_OPERATOR_REPORT", ".ai/reports/operator-commands.json"))
-    target.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            record("connector", connector(account, parent))
+        except Exception:
+            record("connector", {"result": "FAIL", "reason": "actual-connector-or-protocol-assertion-failed", "rawOutput": "withheld"})
+    try:
+        record("tunnel", tunnel())
+    except Exception:
+        record("tunnel", {"result": "FAIL", "reason": "actual-tunnel-refusal-assertion-failed"})
+    try:
+        OperatorRuntime(invoke, record).run()
+    except Exception:
+        record("operationalSetup", {"result": "FAIL", "reason": "owned-stack-serialization-failed", "rawOutput": "withheld"})
+    report["exitCode"] = report_exit(report)
     target.write_text(json.dumps(report, indent=2) + "\n")
-    raise SystemExit(78)  # Preserve the real tunnel obligation as pending.
+    raise SystemExit(report["exitCode"])
 
 
 if __name__ == "__main__":
