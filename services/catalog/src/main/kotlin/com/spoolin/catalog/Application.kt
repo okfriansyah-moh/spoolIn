@@ -106,9 +106,11 @@ class ObservabilityConfiguration {
             registry,
             dataSource,
             "catalog",
-            { dataSource.hikariPoolMXBean.activeConnections },
-            { dataSource.maximumPoolSize },
-            { schema.ready() },
+            com.spoolin.support.observability.OwnerMetricRuntime(
+                { dataSource.hikariPoolMXBean.activeConnections },
+                { dataSource.maximumPoolSize },
+                { schema.ready() },
+            ),
         )
 
     @Bean(destroyMethod = "close")

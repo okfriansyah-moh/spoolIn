@@ -100,9 +100,11 @@ class ObservabilityConfiguration {
             registry,
             dataSource,
             "media",
-            { dataSource.hikariPoolMXBean.activeConnections },
-            { dataSource.maximumPoolSize },
-            { schema.ready() },
+            com.spoolin.support.observability.OwnerMetricRuntime(
+                { dataSource.hikariPoolMXBean.activeConnections },
+                { dataSource.maximumPoolSize },
+                { schema.ready() },
+            ),
             mapOf("artwork" to Path.of("/var/spoolin/media")),
         )
 
