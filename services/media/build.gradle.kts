@@ -58,7 +58,7 @@ tasks.named("koverXmlReport") { dependsOn(receiptIntegrationTest) }
 
 val workIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
-    dependsOn("testClasses")
+    dependsOn("testClasses", "integrationTestClasses")
     classpath =
         files(
             sourceSets["test"].output.classesDirs,

@@ -132,6 +132,7 @@ def main():
     runtime_config(runtime)
     prepared_accounts(runtime)
     exports["SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE"] = str(protected(base / "browser-maintainer-password", (runtime / "maintainer-password").read_bytes()))
+    exports["SPOOLIN_OPERATOR_ACCOUNT_ID"] = "00000000-0000-4000-8000-000000000002"
     exports["SPOOLIN_ACCOUNT_INITIALIZATION_FILE"] = "/run/spoolin-config/account-initialization.json"
     exports["SPOOLIN_RESTORE_CANARY_PASSWORD_FILE"] = exports["SPOOLIN_BROWSER_MAINTAINER_PASSWORD_FILE"]
     exports["SPOOLIN_RESTORE_CANARY_EMAIL"] = "maintainer@example.invalid"
