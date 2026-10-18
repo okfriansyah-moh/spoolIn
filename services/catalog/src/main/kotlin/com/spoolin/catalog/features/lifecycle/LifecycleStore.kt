@@ -44,6 +44,28 @@ internal class LifecycleStore(private val clock: Clock = Clock.systemUTC()) {
         if (hold != null) ArtworkRpc.enqueueRelease(connection, command.operation, hold, command.correlation)
     }
 
+    fun person(connection: Connection, command: LifecycleCommand, impacts: DeletionImpact): SafeResult {
+        connection.queryBound("SELECT t.id FROM title t WHERE EXISTS " +
+            "(SELECT 1 FROM credit c WHERE c.title_id=t.id AND c.person_id=?) ORDER BY t.id FOR UPDATE",
+            listOf(command.target)) { it.getObject("id", UUID::class.java) }
+        val before = connection.queryBound("SELECT status,version FROM person WHERE id=? FOR UPDATE", listOf(command.target)) {
+            it.getString("status") to it.getLong("version")
+        }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+        val next = nextState(before.first, before.second, command)
+        if (command.action == LifecycleRules.Action.DELETE) {
+            impacts.verify(connection, command.target, command.impactToken)
+            removeCreditTombstones(connection, "person_id", command.target)
+            connection.executeBound("UPDATE title SET version=version+1,updated_at=CURRENT_TIMESTAMP " +
+                "WHERE id IN (SELECT title_id FROM credit WHERE person_id=?)", command.target)
+            connection.executeBound("DELETE FROM credit WHERE person_id=?", command.target)
+            tombstone(connection, "PERSON", command.target)
+        }
+        check(connection.executeBound("UPDATE person SET status=?,version=version+1,impact_version=impact_version+1," +
+            "updated_at=CURRENT_TIMESTAMP WHERE id=? AND version=?", next, command.target, command.expectedVersion) == 1)
+        audit(connection, command, "PERSON", before.first, next)
+        return SafeResult(command.target, command.expectedVersion + 1)
+    }
+
     fun nextState(status: String, version: Long, command: LifecycleCommand): String {
         if (version != command.expectedVersion) throw Status.ABORTED.withDescription("STALE_VERSION").asRuntimeException()
         if (command.action !in LifecycleRules.allowedActions(status)) throw Status.FAILED_PRECONDITION
