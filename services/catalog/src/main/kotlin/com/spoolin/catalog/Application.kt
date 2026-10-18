@@ -293,7 +293,9 @@ class CatalogWriteConfiguration {
             receipts,
             movieWrites,
             proposalMetrics,
-            livePolicyRevision = { environment.getProperty("POLICY_REVISION", "default") ?: "default" },
+            livePolicyRevision = {
+                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+            },
         )
 }
 

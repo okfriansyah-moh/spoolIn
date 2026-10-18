@@ -18,7 +18,7 @@ export class GatewayClient {
     ));
   }
   ready(): Promise<void> {
-    return new Promise((resolve, reject) => this.client.waitForReady(new Date(Date.now() + 5000),
+    return new Promise((resolve, reject) => this.client.waitForReady(new Date(Date.now() + 60_000),
       (error) => error ? reject(new Error('Core gateway unavailable')) : resolve()));
   }
   private call<T>(invoke: (metadata: Metadata, options: { deadline: Date }, callback: (error: Error | null, value: T) => void) => unknown, assertion?: string): Promise<T> {

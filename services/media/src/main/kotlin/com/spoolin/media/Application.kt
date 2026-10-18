@@ -136,7 +136,7 @@ class Application {
         val reads =
             com.spoolin.media.operations.receipts
                 .OwnerReceiptReads(dataSource)
-        val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
+        val policyRevision = com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
         val catalog = com.spoolin.media.features.asset.CatalogAttachments(
             spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
         )
