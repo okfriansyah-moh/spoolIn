@@ -68,6 +68,17 @@ internal object ProposalRevisions {
         }
     }
 
+    fun requirePendingIntent(conn: Connection, row: ProposalRow) {
+        val pending = conn.queryBound(
+            "SELECT count(*) FROM operation_receipt WHERE id=? AND state='PENDING' AND kind='ProposeMovie' " +
+                "AND actor_scope=? AND receipt_type='REQUEST'",
+            listOf(row.operationId, "account:${row.actorId}"),
+        ) { it.getInt(1) }.single()
+        if (pending != 1) {
+            throw Status.FAILED_PRECONDITION.withDescription("ORIGINAL_INTENT_NOT_PENDING").asRuntimeException()
+        }
+    }
+
     private fun supersede(conn: Connection, row: ProposalRow) {
         val count = conn.executeBound(
             "UPDATE movie_proposal SET state='SUPERSEDED' WHERE id=? AND revision=? AND state='REVIEW'",

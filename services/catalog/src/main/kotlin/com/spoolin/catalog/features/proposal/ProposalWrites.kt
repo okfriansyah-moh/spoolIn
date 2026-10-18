@@ -117,8 +117,7 @@ class ProposalWrites(
                 ExactApprovalBinding.fromInput(claims, request, livePolicyRevision(), clock.instant())
             val operationId = approvalOperationId(proposalId, revision, approve)
             val correlationId = UUID.randomUUID()
-            val outcome =
-                executeApprovalReceipt(
+            executeApprovalReceipt(
                     claims,
                     binding,
                     proposalId,
@@ -132,7 +131,8 @@ class ProposalWrites(
             } else {
                 metrics?.markRejected()
             }
-            response.onNext(outcomeProto(outcome, operationId))
+            val original = originalOutcome(claims, proposalId, revision)
+            response.onNext(outcomeProto(original, original.id))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
@@ -141,6 +141,17 @@ class ProposalWrites(
         } catch (_: IllegalArgumentException) {
             response.onError(Status.INVALID_ARGUMENT.asRuntimeException())
         }
+    }
+
+    private fun originalOutcome(
+        claims: com.spoolin.support.identity.ActorClaims,
+        proposalId: UUID,
+        revision: Int,
+    ): com.spoolin.support.receipts.ReceiptOutcome {
+        val row = dataSource.connection.use { ProposalStore.requireForUpdate(it, proposalId, revision) }
+        ProposalRevisions.assertOwner(row, claims)
+        return receipts.find(row.operationId, "account:${claims.accountId}")
+            ?: throw Status.NOT_FOUND.withDescription("ORIGINAL_INTENT_UNAVAILABLE").asRuntimeException()
     }
 
     private fun assertApprovalClaims(approve: Boolean): com.spoolin.support.identity.ActorClaims {
@@ -206,6 +217,7 @@ class ProposalWrites(
         if (row.state == "CREATED" && row.movieId != null) {
             return SafeResult(row.movieId, 0)
         }
+        ProposalRevisions.requirePendingIntent(conn, row)
         val content = ProposalContent.parseJson(row.contentJson)
         val storedDigest = DeterministicContentSerializer.digest(content)
         if (!storedDigest.contentEquals(row.contentHash)) {
@@ -231,20 +243,20 @@ class ProposalWrites(
             outcome
         } else {
             ProposalStore.markRejected(conn, proposalId, revision)
-            receipts.completePending(conn, row.operationId, SafeResult(proposalId, revision.toLong()), "PROPOSAL_REJECTED")
-        AuditInsert.record(
-            conn,
-            operationId,
-            claims.accountId,
-            actorKind,
-            "REJECT_PROPOSAL",
-            "PROPOSAL",
-            proposalId,
-            "SUCCEEDED",
-            "{}",
-            correlationId,
-            clock.instant(),
-        )
+            receipts.completePending(conn, row.operationId, SafeResult(proposalId, revision.toLong()), "REJECTED")
+            AuditInsert.record(
+                conn,
+                operationId,
+                claims.accountId,
+                actorKind,
+                "REJECT_PROPOSAL",
+                "PROPOSAL",
+                proposalId,
+                "SUCCEEDED",
+                "{}",
+                correlationId,
+                clock.instant(),
+            )
             SafeResult(proposalId, revision.toLong())
         }
     }
