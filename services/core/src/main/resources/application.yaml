@@ -1,7 +1,11 @@
 spring:
   application:
     name: core
+  output:
+    ansi:
+      enabled: never
   main:
+    banner-mode: off
     allow-circular-references: false
   jpa:
     open-in-view: false

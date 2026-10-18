@@ -164,7 +164,7 @@ private fun releaseHold(
     existing: HoldRecord?,
 ): Int =
     when (existing?.state) {
-        "RESERVED", "ACTIVE" -> HoldSql.releaseHold(connection, command.hold, requireNotNull(command.version))
+        "RESERVED", "ACTIVE" -> HoldSql.release(connection, command.hold, requireNotNull(command.version))
         "RELEASED" -> 1
         else -> 0
     }

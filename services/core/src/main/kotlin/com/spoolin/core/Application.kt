@@ -107,8 +107,10 @@ class Application {
         )
 
     @Bean
-    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics =
-        com.spoolin.support.observability.LogicalMetrics(registry, "core")
+    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared.bind("core", registry)
+        return com.spoolin.support.observability.LogicalMetrics(registry, "core")
+    }
 
     @Bean
     @GlobalServerInterceptor
@@ -207,7 +209,7 @@ class Application {
 
 fun main(args: Array<String>) {
     com.spoolin.support.logging
-        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), OWNER)
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env
