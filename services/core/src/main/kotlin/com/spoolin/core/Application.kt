@@ -61,6 +61,8 @@ private const val SECRET_SIZE_LIMIT = 4096L
 private const val TLS_KEY_SIZE_LIMIT = 16384L
 private const val MIGRATION_LOCK_SECONDS = 120L
 private const val LOCK_POLL_MS = 20L
+private const val HTTP_UNAVAILABLE = 503
+private const val HTTP_NOT_FOUND = 404
 private const val HTTP_FORBIDDEN = 403
 private const val HTTP_INTERNAL_ERROR = 500
 
@@ -527,45 +529,40 @@ class ListenerBoundary(
     private val environment: Environment,
     private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        chain: FilterChain,
-    ) {
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+        val rejection = rejectionStatus(request)
+        if (rejection != null) {
+            response.sendError(rejection)
+        } else {
+            response.setHeader("X-Content-Type-Options", "nosniff")
+            response.setHeader("Cache-Control", "no-store")
+            if (request.requestURI == "/actuator/prometheus") serveMetrics(request, response, chain)
+            else chain.doFilter(request, response)
+        }
+    }
+
+    private fun rejectionStatus(request: HttpServletRequest): Int? {
         val path = request.requestURI
-        if (path.startsWith("/actuator") || path == "/internal/alerts") {
-            val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
-            val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
-            val permitted =
-                when (path) {
+        if (!(path.startsWith("/actuator") || path == "/internal/alerts")) return null
+        val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
+        val permitted = when (path) {
                     "/internal/alerts" -> identity == "alertmanager"
-                    "/actuator/prometheus" -> identity == "prometheus"
-                    else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
-                }
-            val privatePort = environment.getProperty("local.management.port", Int::class.java)
-            if (!request.isSecure || request.localPort != privatePort || !permitted) {
-                response.sendError(if (path == "/internal/alerts" && request.localPort != privatePort) 404 else HTTP_FORBIDDEN)
-                return
-            }
+            "/actuator/prometheus" -> identity == "prometheus"
+            else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
         }
-        response.setHeader("X-Content-Type-Options", "nosniff")
-        response.setHeader("Cache-Control", "no-store")
-        if (path == "/actuator/prometheus") {
-            val measurement = metrics
-            if (measurement == null) {
-                response.sendError(503)
-                return
-            }
-            synchronized(measurement) {
-                if (!measurement.prepareScrape()) {
-                    response.sendError(503)
-                    return
-                }
-                chain.doFilter(request, response)
-            }
-            return
+        val privatePort = environment.getProperty("local.management.port", Int::class.java)
+        return if (request.isSecure && request.localPort == privatePort && permitted) null
+        else if (request.requestURI == "/internal/alerts" && request.localPort != privatePort) HTTP_NOT_FOUND else HTTP_FORBIDDEN
+    }
+
+    private fun serveMetrics(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+        val measurement = metrics
+        if (measurement == null) response.sendError(HTTP_UNAVAILABLE)
+        else synchronized(measurement) {
+            if (measurement.prepareScrape()) chain.doFilter(request, response)
+            else response.sendError(HTTP_UNAVAILABLE)
         }
-        chain.doFilter(request, response)
     }
 }
 

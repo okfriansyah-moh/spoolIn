@@ -106,6 +106,7 @@
       titleId={editorState.saved.id}
       expectedVersion={editorState.saved.version}
       policyRevision={sessionCtl.snapshot.policy.revision}
+      artworkPolicy={sessionCtl.snapshot.policy.artwork}
       disabled={editorState.phase === 'target-changed'}
     />
     {@const version = creditTitleVersion ?? editorState.saved.version}
