@@ -6,10 +6,7 @@
     INITIAL_ARTWORK_UPLOAD_VIEW,
   } from './upload-controller';
   import type { Policy } from '../../policy/types';
-  import {
-    validateArtworkFile,
-    validateArtworkDimensions,
-  } from './file-validation';
+  import { prepareArtworkFile } from './prepare-file';
   import type { GraphqlRequest } from '../../transport/graphql';
 
   let {
@@ -34,6 +31,7 @@
 
   const inputId = $props.id();
   let validationMessage = $state('');
+  let preparationMessage = $state('');
   let refreshing = $state(false);
   let validating = $state(false);
   let refreshNeeded = $state(false);
@@ -95,20 +93,31 @@
     if (!(input instanceof HTMLInputElement)) return;
     const file = input.files?.[0];
     if (!file || uploadBlocked || !controller) return;
-    validationMessage = validateArtworkFile(file, artworkPolicy);
-    if (validationMessage) {
-      input.value = '';
-      return;
-    }
     validating = true;
-    validationMessage = await validateArtworkDimensions(file);
-    validating = false;
-    if (!mounted || disabled || validationMessage) {
+    preparationMessage = '';
+    validationMessage = 'Preparing artwork for upload…';
+    try {
+      const prepared = await prepareArtworkFile(file, artworkPolicy);
+      if (!mounted || disabled) return;
+      preparationMessage = prepared.message;
+      validationMessage = '';
+      validating = false;
+      await controller.uploadFile(
+        prepared.file,
+        titleId,
+        expectedVersion,
+        policyRevision,
+      );
+    } catch (error) {
+      if (mounted)
+        validationMessage =
+          error instanceof Error
+            ? error.message
+            : 'This image could not be prepared. Choose another image.';
+    } finally {
+      validating = false;
       input.value = '';
-      return;
     }
-    await controller.uploadFile(file, titleId, expectedVersion, policyRevision);
-    input.value = '';
   }
 
   function onCancel() {
@@ -130,6 +139,7 @@
     disabled={uploadBlocked}
     onchange={onFileChange}
   />
+  {#if preparationMessage}<p>{preparationMessage}</p>{/if}
   {#if view.stage === 'transferring'}
     <progress
       max="100"

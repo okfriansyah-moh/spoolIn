@@ -497,7 +497,7 @@ You can also open **People** and search for either name directly. People with id
 1. Sign in as a Maintainer and open **Movies** in the navigation.
 2. Choose **Create movie**. For a fictional example, enter `Letters from Tomorrow` as the title and `A lighthouse keeper receives letters dated one day ahead.` as the synopsis. Complete the other required fields; add release details and genres where available.
 3. Read any field errors and correct the named inputs. The form displays the current limits; don't shorten content based on an old screenshot's limits.
-4. Save and wait for confirmation. Open the saved movie to check the displayed information.
+4. Save and wait for confirmation. The app opens **Add cast and creators** for the saved movie. Add credits as described below, then select **Done**, or choose **Skip for now**. Both return to **Movies**, where a success panel shows the newly created movie with **Edit movie** and **Review public record** links.
 5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, and save again.
 
 ![Signed-in Maintainer managing movies, with Letters from Tomorrow and Create movie and Edit controls visible](docs/assets/spoolin/manage-movies.png)
@@ -506,6 +506,8 @@ You can also open **People** and search for either name directly. People with id
 
 If someone else saves the record while you're editing, SpoolIn asks you to review the current saved values. Compare them with your retained changes before continuing. If the connection drops during a save, use **Check original result** when offered. Repeatedly submitting an uncertain save can make it harder to tell which operation completed.
 
+Use **Search movies** and select **Search**, or press Enter, to find a title. Search includes records beyond the first loaded page. **Clear search** restores the unfiltered list; **Load more movies** retrieves further results.
+
 The seeded catalog also contains TV titles. Those entries are read-only in the movie management list.
 
 ### Maintainer example: manage cast and creators
@@ -513,9 +515,9 @@ The seeded catalog also contains TV titles. Those entries are read-only in the m
 Cast and creators use shared person records. Add the person first, then describe their contribution with a movie credit.
 
 1. Sign in as a Maintainer and open **Manage people** → **Create person**.
-2. Enter `A. Rivers` as the professional name and `Fictional director of Letters from Tomorrow.` as the biography. Select **Save person** and wait for **Person saved**.
+2. Enter `A. Rivers` as the professional name and `Fictional director of Letters from Tomorrow.` as the biography. Select **Save person**. After confirmed success, the app returns to **Manage people** with a **Person created** panel and links to edit or review that person.
 3. Create another person named `Mira Vale`, with the biography `Fictional actor playing the lighthouse keeper.`
-4. To update either biography, open **Manage people**, find the person, choose **Edit**, change the biography, and select **Save person**. Use **Load more people** if the record is beyond the first page.
+4. To update either biography, open **Manage people**, find the person, choose **Edit**, change the biography, and select **Save person**. Use **Search people** and select **Search**, or press Enter, to find records beyond the first page. **Clear search** restores the list, and **Load more people** retrieves further matches.
 
 ![Maintainer editing the fictional creator A. Rivers, with professional name, biography, and Save person controls](docs/assets/spoolin/maintainer-person.png)
 
@@ -527,22 +529,22 @@ Editing a person updates that identity across its credits. It doesn't merge diff
 
 Open **Movies**, choose **Edit** for `Letters from Tomorrow`, and scroll to **Cast and creators**.
 
-1. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
-2. Choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Load more people** to find a person beyond the current options.
-3. Wait for the saved credit to appear in the list. The same movie can have both cast and creator credits.
+1. Select **+ Add creator** to reveal the form. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
+2. Select **+ Add cast**, then choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Load more people** to find a person beyond the current options.
+3. Wait for confirmation. The form collapses after a successful save; use either plus button to add another credit. The same movie can have both cast and creator credits. During the creation step, select **Done** when finished, or **Skip for now** to return to Movies. Unfinished credit input must be saved or discarded before leaving; use **Continue editing** to keep working. If a save result is unknown, check the original result before leaving.
 4. To change a credit, select its **Edit credit** control, update the role or supported character names, and select **Save credit**.
 5. To remove a contribution, choose **Remove credit** on that row and review its confirmation. Removing a credit removes the relationship; the shared person remains available.
 
 ![Maintainer credit panel with A. Rivers as Director and Mira Vale as Actor playing The Keeper, plus editing and removal controls](docs/assets/spoolin/maintainer-credits.png)
 
-*Credits example: the movie links one creator and one cast member to their existing person records.*
+*Credits example: the movie links one creator and one cast member to their existing person records. These screenshots predate the plus buttons and creation-step navigation described above.*
 
 ### Maintainer example: upload artwork
 
 For the fictional movie, use the repository's sample lighthouse poster:
 
 1. Open **Movies** → **Edit** for `Letters from Tomorrow`.
-2. Find **Poster artwork** and choose `docs/design-system/mockup/assets/letters.png` from this checkout. You can also use a PNG, JPEG, or WebP image you have permission to use that meets the displayed limits.
+2. Find **Poster artwork** and choose `docs/design-system/mockup/assets/letters.png` from this checkout. You can also use a PNG, JPEG, or WebP image you have permission to use. If it exceeds the dimension or upload byte limit, the browser automatically prepares a smaller copy before transfer, preserving its aspect ratio and leaving your original file unchanged. The prepared image fits within 8192 pixels per side, 40 million pixels, and the current upload byte limit. Images already within those limits upload unchanged.
 3. Keep the page open while the file transfers and the server processes it. A complete transfer percentage doesn't mean the poster is attached yet.
 4. Wait for **Saved**, then open the movie's public page to see its poster.
 
@@ -550,13 +552,13 @@ For the fictional movie, use the repository's sample lighthouse poster:
 
 *Artwork example: choose an image in the Poster artwork field. The public movie page above shows the lighthouse poster already attached to this record.*
 
-If the artwork attached but details couldn't refresh, retry the details read before uploading again. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or oversized files should explain what to change.
+If the artwork attached but details couldn't refresh, retry the details read before uploading again. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or unreadable files explain what to change. If the browser cannot prepare a copy within the limits, choose a smaller image. Server validation still applies to every upload.
 
 ### Maintainer example: archive and delete records
 
 Archiving removes a record from public browsing and retains a recovery path. Permanent deletion is irreversible. Use a disposable fictional record when following this example.
 
-1. Under **Manage people**, create `Example Person to Remove` with the biography `Disposable fictional record for the archive and deletion walkthrough.` Save it and choose **Edit saved person**.
+1. Under **Manage people**, create `Example Person to Remove` with the biography `Disposable fictional record for the archive and deletion walkthrough.` Save it, then choose **Edit person** in the created-record panel on **Manage people**.
 2. Select **Archive person**, read the confirmation, and confirm **Archive person**. The application opens **Archives**.
 3. Choose the **People** tab and find `Example Person to Remove`. **Restore** returns it to the active catalog if you want to keep it.
 
