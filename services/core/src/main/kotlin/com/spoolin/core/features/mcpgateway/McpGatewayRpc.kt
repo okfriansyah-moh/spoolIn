@@ -79,6 +79,8 @@ class McpGatewayRpc(
             connector = currentConnector(),
             catalogMethod = "/spoolin.v1.CatalogService/ProposeMovie",
             response = response,
+            operationId = UUID.fromString(request.context.operationId),
+            correlationId = UUID.fromString(request.context.correlationId),
         ) { token ->
             val revision = catalogStub(token).proposeMovie(request)
             if (revision.hasUiChallenge()) {
@@ -140,6 +142,7 @@ class McpGatewayRpc(
             connector = currentConnector(),
             catalogMethod = "/spoolin.v1.CatalogService/GetOperation",
             response = response,
+            operationId = UUID.fromString(request.id),
         ) { token ->
             catalogStub(token).getOperation(request)
         }
@@ -196,18 +199,19 @@ class McpGatewayRpc(
         connector: com.spoolin.core.features.connector.ConnectorRecord?,
         catalogMethod: String,
         response: StreamObserver<T>,
+        operationId: UUID = UUID.randomUUID(),
+        correlationId: UUID = UUID.randomUUID(),
         call: (String) -> T,
     ) {
         if (connector == null || issuer == null) return deny(response)
         if (!Permissions.management(roleFor(connector))) return deny(response)
-        val operationId = UUID.randomUUID()
         val token =
             issuer.issue(
                 connector,
                 roleFor(connector),
                 catalogMethod,
                 operationId,
-                UUID.randomUUID(),
+                correlationId,
             )
         try {
             response.onNext(call(token))
