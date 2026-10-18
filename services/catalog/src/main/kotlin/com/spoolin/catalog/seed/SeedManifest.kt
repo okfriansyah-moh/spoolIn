@@ -23,11 +23,24 @@ class SeedManifest private constructor(val root: JsonNode) {
         require(records.count { it.path("kind").asText() == "TV" } == 100)
         require(records.map { it.path("externalId").asText() }.distinct().size == 200)
         require(people.map { it.path("externalId").asText() }.distinct().size == people.size)
+        validateDistribution()
         records.forEach(::validateRecord)
         people.forEach { identity(it, "PERSON"); checksum(it); sources(it, setOf("name")); text(it, "name", 255) }
         roles.forEach { identity(it, "ROLE"); sources(it, setOf("label", "category", "allowsCharacters")); require(it.path("category").asText() in setOf("CAST", "CREATOR")) }
         require(roles.map { it.path("label").asText() }.toSet() == setOf("Actor", "Director", "Writer", "Producer"))
         require(root.path("files").isArray && root.path("files").size() == 0) { "Unreviewed seed artwork is prohibited" }
+    }
+
+    private fun validateDistribution() {
+        val years = records.groupingBy { it["normalized"]["release"]["year"].asText() }.eachCount()
+        val months = records.groupingBy {
+            it["normalized"]["release"]["month"].takeUnless { month -> month.isNull }?.asText() ?: "unknown"
+        }.eachCount()
+        val stored = root.path("distribution")
+        require(stored.path("years").propertyNames().toSet() == years.keys)
+        require(stored.path("months").propertyNames().toSet() == months.keys)
+        years.forEach { (year, count) -> require(stored["years"].path(year).asInt() == count) }
+        months.forEach { (month, count) -> require(stored["months"].path(month).asInt() == count) }
     }
 
     private fun validateRecord(record: JsonNode) {
