@@ -6,7 +6,7 @@ include <tunables/global>
 profile spoolin-media flags=(attach_disconnected,mediate_deleted) {
   network,
   capability,
-  file rwlkm,
+  /** rwlkm,
   # No-new-privileges forbids a later transition that grants setup permissions.
   # These permissions remain limited by seccomp arguments, mount paths and the kernel's user namespace ownership.
   userns,

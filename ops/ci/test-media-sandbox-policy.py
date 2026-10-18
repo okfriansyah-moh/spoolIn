@@ -41,6 +41,8 @@ class MediaSandboxPolicyTest(unittest.TestCase):
     def test_codec_stacks_a_stricter_profile_and_compose_applies_only_to_media(self):
         files, _ = POLICY.validate_source()
         text = files['media-apparmor'].decode()
+        self.assertIn('/** rwlkm,', text)
+        self.assertNotIn('file rwlkm,', text)
         self.assertIn('/usr/bin/prlimit px -> &spoolin-media-codec,', text)
         codec = text.split('profile spoolin-media-codec ', 1)[1]
         for denied in ('network', 'capability', 'mount', 'umount', 'pivot_root', 'userns', 'ptrace'):
