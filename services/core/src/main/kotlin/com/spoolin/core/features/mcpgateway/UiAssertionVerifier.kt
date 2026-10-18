@@ -47,14 +47,23 @@ class UiAssertionVerifier(
         val now = clock.instant().epochSecond
         val expiry = claims.path("expiry").asLong(0)
         if (expiry <= now || expiry > now + 30) deny()
+        requireBinding(claims, connector, input, method)
+        val invocation = UUID.fromString(claims.path("invocation").asText()).toString()
+        consumed.entries.removeIf { it.value <= now }
+        if (consumed.size >= 10000 || consumed.putIfAbsent(invocation, expiry) != null) deny()
+    }
+
+    private fun requireBinding(
+        claims: com.fasterxml.jackson.databind.JsonNode,
+        connector: ConnectorRecord,
+        input: Spoolin.ApprovalInput,
+        method: String,
+    ) {
         if (claims.path("audience").asText() != "core" || claims.path("method").asText() != method) deny()
         if (claims.path("connector").asText() != connector.id.toString()) deny()
         if (claims.path("client").asText() != connector.clientKind) deny()
         if (claims.path("proposal").asText() != input.proposalId || claims.path("revision").asInt() != input.revision) deny()
         if (claims.path("hash").asText() != input.contentHash || claims.path("session").asText().isBlank()) deny()
-        val invocation = UUID.fromString(claims.path("invocation").asText()).toString()
-        consumed.entries.removeIf { it.value <= now }
-        if (consumed.size >= 10000 || consumed.putIfAbsent(invocation, expiry) != null) deny()
     }
 
     private fun deny(): Nothing = throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()

@@ -25,12 +25,7 @@ function safe<T extends Record<string, unknown>>(handler: (args: T) => Promise<R
   };
 }
 
-export async function createSession(token: string): Promise<{ server: McpServer; close: () => Promise<void> }> {
-  const gateway = new GatewayClient(token);
-  let policy;
-  try { policy = await gateway.policy(); } catch (error) { gateway.close(); throw error; }
-  const server = new McpServer({ name: 'spoolin', version: '1.0.0' });
-  const proposals = new Map<string, { content: Record<string, unknown>; expires: number }>();
+function registerResources(server: McpServer, proposals: Map<string, { content: Record<string, unknown>; expires: number }>): void {
   server.registerResource('movie-review', 'ui://spoolin/movie-review', {
     mimeType: 'text/html;profile=mcp-app', _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] } } },
   }, async () => ({ contents: [{ uri: 'ui://spoolin/movie-review', mimeType: 'text/html;profile=mcp-app', text: reviewHtml() }] }));
@@ -39,6 +34,15 @@ export async function createSession(token: string): Promise<{ server: McpServer;
     if (!entry || entry.expires <= Date.now()) throw new Error('Proposal unavailable');
     return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(entry.content) }] };
   });
+}
+
+export async function createSession(token: string): Promise<{ server: McpServer; close: () => Promise<void> }> {
+  const gateway = new GatewayClient(token);
+  let policy;
+  try { policy = await gateway.policy(); } catch (error) { gateway.close(); throw error; }
+  const server = new McpServer({ name: 'spoolin', version: '1.0.0' });
+  const proposals = new Map<string, { content: Record<string, unknown>; expires: number }>();
+  registerResources(server, proposals);
   server.registerTool('movie_context', { description: 'Read current movie context and effective policy',
     inputSchema: input('movie_context'), outputSchema: output('context'),
   }, safe(async (args) => result(contextProjection(await gateway.context(String(args.query), Number(args.limit ?? 20))))));
