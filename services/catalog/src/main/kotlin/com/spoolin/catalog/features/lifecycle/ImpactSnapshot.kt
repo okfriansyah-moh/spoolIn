@@ -38,12 +38,14 @@ class ImpactSnapshot private constructor(
                 listOf(person)) { Triple(it.getLong("version"), it.getLong("impact_version"), it.getString("status")) }
                 .singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
             val accumulator = Accumulator(person, subject.first, subject.second, subject.third)
+            val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(3)
             connection.prepareStatement("SELECT c.id,c.version,c.title_id,t.version AS title_version," +
                 "t.display_title,t.kind,t.status FROM credit c JOIN title t ON t.id=c.title_id " +
                 "WHERE c.person_id=? ORDER BY c.id").use { statement ->
                 statement.setObject(1, person); statement.fetchSize = 100
                 statement.executeQuery().use { rows -> while (rows.next()) {
                     if (io.grpc.Context.current().isCancelled) throw Status.CANCELLED.asRuntimeException()
+                    if (System.nanoTime() >= deadline) throw Status.DEADLINE_EXCEEDED.asRuntimeException()
                     accumulator.add(ImpactCredit(rows.getObject("id", UUID::class.java), rows.getLong("version"),
                         rows.getObject("title_id", UUID::class.java), rows.getLong("title_version"),
                         rows.getString("display_title"), rows.getString("kind"), rows.getString("status")))

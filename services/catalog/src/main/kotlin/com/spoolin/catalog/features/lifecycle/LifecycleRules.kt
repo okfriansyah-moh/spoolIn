@@ -28,13 +28,17 @@ internal data class LifecycleCommand(
     )
 
     companion object {
-        fun parse(request: spoolin.v1.Spoolin.Lifecycle, actor: java.util.UUID): LifecycleCommand = try {
+        fun parse(request: spoolin.v1.Spoolin.Lifecycle, claims: com.spoolin.support.identity.ActorClaims): LifecycleCommand = try {
             require(request.target.expectedVersion >= 0)
-            LifecycleCommand(id(request.target.id), request.target.expectedVersion,
+            val command = LifecycleCommand(id(request.target.id), request.target.expectedVersion,
                 LifecycleRules.Action.valueOf(request.action), request.confirmed,
                 if (request.hasImpactToken()) request.impactToken else null,
-                id(request.target.context.operationId), id(request.target.context.correlationId), actor,
+                id(request.target.context.operationId), id(request.target.context.correlationId), claims.accountId,
                 request.target.context.policyRevision)
+            if (command.operation != claims.operationId || command.correlation != claims.correlationId) {
+                throw io.grpc.Status.PERMISSION_DENIED.asRuntimeException()
+            }
+            command
         } catch (_: IllegalArgumentException) { throw io.grpc.Status.INVALID_ARGUMENT.asRuntimeException() }
 
         private fun id(value: String): java.util.UUID = java.util.UUID.fromString(value).also {
@@ -50,3 +54,13 @@ internal fun lifecycleOutcome(receipt: com.spoolin.support.receipts.ReceiptOutco
                 result.version?.let { builder.version = it } }
             receipt.errorCode?.let { builder.problem = spoolin.v1.Spoolin.Problem.newBuilder().setCode(it).build() }
         }.build()
+
+internal fun lifecycleRejection(request: spoolin.v1.Spoolin.Lifecycle, failure: io.grpc.StatusRuntimeException): spoolin.v1.Spoolin.Outcome? {
+    val code = when (failure.status.description) {
+        "IMPACT_CHANGED", "STALE_VERSION", "POLICY_CHANGED" -> failure.status.description
+        "LIFECYCLE_STATE_CHANGED", "CONFIRMATION_REQUIRED" -> "FIELD_INVALID"
+        else -> return null
+    }
+    return spoolin.v1.Spoolin.Outcome.newBuilder().setOperationId(request.target.context.operationId).setState("FAILED")
+        .setProblem(spoolin.v1.Spoolin.Problem.newBuilder().setCode(code)).build()
+}
