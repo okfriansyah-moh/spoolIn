@@ -3,7 +3,7 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl build-essential meson ninja-build pkg-config \
     libglib2.0-dev libexpat1-dev libexif-dev libjpeg-turbo8-dev libpng-dev libwebp-dev \
-    libcap-dev libselinux1-dev && \
+    libcap-dev libselinux1-dev clang-14 && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /codec
 RUN curl --fail --location --retry 3 \
@@ -15,11 +15,16 @@ RUN curl --fail --location --retry 3 \
     meson compile -C vips-8.18.7/build && meson install -C vips-8.18.7/build
 # Upstream v0.11.2 release asset and checksum: https://github.com/containers/bubblewrap/releases/tag/v0.11.2
 # Build without setuid support; the production process must create unprivileged user namespaces.
+# The tagged upstream CI also builds with Clang and these CFLAGS, retaining its -Werror security diagnostics.
+# https://github.com/containers/bubblewrap/blob/v0.11.2/.github/workflows/check.yml
 RUN curl --fail --location --retry 3 \
     https://github.com/containers/bubblewrap/releases/download/v0.11.2/bubblewrap-0.11.2.tar.xz -o bubblewrap.tar.xz && \
     echo '69abc30005d2186baf7737feacd8da35633b93cf5af38838ecff17c5f8e924f6  bubblewrap.tar.xz' | sha256sum -c - && \
     tar -xf bubblewrap.tar.xz && \
-    meson setup bubblewrap-0.11.2/build bubblewrap-0.11.2 --buildtype=release --prefix=/opt/bubblewrap \
+    /usr/bin/clang-14 --version && \
+    dpkg-query -W clang-14 && \
+    CC=/usr/bin/clang-14 CFLAGS='-O2 -Werror=unused-variable' \
+      meson setup bubblewrap-0.11.2/build bubblewrap-0.11.2 --buildtype=release --prefix=/opt/bubblewrap \
       -Dsupport_setuid=false -Drequire_userns=true -Dselinux=enabled \
       -Dman=disabled -Dbash_completion=disabled -Dzsh_completion=disabled && \
     meson compile -C bubblewrap-0.11.2/build && meson install -C bubblewrap-0.11.2/build
