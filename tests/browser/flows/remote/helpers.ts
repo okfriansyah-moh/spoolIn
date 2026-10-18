@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { statesByStep } from './state-mapping';
 import { checkProtectedState, observeAdmission, respectAdmission } from './authentication';
 import { test as base, expect, type Page, type TestInfo } from '@playwright/test';
 
@@ -13,23 +14,24 @@ export { expect };
 
 test.afterEach(async ({ page }, info) => {
   if (page.isClosed() || info.status === info.expectedStatus) return;
-  await page.locator('input[type="password"]').fill('').catch(() => {});
-  if (await page.locator('input[type="password"]').count() === 0) {
+  for (const input of await page.locator('input[type="password"]').all()) await input.fill('').catch(() => {});
+  if (await page.locator('input[type="password"]').evaluateAll((inputs) => inputs.every((input) => (input as HTMLInputElement).value === ''))) {
     await capture(page, info, info.title.match(/ATDD-\d+/g) ?? [], 'failure');
   }
 });
 
 export async function capture(page: Page, info: TestInfo, cases: string[], step: string) {
   await respectAdmission(15, 5);
-  expect(await page.locator('input[type="password"]').count()).toBe(0);
+  expect(await page.locator('input[type="password"]').evaluateAll((inputs) => inputs.every((input) => (input as HTMLInputElement).value === ''))).toBe(true);
   const path = info.outputPath(`${step}.png`);
   await page.screenshot({ path, fullPage: true });
   await info.attach(step, { path, contentType: 'image/png' });
   await info.attach(`${step}-manifest`, {
     body: JSON.stringify({ cases, step, route: new URL(page.url()).pathname,
-      theme: await page.locator('html').getAttribute('data-theme'), viewport: page.viewportSize(),
+      states: statesByStep[step] ?? [], scope: step.startsWith('approved-reference-') ? 'Approved static reference; no production proof' : 'Real production observation with attached assertions',
+      theme: await page.locator('html').getAttribute('data-theme') ?? await page.locator('html').getAttribute('data-design-target'), viewport: page.viewportSize(),
       browser: info.project.use.browserName, browserVersion: page.context().browser()?.version(),
-      sha: process.env.TESTED_SHA ?? process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
+      sha: process.env.TESTED_REF ?? process.env.TESTED_SHA ?? process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
       runnerOS: process.env.RUNNER_OS, imageOS: process.env.ImageOS, imageVersion: process.env.ImageVersion,
       inputMethods: info.project.metadata.inputMethods ?? ['pointer', 'keyboard'],
       result: info.status ?? 'assertions-completed',

@@ -29,11 +29,12 @@ export default defineConfig({
         name: `${browserName}-${width}-${colorScheme}`,
         testMatch: /(?:catalog|manage|artwork|lifecycle|audit|presentation|references)\.spec\.ts/,
         metadata: { inputMethods: ['pointer', 'keyboard'], sourceStates: 97 },
+        grep: /^(?!.*input-touch).*$/,
         use: { browserName, viewport: { width, height: 900 }, colorScheme, reducedMotion: 'reduce' as const, storageState: authenticatedStatePath() },
       })))),
     ...(['chromium', 'webkit'] as const).flatMap((browserName) => [1440, 390, 320].flatMap((width) =>
       (['dark', 'light'] as const).map((colorScheme) => ({
-        name: `${browserName}-${width}-${colorScheme}-touch`, testMatch: 'presentation.spec.ts',
+        name: `${browserName}-${width}-${colorScheme}-touch`, testMatch: 'presentation.spec.ts', grep: /input-touch|presentation-properties/,
         metadata: { inputMethods: ['touch'], sourceStates: 97 },
         use: { browserName, viewport: { width, height: 900 }, colorScheme, hasTouch: true, storageState: authenticatedStatePath() },
       })))),
