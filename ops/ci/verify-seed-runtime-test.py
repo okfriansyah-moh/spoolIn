@@ -22,6 +22,34 @@ class SeedHttpEvidenceRulesTest(unittest.TestCase):
         seed.PROGRESS.clear()
         seed.PROGRESS.update(self.previous)
 
+    def test_all_frozen_records_use_only_declared_public_source_properties(self):
+        manifest = json.loads((seed.ROOT / 'data/seed/manifest.json').read_text())
+        self.assertEqual(200, len(manifest['records']))
+        with_end = 0
+        for record in manifest['records']:
+            projected = seed.public_field_sources(record)
+            self.assertEqual({row['field'] for row in record['sources']}, set(projected))
+            with_end += 'end' in projected
+            for original in record['sources']:
+                actual = projected[original['field']]
+                self.assertEqual({'url', 'retrievedAt', 'reuseBasis', 'precision'}, set(actual))
+                self.assertEqual(original['url'], actual['url'])
+                self.assertEqual(original['permissionBasis'], actual['reuseBasis'])
+                self.assertEqual(original['retrievedAt'], actual['retrievedAt'])
+                self.assertEqual(original.get('precision'), actual['precision'])
+        self.assertEqual(100, with_end)
+
+    def test_public_source_timestamp_matches_instant_fraction_and_preserves_storage_row(self):
+        row = {'field': 'end', 'url': 'https://example.invalid/evidence', 'retrievedAt': '2025-01-01T00:00:00.120000Z',
+               'permissionBasis': 'approved facts', 'license': 'private-ledger-license', 'precision': 'YEAR'}
+        before = dict(row)
+        actual = seed.public_field_sources({'sources': [row]})['end']
+        self.assertEqual('2025-01-01T00:00:00.120Z', actual['retrievedAt'])
+        self.assertEqual(before, row)
+        self.assertNotIn('license', actual)
+        with self.assertRaises(ValueError):
+            seed.public_field_sources({'sources': [row, dict(row)]})
+
     def test_http_failure_retains_status_phase_and_public_code_without_private_data(self):
         body = json.dumps({'errors': [{'message': 'private credential', 'extensions': {'code': 'UNAVAILABLE'}}]}).encode()
         failure = urllib.error.HTTPError('https://private.example/graphql?bearer=secret', 503, 'private', {}, io.BytesIO(body))

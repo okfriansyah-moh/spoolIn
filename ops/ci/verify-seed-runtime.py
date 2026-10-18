@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Compare the complete frozen seed with live database and HTTPS GraphQL results."""
+import datetime
 import importlib.util
 import json
 import os
@@ -239,6 +240,22 @@ def verify_api_order(manifest):
     require(actual == [row['stableUUID'] for row in expected], 'Complete discovery ordering differs from release-date/UUID contract')
 
 
+def public_field_sources(node):
+    result = {}
+    for row in node['sources']:
+        at = datetime.datetime.fromisoformat(row['retrievedAt'].replace('Z', '+00:00'))
+        at = at.astimezone(datetime.timezone.utc)
+        timestamp = at.strftime('%Y-%m-%dT%H:%M:%S')
+        fraction = f'{at.microsecond:06d}'
+        if at.microsecond:
+            timestamp += '.' + (fraction[:3] if at.microsecond % 1000 == 0 else fraction)
+        result[row['field']] = {'url': row['url'], 'retrievedAt': timestamp + 'Z',
+                                'reuseBasis': row.get('permissionBasis', row.get('reuseBasis')),
+                                'precision': row.get('precision')}
+    require(len(result) == len(node['sources']), 'Seed source fields must be unique')
+    return result
+
+
 def verify_api(manifest, role_ids, results=None):
     PROGRESS['phase'] = 'api-records'
     if results is None:
@@ -256,7 +273,7 @@ def verify_api(manifest, role_ids, results=None):
         verify_api_credits(actual, node, manifest, role_ids)
         require(len(actual['provenance']) == 1, 'API seed provenance missing')
         compare_fields(actual['provenance'][0], {'source': node['source'], 'externalId': node['externalId'],
-                       'fieldSources': {row['field']: row for row in node['sources']}, 'locallyChanged': []}, node['stableUUID'])
+                       'fieldSources': public_field_sources(node), 'locallyChanged': []}, node['stableUUID'])
         results.append({'id': node['stableUUID'], 'kind': node['kind'], 'database': 'pass', 'https_api': 'pass',
                         'credit_count': len(node['credits']), 'artwork': 'not supplied; approved optional placeholders'})
         PROGRESS['completedRecords'] = len(results)

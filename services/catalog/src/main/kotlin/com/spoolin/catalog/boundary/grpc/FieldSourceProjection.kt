@@ -95,6 +95,7 @@ internal object FieldSourceProjection {
             "countries",
             "tvStatus",
             "tvEnd",
+            "end",
             "releaseContext",
             "name",
             "biography",

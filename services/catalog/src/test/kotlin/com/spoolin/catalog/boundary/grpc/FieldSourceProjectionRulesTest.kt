@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.json.JsonMapper
+import java.nio.file.Files
+import java.nio.file.Path
 
 class FieldSourceProjectionRulesTest {
     @Test
@@ -47,6 +50,33 @@ class FieldSourceProjectionRulesTest {
             assertThrows(StatusRuntimeException::class.java) { FieldSourceProjection.parse(value) }
         }
     }
+
+    @Test
+    fun `every frozen title source projects without changing source field identities`() {
+        val mapper = JsonMapper.builder().build()
+        val manifest = mapper.readTree(repository().resolve("data/seed/manifest.json").toFile())
+        val records = manifest["records"].toList()
+        assertEquals(200, records.size)
+        assertEquals(100, records.count { it["kind"].asText() == "MOVIE" })
+        assertEquals(100, records.count { it["kind"].asText() == "TV" })
+        records.forEach { record ->
+            val sources = record["sources"].associateBy { it["field"].asText() }
+            val projected = FieldSourceProjection.parse(mapper.writeValueAsString(sources))
+            assertEquals(sources.keys, projected.map { it.field }.toSet(), record["stableUUID"].asText())
+            projected.forEach { field ->
+                val original = sources.getValue(field.field)
+                assertEquals(original["url"].asText(), field.url)
+                assertEquals(original["permissionBasis"].asText(), field.reuseBasis)
+                assertFalse(field.toString().contains("permissionBasis"))
+                assertFalse(field.toString().contains("CC0-1.0"))
+            }
+        }
+        assertEquals(100, records.count { record -> record["sources"].any { it["field"].asText() == "end" } })
+    }
+
+    private fun repository(): Path =
+        generateSequence(Path.of(System.getProperty("user.dir")).toAbsolutePath()) { it.parent }
+            .first { Files.isRegularFile(it.resolve("data/seed/manifest.json")) }
 
     private fun source(extra: String = ""): String =
         """{"release":{"field":"release","url":"https://www.wikidata.org/wiki/Q1",
