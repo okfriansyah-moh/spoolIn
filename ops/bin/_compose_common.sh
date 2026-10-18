@@ -5,7 +5,10 @@ compose_common_run() {
   root_dir="$1"
   shift
   action=("$@")
-  : "${SPOOLIN_INSTALLATION:?Set SPOOLIN_INSTALLATION}"
+  if [[ ! "${SPOOLIN_INSTALLATION:-}" =~ ^[a-z][a-z0-9-]{2,63}$ ]]; then
+    printf '%s\n' 'SPOOLIN_INSTALLATION must be a lowercase owned installation identifier' >&2
+    return 2
+  fi
   local -a compose
   compose=(docker compose --project-name "$SPOOLIN_INSTALLATION" -f "$root_dir/ops/compose.yaml")
   if [[ "${SPOOLIN_SKIP_COMPOSE:-}" == "1" ]]; then

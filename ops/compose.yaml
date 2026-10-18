@@ -9,6 +9,11 @@ services:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
       TZ: UTC
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U postgres -d spoolin_media']
+      interval: 2s
+      timeout: 3s
+      retries: 60
     networks: [private]
     volumes: [database:/var/lib/postgresql]
     tmpfs: [/run/spoolin:mode=0700]
@@ -38,10 +43,16 @@ services:
     environment:
       CORE_DB_URL: jdbc:postgresql://postgres:5432/spoolin_core?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CORE_DB_USER: spoolin_core_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/core.json[.yaml]
       CORE_DB_PASSWORD_FILE: /run/secrets/core-runtime-password
       SERVICE_CERT_FILE: /run/secrets/core-cert
       SERVICE_KEY_FILE: /run/secrets/core-key
       SERVICE_CA_FILE: /run/secrets/service-ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
@@ -54,7 +65,7 @@ services:
       - core-cert
       - core-key
       - service-ca
-    ports: ["127.0.0.1:${CORE_HTTPS_PORT:-8443}:8443"]
+    ports: ["127.0.0.1:${CORE_HTTPS_PORT:-8443}:8443", "127.0.0.1:${CORE_MANAGEMENT_PORT:-18443}:8081"]
   core-migrator:
     build:
       context: ..
@@ -84,10 +95,16 @@ services:
     environment:
       CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       CATALOG_DB_USER: spoolin_catalog_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/catalog.json[.yaml]
       CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
       SERVICE_CERT_FILE: /run/secrets/catalog-cert
       SERVICE_KEY_FILE: /run/secrets/catalog-key
       SERVICE_CA_FILE: /run/secrets/service-ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
@@ -100,6 +117,7 @@ services:
       - catalog-cert
       - catalog-key
       - service-ca
+    ports: ["127.0.0.1:${CATALOG_MANAGEMENT_PORT:-18444}:8081"]
   catalog-migrator:
     build:
       context: ..
@@ -129,10 +147,17 @@ services:
     environment:
       MEDIA_DB_URL: jdbc:postgresql://postgres:5432/spoolin_media?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
       MEDIA_DB_USER: spoolin_media_runtime
+      SPRING_CONFIG_IMPORT: file:/run/spoolin-config/media.json[.yaml]
       MEDIA_DB_PASSWORD_FILE: /run/secrets/media-runtime-password
       SERVICE_CERT_FILE: /run/secrets/media-cert
       SERVICE_KEY_FILE: /run/secrets/media-key
       SERVICE_CA_FILE: /run/secrets/service-ca
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${SPOOLIN_RUNTIME_CONFIG_DIR:?Provision runtime configuration}:/run/spoolin-config:ro
+      - media:/var/spoolin/media
     networks: [private]
     read_only: true
     tmpfs: [/tmp]
@@ -145,6 +170,7 @@ services:
       - media-cert
       - media-key
       - service-ca
+    ports: ["127.0.0.1:${MEDIA_MANAGEMENT_PORT:-18445}:8081"]
   media-migrator:
     build:
       context: ..
@@ -166,10 +192,27 @@ services:
     secrets:
       - media-migrator-password
       - service-ca
+  catalog-seed:
+    image: spoolin-catalog-foundation:0.0.0
+    profiles: [seed]
+    environment:
+      CATALOG_DB_URL: jdbc:postgresql://postgres:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/run/secrets/service-ca
+      CATALOG_DB_USER: spoolin_catalog_runtime
+      CATALOG_DB_PASSWORD_FILE: /run/secrets/catalog-runtime-password
+    command: [--seed-manifest=/app/seed/manifest.json]
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes: [../data/seed:/app/seed:ro]
+    secrets: [catalog-runtime-password, service-ca]
+
 networks:
   private:
     internal: true
 volumes:
+  media:
   database:
 secrets:
   postgres-password:

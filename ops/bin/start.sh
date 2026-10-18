@@ -3,30 +3,25 @@ set -euo pipefail
 root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 bin="$root_dir/ops/bin"
 # shellcheck source=_compose_common.sh
-source "$root_dir/ops/bin/_compose_common.sh"
-
-run_migrations() {
-  if [[ -z "${SPOOLIN_INSTALLATION:-}" ]]; then
-    printf '%s\n' "start: SPOOLIN_INSTALLATION is required for safe migrations" >&2
-    exit 78
+source "$bin/_compose_common.sh"
+: "${SPOOLIN_INSTALLATION:?Set installation identifier}"
+: "${SPOOLIN_LOCK_DIR:?Set protected migration lock directory}"
+[[ "$SPOOLIN_INSTALLATION" =~ ^[a-z][a-z0-9-]{2,63}$ ]] || exit 2
+# Building is a separate bounded stage; initialization starts only after PostgreSQL is ready.
+timeout 900 docker compose --project-name "$SPOOLIN_INSTALLATION" -f "$root_dir/ops/compose.yaml" build || exit 3
+compose_common_run "$root_dir" up -d --wait --wait-timeout 120 postgres || exit 5
+for owner in core catalog media; do
+  "$bin/migrate.sh" "$owner" || exit 4
+done
+SPOOLIN_SEED_APPLY=1 "$bin/seed.sh" --apply || exit 4
+compose_common_run "$root_dir" up -d core catalog media || exit 5
+start=$SECONDS
+until "$bin/status.sh" >/dev/null 2>&1; do
+  if (( SECONDS - start >= 300 )); then
+    printf '%s\n' 'start: readiness deadline exceeded; inspect make logs' >&2
+    exit 5
   fi
-  if [[ -z "${SPOOLIN_LOCK_DIR:-}" ]]; then
-    printf '%s\n' "start: SPOOLIN_LOCK_DIR is required for safe migrations" >&2
-    exit 78
-  fi
-  for owner in core catalog media; do
-    "$bin/migrate.sh" "$owner" || exit 4
-  done
-}
-
-run_seed() {
-  SPOOLIN_SEED_APPLY=1 "$bin/seed.sh" --apply || exit 4
-}
-
-run_migrations
-run_seed
-set +e
-compose_common_run "$root_dir" up -d
-status=$?
-set -e
-exit "$status"
+  sleep 2
+done
+printf '%s\n' 'start: Core, Catalog and Media ready; database migrations and catalog seed applied'
+printf '%s\n' 'start: external chat clients and monitoring are unverified; inspect acceptance obligations'

@@ -14,9 +14,5 @@ if [[ "$apply" -ne 1 ]]; then
   printf '%s\n' "seed: manifest validated; load skipped (pass --apply or set SPOOLIN_SEED_APPLY=1 to invoke CatalogSeedLoader)" >&2
   exit 2
 fi
-gradle="$root_dir/gradlew"
-if [[ ! -x "$gradle" ]]; then
-  printf '%s\n' "seed --apply requires gradlew to invoke CatalogSeedLoader" >&2
-  exit 1
-fi
-exec "$gradle" -p "$root_dir" :services:catalog:seedCli --args="--seed-manifest=$manifest"
+source "$root_dir/ops/bin/_compose_common.sh"
+compose_common_run "$root_dir" --profile seed run --rm --no-deps catalog-seed
