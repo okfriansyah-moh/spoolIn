@@ -5,6 +5,8 @@ import com.spoolin.core.features.account.persistence.IdentityRules
 import com.spoolin.core.features.account.persistence.ProtectedAccounts
 import com.spoolin.core.features.crypto.PasswordHasher
 import com.spoolin.core.features.policy.PolicyConfiguration
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -22,16 +24,26 @@ class ConfigurationIntegrationTest {
                 settings["spoolin.account-protection.keys.$id.purpose"] = mount.purpose.name
                 settings["spoolin.account-protection.keys.$id.file"] = mount.file.toString()
             }
-            AnnotationConfigApplicationContext().use { context ->
-                context.environment.propertySources.addFirst(MapPropertySource("fixture", settings))
-                context.registerBean("dataSource", DataSource::class.java, java.util.function.Supplier { fixture.pool })
-                context.register(AccountProtectionConfiguration::class.java, PolicyConfiguration::class.java)
-                context.refresh()
-                assertNotNull(context.getBean(ProtectedAccounts::class.java))
-                assertNotNull(context.getBean(PasswordHasher::class.java).hashNew("synthetic valid credential"))
-                assertNotNull(context.getBean(IdentityRules::class.java))
+            val registry = SimpleMeterRegistry()
+            try {
+                configuredContext(fixture, settings, registry)
+            } finally {
+                registry.close()
             }
         }
+
+    private fun configuredContext(fixture: CryptoFixture, settings: Map<String, Any>, registry: MeterRegistry) {
+        AnnotationConfigApplicationContext().use { context ->
+            context.environment.propertySources.addFirst(MapPropertySource("fixture", settings))
+            context.registerBean("dataSource", DataSource::class.java, java.util.function.Supplier { fixture.pool })
+            context.registerBean("meterRegistry", MeterRegistry::class.java, java.util.function.Supplier { registry })
+            context.register(AccountProtectionConfiguration::class.java, PolicyConfiguration::class.java)
+            context.refresh()
+            assertNotNull(context.getBean(ProtectedAccounts::class.java))
+            assertNotNull(context.getBean(PasswordHasher::class.java).hashNew("synthetic valid credential"))
+            assertNotNull(context.getBean(IdentityRules::class.java))
+        }
+    }
 
     @Test
     fun disabledCapabilityHasNoCredentialBeansAndEnabledMissingKeysCannotStart() {

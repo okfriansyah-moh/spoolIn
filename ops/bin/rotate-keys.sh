@@ -61,5 +61,5 @@ fi
 compose_common_run "$root_dir" run --rm --no-deps -T \
   --user 0:0 --cap-add DAC_OVERRIDE --volume "$SPOOLIN_LOCK_DIR:/run/spoolin-operator-authority:ro" \
   --env "SPOOLIN_OPERATOR_UID=$(id -u)" --entrypoint java core \
-  -Dloader.main=com.spoolin.core.features.crypto.rotation.KeyRotationCliKt \
+  -Dloader.main=com.spoolin.core.operations.crypto.KeyRotationCliKt \
   -cp /app/service.jar org.springframework.boot.loader.launch.PropertiesLauncher "${args[@]}"

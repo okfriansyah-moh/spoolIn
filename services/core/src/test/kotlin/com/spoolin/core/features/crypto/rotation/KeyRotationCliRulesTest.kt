@@ -3,6 +3,7 @@ package com.spoolin.core.features.crypto.rotation
 import com.spoolin.core.features.crypto.KeyMount
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.MountedKeys
+import com.spoolin.core.operations.crypto.validateApplicationMaterial
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows

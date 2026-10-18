@@ -1,12 +1,16 @@
-package com.spoolin.core.features.crypto.rotation
+package com.spoolin.core.operations.crypto
 
 import com.spoolin.core.DatabaseSettings
 import com.spoolin.core.features.account.persistence.AccountProtectionSettings
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
 import com.spoolin.core.features.crypto.MountedKeys
+import com.spoolin.core.features.crypto.rotation.KeyRotationPlan
+import com.spoolin.core.features.crypto.rotation.RotationCliOptions
+import com.spoolin.core.features.crypto.rotation.RotationCommandAudit
+import com.spoolin.core.features.crypto.rotation.RotationKeys
+import com.spoolin.core.features.crypto.rotation.RotationOutcome
 import com.spoolin.support.logging.applyNormalizedLogLevel
-import javax.sql.DataSource
 import com.spoolin.support.work.OperatorAccess
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor
 import org.springframework.boot.context.properties.bind.Bindable
@@ -17,6 +21,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
+import javax.sql.DataSource
 import kotlin.system.exitProcess
 
 private const val ROTATION_REFUSAL_EXIT = 4
