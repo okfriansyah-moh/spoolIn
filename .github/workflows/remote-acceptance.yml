@@ -49,6 +49,12 @@ jobs:
               output.write('TESTED_SHA=' + record['tested_sha'] + '\n')
           Path('artifacts/provenance/runner.json').write_text(json.dumps(record, indent=2) + '\n')
           PY
+      - name: Inventory every assigned obligation against the actual checked-out source
+        if: ${{ inputs.mode == 'verify' || inputs.mode == 'runtime' }}
+        run: |
+          mkdir -p artifacts/assessment
+          python3 build-tools/verification-tests/obligation_inventory.py --output artifacts/assessment/obligations.json
+          python3 build-tools/verification-tests/obligation_inventory.py --check --output artifacts/assessment/obligations.json
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24.21.0'
@@ -96,6 +102,7 @@ jobs:
           name: strict-build-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/assessment
             artifacts/source-checks/strict-build.log
             **/build/reports/dependency-verification
           retention-days: 14
@@ -124,6 +131,7 @@ jobs:
           name: production-behavior-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/assessment
             artifacts/source-checks
             mcp/coverage/junit.xml
             frontend/coverage/results.json
@@ -156,6 +164,7 @@ jobs:
           name: codec-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/assessment
             artifacts/source-checks/codec-profile-prerequisite.json
             artifacts/source-checks/codec-profile-setup.log
             artifacts/source-checks/codec-host-before.json
@@ -179,6 +188,7 @@ jobs:
           name: prerequisites-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/assessment
             artifacts/source-checks
             **/build/test-results/**/*.xml
           retention-days: 14
@@ -211,6 +221,7 @@ jobs:
           name: application-readiness-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/assessment
             artifacts/runtime
           retention-days: 14
           if-no-files-found: error
@@ -307,6 +318,7 @@ jobs:
           name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/assessment
             artifacts/source-formatting.patch
             artifacts/source-checks
             data/seed/manifest.json
