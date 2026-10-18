@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 [[ "${GITHUB_ACTIONS:-}" == true && "${RUNNER_ENVIRONMENT:-}" == github-hosted && "${RUNNER_OS:-}" == Linux ]] || {
-  python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
-printf '%s\n' 'Pinned codec preparation requires a verified GitHub-hosted Linux runner.' >&2
+  printf '%s\n' 'Pinned codec preparation requires a verified GitHub-hosted Linux runner.' >&2
   exit 2
 }
 [[ "${ImageOS:-}" == ubuntu24 && -n "${RUNNER_TEMP:-}" && -n "${GITHUB_RUN_ID:-}" && -n "${GITHUB_RUN_ATTEMPT:-}" ]] || {
@@ -78,6 +77,8 @@ if ! timeout 15s /usr/bin/bwrap --unshare-all --die-with-parent --new-session \
   exit 2
 fi
 python3 ops/ci/codec-diagnostics.py --since "$probe_started" --probe-log artifacts/source-checks/codec-sandbox-preflight.log --output artifacts/source-checks/codec-host-after.json
+head -c 4096 artifacts/source-checks/codec-sandbox-preflight.log > "$staging/preflight-bounded"
+mv "$staging/preflight-bounded" artifacts/source-checks/codec-sandbox-preflight.log
 [[ "$(cat "$staging/dimensions")" =~ ^[1-9][0-9]*\ [1-9][0-9]*\ [1-4]$ ]] || {
   printf '%s\n' 'Production header helper did not return valid bounded dimensions.' >&2
   exit 2

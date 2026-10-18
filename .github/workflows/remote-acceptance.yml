@@ -119,6 +119,7 @@ jobs:
       - name: Readiness parser and redaction regression checks
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: |
+          python3 ops/ci/codec-diagnostics-test.py
           python3 ops/ci/readiness-helper-test.py
           python3 ops/ci/ports-test.py
           node --test ops/ci/private-readiness-test.mjs
@@ -137,6 +138,8 @@ jobs:
           name: codec-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/source-checks/codec-host-before.json
+            artifacts/source-checks/codec-host-after.json
             artifacts/source-checks/codec-environment.txt
             artifacts/source-checks/codec-sandbox-preflight.log
           retention-days: 14
@@ -186,6 +189,9 @@ jobs:
         run: |
           bash ops/bin/seed.sh --validate-only
           python3 ops/ci/verify-seed-runtime.py
+      - name: Probe actual restricted production Media codec container
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/ci/probe-media-codec.py
       - name: Exercise real production application in browsers
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         env:
@@ -217,6 +223,7 @@ jobs:
             artifacts/make
             artifacts/recovery
             artifacts/key-rotation
+            artifacts/codec-container
           retention-days: 14
           if-no-files-found: error
       - name: Configured delivery gates
@@ -237,6 +244,7 @@ jobs:
             artifacts/runtime
             artifacts/recovery
             artifacts/key-rotation
+            artifacts/codec-container
             artifacts/make
             artifacts/browser
             mcp/coverage

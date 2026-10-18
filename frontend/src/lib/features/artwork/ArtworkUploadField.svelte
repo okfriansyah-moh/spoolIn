@@ -25,6 +25,9 @@
 
   let view = $state(INITIAL_ARTWORK_UPLOAD_VIEW);
   let controller: ArtworkUploadController | null = null;
+  const uploadBlocked = $derived(
+    disabled || ['transferring', 'processing', 'uncertain'].includes(view.stage),
+  );
 
   onMount(() => {
     controller = new ArtworkUploadController(request, csrf);
@@ -41,7 +44,7 @@
     const input = event.currentTarget;
     if (!(input instanceof HTMLInputElement)) return;
     const file = input.files?.[0];
-    if (!file || disabled || !controller) return;
+    if (!file || uploadBlocked || !controller) return;
     await controller.uploadFile(file, titleId, expectedVersion, policyRevision);
     input.value = '';
   }
@@ -61,7 +64,7 @@
   <input
     type="file"
     accept="image/png,image/jpeg,image/webp"
-    {disabled}
+    disabled={uploadBlocked}
     onchange={onFileChange}
   />
   {#if view.stage === 'transferring'}
