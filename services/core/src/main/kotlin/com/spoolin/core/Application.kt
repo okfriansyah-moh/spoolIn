@@ -158,8 +158,10 @@ fun main(args: Array<String>) {
             org.springframework.core.env
                 .StandardEnvironment()
         DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
+    } else if (args.size == 1 && args[0].startsWith("--initialize-accounts=")) {
+        com.spoolin.core.features.bootstrap.runInitializationCli(args[0])
     } else {
-        check(args.isEmpty()) { "Use environment configuration; only --migrate is an accepted argument" }
+        check(args.isEmpty()) { "Use environment configuration or a supported maintenance argument" }
         org.springframework.boot.SpringApplication
             .run(Application::class.java)
     }
@@ -472,7 +474,9 @@ class FrontendNavigation {
         "/register",
         "/manage",
         "/manage/movies",
+        "/manage/movies/new",
         "/manage/people",
+        "/manage/people/new",
         "/manage/archives",
         "/manage/audit",
         produces = [MediaType.TEXT_HTML_VALUE],
@@ -492,7 +496,14 @@ class FrontendNavigation {
             ).body(bytes)
     }
 
-    @GetMapping("/movies/{id}", "/people/{id}", produces = [MediaType.TEXT_HTML_VALUE])
+    @GetMapping(
+        "/movies/{id}",
+        "/titles/{id}",
+        "/people/{id}",
+        "/manage/movies/{id}",
+        "/manage/people/{id}",
+        produces = [MediaType.TEXT_HTML_VALUE],
+    )
     fun recordNavigation(
         @PathVariable id: String,
     ): ResponseEntity<ByteArray> =
