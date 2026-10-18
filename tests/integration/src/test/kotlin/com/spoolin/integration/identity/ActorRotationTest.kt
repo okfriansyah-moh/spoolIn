@@ -167,7 +167,7 @@ private class RotationProof(
                 .execute(intent, UUID.randomUUID(), true) { SafeResult(intent.id) }
             val environment = StandardEnvironment()
             val quarantine = QuarantineStore(Files.createTempDirectory(root, "media-actor-rotation-"))
-            com.spoolin.media.RuntimeConfiguration().mediaService(
+            com.spoolin.media.OwnerServiceConfiguration().mediaService(
                 dataSource = pool,
                 environment = environment,
                 quarantineStore = quarantine,
