@@ -101,7 +101,18 @@
             type="radio"
             name={`${id}-kind`}
             value={choice[0]}
-            bind:group={criteria.kind}
+            checked={criteria.kind === choice[0]}
+            onchange={() => {
+              criteria = {
+                ...criteria,
+                kind:
+                  choice[0] === 'MOVIE'
+                    ? 'MOVIE'
+                    : choice[0] === 'TV'
+                      ? 'TV'
+                      : '',
+              };
+            }}
           /><span>{choice[1]}</span></label
         >
       {/each}
@@ -288,10 +299,9 @@
 
   .filter-categories {
     display: grid;
-    grid-template-columns: minmax(240px, 1.25fr) minmax(180px, 1fr) minmax(
-        120px,
-        0.7fr
-      ) minmax(120px, 0.7fr);
+    grid-template-columns:
+      minmax(240px, 1.25fr) minmax(180px, 1fr) minmax(120px, 0.7fr)
+      minmax(120px, 0.7fr);
     align-items: start;
     gap: var(--primitive-space-6);
   }

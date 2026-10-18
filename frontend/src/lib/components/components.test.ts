@@ -9,6 +9,7 @@ import Notice from './Notice.svelte';
 import OperationFeedback from './OperationFeedback.svelte';
 import SafeLink from './SafeLink.svelte';
 import ArtworkSlot from './ArtworkSlot.svelte';
+import PosterAttribution from './PosterAttribution.svelte';
 import TitleCard from './TitleCard.svelte';
 import ConfirmDialog from './ConfirmDialog.svelte';
 import Progress from './Progress.svelte';
@@ -375,4 +376,64 @@ it('marks the catalog as current on a title detail route', () => {
     },
   }).body;
   expect(body).toMatch(/href="\/" aria-current="page">Catalog/);
+});
+
+it('poster attribution follows the selected asset and hides removed artwork', () => {
+  const provenance = [
+    {
+      source: 'poster',
+      externalId: 'asset-one',
+      recordUrl: 'https://www.themoviedb.org/movie/1',
+      reuseNote: 'Poster source: TMDB',
+      retrievedAt: '2026-10-18T00:00:00Z',
+      fieldSources: {},
+      locallyChanged: [],
+    },
+  ];
+  const artwork = {
+    assetId: 'asset-one',
+    url: '/artwork/asset-one',
+    width: 500,
+    height: 750,
+  };
+  const body = render(PosterAttribution, {
+    props: { title: { artwork, provenance } },
+  }).body;
+  expect(body).toContain('Poster source: TMDB');
+  expect(body).toContain('https://www.themoviedb.org/movie/1');
+  expect(
+    render(PosterAttribution, {
+      props: { title: { artwork: null, provenance } },
+    }).body,
+  ).not.toContain('<a');
+  expect(
+    render(PosterAttribution, {
+      props: {
+        title: { artwork: { ...artwork, assetId: 'user-upload' }, provenance },
+      },
+    }).body,
+  ).not.toContain('<a');
+});
+it('poster attribution rejects unsafe source links', () => {
+  const artwork = {
+    assetId: 'asset-one',
+    url: '/artwork/asset-one',
+    width: 500,
+    height: 750,
+  };
+  const provenance = [
+    {
+      source: 'poster',
+      externalId: 'asset-one',
+      recordUrl: 'javascript:alert(1)',
+      reuseNote: 'Poster source: TMDB',
+      retrievedAt: '2026-10-18T00:00:00Z',
+      fieldSources: {},
+      locallyChanged: [],
+    },
+  ];
+  expect(
+    render(PosterAttribution, { props: { title: { artwork, provenance } } })
+      .body,
+  ).not.toContain('<a');
 });

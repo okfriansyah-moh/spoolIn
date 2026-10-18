@@ -29,7 +29,16 @@ internal object SeedArtworkSources {
                     art["sourceUrl"].asText(),
                     Instant.parse(art["retrievedAt"].asText()),
                     "Poster source: ${art["sourceName"].asText()}",
-                    mapper.writeValueAsString(mapOf("artwork" to mapper.convertValue(art, Map::class.java))),
+                    mapper.writeValueAsString(
+                        mapOf(
+                            "artwork" to
+                                mapOf(
+                                    "url" to art["sourceUrl"].asText(),
+                                    "retrievedAt" to art["retrievedAt"].asText(),
+                                    "reuseBasis" to "Public poster source recorded; no open-license claim.",
+                                ),
+                        ),
+                    ),
                     emptyList(),
                 )
         }

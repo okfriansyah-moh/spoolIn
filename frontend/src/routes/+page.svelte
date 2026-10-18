@@ -287,8 +287,8 @@
                 id={t.id}
                 title={t.title}
                 kind={t.kind === 'TV' ? 'TV' : 'Movie'}
-                date={t.displayRelease}
-                genres={t.genreLabels}
+                date={t.displayRelease ?? null}
+                genres={t.genreLabels ?? []}
                 artwork={t.artworkUrl}
               />
             </li>

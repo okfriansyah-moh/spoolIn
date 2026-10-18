@@ -39,6 +39,14 @@ class FieldSourceProjectionRulesTest {
     }
 
     @Test
+    fun `poster attribution uses the declared public source contract`() {
+        val json = source().replace("\"release\"", "\"artwork\"")
+        val projected = FieldSourceProjection.parse(json).single()
+        assertEquals("artwork", projected.field)
+        assertEquals("https://www.wikidata.org/wiki/Q1", projected.url)
+    }
+
+    @Test
     fun `empty source ledger is represented as no asserted field facts`() {
         assertEquals(emptyList<Any>(), FieldSourceProjection.parse("{}"))
     }

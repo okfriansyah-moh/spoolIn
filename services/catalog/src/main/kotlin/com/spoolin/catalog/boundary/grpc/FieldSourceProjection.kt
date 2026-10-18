@@ -85,6 +85,7 @@ internal object FieldSourceProjection {
     private val PUBLIC_FIELDS =
         setOf(
             "title",
+            "artwork",
             "originalTitle",
             "synopsis",
             "genres",

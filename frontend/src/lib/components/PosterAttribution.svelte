@@ -2,7 +2,8 @@
   import { safeUrl } from './safe-url';
   import type { CatalogTitleDetail } from '../features/catalog/api';
 
-  let { title }: { title: CatalogTitleDetail } = $props();
+  let { title }: { title: Pick<CatalogTitleDetail, 'artwork' | 'provenance'> } =
+    $props();
   const source = $derived(
     title.artwork
       ? title.provenance.find(

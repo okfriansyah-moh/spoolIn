@@ -300,12 +300,12 @@ def verify_api(manifest, role_ids, results=None):
         poster = next(row for row in actual['provenance'] if row['source'] == 'poster')
         compare_fields(poster, {'externalId': node['artwork']['assetId'],
                        'recordUrl': node['artwork']['sourceUrl'],
-                       'fieldSources': {'artwork': node['artwork']}}, node['stableUUID'])
+                       'fieldSources': public_field_sources({'sources': [{'field': 'artwork', 'url': node['artwork']['sourceUrl'], 'retrievedAt': node['artwork']['retrievedAt'], 'reuseBasis': 'Public poster source recorded; no open-license claim.'}]})}, node['stableUUID'])
         verify_poster(actual['artwork'], node['artwork'])
         results.append({'id': node['stableUUID'], 'kind': node['kind'], 'database': 'pass', 'https_api': 'pass',
                         'credit_count': len(node['credits']), 'artwork': 'packaged poster served over HTTPS'})
         PROGRESS['completedRecords'] = len(results)
-        time.sleep(0.6)
+        time.sleep(1.1)
     return results
 
 

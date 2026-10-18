@@ -39,7 +39,10 @@ export default defineConfig({
         test: {
           name: 'account-dom',
           environment: 'jsdom',
-          include: ['src/lib/features/session/*.dom.test.ts'],
+          include: [
+            'src/lib/features/session/*.dom.test.ts',
+            'src/routes/**/*.dom.test.ts',
+          ],
           environmentOptions: { jsdom: { url: 'https://localhost/' } },
         },
       },
