@@ -37,7 +37,7 @@ def protocol(mode, token_file):
 def connector(account, parent):
     secret_file = parent / "operator-connector"
     base = ("--account", account, "--client", "CLAUDE")
-    output, _ = invoke("connector.sh", "issue", *base, "--output-file", str(secret_file), "--ttl-seconds", "60")
+    output, _ = invoke("connector.sh", "issue", *base, "--output-file", str(secret_file), "--ttl-seconds", "600")
     secret = secret_file.read_text()
     if not re.fullmatch(r"[A-Za-z0-9_-]{43}", secret):
         raise RuntimeError("Unexpected protected connector credential format")

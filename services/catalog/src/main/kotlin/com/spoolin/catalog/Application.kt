@@ -293,7 +293,14 @@ class CatalogWriteConfiguration {
     }
 
     @Bean
-    fun movieWrites(receipts: OwnerReceipts): MovieWrites = MovieWrites(receipts)
+    fun catalogWritePolicy(environment: Environment): com.spoolin.catalog.boundary.policy.CatalogWritePolicy =
+        com.spoolin.catalog.boundary.policy.CatalogWritePolicy {
+            com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }
+        }
+
+    @Bean
+    fun movieWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): MovieWrites =
+        MovieWrites(receipts, policy = policy)
 
     @Bean
     fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
@@ -304,7 +311,8 @@ class CatalogWriteConfiguration {
     }
 
     @Bean
-    fun personWrites(receipts: OwnerReceipts): PersonWrites = PersonWrites(receipts)
+    fun personWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): PersonWrites =
+        PersonWrites(receipts, policy = policy)
 
     @Bean
     fun artworkRpc(
@@ -365,14 +373,14 @@ class CatalogWriteConfiguration {
     fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
 
     @Bean
-    fun roleWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+    fun roleWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
         com.spoolin.catalog.features.taxonomy.roles
-            .RoleWrites(receipts)
+            .RoleWrites(receipts, policy = policy)
 
     @Bean
-    fun creditWrites(receipts: OwnerReceipts): com.spoolin.catalog.features.credit.CreditWrites =
+    fun creditWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): com.spoolin.catalog.features.credit.CreditWrites =
         com.spoolin.catalog.features.credit
-            .CreditWrites(receipts)
+            .CreditWrites(receipts, policy = policy)
 
     @Bean
     fun managedCreditReads(dataSource: DataSource): com.spoolin.catalog.features.credit.ManagedCreditReads =
