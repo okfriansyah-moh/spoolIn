@@ -5,6 +5,9 @@ if (process.env.GITHUB_ACTIONS !== 'true' || process.env.RUNNER_ENVIRONMENT !== 
   throw new Error('Application acceptance requires a verified GitHub-hosted runner.');
 }
 
+const grafanaPort = Number(process.env.GRAFANA_HTTPS_PORT ?? 3000);
+if (!Number.isInteger(grafanaPort) || grafanaPort < 1 || grafanaPort > 65535) throw new Error('Invalid loopback Grafana port.');
+
 export default defineConfig({
   testDir: './flows/remote',
   globalSetup: './remote-global-setup.ts',
@@ -38,6 +41,9 @@ export default defineConfig({
         metadata: { inputMethods: ['touch'], sourceStates: 97 },
         use: { browserName, viewport: { width, height: 900 }, colorScheme, hasTouch: true, storageState: authenticatedStatePath() },
       })))),
+    { name: 'operations-chromium', testMatch: 'operations.spec.ts', timeout: 360000,
+      metadata: { inputMethods: ['pointer', 'keyboard'], scope: 'Actual private Grafana UI' },
+      use: { browserName: 'chromium', baseURL: `https://localhost:${grafanaPort}`, viewport: { width: 1440, height: 1000 }, colorScheme: 'dark', reducedMotion: 'reduce' } },
     { name: 'account-chromium', testMatch: 'account.spec.ts',
       use: { browserName: 'chromium', viewport: { width: 1440, height: 900 }, colorScheme: 'dark' } },
   ],
