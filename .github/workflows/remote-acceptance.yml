@@ -65,12 +65,21 @@ jobs:
       - name: Prepare dependency locks and verification entries
         if: ${{ (inputs.mode || 'dependencies') == 'dependencies' }}
         run: ./gradlew --no-daemon --console plain --write-verification-metadata sha256 --write-locks resolveLocks
+      - name: Install pinned delivery scanners
+        if: ${{ inputs.mode == 'verify' }}
+        run: bash ops/ci/install-gates.sh
       - name: Strict build and contract generation
         if: ${{ inputs.mode == 'verify' }}
         run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
       - name: Check production frontend and MCP
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: npm run check && npm run build
+      - name: Production MCP coverage and transport checks
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        run: npm run test:coverage --workspace mcp
+      - name: Production frontend behavior checks
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        run: npm run test:coverage --workspace frontend
       - name: Provision isolated synthetic environment
         if: ${{ inputs.mode == 'verify' }}
         run: python3 ops/ci/prepare-environment.py
@@ -96,7 +105,7 @@ jobs:
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/verify-make-targets.sh
       - name: Configured delivery gates
-        if: ${{ inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: python3 .ai/bin/agent-workflow gate --repo . --stage delivery --base 2764ca8bcdb5ee182852e2bdb26c95247c81c5ed
       - name: Retain reports including failed baseline
         if: always()

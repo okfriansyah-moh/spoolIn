@@ -64,7 +64,7 @@ class InitializationConfiguration(
             require(keys.isObject && keys.size() == 3)
             return InitializationConfiguration(
                 text(root, "setupVersion"),
-                accounts.map { account(it, rules) },
+                (0 until accounts.size()).map { account(accounts.get(it), rules) },
                 keys.properties().associate { entry ->
                     require(entry.value.properties().map { it.key }.toSet() == setOf("purpose", "file"))
                     entry.key to KeyMount(KeyPurpose.valueOf(text(entry.value, "purpose")), absolute(text(entry.value, "file")))
