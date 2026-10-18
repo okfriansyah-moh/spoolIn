@@ -118,7 +118,7 @@ def main():
     runtime.mkdir(mode=0o700)
     exports = {"SPOOLIN_INSTALLATION": "ci-" + os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"] + suffix, "SPOOLIN_LOCK_DIR": str(base / "locks"), "SPOOLIN_RUNTIME_CONFIG_DIR": str(runtime)}
     if namespace == "restore":
-        exports.update({"CORE_HTTPS_PORT": "9443", "CORE_MANAGEMENT_PORT": "19443", "CATALOG_MANAGEMENT_PORT": "19444", "MEDIA_MANAGEMENT_PORT": "19445", "MCP_HTTP_PORT": "9787"})
+        exports.update({"CORE_HTTPS_PORT": "9443", "CORE_MANAGEMENT_PORT": "19443", "CATALOG_MANAGEMENT_PORT": "19444", "MEDIA_MANAGEMENT_PORT": "19445", "MCP_HTTP_PORT": "9787", "GRAFANA_HTTPS_PORT": "13000"})
     (base / "locks").mkdir(mode=0o700)
     command("openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "2", "-subj", "/CN=Spoolin disposable CI CA", "-keyout", str(base / "ca-key"), "-out", str(base / "service-ca"))
     (base / "ca-key").chmod(0o600)

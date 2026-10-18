@@ -601,7 +601,7 @@ def wait_status():
 
 
 def start_and_validate(installation, artwork, marker, stage):
-    run(installation.compose + ["up", "-d", *OWNERS, "mcp"])
+    run(installation.compose + ["up", "-d", *OWNERS, "mcp", "prometheus", "alertmanager", "grafana"])
     wait_status()
     save_marker(installation, marker, "application-ready", stage)
     return smoke_application(installation, artwork)
