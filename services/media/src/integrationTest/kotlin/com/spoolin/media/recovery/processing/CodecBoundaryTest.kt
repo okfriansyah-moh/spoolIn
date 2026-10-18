@@ -35,7 +35,7 @@ class CodecBoundaryTest {
         assertTrue(replay is ProcessorRunner.Outcome.Success)
         assertArrayEquals(before, Files.readAllBytes(first.outputPath))
         assertArrayEquals(first.contentHash, (replay as ProcessorRunner.Outcome.Success).contentHash)
-        Files.list(output).use { paths -> assertEquals(1, paths.count()) }
+        Files.list(output).use { paths -> assertEquals(1L, paths.count()) }
     }
 
     @Test
@@ -45,6 +45,6 @@ class CodecBoundaryTest {
         ImageIO.write(BufferedImage(8193, 1, BufferedImage.TYPE_INT_RGB), "png", source.toFile())
         val result = runCatching { ProcessorRunner().process(source, output, ImageFormat.PNG) }
         assertFalse(result.getOrNull() is ProcessorRunner.Outcome.Success)
-        Files.list(output).use { paths -> assertEquals(0, paths.count()) }
+        Files.list(output).use { paths -> assertEquals(0L, paths.count()) }
     }
 }

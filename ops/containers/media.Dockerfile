@@ -2,7 +2,7 @@ FROM eclipse-temurin:21.0.12.1_1-jre-jammy@sha256:f04fb34e053148344e83317976114e
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl build-essential meson ninja-build pkg-config \
-    libglib2.0-dev libexpat1-dev libjpeg-turbo8-dev libpng-dev libwebp-dev && \
+    libglib2.0-dev libexpat1-dev libexif-dev libjpeg-turbo8-dev libpng-dev libwebp-dev && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /codec
 RUN curl --fail --location --retry 3 \
@@ -18,7 +18,7 @@ RUN PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/lib/aar
 
 FROM eclipse-temurin:21.0.12.1_1-jre-jammy@sha256:f04fb34e053148344e83317976114ec3f37e4b830ec8bdab5a2fe3cecd7d010b
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bubblewrap util-linux libglib2.0-0 libexpat1 libjpeg-turbo8 libpng16-16 libwebp7 libwebpmux3 libwebpdemux2 && \
+    bubblewrap util-linux libglib2.0-0 libexif12 libexpat1 libjpeg-turbo8 libpng16-16 libwebp7 libwebpmux3 libwebpdemux2 && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=codec /usr/local /usr/local
 RUN ldconfig && /usr/local/bin/vips --version | grep -Fx 'vips-8.18.7'

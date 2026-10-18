@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     if (width < 1 || width > 8192 || height < 1 || height > 8192 || bands < 1 || bands > 4 ||
         pages != 1 || (long long)width * height > 40000000 ||
         (long long)width * height * bands * vips_format_sizeof(image->BandFmt) > 160000000) return 3;
-    FILE *output = fopen(argv[2], "wx");
+    FILE *output = fopen(argv[2], "w");
     if (!output) return 4;
     int result = fprintf(output, "%d %d %d\n", width, height, bands) < 0;
     result |= fclose(output) != 0;

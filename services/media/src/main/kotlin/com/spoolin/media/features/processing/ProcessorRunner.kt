@@ -27,7 +27,7 @@ class ProcessorRunner(
         val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10)
         val target = outputDir.resolve("$assetId.${format.label.lowercase()}")
         if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)) return inspect(target, format, outputDir, deadline)
-        val scratch = Files.createTempDirectory(outputDir, "attempt-")
+        val scratch = Files.createDirectory(outputDir.resolve(UUID.randomUUID().toString()))
         try {
             val dimensions = dimensions(inputPath, scratch, deadline) ?: return Outcome.Rejected("INVALID_IMAGE_DIMENSIONS")
             val options = when (format) {
@@ -62,7 +62,7 @@ class ProcessorRunner(
         if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) return Outcome.Rejected("INVALID_OUTPUT")
         val size = Files.size(path)
         if (size !in 1..ProcessingBounds.MAX_OUTPUT_BYTES) return Outcome.Rejected("OUTPUT_TOO_LARGE")
-        val scratch = Files.createTempDirectory(outputDir, "inspect-")
+        val scratch = Files.createDirectory(outputDir.resolve(UUID.randomUUID().toString()))
         try {
             val dims = dimensions(path, scratch, deadline) ?: return Outcome.Rejected("PROCESSING_OUTPUT_UNREADABLE")
             val hash = Files.newInputStream(path).use { stream ->
