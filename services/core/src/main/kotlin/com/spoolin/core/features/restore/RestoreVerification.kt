@@ -31,32 +31,34 @@ object RestoreVerification {
         keys: MountedKeys,
         purpose: KeyPurpose,
     ): Long {
-        val table = if (purpose == KeyPurpose.PII) "user_account" else "form_draft"
-        val prefix = if (purpose == KeyPurpose.PII) "pii" else "body"
+        val table = RestoredTable.forPurpose(purpose)
         var after: UUID? = null
         var total = 0L
         while (true) {
-            val predicate = if (after == null) "" else "WHERE id>? "
-            val fields = if (purpose == KeyPurpose.DRAFT) "target_kind" else "NULL::text AS target_kind"
-            val arguments = if (after == null) emptyList() else listOf(after)
-            val rows =
-                source.connection.use { connection ->
-                    connection.queryBound(
-                        "SELECT id,${prefix}_key_id AS key_id,${prefix}_nonce AS nonce,${prefix}_cipher AS cipher,$fields " +
-                            "FROM appdata.$table ${predicate}ORDER BY id LIMIT 100",
-                        arguments,
-                    ) { row ->
-                        Row(
-                            row.getObject("id", UUID::class.java),
-                            ProtectedEnvelope(1, row.getString("key_id"), row.getBytes("nonce"), row.getBytes("cipher")),
-                            row.getString("target_kind"),
-                        )
-                    }
-                }
+            val rows = rows(source, table, after)
             if (rows.isEmpty()) return total
-            rows.forEach { authenticate(source, keys, purpose, table, it) }
+            rows.forEach { authenticate(source, keys, purpose, table.name, it) }
             after = rows.last().id
             total += rows.size
+        }
+    }
+
+    private fun rows(source: DataSource, table: RestoredTable, after: UUID?): List<Row> {
+        val predicate = if (after == null) "" else "WHERE id>? "
+        val arguments = if (after == null) emptyList() else listOf(after)
+        val prefix = table.prefix
+        return source.connection.use { connection ->
+            connection.queryBound(
+                "SELECT id,${prefix}_key_id AS key_id,${prefix}_nonce AS nonce,${prefix}_cipher AS cipher," +
+                    "${table.fields} FROM appdata.${table.name} ${predicate}ORDER BY id LIMIT 100",
+                arguments,
+            ) { row ->
+                Row(
+                    row.getObject("id", UUID::class.java),
+                    ProtectedEnvelope(1, row.getString("key_id"), row.getBytes("nonce"), row.getBytes("cipher")),
+                    row.getString("target_kind"),
+                )
+            }
         }
     }
 
@@ -72,16 +74,26 @@ object RestoreVerification {
             val read = AeadCipher().decrypt(row.envelope, material, ProtectionBinding("core", table, row.id, purpose))
             check(read is ProtectedRead.Value) { "Restored ciphertext authentication failed" }
             try {
-                if (purpose == KeyPurpose.PII) {
-                    verifyAliases(source, keys, row.id, read.value)
-                } else {
-                    DraftPayload().encode(requireNotNull(row.kind), DraftPayload().decode(read.value)).fill(0)
-                }
+                verifyClearContent(source, keys, purpose, row, read.value)
             } finally {
                 read.value.fill(0)
             }
         } finally {
             material.fill(0)
+        }
+    }
+
+    private fun verifyClearContent(
+        source: DataSource,
+        keys: MountedKeys,
+        purpose: KeyPurpose,
+        row: Row,
+        clear: ByteArray,
+    ) {
+        if (purpose == KeyPurpose.PII) {
+            verifyAliases(source, keys, row.id, clear)
+        } else {
+            DraftPayload().encode(requireNotNull(row.kind), DraftPayload().decode(clear)).fill(0)
         }
     }
 
@@ -106,19 +118,34 @@ object RestoreVerification {
             }
         check(aliases.any { it.third == "WRITE" }) { "Restored account lacks active lookup alias" }
         aliases.filter { it.third in setOf("WRITE", "READ") }.forEach { (key, stored, _) ->
-            val material = keys.key(key, KeyPurpose.EMAIL_LOOKUP) ?: error("Required lookup recovery key missing")
+            verifyAlias(keys, identity.value.emailNormalized, key, stored)
+        }
+    }
+
+    private fun verifyAlias(keys: MountedKeys, email: String, key: String, stored: ByteArray) {
+        val material = keys.key(key, KeyPurpose.EMAIL_LOOKUP) ?: error("Required lookup recovery key missing")
+        try {
+            val mac = Mac.getInstance("HmacSHA256")
+            mac.init(SecretKeySpec(material, "HmacSHA256"))
+            val expected = mac.doFinal(("email-lookup-v1\u0000" + email).toByteArray(Charsets.UTF_8))
             try {
-                val mac = Mac.getInstance("HmacSHA256")
-                mac.init(SecretKeySpec(material, "HmacSHA256"))
-                val expected = mac.doFinal(("email-lookup-v1\u0000" + identity.value.emailNormalized).toByteArray(Charsets.UTF_8))
-                try {
-                    check(MessageDigest.isEqual(expected, stored)) { "Restored lookup identity differs" }
-                } finally {
-                    expected.fill(0)
-                }
+                check(MessageDigest.isEqual(expected, stored)) { "Restored lookup identity differs" }
             } finally {
-                material.fill(0)
+                expected.fill(0)
             }
+        } finally {
+            material.fill(0)
+        }
+    }
+
+    private data class RestoredTable(val name: String, val prefix: String, val fields: String) {
+        companion object {
+            fun forPurpose(purpose: KeyPurpose): RestoredTable =
+                if (purpose == KeyPurpose.PII) {
+                    RestoredTable("user_account", "pii", "NULL::text AS target_kind")
+                } else {
+                    RestoredTable("form_draft", "body", "target_kind")
+                }
         }
     }
 

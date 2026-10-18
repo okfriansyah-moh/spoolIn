@@ -4,6 +4,12 @@ import com.spoolin.support.policy.ConfigurationSources
 import com.spoolin.support.policy.OperationalSettings
 import org.springframework.core.env.Environment
 
+private const val MAXIMUM_ATTEMPTS = 10
+private const val MAXIMUM_BASE_DELAY_MS = 60000
+private const val MAXIMUM_DELAY_MS = 3600000
+private const val MINIMUM_DEADLINE_MS = 1000
+private const val MAXIMUM_ANNOTATION_CODE_POINTS = 1024
+
 private const val ALERT_NAMES =
     "ServiceUnavailable,WorkQueueBacklog,SystemMutationFailure,ExhaustedWork,DelayedWork," +
         "NotificationUnresolved,PoolPressure,DiskWarning,DiskCritical,CryptoFault,ProcessingFailures,TunnelUnavailable"
@@ -39,10 +45,15 @@ data class AlertPolicy(
     init {
         require(services.isNotEmpty() && severities.isNotEmpty() && names.isNotEmpty())
         require((services + severities + names + environment).all { it.matches(Regex("[A-Za-z0-9_-]{1,128}")) })
-        require(maxAttempts in 1..10 && baseDelayMs in 1..60000 && capDelayMs in baseDelayMs..3600000 && multiplier in 1..10)
-        require(deadlineMs in 1000..3600000)
+        require(maxAttempts in 1..MAXIMUM_ATTEMPTS)
+        require(baseDelayMs in 1..MAXIMUM_BASE_DELAY_MS)
+        require(capDelayMs in baseDelayMs..MAXIMUM_DELAY_MS)
+        require(multiplier in 1..MAXIMUM_ATTEMPTS)
+        require(deadlineMs in MINIMUM_DEADLINE_MS..MAXIMUM_DELAY_MS)
         require(annotationValues.keys.all { it in setOf("summary", "description", "runbook") })
-        require(annotationValues.values.flatten().all { it.codePointCount(0, it.length) <= 1024 && it.none(Char::isISOControl) })
+        require(annotationValues.values.flatten().all {
+            it.codePointCount(0, it.length) <= MAXIMUM_ANNOTATION_CODE_POINTS && it.none(Char::isISOControl)
+        })
     }
 
     companion object {

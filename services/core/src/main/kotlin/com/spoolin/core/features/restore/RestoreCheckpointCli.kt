@@ -23,28 +23,33 @@ import java.util.UUID
 import javax.sql.DataSource
 import kotlin.system.exitProcess
 
+private const val RESTORE_FAILURE_EXIT = 4
+private const val MAXIMUM_PLAN_BYTES = 65536L
+
 /** Runs only while all application writers are stopped and the installation restore marker is present. */
 object RestoreCheckpointCli {
     private var stage = "protected configuration"
 
     @JvmStatic
     fun main(args: Array<String>) {
-        try {
-            restore(args)
-        } catch (failure: Exception) {
-            System.err.println(
-                "Restore epoch verification failed during $stage (${failure.javaClass.simpleName}); writers must remain stopped and restore marker retained",
-            )
-            exitProcess(4)
-        }
+        runCatching { restore(args) }.onFailure(::failed)
+    }
+
+    private fun failed(failure: Throwable) {
+        if (failure is Error) throw failure
+        System.err.println(
+            "Restore epoch verification failed during $stage (${failure.javaClass.simpleName}); " +
+                "writers must remain stopped and restore marker retained",
+        )
+        exitProcess(RESTORE_FAILURE_EXIT)
     }
 
     private fun restore(args: Array<String>) {
         require(args.size == 1 && args[0].startsWith("--plan="))
         val planPath = Path.of(args[0].substringAfter('='))
-        requireProtectedFile(planPath, 65536)
+        requireProtectedFile(planPath, MAXIMUM_PLAN_BYTES)
         val directory = requireNotNull(planPath.parent)
-        requireProtectedFile(directory.resolve("restore-pending-validation"), 65536)
+        requireProtectedFile(directory.resolve("restore-pending-validation"), MAXIMUM_PLAN_BYTES)
         val mapper =
             JsonMapper
                 .builder()
@@ -52,7 +57,8 @@ object RestoreCheckpointCli {
                 .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
                 .build()
         val plan = mapper.readTree(Files.readAllBytes(planPath))
-        require(plan["checkpointSha256"].asString().matches(Regex("[0-9a-f]{64}")))
+        val checkpointHash = plan["checkpointSha256"].asString()
+        require(checkpointHash.matches(Regex("[0-9a-f]{64}")))
         UUID.fromString(plan["epoch"].asString())
         val marker = mapper.readTree(Files.readAllBytes(directory.resolve("restore-pending-validation")))
         require(
@@ -97,7 +103,9 @@ object RestoreCheckpointCli {
             stage = "${purpose.name} write epoch and backfill"
             val from = plan["originals"][purpose.name].asString()
             val to = plan["targets"][purpose.name].asString()
-            require(from != to && plan["originalCounters"].get(to) == null) { "Restore target must be a new key version" }
+            require(from != to && plan["originalCounters"].get(to) == null) {
+                "Restore target must be a new key version"
+            }
             RotationKeys.registerTarget(source, keys, to, purpose)
             val result = KeyRotationPlan(from, to, purpose).rotate(source, registry, false, keys)
             check(result.ok && result.remaining == 0L) { "Restore backfill incomplete" }
@@ -118,7 +126,9 @@ object RestoreCheckpointCli {
                     .toMap()
             }
         plan["originalCounters"].properties().forEach { entry ->
-            check(actual[entry.key] == entry.value.asString()) { "A restored key nonce counter was used for encryption" }
+            check(actual[entry.key] == entry.value.asString()) {
+                "A restored key nonce counter was used for encryption"
+            }
         }
     }
 
@@ -144,14 +154,17 @@ object RestoreCheckpointCli {
             connection.executeBound("UPDATE appdata.user_account SET auth_epoch=auth_epoch+1")
             revokeSessions(connection)
             connection.executeBound(
-                "INSERT INTO appdata.operation_receipt(id,actor_scope,kind,request_hash,state,result,correlation_id,expires_at) " +
-                    "VALUES (?,'LOCAL_OPERATOR','RESTORE_REVOKE',?,'SUCCEEDED','{\"revoked\":true}'::jsonb,?,clock_timestamp()+INTERVAL '7 days')",
+                "INSERT INTO appdata.operation_receipt " +
+                    "(id,actor_scope,kind,request_hash,state,result,correlation_id,expires_at) " +
+                    "VALUES (?,'LOCAL_OPERATOR','RESTORE_REVOKE',?,'SUCCEEDED'," +
+                    "'{\"revoked\":true}'::jsonb,?,clock_timestamp()+INTERVAL '7 days')",
                 id,
                 hash,
                 id,
             )
             connection.executeBound(
-                "INSERT INTO appdata.operational_event(id,operation_id,actor_kind,action,subject_kind,outcome,correlation_id,event_type) " +
+                "INSERT INTO appdata.operational_event " +
+                    "(id,operation_id,actor_kind,action,subject_kind,outcome,correlation_id,event_type) " +
                     "VALUES (?,?,'SERVICE','RESTORE_REVOKE','INSTALLATION','SUCCEEDED',?,'ACTIVITY')",
                 UUID.randomUUID(),
                 id,

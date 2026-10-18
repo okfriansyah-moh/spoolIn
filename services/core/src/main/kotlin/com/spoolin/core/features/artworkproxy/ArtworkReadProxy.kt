@@ -68,7 +68,9 @@ class ArtworkReadProxy(
         val metadata = Metadata()
         if (management) {
             val principal = context.principal
-            if (principal == null || principal.role.name != "MAINTAINER") throw Status.PERMISSION_DENIED.asRuntimeException()
+            if (principal == null || principal.role.name != "MAINTAINER") {
+                throw Status.PERMISSION_DENIED.asRuntimeException()
+            }
             val target = ActorTarget("catalog", RESOLVE_ARTWORK, null, context.correlation)
             val token = issuer?.issue(principal, target) ?: throw Status.UNAVAILABLE.asRuntimeException()
             metadata.put(ActorRpc.metadata, token)

@@ -7,6 +7,8 @@ import java.sql.Connection
 import java.util.UUID
 import javax.sql.DataSource
 
+private const val MAXIMUM_ALERT_COUNT = 20
+
 /** Each new episode and its activity event share one commit. */
 class AlertRecorder(
     private val dataSource: DataSource,
@@ -18,25 +20,30 @@ class AlertRecorder(
         episodes: List<AlertEpisode>,
         policy: AlertPolicy,
     ): Int {
-        require(episodes.size in 1..20)
+        require(episodes.size in 1..MAXIMUM_ALERT_COUNT)
         val inserted =
             dataSource.connection.use { connection ->
                 connection.autoCommit = false
-                try {
-                    connection.createStatement().use {
-                        it.execute("SET LOCAL statement_timeout = '1500ms'")
-                        it.execute("SET LOCAL lock_timeout = '1000ms'")
-                    }
-                    val count = episodes.count { insert(connection, it, policy) }
-                    connection.commit()
-                    count
-                } catch (failure: Exception) {
-                    connection.rollback()
-                    throw failure
-                }
+                recordTransaction(connection, episodes, policy)
             }
         repeat(inserted) { workPendingMetrics?.markAlertEpisode() }
         return inserted
+    }
+
+    private fun recordTransaction(connection: Connection, episodes: List<AlertEpisode>, policy: AlertPolicy): Int {
+        var committed = false
+        try {
+            connection.createStatement().use {
+                it.execute("SET LOCAL statement_timeout = '1500ms'")
+                it.execute("SET LOCAL lock_timeout = '1000ms'")
+            }
+            val count = episodes.count { insert(connection, it, policy) }
+            connection.commit()
+            committed = true
+            return count
+        } finally {
+            if (!committed) connection.rollback()
+        }
     }
 
     private fun insert(
@@ -73,7 +80,8 @@ class AlertRecorder(
             check(
                 connection.executeBound(
                     "INSERT INTO operational_event (id,actor_kind,action,subject_kind,subject_id,outcome,changes," +
-                        "correlation_id,event_type) VALUES (?,'SERVICE','ALERT_RECORDED','NOTIFICATION',?,'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
+                        "correlation_id,event_type) VALUES " +
+                        "(?,'SERVICE','ALERT_RECORDED','NOTIFICATION',?,'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
                     UUID.randomUUID(),
                     id,
                     mapper.writeValueAsString(episode.summary),

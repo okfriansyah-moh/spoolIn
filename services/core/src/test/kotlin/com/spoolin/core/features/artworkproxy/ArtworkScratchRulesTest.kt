@@ -15,7 +15,8 @@ class ArtworkScratchRulesTest {
         val allocated = (1..4).map { ArtworkScratch.create() }.toMutableList()
         try {
             assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(allocated.first()))
-            assertEquals(PosixFilePermissions.fromString("rwx------"), Files.getPosixFilePermissions(allocated.first().parent))
+            val directoryPermissions = Files.getPosixFilePermissions(allocated.first().parent)
+            assertEquals(PosixFilePermissions.fromString("rwx------"), directoryPermissions)
             val denied = assertThrows(StatusRuntimeException::class.java) { ArtworkScratch.create() }
             assertEquals(Status.Code.RESOURCE_EXHAUSTED, denied.status.code)
             val released = allocated.removeAt(0)

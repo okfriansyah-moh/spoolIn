@@ -42,11 +42,11 @@ class ArtworkGraphql(
     }
 
     private fun artwork(env: DataFetchingEnvironment): Map<String, Any>? {
-        val source = env.getSource<Map<String, Any?>>() ?: return null
-        val raw = source["_artworkAssetId"] as? String ?: return null
+        val source = env.getSource<Map<String, Any?>>()
+        val raw = source?.get("_artworkAssetId") as? String ?: return null
         val asset = UUID.fromString(raw).also { require(it.toString() == raw) }
         val proxy = reads ?: throw RateUnavailable()
-        return proxy.metadata(asset, source["_artworkManagement"] == true, browser(env)).fields()
+        return proxy.metadata(asset, source?.get("_artworkManagement") == true, browser(env)).fields()
     }
 
     private fun uploadArtwork(env: DataFetchingEnvironment): Map<String, Any?> {
@@ -283,7 +283,8 @@ class ArtworkGraphql(
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
-    private fun browser(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
+    private fun browser(env: DataFetchingEnvironment): BrowserContext =
+        requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID {
         val value = requireNotNull(env.getArgument<String>("operationId"))

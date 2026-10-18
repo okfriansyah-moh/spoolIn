@@ -7,12 +7,17 @@ import com.spoolin.core.features.alerts.AlertWebhook
 import com.spoolin.core.features.alerts.InvalidAlert
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import java.security.cert.X509Certificate
 import java.sql.SQLException
 import java.util.concurrent.Semaphore
+
+private const val MAXIMUM_ALERT_BYTES = 65536
+private const val SAN_ENTRY_MINIMUM_SIZE = 2
+private const val DNS_SAN_TYPE = 2
 
 @RestController
 class AlertIngress(
@@ -25,44 +30,55 @@ class AlertIngress(
 
     @PostMapping("/internal/alerts", consumes = ["application/json"])
     fun accept(request: HttpServletRequest): ResponseEntity<Map<String, String>> {
-        if (!authorized(request)) return response(403, "FORBIDDEN")
-        if (request.contentLengthLong > 65536) return response(413, "PAYLOAD_TOO_LARGE")
-        if (request.getHeader("Content-Encoding")?.let { it != "identity" } == true) return response(400, "INVALID_ALERT")
-        if (!slots.tryAcquire()) return response(503, "UNAVAILABLE")
+        return rejection(request) ?: record(request)
+    }
+
+    private fun rejection(request: HttpServletRequest): ResponseEntity<Map<String, String>>? =
+        when {
+            !authorized(request) -> response(HttpStatus.FORBIDDEN.value(), "FORBIDDEN")
+            request.contentLengthLong > MAXIMUM_ALERT_BYTES ->
+                response(HttpStatus.PAYLOAD_TOO_LARGE.value(), "PAYLOAD_TOO_LARGE")
+            request.getHeader("Content-Encoding")?.let { it != "identity" } == true ->
+                response(HttpStatus.BAD_REQUEST.value(), "INVALID_ALERT")
+            !slots.tryAcquire() -> response(HttpStatus.SERVICE_UNAVAILABLE.value(), "UNAVAILABLE")
+            else -> null
+        }
+
+    private fun record(request: HttpServletRequest): ResponseEntity<Map<String, String>> {
         return try {
-            val episodes = webhook.parse(request.inputStream.readNBytes(65537))
+            val episodes = webhook.parse(request.inputStream.readNBytes(MAXIMUM_ALERT_BYTES + 1))
             recorder.recordBatch(episodes, policy)
-            response(202, "RECORDED")
+            response(HttpStatus.ACCEPTED.value(), "RECORDED")
         } catch (
             _: AlertCapacity,
         ) {
-            response(413, "PAYLOAD_TOO_LARGE")
+            response(HttpStatus.PAYLOAD_TOO_LARGE.value(), "PAYLOAD_TOO_LARGE")
         } catch (
             _: InvalidAlert,
         ) {
-            response(400, "INVALID_ALERT")
+            response(HttpStatus.BAD_REQUEST.value(), "INVALID_ALERT")
         } catch (
             _: SQLException,
         ) {
-            response(503, "UNAVAILABLE")
+            response(HttpStatus.SERVICE_UNAVAILABLE.value(), "UNAVAILABLE")
         } catch (_: java.io.IOException) {
-            response(400, "INVALID_ALERT")
+            response(HttpStatus.BAD_REQUEST.value(), "INVALID_ALERT")
         } finally {
             slots.release()
         }
     }
 
     private fun authorized(request: HttpServletRequest): Boolean {
-        val port = environment.getProperty("local.management.port")?.toIntOrNull() ?: return false
-        if (!request.isSecure || request.localPort != port) return false
-        val chain = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*> ?: return false
-        val leaf = chain.firstOrNull() as? X509Certificate ?: return false
-        val names =
-            leaf.subjectAlternativeNames
-                .orEmpty()
-                .filter { it.size >= 2 && it[0] == 2 }
-                .map { it[1] }
-        return names == listOf("alertmanager")
+        val port = environment.getProperty("local.management.port")?.toIntOrNull()
+        return request.isSecure && request.localPort == port && certificateNames(request) == listOf("alertmanager")
+    }
+
+    private fun certificateNames(request: HttpServletRequest): List<Any?> {
+        val chain = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
+        val leaf = chain?.firstOrNull() as? X509Certificate
+        return leaf?.subjectAlternativeNames.orEmpty()
+            .filter { it.size >= SAN_ENTRY_MINIMUM_SIZE && it[0] == DNS_SAN_TYPE }
+            .map { it[1] }
     }
 
     private fun response(

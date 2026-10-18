@@ -2,6 +2,7 @@ package com.spoolin.core.features.artworkproxy
 
 import io.grpc.Status
 import spoolin.v1.Spoolin
+import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
@@ -17,7 +18,9 @@ internal object ArtworkTransfer {
         try {
             val hash = MessageDigest.getInstance("SHA-256")
             val bytes = write(chunks, path, header.outputBytes, hash)
-            if (bytes != header.outputBytes || !MessageDigest.isEqual(hash.digest(), header.contentHash.toByteArray())) {
+            if (bytes != header.outputBytes ||
+                !MessageDigest.isEqual(hash.digest(), header.contentHash.toByteArray())
+            ) {
                 throw Status.DATA_LOSS.asRuntimeException()
             }
             val result = ArtworkReadProxy.VerifiedAsset(path, contentType, bytes)
@@ -43,16 +46,25 @@ internal object ArtworkTransfer {
         hash: MessageDigest,
     ): Long =
         Files.newOutputStream(path).use { output ->
-            var bytes = 0L
-            while (chunks.hasNext()) {
-                val data = data(chunks.next())
-                if (data.size.toLong() > maximum - bytes) throw Status.DATA_LOSS.asRuntimeException()
-                bytes += data.size
-                hash.update(data)
-                output.write(data)
-            }
-            bytes
+            writeChunks(chunks, output, maximum, hash)
         }
+
+    private fun writeChunks(
+        chunks: Iterator<Spoolin.AssetReadChunk>,
+        output: OutputStream,
+        maximum: Long,
+        hash: MessageDigest,
+    ): Long {
+        var bytes = 0L
+        while (chunks.hasNext()) {
+            val data = data(chunks.next())
+            if (data.size.toLong() > maximum - bytes) throw Status.DATA_LOSS.asRuntimeException()
+            bytes += data.size
+            hash.update(data)
+            output.write(data)
+        }
+        return bytes
+    }
 
     private fun data(chunk: Spoolin.AssetReadChunk): ByteArray {
         if (!chunk.hasData() || chunk.data.size() !in 1..MAX_CHUNK_BYTES) throw Status.DATA_LOSS.asRuntimeException()

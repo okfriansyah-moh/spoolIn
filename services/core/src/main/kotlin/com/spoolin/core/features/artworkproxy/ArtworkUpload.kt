@@ -8,6 +8,7 @@ import io.grpc.Status
 import io.grpc.stub.MetadataUtils
 import io.grpc.stub.StreamObserver
 import spoolin.v1.Spoolin
+import java.io.InputStream
 import java.nio.file.Files
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
@@ -54,17 +55,25 @@ internal object ArtworkUpload {
         response: UploadResponse,
     ) {
         Files.newInputStream(request.spool.path).use { input ->
-            val buffer = ByteArray(UPLOAD_CHUNK_BYTES)
-            while (response.error.get() == null && !Context.current().isCancelled) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                stream.onNext(
-                    Spoolin.UploadChunk
-                        .newBuilder()
-                        .setData(ByteString.copyFrom(buffer, 0, count))
-                        .build(),
-                )
-            }
+            sendChunks(input, stream, response)
+        }
+    }
+
+    private fun sendChunks(
+        input: InputStream,
+        stream: StreamObserver<Spoolin.UploadChunk>,
+        response: UploadResponse,
+    ) {
+        val buffer = ByteArray(UPLOAD_CHUNK_BYTES)
+        while (response.error.get() == null && !Context.current().isCancelled) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            stream.onNext(
+                Spoolin.UploadChunk
+                    .newBuilder()
+                    .setData(ByteString.copyFrom(buffer, 0, count))
+                    .build(),
+            )
         }
     }
 

@@ -61,7 +61,8 @@ class ArtworkTransferRulesTest {
                 .usePlaintext()
                 .build()
         try {
-            val graphql = ArtworkGraphql(CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newStub(channel), null)
+            val graphql =
+                ArtworkGraphql(CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newStub(channel), null)
             val operation = UUID.randomUUID()
             val failed =
                 Spoolin.Outcome
