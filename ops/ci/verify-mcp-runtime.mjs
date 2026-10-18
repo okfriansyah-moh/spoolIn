@@ -2,15 +2,21 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { BoundaryFailure, failureReport, protocolClassification, publicProblem } from './mcp-runtime-diagnostics.mjs';
+
+let stage = 'configuration';
 
 function requireProof(condition, description) {
-  if (!condition) throw new Error(description);
+  if (!condition) throw Object.assign(new BoundaryFailure('ASSERTION_FAILED'), { assertion: description });
 }
 
 function publicResult(reply, sensitive) {
   const challenge = reply._meta?.ui?.challenge;
   if (typeof challenge === 'string' && challenge) sensitive.push(challenge);
-  requireProof(!reply.isError && reply.structuredContent, 'Expected successful structured MCP result');
+  if (reply.isError) throw new BoundaryFailure('TOOL_REFUSED', {
+    problemCode: publicProblem(reply.structuredContent?.problem?.code),
+  });
+  requireProof(reply.structuredContent, 'Expected successful structured MCP result');
   const visible = JSON.stringify({ content: reply.content, structuredContent: reply.structuredContent });
   requireProof(sensitive.every((value) => !value || !visible.includes(value)), 'Private material reached model-visible output');
   return reply.structuredContent;
@@ -35,9 +41,9 @@ async function connect(tokenFile) {
       await client.close();
       requireProof(!diagnostics.includes(readFileSync(tokenFile, 'utf8').trim()), 'Credential reached bridge diagnostics');
     } };
-  } catch {
+  } catch (failure) {
     await transport.close();
-    throw new Error('Actual production MCP connection was denied or unavailable');
+    throw new BoundaryFailure('CONNECTION_FAILED', { ...protocolClassification(failure), diagnostics });
   }
 }
 
@@ -54,6 +60,7 @@ async function propose(client, context, sensitive) {
     genreIds: [context.genres[0].id], release: { year: 2026 }, synopsisLanguage: 'en',
     sources: [{ field: 'synopsis', url: 'https://www.wikidata.org/wiki/Q11621',
       reuseBasis: 'CC0 structured facts; original synthetic test wording.' }] };
+  stage = 'proposal';
   const reply = await client.callTool({ name: 'propose_movie', arguments: argumentsValue });
   const challenge = reply._meta?.ui?.challenge;
   requireProof(typeof challenge === 'string' && challenge.length >= 32, 'Private UI challenge missing');
@@ -61,20 +68,25 @@ async function propose(client, context, sensitive) {
   const first = publicResult(reply, sensitive);
   requireProof(first.revision === 1 && first.status === 'REVIEW', 'Initial immutable review revision missing');
   requireProof(first.normalizedMovie.title === argumentsValue.title, 'Proposal normalization changed title');
+  stage = 'replay';
   const repeated = publicResult(await client.callTool({ name: 'propose_movie', arguments: argumentsValue }), sensitive);
   requireProof(repeated.proposalId === first.proposalId && repeated.contentHash === first.contentHash,
     'Compatible replay changed immutable proposal identity');
+  stage = 'resource';
   const resource = await client.readResource({ uri: first.reviewResourceUri });
   const content = JSON.stringify(resource);
   requireProof(sensitive.every((value) => !content.includes(value)), 'Private material reached readable proposal resource');
+  stage = 'revision';
   const revision = publicResult(await client.callTool({ name: 'propose_movie', arguments: {
     ...argumentsValue, operationId: randomUUID(), proposalId: first.proposalId,
     expectedRevision: first.revision, title: `${argumentsValue.title} revised`,
   } }), sensitive);
   requireProof(revision.revision === 2 && revision.proposalId === first.proposalId && revision.contentHash !== first.contentHash,
     'Correction did not create a new exact-content revision');
+  stage = 'receipt';
   const receipt = publicResult(await client.callTool({ name: 'movie_operation', arguments: { operationId } }), sensitive);
   requireProof(receipt.operationId === operationId && receipt.state === 'PENDING', 'Original publish receipt is not pending');
+  stage = 'publication_denial';
   await publicationDenied(client);
   return { operationId, proposalId: first.proposalId, revision: revision.revision, result: 'passed' };
 }
@@ -83,13 +95,16 @@ async function positive(tokenFile) {
   const sensitive = [readFileSync(tokenFile, 'utf8').trim()];
   const manifest = JSON.parse(readFileSync('data/seed/manifest.json', 'utf8'));
   const seed = manifest.records[0];
+  stage = 'initialize';
   const session = await connect(tokenFile);
   let proposal;
   try {
+    stage = 'list_tools';
     const tools = await session.client.listTools();
     const names = tools.tools.map((tool) => tool.name);
     requireProof(['movie_context', 'propose_movie', 'movie_operation'].every((name) => names.includes(name)), 'Production tools missing');
     requireProof(!names.includes('approve_movie') && !names.includes('reject_movie'), 'Unsupported host publication exposed');
+    stage = 'context';
     const context = publicResult(await session.client.callTool({ name: 'movie_context',
       arguments: { query: seed.normalized.title, limit: 20 } }), sensitive);
     requireProof(context.titles.some((title) => title.id === seed.stableUUID), 'Real seeded catalog result missing');
@@ -97,8 +112,10 @@ async function positive(tokenFile) {
       'Actual taxonomy or effective policy missing');
     proposal = await propose(session.client, context, sensitive);
   } finally { await session.close(); }
+  stage = 'reconnect';
   const next = await connect(tokenFile);
   try {
+    stage = 'reconnect_receipt';
     const outcome = publicResult(await next.client.callTool({ name: 'movie_operation',
       arguments: { operationId: proposal.operationId } }), sensitive);
     requireProof(outcome.state === 'PENDING', 'Durable publish receipt missing after actual stdio reconnect');
@@ -109,6 +126,27 @@ async function positive(tokenFile) {
     publication: 'pending required supported host provenance and actual host approval/rejection', ...proposal };
 }
 
+async function revoked(tokenFile) {
+  stage = 'revoked_initialize';
+  const response = await fetch(`http://127.0.0.1:${process.env.MCP_HTTP_PORT ?? '8787'}/mcp`, {
+    method: 'POST', signal: AbortSignal.timeout(10_000),
+    headers: { authorization: `Bearer ${readFileSync(tokenFile, 'utf8').trim()}`,
+      'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {
+      protocolVersion: '2025-11-25', capabilities: {},
+      clientInfo: { name: 'remote-revocation-proof', version: '1.0.0' },
+    } }),
+  });
+  const status = response.status;
+  await response.body?.cancel();
+  requireProof(status === 401 || status === 403, 'Revoked connector must receive an actual authentication refusal');
+  let denied = false;
+  try { const session = await connect(tokenFile); await session.close(); } catch { denied = true; }
+  requireProof(denied, 'Revoked connector still initialized a production session');
+  return { result: 'passed', checks: ['actual revoked connector HTTP authentication refusal',
+    'actual revoked connector stdio initialization denial'], httpStatus: status };
+}
+
 async function main() {
   requireProof(process.env.GITHUB_ACTIONS === 'true' && process.env.RUNNER_ENVIRONMENT === 'github-hosted', 'Hosted CI required');
   const [mode, tokenFile, output] = process.argv.slice(2);
@@ -117,14 +155,10 @@ async function main() {
   let status = 1;
   try {
     if (mode === 'positive') Object.assign(report, await positive(tokenFile));
-    else {
-      let denied = false;
-      try { const session = await connect(tokenFile); await session.close(); } catch { denied = true; }
-      requireProof(denied, 'Revoked connector still initialized a production session');
-      Object.assign(report, { result: 'passed', checks: ['actual revoked connector initialization denial'] });
-    }
+    else Object.assign(report, await revoked(tokenFile));
     status = 0;
-  } catch {
+  } catch (failure) {
+    Object.assign(report, failureReport(stage, failure));
     report.failure = 'Actual protocol boundary assertion failed; private transport details withheld';
   } finally {
     writeFileSync(output, JSON.stringify(report, null, 2) + '\n');

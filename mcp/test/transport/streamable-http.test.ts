@@ -38,7 +38,7 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     policyChangesOnWrite = false;
     policy = policyFixture();
     server = new StreamableHttpTransport(async (token) => {
-      if (token !== 'synthetic-connector') throw new Error('DENIED');
+      if (token !== 'synthetic-connector') throw new GatewayFailure('FORBIDDEN');
       return createSession(token, {
         policy: async () => policy,
         context: async (): Promise<MovieContext> => ({
@@ -125,6 +125,23 @@ describe('real SDK streamable HTTP session lifecycle', () => {
         })
       ).status,
     ).toBe(404);
+  });
+  it('retains actual owner credential refusal status before allocating a protocol session', async () => {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer denied-connector',
+        'content-type': 'application/json',
+        accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {
+        protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'unit', version: '1' },
+      } }),
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ problem: { code: 'FORBIDDEN' } });
+    expect(response.headers.get('mcp-session-id')).toBeNull();
+    expect(closed).toBe(0);
   });
   it('bridges a real stdio process into the HTTP session without exposing its credential', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'spoolin-stdio-'));

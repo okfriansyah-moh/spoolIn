@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { mcpTracing } from '../operations/tracing.js';
 import { mcpDiagnostics } from '../operations/diagnostics.js';
+import { GatewayFailure } from '../operations/gateway-failure.js';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node';
 import { createSession } from '../gateway/session.js';
@@ -92,16 +93,28 @@ export class StreamableHttpTransport {
             this.handle(req, res, path, origins, hosts),
           ),
         )
-        .catch(() => {
-          if (!res.headersSent) res.writeHead(503);
-          res.end();
-        });
+        .catch((failure: unknown) => this.refuseFailure(res, failure));
     });
     listener.maxConnections = 128;
     listener.maxRequestsPerSocket = 1000;
     listener.requestTimeout = 30_000;
     listener.headersTimeout = 10_000;
     return listener;
+  }
+  private refuseFailure(res: http.ServerResponse, failure: unknown): void {
+    const code = failure instanceof GatewayFailure ? failure.problem.code : 'UNAVAILABLE';
+    const status = code === 'UNAUTHENTICATED' ? 401 : code === 'FORBIDDEN' ? 403 :
+      code === 'RESOURCE_EXHAUSTED' ? 429 : 503;
+    mcpDiagnostics.emit(status === 503 ? 'request_failed' : 'request_denied', {
+      code, error_class: 'dependency', boundary: 'ingress',
+    });
+    if (res.writableEnded) return;
+    if (!res.headersSent) {
+      res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      res.end(JSON.stringify({ problem: { code } }));
+    } else {
+      res.end();
+    }
   }
   private exporter(): http.Server {
     const health = http.createServer((req, res) => {
