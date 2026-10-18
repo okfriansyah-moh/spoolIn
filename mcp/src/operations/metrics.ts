@@ -1,3 +1,5 @@
+import { context as traceContext } from '@opentelemetry/api';
+import { mcpDiagnostics } from './diagnostics.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type http from 'node:http';
 
@@ -54,16 +56,17 @@ export class McpMetrics {
   ): Promise<void> {
     const state: RequestState = { operation: 'unknown' };
     const started = process.hrtime.bigint();
+    const tracing = traceContext.active();
     let finished = false;
     const finish = () => {
       if (finished) return;
       finished = true;
-      this.record(
+      traceContext.with(tracing, () => this.record(
         state.operation,
         'ingress',
         state.result ?? httpResult(res.statusCode, res.writableFinished),
         started,
-      );
+      ));
     };
     res.once('finish', finish);
     res.once('close', finish);
@@ -123,7 +126,14 @@ export class McpMetrics {
     const code = codes.has(result.code) ? result.code : 'UNKNOWN';
     const labels = `service="mcp",operation="${fixed}",boundary="${boundary}"`;
     const key = `${labels},outcome="${result.outcome}",code="${code}"`;
+    mcpDiagnostics.emit(logEvent(result), {
+      operation: fixed, boundary, outcome: result.outcome, code,
+      duration_ms: Number(process.hrtime.bigint() - started) / 1e6,
+    });
     this.results.set(key, (this.results.get(key) ?? 0) + 1);
+    this.duration(labels, started);
+  }
+  private duration(labels: string, started: bigint): void {
     const seconds = Number(process.hrtime.bigint() - started) / 1e9;
     const histogram = this.durations.get(labels) ?? {
       count: 0,
@@ -146,18 +156,7 @@ export class McpMetrics {
         lines.push(`spoolin_operation_results_total{${labels}} ${value}`),
       );
     lines.push('# TYPE spoolin_operation_duration_seconds histogram');
-    [...this.durations].sort().forEach(([labels, histogram]) => {
-      buckets.forEach((limit, index) =>
-        lines.push(
-          `spoolin_operation_duration_seconds_bucket{${labels},le="${limit}"} ${histogram.buckets[index]}`,
-        ),
-      );
-      lines.push(
-        `spoolin_operation_duration_seconds_bucket{${labels},le="+Inf"} ${histogram.count}`,
-        `spoolin_operation_duration_seconds_sum{${labels}} ${histogram.sum}`,
-        `spoolin_operation_duration_seconds_count{${labels}} ${histogram.count}`,
-      );
-    });
+    [...this.durations].sort().forEach(([labels, histogram]) => lines.push(...renderHistogram(labels, histogram)));
     lines.push(
       '# TYPE spoolin_service_ready gauge',
       `spoolin_service_ready{service="mcp"} ${ready ? 1 : 0}`,
@@ -169,8 +168,32 @@ export class McpMetrics {
       '# TYPE spoolin_mcp_sessions_closed_total counter',
       `spoolin_mcp_sessions_closed_total{service="mcp"} ${this.closed}`,
     );
+    lines.push(...mcpDiagnostics.sink.render());
     return lines.join('\n') + '\n';
   }
+}
+
+function renderHistogram(labels: string, histogram: Histogram): string[] {
+  const lines: string[] = [];
+  buckets.forEach((limit, index) =>
+    lines.push(
+      `spoolin_operation_duration_seconds_bucket{${labels},le="${limit}"} ${histogram.buckets[index]}`,
+    ),
+  );
+  lines.push(
+    `spoolin_operation_duration_seconds_bucket{${labels},le="+Inf"} ${histogram.count}`,
+    `spoolin_operation_duration_seconds_sum{${labels}} ${histogram.sum}`,
+    `spoolin_operation_duration_seconds_count{${labels}} ${histogram.count}`,
+  );
+  return lines;
+}
+
+function logEvent(result: Result) {
+  if (result.outcome === 'SYSTEM_FAILED') return 'request_failed';
+  if (result.outcome === 'UNCERTAIN') return 'request_uncertain';
+  if (['PERMISSION_DENIED', 'UNAUTHENTICATED', 'FORBIDDEN', 'RATE_LIMITED', 'RESOURCE_EXHAUSTED'].includes(result.code))
+    return 'request_denied';
+  return 'request_completed';
 }
 
 function httpResult(status: number, finished: boolean): Result {

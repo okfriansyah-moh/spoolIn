@@ -1,16 +1,13 @@
 import { createGateway } from './gateway/index.js';
+import { runMcpProcess } from './operations/diagnostics.js';
+import { initializeTracing, shutdownTracing } from './operations/tracing.js';
 
-const healthPort = Number(process.env.MCP_HEALTH_PORT ?? '8788');
-
-const gateway = createGateway();
-await gateway.start({
-  httpPath: '/mcp',
-  healthPort,
-});
-
-process.once('SIGTERM', () => {
-  void gateway.close();
-});
-process.once('SIGINT', () => {
-  void gateway.close();
+await runMcpProcess(async (register) => {
+  initializeTracing();
+  const gateway = createGateway();
+  register(async () => {
+    try { await gateway.close(); }
+    finally { await shutdownTracing(); }
+  });
+  await gateway.start({ httpPath: '/mcp', healthPort: Number(process.env.MCP_HEALTH_PORT ?? '8788') });
 });

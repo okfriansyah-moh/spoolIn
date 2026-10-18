@@ -1,3 +1,6 @@
+import http from 'node:http';
+import { context, trace } from '@opentelemetry/api';
+import { McpTracing } from '../../src/operations/tracing.js';
 import { policyFixture } from '../fixtures/policy.js';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -27,6 +30,9 @@ describe('typed Core gateway over real mutually authenticated gRPC', () => {
   let server: Server;
   let client: GatewayClient;
   const observed: string[] = [];
+  const observedTraces: string[] = [];
+  let cancelledRpc = () => {};
+  let startedRpc = () => {};
   const policy: PolicySnapshot = policyFixture();
   const savedEnvironment = new Map<string, string | undefined>();
   function certificate(name: string, serverCertificate = false) {
@@ -79,6 +85,11 @@ describe('typed Core gateway over real mutually authenticated gRPC', () => {
     expect(call.metadata.get('authorization')).toEqual([
       'Bearer isolated-connector',
     ]);
+    const traceparent = String(call.metadata.get('traceparent')[0]);
+    expect(traceparent).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-0[01]$/);
+    expect(call.metadata.get('tracestate')).toEqual([]);
+    expect(call.metadata.get('baggage')).toEqual([]);
+    observedTraces.push(traceparent);
     observed.push(
       String(call.metadata.get('mcp-ui-assertion')[0] ?? 'ordinary'),
     );
@@ -152,6 +163,7 @@ describe('typed Core gateway over real mutually authenticated gRPC', () => {
         callback: sendUnaryData<Outcome>,
       ) => {
         check(call);
+        if (call.request.id === 'cancelled') { call.once('cancelled', () => cancelledRpc()); startedRpc(); return; }
         if (call.request.id === 'failure')
           callback({
             code: status.UNAVAILABLE,
@@ -237,4 +249,52 @@ describe('typed Core gateway over real mutually authenticated gRPC', () => {
       },
     });
   });
+  it('carries an SDK child trace across the actual mutually authenticated gateway boundary only', async () => {
+    const tracing = new McpTracing();
+    let rootTrace = ''; let rootSpan = '';
+    const listener = http.createServer((req, res) => {
+      void tracing.ingress(req, res, async () => {
+        const root = trace.getSpan(context.active())!.spanContext();
+        rootTrace = root.traceId; rootSpan = root.spanId;
+        await client.policy(); res.end();
+      }).catch(() => res.destroy());
+    });
+    await new Promise<void>((resolve) => listener.listen(0, '127.0.0.1', resolve));
+    try {
+      const address = listener.address();
+      if (!address || typeof address === 'string') throw new Error('Owned listener unavailable');
+      await fetch(`http://127.0.0.1:${address.port}`, { headers: { traceparent: '00-' + '1'.repeat(32) + '-' + '2'.repeat(16) + '-01',
+        tracestate: 'secret=value', baggage: 'secret=value' } });
+      const wire = observedTraces.at(-1)!.split('-');
+      expect(wire[1]).toBe(rootTrace); expect(wire[2]).not.toBe(rootSpan);
+      expect(rootTrace).not.toBe('1'.repeat(32));
+      expect(trace.getSpan(context.active())).toBeUndefined();
+    } finally {
+      listener.closeAllConnections(); await new Promise<void>((resolve) => listener.close(() => resolve()));
+    }
+  });
+  it('cancels the actual mTLS RPC when its connector request disconnects', async () => {
+    let release!: () => void;
+    const cancelled = new Promise<void>((resolve) => { release = resolve; });
+    cancelledRpc = release;
+    const started = new Promise<void>((resolve) => { startedRpc = resolve; });
+    const tracing = new McpTracing();
+    const listener = http.createServer((req, res) => {
+      void tracing.ingress(req, res, async () => { await client.operation('cancelled'); res.end(); }).catch(() => res.destroy());
+    });
+    await new Promise<void>((resolve) => listener.listen(0, '127.0.0.1', resolve));
+    const address = listener.address();
+    if (!address || typeof address === 'string') throw new Error('Owned listener unavailable');
+    try {
+      const request = http.get(`http://127.0.0.1:${address.port}`);
+      request.on('error', () => undefined);
+      await started;
+      request.destroy();
+      await cancelled;
+      expect(trace.getSpan(context.active())).toBeUndefined();
+    } finally {
+      listener.closeAllConnections(); await new Promise<void>((resolve) => listener.close(() => resolve()));
+    }
+  });
+
 });

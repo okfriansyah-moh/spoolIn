@@ -1,4 +1,6 @@
 import http from 'node:http';
+import { mcpTracing } from '../operations/tracing.js';
+import { mcpDiagnostics } from '../operations/diagnostics.js';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node';
 import { createSession } from '../gateway/session.js';
@@ -18,6 +20,12 @@ type Session = {
 };
 const MAX_SESSIONS = 100;
 const SESSION_IDLE_MS = 15 * 60_000;
+
+function refusalBody(established: boolean, id: unknown, problem: { code: string; retryAfterMs?: number }, limited: boolean) {
+  if (!established) return { problem };
+  return { jsonrpc: '2.0', id: typeof id === 'string' || typeof id === 'number' ? id : null,
+    error: { code: -32000, message: limited ? 'Request limit reached.' : 'Service unavailable.', data: problem } };
+}
 
 export class StreamableHttpTransport {
   constructor(
@@ -54,29 +62,41 @@ export class StreamableHttpTransport {
     const hosts = new Set(
       (process.env.MCP_ALLOWED_HOSTS ?? 'localhost,127.0.0.1,mcp').split(','),
     );
-    this.listener = http.createServer((req, res) => {
-      void this.metrics
-        .ingress(req, res, () =>
-          this.handle(req, res, options.httpPath, origins, hosts),
-        )
+    this.listener = this.connector(options.httpPath, origins, hosts);
+    this.health = this.exporter();
+    await this.bind(options.healthPort);
+    mcpDiagnostics.emit('ready');
+    this.cleanup = setInterval(() => this.expireSessions(), 60_000).unref();
+  }
+  private connector(path: string, origins: Set<string>, hosts: Set<string>): http.Server {
+    const listener = http.createServer((req, res) => {
+      void mcpTracing
+        .ingress(req, res, () => this.metrics.ingress(req, res, () =>
+          this.handle(req, res, path, origins, hosts)))
         .catch(() => {
           if (!res.headersSent) res.writeHead(503);
           res.end();
         });
     });
-    this.listener.maxConnections = 128;
-    this.listener.maxRequestsPerSocket = 1000;
-    this.listener.requestTimeout = 30_000;
-    this.listener.headersTimeout = 10_000;
-    this.health = http.createServer((req, res) => {
+    listener.maxConnections = 128;
+    listener.maxRequestsPerSocket = 1000;
+    listener.requestTimeout = 30_000;
+    listener.headersTimeout = 10_000;
+    return listener;
+  }
+  private exporter(): http.Server {
+    const health = http.createServer((req, res) => {
       void this.operational(req, res).catch(() => {
         res.writeHead(503).end();
       });
     });
-    this.health.maxConnections = 16;
-    this.health.maxRequestsPerSocket = 100;
-    this.health.requestTimeout = 2000;
-    this.health.headersTimeout = 2000;
+    health.maxConnections = 16;
+    health.maxRequestsPerSocket = 100;
+    health.requestTimeout = 2000;
+    health.headersTimeout = 2000;
+    return health;
+  }
+  private async bind(healthPort: number): Promise<void> {
     await Promise.all([
       new Promise<void>((resolve, reject) =>
         this.listener!.once('error', reject).listen(
@@ -87,21 +107,22 @@ export class StreamableHttpTransport {
       ),
       new Promise<void>((resolve, reject) =>
         this.health!.once('error', reject).listen(
-          options.healthPort,
+          healthPort,
           '0.0.0.0',
           resolve,
         ),
       ),
     ]);
-    this.cleanup = setInterval(() => {
-      for (const [id, session] of this.sessions) {
-        if (Date.now() - session.touched > SESSION_IDLE_MS) {
-          if (this.sessions.delete(id)) this.metrics.sessionClosed();
-          void session.close();
-        }
-      }
-    }, 60_000).unref();
   }
+  private expireSessions(): void {
+    for (const [id, session] of this.sessions) {
+      if (Date.now() - session.touched > SESSION_IDLE_MS) {
+        if (this.sessions.delete(id)) this.metrics.sessionClosed();
+        void session.close().catch(() => mcpDiagnostics.emit('session_cleanup_failed'));
+      }
+    }
+  }
+
   private async operational(
     req: http.IncomingMessage,
     res: http.ServerResponse,
@@ -337,30 +358,21 @@ export class StreamableHttpTransport {
           }
         : {}),
     });
-    const id = message?.id;
-    res.end(
-      JSON.stringify(
-        established && req.method === 'POST'
-          ? {
-              jsonrpc: '2.0',
-              id: typeof id === 'string' || typeof id === 'number' ? id : null,
-              error: {
-                code: -32000,
-                message: limited
-                  ? 'Request limit reached.'
-                  : 'Service unavailable.',
-                data: problem,
-              },
-            }
-          : { problem },
-      ),
-    );
+    res.end(JSON.stringify(refusalBody(established && req.method === 'POST', message?.id, problem, limited)));
   }
-  async close(): Promise<void> {
+
+  private stopping?: Promise<void>;
+  close(): Promise<void> {
+    this.stopping ??= this.shutdown();
+    return this.stopping;
+  }
+  private async shutdown(): Promise<void> {
     this.closing = true;
-    this.readiness.close();
+    let readinessFailed = false;
+    try { this.readiness.close(); }
+    catch { readinessFailed = true; mcpDiagnostics.emit('transport_failed'); }
     if (this.cleanup) clearInterval(this.cleanup);
-    await Promise.all(
+    const sessionResults = await Promise.allSettled(
       [...this.sessions.values()].map((session) => session.close()),
     );
     this.sessions.forEach(() => this.metrics.sessionClosed());
@@ -375,5 +387,9 @@ export class StreamableHttpTransport {
             new Promise<void>((resolve) => server.close(() => resolve())),
         ),
     );
+    if (readinessFailed || sessionResults.some((result) => result.status === 'rejected')) {
+      mcpDiagnostics.emit('session_cleanup_failed');
+      throw new Error('MCP shutdown failed');
+    }
   }
 }
