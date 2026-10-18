@@ -467,8 +467,13 @@ class ReceiptMetadataScannerTests(unittest.TestCase):
         if version != tool["version"].removeprefix("v"):
             raise SetupError("Gitleaks version differs from the selected tool pin")
         cls.version = version
-        cls.candidate = (ROOT / ".ai/security/gitleaks.toml").read_text()
-        cls.baseline = cls.candidate.split(cls.marker)[0].rstrip() + "\n"
+        policy = (ROOT / ".ai/security/gitleaks.toml").read_text()
+        if policy.count(cls.marker) != 1:
+            raise SetupError("Expected one selected three-path scanner policy block")
+        prefix, selected = policy.split(cls.marker)
+        cls.baseline = prefix.rstrip() + "\n"
+        selected = selected.split("\n[[allowlists]]", 1)[0].rstrip()
+        cls.candidate = cls.baseline + "\n" + cls.marker + selected + "\n"
         if hashlib.sha256(cls.baseline.encode()).hexdigest() != cls.baseline_sha256:
             raise SetupError("Existing reviewed scanner policy changed outside the selected three-path block")
         cls.policy_inputs = Path(tempfile.gettempdir()) / "spoolin-t006-scanner-policy-inputs" / cls.output.name
