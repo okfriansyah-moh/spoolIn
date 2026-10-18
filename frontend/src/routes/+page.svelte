@@ -10,7 +10,7 @@
    *
    * SSR note: hero/head always rendered; interactive sections are client-side only.
    */
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { historyCursor } from '../lib/state/pagination';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -104,15 +104,15 @@
     }
   }
 
-  // Push current criteria into the URL (replaceState = true for filter changes,
-  // false for explicit navigation like clicking a title).
+  // Update catalog history without route navigation, preserving focus and scroll.
   function pushUrl(c: Criteria): void {
     const params = criteriaToParams(c);
     const qs = params.toString();
     const root = resolve('/');
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve catalog query string on /
     void goto(qs ? `${root}?${qs}` : root, {
-      replaceState: true,
+      shallow: true,
+      replace: true,
       state: { ...page.state, catalogCursor: null },
     });
   }
@@ -149,9 +149,9 @@
   // Sync URL changes (Back/Forward) back to criteria and controller.
   $effect(() => {
     if (!mounted || !controller) return;
-    const params = page.url.searchParams;
+    const params = (page.shallow?.url ?? page.url).searchParams;
     const fromUrl = parseCriteria(params);
-    const cur = criteria;
+    const cur = untrack(() => criteria);
 
     const cursor = historyCursor(page.state, 'catalogCursor');
     const same = cursor === lastPageCursor && sameCriteria(fromUrl, cur);
@@ -187,10 +187,10 @@
     )
       return;
     lastPageCursor = cursor;
-    // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
-    await goto(page.url.href, {
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- retain the current catalog criteria
+    await goto((page.shallow?.url ?? page.url).href, {
+      shallow: true,
       state: { ...page.state, catalogCursor: cursor },
-      reset: false,
     });
   }
 
@@ -228,7 +228,12 @@
         <button type="button" onclick={() => void loadGenres()}
           >Retry genre choices</button
         >{/if}
-      <CatalogFilters bind:criteria {genres} {years} />
+      <CatalogFilters
+        bind:criteria
+        {genres}
+        {years}
+        onsearch={() => controller?.setCriteria(criteria, { debounce: false })}
+      />
     </section>
 
     {#if catalogState.kind === 'loading'}

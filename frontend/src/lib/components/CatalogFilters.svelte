@@ -4,10 +4,12 @@
     criteria = $bindable(),
     genres,
     years,
+    onsearch,
   }: {
     criteria: Criteria;
     genres: { id: string; name: string }[];
     years: string[];
+    onsearch?: () => void;
   } = $props();
   const id = $props.id();
   let customYear = $state(false);
@@ -81,17 +83,24 @@
 </script>
 
 <div class="catalog-controls stack">
-  <div class="field catalog-search">
+  <form
+    class="field catalog-search"
+    onsubmit={(event) => {
+      event.preventDefault();
+      onsearch?.();
+    }}
+  >
     <label for={`${id}-text`}>Search titles</label><input
       id={`${id}-text`}
       type="search"
       bind:value={criteria.text}
     /><button
+      type="button"
       class="secondary"
       onclick={() => (criteria = { ...criteria, text: '' })}
       >Clear search text</button
     >
-  </div>
+  </form>
   <div class="filter-categories">
     <fieldset class="type-filters">
       <legend>Title type</legend>
