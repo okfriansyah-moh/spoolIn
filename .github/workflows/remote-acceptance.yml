@@ -204,6 +204,16 @@ jobs:
         id: application
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: bash ops/ci/run-application.sh
+      - name: Retain actual startup and readiness evidence before browser journeys
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: application-readiness-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/runtime
+          retention-days: 14
+          if-no-files-found: error
       - name: Verify complete loaded seed and restart persistence
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: |
@@ -216,7 +226,12 @@ jobs:
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         env:
           NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
-        run: npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
+        run: |
+          if [[ "$ACCEPTANCE_MODE" == runtime ]]; then
+            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts --project chromium-1440-dark --project chromium-390-light --project account-chromium --project operations-chromium
+          else
+            npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
+          fi
       - name: Verify actual monitoring and alert persistence
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/monitoring/verify.py --report artifacts/runtime/monitoring.json
