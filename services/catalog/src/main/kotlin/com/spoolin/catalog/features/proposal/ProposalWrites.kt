@@ -223,42 +223,30 @@ class ProposalWrites(
         if (!storedDigest.contentEquals(row.contentHash)) {
             throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
         }
-        val actorKind = auditActorKind(claims)
-        return if (approve) {
-            val outcome =
-                publishApprovedProposal(conn, claims, row, content, correlationId)
-            AuditInsert.record(
-                conn,
-                operationId,
-                claims.accountId,
-                actorKind,
-                "APPROVE_PROPOSAL",
-                "PROPOSAL",
-                proposalId,
-                "SUCCEEDED",
-                "{}",
-                correlationId,
-                clock.instant(),
-            )
-            outcome
+        val result = if (approve) {
+            publishApprovedProposal(conn, claims, row, content, correlationId)
         } else {
             ProposalStore.markRejected(conn, proposalId, revision)
             receipts.completePending(conn, row.operationId, SafeResult(proposalId, revision.toLong()), "REJECTED")
-            AuditInsert.record(
-                conn,
-                operationId,
-                claims.accountId,
-                actorKind,
-                "REJECT_PROPOSAL",
-                "PROPOSAL",
-                proposalId,
-                "SUCCEEDED",
-                "{}",
-                correlationId,
-                clock.instant(),
-            )
             SafeResult(proposalId, revision.toLong())
         }
+        recordDecision(conn, claims, row, approve, operationId, correlationId)
+        return result
+    }
+
+    private fun recordDecision(
+        conn: java.sql.Connection,
+        claims: com.spoolin.support.identity.ActorClaims,
+        row: ProposalRow,
+        approve: Boolean,
+        operationId: UUID,
+        correlationId: UUID,
+    ) {
+        AuditInsert.record(
+            conn, operationId, claims.accountId, auditActorKind(claims),
+            if (approve) "APPROVE_PROPOSAL" else "REJECT_PROPOSAL",
+            "PROPOSAL", row.id, if (approve) "APPROVED" else "REJECTED", "{}", correlationId, clock.instant(),
+        )
     }
 
     private fun publishApprovedProposal(

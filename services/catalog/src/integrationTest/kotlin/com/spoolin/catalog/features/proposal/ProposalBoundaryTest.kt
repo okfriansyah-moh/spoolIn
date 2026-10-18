@@ -103,7 +103,7 @@ class ProposalBoundaryTest {
     }
 
     @Test
-    fun `approval and rejection retain identity binding after receipt completion and publish only once`() {
+    fun `approval retains identity binding after receipt completion and publishes only once`() {
         ProposalFixture().use { f ->
             val original = proposal()
             val first = propose(f, original)
@@ -124,10 +124,19 @@ class ProposalBoundaryTest {
             assertEquals(Status.Code.PERMISSION_DENIED, failure {
                 f.stub("ApproveAndCreate", account = UUID.randomUUID()).approveAndCreate(input)
             })
+            assertEquals(Status.Code.PERMISSION_DENIED, failure {
+                f.stub("ApproveAndCreate", client = "CHATGPT").approveAndCreate(input)
+            })
             assertEquals(Status.Code.FAILED_PRECONDITION, failure {
                 f.stub("ApproveAndCreate").approveAndCreate(input.toBuilder().setChallenge("wrong").build())
             })
             assertEquals(1, f.count("SELECT count(*) FROM title WHERE id=?", UUID.fromString(created.resultId)))
+        }
+    }
+
+    @Test
+    fun `rejection returns original failed receipt and repeated rejection cannot publish`() {
+        ProposalFixture().use { f ->
             val rejectedRequest = proposal()
             val rejected = propose(f, rejectedRequest)
             val rejection = approval(rejected)
