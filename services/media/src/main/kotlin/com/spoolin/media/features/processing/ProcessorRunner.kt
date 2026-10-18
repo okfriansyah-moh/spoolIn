@@ -38,7 +38,7 @@ class ProcessorRunner(
             val fileName = "encoded.${format.label.lowercase()}"
             val error = sandbox.execute(input, scratch, codecArguments(format, fileName), deadline)
             return if (error != null) Outcome.Rejected(error)
-            else publish(scratch.resolve(fileName), target, format, output, deadline, dimensions)
+            else publish(EncodedPaths(scratch.resolve(fileName), target), format, output, deadline, dimensions)
         } finally {
             clearScratch(scratch)
         }
@@ -54,8 +54,10 @@ class ProcessorRunner(
             "--vips-concurrency", "1", "--vips-cache-max", "0")
     }
 
-    private fun publish(result: Path, target: Path, format: ImageFormat, output: Path, deadline: Long,
+    private fun publish(paths: EncodedPaths, format: ImageFormat, output: Path, deadline: Long,
         dimensions: Pair<Int, Int>): Outcome {
+        val result = paths.result
+        val target = paths.target
         val inspected = inspect(result, format, output, deadline)
         if (inspected !is Outcome.Success) return inspected
         require(dimensions.first > 0)
@@ -131,3 +133,5 @@ private fun linkOutput(target: Path, result: Path): Boolean = try {
 } catch (_: java.nio.file.FileAlreadyExistsException) {
     false
 }
+
+private data class EncodedPaths(val result: Path, val target: Path)
