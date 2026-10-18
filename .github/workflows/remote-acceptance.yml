@@ -7,9 +7,9 @@ on:
         required: true
         default: '2764ca8bcdb5ee182852e2bdb26c95247c81c5ed'
       mode:
-        description: Dependency preparation or strict acceptance
+        description: Full acceptance, focused real runtime proof, or source preparation
         type: choice
-        options: [verify, dependencies, seed, format, quality]
+        options: [verify, runtime, dependencies, seed, format, quality]
         default: verify
 permissions:
   contents: read
@@ -84,12 +84,12 @@ jobs:
         run: bash ops/ci/install-gates.sh
       - name: Strict build and contract generation
         id: build
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
         run: |
           mkdir -p artifacts/source-checks
           ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar 2>&1 | tee artifacts/source-checks/strict-build.log
       - name: Retain failed strict build diagnostics immediately
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'failure' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'failure' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: strict-build-failure-${{ github.run_id }}-${{ github.run_attempt }}
@@ -101,7 +101,7 @@ jobs:
           if-no-files-found: error
       - name: Check production frontend and MCP
         id: frontend
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
         run: |
           mkdir -p artifacts/source-checks
           npm run check 2>&1 | tee artifacts/source-checks/check.log
@@ -130,7 +130,7 @@ jobs:
           if-no-files-found: error
       - name: Readiness parser and redaction regression checks
         timeout-minutes: 10
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.dependencies.outcome == 'success' }}
         run: |
           python3 ops/ci/verify-capacity-test.py
           python3 ops/ci/test-codec-profile-package.py
@@ -144,7 +144,7 @@ jobs:
           python3 -m unittest discover -s build-tools/validate-seed -p 'test_*.py'
       - name: Provision pinned production codec prerequisites
         id: codec
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' }}
         run: bash ops/ci/prepare-codec-fixture.sh
       - name: Retain failed codec prerequisite diagnostics immediately
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.codec.outcome == 'failure' }}
@@ -170,7 +170,7 @@ jobs:
         if: ${{ !cancelled() && inputs.mode == 'verify' }}
         run: python3 ops/ci/collect-owner-evidence.py
       - name: Retain prerequisite execution reports before application startup
-        if: ${{ !cancelled() && inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: prerequisites-${{ github.run_id }}-${{ github.run_attempt }}
@@ -181,14 +181,14 @@ jobs:
           retention-days: 14
           if-no-files-found: error
       - name: Provision isolated synthetic environment
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: |
           python3 ops/ci/prepare-environment.py
       - name: Verify actual Compose policy forwarding
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: python3 ops/ci/verify-compose-settings.py
       - name: Install pinned browser engines and trust the isolated CA
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: |
           npm exec --workspace tests/browser -- playwright install --with-deps chromium firefox webkit
           sudo apt-get install --no-install-recommends -y libnss3-tools
@@ -199,23 +199,23 @@ jobs:
           certutil -A -d sql:"$HOME/.pki/nssdb" -n spoolin-ci -t 'C,,' -i "$SERVICE_CA_FILE"
       - name: Start documented application
         id: application
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: bash ops/ci/run-application.sh
       - name: Verify complete loaded seed and restart persistence
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: |
           bash ops/bin/seed.sh --validate-only
           python3 ops/ci/verify-seed-runtime.py
       - name: Probe actual restricted production Media codec container
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/ci/probe-media-codec.py
       - name: Exercise real production application in browsers
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         env:
           NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
         run: npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
       - name: Verify actual monitoring and alert persistence
-        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.application.outcome == 'success' }}
         run: python3 ops/monitoring/verify.py --report artifacts/runtime/monitoring.json
       - name: Verify documented Make lifecycle and suites
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
@@ -265,7 +265,7 @@ jobs:
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.capacity_ready.outcome == 'success' }}
         run: python3 ops/ci/verify-capacity.py --phase plans --repetition 1
       - name: Retain bounded check reports before delivery gates
-        if: ${{ !cancelled() && inputs.mode == 'verify' }}
+        if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: source-checks-${{ github.run_id }}-${{ github.run_attempt }}
