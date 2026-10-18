@@ -20,7 +20,9 @@ export class CreditDraftSync {
   constructor(
     private readonly source: DraftSource,
     private readonly titleId: string,
-  ) {}
+  ) {
+    this.reset();
+  }
 
   reset(catalogOperationId: string | null = null): void {
     this.draftId = globalThis.crypto.randomUUID();

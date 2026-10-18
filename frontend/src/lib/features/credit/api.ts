@@ -1,6 +1,8 @@
 import type { GraphqlRequest } from '../../transport/graphql';
 import { withCsrfAndSignal, withSignal } from '../../transport/request-options';
 import { record } from '../session/parse';
+import { mutation, operation } from '../session/outcome';
+import type { IdentityOutcome } from '../session/commands';
 import type { CreditRoleOption, ManagedCredit, PersonOption } from './types';
 
 const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48) {
@@ -34,8 +36,8 @@ const ADD_CREDIT = `mutation AddCredit(
     policyRevision: $policyRevision
     input: $input
   ) {
-    operation { id state resultId version problem { code } }
-    problem { code message }
+    operation { id state resultId version resultExpired problem { code retryAfterMs } }
+    problem { code retryAfterMs }
   }
 }`;
 
@@ -122,37 +124,70 @@ export async function fetchActivePeople(
   );
 }
 
-export async function addCredit(
-  request: GraphqlRequest,
-  operationId: string,
-  titleId: string,
-  expectedVersion: string,
-  policyRevision: string,
-  input: { personId: string; roleId: string; characters: string[] },
-  csrf: string,
-  signal: AbortSignal,
-): Promise<string | null> {
-  const data = record(
-    await request(
-      ADD_CREDIT,
-      {
-        operationId,
-        titleId,
-        expectedVersion: Number(expectedVersion),
-        policyRevision,
-        input,
-      },
-      { mutation: true, csrf, signal },
-    ),
-  );
-  const result = record(data.addCredit);
-  const problem = result.problem;
-  if (problem && typeof problem === 'object') {
-    const code = (problem as Record<string, unknown>).code;
-    if (code === 'CREDIT_DUPLICATE' || code === 'ALREADY_EXISTS')
-      return 'Review the credit — no duplicate added.';
+const UPDATE_CREDIT = `mutation UpdateCredit(
+  $operationId: UUID!, $id: UUID!, $expectedVersion: Long!,
+  $policyRevision: String!, $patch: CreditPatch!
+) {
+  updateCredit(operationId: $operationId, id: $id, expectedVersion: $expectedVersion,
+    policyRevision: $policyRevision, patch: $patch) {
+    operation { id state resultExpired problem { code retryAfterMs } }
+    problem { code retryAfterMs }
   }
-  const operation = record(result.operation);
-  if (operation.state === 'FAILED') return 'Changes were not saved.';
-  return null;
+}`;
+
+const REMOVE_CREDIT = `mutation RemoveCredit($operationId: UUID!, $id: UUID!, $expectedVersion: Long!) {
+  removeCredit(operationId: $operationId, id: $id, expectedVersion: $expectedVersion) {
+    operation { id state resultExpired problem { code retryAfterMs } }
+    problem { code retryAfterMs }
+  }
+}`;
+
+async function writeCredit(
+  request: GraphqlRequest, document: string, field: string,
+  variables: Record<string, unknown>, csrf: string, signal: AbortSignal,
+): Promise<IdentityOutcome> {
+  const data = record(await request(document, variables, { mutation: true, csrf, signal }));
+  return mutation(data[field], String(variables.operationId));
+}
+
+export async function addCredit(
+  request: GraphqlRequest, operationId: string, titleId: string,
+  expectedVersion: string, policyRevision: string,
+  input: { personId: string; roleId: string; characters: string[] },
+  csrf: string, signal: AbortSignal,
+): Promise<IdentityOutcome> {
+  return writeCredit(request, ADD_CREDIT, 'addCredit', {
+    operationId, titleId, expectedVersion, policyRevision, input,
+  }, csrf, signal);
+}
+
+export async function updateCredit(
+  request: GraphqlRequest, operationId: string, id: string,
+  expectedVersion: string, policyRevision: string,
+  patch: { roleId?: string; characters?: string[] }, csrf: string, signal: AbortSignal,
+): Promise<IdentityOutcome> {
+  return writeCredit(request, UPDATE_CREDIT, 'updateCredit', {
+    operationId, id, expectedVersion, policyRevision, patch,
+  }, csrf, signal);
+}
+
+export async function removeCredit(
+  request: GraphqlRequest, operationId: string, id: string,
+  expectedVersion: string, csrf: string, signal: AbortSignal,
+): Promise<IdentityOutcome> {
+  return writeCredit(request, REMOVE_CREDIT, 'removeCredit', {
+    operationId, id, expectedVersion,
+  }, csrf, signal);
+}
+
+export async function recoverCredit(
+  request: GraphqlRequest, operationId: string, csrf: string, signal: AbortSignal,
+): Promise<IdentityOutcome | null> {
+  const document = `query CreditOperation($id: UUID!) {
+    operation(id: $id, owner: CATALOG) {
+      id state resultExpired problem { code retryAfterMs }
+    }
+  }`;
+  const data = record(await request(document, { id: operationId }, withCsrfAndSignal(csrf, signal)));
+  return data.operation === null ? null : operation(data.operation, operationId);
 }

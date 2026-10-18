@@ -2,14 +2,19 @@
   import { onMount } from 'svelte';
   import Notice from '../../components/Notice.svelte';
   import Button from '../../components/Button.svelte';
+  import ConfirmDialog from '../../components/ConfirmDialog.svelte';
+  import type { IdentityOutcome } from '../session/commands';
+  import { fetchManagedMovie } from '../movie/api';
   import { createTransport } from '../../transport/graphql';
   import type { Policy } from '../../policy/types';
   import type { WriteContext } from '../movie/types';
   import type { DraftSource } from '../draft/types';
-  import { recoverCatalogOperation } from '../movie/api';
   import { CreditDraftSync } from './draft-sync';
   import {
     addCredit,
+    updateCredit,
+    removeCredit,
+    recoverCredit,
     fetchActivePeople,
     fetchCreditRoles,
     fetchTitleCredits,
@@ -42,6 +47,10 @@
   let roleId = $state('');
   let characterText = $state('');
   let submitting = $state(false);
+  let editing = $state<ManagedCredit | null>(null);
+  let removing = $state<ManagedCredit | null>(null);
+  let pendingId = $state<string | null>(null);
+  let retryOriginal: (() => Promise<IdentityOutcome>) | null = null;
 
   const selectedRole = $derived(
     roles.find((role) => role.id === roleId) ?? null,
@@ -50,13 +59,13 @@
   let draftSync = $state<CreditDraftSync | null>(null);
 
   $effect(() => {
-    draftSync?.dispose();
-    draftSync = new CreditDraftSync(draftSource, titleId);
-    return () => draftSync?.dispose();
+    const sync = new CreditDraftSync(draftSource, titleId);
+    draftSync = sync;
+    return () => sync.dispose();
   });
 
   $effect(() => {
-    if (!draftSync || !personId || !roleId) return;
+    if (!draftSync || !personId || !roleId || pendingId || editing) return;
     draftSync.schedule(
       {
         titleId,
@@ -101,56 +110,103 @@
       .filter(Boolean);
   }
 
-  async function submitCredit(): Promise<void> {
-    if (!personId || !roleId || submitting) return;
-    const characters = parseCreditCharacters(
-      selectedRole ?? undefined,
-      characterText,
-    );
-    const validation = validateCharacterNames(
-      characters,
-      policy,
-      selectedRole?.allowsCharacters ?? false,
-    );
-    if (validation) {
-      message = validation;
-      return;
-    }
-    submitting = true;
-    message = '';
-    const transport = createTransport();
-    const operationId = globalThis.crypto.randomUUID();
-    const error = await addCredit(
-      transport,
-      operationId,
-      titleId,
-      titleVersion,
-      context.policyRevision,
-      { personId, roleId, characters },
-      context.csrf,
-      new AbortController().signal,
-    );
-    submitting = false;
-    if (error) {
-      const receipt = await recoverCatalogOperation(
-        transport,
-        operationId,
-        context.csrf,
-        new AbortController().signal,
-      );
-      if (receipt?.state !== 'SUCCEEDED') {
-        message = error;
-        return;
-      }
-    }
-    const nextVersion = String(Number(titleVersion) + 1);
-    onTitleVersionChange(nextVersion);
-    credits = await fetchTitleCredits(transport, titleId, context.csrf);
+  function resetFields() {
+    editing = null;
     personId = '';
     roleId = '';
     characterText = '';
+  }
+
+  function editCredit(credit: ManagedCredit) {
+    editing = credit;
+    personId = credit.personId;
+    roleId = credit.role.id;
+    characterText = credit.characters.join('\n');
+  }
+
+  async function applyReceipt(receipt: IdentityOutcome | null) {
+    if (!receipt || receipt.state === 'PENDING') {
+      message = 'Credit result not confirmed. Check the original result before repeating it.';
+      return;
+    }
+    if (receipt.state === 'EXPIRED' || receipt.resultExpired) {
+      message = 'Original credit result expired. Review the current record before further changes.';
+      return;
+    }
+    if (receipt.state === 'FAILED') {
+      pendingId = null;
+      retryOriginal = null;
+      message = receipt.problem?.code === 'ALREADY_EXISTS' || receipt.problem?.code === 'CREDIT_DUPLICATE'
+        ? 'Review the credit — no duplicate added.' : 'Changes were not saved. Review the current credit.';
+      return;
+    }
+    const transport = createTransport();
+    const movie = await fetchManagedMovie(transport, titleId, context.csrf);
+    if (!movie || movie.state !== 'ACTIVE') throw new Error('Current movie unavailable.');
+    credits = await fetchTitleCredits(transport, titleId, context.csrf);
+    onTitleVersionChange(movie.version);
+    pendingId = null;
+    retryOriginal = null;
+    resetFields();
     message = 'Credit saved.';
   }
+
+  async function executeOriginal() {
+    if (!retryOriginal || submitting) return;
+    submitting = true;
+    try {
+      await applyReceipt(await retryOriginal());
+    } catch {
+      message = 'Credit result not confirmed. Check the original result before repeating it.';
+    } finally {
+      submitting = false;
+    }
+  }
+
+  async function checkOriginal() {
+    if (!pendingId || submitting) return;
+    submitting = true;
+    try {
+      const receipt = await recoverCredit(createTransport(), pendingId, context.csrf, new AbortController().signal);
+      await applyReceipt(receipt);
+    } catch {
+      message = 'Credit result not confirmed. Check the original result before repeating it.';
+    } finally {
+      submitting = false;
+    }
+  }
+
+  async function submitCredit(): Promise<void> {
+    if (!personId || !roleId || submitting || pendingId) return;
+    const characters = parseCreditCharacters(selectedRole ?? undefined, characterText);
+    const validation = validateCharacterNames(characters, policy, selectedRole?.allowsCharacters ?? false);
+    if (validation) { message = validation; return; }
+    const operationId = globalThis.crypto.randomUUID();
+    const transport = createTransport();
+    const signal = new AbortController().signal;
+    const input = { personId, roleId, characters };
+    const selected = editing;
+    const originalTitleVersion = titleVersion;
+    pendingId = operationId;
+    retryOriginal = selected
+      ? () => updateCredit(transport, operationId, selected.id, selected.version, context.policyRevision,
+        { roleId: input.roleId, characters: input.characters }, context.csrf, signal)
+      : () => addCredit(transport, operationId, titleId, originalTitleVersion, context.policyRevision, input, context.csrf, signal);
+    await executeOriginal();
+  }
+
+  async function confirmRemove() {
+    const selected = removing;
+    removing = null;
+    if (!selected || pendingId || submitting) return;
+    const operationId = globalThis.crypto.randomUUID();
+    const transport = createTransport();
+    const signal = new AbortController().signal;
+    pendingId = operationId;
+    retryOriginal = () => removeCredit(transport, operationId, selected.id, selected.version, context.csrf, signal);
+    await executeOriginal();
+  }
+
 </script>
 
 <section aria-labelledby="credits-heading">
@@ -184,6 +240,8 @@
           {#if credit.characters.length}
             — {credit.characters.join(', ')}
           {/if}
+          <button type="button" disabled={submitting || !!pendingId} onclick={() => editCredit(credit)}>Edit credit</button>
+          <button type="button" disabled={submitting || !!pendingId} onclick={() => (removing = credit)}>Remove credit</button>
         </li>
       {:else}
         <li>No credits yet for this movie.</li>
@@ -192,7 +250,7 @@
 
     <div class="field">
       <label for="credit-person">Person</label>
-      <select id="credit-person" bind:value={personId} disabled={submitting}>
+      <select id="credit-person" bind:value={personId} disabled={submitting || !!pendingId || !!editing}>
         <option value="">Select an active person</option>
         {#each people as person (person.id)}
           <option value={person.id}>{person.name}</option>
@@ -201,7 +259,7 @@
     </div>
     <div class="field">
       <label for="credit-role">Role</label>
-      <select id="credit-role" bind:value={roleId} disabled={submitting}>
+      <select id="credit-role" bind:value={roleId} disabled={submitting || !!pendingId}>
         <option value="">Select Cast or Creator role</option>
         {#each roles as role (role.id)}
           <option value={role.id}>{role.label} ({role.category})</option>
@@ -215,19 +273,28 @@
           id="credit-characters"
           rows="3"
           bind:value={characterText}
-          disabled={submitting}></textarea>
+          disabled={submitting || !!pendingId}></textarea>
       </div>
     {/if}
     <Button
       type="button"
       pending={submitting}
-      disabledReason={!personId || !roleId
+      disabledReason={!personId || !roleId || !!pendingId
         ? 'Choose a person and role first.'
         : ''}
-      onclick={() => void submitCredit()}>Add credit</Button
+      onclick={() => void submitCredit()}>{editing ? 'Save credit' : 'Add credit'}</Button
     >
+    {#if editing && !pendingId}<button type="button" onclick={resetFields}>Cancel credit edit</button>{/if}
+    {#if pendingId}
+      <button type="button" disabled={submitting} onclick={() => void checkOriginal()}>Check original result</button>
+      <button type="button" disabled={submitting} onclick={() => void executeOriginal()}>Retry original credit</button>
+    {/if}
   {/if}
 </section>
+<ConfirmDialog open={!!removing} title="Remove this credit?" action="Remove credit"
+  oncancel={() => (removing = null)} onconfirm={() => void confirmRemove()}>
+  <p>Remove this movie credit. The shared person and their other credits remain.</p>
+</ConfirmDialog>
 
 <style>
   .credit-list {
