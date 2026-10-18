@@ -121,7 +121,7 @@ class OwnerFixture(
             )
 
     fun url(owner: String): String =
-        "jdbc:postgresql://localhost:${postgres.getMappedPort(
+        "jdbc:postgresql://${postgres.host}:${postgres.getMappedPort(
             5432,
         )}/spoolin_$owner?sslmode=verify-full&sslrootcert=${root.resolve("ca.crt")}"
 
@@ -288,7 +288,13 @@ class OwnerFixture(
             "-subj",
             "/CN=$name",
         )
-        Files.writeString(root.resolve("$name.ext"), "subjectAltName=DNS:$name,DNS:localhost\nextendedKeyUsage=serverAuth,clientAuth\n")
+        val host = System.getenv("TESTCONTAINERS_HOST_OVERRIDE") ?: "localhost"
+        require(host.matches(Regex("[A-Za-z0-9.-]+"))) { "Unsafe fixture host" }
+        val hostName = if (host.all { it.isDigit() || it == '.' }) "IP:$host" else "DNS:$host"
+        Files.writeString(
+            root.resolve("$name.ext"),
+            "subjectAltName=DNS:$name,DNS:localhost,$hostName\nextendedKeyUsage=serverAuth,clientAuth\n",
+        )
         command(
             "openssl",
             "x509",

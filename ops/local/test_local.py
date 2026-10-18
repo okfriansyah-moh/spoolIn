@@ -130,7 +130,7 @@ class LocalCommandsTest(unittest.TestCase):
                 RUNNER.build_sources(test=True)
         self.assertIn(unittest.mock.call('npm', 'run', 'check'), command.call_args_list)
         self.assertIn(unittest.mock.call('npm', 'run', 'test:coverage', '--workspace', 'frontend'), command.call_args_list)
-        self.assertEqual(unittest.mock.call('./gradlew', '--no-daemon', '--console', 'plain', 'test'), command.call_args_list[-1])
+        self.assertEqual(unittest.mock.call('./gradlew', '--no-daemon', '--console', 'plain', 'test', '--rerun', docker=True), command.call_args_list[-1])
 
     def test_status_checks_readiness_and_codec(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -216,6 +216,87 @@ class LocalCacheResetTest(unittest.TestCase):
             with patch.object(RUNNER, 'STATE', state), patch('builtins.input', return_value='DELETE'), patch.object(RUNNER, 'tooling'), patch.object(RUNNER, 'run', return_value=subprocess.CompletedProcess([], 0, stdout='spoolin-local-gradle\n')) as command:
                 RUNNER.reset()
             self.assertEqual(('docker', 'volume', 'rm', 'spoolin-local-gradle'), command.call_args.args)
+
+
+class LocalDockerTestsTest(unittest.TestCase):
+    def test_docker_access_is_not_mounted_for_build_commands(self):
+        with patch.object(RUNNER, 'run') as command, patch.object(RUNNER, 'docker_test_arguments') as docker:
+            RUNNER.tooling('npm', 'ci')
+        docker.assert_not_called()
+        self.assertNotIn('/var/run/docker.sock', ' '.join(command.call_args.args))
+
+    def test_test_socket_uses_actual_container_group_and_shared_temporary_path(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state = Path(temporary)
+            endpoint = subprocess.CompletedProcess([], 0, stdout='unix:///local/docker.sock\n')
+            group = subprocess.CompletedProcess([], 0, stdout='1234\n')
+            with patch.object(RUNNER, 'STATE', state), patch.object(RUNNER, 'ROOT', Path('/host/source')), patch.dict(RUNNER.os.environ, {'DOCKER_HOST': ''}), patch.object(RUNNER, 'run', side_effect=[endpoint, group, subprocess.CompletedProcess([], 0, stdout='Docker Desktop')]):
+                arguments = RUNNER.docker_test_arguments()
+            self.assertIn('1234', arguments)
+            self.assertIn('/local/docker.sock:/var/run/docker.sock', arguments)
+            self.assertIn('TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal', arguments)
+            self.assertIn(f'JAVA_TOOL_OPTIONS=-Djava.io.tmpdir="{state / "test-tmp"}"', arguments)
+            self.assertIn('/host/source:/host/source', arguments)
+            self.assertEqual(0o700, (state / 'test-tmp').stat().st_mode & 0o777)
+
+    def test_test_socket_honors_explicit_local_docker_host(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch.object(RUNNER, 'STATE', Path(temporary)), patch.dict(RUNNER.os.environ, {'DOCKER_HOST': 'unix:///run/user/1000/docker.sock'}), patch.object(RUNNER, 'run', return_value=subprocess.CompletedProcess([], 0, stdout='1000\n')) as command:
+                arguments = RUNNER.docker_test_arguments()
+            self.assertIn('/run/user/1000/docker.sock:/var/run/docker.sock', arguments)
+            self.assertEqual(2, command.call_count)
+
+    def test_remote_engine_fails_before_mounting_host_paths(self):
+        with patch.dict(RUNNER.os.environ, {'DOCKER_HOST': 'tcp://remote.example:2376'}), patch.object(RUNNER, 'run') as command:
+            with self.assertRaisesRegex(RuntimeError, 'local Docker Unix socket'):
+                RUNNER.docker_test_arguments()
+            command.assert_not_called()
+
+    def test_invalid_socket_group_fails_closed(self):
+        with patch.dict(RUNNER.os.environ, {'DOCKER_HOST': 'unix:///var/run/docker.sock'}), patch.object(RUNNER, 'run', return_value=subprocess.CompletedProcess([], 0, stdout='unknown')):
+            with self.assertRaisesRegex(RuntimeError, 'socket group'):
+                RUNNER.docker_test_arguments()
+
+    def test_only_explicit_test_tooling_receives_docker_options(self):
+        with patch.object(RUNNER, 'docker_test_arguments', return_value=['--group-add', '0']) as options, patch.object(RUNNER, 'run') as command:
+            RUNNER.tooling('./gradlew', 'test', docker=True)
+        options.assert_called_once()
+        self.assertIn('--group-add', command.call_args.args)
+
+
+class LocalEngineNetworkTest(unittest.TestCase):
+    def test_native_linux_uses_host_network_for_loopback_only_fixtures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            responses = [subprocess.CompletedProcess([], 0, stdout='0'), subprocess.CompletedProcess([], 0, stdout='Ubuntu 24.04')]
+            with patch.object(RUNNER, 'STATE', Path(temporary)), patch.dict(RUNNER.os.environ, {'DOCKER_HOST': 'unix:///var/run/docker.sock'}), patch.object(RUNNER, 'run', side_effect=responses):
+                arguments = RUNNER.docker_test_arguments()
+            self.assertIn('--network', arguments)
+            self.assertIn('host', arguments)
+            self.assertIn('TESTCONTAINERS_HOST_OVERRIDE=localhost', arguments)
+            self.assertNotIn('--add-host', arguments)
+
+    def test_desktop_uses_bridge_and_host_internal_without_host_network_setting(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            responses = [subprocess.CompletedProcess([], 0, stdout='0'), subprocess.CompletedProcess([], 0, stdout='Docker Desktop')]
+            with patch.object(RUNNER, 'STATE', Path(temporary)), patch.dict(RUNNER.os.environ, {'DOCKER_HOST': 'unix:///var/run/docker.sock'}), patch.object(RUNNER, 'run', side_effect=responses):
+                arguments = RUNNER.docker_test_arguments()
+            self.assertNotIn('--network', arguments)
+            self.assertIn('--add-host', arguments)
+            self.assertIn('TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal', arguments)
+
+
+class LocalPythonVersionTest(unittest.TestCase):
+    def test_old_python_stops_before_docker_commands(self):
+        with patch.object(RUNNER.sys, 'version_info', (3, 9, 18)), patch.object(RUNNER.shutil, 'which') as docker, patch.object(RUNNER, 'run') as command:
+            with self.assertRaisesRegex(RuntimeError, 'Python 3.10 or newer is required'):
+                RUNNER.check_tools()
+            docker.assert_not_called()
+            command.assert_not_called()
+
+    def test_minimum_python_version_can_check_docker(self):
+        with patch.object(RUNNER.sys, 'version_info', (3, 10, 0)), patch.object(RUNNER.shutil, 'which', return_value='/usr/bin/docker'), patch.object(RUNNER, 'run') as command:
+            RUNNER.check_tools()
+        self.assertEqual(2, command.call_count)
 
 
 if __name__ == '__main__':

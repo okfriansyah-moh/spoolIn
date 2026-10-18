@@ -12,6 +12,8 @@ import com.spoolin.core.recovery.crypto.CryptoFixture
 import com.spoolin.integration.identity.ScopedActorTest
 import com.spoolin.support.receipts.ReceiptAuthority
 import com.spoolin.support.receipts.executeBound
+import java.security.SecureRandom
+import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -151,7 +153,11 @@ internal class PublicCatalogReadFixture(
                 operationId = UUID.randomUUID(),
                 issuedAt = now,
                 expiresAt = now + 30,
-                nonce = UUID.randomUUID().toString().replace("-", ""),
+                nonce =
+                    Base64
+                        .getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(ByteArray(ACTOR_NONCE_BYTES).also(SecureRandom()::nextBytes)),
             )
         val headers =
             io.grpc.Metadata().apply {
@@ -235,6 +241,7 @@ internal class PublicCatalogReadFixture(
     }
 
     companion object {
+        private const val ACTOR_NONCE_BYTES = 16
         private const val SOURCE = """{"title":{"field":"title","url":"https://example.invalid/fact",
             "permissionBasis":"Synthetic test permission","retrievedAt":"2025-01-01T00:00:00Z",
             "internalNote":"must-not-leak"}}"""

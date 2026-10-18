@@ -28,14 +28,45 @@ def compose(*args, capture=False):
                str(STATE / 'compose.json'), *args, capture=capture)
 
 
-def tooling(*args, root=False, cache=True):
+def docker_test_arguments():
+    endpoint = os.environ.get('DOCKER_HOST') or run(
+        'docker', 'context', 'inspect', '--format', '{{.Endpoints.docker.Host}}', capture=True).stdout.strip()
+    if not endpoint.startswith('unix:///'):
+        raise RuntimeError('local-test requires a local Docker Unix socket; remote engines are not supported.')
+    socket = endpoint.removeprefix('unix://')
+    group = run('docker', 'run', '--rm', '-v', f'{socket}:/var/run/docker.sock', TOOL,
+                'stat', '-c', '%g', '/var/run/docker.sock', capture=True).stdout.strip()
+    if not group.isdecimal():
+        raise RuntimeError('Could not determine the Docker socket group inside the test container.')
+    directory = STATE / 'test-tmp'
+    directory.mkdir(mode=0o700, exist_ok=True)
+    daemon_socket = socket if socket.startswith('/run/user/') else '/var/run/docker.sock'
+    engine = run('docker', 'info', '--format', '{{.OperatingSystem}}', capture=True).stdout.strip()
+    desktop = 'docker desktop' in engine.lower()
+    networking = (['--add-host', 'host.docker.internal:host-gateway',
+                   '-e', 'TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal'] if desktop
+                  else ['--network', 'host', '-e', 'TESTCONTAINERS_HOST_OVERRIDE=localhost'])
+    arguments = ['-v', f'{socket}:/var/run/docker.sock', '--group-add', group,
+                 *networking,
+                 '-e', 'DOCKER_HOST=unix:///var/run/docker.sock',
+                 '-e', f'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE={daemon_socket}',
+                 '-e', f'JAVA_TOOL_OPTIONS=-Djava.io.tmpdir="{directory}"']
+    if ROOT != Path('/workspace'):
+        arguments.extend(['-v', f'{ROOT}:{ROOT}'])
+    return arguments
+
+
+def tooling(*args, root=False, cache=True, docker=False):
     mounts = ['-v', 'spoolin-local-gradle:/workspace/.local/gradle'] if cache else []
     identity = [] if root else ['--user', f'{os.getuid()}:{os.getgid()}']
-    return run('docker', 'run', '--rm', *identity, '-v', f'{ROOT}:/workspace',
+    test_arguments = docker_test_arguments() if docker else []
+    return run('docker', 'run', '--rm', *identity, *test_arguments, '-v', f'{ROOT}:/workspace',
                *mounts, TOOL, *args)
 
 
 def check_tools():
+    if sys.version_info < (3, 10):
+        raise RuntimeError('Python 3.10 or newer is required. Install it using docs/local-setup.md, then run this command again.')
     if not shutil.which('docker'):
         raise RuntimeError('Install Docker and start its engine; see docs/local-setup.md.')
     run('docker', 'info', capture=True)
@@ -107,7 +138,7 @@ def build_sources(test=False):
         tooling('npm', 'run', 'check')
         tooling('npm', 'run', 'test:coverage', '--workspace', 'frontend')
         tooling('npm', 'run', 'test:coverage', '--workspace', 'mcp')
-        tooling('./gradlew', '--no-daemon', '--console', 'plain', 'test')
+        tooling('./gradlew', '--no-daemon', '--console', 'plain', 'test', '--rerun', docker=True)
 
 
 def migrate(owner):
