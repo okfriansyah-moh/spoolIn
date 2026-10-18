@@ -3,6 +3,7 @@ import copy
 import importlib.util
 import json
 import unittest
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -52,6 +53,32 @@ class StructuralSeedTest(unittest.TestCase):
                 self.rehash(root)
             with self.assertRaises(ValueError):
                 VALIDATOR.validate(root)
+
+    def test_previous_snapshot_remains_readable(self):
+        baseline = HERE.parent.parent / 'data/seed/baselines/wikidata-2026-10-v1.json'
+        if baseline.exists():
+            result = VALIDATOR.validate(json.loads(baseline.read_text()))
+            self.assertEqual(0, result['artworkFiles'])
+
+    def test_missing_or_modified_poster_is_rejected(self):
+        root = self.snapshot()
+        if not root['files']:
+            return
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, 'Missing poster'):
+                VALIDATOR.validate_files(root, Path(directory))
+            item = root['files'][0]
+            path = Path(directory) / item['file']
+            path.parent.mkdir()
+            path.write_bytes(b'\xff\xd8changed\xff\xd9')
+            with self.assertRaisesRegex(ValueError, 'checksum'):
+                VALIDATOR.validate_files(root, Path(directory))
+
+    def test_incomplete_package_is_rejected(self):
+        root = self.snapshot()
+        root['records'].pop()
+        with self.assertRaisesRegex(ValueError, '100 movies'):
+            VALIDATOR.validate(self.rehash(root))
 
     def test_structural_unicode_rejects_null(self):
         root = self.snapshot()

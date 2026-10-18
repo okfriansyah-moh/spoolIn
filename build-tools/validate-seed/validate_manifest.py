@@ -51,8 +51,8 @@ def sources(node, expected):
     rows = node.get('sources', [])
     require(set(row['field'] for row in rows) >= expected, 'Missing field provenance')
     for row in rows:
-        require(row['url'].startswith('https://www.wikidata.org/wiki/'), 'Unsupported source URL')
-        require(row['license'] == 'CC0-1.0' and row['permissionBasis'], 'Missing fact reuse permission')
+        require(row['url'].startswith('https://'), 'Unsupported source URL')
+        require(row['license'] in {'CC0-1.0', 'not-specified'} and row['permissionBasis'], 'Missing fact reuse permission')
         datetime.fromisoformat(row['retrievedAt'].replace('Z', '+00:00'))
 
 
@@ -96,10 +96,55 @@ def validate_record(root, row, people, roles):
         require(credit['personExternalId'] in people and credit['roleExternalId'] in roles, 'Dangling credit reference')
         sources(credit, {'person', 'role'})
         require(isinstance(credit['characters'], list), 'Invalid credit characters')
-    require(row['artwork'] is None, 'Artwork needs separate per-file license review')
+    if row['artwork'] is not None:
+        validate_artwork(row['artwork'])
+        for field, prefix in [('assetId', 'SEED_ARTWORK:'), ('holdId', 'SEED_ARTWORK_REFERENCE:')]:
+            expected = uuid.uuid5(uuid.UUID(root['namespaceUUID']), prefix + row['stableUUID'] + ':' + row['artwork']['sha256'])
+            require(row['artwork'][field] == str(expected), 'Poster identity mismatch')
 
 
-def validate(root):
+def validate_artwork(artwork):
+    require(artwork['file'].startswith('posters/') and '..' not in artwork['file'], 'Invalid poster path')
+    require(artwork['mimeType'] == 'image/jpeg', 'Invalid poster format')
+    require(64 == len(artwork['sha256']) and all(c in '0123456789abcdef' for c in artwork['sha256']), 'Invalid poster hash')
+    require(0 < artwork['width'] < artwork['height'] <= 10000, 'Invalid poster dimensions')
+    for field in ('assetId', 'holdId'):
+        uuid.UUID(artwork[field])
+    for field in ('sourceUrl', 'imageUrl'):
+        require(artwork[field].startswith('https://'), 'Invalid poster source')
+    text(artwork['sourceName'])
+    datetime.fromisoformat(artwork['retrievedAt'].replace('Z', '+00:00'))
+
+
+def jpeg_dimensions(data):
+    offset = 2
+    while offset + 4 <= len(data):
+        require(data[offset] == 255, 'Invalid JPEG marker')
+        marker = data[offset + 1]
+        offset += 2
+        if marker in {0xD8, 0xD9}:
+            continue
+        size = int.from_bytes(data[offset:offset + 2], 'big')
+        require(size >= 2 and offset + size <= len(data), 'Invalid JPEG segment')
+        if marker in {0xC0, 0xC1, 0xC2}:
+            require(size >= 8, 'Invalid JPEG frame')
+            return int.from_bytes(data[offset + 5:offset + 7], 'big'), int.from_bytes(data[offset + 3:offset + 5], 'big')
+        offset += size
+    raise ValueError('Missing JPEG frame')
+
+
+def validate_files(root, directory):
+    for item in root['files']:
+        path = directory / item['file']
+        require(path.is_file(), 'Missing poster file')
+        require(path.resolve().is_relative_to(directory.resolve()), 'Poster escapes package')
+        data = path.read_bytes()
+        require(len(data) <= 8000000 and data.startswith(b'\xff\xd8') and data.endswith(b'\xff\xd9'), 'Invalid JPEG file')
+        require(hashlib.sha256(data).hexdigest() == item['sha256'], 'Poster file checksum mismatch')
+        require(jpeg_dimensions(data) == (item['width'], item['height']), 'Poster dimensions mismatch')
+
+
+def validate(root, directory=None):
     require(root['schemaVersion'] == 2, 'Legacy synthetic seed schema is not accepted')
     require(root['sourcePolicyVersion'] and root['manifestVersion'] and root['licenseSummary'], 'Missing seed metadata')
     require(root['snapshotSHA256'] == checksum(root), 'Snapshot checksum mismatch')
@@ -124,8 +169,12 @@ def validate(root):
         validate_record(root, row, people, roles)
     expected = {'years': dict(sorted(Counter(str(row['normalized']['release']['year']) for row in records).items())), 'months': dict(sorted(Counter(str(row['normalized']['release']['month'] or 'unknown') for row in records).items()))}
     require(root['distribution'] == expected, 'Distribution does not match complete dataset')
-    require(root['files'] == [], 'Unreviewed artwork cannot be bundled')
-    return {'movies': 100, 'series': 100, 'people': len(people), 'credits': sum(len(row['credits']) for row in records), 'artworkFiles': 0, 'snapshotSHA256': root['snapshotSHA256'], 'distribution': expected, 'validationScope': 'structure_provenance_hash', 'effectivePolicyVerified': False}
+    artwork = [dict(row['artwork'], titleId=row['stableUUID']) for row in records if row['artwork'] is not None]
+    require(root['files'] == artwork, 'Artwork inventory mismatch')
+    require(not artwork or len(artwork) == 200, 'Requires complete poster package')
+    if directory is not None:
+        validate_files(root, Path(directory))
+    return {'movies': 100, 'series': 100, 'people': len(people), 'credits': sum(len(row['credits']) for row in records), 'artworkFiles': len(artwork), 'snapshotSHA256': root['snapshotSHA256'], 'distribution': expected, 'validationScope': 'structure_provenance_hash', 'effectivePolicyVerified': False}
 
 
 def main():
@@ -135,7 +184,7 @@ def main():
         print('Seed structural preflight accepts one manifest path', file=sys.stderr)
         return 2
     try:
-        result = validate(json.loads(path.read_text(encoding='utf-8')))
+        result = validate(json.loads(path.read_text(encoding='utf-8')), path.parent)
     except (ValueError, KeyError, TypeError) as failure:
         print(f'Seed validation failed: {failure}', file=sys.stderr)
         return 1
