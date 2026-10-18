@@ -78,6 +78,11 @@ class Application {
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
 
+    @Bean(initMethod = "start", destroyMethod = "close")
+    fun notificationDispatcher(dataSource: DataSource, environment: Environment): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings.transport { environment.getProperty(it) }
+            ?.let { com.spoolin.support.notifications.NotificationDispatcher(dataSource, it) }
+
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
         com.spoolin.support.maintenance.MaintenanceDataSources.open(

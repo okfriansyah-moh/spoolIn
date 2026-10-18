@@ -1,7 +1,7 @@
 title = "Project secret scan with reviewed hash and prose exceptions"
 
 [extend]
-path = ".ai/bundles/1.1.0/profiles/security/gitleaks.toml"
+path = ".ai/bundles/1.2.1/profiles/security/gitleaks.toml"
 
 [[allowlists]]
 description = "Receipt, service-fingerprint and contract-review SHA-256 values verified independently"
