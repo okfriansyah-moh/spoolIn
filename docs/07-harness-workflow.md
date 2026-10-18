@@ -6,7 +6,7 @@ Reviewed against repository configuration and helper implementation: 15 October 
 
 Scope: development tooling, workflow, and evidenced supporting tools
 
-Workflow selection: `agent-workflow` 1.1.0, `movie-app` profile
+Workflow selection: `agent-workflow` 1.2.1, `movie-app` profile
 
 Status: configuration and operating guide; native readiness and application acceptance have separate results.
 
@@ -598,8 +598,8 @@ This matrix maps the inventory to its sources and distinguishes configured capab
 
 | Component | Source | Status / proof boundary |
 | --- | --- | --- |
-| Bundle selection, version, limits | [Configuration](../.ai/config.json), [manifest](../.ai/bundles/1.2.1/manifest.json) | 1.1.0 selected; doctor healthy; 74 skill entries. |
-| Global fallback and retained bundles | [Storage map](#21-configuration-state-and-storage-map), [installation](../.ai/bundles/1.2.1/docs/INSTALLATION.md) | Global 1.1.0/general inspected; project 1.1.0/movie-app governs; retained project 1.0.0 is inactive. |
+| Bundle selection, version, limits | [Configuration](../.ai/config.json), [manifest](../.ai/bundles/1.2.1/manifest.json) | 1.2.1 selected; doctor healthy; 74 skill entries. |
+| Global fallback and retained bundles | [Storage map](#21-configuration-state-and-storage-map), [installation](../.ai/bundles/1.2.1/docs/INSTALLATION.md) | Global 1.1.0/general was inspected during initial authoring; project 1.2.1/movie-app governs; only the selected project bundle remains. |
 | Local state, archives, and recovery data | [Storage map](#21-configuration-state-and-storage-map), [ignore rules](../.ai/.gitignore) | Local release archive present; state/evidence/reports/backups are ignored and need deliberate preservation. |
 | Instructions and discovery | [Root policy](../AGENTS.md), [host map](#31-repository-configuration-map) | Four configured adapters; 74 skill symlinks per host. Native precedence needs separate proof. |
 | Codex | [Native host results](../.ai/bundles/1.2.1/docs/VERIFICATION-1.1.md#native-host-results) | Historical fixture blocked; saved record stale; project installation loading unverified. |
