@@ -1,5 +1,7 @@
 # TV poster sourcing research
 
+> Historical research: the user superseded the open-license-only sourcing restriction on 18 October 2026. The findings below describe the earlier snapshot and criteria. The current `public-pages-2026-10-v2` package retains 100 movies and 100 TV series with 200 matched posters sourced from public TMDB HTML pages. Source URLs and supplied rights information are recorded in `data/seed/manifest.json` and `data/seed/sources/tmdb-pages.json`; no open-license claim is inferred. The earlier shortfall does not describe the replacement package.
+
 Research date: 18 October 2026. This is a bounded source audit, not proof that additional qualifying posters do not exist.
 
 ## Result

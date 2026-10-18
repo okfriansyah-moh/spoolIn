@@ -1,5 +1,7 @@
 # Seed data and poster audit
 
+> Historical research: the user superseded the open-license-only sourcing restriction on 18 October 2026. The findings below describe the earlier snapshot and criteria. The current `public-pages-2026-10-v2` package retains 100 movies and 100 TV series with 200 matched posters sourced from public TMDB HTML pages. Source URLs and supplied rights information are recorded in `data/seed/manifest.json` and `data/seed/sources/tmdb-pages.json`; no open-license claim is inferred. The earlier shortfall does not describe the replacement package.
+
 Observed on 18 October 2026. The approved upgrade requires 100 real movie/poster pairs and 100 real TV/poster pairs before replacement. **That sourcing gate remains unmet. No seed or application implementation has been changed.**
 
 ## Current dataset

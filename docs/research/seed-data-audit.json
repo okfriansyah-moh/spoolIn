@@ -58,5 +58,12 @@
       "status": null,
       "retryAfter": null
     }
+  },
+  "historicalStatus": {
+    "supersededAt": "2026-10-18",
+    "scope": "Earlier snapshot and open-license-only sourcing criteria",
+    "replacementManifest": "public-pages-2026-10-v2",
+    "replacementLedger": "data/seed/sources/tmdb-pages.json",
+    "note": "Original observations remain unchanged; the user authorized attributed public-page sources without an open-license requirement."
   }
 }

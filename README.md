@@ -277,7 +277,7 @@ Firefox provides the same certificate import route on Windows, macOS, and Linux.
 
 Local certificates expire after 365 days. Renewal needs manual attention; don't delete valued data just to renew a certificate. If you reset the installation, it creates a new local CA, so remove the old SpoolIn local authority from Firefox and repeat the import. Remove that authority when you're finished using this local installation.
 
-Seed data provides 100 movies and 100 TV entries, plus people, genres, and credits for browsing. It doesn't bundle poster image files; records can show artwork placeholders until you upload an image. Changes you make locally stay in Docker volumes across normal stops and restarts. The [stakeholder guide](#use-spoolin) explains the first journeys to try.
+Seed data provides 100 movies and 100 TV entries, plus people, genres, and credits for browsing. The frozen package includes a genuine poster for every title and records each poster's public source link. Setup imports those local files through Media; startup does not contact external data providers. Changes you make locally stay in Docker volumes across normal stops and restarts. The [stakeholder guide](#use-spoolin) explains the first journeys to try.
 
 ### Everyday commands
 
@@ -374,7 +374,7 @@ For example, find a seeded film and explore its credits:
 
 ![Signed-in Viewer searching Star Wars, with Viewer role and Catalog and People navigation visible](docs/assets/spoolin/viewer-catalog.png)
 
-*Viewer example: the header identifies the account role. This search shows a seeded movie; seed data has artwork placeholders until a Maintainer uploads a poster.*
+*Viewer example: the header identifies the account role. This search shows a seeded movie; this screenshot predates the packaged seed posters. Current seed titles include posters and source links.*
 
 Filters help narrow the catalog. If no titles match, clear the search or broaden the filters to return to browsing.
 
@@ -391,7 +391,7 @@ The following examples use the fictional movie and people created in the [Mainta
 
 *Movie details example: the poster sits beside the title and release information. Public credits appear below, while the header identifies the Viewer account.*
 
-Missing optional information can appear as unknown. Artwork can show a placeholder until a Maintainer uploads a poster.
+Missing optional information can appear as unknown. Seed titles include packaged posters. A title without selected artwork can show a placeholder until a Maintainer uploads a poster.
 
 ### Viewer example: read movie credits
 

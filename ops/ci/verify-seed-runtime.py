@@ -17,12 +17,12 @@ SAFE_CODES = {'FIELD_INVALID', 'UNAUTHENTICATED', 'FORBIDDEN', 'NOT_FOUND', 'STA
               'POLICY_CHANGED', 'IDEMPOTENCY_CONFLICT', 'RESOURCE_EXHAUSTED', 'DEADLINE_EXCEEDED',
               'UNAVAILABLE', 'RATE_LIMITED', 'GRAPHQL_VALIDATION_FAILED', 'BAD_USER_INPUT',
               'INVALID_REQUEST', 'REQUEST_TOO_LARGE', 'INTERNAL_ERROR', 'INTERNAL'}
-TABLES = ('title', 'person', 'genre', 'credit_role', 'credit', 'title_genre', 'provenance_record', 'seed_member')
+TABLES = ('title', 'person', 'genre', 'credit_role', 'credit', 'title_genre', 'provenance_record', 'seed_member', 'seed_artwork_attribution')
 TITLE_FIELDS = '''id kind state title originalTitle synopsis synopsisLanguage originalLanguage countries
 release {year month day precision} tvEnd {year month day precision} tvStatus releaseContext
 runtimeMinutes genres {id label} artwork {assetId url width height}
 credits {nodes {id personId personName titleId titleName role {id label category allowsCharacters} characters version}
-pageInfo {hasNextPage}} provenance {source externalId fieldSources locallyChanged}'''
+pageInfo {hasNextPage}} provenance {source externalId recordUrl reuseNote fieldSources locallyChanged}'''
 
 
 class SeedApiFailure(RuntimeError):
@@ -97,7 +97,10 @@ def title_database(node):
     result = {'kind': node['kind'], 'status': 'ACTIVE', 'display_title': values['title'],
               'synopsis': values['synopsis'], 'synopsis_language': values['synopsisLanguage'],
               'release_context': 'FIRST_AIR' if node['kind'] == 'TV' else 'ORIGINAL_RELEASE',
-              'tv_status': values.get('tvStatus'), 'asset_id': None, 'attachment_id': None, 'version': 0}
+              'tv_status': values.get('tvStatus'), 'asset_id': node['artwork']['assetId'],
+              'attachment_id': node['artwork']['holdId'], 'version': 1,
+              'original_title': values.get('originalTitle'), 'original_language': values.get('originalLanguage'),
+              'runtime_minutes': values.get('runtimeMinutes'), 'countries': values.get('countries', [])}
     for prefix, date in (('release', values['release']), ('end', values.get('end') or {})):
         result.update({f'{prefix}_{part}': date.get(part) for part in ('year', 'month', 'day')})
     return result
@@ -117,6 +120,11 @@ def verify_titles(manifest, database):
             compare_fields(genres[genre['stableUUID']], {'label': genre['label']}, genre['stableUUID'])
             expected_links.add((node['stableUUID'], genre['stableUUID']))
     require(links == expected_links, 'Complete title/genre association set differs')
+    attribution = {row['title_id']: row for row in database['seed_artwork_attribution']}
+    require(len(attribution) == 200, 'Expected200 poster attribution records')
+    for node in manifest['records']:
+        compare_fields(attribution[node['stableUUID']], {'asset_id': node['artwork']['assetId'],
+                       'attribution': node['artwork']}, node['stableUUID'])
 
 
 def verify_people_credits(manifest, database, validator):
@@ -256,6 +264,20 @@ def public_field_sources(node):
     return result
 
 
+def verify_poster(actual, expected):
+    require(isinstance(actual, dict), 'Seed poster missing from public title')
+    compare_fields(actual, {'assetId': expected['assetId'], 'width': expected['width'],
+                           'height': expected['height'], 'url': '/artwork/' + expected['assetId']}, 'poster')
+    endpoint = 'https://localhost:' + os.environ.get('CORE_HTTPS_PORT', '8443') + actual['url']
+    context = ssl.create_default_context(cafile=os.environ['SERVICE_CA_FILE'])
+    with urllib.request.urlopen(endpoint, context=context, timeout=20) as response:
+        require(response.status == 200, 'Poster response unsuccessful')
+        require(response.headers.get_content_type() == 'image/jpeg', 'Poster response type differs')
+        body = response.read(5242881)
+        require(0 < len(body) <= 5242880, 'Poster response exceeds bounded image size')
+        require(body.startswith(b'\xff\xd8\xff') and body.endswith(b'\xff\xd9'), 'Poster response is not a complete JPEG')
+
+
 def verify_api(manifest, role_ids, results=None):
     PROGRESS['phase'] = 'api-records'
     if results is None:
@@ -266,16 +288,22 @@ def verify_api(manifest, role_ids, results=None):
         values = node['normalized']
         compare_fields(actual, {'id': node['stableUUID'], 'kind': node['kind'], 'state': 'ACTIVE',
                        'title': values['title'], 'synopsis': values['synopsis'], 'synopsisLanguage': values['synopsisLanguage'],
-                       'release': values['release'], 'tvStatus': values.get('tvStatus'), 'artwork': None,
+                       'release': values['release'], 'tvStatus': values.get('tvStatus'),
                        'originalTitle': values.get('originalTitle'), 'originalLanguage': values.get('originalLanguage'),
                        'runtimeMinutes': values.get('runtimeMinutes'), 'countries': values.get('countries', [])}, node['stableUUID'])
         require({row['id'] for row in actual['genres']} == set(values['genreIds']), 'API genre identities differ')
         verify_api_credits(actual, node, manifest, role_ids)
-        require(len(actual['provenance']) == 1, 'API seed provenance missing')
-        compare_fields(actual['provenance'][0], {'source': node['source'], 'externalId': node['externalId'],
+        require(len(actual['provenance']) == 2, 'API metadata/poster provenance missing')
+        source = next(row for row in actual['provenance'] if row['source'] == node['source'])
+        compare_fields(source, {'source': node['source'], 'externalId': node['externalId'],
                        'fieldSources': public_field_sources(node), 'locallyChanged': []}, node['stableUUID'])
+        poster = next(row for row in actual['provenance'] if row['source'] == 'poster')
+        compare_fields(poster, {'externalId': node['artwork']['assetId'],
+                       'recordUrl': node['artwork']['sourceUrl'],
+                       'fieldSources': {'artwork': node['artwork']}}, node['stableUUID'])
+        verify_poster(actual['artwork'], node['artwork'])
         results.append({'id': node['stableUUID'], 'kind': node['kind'], 'database': 'pass', 'https_api': 'pass',
-                        'credit_count': len(node['credits']), 'artwork': 'not supplied; approved optional placeholders'})
+                        'credit_count': len(node['credits']), 'artwork': 'packaged poster served over HTTPS'})
         PROGRESS['completedRecords'] = len(results)
         time.sleep(0.6)
     return results

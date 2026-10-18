@@ -11,6 +11,8 @@
 
 [Approach and fixtures](#approach-and-fixtures) · [UI reference index](#ui-reference-index) · [Case index](#case-index) · [Gaps and prerequisites](#gaps-and-prerequisites) · [Source register](#source-register) · [Bidirectional coverage](#bidirectional-coverage) · [Evidence and maintenance](#evidence-and-maintenance)
 
+**Seed revision, 18 October 2026:** The current request supersedes the earlier open-license-only sourcing criterion. Seed cases use the frozen public-page package with 100 movies, 100 TV series and 200 matched posters, attributed source links and supplied rights information; no provider API/account or startup network fetch is required. Focused verification consists of one package validation, a small invalid-input/retry/preservation/recovery regression set, one fresh installation and one upgrade smoke, a batch poster response check, and one movie/TV detail inspection. Existing broader release cases remain unexecuted unless separately evidenced; this change does not claim a full acceptance sweep.
+
 ---
 
 ## Authority, actors and scope
@@ -2692,7 +2694,7 @@ Then Report a truthful partial/failure/completed outcome without duplicate recor
 
 **Preconditions:** Create a new isolated F-STACK installation with the named fixtures and boundary enabled.
 
-**Test data:** Two fresh isolated namespaces use same manifest; invalid missing required field/unlicensed record/invalid reference/current policy violation each fail whole initialization.
+**Test data:** Two fresh isolated namespaces use same manifest; invalid missing required field/missing source evidence/invalid reference/current policy violation each fail whole initialization.
 
 **Scenario:**
 
