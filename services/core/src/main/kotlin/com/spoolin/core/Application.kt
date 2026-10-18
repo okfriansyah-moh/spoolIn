@@ -1,7 +1,15 @@
 package com.spoolin.core
 
+import com.spoolin.core.boundary.http.BrowserTraceFilter
+import com.spoolin.core.features.connector.ConnectorStore
+import com.spoolin.core.features.mcpgateway.McpGatewayRpc
 import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.core.features.ratelimit.RateMaintenance
+import com.spoolin.core.operations.metrics.WorkPendingMetrics
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.tracing.OwnerTracing
+import com.spoolin.support.tracing.TraceClientInterceptor
+import com.spoolin.support.tracing.TraceServerInterceptor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -12,6 +20,7 @@ import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.protobuf.services.HealthStatusManager
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -97,10 +106,10 @@ class ObservabilityConfiguration {
 
     @Bean
     fun ownerMetrics(
-        registry: io.micrometer.core.instrument.MeterRegistry,
+        registry: MeterRegistry,
         dataSource: HikariDataSource,
         schema: SchemaReadiness,
-        rate: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.ratelimit.RateMaintenance>,
+        rate: ObjectProvider<com.spoolin.core.features.ratelimit.RateMaintenance>,
     ): com.spoolin.support.observability.OwnerMetrics =
         com.spoolin.support.observability.OwnerMetrics(
             registry,
@@ -114,35 +123,36 @@ class ObservabilityConfiguration {
         )
 
     @Bean(destroyMethod = "close")
-    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing =
+    fun ownerTracing(): OwnerTracing =
         com.spoolin.support.tracing
             .OwnerTracing("core")
 
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
-    fun traceServer(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceServerInterceptor =
-        com.spoolin.support.tracing.TraceServerInterceptor(tracing) { attributes ->
+    fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
+        TraceServerInterceptor(tracing) { attributes ->
             runCatching {
-                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
+                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)
+                    ?.peerCertificates?.firstOrNull() as? X509Certificate
                 certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
             }.getOrDefault(false)
         }
 
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
-    fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
+    fun traceClient(tracing: OwnerTracing): TraceClientInterceptor =
         com.spoolin.support.tracing
             .TraceClientInterceptor(tracing)
 
     @Bean
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    fun browserTrace(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.core.boundary.http.BrowserTraceFilter =
+    fun browserTrace(tracing: OwnerTracing): BrowserTraceFilter =
         com.spoolin.core.boundary.http
             .BrowserTraceFilter(tracing)
 
     @Bean
-    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
+    fun logicalMetrics(registry: MeterRegistry): LogicalMetrics {
         com.spoolin.support.logging.DiagnosticDropMetrics.shared
             .bind("core", registry)
         return com.spoolin.support.observability
@@ -153,7 +163,7 @@ class ObservabilityConfiguration {
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     fun logicalRpcMetrics(
-        metrics: com.spoolin.support.observability.LogicalMetrics,
+        metrics: LogicalMetrics,
     ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
@@ -211,7 +221,7 @@ class RuntimeConfiguration {
     @Bean
     fun listenerBoundary(
         environment: Environment,
-        metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
+        metrics: ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 }
 
@@ -219,8 +229,8 @@ class RuntimeConfiguration {
 class OwnerServiceConfiguration {
     @Bean
     fun identityService(
-        sessions: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.session.SessionStore>,
-        connectors: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.connector.ConnectorStore>,
+        sessions: ObjectProvider<com.spoolin.core.features.session.SessionStore>,
+        connectors: ObjectProvider<ConnectorStore>,
     ): io.grpc.BindableService =
         com.spoolin.core.boundary.grpc
             .IdentityRpc({ sessions.ifAvailable }, { connectors.ifAvailable })
@@ -232,13 +242,13 @@ class OwnerServiceConfiguration {
             .ConnectorAuthInterceptor()
 
     @Bean
-    fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService = gateway
+    fun mcpGatewayService(gateway: McpGatewayRpc): io.grpc.BindableService = gateway
 
     @Bean
     fun workPendingMetrics(
-        registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
+        registry: ObjectProvider<MeterRegistry>,
         dataSource: DataSource,
-    ): com.spoolin.core.operations.metrics.WorkPendingMetrics? =
+    ): WorkPendingMetrics? =
         registry.ifAvailable?.let {
             com.spoolin.core.operations.metrics
                 .WorkPendingMetrics(it, dataSource)
@@ -247,7 +257,7 @@ class OwnerServiceConfiguration {
     @Bean
     fun alertRecorder(
         dataSource: DataSource,
-        workPendingMetrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.operations.metrics.WorkPendingMetrics>,
+        workPendingMetrics: ObjectProvider<WorkPendingMetrics>,
     ): com.spoolin.core.features.alerts.AlertRecorder =
         com.spoolin.core.features.alerts
             .AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
@@ -484,7 +494,8 @@ fun certificateIdentity(certificate: X509Certificate): String? {
             .orEmpty()
             .filter { it[0] == 2 }
             .mapNotNull { it[1] as? String }
-    val identities = names.filter { it in setOf("core", "catalog", "media", "mcp", "operator", "prometheus", "alertmanager") }
+    val permitted = setOf("core", "catalog", "media", "mcp", "operator", "prometheus", "alertmanager")
+    val identities = names.filter { it in permitted }
     return identities.singleOrNull()
 }
 
@@ -571,7 +582,7 @@ class ListenerBoundary(
                 else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
             }
         val privatePort = environment.getProperty("local.management.port", Int::class.java)
-        return if (request.isSecure && request.localPort == privatePort && permitted) {
+        return if (permittedListener(request, privatePort, permitted)) {
             null
         } else if (request.requestURI == "/internal/alerts" && request.localPort != privatePort) {
             HTTP_NOT_FOUND
@@ -579,6 +590,9 @@ class ListenerBoundary(
             HTTP_FORBIDDEN
         }
     }
+
+    private fun permittedListener(request: HttpServletRequest, port: Int?, permitted: Boolean): Boolean =
+        request.isSecure && request.localPort == port && permitted
 
     private fun serveMetrics(
         request: HttpServletRequest,

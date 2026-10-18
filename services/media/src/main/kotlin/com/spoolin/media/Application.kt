@@ -4,6 +4,10 @@ import com.spoolin.media.features.upload.MediaServiceImpl
 import com.spoolin.media.features.upload.QuarantineStore
 import com.spoolin.media.features.upload.UploadRpc
 import com.spoolin.media.operations.maintenance.ReceiptExpiry
+import com.spoolin.support.observability.LogicalMetrics
+import com.spoolin.support.tracing.OwnerTracing
+import com.spoolin.support.tracing.TraceClientInterceptor
+import com.spoolin.support.tracing.TraceServerInterceptor
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Grpc
@@ -14,11 +18,13 @@ import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus
 import io.grpc.protobuf.services.HealthStatusManager
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -91,7 +97,7 @@ class ObservabilityConfiguration {
 
     @Bean
     fun ownerMetrics(
-        registry: io.micrometer.core.instrument.MeterRegistry,
+        registry: MeterRegistry,
         dataSource: HikariDataSource,
         schema: SchemaReadiness,
     ): com.spoolin.support.observability.OwnerMetrics =
@@ -108,29 +114,30 @@ class ObservabilityConfiguration {
         )
 
     @Bean(destroyMethod = "close")
-    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing =
+    fun ownerTracing(): OwnerTracing =
         com.spoolin.support.tracing
             .OwnerTracing("media")
 
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
-    fun traceServer(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceServerInterceptor =
-        com.spoolin.support.tracing.TraceServerInterceptor(tracing) { attributes ->
+    fun traceServer(tracing: OwnerTracing): TraceServerInterceptor =
+        TraceServerInterceptor(tracing) { attributes ->
             runCatching {
-                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
+                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)
+                    ?.peerCertificates?.firstOrNull() as? X509Certificate
                 certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
             }.getOrDefault(false)
         }
 
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
-    fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
+    fun traceClient(tracing: OwnerTracing): TraceClientInterceptor =
         com.spoolin.support.tracing
             .TraceClientInterceptor(tracing)
 
     @Bean
-    fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
+    fun logicalMetrics(registry: MeterRegistry): LogicalMetrics {
         com.spoolin.support.logging.DiagnosticDropMetrics.shared
             .bind("media", registry)
         return com.spoolin.support.observability
@@ -141,7 +148,7 @@ class ObservabilityConfiguration {
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     fun logicalRpcMetrics(
-        metrics: com.spoolin.support.observability.LogicalMetrics,
+        metrics: LogicalMetrics,
     ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
@@ -200,7 +207,7 @@ class RuntimeConfiguration {
     @Bean
     fun listenerBoundary(
         environment: Environment,
-        metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
+        metrics: ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 }
 
@@ -249,7 +256,7 @@ class OwnerServiceConfiguration {
         dataSource: DataSource,
         schema: SchemaReadiness,
         quarantineStore: QuarantineStore,
-        registry: io.micrometer.core.instrument.MeterRegistry,
+        registry: MeterRegistry,
     ): com.spoolin.media.operations.work.MediaWorkDispatcher =
         com.spoolin.media.operations.work.MediaWorkDispatcher(
             dataSource,

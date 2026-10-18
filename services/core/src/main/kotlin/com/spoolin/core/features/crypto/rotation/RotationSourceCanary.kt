@@ -50,7 +50,8 @@ internal class RotationSourceCanary(
             connection
                 .queryBound(
                     "SELECT r.id,r.${prefix}_key_id AS key_id,r.${prefix}_nonce AS nonce," +
-                        "r.${prefix}_cipher AS cipher,$digest AS digest FROM $from WHERE $predicate ORDER BY r.id LIMIT 1",
+                        "r.${prefix}_cipher AS cipher,$digest AS digest FROM $from " +
+                            "WHERE $predicate ORDER BY r.id LIMIT 1",
                     listOf(id),
                 ) {
                     Source(

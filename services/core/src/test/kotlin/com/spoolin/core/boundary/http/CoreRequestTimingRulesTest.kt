@@ -22,7 +22,8 @@ class CoreRequestTimingRulesTest {
             recording.start()
             val started = System.nanoTime()
             checkNotNull(CoreRequestTiming.beginIfEnabled()).complete("title", LogicalResult.success(), started)
-            checkNotNull(CoreRequestTiming.beginIfEnabled()).complete("private-operation-canary", LogicalResult.success(), started)
+            val ignored = checkNotNull(CoreRequestTiming.beginIfEnabled())
+            ignored.complete("private-operation-canary", LogicalResult.success(), started)
             recording.stop()
             recording.dump(output)
         }

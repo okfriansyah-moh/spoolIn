@@ -44,7 +44,8 @@ internal class RotationTargetCanary(
             connection
                 .queryBound(
                     "UPDATE appdata.crypto_key_version SET next_nonce=next_nonce+1 WHERE id=? AND purpose=? " +
-                        "AND state IN ('WRITE','READ') AND next_nonce<9223372036854775807 RETURNING next_nonce-1 AS nonce",
+                        "AND state IN ('WRITE','READ') AND next_nonce<9223372036854775807 " +
+                            "RETURNING next_nonce-1 AS nonce",
                     listOf(id, purpose.name),
                 ) { it.getLong("nonce") }
                 .single()

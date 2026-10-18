@@ -44,7 +44,9 @@ enum class ImageFormat(
                 else -> null
             }
 
-        private fun ByteArray.startsWith(prefix: ByteArray): Boolean = size >= prefix.size && regionMatches(0, prefix, 0, prefix.size)
+        private fun ByteArray.startsWith(prefix: ByteArray): Boolean {
+            return size >= prefix.size && regionMatches(0, prefix, 0, prefix.size)
+        }
 
         private fun ByteArray.regionMatches(
             thisOffset: Int,

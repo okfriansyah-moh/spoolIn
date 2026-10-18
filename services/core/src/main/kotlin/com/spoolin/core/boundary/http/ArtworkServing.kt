@@ -84,11 +84,6 @@ class ArtworkServing(
         }
     }
 
-    private fun management(request: HttpServletRequest): Boolean {
-        val view = request.parameterMap
-        require(view.keys.all { it == "view" } && view.values.all { it.size == 1 })
-        return view["view"]?.single()?.also { require(it == "management") } != null
-    }
 
     private fun admit(
         context: BrowserContext,
@@ -213,7 +208,8 @@ private fun artworkStatus(
     when (failure.status.code) {
         Status.Code.NOT_FOUND -> HttpServletResponse.SC_NOT_FOUND
         Status.Code.UNAUTHENTICATED -> HttpServletResponse.SC_UNAUTHORIZED
-        Status.Code.PERMISSION_DENIED -> if (publicRead) HttpServletResponse.SC_NOT_FOUND else HttpServletResponse.SC_FORBIDDEN
+        Status.Code.PERMISSION_DENIED ->
+            if (publicRead) HttpServletResponse.SC_NOT_FOUND else HttpServletResponse.SC_FORBIDDEN
         else -> HttpServletResponse.SC_SERVICE_UNAVAILABLE
     }
 
@@ -257,4 +253,10 @@ private class ArtworkHttpAsync(
             // Container already completed the request.
         }
     }
+}
+
+private fun management(request: HttpServletRequest): Boolean {
+    val view = request.parameterMap
+    require(view.keys.all { it == "view" } && view.values.all { it.size == 1 })
+    return view["view"]?.single()?.also { require(it == "management") } != null
 }

@@ -5,6 +5,7 @@ import com.spoolin.core.features.crypto.AccountCryptography
 import com.spoolin.core.features.crypto.AeadCipher
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
+import com.spoolin.core.features.crypto.KeyState
 import com.spoolin.core.features.crypto.MountedKeys
 import com.spoolin.core.features.crypto.NonceAllocator
 import com.spoolin.core.features.crypto.ProtectedEnvelope
@@ -148,7 +149,7 @@ class RotationBackfill(
     ): Int =
         dataSource.committed { connection ->
             val compatible = registry.lookupKeys(connection)
-            check(compatible.any { it.id == plan.toAlias && it.state == com.spoolin.core.features.crypto.KeyState.WRITE })
+            check(compatible.any { it.id == plan.toAlias && it.state == KeyState.WRITE })
             if (!unchanged(connection, row)) return@committed 0
             val inserted =
                 connection.executeBound(

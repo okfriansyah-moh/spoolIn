@@ -68,7 +68,7 @@ object MaintenanceDataSources {
         private fun connectionUser(connection: Connection): String? =
             connection.createStatement().use { statement ->
                 statement.executeQuery("SELECT current_user").use { rows ->
-                    if (rows.next()) rows.getString(1) else null
+                    currentUser(rows)
                 }
             }
 
@@ -96,3 +96,5 @@ object MaintenanceDataSources {
         override fun isWrapperFor(iface: Class<*>?): Boolean = false
     }
 }
+
+private fun currentUser(rows: java.sql.ResultSet): String? = if (rows.next()) rows.getString(1) else null
