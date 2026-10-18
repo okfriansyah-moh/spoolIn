@@ -140,6 +140,26 @@ class EffectiveCatalogPolicyRulesTest {
             ) { raw, policy ->
                 MovieValidation.validateCreate(movie().toBuilder().setSynopsis(raw).build(), policy).synopsis
             },
+        ) + personCases() + listOf(
+            Field("CREDIT_ROLE") { raw, policy -> RoleValidation.validateCreate("CAST", raw, policy).label },
+            Field("CHARACTER_NAME") { raw, policy ->
+                CreditValidation
+                    .validateCreate(
+                        Spoolin.CreditWrite
+                            .newBuilder()
+                            .setTitleId(ID)
+                            .setPersonId(ID)
+                            .setRoleId(ID)
+                            .addCharacters(raw)
+                            .build(),
+                        policy,
+                    ).characters
+                    .single()
+            },
+        )
+
+    private fun personCases(): List<Field> =
+        listOf(
             Field("PERSON_NAME") { raw, policy ->
                 PersonValidation
                     .validateCreate(
@@ -159,21 +179,6 @@ class EffectiveCatalogPolicyRulesTest {
                         .build()
                 requireNotNull(PersonValidation.validateCreate(values, policy).biography)
             },
-            Field("CREDIT_ROLE") { raw, policy -> RoleValidation.validateCreate("CAST", raw, policy).label },
-            Field("CHARACTER_NAME") { raw, policy ->
-                CreditValidation
-                    .validateCreate(
-                        Spoolin.CreditWrite
-                            .newBuilder()
-                            .setTitleId(ID)
-                            .setPersonId(ID)
-                            .setRoleId(ID)
-                            .addCharacters(raw)
-                            .build(),
-                        policy,
-                    ).characters
-                    .single()
-            },
         )
 
     private fun movie(): Spoolin.MovieValues =
@@ -189,6 +194,7 @@ class EffectiveCatalogPolicyRulesTest {
     companion object {
         private const val ID = "00000000-0000-0000-0000-000000000001"
 
-        private fun configured(values: Map<String, String>): PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        private fun configured(values: Map<String, String>): PublicPolicy =
+            PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
     }
 }

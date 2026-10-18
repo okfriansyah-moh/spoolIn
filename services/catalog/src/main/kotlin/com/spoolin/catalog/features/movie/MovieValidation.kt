@@ -93,10 +93,7 @@ object MovieValidation {
     ): ValidatedMoviePatch {
         val mask = write.updateMask.pathsList.toSet()
         val v = write.values
-        if (mask.any { it.startsWith("values.release.") }) {
-            throw InputViolation("release", "Replace the complete release date.")
-        }
-        if ("values.release" in mask) parseRelease(v, requireYear = true)
+        validateReleaseMask(mask, v)
         return ValidatedMoviePatch(
             displayTitle = patchText("values.title", mask, v.title, policy.textBounds.getValue("title"), "title"),
             originalTitle =
@@ -140,6 +137,13 @@ object MovieValidation {
             releaseDay = patchReleaseDay("values.release.day", mask, v),
             runtimeMinutes = patchRuntime("values.runtime_minutes", mask, v),
         )
+    }
+
+    private fun validateReleaseMask(mask: Set<String>, values: MovieValues) {
+        if (mask.any { it.startsWith("values.release.") }) {
+            throw InputViolation("release", "Replace the complete release date.")
+        }
+        if ("values.release" in mask) parseRelease(values, requireYear = true)
     }
 
     private fun patchText(
