@@ -7,7 +7,7 @@
   import { boundFor } from '../../../policy/rules';
 
   let {
-    state,
+    state: editorState,
     policy,
     disabled = false,
     onSubmit,
@@ -32,49 +32,49 @@
 
   const nameBound = $derived(boundFor(policy, 'personName'));
   const errorFor = (id: string) =>
-    state.fieldErrors.find((error) => error.id === id)?.message ?? '';
+    editorState.fieldErrors.find((error) => error.id === id)?.message ?? '';
   const submitLabel = $derived(
-    state.mode === 'create' ? 'Save person' : 'Save person',
+    editorState.mode === 'create' ? 'Save person' : 'Save person',
   );
   const submitDisabled = $derived(
     disabled ||
-      state.phase === 'submitting' ||
-      state.phase === 'uncertain' ||
-      state.phase === 'stale' ||
-      state.phase === 'target-changed',
+      editorState.phase === 'submitting' ||
+      editorState.phase === 'uncertain' ||
+      editorState.phase === 'stale' ||
+      editorState.phase === 'target-changed',
   );
   const reviewId = $props.id();
   let reviewedCurrent = $state(false);
   $effect(() => {
-    const version = state.current?.version;
-    const open = state.staleReviewOpen;
+    const version = editorState.current?.version;
+    const open = editorState.staleReviewOpen;
     void version;
     void open;
     reviewedCurrent = false;
   });
   const inputDisabled = $derived(
     disabled ||
-      state.draftChoices.length > 0 ||
-      state.phase === 'submitting' ||
-      state.phase === 'uncertain' ||
-      state.phase === 'target-changed' ||
-      (state.mode === 'create' && state.saved !== null),
+      editorState.draftChoices.length > 0 ||
+      editorState.phase === 'submitting' ||
+      editorState.phase === 'uncertain' ||
+      editorState.phase === 'target-changed' ||
+      (editorState.mode === 'create' && editorState.saved !== null),
   );
 </script>
 
-<PersonSaveFeedback {state} {onCheckOriginal} {onReviewStale} />
+<PersonSaveFeedback state={editorState} {onCheckOriginal} {onReviewStale} />
 
-{#if state.phase === 'idle' && state.message && !state.draftChoices.length}<p
+{#if editorState.phase === 'idle' && editorState.message && !editorState.draftChoices.length}<p
     role="status"
   >
-    {state.message}
+    {editorState.message}
   </p>{/if}
-{#if state.draftChoices.length}
+{#if editorState.draftChoices.length}
   <section class="recovery-panel" aria-labelledby="{reviewId}-drafts">
     <h2 id="{reviewId}-drafts">Choose a retained draft</h2>
-    <p role="status">{state.message}</p>
+    <p role="status">{editorState.message}</p>
     <ul>
-      {#each state.draftChoices as choice (choice.id)}
+      {#each editorState.draftChoices as choice (choice.id)}
         <li>
           <Button
             type="button"
@@ -95,16 +95,16 @@
     >
   </section>
 {/if}
-{#if state.phase === 'stale' && state.staleReviewOpen && state.current}
+{#if editorState.phase === 'stale' && editorState.staleReviewOpen && editorState.current}
   <section class="recovery-panel" aria-labelledby="{reviewId}-current">
     <h2 id="{reviewId}-current">Review current saved person values</h2>
     <dl>
       <dt>Professional name</dt>
-      <dd>{state.current.name}</dd>
+      <dd>{editorState.current.name}</dd>
       <dt>Biography</dt>
-      <dd>{state.current.biography ?? 'Unknown'}</dd>
+      <dd>{editorState.current.biography ?? 'Unknown'}</dd>
     </dl>
-    {#if state.draftBaseKnown}
+    {#if editorState.draftBaseKnown}
       <p>
         Compare these values with your retained form edits. Continuing keeps
         your changed fields and adopts current values for fields you did not
@@ -132,12 +132,12 @@
     >
   </section>
 {/if}
-{#if state.mode === 'create' && state.saved}
+{#if editorState.mode === 'create' && editorState.saved}
   <section class="recovery-panel" aria-label="Continue with this person">
-    <a href={resolve('/manage/people/[id]', { id: state.saved.id })}
+    <a href={resolve('/manage/people/[id]', { id: editorState.saved.id })}
       >Edit saved person</a
     >
-    <a href={resolve('/people/[id]', { id: state.saved.id })}
+    <a href={resolve('/people/[id]', { id: editorState.saved.id })}
       >Review public record</a
     >
   </section>
@@ -145,7 +145,7 @@
 
 <form
   id="person-editor-form"
-  aria-label={state.mode === 'create' ? 'Create person' : 'Edit person'}
+  aria-label={editorState.mode === 'create' ? 'Create person' : 'Edit person'}
   onsubmit={(event) => {
     event.preventDefault();
     onSubmit();
@@ -155,7 +155,7 @@
     <label for="person-name">Professional name · Required</label>
     <input
       id="person-name"
-      value={state.draft.name ?? ''}
+      value={editorState.draft.name ?? ''}
       required
       disabled={inputDisabled}
       aria-invalid={!!errorFor('person-name')}
@@ -177,7 +177,7 @@
       rows="4"
       disabled={inputDisabled}
       aria-invalid={!!errorFor('person-biography')}
-      value={state.draft.biography ?? ''}
+      value={editorState.draft.biography ?? ''}
       oninput={(event) => onDraftChange('biography', event.currentTarget.value)}
     ></textarea>
     {#if errorFor('person-biography')}<p class="field-error">
@@ -186,7 +186,7 @@
   </div>
   <Button
     type="submit"
-    pending={state.phase === 'submitting'}
+    pending={editorState.phase === 'submitting'}
     disabledReason={submitDisabled
       ? 'Review current changes before saving again.'
       : ''}>{submitLabel}</Button

@@ -312,7 +312,10 @@ describe('published create draft consumption', () => {
     await sync.completeSubmission({ name: 'Published person' }, context, '1');
     const original = discard.mock.calls[0];
     await sync.completeSubmission({ name: 'Published person' }, context, '1');
-    expect(discard.mock.calls[1]).toEqual(original);
+    const repeated = discard.mock.calls[1];
+    expect(repeated?.slice(0, 4)).toEqual(original?.slice(0, 4));
+    expect(original?.[4]).toBeInstanceOf(AbortSignal);
+    expect(repeated?.[4]).toBeInstanceOf(AbortSignal);
     expect(original?.[1]).toBe(personDraft().id);
     expect(original?.[2]).toBe('11');
     sync.dispose();

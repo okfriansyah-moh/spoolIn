@@ -6,7 +6,7 @@
   import { policyGuidance } from './types';
   import MovieSaveFeedback from './MovieSaveFeedback.svelte';
   let {
-    state,
+    state: editorState,
     policy,
     disabled = false,
     onSubmit,
@@ -38,49 +38,49 @@
   const titleHelp = $derived(policyGuidance(policy, 'title'));
   const synopsisHelp = $derived(policyGuidance(policy, 'synopsis'));
   const errorFor = (id: string) =>
-    state.fieldErrors.find((error) => error.id === id)?.message ?? '';
+    editorState.fieldErrors.find((error) => error.id === id)?.message ?? '';
   const submitLabel = $derived(
-    state.mode === 'create' ? 'Create movie' : 'Save movie',
+    editorState.mode === 'create' ? 'Create movie' : 'Save movie',
   );
   const submitDisabled = $derived(
     disabled ||
-      state.phase === 'submitting' ||
-      state.phase === 'uncertain' ||
-      state.phase === 'stale' ||
-      state.phase === 'target-changed',
+      editorState.phase === 'submitting' ||
+      editorState.phase === 'uncertain' ||
+      editorState.phase === 'stale' ||
+      editorState.phase === 'target-changed',
   );
   const reviewId = $props.id();
   let reviewedCurrent = $state(false);
   $effect(() => {
-    const version = state.current?.version;
-    const open = state.staleReviewOpen;
+    const version = editorState.current?.version;
+    const open = editorState.staleReviewOpen;
     void version;
     void open;
     reviewedCurrent = false;
   });
   const inputDisabled = $derived(
     disabled ||
-      state.draftChoices.length > 0 ||
-      state.phase === 'submitting' ||
-      state.phase === 'uncertain' ||
-      state.phase === 'target-changed' ||
-      (state.mode === 'create' && state.saved !== null),
+      editorState.draftChoices.length > 0 ||
+      editorState.phase === 'submitting' ||
+      editorState.phase === 'uncertain' ||
+      editorState.phase === 'target-changed' ||
+      (editorState.mode === 'create' && editorState.saved !== null),
   );
 </script>
 
-<MovieSaveFeedback {state} {onCheckOriginal} {onReviewStale} />
+<MovieSaveFeedback state={editorState} {onCheckOriginal} {onReviewStale} />
 
-{#if state.phase === 'idle' && state.message && !state.draftChoices.length}<p
+{#if editorState.phase === 'idle' && editorState.message && !editorState.draftChoices.length}<p
     role="status"
   >
-    {state.message}
+    {editorState.message}
   </p>{/if}
-{#if state.draftChoices.length}
+{#if editorState.draftChoices.length}
   <section class="recovery-panel" aria-labelledby="{reviewId}-drafts">
     <h2 id="{reviewId}-drafts">Choose a retained draft</h2>
-    <p role="status">{state.message}</p>
+    <p role="status">{editorState.message}</p>
     <ul>
-      {#each state.draftChoices as choice (choice.id)}
+      {#each editorState.draftChoices as choice (choice.id)}
         <li>
           <Button
             type="button"
@@ -101,28 +101,28 @@
     >
   </section>
 {/if}
-{#if state.phase === 'stale' && state.staleReviewOpen && state.current}
+{#if editorState.phase === 'stale' && editorState.staleReviewOpen && editorState.current}
   <section class="recovery-panel" aria-labelledby="{reviewId}-current">
     <h2 id="{reviewId}-current">Review current saved movie values</h2>
     <dl>
       <dt>Title</dt>
-      <dd>{state.current.title}</dd>
+      <dd>{editorState.current.title}</dd>
       <dt>Synopsis</dt>
-      <dd>{state.current.synopsis}</dd>
+      <dd>{editorState.current.synopsis}</dd>
       <dt>Original title</dt>
-      <dd>{state.current.originalTitle ?? 'Unknown'}</dd>
+      <dd>{editorState.current.originalTitle ?? 'Unknown'}</dd>
       <dt>Release year</dt>
-      <dd>{state.current.releaseYear || 'Unknown'}</dd>
+      <dd>{editorState.current.releaseYear || 'Unknown'}</dd>
       <dt>Genres</dt>
       <dd>
-        {state.current.genreIds
+        {editorState.current.genreIds
           .map(
-            (id) => state.genres.find((genre) => genre.id === id)?.label ?? id,
+            (id) => editorState.genres.find((genre) => genre.id === id)?.label ?? id,
           )
           .join(', ')}
       </dd>
     </dl>
-    {#if state.draftBaseKnown}
+    {#if editorState.draftBaseKnown}
       <p>
         Compare these values with your retained form edits. Continuing keeps
         your changed fields and adopts current values for fields you did not
@@ -150,12 +150,12 @@
     >
   </section>
 {/if}
-{#if state.mode === 'create' && state.saved}
+{#if editorState.mode === 'create' && editorState.saved}
   <section class="recovery-panel" aria-label="Continue with this movie">
-    <a href={resolve('/manage/movies/[id]', { id: state.saved.id })}
+    <a href={resolve('/manage/movies/[id]', { id: editorState.saved.id })}
       >Edit saved movie</a
     >
-    <a href={resolve('/titles/[id]', { id: state.saved.id })}
+    <a href={resolve('/titles/[id]', { id: editorState.saved.id })}
       >Review public record</a
     >
   </section>
@@ -163,7 +163,7 @@
 
 <form
   id="movie-editor-form"
-  aria-label={state.mode === 'create' ? 'Create movie' : 'Edit movie'}
+  aria-label={editorState.mode === 'create' ? 'Create movie' : 'Edit movie'}
   onsubmit={(event) => {
     event.preventDefault();
     onSubmit();
@@ -173,7 +173,7 @@
     <label for="movie-title">Title · Required</label>
     <input
       id="movie-title"
-      value={state.draft.title ?? ''}
+      value={editorState.draft.title ?? ''}
       required
       disabled={inputDisabled}
       aria-invalid={!!errorFor('movie-title')}
@@ -194,7 +194,7 @@
       disabled={inputDisabled}
       aria-invalid={!!errorFor('movie-synopsis')}
       aria-describedby="movie-synopsis-help movie-synopsis-error"
-      value={state.draft.synopsis ?? ''}
+      value={editorState.draft.synopsis ?? ''}
       oninput={(event) => onDraftChange('synopsis', event.currentTarget.value)}
     ></textarea>
     <small id="movie-synopsis-help"
@@ -212,7 +212,7 @@
     <input
       id="movie-release-year"
       inputmode="numeric"
-      value={state.draft.release?.year ? String(state.draft.release.year) : ''}
+      value={editorState.draft.release?.year ? String(editorState.draft.release.year) : ''}
       required
       disabled={inputDisabled}
       aria-invalid={!!errorFor('movie-release-year')}
@@ -232,11 +232,11 @@
   </div>
   <fieldset id="movie-genres" aria-describedby="movie-genres-error">
     <legend>Genres · at least one required</legend>
-    {#each state.genres as genre (genre.id)}
+    {#each editorState.genres as genre (genre.id)}
       <label class="check">
         <input
           type="checkbox"
-          checked={(state.draft.genreIds ?? []).includes(genre.id)}
+          checked={(editorState.draft.genreIds ?? []).includes(genre.id)}
           disabled={inputDisabled}
           onchange={(event) =>
             onGenreToggle(genre.id, event.currentTarget.checked)}
@@ -254,7 +254,7 @@
     <label for="movie-originalTitle">Original title · Optional</label>
     <input
       id="movie-originalTitle"
-      value={state.draft.originalTitle ?? ''}
+      value={editorState.draft.originalTitle ?? ''}
       disabled={inputDisabled}
       aria-invalid={!!errorFor('movie-originalTitle')}
       aria-describedby="movie-originalTitle-help movie-originalTitle-error"
@@ -278,7 +278,7 @@
     >
     <Button
       type="submit"
-      pending={state.phase === 'submitting'}
+      pending={editorState.phase === 'submitting'}
       disabledReason={submitDisabled
         ? 'Review current changes before saving again.'
         : ''}>{submitLabel}</Button
