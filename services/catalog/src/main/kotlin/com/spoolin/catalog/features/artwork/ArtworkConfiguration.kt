@@ -17,6 +17,6 @@ class ArtworkConfiguration {
         val store = ArtworkWorkStore(dataSource, receipts) { com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision }
         val handler = ArtworkWorkHandler(store, ArtworkReads(dataSource), MediaServiceGrpc.newBlockingStub(channels.createChannel("media")),
             IdentityServiceGrpc.newBlockingStub(channels.createChannel("core")), dataSource)
-        return ArtworkDispatcher(dataSource, readiness, handler)
+        return ArtworkDispatcher(dataSource, readiness, handler, ArtworkNotifications(dataSource, environment.getProperty("NOTIFICATION_MODE", "database")))
     }
 }

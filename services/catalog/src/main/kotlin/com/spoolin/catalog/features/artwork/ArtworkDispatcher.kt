@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
-class ArtworkDispatcher(private val dataSource: DataSource, private val readiness: SchemaReadiness, private val handler: ArtworkWorkHandler) : AutoCloseable {
+class ArtworkDispatcher(private val dataSource: DataSource, private val readiness: SchemaReadiness, private val handler: ArtworkWorkHandler, private val notifications: ArtworkNotifications) : AutoCloseable {
     private val watchdog = ArtworkWatchdog(dataSource)
     private val workers = Executors.newFixedThreadPool(2)
     private val heartbeat = Executors.newScheduledThreadPool(1)
@@ -26,6 +26,8 @@ class ArtworkDispatcher(private val dataSource: DataSource, private val readines
     fun dispatch() {
         if (stopped.get() || !readiness.ready()) return
         watchdog.reconcile()
+        handler.reconcileExhausted()
+        notifications.recordExhaustion()
         lanes.forEach { lane -> if (lane.compareAndSet(false, true)) workers.submit {
             try { claim()?.let(::execute) } finally { lane.set(false) }
         } }

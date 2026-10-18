@@ -25,6 +25,8 @@ class ArtworkWorkHandler(
     private val mapper = JsonMapper.builder().build()
     private val guard = WorkLeaseGuard(dataSource)
 
+    fun reconcileExhausted() = store.reconcileExhausted()
+
     fun handle(claim: WorkClaim) {
         val payload = mapper.readTree(claim.payload)
         val intent = store.read(UUID.fromString(payload["subjectId"].asText()))

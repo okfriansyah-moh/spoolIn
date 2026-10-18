@@ -57,6 +57,25 @@ class ArtworkWorkStore(private val dataSource: DataSource, private val receipts:
         if (current.state == "PREPARING") abort(connection, current, claim, code) else finish(connection, claim)
     }
 
+    fun reconcileExhausted() {
+        val ids = dataSource.connection.use { connection -> connection.queryBound(
+            "SELECT a.id FROM artwork_attachment_request a JOIN durable_work w ON w.operation_id=a.id " +
+                "WHERE a.state='PREPARING' AND w.kind='ARTWORK_ATTACH' AND w.state='EXHAUSTED' ORDER BY a.id LIMIT 10", emptyList(),
+        ) { it.getObject("id", UUID::class.java) } }
+        ids.forEach { id -> dataSource.committed { connection ->
+            ArtworkRpc.lock(connection)
+            lockReceipt(connection, id)
+            val current = read(connection, id, true)
+            val exhausted = connection.queryBound("SELECT correlation_id FROM durable_work WHERE operation_id=? AND kind='ARTWORK_ATTACH' " +
+                "AND state='EXHAUSTED' FOR UPDATE", listOf(id)) { it.getObject("correlation_id", UUID::class.java) }.singleOrNull()
+            if (current.state == "PREPARING" && exhausted != null) {
+                ArtworkAttachmentSql.markAborted(connection, id)
+                receipts.completePending(connection, id, SafeResult(id), "ARTWORK_RETRY_EXHAUSTED")
+                ArtworkRpc.enqueueRelease(connection, id, id, exhausted)
+            }
+        } }
+    }
+
     private fun abort(connection: Connection, intent: ArtworkIntent, claim: WorkClaim, code: String) {
         ArtworkAttachmentSql.markAborted(connection, intent.id)
         receipts.completePending(connection, intent.id, SafeResult(intent.id), code)
