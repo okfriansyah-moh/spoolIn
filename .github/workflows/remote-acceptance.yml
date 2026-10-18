@@ -102,7 +102,9 @@ jobs:
           npm run test:coverage --workspace frontend 2>&1 | tee artifacts/source-checks/frontend-tests.log
       - name: Readiness parser and redaction regression checks
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
-        run: python3 ops/ci/readiness-helper-test.py
+        run: |
+          python3 ops/ci/readiness-helper-test.py
+          python3 ops/ci/operational-status-test.py
       - name: Provision pinned production codec prerequisites
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
         run: bash ops/ci/prepare-codec-fixture.sh

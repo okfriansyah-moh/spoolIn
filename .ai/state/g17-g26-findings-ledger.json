@@ -1275,9 +1275,28 @@
       {
         "run_id": 39090435155,
         "tested_sha": "9679ea72bc7306d9573cbdb45bfa6a1b50e76da3",
-        "result": "in_progress",
-        "detail": "Hosted dependency preparation for actual JVM/MCP tracing and test dependencies; not an acceptance run.",
+        "result": "succeeded-preparation",
+        "detail": "Hosted Ubuntu24.04 image20261012.334.1 dependency preparation passed; artifact12123045206 inspected, locks/checksums/npm lock committedef1c8ec. No runtime acceptance.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39090435155",
+        "artifact_retention_days": 14,
+        "inspected_artifact_ids": [
+          12123045206
+        ]
+      },
+      {
+        "run_id": 39090631645,
+        "tested_sha": "ef1c8ec2af843855d5f358d01ec32f828dad54e5",
+        "result": "failed",
+        "detail": "Hosted formatter produced inspected565KiB patch for110 files; non-auto layout failures retained, patch applied and remaining SQL literals split97bd527. Formatting is not runtime acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39090631645",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39090751636,
+        "tested_sha": "97bd5270acdb68c47e4769e01862810bb841af90",
+        "result": "in_progress",
+        "detail": "Composed strict build, real owner boundaries, make start, full seed/browser/Make/operations and required gates dispatched; no result yet.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39090751636",
         "artifact_retention_days": 14
       }
     ],
