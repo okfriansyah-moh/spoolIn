@@ -5,6 +5,7 @@ import base64
 import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -15,6 +16,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 CASES = []
@@ -34,6 +36,111 @@ key:fs.readFileSync('/run/secrets/mcp-key'),timeout:5000},response=>{
 response.resume(); response.on('end',()=>process.stdout.write(String(response.statusCode)));});
 request.on('timeout',()=>request.destroy());request.on('error',()=>process.exit(4));request.end();
 """
+
+# Invalid input exercises mTLS/HTTP admission without creating or resolving an episode.
+ALERT_POST = r"""
+const https=require('node:https'),fs=require('node:fs');
+const codes=new Set(['FORBIDDEN','INVALID_ALERT','UNAVAILABLE','RECORDED','PAYLOAD_TOO_LARGE']);
+const tls=new Set(['ERR_TLS_CERT_ALTNAME_INVALID','CERT_HAS_EXPIRED','DEPTH_ZERO_SELF_SIGNED_CERT',
+'UNABLE_TO_VERIFY_LEAF_SIGNATURE','ECONNREFUSED','ETIMEDOUT','ECONNRESET','EPIPE']);
+let finished=false;
+function finish(value){if(!finished){finished=true;process.stdout.write(JSON.stringify(value));}}
+const request=https.request({hostname:'core',port:8081,path:'/internal/alerts',method:'POST',
+ca:fs.readFileSync('/run/diagnostic/ca'),cert:fs.readFileSync('/run/diagnostic/cert'),
+key:fs.readFileSync('/run/diagnostic/key'),timeout:5000,
+headers:{'content-type':'application/json','content-length':'2'}},response=>{
+let body='',bytes=0;response.on('data',chunk=>{bytes+=chunk.length;
+if(bytes>65536){response.destroy();finish({httpStatus:response.statusCode,responseBoundExceeded:true});}
+else body+=chunk.toString();});response.on('end',()=>{let code;
+try{const value=JSON.parse(body).status;if(codes.has(value))code=value;}catch{}
+finish({httpStatus:response.statusCode,...(code?{publicCode:code}:{})});});
+response.on('error',()=>finish({httpStatus:response.statusCode,transportCode:'RESPONSE_INTERRUPTED'}));});
+request.on('timeout',()=>{finish({transportCode:'ETIMEDOUT'});request.destroy();});
+request.on('error',failure=>finish({transportCode:tls.has(failure.code)?failure.code:'UNCLASSIFIED'}));
+request.end('{}');
+"""
+
+
+class AlertEvidenceFailure(AssertionError):
+    def __init__(self, message, observed):
+        super().__init__(message)
+        self.observed = observed
+
+
+def safe_alert_probe(value):
+    result = {}
+    status = value.get("httpStatus")
+    if isinstance(status, int) and not isinstance(status, bool) and 100 <= status <= 599:
+        result["httpStatus"] = status
+    if value.get("publicCode") in {"FORBIDDEN", "INVALID_ALERT", "UNAVAILABLE", "RECORDED", "PAYLOAD_TOO_LARGE"}:
+        result["publicCode"] = value["publicCode"]
+    transport = value.get("transportCode")
+    if transport in {"ERR_TLS_CERT_ALTNAME_INVALID", "CERT_HAS_EXPIRED", "DEPTH_ZERO_SELF_SIGNED_CERT",
+                    "UNABLE_TO_VERIFY_LEAF_SIGNATURE", "ECONNREFUSED", "ETIMEDOUT", "ECONNRESET", "EPIPE",
+                    "RESPONSE_INTERRUPTED", "UNCLASSIFIED"}:
+        result["transportCode"] = transport
+    if value.get("responseBoundExceeded") is True:
+        result["responseBoundExceeded"] = True
+    return result
+
+
+def alert_ingress():
+    installation = os.environ["SPOOLIN_INSTALLATION"]
+    assert re.fullmatch(r"ci-[a-z0-9-]{1,60}", installation), "Owned CI installation required"
+    container = compose("ps", "-q", "mcp").strip()
+    doc = json.loads(command("docker", "inspect", container))[0]
+    image = doc["Image"]
+    assert re.fullmatch(r"sha256:[a-f0-9]{64}", image), "Actual pinned runtime image required"
+    network = installation + "_private"
+    assert network in doc["NetworkSettings"]["Networks"], "Owned private network required"
+    args = ["docker", "run", "--rm", "--pull", "never", "--network", network,
+            "--name", installation + "-alert-probe-" + uuid.uuid4().hex[:8],
+            "--user", "10001:10001", "--read-only", "--cap-drop", "ALL",
+            "--security-opt", "no-new-privileges:true", "--pids-limit", "32", "--memory", "128m", "--cpus", "0.25"]
+    for variable, target in [("SERVICE_CA_FILE", "ca"), ("ALERTMANAGER_SERVICE_CERT_FILE", "cert"),
+                             ("ALERTMANAGER_SERVICE_KEY_FILE", "key")]:
+        source = Path(os.environ[variable])
+        assert source.is_absolute() and not source.is_symlink(), "Protected TLS mount required"
+        args += ["--mount", "type=bind,src=" + str(source) + ",dst=/run/diagnostic/" + target + ",readonly"]
+    args += ["--entrypoint", "node", image, "-e", ALERT_POST]
+    observed = safe_alert_probe(json.loads(command(*args, timeout=15)))
+    observed.update({"identity": "alertmanager", "input": "invalid empty JSON object; not an alert episode",
+                     "boundary": "private trusted TLS Core management POST"})
+    if observed.get("httpStatus") != 400 or observed.get("publicCode") != "INVALID_ALERT":
+        raise AlertEvidenceFailure("Alertmanager identity did not reach application input validation", observed)
+    return observed
+
+
+def alertmanager_metric_values(body):
+    names = {"alertmanager_notifications_total", "alertmanager_notifications_failed_total",
+             "alertmanager_notifications_requests_total", "alertmanager_notifications_requests_failed_total"}
+    totals = {}
+    for line in body.splitlines():
+        match = re.fullmatch(r"([a-z_]+)(?:\{[^\n]*\})?\s+([^\s]+)(?:\s+[0-9]+)?", line)
+        if not match or match[1] not in names:
+            continue
+        try:
+            value = float(match[2])
+        except ValueError:
+            continue
+        if not math.isfinite(value) or value < 0:
+            continue
+        totals[match[1]] = totals.get(match[1], 0) + value
+    return {"values": totals, "absent": sorted(names - totals.keys()), "scope": "actual process all receivers"}
+
+
+def alertmanager_metrics():
+    response = json.loads(compose("exec", "-T", "mcp", "node", "-e", FETCH,
+                                  "http://alertmanager:9093/metrics", "GET", "null"))
+    assert response["status"] == 200, "Actual Alertmanager metrics unavailable"
+    return alertmanager_metric_values(response["body"])
+
+
+def alertmanager_diagnostics():
+    try:
+        return alertmanager_metrics()
+    except Exception:
+        return {"result": "unavailable", "failureCode": "ALERTMANAGER_METRICS_UNAVAILABLE"}
 
 
 def command(*args, input_text=None, timeout=20):
@@ -93,8 +200,11 @@ def case(identifier, boundary, action):
         CASES.append({"id": identifier, "boundary": boundary, "result": "passed", "observed": observed,
                       "durationSeconds": round(time.monotonic() - start, 3)})
     except Exception as failure:
-        CASES.append({"id": identifier, "boundary": boundary, "result": "failed", "failure": str(failure)[:300],
-                      "durationSeconds": round(time.monotonic() - start, 3)})
+        failed = {"id": identifier, "boundary": boundary, "result": "failed", "failure": str(failure)[:300],
+                  "durationSeconds": round(time.monotonic() - start, 3)}
+        if isinstance(failure, AlertEvidenceFailure):
+            failed["observed"] = failure.observed
+        CASES.append(failed)
 
 
 def configurations():
@@ -172,7 +282,9 @@ def wait_counts(start, expected):
         if all(counts.get(key) == value for key, value in expected.items()):
             return counts
         time.sleep(2)
-    raise AssertionError("Actual durable notification episode evidence did not reach expected counts")
+    metrics = alertmanager_diagnostics()
+    raise AlertEvidenceFailure("Actual durable notification episode evidence did not reach expected counts",
+                               {"expectedCounts": expected, "durableCounts": counts, "alertmanagerMetrics": metrics})
 
 
 def alert_delivery():
@@ -182,6 +294,7 @@ def alert_delivery():
     alert = {"labels": {"alertname": "WorkQueueBacklog", "service": "core", "severity": "warning", "class": "work"},
              "annotations": {"summary": "Durable work backlog elevated"}, "startsAt": stamp(start),
              "endsAt": stamp(start + datetime.timedelta(minutes=5))}
+    before_metrics = alertmanager_diagnostics()
     try:
         internal("http://alertmanager:9093/api/v2/alerts", "POST", [alert])
         firing = wait_counts(stamp(start), {"firing": 1, "resolved": 0, "keys": 1, "recorded": True})
@@ -192,8 +305,12 @@ def alert_delivery():
         internal("http://alertmanager:9093/api/v2/alerts", "POST", [alert])
         resolved = wait_counts(stamp(start), {"firing": 1, "resolved": 1, "keys": 2, "recorded": True})
         return {"boundary": "actual Alertmanager to mTLS Core ingress to PostgreSQL", "firing": firing, "resolved": resolved,
+                "alertmanagerBefore": before_metrics, "alertmanagerAfter": alertmanager_diagnostics(),
                 "injection": "owned synthetic Alertmanager API episode; threshold evaluation separately tested by promtool",
                 "dedup": "actual Alertmanager duplicate coalescing and durable unique episode counts"}
+    except AlertEvidenceFailure as failure:
+        failure.observed["alertmanagerBefore"] = before_metrics
+        raise
     finally:
         alert["endsAt"] = stamp(datetime.datetime.now(datetime.timezone.utc))
         internal("http://alertmanager:9093/api/v2/alerts", "POST", [alert])
@@ -233,6 +350,7 @@ def main():
         ("MON-ISOLATION", "actual container configuration", identities), ("MON-SCRAPE", "actual mTLS scrapes", scrape),
         ("MON-AUTHORIZATION", "actual management identity denial", authorization),
         ("MON-DASHBOARD", "actual authenticated Grafana and datasource API", dashboard),
+        ("MON-ALERT-INGRESS", "actual Alertmanager certificate management admission", alert_ingress),
         ("MON-ALERT-EPISODE", "actual Alertmanager Core database flow", alert_delivery)]:
         case(identifier, boundary, action)
     doc = {"schemaVersion": 1, "testedSha": command("git", "rev-parse", "HEAD").strip(),
