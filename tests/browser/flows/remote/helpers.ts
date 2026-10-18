@@ -34,7 +34,7 @@ export async function capture(page: Page, info: TestInfo, cases: string[], step:
       sha: process.env.TESTED_REF ?? process.env.TESTED_SHA ?? process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
       runnerOS: process.env.RUNNER_OS, imageOS: process.env.ImageOS, imageVersion: process.env.ImageVersion,
       inputMethods: info.project.metadata.inputMethods ?? ['pointer', 'keyboard'],
-      result: info.status ?? 'assertions-completed',
+      result: 'Step assertions completed; full test conclusion is retained in JUnit/JSON reports',
       artifact: path, visualComparison: 'Textual specification assertions; no pixel identity claim.' }),
     contentType: 'application/json',
   });

@@ -25,6 +25,7 @@ test('Artwork production upload confirms attachment and serves actual bytes afte
   expect(image.headers()['content-type']).toMatch(/^image\/(png|jpeg|webp)/);
   const served = await image.body();
   expect(served.length).toBeGreaterThan(0);
+  await expect.poll(() => artwork.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const dimensions = await artwork.evaluate((img: HTMLImageElement) => ({ width: img.naturalWidth, height: img.naturalHeight }));
   expect(dimensions).toEqual({ width: metadata.title.artwork.width, height: metadata.title.artwork.height });
   expect(dimensions.width).toBeGreaterThan(0);
@@ -35,7 +36,6 @@ test('Artwork production upload confirms attachment and serves actual bytes afte
     inputSource: 'Approved mockup fixture letters.png, synthetic user upload; not production seed provenance proof',
     inputSha256: createHash('sha256').update(input).digest('hex'), servedSha256: createHash('sha256').update(served).digest('hex'),
     sha: process.env.TESTED_REF, boundary: 'Actual server metadata and HTTPS bytes rendered by the browser; internal database/blob storage requires its separate owner proof.' }), contentType: 'application/json' });
-  await expect.poll(() => artwork.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await page.reload();
   const after = await readApi(page, 'query ReloadedArtwork($id: UUID!) { title(id: $id) { artwork { assetId url width height } } }', { id: movie.id });
   expect(after.title.artwork).toEqual(metadata.title.artwork);

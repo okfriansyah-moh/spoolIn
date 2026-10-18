@@ -24,6 +24,11 @@ test('Registration assigns Viewer and real sign-in persists after reload', async
   expect(response.ok()).toBe(true);
   expect(await response.json()).toEqual({ data: { session: { authenticated: true, role: 'VIEWER' } } });
   await capture(page, info, ['ATDD-047', 'ATDD-085'], 'signed-in-catalog');
+  await page.goto('/manage/audit');
+  await expect(page.getByText('You do not have access', { exact: true })).toBeVisible();
+  await expect(page.locator('[data-private]')).toHaveCount(0);
+  await expect(page.getByRole('table')).toHaveCount(0);
+  await capture(page, info, ['ATDD-050', 'ATDD-056'], 'viewer-audit-denied');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();

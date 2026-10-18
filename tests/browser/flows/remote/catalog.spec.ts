@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, capture } from './helpers';
 
+test.use({ storageState: { cookies: [], origins: [] } });
+
 const tokens = JSON.parse(readFileSync(resolve('../../docs/design-system/tokens.json'), 'utf8')).primitive;
 
 test('Public catalog uses real GraphQL, seeded artwork and durable detail navigation', async ({ page }, info) => {

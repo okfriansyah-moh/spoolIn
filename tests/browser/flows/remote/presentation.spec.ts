@@ -75,3 +75,21 @@ test('ATDD-270/271/273 partial presentation-properties: typography, solid contra
     fonts: 'Requested family and fallback recorded. Matching Avenir Next/Didot installations are not established by computed CSS.',
     imageContrast: 'Pending complete actual image-overlay pairs; one solid body pair is partial.' }), contentType: 'application/json' });
 });
+
+test.describe('Anonymous account form presentation', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+  test('Account form baseline: empty sign-in and registration render without exposing credentials', async ({ page }, info) => {
+    await page.goto('/sign-in');
+    await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
+    await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+    await capture(page, info, ['ATDD-258'], 'empty-sign-in');
+    await page.getByRole('link', { name: 'Register', exact: true }).first().click();
+    await expect(page.getByRole('heading', { name: 'Create a Viewer account', exact: true })).toBeVisible();
+    await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
+    await expect(page.getByRole('button', { name: 'Create Viewer account', exact: true })).toBeVisible();
+    await expect(page.getByLabel('Name', { exact: true })).toBeVisible();
+    expect(await page.locator('html').evaluate((root) => root.scrollWidth <= innerWidth)).toBe(true);
+    await capture(page, info, ['ATDD-258'], 'empty-registration');
+  });
+});
