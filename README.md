@@ -236,17 +236,24 @@ The `main` branch includes the local setup helpers and packaged catalog describe
    make local-start
    ```
 
-   Wait for readiness checks to finish. Open `https://localhost:8443` after startup succeeds. Initial credentials are stored in `.local/accounts.txt`: `maintainer@example.invalid` can edit the catalog, and `viewer@example.invalid` has Viewer access. Fresh local installations use the [demo passwords listed below](#choose-the-right-account). Existing credentials persist across repeated setup. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
+   Wait for readiness checks to finish, then open `https://localhost:8443`. Use the Viewer or Maintainer account listed in step 4 to sign in. Startup checks artwork codec isolation too. A codec isolation error means the environment isn't ready, even if a catalog page responds.
 
 3. Trust the generated public local certificate using [the Firefox steps below](#trust-the-local-certificate), then open `https://localhost:8443`. Don't import a private key or turn off certificate validation.
 
-4. Use the [local demo accounts](#choose-the-right-account) to sign in. You can also display the credentials saved for this installation:
+4. Select **Sign in** and choose one of these accounts for a fresh local installation:
+
+   - **Viewer:** email `viewer@example.invalid`, password `SpoolInViewer123!`. Use this account for signed-in browsing of movies, TV series, people, and credits.
+   - **Maintainer:** email `maintainer@example.invalid`, password `SpoolInMaintainer123!`. Use this account to manage movies, people, credits, artwork, and Archives, or review History.
+
+   See [Choose the right account](#choose-the-right-account) for the access summary. Registration creates an additional Viewer; it doesn't grant catalog editing permissions.
+
+   **Already set up SpoolIn before these demo passwords were added?** Setup and restarts preserve your existing credentials. Display the email and password pairs saved for your installation:
 
    ```bash
    cat .local/accounts.txt
    ```
 
-   Choose **Sign in** and enter the Maintainer email and password. Older local installations keep their previous passwords; use the values in that file if they differ from the demo defaults. Registration creates a Viewer; it doesn't grant catalog editing permissions.
+   Use the password after the colon on the matching email's line. The new demo passwords don't replace older passwords, and you don't need to reset your data.
 
 #### Trust the local certificate
 
@@ -424,7 +431,7 @@ A Viewer can browse and search movies, people, and credits. Catalog editing, art
 
 For example, find a seeded film and explore its credits:
 
-1. Sign in with the Viewer account from [Start and sign in](#start-and-sign-in). The header displays **Viewer** beside your account name.
+1. Sign in with the Viewer account from [Choose the right account](#choose-the-right-account). The header displays **Viewer** beside your account name.
 2. Open **Catalog** and enter `Star Wars` in **Search titles**. Wait for the results to load.
 3. Open **Star Wars: Episode VII – The Force Awakens** to read its synopsis and available credits.
 4. Select a credited person, or open **People** and search for a cast member or creator by name.
