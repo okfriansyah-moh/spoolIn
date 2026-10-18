@@ -102,3 +102,17 @@ export async function createPerson(page: Page, name = uniqueName('Person')) {
   await expect(page.getByLabel('Professional name · Required')).toHaveValue(name);
   return { id, name };
 }
+
+export async function readApi(page: Page, query: string, variables: Record<string, unknown> = {}) {
+  await respectAdmission(5, 0);
+  const headers = { 'X-Spoolin-Client': 'web', Origin: new URL(page.url()).origin };
+  const bootstrap = await page.request.post('/graphql', { headers, data: { query: 'query { session { csrfToken } }' } });
+  expect(bootstrap.ok()).toBe(true);
+  const token = (await bootstrap.json()).data.session.csrfToken;
+  expect(typeof token).toBe('string');
+  const response = await page.request.post('/graphql', { headers: { ...headers, 'X-CSRF-Token': token }, data: { query, variables } });
+  expect(response.ok()).toBe(true);
+  const body = await response.json();
+  expect(body.errors).toBeUndefined();
+  return body.data;
+}
