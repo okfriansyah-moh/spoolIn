@@ -33,9 +33,9 @@ function draftSource(): DraftSource {
   return {
     recoverOperation: async () => null,
     listDrafts: async () => [],
-    saveDraft: async () => ({
+    saveDraft: async (operationId) => ({
       receipt: {
-        operationId: '11111111-1111-4111-8111-111111111111',
+        operationId,
         state: 'SUCCEEDED',
         resultId: '22222222-2222-4222-8222-222222222222',
         version: '1',
@@ -43,9 +43,9 @@ function draftSource(): DraftSource {
       },
       problemCode: null,
     }),
-    discardDraft: async () => ({
+    discardDraft: async (operationId) => ({
       receipt: {
-        operationId: '33333333-3333-4333-8333-333333333333',
+        operationId,
         state: 'SUCCEEDED',
         resultId: '22222222-2222-4222-8222-222222222222',
         version: '2',
@@ -134,6 +134,84 @@ describe('T017 movie editor controller', () => {
     expect(controller.snapshot.message).toMatch(
       /changed while you were editing/i,
     );
+    controller.dispose();
+  });
+});
+
+function retainedMovieDraft(targetId: string | null, baseVersion: string | null = '5') {
+  return {
+    id: '22222222-2222-4222-8222-222222222222', targetKind: 'MOVIE', targetId,
+    baseVersion, values: { title: 'Retained title', synopsis: 'Unsaved synopsis',
+      release: { year: 2024, month: null, day: null }, genreIds: ['10000000-0000-4000-8000-000000000010'] },
+    operationId: null, version: '17', expiresAt: new Date(Date.now() + 3600000).toISOString(),
+  };
+}
+
+function activeMovie() {
+  return { id: '190db10d-02b8-437e-8e7c-ece9c105fe2a', kind: 'MOVIE' as const,
+    state: 'ACTIVE' as const, title: 'Committed title', originalTitle: null,
+    synopsis: 'Committed synopsis', genreIds: ['10000000-0000-4000-8000-000000000010'],
+    releaseYear: '2024', version: '5', artworkUrl: null, artworkUnavailable: false };
+}
+
+describe('backed movie draft reload', () => {
+  it('loads exact target values without replacing the committed record', async () => {
+    const movie = activeMovie();
+    vi.mocked(api.fetchManagedMovie).mockResolvedValue(movie);
+    const source = draftSource();
+    source.listDrafts = async () => [retainedMovieDraft(movie.id), retainedMovieDraft('another-target')];
+    const save = vi.fn<DraftSource['saveDraft']>(source.saveDraft);
+    source.saveDraft = save;
+    const controller = new MovieEditorController(vi.fn(), source, 'edit', movie.id);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    expect(controller.snapshot.saved?.title).toBe('Committed title');
+    expect(controller.snapshot.draft.title).toBe('Retained title');
+    expect(controller.snapshot.phase).toBe('idle');
+    controller.updateDraft({ ...controller.snapshot.draft, synopsis: 'Changed again' });
+    await controller.submit();
+    expect(save.mock.calls[0]?.[2]).toBe('17');
+    controller.dispose();
+  });
+
+  it('retains a stale draft separately and prevents unreviewed publication', async () => {
+    const movie = activeMovie();
+    vi.mocked(api.fetchManagedMovie).mockResolvedValue(movie);
+    const source = draftSource();
+    source.listDrafts = async () => [retainedMovieDraft(movie.id, '3')];
+    const controller = new MovieEditorController(vi.fn(), source, 'edit', movie.id);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    expect(controller.snapshot.phase).toBe('stale');
+    expect(controller.snapshot.current?.synopsis).toBe('Committed synopsis');
+    expect(controller.snapshot.draft.synopsis).toBe('Unsaved synopsis');
+    const before = vi.mocked(api.updateMovie).mock.calls.length;
+    await controller.submit();
+    expect(vi.mocked(api.updateMovie).mock.calls.length).toBe(before);
+    controller.dispose();
+  });
+
+  it('does not select an arbitrary draft when multiple create drafts exist', async () => {
+    const source = draftSource();
+    const second = { ...retainedMovieDraft(null), id: '33333333-3333-4333-8333-333333333333' };
+    source.listDrafts = async () => [retainedMovieDraft(null), second];
+    const controller = new MovieEditorController(vi.fn(), source, 'create', null);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    expect(controller.snapshot.draft.title).toBe('');
+    expect(controller.snapshot.message).toMatch(/no saved draft was selected automatically/);
+    controller.dispose();
+  });
+
+  it('reconciles a retained original catalog operation before enabling a new save', async () => {
+    const source = draftSource();
+    const operationId = '44444444-4444-4444-8444-444444444444';
+    source.listDrafts = async () => [{ ...retainedMovieDraft(null), operationId }];
+    vi.mocked(api.recoverCatalogOperation).mockResolvedValueOnce(null);
+    const controller = new MovieEditorController(vi.fn(), source, 'create', null);
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    expect(controller.snapshot.phase).toBe('uncertain');
+    expect(controller.snapshot.pendingOperationId).toBe(operationId);
+    const before = vi.mocked(api.createMovie).mock.calls.length;
+    await controller.submit();
+    expect(vi.mocked(api.createMovie).mock.calls.length).toBe(before);
     controller.dispose();
   });
 });

@@ -15,7 +15,7 @@ import { movieToDraft } from './projection';
 import type { EditorState, WriteContext } from './types';
 import { EMPTY_MOVIE_DRAFT } from './types';
 import { problemMessage, validateMovieDraft } from './validation';
-import type { DraftSource } from '../draft/types';
+import type { DraftSource, DraftRecord } from '../draft/types';
 
 function initialState(
   mode: 'create' | 'edit',
@@ -83,9 +83,11 @@ export class MovieEditorController {
       if (signal.aborted) return;
       if (this.mode === 'create') {
         this.publishCreateBootstrap(genres);
+        await this.restoreBackedDraft(context, signal);
         return;
       }
       await this.bootstrapExistingMovie(genres, context, signal);
+      if (this.current.phase !== 'target-changed') await this.restoreBackedDraft(context, signal);
     } catch {
       if (signal.aborted) return;
       this.publish({
@@ -100,7 +102,7 @@ export class MovieEditorController {
     next: MovieDraft,
     options: { originalTitleTouched?: boolean } = {},
   ): void {
-    if (this.current.phase === 'submitting') return;
+    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain') return;
     if (options.originalTitleTouched) this.originalTitleTouched = true;
     this.publish({ ...this.current, draft: Object.freeze({ ...next }) });
     if (this.writeContext && this.current.saved) {
@@ -141,7 +143,10 @@ export class MovieEditorController {
 
   async confirmDiscard(): Promise<void> {
     if (!this.writeContext) return;
-    await this.draftSync.discard(this.writeContext);
+    if (!await this.draftSync.discard(this.writeContext)) {
+      this.publish({ ...this.current, phase: 'failed', message: 'Discard is not confirmed. Retry the original discard before leaving.' });
+      return;
+    }
     this.publish({ ...this.current, discardDialogOpen: false });
     if (this.current.saved) {
       this.publish({
@@ -211,7 +216,6 @@ export class MovieEditorController {
     const draft = movieToDraft(movie);
     this.draftSync.reset({
       catalogOperationId: null,
-      expectedVersion: movie.version,
     });
     this.publish({
       ...this.current,
@@ -224,6 +228,44 @@ export class MovieEditorController {
     });
   }
 
+  private async restoreBackedDraft(context: WriteContext, signal: AbortSignal): Promise<void> {
+    const drafts = await this.draftSync.load(context, signal);
+    if (signal.aborted || drafts.length === 0) return;
+    if (drafts.length > 1) {
+      this.publish({ ...this.current, phase: 'failed', message: 'Several saved drafts are retained. This form starts a new draft; no saved draft was selected automatically.' });
+      return;
+    }
+    const draft = drafts[0];
+    if (draft) await this.applyBackedDraft(draft, signal);
+  }
+
+  private async applyBackedDraft(draft: DraftRecord, signal: AbortSignal): Promise<void> {
+    this.draftSync.adopt(draft);
+    if (draft.operationId) {
+      this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: draft.operationId,
+        message: 'Check the original save before continuing this retained draft.' });
+      await this.checkOriginalResult();
+      if (signal.aborted || this.current.phase !== 'failed') return;
+    }
+    const stale = this.current.saved && draft.baseVersion !== this.current.saved.version;
+    this.originalTitleTouched = Object.prototype.hasOwnProperty.call(draft.values, 'originalTitle');
+    this.publish({ ...this.current, draft: draft.values as MovieDraft,
+      phase: stale ? 'stale' : 'idle', pendingOperationId: null,
+      message: stale ? 'The saved movie changed. Compare its current values with the retained draft.' : 'Saved draft recovered.',
+      staleReviewOpen: !!stale });
+  }
+
+  private async backSubmission(operationId: string): Promise<boolean> {
+    if (!this.writeContext) return false;
+    const backed = await this.draftSync.prepareSubmission(operationId, this.current.draft,
+      this.writeContext, this.current.saved?.version ?? null);
+    if (backed) return true;
+    this.pendingWriteId = null;
+    this.publish({ ...this.current, phase: 'failed', pendingOperationId: null,
+      message: 'Changes are not backed up yet. Retry after the original draft save is confirmed.' });
+    return false;
+  }
+
   private beginSubmit(): {
     operationId: string;
     generation: number;
@@ -232,7 +274,10 @@ export class MovieEditorController {
     if (
       this.pendingWriteId ||
       this.current.phase === 'submitting' ||
-      this.current.phase === 'uncertain'
+      this.current.phase === 'uncertain' ||
+      this.current.phase === 'stale' ||
+      this.current.phase === 'target-changed' ||
+      (this.mode === 'create' && this.current.saved !== null)
     ) {
       return null;
     }
@@ -271,6 +316,7 @@ export class MovieEditorController {
     if (!started) return;
     const { operationId, generation, signal } = started;
     try {
+      if (!await this.backSubmission(operationId)) return;
       if (this.mode === 'create') {
         await this.submitCreate(operationId, generation, signal);
         return;
@@ -383,6 +429,10 @@ export class MovieEditorController {
     receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
     operationId: string,
   ): Promise<void> {
+    if (receipt && 'resultExpired' in receipt && receipt.resultExpired === true) {
+      this.publish({ ...this.current, phase: 'uncertain', message: 'Original save result expired. Review the current record; do not repeat the original change.' });
+      return;
+    }
     if (receipt?.state === 'SUCCEEDED') {
       const movieId = receipt.resultId ?? this.movieId;
       await this.refreshAfterSuccess(movieId, 'resolved', receipt.version);
@@ -520,12 +570,10 @@ export class MovieEditorController {
       this.active?.signal,
     );
     if (!movie) return;
-    const saved = version ? { ...movie, version } : movie;
+    const saved = movie;
+    void version;
     this.originalTitleTouched = false;
-    this.draftSync.reset({
-      catalogOperationId: null,
-      expectedVersion: saved.version,
-    });
+    await this.draftSync.discard(this.writeContext);
     this.publish({
       ...this.current,
       phase,

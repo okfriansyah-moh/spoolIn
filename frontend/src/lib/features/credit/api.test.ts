@@ -31,8 +31,8 @@ describe('credit writes and original receipts', () => {
   });
 
   it('rejects mismatched receipt identities instead of declaring success', async () => {
-    const wrong = response('addCredit', 'SUCCEEDED');
-    wrong.addCredit.operation.id = '22222222-2222-4222-8222-222222222222';
+    const wrong = { addCredit: { operation: { id: '22222222-2222-4222-8222-222222222222',
+      state: 'SUCCEEDED', resultExpired: false, problem: null }, problem: null } };
     const request = vi.fn<GraphqlRequest>(async () => wrong);
     await expect(addCredit(request, id, id, '1', 'r1', { personId: id, roleId: id, characters: [] }, 'csrf', new AbortController().signal)).rejects.toThrow();
   });

@@ -8,7 +8,7 @@ import {
   recoverCatalogOperation,
   updatePerson,
 } from './api';
-import type { DraftSource } from '../../draft/types';
+import type { DraftSource, DraftRecord } from '../../draft/types';
 import { PersonDraftSync } from './draft-sync';
 import type { EditorState, ManagedPerson, WriteContext } from './types';
 import { EMPTY_PERSON_DRAFT } from './types';
@@ -60,6 +60,8 @@ export class PersonEditorController {
     this.draftSync = new PersonDraftSync(draftSource, personId);
   }
 
+  get snapshot(): EditorState { return this.current; }
+
   subscribe(listener: (state: EditorState) => void): () => void {
     this.listeners.add(listener);
     listener(this.current);
@@ -76,9 +78,11 @@ export class PersonEditorController {
     this.draftSync.reset({ catalogOperationId: null });
     if (this.mode === 'create') {
       this.publish({ ...this.current, summaryTitle: 'Create person' });
+      await this.restoreBackedDraft(context, signal);
       return;
     }
     await this.bootstrapExistingPerson(context, signal);
+    if (this.current.phase !== 'target-changed') await this.restoreBackedDraft(context, signal);
   }
 
   private async bootstrapExistingPerson(
@@ -116,7 +120,6 @@ export class PersonEditorController {
       }
       this.draftSync.reset({
         catalogOperationId: null,
-        expectedVersion: person.version,
       });
       this.publish({
         ...this.current,
@@ -136,7 +139,7 @@ export class PersonEditorController {
   }
 
   updateDraft(next: PersonDraft): void {
-    if (this.current.phase === 'submitting') return;
+    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain') return;
     this.publish({ ...this.current, draft: Object.freeze({ ...next }) });
     if (this.writeContext && this.current.saved) {
       this.draftSync.schedule(
@@ -156,6 +159,47 @@ export class PersonEditorController {
     });
   }
 
+  private async restoreBackedDraft(context: WriteContext, signal: AbortSignal): Promise<void> {
+    try {
+      const drafts = await this.draftSync.load(context, signal);
+      if (signal.aborted || drafts.length === 0) return;
+      if (drafts.length > 1) {
+        this.publish({ ...this.current, phase: 'failed', message: 'Several saved drafts are retained. This form starts a new draft; no saved draft was selected automatically.' });
+        return;
+      }
+      const draft = drafts[0];
+    if (draft) await this.applyBackedDraft(draft, signal);
+    } catch {
+      if (!signal.aborted) this.publish({ ...this.current, phase: 'failed', message: 'Saved drafts could not be checked. Retry before continuing.' });
+    }
+  }
+
+  private async applyBackedDraft(draft: DraftRecord, signal: AbortSignal): Promise<void> {
+    this.draftSync.adopt(draft);
+    if (draft.operationId) {
+      this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: draft.operationId,
+        message: 'Check the original save before continuing this retained draft.' });
+      await this.checkOriginalResult();
+      if (signal.aborted || this.current.phase !== 'failed') return;
+    }
+    const stale = this.current.saved && draft.baseVersion !== this.current.saved.version;
+    this.publish({ ...this.current, draft: draft.values as PersonDraft,
+      phase: stale ? 'stale' : 'idle', pendingOperationId: null,
+      message: stale ? 'The saved person changed. Compare its current values with the retained draft.' : 'Saved draft recovered.',
+      staleReviewOpen: !!stale });
+  }
+
+  private async backSubmission(operationId: string): Promise<boolean> {
+    if (!this.writeContext) return false;
+    const backed = await this.draftSync.prepareSubmission(operationId, this.current.draft,
+      this.writeContext, this.current.saved?.version ?? null);
+    if (backed) return true;
+    this.pendingWriteId = null;
+    this.publish({ ...this.current, phase: 'failed', pendingOperationId: null,
+      message: 'Changes are not backed up yet. Retry after the original draft save is confirmed.' });
+    return false;
+  }
+
   private beginSubmit(): {
     operationId: string;
     generation: number;
@@ -164,7 +208,10 @@ export class PersonEditorController {
     if (
       this.pendingWriteId ||
       this.current.phase === 'submitting' ||
-      this.current.phase === 'uncertain'
+      this.current.phase === 'uncertain' ||
+      this.current.phase === 'stale' ||
+      this.current.phase === 'target-changed' ||
+      (this.mode === 'create' && this.current.saved !== null)
     ) {
       return null;
     }
@@ -288,16 +335,12 @@ export class PersonEditorController {
       await this.enterStaleReview();
       return;
     }
-    this.pendingWriteId = null;
-    this.publish({
-      ...this.current,
-      phase: 'failed',
-      pendingOperationId: null,
-      message:
-        error instanceof TransportFailure
-          ? problemMessage(error.code)
-          : 'Changes were not saved.',
-    });
+    const rejected = error instanceof TransportFailure && error.kind === 'rejected';
+    const operationId = this.current.pendingOperationId;
+    if (rejected) this.pendingWriteId = null;
+    this.publish({ ...this.current, phase: rejected ? 'failed' : 'uncertain',
+      pendingOperationId: rejected ? null : operationId,
+      message: rejected ? problemMessage(error.code) : 'Save result not confirmed. Check the original operation before repeating it.' });
   }
 
   async submit(): Promise<void> {
@@ -305,6 +348,7 @@ export class PersonEditorController {
     if (!started) return;
     const { operationId, generation, signal } = started;
     try {
+      if (!await this.backSubmission(operationId)) return;
       if (this.mode === 'create') {
         await this.submitCreate(operationId, generation, signal);
         return;
@@ -327,6 +371,10 @@ export class PersonEditorController {
         this.writeContext.csrf,
         signal,
       );
+      if (receipt && 'resultExpired' in receipt && receipt.resultExpired === true) {
+        this.publish({ ...this.current, phase: 'uncertain', message: 'Original save result expired. Review the current record; do not repeat the original change.' });
+        return;
+      }
       if (receipt?.state === 'SUCCEEDED') {
         const personId = receipt.resultId ?? this.personId;
         if (personId) await this.publishSavedPerson(personId);
@@ -411,8 +459,8 @@ export class PersonEditorController {
     }
     this.publish({
       ...this.current,
-      phase: state === 'UNCERTAIN' ? 'uncertain' : 'failed',
-      pendingOperationId: state === 'UNCERTAIN' ? operationId : null,
+      phase: state === 'UNCERTAIN' || state === 'PENDING' || state === 'EXPIRED' ? 'uncertain' : 'failed',
+      pendingOperationId: state === 'FAILED' ? null : operationId,
       message: problemMessage(problemCode),
     });
   }
