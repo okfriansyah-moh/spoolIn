@@ -11,7 +11,7 @@ export function contextProjection(value: MovieContext) {
 }
 export function movieProjection(value: MovieValues | undefined) {
   return { title: value?.title ?? '', originalTitle: value?.originalTitle ?? null, synopsis: value?.synopsis ?? '',
-    genreIds: value?.genreIds ?? [], release: dateProjection(value?.release), runtimeMinutes: value?.runtimeMinutes ?? null,
+    genreIds: value?.genreIds ?? [], release: { year: value?.release?.year ?? null, month: value?.release?.month ?? null, day: value?.release?.day ?? null }, runtimeMinutes: value?.runtimeMinutes ?? null,
     originalLanguage: value?.originalLanguage ?? null, synopsisLanguage: value?.synopsisLanguage ?? '', countries: value?.countries ?? [] };
 }
 export function proposalProjection(value: ProposalRevision, policyRevision: string) {

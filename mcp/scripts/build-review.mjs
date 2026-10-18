@@ -1,6 +1,6 @@
 import { build } from 'vite';
 import { copyFile, mkdir } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 await build({ configFile: false, root, build: {
   outDir: 'dist/review', emptyOutDir: false, minify: false,
