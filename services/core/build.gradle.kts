@@ -305,3 +305,22 @@ val accountIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
         md.outputLocation.set(layout.buildDirectory.file("reports/detekt/account-integration-thresholds.md"))
     }
 }
+
+val alertUnitTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter { includeTestsMatching("com.spoolin.core.features.alerts.*") }
+    useJUnitPlatform()
+    maxHeapSize = "512m"
+}
+
+val alertIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath = files(bootstrapTests.output.classesDirs, sourceSets["main"].output,
+        configurations["integrationTestRuntimeClasspath"])
+    filter { includeTestsMatching("com.spoolin.core.operations.alerts.*") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}
+tasks.named("koverXmlReport") { dependsOn(alertUnitTest, alertIntegrationTest) }

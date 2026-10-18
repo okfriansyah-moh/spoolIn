@@ -101,7 +101,7 @@ jobs:
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' }}
         run: |
           mkdir -p artifacts/source-checks
-          ./gradlew --no-daemon --console plain :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :tests:integration:leasesTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
+          ./gradlew --no-daemon --console plain :services:core:accountIntegrationTest :services:core:draftIntegrationTest :services:core:cryptoIntegrationTest :services:core:receiptIntegrationTest :services:core:alertUnitTest :services:core:alertIntegrationTest :services:media:artworkIntegrationTest :services:catalog:catalogLifecycleIntegrationTest :tests:integration:leasesTest :tests:integration:artworkIntegrationTest :tests:integration:lifecycleIntegrationTest 2>&1 | tee artifacts/source-checks/production-boundaries.log
       - name: Provision isolated synthetic environment
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: python3 ops/ci/prepare-environment.py
@@ -124,6 +124,9 @@ jobs:
         env:
           NODE_EXTRA_CA_CERTS: ${{ env.SERVICE_CA_FILE }}
         run: npm exec --workspace tests/browser -- playwright test --config playwright.remote.config.ts
+      - name: Verify actual monitoring and alert persistence
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
+        run: python3 ops/monitoring/verify.py --report artifacts/runtime/monitoring.json
       - name: Verify documented Make lifecycle and suites
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: bash ops/ci/verify-make-targets.sh

@@ -78,8 +78,10 @@ def provision_identity_files(base, exports):
         command("sudo", "chown", "10001:10001", str(key), str(cert))
     grafana_password = secrets.token_urlsafe(32)
     exports["GRAFANA_ADMIN_PASSWORD_FILE"] = str(protected(base / "grafana-admin-password", grafana_password))
-    exports["SPOOLIN_GRAFANA_CHECK_PASSWORD_FILE"] = str(protected(base / "grafana-check-password", grafana_password))
+    exports["GRAFANA_ADMIN_PASSWORD_CLIENT_FILE"] = str(protected(base / "grafana-check-password", grafana_password))
     command("sudo", "chown", "10001:10001", exports["GRAFANA_ADMIN_PASSWORD_FILE"])
+    exports["GRAFANA_SIGNING_KEY_FILE"] = str(protected(base / "grafana-signing-key", secrets.token_urlsafe(48)))
+    command("sudo", "chown", "10001:10001", exports["GRAFANA_SIGNING_KEY_FILE"])
     exports["POSTGRES_PASSWORD_FILE"] = str(protected(base / "postgres-password", secrets.token_urlsafe(32)))
     for owner in ("core", "catalog", "media"):
         for role in ("runtime", "migrator", "maintenance", "backup"):

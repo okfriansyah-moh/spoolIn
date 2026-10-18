@@ -22,6 +22,7 @@ done
 SPOOLIN_SEED_APPLY=1 "$bin/seed.sh" --apply || exit 4
 compose_common_run "$root_dir" up -d core catalog media || exit 5
 compose_common_run "$root_dir" up -d mcp || exit 5
+compose_common_run "$root_dir" up -d --wait --wait-timeout 120 prometheus alertmanager grafana || exit 5
 start=$SECONDS
 until "$bin/status.sh" >/dev/null 2>&1; do
   if (( SECONDS - start >= 300 )); then

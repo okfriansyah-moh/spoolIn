@@ -83,6 +83,14 @@ class Application {
         com.spoolin.support.notifications.NotificationSettings.transport { environment.getProperty(it) }
             ?.let { com.spoolin.support.notifications.NotificationDispatcher(dataSource, it) }
 
+    @Bean
+    fun ownerMetrics(registry: io.micrometer.core.instrument.MeterRegistry,
+        dataSource: HikariDataSource, schema: SchemaReadiness, rate: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.ratelimit.RateMaintenance>,
+    ): com.spoolin.support.observability.OwnerMetrics =
+        com.spoolin.support.observability.OwnerMetrics(registry, dataSource, "core",
+            { dataSource.hikariPoolMXBean.activeConnections }, { dataSource.maximumPoolSize },
+            { schema.ready() && (rate.ifAvailable?.ready() ?: true) })
+
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
         com.spoolin.support.maintenance.MaintenanceDataSources.open(
@@ -131,7 +139,9 @@ class Application {
     }
 
     @Bean
-    fun listenerBoundary(environment: Environment): ListenerBoundary = ListenerBoundary(environment)
+    fun listenerBoundary(environment: Environment,
+        metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
+    ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 
     @Bean
     fun identityService(
@@ -448,6 +458,7 @@ class ServiceIdentityInterceptor : ServerInterceptor {
 
 class ListenerBoundary(
     private val environment: Environment,
+    private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -474,6 +485,15 @@ class ListenerBoundary(
         }
         response.setHeader("X-Content-Type-Options", "nosniff")
         response.setHeader("Cache-Control", "no-store")
+        if (path == "/actuator/prometheus") {
+            val measurement = metrics
+            if (measurement == null) { response.sendError(503); return }
+            synchronized(measurement) {
+                if (!measurement.prepareScrape()) { response.sendError(503); return }
+                chain.doFilter(request, response)
+            }
+            return
+        }
         chain.doFilter(request, response)
     }
 }
