@@ -103,6 +103,25 @@ class Application {
             mapOf("artwork" to Path.of("/var/spoolin/media")),
         )
 
+    @Bean(destroyMethod = "close")
+    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing = com.spoolin.support.tracing.OwnerTracing("media")
+
+    @Bean
+    @GlobalServerInterceptor
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE + 1)
+    fun traceServer(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceServerInterceptor =
+        com.spoolin.support.tracing.TraceServerInterceptor(tracing) { attributes ->
+            runCatching {
+                val certificate = attributes.get(Grpc.TRANSPORT_ATTR_SSL_SESSION)?.peerCertificates?.firstOrNull() as? X509Certificate
+                certificate?.let(::certificateIdentity) in setOf("core", "catalog", "media", "mcp")
+            }.getOrDefault(false)
+        }
+
+    @Bean
+    @org.springframework.grpc.client.GlobalClientInterceptor
+    fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
+        com.spoolin.support.tracing.TraceClientInterceptor(tracing)
+
     @Bean
     fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
         com.spoolin.support.logging.DiagnosticDropMetrics.shared.bind("media", registry)

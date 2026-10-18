@@ -105,7 +105,9 @@ class ArtworkServing(
         val cancellation = Context.current().withCancellation()
         val async = ArtworkHttpAsync(request.startAsync(), cancellation, response)
         try {
-            workers.execute { runTransfer(id, management, browser, response, async) }
+            workers.execute(com.spoolin.support.tracing.TraceContexts.wrap(Runnable {
+                runTransfer(id, management, browser, response, async)
+            }))
         } catch (_: RejectedExecutionException) {
             async.unavailable()
             async.close()

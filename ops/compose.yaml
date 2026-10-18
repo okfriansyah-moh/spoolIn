@@ -36,6 +36,7 @@ services:
       - media-maintenance-password
       - media-backup-password
   core:
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/core.Dockerfile
@@ -91,6 +92,7 @@ services:
       - core-migrator-password
       - service-ca
   catalog:
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/catalog.Dockerfile
@@ -145,6 +147,7 @@ services:
       - catalog-migrator-password
       - service-ca
   media:
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/media.Dockerfile
@@ -218,6 +221,7 @@ services:
     secrets: [catalog-runtime-password, service-ca]
 
   mcp:
+    stop_grace_period: 65s
     build:
       context: ..
       dockerfile: ops/containers/mcp.Dockerfile
