@@ -19,8 +19,8 @@ test-unit:
 test-integration:
 	@bash ops/bin/test-integration.sh
 
-.PHONY: local-setup local-start local-status local-logs local-stop local-test local-reset local-repair-maintainer
-local-setup local-start local-status local-logs local-stop local-test local-reset local-repair-maintainer:
+.PHONY: local-setup local-start local-status local-logs local-stop local-test local-reset local-repair-maintainer local-repair-accounts
+local-setup local-start local-status local-logs local-stop local-test local-reset local-repair-maintainer local-repair-accounts:
 	@python3 ops/local/run.py $(patsubst local-%,%,$@)
 
 .PHONY: local-trust

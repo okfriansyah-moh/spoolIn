@@ -416,6 +416,8 @@ make local-repair-maintainer
 
 This explicit recovery command changes only the prepared Maintainer password and revokes its existing sessions. It updates `.local/accounts.txt` and preserves the account, Viewer credentials, catalog edits, and artwork. Normal startup continues to preserve passwords.
 
+To restore both prepared accounts to the Viewer and Maintainer passwords in the table above, run `make local-repair-accounts`. It updates both passwords in one database transaction, revokes their existing sessions, and updates `.local/accounts.txt`. Account roles and other stored data are preserved. Restart the local app with `make local-stop` followed by `make local-start` when needed.
+
 **Register** creates an additional Viewer account; catalog editing requires a Maintainer.
 
 When a session expires, sign in again before continuing an edit. The page explains retained draft recovery when it is available. Don't assume a form is saved just because you can still see its values.

@@ -208,21 +208,22 @@ def seed():
             '--seed-artwork-output=/var/spoolin/seed-artwork/finalized.json')
 
 
-def repair_maintainer():
+def repair_accounts(scope):
     if not (STATE / 'compose.json').exists():
         raise RuntimeError('Run make local-start first.')
     # Build the offline recovery entry point without executing test tasks.
     tooling('./gradlew', '--no-daemon', '--console', 'plain', ':services:core:bootJar')
     compose('build', 'core')
-    tooling('python3', 'ops/local/repair_maintainer.py', 'prepare', root=True, cache=False)
+    tooling('python3', 'ops/local/repair_accounts.py', 'prepare', scope, root=True, cache=False)
     try:
+        flag = '--reset-local-demo-passwords' if scope == 'accounts' else '--reset-local-maintainer-password'
         compose('run', '--rm', '--no-deps', '-e', 'SPOOLIN_LOCAL_PASSWORD_RESET=1', 'core',
-                '--reset-local-maintainer-password=/run/spoolin-config/account-initialization.json')
+                flag + '=/run/spoolin-config/account-initialization.json')
     except subprocess.SubprocessError:
-        tooling('python3', 'ops/local/repair_maintainer.py', 'rollback', root=True, cache=False)
+        tooling('python3', 'ops/local/repair_accounts.py', 'rollback', scope, root=True, cache=False)
         raise
-    tooling('python3', 'ops/local/repair_maintainer.py', 'complete', root=True, cache=False)
-    print('Local Maintainer now uses the documented demo password. Existing account and catalog data were preserved.')
+    tooling('python3', 'ops/local/repair_accounts.py', 'complete', scope, root=True, cache=False)
+    print('Selected local accounts now use their documented demo passwords. Account roles and catalog data were preserved.')
 
 
 def reset():
@@ -244,7 +245,7 @@ def reset():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('setup', 'start', 'status', 'logs', 'stop', 'test', 'reset', 'repair-maintainer'))
+    parser.add_argument('action', choices=('setup', 'start', 'status', 'logs', 'stop', 'test', 'reset', 'repair-maintainer', 'repair-accounts'))
     action = parser.parse_args().action
     validate_state()
     check_tools()
@@ -266,8 +267,8 @@ def dispatch(action):
         return {'setup': setup, 'start': start, 'reset': reset}[action]()
     if not (STATE / 'compose.json').exists():
         raise RuntimeError('Run make local-setup first.')
-    if action == 'repair-maintainer':
-        repair_maintainer()
+    if action in ('repair-maintainer', 'repair-accounts'):
+        repair_accounts('accounts' if action == 'repair-accounts' else 'maintainer')
     elif action == 'status':
         compose('ps', '--all')
         ready()
