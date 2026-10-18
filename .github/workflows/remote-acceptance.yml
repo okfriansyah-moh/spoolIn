@@ -226,7 +226,11 @@ jobs:
       - name: Install pinned browser engines and trust the isolated CA
         if: ${{ !cancelled() && (inputs.mode == 'verify' || inputs.mode == 'runtime') && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: |
-          npm exec --workspace tests/browser -- playwright install --with-deps chromium firefox webkit
+          if [[ "$ACCEPTANCE_MODE" == runtime ]]; then
+            npm exec --workspace tests/browser -- playwright install --with-deps chromium
+          else
+            npm exec --workspace tests/browser -- playwright install --with-deps chromium firefox webkit
+          fi
           sudo apt-get install --no-install-recommends -y libnss3-tools
           sudo cp "$SERVICE_CA_FILE" /usr/local/share/ca-certificates/spoolin-ci.crt
           sudo update-ca-certificates
