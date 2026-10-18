@@ -35,7 +35,9 @@ class RotationBackfill(
         repeat(maxBatches) {
             val rows = batch()
             if (rows.isEmpty()) return completed(changed)
-            rows.forEach { row -> changed += if (plan.purpose == KeyPurpose.EMAIL_LOOKUP) alias(row) else reencrypt(row) }
+            rows.forEach { row ->
+                changed += if (plan.purpose == KeyPurpose.EMAIL_LOOKUP) alias(row) else reencrypt(row)
+            }
         }
         return completed(changed)
     }
@@ -49,7 +51,8 @@ class RotationBackfill(
                     "r.${prefix}_key_id=?"
                 }
             connection.queryBound(
-                "SELECT r.id,r.version,r.${prefix}_key_id AS key_id,r.${prefix}_nonce AS nonce,r.${prefix}_cipher AS cipher " +
+                "SELECT r.id,r.version,r.${prefix}_key_id AS key_id,r.${prefix}_nonce AS nonce," +
+                    "r.${prefix}_cipher AS cipher " +
                     "FROM appdata.$table r WHERE $predicate ORDER BY r.id LIMIT 100",
                 listOf(
                     if (plan.purpose ==
@@ -74,7 +77,8 @@ class RotationBackfill(
         check(registry.readable(row.envelope.keyId, purpose)) { "A required read key is unavailable" }
         val material = keys.key(row.envelope.keyId, purpose) ?: error("A required protected key is unavailable")
         return try {
-            when (val read = cipher.decrypt(row.envelope, material, ProtectionBinding("core", table, row.id, purpose))) {
+            val binding = ProtectionBinding("core", table, row.id, purpose)
+            when (val read = cipher.decrypt(row.envelope, material, binding)) {
                 is ProtectedRead.Value -> read.value
                 ProtectedRead.Unavailable -> error("Protected rotation input could not be authenticated")
             }
@@ -123,44 +127,45 @@ class RotationBackfill(
         try {
             val identity = AccountPayload().decode(clear)
             check(identity is ProtectedRead.Value) { "Protected identity is invalid" }
-            val target = accountCrypto.lookupDigest(RegisteredKey(plan.toAlias, KeyPurpose.EMAIL_LOOKUP), identity.value.emailNormalized)
+            val target = accountCrypto.lookupDigest(
+                RegisteredKey(plan.toAlias, KeyPurpose.EMAIL_LOOKUP), identity.value.emailNormalized,
+            )
             try {
-                return dataSource.committed { connection ->
-                    val compatible = registry.lookupKeys(connection)
-                    check(compatible.any { it.id == plan.toAlias && it.state == com.spoolin.core.features.crypto.KeyState.WRITE })
-                    val unchanged =
-                        connection
-                            .queryBound(
-                                "SELECT id FROM appdata.user_account WHERE id=? AND version=? AND pii_key_id=? AND pii_nonce=? AND pii_cipher=? FOR UPDATE",
-                                listOf(row.id, row.version, row.envelope.keyId, row.envelope.nonce(), row.envelope.cipher()),
-                            ) { 1 }
-                            .isNotEmpty()
-                    if (!unchanged) return@committed 0
-                    val inserted =
-                        connection.executeBound(
-                            "INSERT INTO appdata.account_email_lookup(key_id,digest,account_id) VALUES(?,?,?) ON CONFLICT DO NOTHING",
-                            plan.toAlias,
-                            target,
-                            row.id,
-                        )
-                    val stored =
-                        connection
-                            .queryBound(
-                                "SELECT digest FROM appdata.account_email_lookup WHERE key_id=? AND account_id=?",
-                                listOf(plan.toAlias, row.id),
-                            ) {
-                                it.getBytes("digest")
-                            }.singleOrNull()
-                    check(
-                        stored != null && MessageDigest.isEqual(stored, target),
-                    ) { "Lookup alias collision or incompatible identity; rotation stopped" }
-                    inserted
-                }
+                return persistAlias(row, target)
             } finally {
                 target.fill(0)
             }
         } finally {
             clear.fill(0)
+        }
+    }
+
+    private fun persistAlias(row: Row, target: ByteArray): Int = dataSource.committed { connection ->
+        val compatible = registry.lookupKeys(connection)
+        check(compatible.any { it.id == plan.toAlias && it.state == com.spoolin.core.features.crypto.KeyState.WRITE })
+        if (!unchanged(connection, row)) return@committed 0
+        val inserted = connection.executeBound(
+            "INSERT INTO appdata.account_email_lookup(key_id,digest,account_id) " +
+                "VALUES(?,?,?) ON CONFLICT DO NOTHING",
+            plan.toAlias, target, row.id,
+        )
+        verifyAlias(connection, row, target)
+        inserted
+    }
+
+    private fun unchanged(connection: java.sql.Connection, row: Row): Boolean = connection.queryBound(
+        "SELECT id FROM appdata.user_account WHERE id=? AND version=? AND pii_key_id=? " +
+            "AND pii_nonce=? AND pii_cipher=? FOR UPDATE",
+        listOf(row.id, row.version, row.envelope.keyId, row.envelope.nonce(), row.envelope.cipher()),
+    ) { 1 }.isNotEmpty()
+
+    private fun verifyAlias(connection: java.sql.Connection, row: Row, target: ByteArray) {
+        val stored = connection.queryBound(
+            "SELECT digest FROM appdata.account_email_lookup WHERE key_id=? AND account_id=?",
+            listOf(plan.toAlias, row.id),
+        ) { it.getBytes("digest") }.singleOrNull()
+        check(stored != null && MessageDigest.isEqual(stored, target)) {
+            "Lookup alias collision or incompatible identity; rotation stopped"
         }
     }
 
@@ -184,7 +189,8 @@ class RotationBackfill(
                     if (plan.purpose ==
                         KeyPurpose.EMAIL_LOOKUP
                     ) {
-                        "SELECT count(*) AS total FROM appdata.user_account a WHERE NOT EXISTS(SELECT 1 FROM appdata.account_email_lookup e WHERE e.account_id=a.id AND e.key_id=?)"
+                        "SELECT count(*) AS total FROM appdata.user_account a WHERE NOT EXISTS(" +
+                            "SELECT 1 FROM appdata.account_email_lookup e WHERE e.account_id=a.id AND e.key_id=?)"
                     } else {
                         "SELECT count(*) AS total FROM appdata.$table WHERE ${prefix}_key_id=?"
                     }
