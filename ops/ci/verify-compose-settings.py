@@ -25,7 +25,7 @@ def main():
         with tempfile.TemporaryDirectory(dir=os.environ['RUNNER_TEMP'], prefix='compose-policy-') as temporary:
             source = Path(temporary) / 'settings.env'
             source.write_text('' if file_value is None else key + '=' + file_value + '\n')
-            command = ['docker', 'compose', '--env-file', str(source), '--project-name',
+            command = ['docker', 'compose', '--profile', 'seed', '--env-file', str(source), '--project-name',
                        os.environ['SPOOLIN_INSTALLATION'], '-f', 'ops/compose.yaml', 'config', '--format', 'json']
             process = subprocess.run(command, env=environment, capture_output=True, timeout=30)
             if process.returncode:

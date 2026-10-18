@@ -70,7 +70,9 @@ val workIntegrationTest by tasks.registering(Test::class) {
         files(
             sourceSets["test"].output.classesDirs,
             configurations["testRuntimeClasspath"],
-            foundationTestRuntime,
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
         )
     filter { includeTestsMatching("com.spoolin.catalog.operations.work.*") }
     useJUnitPlatform()
