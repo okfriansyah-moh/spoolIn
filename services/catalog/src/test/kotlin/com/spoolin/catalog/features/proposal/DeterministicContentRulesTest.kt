@@ -44,10 +44,11 @@ class DeterministicContentRulesTest {
     @Test
     fun ordered_characters_differ_when_reversed() {
         val forward = mapOf("characters" to listOf("Maya", "Maya / Echo"))
+        val equal = mapOf("characters" to listOf("Maya", "Maya / Echo"))
         val reversed = mapOf("characters" to listOf("Maya / Echo", "Maya"))
         assertArrayEquals(
             DeterministicContentSerializer.digest(forward),
-            DeterministicContentSerializer.digest(forward),
+            DeterministicContentSerializer.digest(equal),
         )
         org.junit.jupiter.api.Assertions.assertFalse(
             DeterministicContentSerializer.digest(forward).contentEquals(

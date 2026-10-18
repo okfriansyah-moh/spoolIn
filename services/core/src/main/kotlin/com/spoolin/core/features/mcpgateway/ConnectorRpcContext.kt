@@ -1,5 +1,11 @@
 package com.spoolin.core.features.mcpgateway
 
+import io.grpc.Context
+
 object ConnectorRpcContext {
-    val tokenHash: ThreadLocal<ByteArray?> = ThreadLocal.withInitial { null }
+    private val tokenHash: Context.Key<ByteArray> = Context.key("spoolin-connector-token-hash")
+
+    fun current(): ByteArray? = tokenHash.get()
+
+    fun context(hash: ByteArray): Context = Context.current().withValue(tokenHash, hash)
 }

@@ -52,31 +52,30 @@ class McpReviewApprovalGateway(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         val hash = ConnectorTokenDigest.sha256(token.toByteArray(Charsets.UTF_8))
-        ConnectorRpcContext.tokenHash.set(hash)
-        return try {
-            val input =
-                Spoolin.ApprovalInput
-                    .newBuilder()
-                    .setProposalId(body.proposalId)
-                    .setRevision(body.revision)
-                    .setContentHash(body.contentHash)
-                    .setChallenge(body.challenge)
-                    .build()
-            val outcome =
-                if (approve) {
-                    gateway.approveMovieBlocking(input)
-                } else {
-                    gateway.rejectMovieBlocking(input)
+        return ConnectorRpcContext.context(hash).run {
+            try {
+                val input =
+                    Spoolin.ApprovalInput
+                        .newBuilder()
+                        .setProposalId(body.proposalId)
+                        .setRevision(body.revision)
+                        .setContentHash(body.contentHash)
+                        .setChallenge(body.challenge)
+                        .build()
+                val outcome =
+                    if (approve) {
+                        gateway.approveMovieBlocking(input)
+                    } else {
+                        gateway.rejectMovieBlocking(input)
+                    }
+                ResponseEntity.ok(outcomeJson(outcome))
+            } catch (failure: StatusRuntimeException) {
+                when (failure.status.code) {
+                    Status.Code.PERMISSION_DENIED -> ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+                    Status.Code.INVALID_ARGUMENT -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+                    else -> ResponseEntity.status(HttpStatus.BAD_GATEWAY).build()
                 }
-            ResponseEntity.ok(outcomeJson(outcome))
-        } catch (failure: StatusRuntimeException) {
-            when (failure.status.code) {
-                Status.Code.PERMISSION_DENIED -> ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-                Status.Code.INVALID_ARGUMENT -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
-                else -> ResponseEntity.status(HttpStatus.BAD_GATEWAY).build()
             }
-        } finally {
-            ConnectorRpcContext.tokenHash.remove()
         }
     }
 

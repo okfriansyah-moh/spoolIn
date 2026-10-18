@@ -80,4 +80,4 @@ management:
 spoolin:
   schema:
     minimum: '1'
-    maximum: '6'
+    maximum: '7'

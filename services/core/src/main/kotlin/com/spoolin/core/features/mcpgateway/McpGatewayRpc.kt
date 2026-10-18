@@ -196,7 +196,7 @@ class McpGatewayRpc(
     }
 
     private fun currentConnector(): com.spoolin.core.features.connector.ConnectorRecord? {
-        val hash = ConnectorRpcContext.tokenHash.get() ?: return null
+        val hash = ConnectorRpcContext.current() ?: return null
         val record = connectors.findByTokenHash(hash) ?: return null
         return if (connectors.live(record)) record else null
     }
