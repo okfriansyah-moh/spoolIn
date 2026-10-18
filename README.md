@@ -497,7 +497,7 @@ You can also open **People** and search for either name directly. People with id
 1. Sign in as a Maintainer and open **Movies** in the navigation.
 2. Choose **Create movie**. For a fictional example, enter `Letters from Tomorrow` as the title and `A lighthouse keeper receives letters dated one day ahead.` as the synopsis. Complete the other required fields; add release details and genres where available.
 3. Read any field errors and correct the named inputs. The form displays the current limits; don't shorten content based on an old screenshot's limits.
-4. Save and wait for confirmation. The app opens **Add cast and creators** for the saved movie. Add credits as described below, then select **Done**, or choose **Skip for now**. Both return to **Movies**, where a success panel shows the newly created movie with **Edit movie** and **Review public record** links.
+4. Save and wait for confirmation. The app opens **Cast and creators** for the saved movie. Add credits as described below, then select **Done**, or choose **Skip for now**. Both return to **Movies**, where a success panel shows the newly created movie with **Edit movie** and **Review public record** links.
 5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, and save again.
 
 ![Signed-in Maintainer managing movies, with Letters from Tomorrow and Create movie and Edit controls visible](docs/assets/spoolin/manage-movies.png)
@@ -527,17 +527,17 @@ Editing a person updates that identity across its credits. It doesn't merge diff
 
 ### Maintainer example: manage credits
 
-Open **Movies**, choose **Edit** for `Letters from Tomorrow`, and scroll to **Cast and creators**.
+Open **Movies** and select **Cast and creators** beside `Letters from Tomorrow`. This opens a separate page with the movie title, existing credits, and buttons to add cast or creators. The action is available in both desktop and mobile lists. **Edit** opens movie details, artwork, and archive controls; credits are managed separately.
 
 1. Select **+ Add creator** to reveal the form. Choose **A. Rivers** in **Person** and **Director** in **Role**, then select **Add credit**.
 2. Select **+ Add cast**, then choose **Mira Vale** and the **Actor** role. Enter `The Keeper` in **Character names · one per line**, then select **Add credit**. Use **Load more people** to find a person beyond the current options.
-3. Wait for confirmation. The form collapses after a successful save; use either plus button to add another credit. The same movie can have both cast and creator credits. During the creation step, select **Done** when finished, or **Skip for now** to return to Movies. Unfinished credit input must be saved or discarded before leaving; use **Continue editing** to keep working. If a save result is unknown, check the original result before leaving.
+3. Wait for confirmation. The form collapses after a successful save; use either plus button to add another credit. The same movie can have both cast and creator credits. Select **Done** when finished to return to Movies. **Skip for now** appears only during the new-movie creation step; that flow also shows the newly created movie when you return. Unfinished credit input must be saved or discarded before leaving; use **Continue editing** to keep working. If a save result is unknown, check the original result before leaving.
 4. To change a credit, select its **Edit credit** control, update the role or supported character names, and select **Save credit**.
 5. To remove a contribution, choose **Remove credit** on that row and review its confirmation. Removing a credit removes the relationship; the shared person remains available.
 
 ![Maintainer credit panel with A. Rivers as Director and Mira Vale as Actor playing The Keeper, plus editing and removal controls](docs/assets/spoolin/maintainer-credits.png)
 
-*Credits example: the movie links one creator and one cast member to their existing person records. These screenshots predate the plus buttons and creation-step navigation described above.*
+*Credits example: the movie links one creator and one cast member to their existing person records. These screenshots predate the direct **Cast and creators** list action, separate credits page, plus buttons, and creation-step navigation described above.*
 
 ### Maintainer example: upload artwork
 
@@ -606,7 +606,7 @@ Some entries have no field changes to display. If a large value was omitted, the
 
 ### Use a smaller screen
 
-Navigation links wrap for narrow screens. Select the same labeled links used on desktop, and scroll to reach form actions and credit sections. Loading, error, and upload feedback remain part of the same journey.
+Navigation links wrap for narrow screens. Select the same labeled links used on desktop. Maintainers can open **Cast and creators** directly from Movies; scroll within each page to reach its form actions. Loading, error, and upload feedback remain part of the same journey.
 
 ![SpoolIn catalog on a narrow mobile viewport](docs/assets/spoolin/mobile.png)
 

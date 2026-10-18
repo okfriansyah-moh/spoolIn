@@ -34,6 +34,7 @@
     draftSource,
     onTitleVersionChange,
     onFinish,
+    showSkip = false,
   }: {
     titleId: string;
     titleVersion: string;
@@ -42,6 +43,7 @@
     draftSource: DraftSource;
     onTitleVersionChange: (version: string) => void;
     onFinish?: () => void;
+    showSkip?: boolean;
   } = $props();
 
   let credits = $state<readonly ManagedCredit[]>([]);
@@ -1114,12 +1116,12 @@
           disabled={submitting || !!pendingId || loading}
           onclick={requestFinish}>Done</button
         >
-        <button
-          class="secondary"
-          type="button"
-          disabled={submitting || !!pendingId || loading}
-          onclick={requestFinish}>Skip for now</button
-        >
+        {#if showSkip}<button
+            class="secondary"
+            type="button"
+            disabled={submitting || !!pendingId || loading}
+            onclick={requestFinish}>Skip for now</button
+          >{/if}
       </div>
     {/if}
   {/if}

@@ -37,7 +37,7 @@
         navigating = true;
         const destination =
           resolve('/manage/movies/[id]', { id: next.saved.id }) +
-          '?step=credits';
+          '?step=credits&created=1';
         void goto(destination, { replaceState: true }).catch(() => {
           navigating = false;
         });

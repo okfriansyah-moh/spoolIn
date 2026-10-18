@@ -28,6 +28,9 @@
   let controller: ReturnType<typeof createMovieEditorController> | null = null;
   const movieId = $derived(page.params.id ?? '');
   const creditsStep = $derived(page.url.searchParams.get('step') === 'credits');
+  const createdFlow = $derived(
+    creditsStep && page.url.searchParams.get('created') === '1',
+  );
 
   $effect(() => {
     const selectedId = movieId;
@@ -90,10 +93,12 @@
       sectionLabel="Movies"
       sectionHref="manage/movies"
       title={creditsStep
-        ? 'Add cast and creators'
+        ? `Cast and creators · ${editorState?.saved?.title ?? 'Movie'}`
         : (editorState?.saved?.title ?? 'Edit movie')}
       description={creditsStep
-        ? 'Movie created. Add the people behind it, or skip this step for now.'
+        ? createdFlow
+          ? 'Movie created. Add the people behind it, or skip this step for now.'
+          : 'Manage the people who contributed to this movie.'
         : 'Update the details people use to recognize and find this film.'}
       actionHref={editorState?.saved
         ? `titles/${encodeURIComponent(editorState.saved.id)}`
@@ -137,27 +142,29 @@
             }}
           />
         {/if}
-        {@const version = creditTitleVersion ?? editorState.saved.version}
-        <CreditPanel
-          titleId={editorState.saved.id}
-          titleVersion={version}
-          onFinish={creditsStep
-            ? () => {
-                void goto(
-                  resolve('/manage/movies') +
-                    '?created=' +
-                    encodeURIComponent(movieId),
-                );
-              }
-            : undefined}
-          policy={sessionCtl.snapshot.policy}
-          context={writeContext}
-          draftSource={createDraftSource(createTransport())}
-          onTitleVersionChange={(next) => {
-            creditTitleVersion = next;
-            void controller?.refreshExternalChange();
-          }}
-        />
+        {#if creditsStep}
+          {@const version = creditTitleVersion ?? editorState.saved.version}
+          <CreditPanel
+            titleId={editorState.saved.id}
+            titleVersion={version}
+            showSkip={createdFlow}
+            onFinish={() => {
+              void goto(
+                resolve('/manage/movies') +
+                  (createdFlow
+                    ? '?created=' + encodeURIComponent(movieId)
+                    : ''),
+              );
+            }}
+            policy={sessionCtl.snapshot.policy}
+            context={writeContext}
+            draftSource={createDraftSource(createTransport())}
+            onTitleVersionChange={(next) => {
+              creditTitleVersion = next;
+              void controller?.refreshExternalChange();
+            }}
+          />
+        {/if}
       {/if}
       {#if !creditsStep && editorState.saved?.state === 'ACTIVE'}
         <ArchiveAction

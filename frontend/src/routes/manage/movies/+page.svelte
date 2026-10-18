@@ -129,6 +129,11 @@
                   class="button secondary"
                   href={resolve('/titles/[id]', { id: row.id })}>Review</a
                 >
+                <a
+                  class="button secondary"
+                  href={resolve('/manage/movies/[id]', { id: row.id }) +
+                    '?step=credits'}>Cast and creators</a
+                >
               {:else}
                 <span class="muted">Read-only TV</span>
               {/if}
@@ -158,6 +163,11 @@
             <a
               class="button secondary"
               href={resolve('/titles/[id]', { id: row.id })}>Review</a
+            >
+            <a
+              class="button secondary"
+              href={resolve('/manage/movies/[id]', { id: row.id }) +
+                '?step=credits'}>Cast and creators</a
             >
           {:else}
             <span class="muted">Read-only TV</span>
