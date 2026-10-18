@@ -15,7 +15,10 @@ export function movieProjection(value: MovieValues | undefined) {
     originalLanguage: value?.originalLanguage ?? null, synopsisLanguage: value?.synopsisLanguage ?? '', countries: value?.countries ?? [] };
 }
 export function proposalProjection(value: ProposalRevision, policyRevision: string) {
-  return { proposalId: value.proposalId, revision: value.revision, contentHash: value.contentHash,
+  if (!/^[A-Za-z0-9+/]{43}=$/.test(value.contentHash)) throw new Error('Invalid proposal digest');
+  const digest = Buffer.from(value.contentHash, 'base64');
+  if (digest.length !== 32 || digest.toString('base64') !== value.contentHash) throw new Error('Invalid proposal digest');
+  return { proposalId: value.proposalId, revision: value.revision, contentHash: digest.toString('hex'),
     expiresAt: new Date(Number(value.expiresAt?.seconds ?? 0) * 1000).toISOString(), normalizedMovie: movieProjection(value.values),
     policyRevision, status: 'REVIEW', reviewResourceUri: `spoolin://proposal/${value.proposalId}/${value.revision}` };
 }

@@ -19,11 +19,18 @@ describe('approved model output projections', () => {
     expect(contextProjection({})).toEqual({ titles: [], genres: [], roles: [], policyRevision: '' });
   });
   it('keeps gateway challenges and binding tokens out of model-readable proposals', () => {
-    const revision = ProposalRevision.fromPartial({ proposalId: 'proposal', revision: 2, contentHash: 'hash',
-      uiChallenge: Buffer.from('private-challenge'), uiBindingToken: 'private-token', expiresAt: { seconds: '1000', nanos: 0 } });
+    const revision = ProposalRevision.fromPartial({ proposalId: 'proposal', revision: 2, contentHash: Buffer.alloc(32, 0xab).toString('base64'),
+      uiChallenge: Buffer.from('private-challenge'), expiresAt: { seconds: '1000', nanos: 0 } });
+    Object.assign(revision, { uiBindingToken: 'private-token' });
     const projected = proposalProjection(revision, 'policy');
+    expect(projected.contentHash).toBe('ab'.repeat(32));
     expect(projected).toMatchObject({ status: 'REVIEW', reviewResourceUri: 'spoolin://proposal/proposal/2', expiresAt: '1970-01-01T00:16:40.000Z' });
     expect(JSON.stringify(projected)).not.toMatch(/private-challenge|private-token/);
+  });
+  it('rejects malformed internal proposal digests before exposing a public review', () => {
+    for (const contentHash of ['hash', 'a'.repeat(64), Buffer.alloc(31).toString('base64'), 'A'.repeat(42) + 'B=']) {
+      expect(() => proposalProjection(ProposalRevision.fromPartial({ contentHash }), 'policy')).toThrow('Invalid proposal digest');
+    }
   });
   it('preserves persisted receipt identity and maps problems without upstream details', () => {
     expect(outcomeProjection({ operationId: 'operation', state: 'SUCCEEDED', resultId: 'movie', version: '9223372036854775807', resultExpired: false }))
