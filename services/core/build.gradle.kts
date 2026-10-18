@@ -46,6 +46,7 @@ val cryptoIntegrationTest by tasks.registering(Test::class) {
 }
 
 dependencies {
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     implementation(libs.bouncycastle)
     implementation(libs.icu4j)
 }

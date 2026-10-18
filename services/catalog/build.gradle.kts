@@ -213,3 +213,7 @@ val catalogLifecycleIntegrationTest by tasks.registering(Test::class) {
 }
 
 tasks.named("koverXmlReport") { dependsOn(catalogLifecycleIntegrationTest) }
+
+dependencies {
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+}

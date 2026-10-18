@@ -1,0 +1,22 @@
+global:
+  resolve_timeout: 1m
+route:
+  receiver: spoolin-core
+  group_by: [service, class]
+  group_wait: 30s
+  group_interval: 30s
+  repeat_interval: 4h
+receivers:
+  - name: spoolin-core
+    webhook_configs:
+      - url: https://core:8081/internal/alerts
+        send_resolved: true
+        max_alerts: 20
+        timeout: 5s
+        http_config:
+          tls_config:
+            ca_file: /run/secrets/service-ca
+            cert_file: /run/secrets/alertmanager-cert
+            key_file: /run/secrets/alertmanager-key
+            server_name: core
+            min_version: TLS12

@@ -26,6 +26,7 @@ tasks.named("koverXmlReport") {
 }
 
 dependencies {
+    implementation("io.micrometer:micrometer-core")
     implementation("io.grpc:grpc-api:${rootProject.libs.versions.grpc.get()}")
     implementation(rootProject.libs.protobuf)
     implementation("tools.jackson.core:jackson-databind:${rootProject.libs.versions.jackson.get()}")

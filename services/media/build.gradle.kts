@@ -114,3 +114,7 @@ val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
         md.outputLocation.set(layout.buildDirectory.file("reports/detekt/receipt-integration-thresholds.md"))
     }
 }
+
+dependencies {
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+}

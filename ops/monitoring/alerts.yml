@@ -1,11 +1,63 @@
-# Logical alert episodes (T036) — config source only; stacks not started in lane.
 groups:
-  - name: spoolin-core
+  - name: spoolin-owner-boundaries
     rules:
+      - alert: ServiceUnavailable
+        expr: up{job=~"spoolin-.*"} == 0 or spoolin_service_ready == 0
+        for: 1m
+        labels: {severity: critical, class: availability}
+        annotations: {summary: Selected service unavailable}
       - alert: WorkQueueBacklog
-        expr: sum(spoolin_work_pending) > 100
+        expr: spoolin_work_pending > 100
         for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: Durable work backlog elevated
+        labels: {severity: warning, class: work}
+        annotations: {summary: Durable work backlog elevated}
+      - alert: SystemMutationFailure
+        expr: >-
+          (sum by(service)(rate(spoolin_operation_results_total{boundary="owner",outcome="SYSTEM_FAILED",operation=~"WriteMovie|WritePerson|WriteCredit|RemoveCredit|CreateRole|MovieLifecycle|PersonLifecycle|BeginArtwork|CancelArtwork|ProposeMovie|ApproveAndCreate|RejectProposal|Upload|Reserve|Confirm|Release"}[5m]))
+          / clamp_min(sum by(service)(rate(spoolin_operation_results_total{boundary="owner",operation=~"WriteMovie|WritePerson|WriteCredit|RemoveCredit|CreateRole|MovieLifecycle|PersonLifecycle|BeginArtwork|CancelArtwork|ProposeMovie|ApproveAndCreate|RejectProposal|Upload|Reserve|Confirm|Release"}[5m])),0.001) > 0.05)
+          and (sum by(service)(increase(spoolin_operation_results_total{boundary="owner",operation=~"WriteMovie|WritePerson|WriteCredit|RemoveCredit|CreateRole|MovieLifecycle|PersonLifecycle|BeginArtwork|CancelArtwork|ProposeMovie|ApproveAndCreate|RejectProposal|Upload|Reserve|Confirm|Release"}[5m])) >= 20)
+        for: 5m
+        labels: {severity: warning, class: mutation}
+        annotations: {summary: System mutation failure ratio elevated}
+      - alert: ExhaustedWork
+        expr: spoolin_work_items{state="EXHAUSTED"} > 0
+        for: 1m
+        labels: {severity: warning, class: work}
+        annotations: {summary: Work requires controlled recovery}
+      - alert: DelayedWork
+        expr: spoolin_oldest_due_work_seconds > 120
+        labels: {severity: warning, class: work}
+        annotations: {summary: Due work delayed}
+      - alert: NotificationUnresolved
+        expr: spoolin_notification_events{state=~"FAILED|UNKNOWN"} > 0
+        labels: {severity: warning, class: notification}
+        annotations: {summary: Notification requires reconciliation}
+      - alert: PoolPressure
+        expr: spoolin_pool_active_connections / spoolin_pool_max_connections > 0.8
+        for: 5m
+        labels: {severity: warning, class: database}
+        annotations: {summary: Database pool pressure elevated}
+      - alert: DiskWarning
+        expr: spoolin_disk_available_bytes / spoolin_disk_capacity_bytes < 0.2
+        labels: {severity: warning, class: disk}
+        annotations: {summary: Owned volume headroom low}
+      - alert: DiskCritical
+        expr: spoolin_disk_available_bytes / spoolin_disk_capacity_bytes < 0.1
+        labels: {severity: critical, class: disk}
+        annotations: {summary: Owned volume headroom critical}
+      - alert: CryptoFault
+        expr: increase(spoolin_crypto_failures_total[5m]) >= 1
+        labels: {severity: critical, class: crypto}
+        annotations: {summary: Cryptographic protection failure}
+      - alert: ProcessingFailures
+        expr: >-
+          (sum by(service)(rate(spoolin_media_processing_total{outcome="FAILED"}[5m]))
+          / clamp_min(sum by(service)(rate(spoolin_media_processing_total[5m])),0.001) > 0.1)
+          and (sum by(service)(increase(spoolin_media_processing_total[5m])) >= 10)
+        labels: {severity: warning, class: media}
+        annotations: {summary: Media processing failure ratio elevated}
+      - alert: TunnelUnavailable
+        expr: (spoolin_tunnel_connected == 0) and on(client) (spoolin_tunnel_enabled == 1)
+        for: 2m
+        labels: {severity: warning, class: tunnel, service: mcp}
+        annotations: {summary: Selected tunnel disconnected}
