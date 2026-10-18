@@ -102,13 +102,15 @@ export async function fetchDeletionImpact(
 }> {
   const data = record(await request(DELETION_IMPACT, { personId }, { csrf }));
   const impact = record(data.deletionImpact);
-  return {
-    token: String(impact.token),
-    affectedCreditCount: Number(impact.affectedCreditCount),
-    affectedTitles: Array.isArray(impact.affectedTitles)
-      ? Object.freeze(impact.affectedTitles.map(String))
-      : Object.freeze([]),
-  };
+  if (typeof impact.token !== 'string' || !impact.token || impact.token.length > 512 ||
+      typeof impact.affectedCreditCount !== 'number' || !Number.isInteger(impact.affectedCreditCount) ||
+      impact.affectedCreditCount < 0 || impact.affectedCreditCount > 2147483647 ||
+      !Array.isArray(impact.affectedTitles) ||
+      !impact.affectedTitles.every((title) => typeof title === 'string' && title.length > 0)) {
+    throw new Error('Complete deletion impact unavailable.');
+  }
+  return Object.freeze({ token: impact.token, affectedCreditCount: impact.affectedCreditCount,
+    affectedTitles: Object.freeze(impact.affectedTitles as string[]) });
 }
 
 export async function runMovieLifecycle(

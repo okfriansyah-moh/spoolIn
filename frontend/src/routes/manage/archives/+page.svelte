@@ -168,6 +168,7 @@
       type="button"
       role="tab"
       aria-selected={tab === 'movies'}
+      disabled={busy || intent !== null}
       onclick={() => switchTab('movies')}
     >
       Movies
@@ -176,6 +177,7 @@
       type="button"
       role="tab"
       aria-selected={tab === 'people'}
+      disabled={busy || intent !== null}
       onclick={() => switchTab('people')}
     >
       People
@@ -227,11 +229,6 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-  }
-  .panel {
-    border: 1px solid var(--border-subtle, #333);
-    padding: 1rem;
-    border-radius: 0.5rem;
   }
   .actions {
     display: flex;
