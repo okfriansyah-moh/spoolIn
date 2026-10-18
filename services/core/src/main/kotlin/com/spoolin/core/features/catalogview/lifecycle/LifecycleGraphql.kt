@@ -23,7 +23,11 @@ private const val DEADLINE_SECONDS = 5L
 class LifecycleGraphql(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: ActorIssuer?,
-    private val policyRevision: () -> String = { com.spoolin.support.policy.PolicyEnvironment.resolve(System::getenv).revision },
+    private val policyRevision: () -> String = {
+        com.spoolin.support.policy.PolicyEnvironment
+            .resolve(System::getenv)
+            .revision
+    },
 ) {
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Query") { q -> q.dataFetcher("deletionImpact") { env -> deletionImpact(env) } }
@@ -153,8 +157,7 @@ class LifecycleGraphql(
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
-    private fun browser(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun browser(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 }

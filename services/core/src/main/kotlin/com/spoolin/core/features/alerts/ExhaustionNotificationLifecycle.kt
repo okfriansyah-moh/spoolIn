@@ -8,7 +8,11 @@ import org.springframework.stereotype.Component
 import javax.sql.DataSource
 
 @Component
-class ExhaustionNotificationLifecycle(dataSource: DataSource, private val readiness: SchemaReadiness, environment: Environment) {
+class ExhaustionNotificationLifecycle(
+    dataSource: DataSource,
+    private val readiness: SchemaReadiness,
+    environment: Environment,
+) {
     private val notifications = ExhaustionNotifications.configured(dataSource, "core") { environment.getProperty(it) }
 
     @Scheduled(fixedDelay = 1000)

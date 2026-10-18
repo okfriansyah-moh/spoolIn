@@ -1,11 +1,20 @@
 import { chromium, expect } from '@playwright/test';
 import { rmSync } from 'node:fs';
-import { authenticatedStatePath, authenticateMaintainer, observeAdmission, protectedBrowserDirectory, saveProtectedState } from './flows/remote/authentication';
+import {
+  authenticatedStatePath,
+  authenticateMaintainer,
+  observeAdmission,
+  protectedBrowserDirectory,
+  saveProtectedState,
+} from './flows/remote/authentication';
 
 export default async function setup() {
   protectedBrowserDirectory();
   const browser = await chromium.launch();
-  const context = await browser.newContext({ baseURL: 'https://localhost:8443', ignoreHTTPSErrors: false });
+  const context = await browser.newContext({
+    baseURL: 'https://localhost:8443',
+    ignoreHTTPSErrors: false,
+  });
   observeAdmission(context);
   try {
     const page = await context.newPage();
@@ -16,5 +25,6 @@ export default async function setup() {
     await context.close();
     await browser.close();
   }
-  return async () => rmSync(protectedBrowserDirectory(), { recursive: true, force: true });
+  return async () =>
+    rmSync(protectedBrowserDirectory(), { recursive: true, force: true });
 }

@@ -14,8 +14,10 @@ import org.springframework.security.web.SecurityFilterChain
 @ManagementContextConfiguration(value = ManagementContextType.CHILD, proxyBeanMethods = false)
 class AlertManagementConfiguration {
     @Bean
-    fun alertIngress(environment: Environment, recorder: AlertRecorder): AlertIngress =
-        AlertIngress(environment, recorder, AlertPolicy.fromEnvironment(environment))
+    fun alertIngress(
+        environment: Environment,
+        recorder: AlertRecorder,
+    ): AlertIngress = AlertIngress(environment, recorder, AlertPolicy.fromEnvironment(environment))
 
     @Bean
     @Order(0)

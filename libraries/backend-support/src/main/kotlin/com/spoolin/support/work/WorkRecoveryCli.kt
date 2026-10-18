@@ -19,42 +19,69 @@ object WorkRecoveryCli {
         try {
             run(args)
         } catch (_: Exception) {
-            System.err.println("Work recovery refused: verify operator authority, inspected fence, destination evidence and protected configuration")
+            System.err.println(
+                "Work recovery refused: verify operator authority, inspected fence, destination evidence and protected configuration",
+            )
             exitProcess(4)
         }
     }
 
     private fun run(args: Array<String>) {
-        val values = args.associate { argument ->
-            require(argument.startsWith("--") && argument.contains('='))
-            argument.substringBefore('=') to argument.substringAfter('=')
-        }
-        require(values.size == args.size && values.keys.all {
-            it in setOf("--owner", "--work-id", "--mode", "--expected-generation", "--expected-epoch")
-        })
+        val values =
+            args.associate { argument ->
+                require(argument.startsWith("--") && argument.contains('='))
+                argument.substringBefore('=') to argument.substringAfter('=')
+            }
+        require(
+            values.size == args.size &&
+                values.keys.all {
+                    it in setOf("--owner", "--work-id", "--mode", "--expected-generation", "--expected-epoch")
+                },
+        )
         val owner = requireNotNull(values["--owner"]).also { require(it in setOf("core", "catalog", "media")) }
         val id = UUID.fromString(values.getValue("--work-id"))
         val operator = operatorIdentity()
         connection(owner).use { connection ->
             val mode = values.getValue("--mode")
             when (mode) {
-                "inspect" -> println(JsonMapper.builder().build().writeValueAsString(requireNotNull(WorkRecoveryOperations.inspect(connection, id))))
+                "inspect" ->
+                    println(
+                        JsonMapper.builder().build().writeValueAsString(
+                            requireNotNull(WorkRecoveryOperations.inspect(connection, id)),
+                        ),
+                    )
                 "execute" -> execute(connection, owner, id, operator, values)
                 else -> error("Select inspect or execute")
             }
         }
     }
 
-    private fun execute(connection: Connection, owner: String, id: UUID, operator: String, values: Map<String, String>) {
+    private fun execute(
+        connection: Connection,
+        owner: String,
+        id: UUID,
+        operator: String,
+        values: Map<String, String>,
+    ) {
         require(owner == "media") { "Destination reconciliation is not implemented for this owner" }
         val reasonPath = Path.of("/run/spoolin-operator-reason")
         protectedFile(reasonPath)
-        require(Files.getAttribute(reasonPath, "unix:uid", NOFOLLOW_LINKS).toString() == required("SPOOLIN_OPERATOR_UID"))
+        require(
+            Files.getAttribute(reasonPath, "unix:uid", NOFOLLOW_LINKS).toString() == required("SPOOLIN_OPERATOR_UID"),
+        )
         connection.autoCommit = false
         try {
-            check(WorkRecoveryOperations.recover(connection, id, values.getValue("--expected-generation").toInt(),
-                values.getValue("--expected-epoch").toLong(), operator, Files.readString(reasonPath),
-                Path.of(System.getenv("SPOOLIN_MEDIA_VOLUME") ?: "/var/spoolin/media")))
+            check(
+                WorkRecoveryOperations.recover(
+                    connection,
+                    id,
+                    values.getValue("--expected-generation").toInt(),
+                    values.getValue("--expected-epoch").toLong(),
+                    operator,
+                    Files.readString(reasonPath),
+                    Path.of(System.getenv("SPOOLIN_MEDIA_VOLUME") ?: "/var/spoolin/media"),
+                ),
+            )
             connection.commit()
             println("Work recovery committed; original effect identity and attempt evidence retained")
         } finally {
@@ -76,18 +103,28 @@ object WorkRecoveryCli {
         val url = required(prefix + "URL")
         val uri = URI(url.removePrefix("jdbc:"))
         require(url.startsWith("jdbc:postgresql://") && uri.userInfo == null && uri.path == "/spoolin_$owner")
-        val parameters = uri.rawQuery.orEmpty().split('&').map { it.split('=', limit = 2) }
-        require(parameters.count { it.first() == "sslmode" } == 1 && parameters.any { it == listOf("sslmode", "verify-full") })
+        val parameters =
+            uri.rawQuery
+                .orEmpty()
+                .split('&')
+                .map { it.split('=', limit = 2) }
+        require(
+            parameters.count { it.first() == "sslmode" } == 1 &&
+                parameters.any { it == listOf("sslmode", "verify-full") },
+        )
         require(parameters.all { it.size == 2 && it.first() in setOf("sslmode", "sslrootcert", "connectTimeout") })
         val user = required(prefix + "USER").also { require(it == "spoolin_${owner}_runtime") }
         val password = Path.of(required(prefix + "PASSWORD_FILE"))
         protectedFile(password)
-        return DriverManager.getConnection(url, Properties().apply {
-            setProperty("user", user)
-            setProperty("password", Files.readString(password).trimEnd('\n', '\r'))
-            setProperty("connectTimeout", "2")
-            setProperty("options", "-c search_path=appdata -c statement_timeout=5000 -c lock_timeout=2000")
-        })
+        return DriverManager.getConnection(
+            url,
+            Properties().apply {
+                setProperty("user", user)
+                setProperty("password", Files.readString(password).trimEnd('\n', '\r'))
+                setProperty("connectTimeout", "2")
+                setProperty("options", "-c search_path=appdata -c statement_timeout=5000 -c lock_timeout=2000")
+            },
+        )
     }
 
     private fun protectedFile(path: Path) {
@@ -95,5 +132,6 @@ object WorkRecoveryCli {
         require(Files.getPosixFilePermissions(path) == PosixFilePermissions.fromString("rw-------"))
     }
 
-    private fun required(name: String): String = requireNotNull(System.getenv(name)) { "Protected configuration missing" }
+    private fun required(name: String): String =
+        requireNotNull(System.getenv(name)) { "Protected configuration missing" }
 }

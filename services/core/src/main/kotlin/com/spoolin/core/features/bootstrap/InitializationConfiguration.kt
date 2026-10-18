@@ -42,11 +42,16 @@ class InitializationConfiguration(
     }
 
     fun checksum(): ByteArray {
-        val identities = accounts.sortedBy { it.role.name }.map {
-            listOf(
-                it.id.toString(), it.identity.name, it.identity.emailDisplay, it.identity.emailNormalized, it.role.name,
-            )
-        }
+        val identities =
+            accounts.sortedBy { it.role.name }.map {
+                listOf(
+                    it.id.toString(),
+                    it.identity.name,
+                    it.identity.emailDisplay,
+                    it.identity.emailNormalized,
+                    it.role.name,
+                )
+            }
         val mounts = keys.toSortedMap().map { (id, mount) -> listOf(id, mount.purpose.name) }
         val bytes = JsonMapper.builder().build().writeValueAsBytes(listOf(version, identities, mounts))
         return MessageDigest.getInstance("SHA-256").digest(bytes)
@@ -55,12 +60,17 @@ class InitializationConfiguration(
     override fun toString(): String = "InitializationConfiguration(redacted)"
 
     companion object {
-        fun load(path: Path, rules: IdentityRules): InitializationConfiguration {
+        fun load(
+            path: Path,
+            rules: IdentityRules,
+        ): InitializationConfiguration {
             requireProtectedFile(path, CONFIGURATION_FILE_LIMIT)
-            val mapper = JsonMapper.builder()
-                .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                .build()
+            val mapper =
+                JsonMapper
+                    .builder()
+                    .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+                    .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                    .build()
             val root = mapper.readTree(Files.readAllBytes(path))
             require(
                 root.isObject && root.properties().map { it.key }.toSet() == setOf("setupVersion", "accounts", "keys"),
@@ -73,15 +83,25 @@ class InitializationConfiguration(
                 text(root, "setupVersion"),
                 (0 until accounts.size()).map { account(accounts.get(it), rules) },
                 keys.properties().associate { entry ->
-                    require(entry.value.properties().map { it.key }.toSet() == setOf("purpose", "file"))
-                    entry.key to KeyMount(
-                        KeyPurpose.valueOf(text(entry.value, "purpose")), absolute(text(entry.value, "file")),
+                    require(
+                        entry.value
+                            .properties()
+                            .map { it.key }
+                            .toSet() == setOf("purpose", "file"),
                     )
+                    entry.key to
+                        KeyMount(
+                            KeyPurpose.valueOf(text(entry.value, "purpose")),
+                            absolute(text(entry.value, "file")),
+                        )
                 },
             )
         }
 
-        private fun account(node: JsonNode, rules: IdentityRules): InitializationAccount {
+        private fun account(
+            node: JsonNode,
+            rules: IdentityRules,
+        ): InitializationAccount {
             val fields = setOf("id", "name", "email", "role", "passwordFile")
             require(node.isObject && node.properties().map { it.key }.toSet() == fields)
             return InitializationAccount(
@@ -92,7 +112,10 @@ class InitializationConfiguration(
             )
         }
 
-        private fun text(node: JsonNode, field: String): String {
+        private fun text(
+            node: JsonNode,
+            field: String,
+        ): String {
             val value = requireNotNull(node.get(field))
             require(value.isString)
             return value.asText()

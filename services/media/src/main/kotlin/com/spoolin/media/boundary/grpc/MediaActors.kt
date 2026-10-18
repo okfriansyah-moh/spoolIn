@@ -24,24 +24,28 @@ object MediaActors {
                 null
             }
         val methods = setOf("Upload", "GetOperation", "GetAsset").map { "spoolin.v1.MediaService/$it" }.toSet()
-        val actorCheck = ActorInterceptor("media", methods, verifier, { claims ->
-            if (claims.method.endsWith("/Upload") &&
-                !com.spoolin.support.identity.Permissions
-                    .management(claims.role)
-            ) {
-                throw com.spoolin.support.identity
-                    .ActorRejected()
-            }
-        }, clock)
+        val actorCheck =
+            ActorInterceptor("media", methods, verifier, { claims ->
+                if (claims.method.endsWith("/Upload") &&
+                    !com.spoolin.support.identity.Permissions
+                        .management(claims.role)
+                ) {
+                    throw com.spoolin.support.identity
+                        .ActorRejected()
+                }
+            }, clock)
         return object : io.grpc.ServerInterceptor {
             override fun <ReqT : Any, RespT : Any> interceptCall(
                 call: io.grpc.ServerCall<ReqT, RespT>,
                 headers: io.grpc.Metadata,
                 next: io.grpc.ServerCallHandler<ReqT, RespT>,
             ): io.grpc.ServerCall.Listener<ReqT> {
-                val reconciliation = call.methodDescriptor.fullMethodName in setOf(
-                    "spoolin.v1.MediaService/GetAsset", "spoolin.v1.MediaService/GetOperation",
-                )
+                val reconciliation =
+                    call.methodDescriptor.fullMethodName in
+                        setOf(
+                            "spoolin.v1.MediaService/GetAsset",
+                            "spoolin.v1.MediaService/GetOperation",
+                        )
                 // Business handlers additionally require the persisted local/Catalog tuple.
                 return if (MediaPeer.current() == "catalog" && reconciliation) {
                     next.startCall(call, headers)

@@ -111,7 +111,11 @@ class McpGatewayRpc(
     }
 
     fun approveMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
-        forwardTrustedCatalogBlocking(request, "/spoolin.v1.McpGatewayService/ApproveMovie", "/spoolin.v1.CatalogService/ApproveAndCreate") { token ->
+        forwardTrustedCatalogBlocking(
+            request,
+            "/spoolin.v1.McpGatewayService/ApproveMovie",
+            "/spoolin.v1.CatalogService/ApproveAndCreate",
+        ) { token ->
             catalogStub(token).approveAndCreate(request)
         }
 
@@ -130,7 +134,11 @@ class McpGatewayRpc(
     }
 
     fun rejectMovieBlocking(request: Spoolin.ApprovalInput): Spoolin.Outcome =
-        forwardTrustedCatalogBlocking(request, "/spoolin.v1.McpGatewayService/RejectMovie", "/spoolin.v1.CatalogService/RejectProposal") { token ->
+        forwardTrustedCatalogBlocking(
+            request,
+            "/spoolin.v1.McpGatewayService/RejectMovie",
+            "/spoolin.v1.CatalogService/RejectProposal",
+        ) { token ->
             catalogStub(token).rejectProposal(request)
         }
 
@@ -152,15 +160,16 @@ class McpGatewayRpc(
         request: Spoolin.ApprovalInput,
         method: String,
         response: StreamObserver<T>,
-    ): Boolean? = try {
-        val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        val verifier = uiAssertions ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        verifier.requireTrustedUi(connector, request, method)
-        true
-    } catch (failure: io.grpc.StatusRuntimeException) {
-        response.onError(failure)
-        null
-    }
+    ): Boolean? =
+        try {
+            val connector = currentConnector() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+            val verifier = uiAssertions ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+            verifier.requireTrustedUi(connector, request, method)
+            true
+        } catch (failure: io.grpc.StatusRuntimeException) {
+            response.onError(failure)
+            null
+        }
 
     private fun <T> forwardTrustedCatalogBlocking(
         request: Spoolin.ApprovalInput,

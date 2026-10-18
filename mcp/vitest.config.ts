@@ -7,12 +7,17 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 15000,
     coverage: {
-      provider: 'v8', include: ['src/**/*.ts'],
+      provider: 'v8',
+      include: ['src/**/*.ts'],
       // Protobuf compiler output is checked through contract consumers; all authored source remains included.
       exclude: ['src/generated/**'],
-      reporter: ['text', 'lcov', 'json', 'json-summary'], reportsDirectory: 'coverage',
+      reporter: ['text', 'lcov', 'json', 'json-summary'],
+      reportsDirectory: 'coverage',
     },
     reporters: ['default', 'json', 'junit'],
-    outputFile: { json: 'coverage/test-results.json', junit: 'coverage/junit.xml' },
+    outputFile: {
+      json: 'coverage/test-results.json',
+      junit: 'coverage/junit.xml',
+    },
   },
 });

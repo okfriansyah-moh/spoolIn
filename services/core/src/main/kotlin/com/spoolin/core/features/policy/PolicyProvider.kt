@@ -48,7 +48,9 @@ class PolicyProvider(
 @Configuration
 class PolicyConfiguration {
     @Bean
-    fun policyProvider(environment: Environment): PolicyProvider {
-        return PolicyProvider(com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) })
-    }
+    fun policyProvider(environment: Environment): PolicyProvider =
+        PolicyProvider(
+            com.spoolin.support.policy.PolicyEnvironment
+                .resolve { environment.getProperty(it) },
+        )
 }

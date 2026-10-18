@@ -34,14 +34,24 @@ class AlertBoundaryTest {
             assertEquals(404, send(client, fixture.origin + "/internal/alerts", payload()).statusCode())
             fixture.crypto.pool.connection.use { connection ->
                 connection.createStatement().use { statement ->
-                    statement.executeQuery("SELECT state,notification_state,payload::text,attempt_count,generation," +
-                        "lease_epoch,deadline_at=created_at FROM durable_work WHERE kind='NOTIFICATION'").use { rows ->
-                        assertTrue(rows.next()); assertEquals("DONE", rows.getString(1)); assertEquals("RECORDED", rows.getString(2))
-                        assertEquals("{}", rows.getString(3)); assertEquals(0, rows.getInt(4)); assertEquals(0, rows.getInt(5))
-                        assertEquals(0L, rows.getLong(6)); assertTrue(rows.getBoolean(7)); assertFalse(rows.next())
-                    }
+                    statement
+                        .executeQuery(
+                            "SELECT state,notification_state,payload::text,attempt_count,generation," +
+                                "lease_epoch,deadline_at=created_at FROM durable_work WHERE kind='NOTIFICATION'",
+                        ).use { rows ->
+                            assertTrue(rows.next())
+                            assertEquals("DONE", rows.getString(1))
+                            assertEquals("RECORDED", rows.getString(2))
+                            assertEquals("{}", rows.getString(3))
+                            assertEquals(0, rows.getInt(4))
+                            assertEquals(0, rows.getInt(5))
+                            assertEquals(0L, rows.getLong(6))
+                            assertTrue(rows.getBoolean(7))
+                            assertFalse(rows.next())
+                        }
                     statement.executeQuery("SELECT count(*) FROM operational_event WHERE action='ALERT_RECORDED'").use {
-                        assertTrue(it.next()); assertEquals(1, it.getInt(1))
+                        assertTrue(it.next())
+                        assertEquals(1, it.getInt(1))
                     }
                 }
             }
@@ -57,7 +67,9 @@ class AlertBoundaryTest {
         try {
             val futures = (1..8).map { executor.submit<Int> { recorder.recordBatch(episode, AlertPolicy()) } }
             assertEquals(1, futures.sumOf { it.get(5, java.util.concurrent.TimeUnit.SECONDS) })
-        } finally { executor.shutdownNow() }
+        } finally {
+            executor.shutdownNow()
+        }
     }
 
     private fun atomicRollback(fixture: IdentityHttpFixture) {
@@ -68,23 +80,80 @@ class AlertBoundaryTest {
         fixture.crypto.pool.connection.use { connection ->
             connection.prepareStatement("SELECT count(*) FROM durable_work WHERE notification_key=?").use {
                 it.setString(1, valid.key)
-                it.executeQuery().use { rows -> assertTrue(rows.next()); assertEquals(0, rows.getInt(1)) }
+                it.executeQuery().use { rows ->
+                    assertTrue(rows.next())
+                    assertEquals(0, rows.getInt(1))
+                }
             }
         }
     }
 
-    private fun send(client: HttpClient, uri: String, body: String): HttpResponse<String> = client.send(
-        HttpRequest.newBuilder(URI(uri)).timeout(Duration.ofSeconds(5)).header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString())
+    private fun send(
+        client: HttpClient,
+        uri: String,
+        body: String,
+    ): HttpResponse<String> =
+        client.send(
+            HttpRequest
+                .newBuilder(URI(uri))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build(),
+            HttpResponse.BodyHandlers.ofString(),
+        )
 
     private fun alertClient(root: Path): HttpClient {
-        command(root, "openssl", "req", "-new", "-newkey", "rsa:2048", "-nodes", "-keyout", "alertmanager.key",
-            "-out", "alertmanager.csr", "-subj", "/CN=alertmanager")
+        command(
+            root,
+            "openssl",
+            "req",
+            "-new",
+            "-newkey",
+            "rsa:2048",
+            "-nodes",
+            "-keyout",
+            "alertmanager.key",
+            "-out",
+            "alertmanager.csr",
+            "-subj",
+            "/CN=alertmanager",
+        )
         Files.writeString(root.resolve("alertmanager.ext"), "subjectAltName=DNS:alertmanager\nextendedKeyUsage=clientAuth\n")
-        command(root, "openssl", "x509", "-req", "-in", "alertmanager.csr", "-CA", "ca.crt", "-CAkey", "ca.key",
-            "-set_serial", "900", "-out", "alertmanager.crt", "-days", "2", "-extfile", "alertmanager.ext")
-        command(root, "openssl", "pkcs12", "-export", "-in", "alertmanager.crt", "-inkey", "alertmanager.key",
-            "-out", "alertmanager.p12", "-passout", "pass:synthetic-fixture-only")
+        command(
+            root,
+            "openssl",
+            "x509",
+            "-req",
+            "-in",
+            "alertmanager.csr",
+            "-CA",
+            "ca.crt",
+            "-CAkey",
+            "ca.key",
+            "-set_serial",
+            "900",
+            "-out",
+            "alertmanager.crt",
+            "-days",
+            "2",
+            "-extfile",
+            "alertmanager.ext",
+        )
+        command(
+            root,
+            "openssl",
+            "pkcs12",
+            "-export",
+            "-in",
+            "alertmanager.crt",
+            "-inkey",
+            "alertmanager.key",
+            "-out",
+            "alertmanager.p12",
+            "-passout",
+            "pass:synthetic-fixture-only",
+        )
         val keys = KeyStore.getInstance("PKCS12")
         val password = "synthetic-fixture-only".toCharArray()
         Files.newInputStream(root.resolve("alertmanager.p12")).use { keys.load(it, password) }
@@ -98,17 +167,31 @@ class AlertBoundaryTest {
         return HttpClient.newBuilder().sslContext(ssl).build()
     }
 
-    private fun command(root: Path, vararg args: String) {
-        val process = ProcessBuilder(*args).directory(root.toFile()).redirectErrorStream(true)
-            .redirectOutput(ProcessBuilder.Redirect.DISCARD).start()
+    private fun command(
+        root: Path,
+        vararg args: String,
+    ) {
+        val process =
+            ProcessBuilder(*args)
+                .directory(root.toFile())
+                .redirectErrorStream(true)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .start()
         check(process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS)) { "Certificate fixture timed out" }
         check(process.exitValue() == 0) { "Certificate fixture failed" }
-        Files.list(root).use { paths -> paths.filter { it.fileName.toString().startsWith("alertmanager") }.forEach {
-            Files.setPosixFilePermissions(it, java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"))
-        } }
+        Files.list(root).use { paths ->
+            paths.filter { it.fileName.toString().startsWith("alertmanager") }.forEach {
+                Files.setPosixFilePermissions(
+                    it,
+                    java.nio.file.attribute.PosixFilePermissions
+                        .fromString("rw-------"),
+                )
+            }
+        }
     }
 
-    private fun payload() = """{"version":"4","status":"firing","alerts":[{"status":"firing",
+    private fun payload() =
+        """{"version":"4","status":"firing","alerts":[{"status":"firing",
         "fingerprint":"0123456789abcdef","startsAt":"2026-10-18T01:00:00Z","endsAt":"0001-01-01T00:00:00Z",
         "labels":{"service":"core","severity":"warning","alertname":"WorkQueueBacklog"},
         "annotations":{"summary":"Durable work backlog elevated"}}]}"""

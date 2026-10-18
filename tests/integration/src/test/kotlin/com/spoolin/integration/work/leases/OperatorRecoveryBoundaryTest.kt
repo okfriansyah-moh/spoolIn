@@ -1,7 +1,7 @@
 package com.spoolin.integration.work.leases
 
-import com.spoolin.media.MigrationRunner
 import com.spoolin.core.boundary.bootstrap.OwnerFixture
+import com.spoolin.media.MigrationRunner
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -36,9 +36,12 @@ class OperatorRecoveryBoundaryTest {
             assertEquals(before.leaseEpoch, after.leaseEpoch)
             assertEquals(before.maximumAttempts, after.maximumAttempts)
             assertEquals(3, count(pool, work.id))
-            assertEquals("PROCESSING", pool.connection.use {
-                it.queryBound("SELECT state FROM appdata.asset WHERE id=?", listOf(work.asset)) { row -> row.getString(1) }.single()
-            })
+            assertEquals(
+                "PROCESSING",
+                pool.connection.use {
+                    it.queryBound("SELECT state FROM appdata.asset WHERE id=?", listOf(work.asset)) { row -> row.getString(1) }.single()
+                },
+            )
             assertThrows(IllegalArgumentException::class.java) { recover(pool, work) }
         }
     }
@@ -76,9 +79,16 @@ class OperatorRecoveryBoundaryTest {
         }
     }
 
-    private data class Pending(val id: UUID, val asset: UUID, val operation: UUID)
+    private data class Pending(
+        val id: UUID,
+        val asset: UUID,
+        val operation: UUID,
+    )
 
-    private fun setup(pool: DataSource, recent: Boolean = false): Pending {
+    private fun setup(
+        pool: DataSource,
+        recent: Boolean = false,
+    ): Pending {
         val work = Pending(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
         Files.createDirectories(directory.resolve("quarantine"))
         val bytes = byteArrayOf(1, 2, 3)
@@ -88,50 +98,87 @@ class OperatorRecoveryBoundaryTest {
             connection.executeBound(
                 "INSERT INTO appdata.operation_receipt(id,actor_scope,kind,request_hash,state,correlation_id,expires_at) " +
                     "VALUES (?,'SERVICE_TEST','UPLOAD',?,'PENDING',?,?)",
-                work.operation, ByteArray(32), UUID.randomUUID(), Timestamp.from(now.plusSeconds(3600)),
+                work.operation,
+                ByteArray(32),
+                UUID.randomUUID(),
+                Timestamp.from(now.plusSeconds(3600)),
             )
             connection.executeBound(
                 "INSERT INTO appdata.durable_work(id,operation_id,kind,payload,state,attempt_count,max_attempts,lease_epoch," +
                     "deadline_at,correlation_id,base_delay_ms,cap_delay_ms,backoff_multiplier,last_error) " +
                     "VALUES (?,?,'MEDIA_PROCESS',?::jsonb,'EXHAUSTED',1,3,1,?,?,500,5000,2,'UNCERTAIN')",
-                work.id, work.operation, """{"subjectId":"${work.asset}"}""", Timestamp.from(now.minusSeconds(1)), UUID.randomUUID(),
+                work.id,
+                work.operation,
+                """{"subjectId":"${work.asset}"}""",
+                Timestamp.from(now.minusSeconds(1)),
+                UUID.randomUUID(),
             )
             connection.executeBound(
                 "INSERT INTO appdata.asset(id,upload_operation_id,actor_id,state,input_bytes,policy_revision,processing_work_id," +
                     "processing_staging_key,processing_input_hash,processing_created_at) " +
                     "VALUES (?,?,?,'PROCESSING',3,'test-policy',?,?,?,?)",
-                work.asset, work.operation, UUID.randomUUID(), work.id, "quarantine/${work.asset}",
-                MessageDigest.getInstance("SHA-256").digest(bytes), Timestamp.from(now.minusSeconds(20)),
+                work.asset,
+                work.operation,
+                UUID.randomUUID(),
+                work.id,
+                "quarantine/${work.asset}",
+                MessageDigest.getInstance("SHA-256").digest(bytes),
+                Timestamp.from(now.minusSeconds(20)),
             )
             attempts(connection, work, if (recent) now else now.minusSeconds(20))
         }
         return work
     }
 
-    private fun attempts(connection: java.sql.Connection, work: Pending, time: Instant) {
+    private fun attempts(
+        connection: java.sql.Connection,
+        work: Pending,
+        time: Instant,
+    ) {
         connection.executeBound(
             "INSERT INTO appdata.operational_event(id,operation_id,actor_kind,action,subject_kind,subject_id,correlation_id," +
                 "event_type,work_id,generation,attempt_no,lease_epoch,created_at) " +
                 "VALUES (?,?,'SERVICE','WORK_ATTEMPT','WORK',?,?,'ATTEMPT_STARTED',?,0,1,1,?)",
-            UUID.randomUUID(), work.operation, work.id, UUID.randomUUID(), work.id, Timestamp.from(time),
+            UUID.randomUUID(),
+            work.operation,
+            work.id,
+            UUID.randomUUID(),
+            work.id,
+            Timestamp.from(time),
         )
         connection.executeBound(
             "INSERT INTO appdata.operational_event(id,operation_id,actor_kind,action,subject_kind,subject_id,correlation_id," +
                 "event_type,work_id,generation,attempt_no,lease_epoch,created_at,outcome,attempt_outcome) " +
                 "VALUES (?,?,'SERVICE','WORK_ATTEMPT','WORK',?,?,'ATTEMPT_FINISHED',?,0,1,1,?,'FAILED','UNCERTAIN')",
-            UUID.randomUUID(), work.operation, work.id, UUID.randomUUID(), work.id, Timestamp.from(time),
+            UUID.randomUUID(),
+            work.operation,
+            work.id,
+            UUID.randomUUID(),
+            work.id,
+            Timestamp.from(time),
         )
     }
 
-    private fun recover(pool: DataSource, work: Pending): Boolean = pool.committed {
-        WorkRecoveryOperations.recover(it, work.id, 0, 1, "local-uid:1001", "Inspected local processing destination", directory)
-    }
+    private fun recover(
+        pool: DataSource,
+        work: Pending,
+    ): Boolean =
+        pool.committed {
+            WorkRecoveryOperations.recover(it, work.id, 0, 1, "local-uid:1001", "Inspected local processing destination", directory)
+        }
 
-    private fun count(pool: DataSource, work: UUID): Int = pool.connection.use {
-        it.queryBound("SELECT count(*) FROM appdata.operational_event WHERE work_id=?", listOf(work)) { row -> row.getInt(1) }.single()
-    }
+    private fun count(
+        pool: DataSource,
+        work: UUID,
+    ): Int =
+        pool.connection.use {
+            it.queryBound("SELECT count(*) FROM appdata.operational_event WHERE work_id=?", listOf(work)) { row -> row.getInt(1) }.single()
+        }
 
-    private fun fixture(name: String, block: (DataSource) -> Unit) {
+    private fun fixture(
+        name: String,
+        block: (DataSource) -> Unit,
+    ) {
         OwnerFixture("$name.json").start().use { fixture ->
             fixture.membership("media", "grant")
             fixture.pool("media", "migrator").use { MigrationRunner(it).migrate() }

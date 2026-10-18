@@ -29,10 +29,13 @@ class WorkClaimer(
         val now = clock.instant()
         return dataSource.committed { connection ->
             connection.queryBound("SELECT pg_advisory_xact_lock(720022)", emptyList()) { true }
-            val active = connection.queryBound(
-                "SELECT count(*) AS count FROM durable_work WHERE kind='MEDIA_PROCESS' AND state='LEASED'",
-                emptyList(),
-            ) { it.getInt("count") }.single()
+            val active =
+                connection
+                    .queryBound(
+                        "SELECT count(*) AS count FROM durable_work WHERE kind='MEDIA_PROCESS' AND state='LEASED'",
+                        emptyList(),
+                    ) { it.getInt("count") }
+                    .single()
             val capacity = minOf(batchSize, 2 - active)
             if (capacity <= 0) return@committed emptyList()
             val candidates = WorkSql.selectForClaim(connection, now, capacity, setOf("MEDIA_PROCESS"))

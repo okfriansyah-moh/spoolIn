@@ -27,17 +27,25 @@ class InitializationRulesTest {
     fun `checksum ignores password locations and ordering but binds identity role and setup version`() {
         val first = configuration()
         val moved = first.accounts.reversed().map { InitializationAccount(it.id, it.identity, it.role, Path.of("/new-secret")) }
-        val movedKeys = first.keys.entries.reversed().associate { (id, mount) -> id to KeyMount(mount.purpose, Path.of("/new-key")) }
+        val movedKeys =
+            first.keys.entries
+                .reversed()
+                .associate { (id, mount) -> id to KeyMount(mount.purpose, Path.of("/new-key")) }
         assertArrayEquals(first.checksum(), InitializationConfiguration("v1", moved, movedKeys).checksum())
         assertFalse(MessageDigest.isEqual(first.checksum(), InitializationConfiguration("v2", first.accounts, first.keys).checksum()))
-        val renamed = first.accounts.map { InitializationAccount(it.id, rules.identity("Changed name", it.identity.emailDisplay), it.role, it.passwordFile) }
+        val renamed =
+            first.accounts.map {
+                InitializationAccount(it.id, rules.identity("Changed name", it.identity.emailDisplay), it.role, it.passwordFile)
+            }
         assertFalse(MessageDigest.isEqual(first.checksum(), InitializationConfiguration("v1", renamed, first.keys).checksum()))
     }
 
     @Test
     fun `reject duplicate roles identities and incomplete purpose keys`() {
         val source = configuration()
-        assertThrows(IllegalArgumentException::class.java) { InitializationConfiguration("v1", listOf(source.accounts[0], source.accounts[0]), source.keys) }
+        assertThrows(IllegalArgumentException::class.java) {
+            InitializationConfiguration("v1", listOf(source.accounts[0], source.accounts[0]), source.keys)
+        }
         val duplicateIdentity = source.accounts.map { InitializationAccount(it.id, source.accounts[0].identity, it.role, it.passwordFile) }
         assertThrows(IllegalArgumentException::class.java) { InitializationConfiguration("v1", duplicateIdentity, source.keys) }
         assertThrows(IllegalArgumentException::class.java) { InitializationConfiguration("v1", source.accounts, source.keys - "draft") }
@@ -60,14 +68,21 @@ class InitializationRulesTest {
     @Test
     fun `protected manifest loads identity references without reading passwords`() {
         val config = configuration()
-        val value = mapOf(
-            "setupVersion" to config.version,
-            "accounts" to config.accounts.map {
-                mapOf("id" to it.id.toString(), "name" to it.identity.name, "email" to it.identity.emailDisplay,
-                    "role" to it.role.name, "passwordFile" to it.passwordFile.toString())
-            },
-            "keys" to config.keys.mapValues { (_, mount) -> mapOf("purpose" to mount.purpose.name, "file" to mount.file.toString()) },
-        )
+        val value =
+            mapOf(
+                "setupVersion" to config.version,
+                "accounts" to
+                    config.accounts.map {
+                        mapOf(
+                            "id" to it.id.toString(),
+                            "name" to it.identity.name,
+                            "email" to it.identity.emailDisplay,
+                            "role" to it.role.name,
+                            "passwordFile" to it.passwordFile.toString(),
+                        )
+                    },
+                "keys" to config.keys.mapValues { (_, mount) -> mapOf("purpose" to mount.purpose.name, "file" to mount.file.toString()) },
+            )
         val path = directory.resolve("valid.json")
         Files.writeString(path, JsonMapper.builder().build().writeValueAsString(value))
         Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rw-------"))
@@ -89,10 +104,21 @@ class InitializationRulesTest {
     }
 
     private fun configuration(): InitializationConfiguration {
-        val accounts = listOf(
-            InitializationAccount(UUID.fromString("00000000-0000-4000-8000-000000000001"), rules.identity("Viewer account", "viewer@example.invalid"), AccountRole.VIEWER, Path.of("/private/viewer")),
-            InitializationAccount(UUID.fromString("00000000-0000-4000-8000-000000000002"), rules.identity("Maintainer account", "maintainer@example.invalid"), AccountRole.MAINTAINER, Path.of("/private/maintainer")),
-        )
+        val accounts =
+            listOf(
+                InitializationAccount(
+                    UUID.fromString("00000000-0000-4000-8000-000000000001"),
+                    rules.identity("Viewer account", "viewer@example.invalid"),
+                    AccountRole.VIEWER,
+                    Path.of("/private/viewer"),
+                ),
+                InitializationAccount(
+                    UUID.fromString("00000000-0000-4000-8000-000000000002"),
+                    rules.identity("Maintainer account", "maintainer@example.invalid"),
+                    AccountRole.MAINTAINER,
+                    Path.of("/private/maintainer"),
+                ),
+            )
         val keys = KeyPurpose.entries.associate { it.name.lowercase() to KeyMount(it, Path.of("/private/" + it.name)) }
         return InitializationConfiguration("v1", accounts, keys)
     }

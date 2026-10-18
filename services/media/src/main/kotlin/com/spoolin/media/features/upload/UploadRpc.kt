@@ -8,18 +8,18 @@ import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.receipts.WorkRequest
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
-import java.security.MessageDigest
-import java.sql.Timestamp
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.MediaServiceGrpc
 import spoolin.v1.Spoolin.Outcome
-import spoolin.v1.Spoolin.UploadHeader
 import spoolin.v1.Spoolin.UploadChunk
+import spoolin.v1.Spoolin.UploadHeader
 import java.io.ByteArrayInputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.security.MessageDigest
+import java.sql.Timestamp
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -100,7 +100,10 @@ class UploadRpc(
                 }, { fail(response, Status.INTERNAL, h.assetId, "UPLOAD_ERROR") }) { complete(h, s) }
             }
 
-            private fun complete(h: HeaderState, sink: ChunkSink) {
+            private fun complete(
+                h: HeaderState,
+                sink: ChunkSink,
+            ) {
                 stream?.flush()
                 stream?.close()
                 stream = null
@@ -110,20 +113,32 @@ class UploadRpc(
                 }
             }
 
-            private fun validateCompleted(h: HeaderState, completed: ChunkSink.CompleteResult.Accepted) {
+            private fun validateCompleted(
+                h: HeaderState,
+                completed: ChunkSink.CompleteResult.Accepted,
+            ) {
                 val stagingBytes = Files.readAllBytes(stagingPath!!)
-                val validation = ImageValidator.validate(
-                    ByteArrayInputStream(stagingBytes), ProcessingBounds.MAX_INPUT_BYTES,
-                )
+                val validation =
+                    ImageValidator.validate(
+                        ByteArrayInputStream(stagingBytes),
+                        ProcessingBounds.MAX_INPUT_BYTES,
+                    )
                 if (validation is ImageValidator.ValidationResult.Invalid) {
                     rejectAndRespond(response, h.assetId, validation.errorCode)
                     cleanupStaging()
                 } else {
-                    val workId = WorkRequest("upload-process", "MEDIA_PROCESS", h.assetId,
-                        clock.instant().plus(workDeadlineOffset)).id(h.uploadOperationId)
+                    val workId =
+                        WorkRequest(
+                            "upload-process",
+                            "MEDIA_PROCESS",
+                            h.assetId,
+                            clock.instant().plus(workDeadlineOffset),
+                        ).id(h.uploadOperationId)
                     val accepted = commitProcessing(h, completed, workId, clock.instant())
-                    if (!accepted) { rejectAndRespond(response, h.assetId, "ASSET_CONFLICT"); cleanupStaging() }
-                    else {
+                    if (!accepted) {
+                        rejectAndRespond(response, h.assetId, "ASSET_CONFLICT")
+                        cleanupStaging()
+                    } else {
                         acceptedJob = true
                         response.onNext(pendingOutcome(h.uploadOperationId))
                         response.onCompleted()
@@ -150,8 +165,12 @@ class UploadRpc(
                     fail(response, Status.INVALID_ARGUMENT, null, headerCheck.errorCode)
                 } else {
                     val inserted = reserveReceiving(h, state.actorId, state.assetId, state.uploadOperationId)
-                    if (inserted != 1) fail(response, Status.ALREADY_EXISTS, null, "DUPLICATE_UPLOAD")
-                    else { header = state; sink = newSink }
+                    if (inserted != 1) {
+                        fail(response, Status.ALREADY_EXISTS, null, "DUPLICATE_UPLOAD")
+                    } else {
+                        header = state
+                        sink = newSink
+                    }
                 }
             }
 
@@ -205,17 +224,27 @@ class UploadRpc(
             }
         }
 
-    private fun reserveReceiving(h: UploadHeader, actor: UUID, assetId: UUID, uploadOpId: UUID): Int =
+    private fun reserveReceiving(
+        h: UploadHeader,
+        actor: UUID,
+        assetId: UUID,
+        uploadOpId: UUID,
+    ): Int =
         dataSource.committed { connection ->
             val requestHash = MessageDigest.getInstance("SHA-256").digest(h.toByteArray())
-            check(connection.executeBound(
-                "INSERT INTO operation_receipt " +
-                    "(id,actor_scope,kind,request_hash,state,correlation_id,created_at,expires_at) " +
-                    "VALUES (?,?,'UPLOAD',?,'PENDING',?,?,?) ON CONFLICT (id) DO NOTHING",
-                uploadOpId, "account:$actor", requestHash, uploadOpId,
-                Timestamp.from(clock.instant()),
-                Timestamp.from(clock.instant().plus(Duration.ofDays(UPLOAD_RECEIPT_RETENTION_DAYS))),
-            ) == 1) { "Upload identity already exists; reconcile its receipt" }
+            check(
+                connection.executeBound(
+                    "INSERT INTO operation_receipt " +
+                        "(id,actor_scope,kind,request_hash,state,correlation_id,created_at,expires_at) " +
+                        "VALUES (?,?,'UPLOAD',?,'PENDING',?,?,?) ON CONFLICT (id) DO NOTHING",
+                    uploadOpId,
+                    "account:$actor",
+                    requestHash,
+                    uploadOpId,
+                    Timestamp.from(clock.instant()),
+                    Timestamp.from(clock.instant().plus(Duration.ofDays(UPLOAD_RECEIPT_RETENTION_DAYS))),
+                ) == 1,
+            ) { "Upload identity already exists; reconcile its receipt" }
             AssetSql.insertReceiving(connection, assetId, uploadOpId, actor, h.inputBytes, policyRevision)
         }
 
@@ -229,7 +258,8 @@ class UploadRpc(
                 connection.executeBound(
                     "UPDATE operation_receipt SET state='FAILED',error_code=? " +
                         "WHERE id=(SELECT upload_operation_id FROM asset WHERE id=?) AND state='PENDING'",
-                    "FIELD_INVALID", assetId,
+                    "FIELD_INVALID",
+                    assetId,
                 )
             }
         }
@@ -244,38 +274,67 @@ class UploadRpc(
         verifyIntent(h.intentId, h.assetId, h.actorId)
         val stagingKey = "${ProcessingBounds.STAGING_SUBDIR}/${h.assetId}"
         return dataSource.committed { connection ->
-            val workReq = WorkRequest(
-                "upload-process", "MEDIA_PROCESS", h.assetId, now.plus(workDeadlineOffset),
-            )
+            val workReq =
+                WorkRequest(
+                    "upload-process",
+                    "MEDIA_PROCESS",
+                    h.assetId,
+                    now.plus(workDeadlineOffset),
+                )
             check(workReq.id(h.uploadOperationId) == workId)
             ReceiptWork.enqueue(connection, h.uploadOperationId, h.uploadOperationId, workReq, now)
-            check(connection.executeBound(
-                "UPDATE durable_work SET payload=jsonb_set(payload,'{intentId}',to_jsonb(?::text)) WHERE id=?",
-                h.intentId.toString(), workId,
-            ) == 1)
-            check(AssetSql.acceptProcessing(
-                connection, h.assetId, stagingKey, completed.inputHash, workId, now,
-            ) == 1) { "Asset processing acceptance conflicted" }
+            check(
+                connection.executeBound(
+                    "UPDATE durable_work SET payload=jsonb_set(payload,'{intentId}',to_jsonb(?::text)) WHERE id=?",
+                    h.intentId.toString(),
+                    workId,
+                ) == 1,
+            )
+            check(
+                AssetSql.acceptProcessing(
+                    connection,
+                    h.assetId,
+                    stagingKey,
+                    completed.inputHash,
+                    workId,
+                    now,
+                ) == 1,
+            ) { "Asset processing acceptance conflicted" }
             true
         }
     }
 
-    private fun headerState(h: UploadHeader, actor: UUID): HeaderState {
+    private fun headerState(
+        h: UploadHeader,
+        actor: UUID,
+    ): HeaderState {
         val asset = parseUuid(h.assetId)
         val operation = parseUuid(h.context.operationId)
-        if (asset == null || operation == null) throw Status.INVALID_ARGUMENT
-            .withDescription("INVALID_IDENTITY").asRuntimeException()
-        val intent = parseUuid(h.intentId) ?: throw Status.INVALID_ARGUMENT
-            .withDescription("INVALID_INTENT").asRuntimeException()
+        if (asset == null || operation == null) {
+            throw Status.INVALID_ARGUMENT
+                .withDescription("INVALID_IDENTITY")
+                .asRuntimeException()
+        }
+        val intent =
+            parseUuid(h.intentId) ?: throw Status.INVALID_ARGUMENT
+                .withDescription("INVALID_INTENT")
+                .asRuntimeException()
         return HeaderState(asset, operation, actor, intent)
     }
 
-    private fun verifyIntent(intentId: UUID, assetId: UUID, actorId: UUID) {
-        val authority = catalog ?: throw Status.UNAVAILABLE.withDescription("ATTACHMENT_AUTHORITY_UNAVAILABLE")
-            .asRuntimeException()
+    private fun verifyIntent(
+        intentId: UUID,
+        assetId: UUID,
+        actorId: UUID,
+    ) {
+        val authority =
+            catalog ?: throw Status.UNAVAILABLE
+                .withDescription("ATTACHMENT_AUTHORITY_UNAVAILABLE")
+                .asRuntimeException()
         val intent = authority.find(intentId)
-        val bound = intent.holdId == intentId.toString() && intent.assetId == assetId.toString() &&
-            intent.hasActorId() && intent.actorId == actorId.toString() && intent.state == "PREPARING"
+        val bound =
+            intent.holdId == intentId.toString() && intent.assetId == assetId.toString() &&
+                intent.hasActorId() && intent.actorId == actorId.toString() && intent.state == "PREPARING"
         if (!bound) throw Status.PERMISSION_DENIED.withDescription("UPLOAD_INTENT_INVALID").asRuntimeException()
     }
 
@@ -301,15 +360,40 @@ private data class HeaderState(
 private const val WORK_DEADLINE_MINUTES = 5L
 private const val UPLOAD_RECEIPT_RETENTION_DAYS = 7L
 
-private fun protectUpload(onStatus: (io.grpc.StatusRuntimeException) -> Unit, onFailure: () -> Unit,
-    operation: () -> Unit) {
-    try { operation() }
-    catch (failure: io.grpc.StatusRuntimeException) { onStatus(failure) }
-    catch (_: java.io.IOException) { onFailure() }
-    catch (_: java.sql.SQLException) { onFailure() }
-    catch (_: IllegalStateException) { onFailure() }
-    catch (_: IllegalArgumentException) { onFailure() }
-    catch (_: java.security.GeneralSecurityException) { onFailure() }
-    catch (_: SecurityException) { onFailure() }
-    catch (_: UnsupportedOperationException) { onFailure() }
+private fun protectUpload(
+    onStatus: (io.grpc.StatusRuntimeException) -> Unit,
+    onFailure: () -> Unit,
+    operation: () -> Unit,
+) {
+    try {
+        operation()
+    } catch (
+        failure: io.grpc.StatusRuntimeException,
+    ) {
+        onStatus(failure)
+    } catch (
+        _: java.io.IOException,
+    ) {
+        onFailure()
+    } catch (
+        _: java.sql.SQLException,
+    ) {
+        onFailure()
+    } catch (
+        _: IllegalStateException,
+    ) {
+        onFailure()
+    } catch (
+        _: IllegalArgumentException,
+    ) {
+        onFailure()
+    } catch (
+        _: java.security.GeneralSecurityException,
+    ) {
+        onFailure()
+    } catch (_: SecurityException) {
+        onFailure()
+    } catch (_: UnsupportedOperationException) {
+        onFailure()
+    }
 }

@@ -6,9 +6,14 @@ import spoolin.v1.Spoolin
 internal object ProposalDraft {
     fun normalize(request: Spoolin.Proposal): Spoolin.Proposal {
         val valid = MovieValidation.validateCreate(request.values)
-        val values = Spoolin.MovieValues.newBuilder()
-            .setTitle(valid.displayTitle).setSynopsis(valid.synopsis).setSynopsisLanguage(valid.synopsisLanguage)
-            .addAllCountries(valid.countries).addAllGenreIds(valid.genreIds.sorted())
+        val values =
+            Spoolin.MovieValues
+                .newBuilder()
+                .setTitle(valid.displayTitle)
+                .setSynopsis(valid.synopsis)
+                .setSynopsisLanguage(valid.synopsisLanguage)
+                .addAllCountries(valid.countries)
+                .addAllGenreIds(valid.genreIds.sorted())
         valid.originalTitle?.let(values::setOriginalTitle)
         valid.originalLanguage?.let(values::setOriginalLanguage)
         valid.runtimeMinutes?.let(values::setRuntimeMinutes)

@@ -6,7 +6,9 @@ import java.nio.file.Path
 import java.time.LocalDate
 import java.util.UUID
 
-class SeedManifest private constructor(val root: JsonNode) {
+class SeedManifest private constructor(
+    val root: JsonNode,
+) {
     val namespace: UUID = UUID.fromString(root["namespaceUUID"].asText())
     val version: String = root["manifestVersion"].asText()
     val records: List<JsonNode> = root["records"].toList()
@@ -62,9 +64,11 @@ class SeedManifest private constructor(val root: JsonNode) {
 
     private fun validateDistribution() {
         val years = records.groupingBy { it["normalized"]["release"]["year"].asText() }.eachCount()
-        val months = records.groupingBy {
-            it["normalized"]["release"]["month"].takeUnless { month -> month.isNull }?.asText() ?: "unknown"
-        }.eachCount()
+        val months =
+            records
+                .groupingBy {
+                    it["normalized"]["release"]["month"].takeUnless { month -> month.isNull }?.asText() ?: "unknown"
+                }.eachCount()
         val stored = root.path("distribution")
         require(stored.path("years").propertyNames().toSet() == years.keys)
         require(stored.path("months").propertyNames().toSet() == months.keys)
@@ -99,8 +103,10 @@ class SeedManifest private constructor(val root: JsonNode) {
         require(genres.size in 1..SeedLimits.GENRES_PER_TITLE)
         require(genres.map { it["stableUUID"].asText() }.distinct().size == genres.size)
         genres.forEach(::validateGenre)
-        require(record["normalized"]["genreIds"].toList().map { it.asText() } ==
-            genres.map { it["stableUUID"].asText() })
+        require(
+            record["normalized"]["genreIds"].toList().map { it.asText() } ==
+                genres.map { it["stableUUID"].asText() },
+        )
     }
 
     private fun validateGenre(genre: JsonNode) {
@@ -117,7 +123,10 @@ class SeedManifest private constructor(val root: JsonNode) {
         require(credit["characters"].isArray)
     }
 
-    private fun identity(node: JsonNode, kind: String) {
+    private fun identity(
+        node: JsonNode,
+        kind: String,
+    ) {
         val source = node.path("source").asText()
         val external = node.path("externalId").asText()
         require(source == "wikidata" && external.isNotBlank())
@@ -128,7 +137,10 @@ class SeedManifest private constructor(val root: JsonNode) {
         require(node.path("contentSHA256").asText() == SeedIdentities.hashHex(node)) { "Seed record checksum mismatch" }
     }
 
-    private fun sources(node: JsonNode, fields: Set<String>) {
+    private fun sources(
+        node: JsonNode,
+        fields: Set<String>,
+    ) {
         val sources = node.path("sources").toList()
         require(sources.map { it.path("field").asText() }.toSet().containsAll(fields))
         sources.forEach(::validateSource)
@@ -141,7 +153,11 @@ class SeedManifest private constructor(val root: JsonNode) {
         java.time.Instant.parse(source.path("retrievedAt").asText())
     }
 
-    private fun text(node: JsonNode, field: String, maximum: Int) {
+    private fun text(
+        node: JsonNode,
+        field: String,
+        maximum: Int,
+    ) {
         val value = node.path(field).asText()
         require(value.isNotBlank() && value.codePointCount(0, value.length) <= maximum)
     }
@@ -154,16 +170,16 @@ class SeedManifest private constructor(val root: JsonNode) {
         require(month == null || month in 1..SeedLimits.MONTHS_PER_YEAR)
         require(day == null || month != null)
         if (day != null) LocalDate.of(year, requireNotNull(month), day)
-        val precision = when {
-            day != null -> "DAY"
-            month != null -> "MONTH"
-            else -> "YEAR"
-        }
+        val precision =
+            when {
+                day != null -> "DAY"
+                month != null -> "MONTH"
+                else -> "YEAR"
+            }
         require(node.path("precision").asText() == precision)
     }
 
     companion object {
-        fun read(path: Path): SeedManifest =
-            SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
+        fun read(path: Path): SeedManifest = SeedManifest(JsonMapper.builder().build().readTree(path.toFile())).also { it.validate() }
     }
 }

@@ -33,10 +33,18 @@ describe('review-state', () => {
   it('shows exact nested publishable values and explicit unknowns as escaped text', () => {
     const root = document.createElement('div');
     renderReview(root, {
-      proposalId: '00000000-0000-4000-8000-000000000001', revision: 1, contentHash: 'ab'.repeat(32),
-      values: { release: { year: 2024, month: 2, day: null }, countries: ['ID', 'GB'],
-        originalTitle: null, synopsis: '<img src=x onerror=alert(1)>', genreIds: [] },
-      sources: [], unknowns: [],
+      proposalId: '00000000-0000-4000-8000-000000000001',
+      revision: 1,
+      contentHash: 'ab'.repeat(32),
+      values: {
+        release: { year: 2024, month: 2, day: null },
+        countries: ['ID', 'GB'],
+        originalTitle: null,
+        synopsis: '<img src=x onerror=alert(1)>',
+        genreIds: [],
+      },
+      sources: [],
+      unknowns: [],
     });
     expect(root.textContent).toContain('year: 2024; month: 2; day: Unknown');
     expect(root.textContent).toContain('ID, GB');
@@ -46,5 +54,4 @@ describe('review-state', () => {
     expect(root.querySelector('img')).toBeNull();
     expect(root.textContent).not.toContain('[object Object]');
   });
-
 });

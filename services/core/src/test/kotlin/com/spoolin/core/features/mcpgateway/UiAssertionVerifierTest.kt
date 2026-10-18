@@ -25,31 +25,63 @@ class UiAssertionVerifierTest {
     private val now = Instant.ofEpochSecond(1000)
     private val connector = ConnectorRecord(UUID.randomUUID(), UUID.randomUUID(), "CLAUDE", 1, "MOVIE", now.plusSeconds(600), null)
     private val hash = Base64.getEncoder().encodeToString(ByteArray(32) { 9 })
-    private val input = Spoolin.ApprovalInput.newBuilder().setProposalId(UUID.randomUUID().toString())
-        .setRevision(2).setContentHash(hash).setChallenge("private-challenge").build()
+    private val input =
+        Spoolin.ApprovalInput
+            .newBuilder()
+            .setProposalId(UUID.randomUUID().toString())
+            .setRevision(2)
+            .setContentHash(hash)
+            .setChallenge("private-challenge")
+            .build()
     private val method = "/spoolin.v1.McpGatewayService/ApproveMovie"
+
     private fun verifier(enabled: Boolean = true) = UiAssertionVerifier(enabled, "test-v1", key, mapper, Clock.fixed(now, ZoneOffset.UTC))
 
-    private fun claims(): MutableMap<String, Any> = sortedMapOf("audience" to "core", "connector" to connector.id.toString(),
-        "client" to "CLAUDE", "session" to UUID.randomUUID().toString(), "proposal" to input.proposalId,
-        "revision" to 2, "hash" to hash, "method" to method, "invocation" to UUID.randomUUID().toString(), "expiry" to 1030)
+    private fun claims(): MutableMap<String, Any> =
+        sortedMapOf(
+            "audience" to "core",
+            "connector" to connector.id.toString(),
+            "client" to "CLAUDE",
+            "session" to UUID.randomUUID().toString(),
+            "proposal" to input.proposalId,
+            "revision" to 2,
+            "hash" to hash,
+            "method" to method,
+            "invocation" to UUID.randomUUID().toString(),
+            "expiry" to 1030,
+        )
 
-    private fun assertion(values: Map<String, Any> = claims(), id: String = "test-v1", secret: ByteArray = key): String =
-        raw(mapper.writeValueAsString(values.toSortedMap()), id, secret)
+    private fun assertion(
+        values: Map<String, Any> = claims(),
+        id: String = "test-v1",
+        secret: ByteArray = key,
+    ): String = raw(mapper.writeValueAsString(values.toSortedMap()), id, secret)
 
-    private fun raw(json: String, id: String = "test-v1", secret: ByteArray = key): String {
+    private fun raw(
+        json: String,
+        id: String = "test-v1",
+        secret: ByteArray = key,
+    ): String {
         val payload = Base64.getUrlEncoder().withoutPadding().encodeToString(json.toByteArray())
         val body = "$id.$payload"
         val mac = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(secret, "HmacSHA256")) }
         return "$body.${Base64.getUrlEncoder().withoutPadding().encodeToString(mac.doFinal(body.toByteArray()))}"
     }
 
-    private fun trusted(token: String, block: () -> Unit) {
+    private fun trusted(
+        token: String,
+        block: () -> Unit,
+    ) {
         Context.current().withValue(UiAssertionVerifier.assertionContext, token).run(block)
     }
 
-    private fun denied(token: String, verifier: UiAssertionVerifier = verifier(), actor: ConnectorRecord = connector,
-                       request: Spoolin.ApprovalInput = input, rpc: String = method) {
+    private fun denied(
+        token: String,
+        verifier: UiAssertionVerifier = verifier(),
+        actor: ConnectorRecord = connector,
+        request: Spoolin.ApprovalInput = input,
+        rpc: String = method,
+    ) {
         assertThrows(StatusRuntimeException::class.java) { trusted(token) { verifier.requireTrustedUi(actor, request, rpc) } }
     }
 
@@ -65,10 +97,17 @@ class UiAssertionVerifierTest {
     @Test
     fun `denies disabled absent expired future mismatched forged and nonallowed method assertions`() {
         assertThrows(StatusRuntimeException::class.java) { verifier().requireTrustedUi(connector, input, method) }
-        for ((field, value) in listOf("expiry" to 1000, "expiry" to 1031, "audience" to "catalog",
-            "connector" to UUID.randomUUID().toString(), "client" to "CHATGPT", "proposal" to UUID.randomUUID().toString(),
-            "revision" to 3, "hash" to Base64.getEncoder().encodeToString(ByteArray(32)),
-            "method" to "/spoolin.v1.McpGatewayService/RejectMovie")) {
+        for ((field, value) in listOf(
+            "expiry" to 1000,
+            "expiry" to 1031,
+            "audience" to "catalog",
+            "connector" to UUID.randomUUID().toString(),
+            "client" to "CHATGPT",
+            "proposal" to UUID.randomUUID().toString(),
+            "revision" to 3,
+            "hash" to Base64.getEncoder().encodeToString(ByteArray(32)),
+            "method" to "/spoolin.v1.McpGatewayService/RejectMovie",
+        )) {
             denied(assertion(claims().also { it[field] = value }))
         }
         denied(assertion() + "altered")
@@ -81,9 +120,17 @@ class UiAssertionVerifierTest {
 
     @Test
     fun `rejects signed JSON coercion duplicates extra fields malformed UUIDs hashes and wire encodings`() {
-        for ((field, value) in listOf("expiry" to "1030", "expiry" to 1030.0, "revision" to "2", "revision" to 2.0,
-            "revision" to Long.MAX_VALUE, "session" to "unbound-session", "invocation" to "1-1-1-1-1",
-            "session" to UUID.randomUUID().toString().uppercase(), "extra" to "claim")) {
+        for ((field, value) in listOf(
+            "expiry" to "1030",
+            "expiry" to 1030.0,
+            "revision" to "2",
+            "revision" to 2.0,
+            "revision" to Long.MAX_VALUE,
+            "session" to "unbound-session",
+            "invocation" to "1-1-1-1-1",
+            "session" to UUID.randomUUID().toString().uppercase(),
+            "extra" to "claim",
+        )) {
             denied(assertion(claims().also { it[field] = value }))
         }
         val json = mapper.writeValueAsString(claims())
@@ -100,11 +147,14 @@ class UiAssertionVerifierTest {
     @Test
     fun `new write key and old read key overlap stops at exact absolute sixty second boundary`() {
         var epoch = 1059L
-        val clock = object : Clock() {
-            override fun instant(): Instant = Instant.ofEpochSecond(epoch)
-            override fun getZone() = ZoneOffset.UTC
-            override fun withZone(zone: java.time.ZoneId): Clock = this
-        }
+        val clock =
+            object : Clock() {
+                override fun instant(): Instant = Instant.ofEpochSecond(epoch)
+
+                override fun getZone() = ZoneOffset.UTC
+
+                override fun withZone(zone: java.time.ZoneId): Clock = this
+            }
         val fresh = ByteArray(32) { 8 }
         val keys = UiAssertionKeys.rotated("test-v2", fresh, "test-v1", key, 1000, epoch)
         val verifier = UiAssertionVerifier(true, keys, mapper, clock)
@@ -126,12 +176,22 @@ class UiAssertionVerifierTest {
         val accepted = AtomicInteger()
         val workers = Executors.newFixedThreadPool(4)
         try {
-            val pending = (1..12).map { workers.submit {
-                try { trusted(token) { verifier.requireTrustedUi(connector, input, method) }; accepted.incrementAndGet() }
-                catch (_: StatusRuntimeException) { }
-            } }
+            val pending =
+                (1..12).map {
+                    workers.submit {
+                        try {
+                            trusted(token) { verifier.requireTrustedUi(connector, input, method) }
+                            accepted.incrementAndGet()
+                        } catch (
+                            _: StatusRuntimeException,
+                        ) {
+                        }
+                    }
+                }
             pending.forEach { it.get(5, TimeUnit.SECONDS) }
             assertEquals(1, accepted.get())
-        } finally { workers.shutdownNow() }
+        } finally {
+            workers.shutdownNow()
+        }
     }
 }

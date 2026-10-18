@@ -38,13 +38,25 @@ class InitializationReadKeysRulesTest {
         }
     }
 
-    private fun key(name: String, value: Byte): Path = directory.resolve(name).also {
-        Files.write(it, ByteArray(32) { value })
-        Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
-    }
+    private fun key(
+        name: String,
+        value: Byte,
+    ): Path =
+        directory.resolve(name).also {
+            Files.write(it, ByteArray(32) { value })
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
 
-    private fun config(id: String, purpose: String, key: Path): Path = directory.resolve("read-keys.json").also {
-        Files.write(it, JsonMapper.builder().build().writeValueAsBytes(mapOf(id to mapOf("purpose" to purpose, "file" to key.toString()))))
-        Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
-    }
+    private fun config(
+        id: String,
+        purpose: String,
+        key: Path,
+    ): Path =
+        directory.resolve("read-keys.json").also {
+            Files.write(
+                it,
+                JsonMapper.builder().build().writeValueAsBytes(mapOf(id to mapOf("purpose" to purpose, "file" to key.toString()))),
+            )
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
 }

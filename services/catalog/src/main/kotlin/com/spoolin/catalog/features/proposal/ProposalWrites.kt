@@ -52,11 +52,12 @@ class ProposalWrites(
                 val challenge = randomChallenge().also { freshChallenge = it }
                 ProposalRevisions.insert(conn, normalized, claims, challenge, clock.instant())
             }
-            val outcome = if (normalized.hasProposalId()) {
-                receipts.execute(intent, correlation, true, mutation = mutation)
-            } else {
-                receipts.defer(intent, correlation, true) { mutation(it) }
-            }
+            val outcome =
+                if (normalized.hasProposalId()) {
+                    receipts.execute(intent, correlation, true, mutation = mutation)
+                } else {
+                    receipts.defer(intent, correlation, true) { mutation(it) }
+                }
             val row = proposalRow(normalized, outcome)
             ProposalRevisions.assertOwner(row, claims)
             ProposalRevisions.requireReview(row, clock.instant())
@@ -78,16 +79,19 @@ class ProposalWrites(
     private fun proposalRow(
         request: Spoolin.Proposal,
         outcome: com.spoolin.support.receipts.ReceiptOutcome,
-    ): ProposalRow = dataSource.connection.use { conn ->
-        if (!request.hasProposalId()) {
-            ProposalStore.initialForOperation(conn, parseId(request.context.operationId))
-                ?: throw Status.NOT_FOUND.asRuntimeException()
-        } else {
-            val result = outcome.result ?: throw Status.FAILED_PRECONDITION
-                .withDescription("RESULT_EXPIRED").asRuntimeException()
-            ProposalStore.requireForUpdate(conn, result.resultId, Math.toIntExact(requireNotNull(result.version)))
+    ): ProposalRow =
+        dataSource.connection.use { conn ->
+            if (!request.hasProposalId()) {
+                ProposalStore.initialForOperation(conn, parseId(request.context.operationId))
+                    ?: throw Status.NOT_FOUND.asRuntimeException()
+            } else {
+                val result =
+                    outcome.result ?: throw Status.FAILED_PRECONDITION
+                        .withDescription("RESULT_EXPIRED")
+                        .asRuntimeException()
+                ProposalStore.requireForUpdate(conn, result.resultId, Math.toIntExact(requireNotNull(result.version)))
+            }
         }
-    }
 
     fun approve(
         request: Spoolin.ApprovalInput,
@@ -118,14 +122,14 @@ class ProposalWrites(
             val operationId = approvalOperationId(proposalId, revision, approve)
             val correlationId = UUID.randomUUID()
             executeApprovalReceipt(
-                    claims,
-                    binding,
-                    proposalId,
-                    revision,
-                    approve,
-                    operationId,
-                    correlationId,
-                )
+                claims,
+                binding,
+                proposalId,
+                revision,
+                approve,
+                operationId,
+                correlationId,
+            )
             if (approve) {
                 metrics?.markApproved()
             } else {
@@ -183,7 +187,8 @@ class ProposalWrites(
                 listOf(
                     "proposalId" to proposalId.toString(),
                     "revision" to revision.toString(),
-                    "connectorId" to claims.credentialId.toString(), "clientKind" to claims.clientKind,
+                    "connectorId" to claims.credentialId.toString(),
+                    "clientKind" to claims.clientKind,
                     "contentHash" to Base64.getEncoder().encodeToString(binding.contentHash),
                 ),
             )
@@ -193,7 +198,11 @@ class ProposalWrites(
         }
     }
 
-    private fun verifyApprovalReplay(binding: ExactApprovalBinding, proposalId: UUID, revision: Int) {
+    private fun verifyApprovalReplay(
+        binding: ExactApprovalBinding,
+        proposalId: UUID,
+        revision: Int,
+    ) {
         val row = dataSource.connection.use { ProposalStore.requireForUpdate(it, proposalId, revision) }
         val problem = binding.identityProblem(row) ?: binding.challengeProblem(row.challengeHash)
         problem?.let { throw it.asRuntimeException() }
@@ -223,13 +232,14 @@ class ProposalWrites(
         if (!storedDigest.contentEquals(row.contentHash)) {
             throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
         }
-        val result = if (approve) {
-            publishApprovedProposal(conn, claims, row, content, correlationId)
-        } else {
-            ProposalStore.markRejected(conn, proposalId, revision)
-            receipts.completePending(conn, row.operationId, SafeResult(proposalId, revision.toLong()), "REJECTED")
-            SafeResult(proposalId, revision.toLong())
-        }
+        val result =
+            if (approve) {
+                publishApprovedProposal(conn, claims, row, content, correlationId)
+            } else {
+                ProposalStore.markRejected(conn, proposalId, revision)
+                receipts.completePending(conn, row.operationId, SafeResult(proposalId, revision.toLong()), "REJECTED")
+                SafeResult(proposalId, revision.toLong())
+            }
         recordDecision(conn, claims, row, approve, operationId, correlationId)
         return result
     }
@@ -243,9 +253,17 @@ class ProposalWrites(
         correlationId: UUID,
     ) {
         AuditInsert.record(
-            conn, operationId, claims.accountId, auditActorKind(claims),
+            conn,
+            operationId,
+            claims.accountId,
+            auditActorKind(claims),
             if (approve) "APPROVE_PROPOSAL" else "REJECT_PROPOSAL",
-            "PROPOSAL", row.id, if (approve) "APPROVED" else "REJECTED", "{}", correlationId, clock.instant(),
+            "PROPOSAL",
+            row.id,
+            if (approve) "APPROVED" else "REJECTED",
+            "{}",
+            correlationId,
+            clock.instant(),
         )
     }
 
@@ -313,7 +331,11 @@ class ProposalWrites(
             result.version?.let { builder.version = it }
         }
         outcome.errorCode?.let {
-            builder.problem = Spoolin.Problem.newBuilder().setCode(it).build()
+            builder.problem =
+                Spoolin.Problem
+                    .newBuilder()
+                    .setCode(it)
+                    .build()
         }
         return builder.build()
     }
@@ -332,14 +354,20 @@ class ProposalWrites(
         }
     }
 
-    private fun proposalIntent(request: Spoolin.Proposal, claims: com.spoolin.support.identity.ActorClaims): OperationIntent =
+    private fun proposalIntent(
+        request: Spoolin.Proposal,
+        claims: com.spoolin.support.identity.ActorClaims,
+    ): OperationIntent =
         OperationIntent(
-            parseId(request.context.operationId), "account:${claims.accountId}", "ProposeMovie",
+            parseId(request.context.operationId),
+            "account:${claims.accountId}",
+            "ProposeMovie",
             request.context.policyRevision,
             listOf(
                 "proposalId" to request.proposalId,
                 "expectedRevision" to request.expectedRevision.takeIf { request.hasExpectedRevision() }?.toString(),
-                "connectorId" to claims.credentialId.toString(), "clientKind" to claims.clientKind,
+                "connectorId" to claims.credentialId.toString(),
+                "clientKind" to claims.clientKind,
                 "content" to DeterministicContentSerializer.json(ProposalContent.fromProposal(request)),
             ),
         )
@@ -349,6 +377,5 @@ class ProposalWrites(
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
-    private fun parseId(value: String): UUID =
-        UUID.fromString(value).also { require(it.toString() == value) }
+    private fun parseId(value: String): UUID = UUID.fromString(value).also { require(it.toString() == value) }
 }

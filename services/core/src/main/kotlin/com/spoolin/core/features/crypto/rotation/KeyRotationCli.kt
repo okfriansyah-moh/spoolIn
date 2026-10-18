@@ -10,15 +10,30 @@ import java.nio.file.Path
 fun main(args: Array<String>) {
     val options = arguments(args)
     val dataSource = DatabaseSettings.load(StandardEnvironment(), "core", false).pool()
-    dataSource.use { pool -> RotationKeys.load(options.keys).use { keys ->
-        if (options.register && !options.dryRun) RotationKeys.registerTarget(pool, keys, options.to, options.purpose)
-        val result = KeyRotationPlan(options.from, options.to, options.purpose).rotate(pool, KeyRegistry(pool), options.dryRun, keys, options.maxBatches)
-        println("${result.message}; backfilled=${result.backfilled}; remaining=${result.remaining}")
-        if (!result.ok) kotlin.system.exitProcess(1)
-    } }
+    dataSource.use { pool ->
+        RotationKeys.load(options.keys).use { keys ->
+            if (options.register && !options.dryRun) RotationKeys.registerTarget(pool, keys, options.to, options.purpose)
+            val result =
+                KeyRotationPlan(
+                    options.from,
+                    options.to,
+                    options.purpose,
+                ).rotate(pool, KeyRegistry(pool), options.dryRun, keys, options.maxBatches)
+            println("${result.message}; backfilled=${result.backfilled}; remaining=${result.remaining}")
+            if (!result.ok) kotlin.system.exitProcess(1)
+        }
+    }
 }
 
-private data class Arguments(val from: String, val to: String, val purpose: KeyPurpose, val keys: Path, val dryRun: Boolean, val register: Boolean, val maxBatches: Int)
+private data class Arguments(
+    val from: String,
+    val to: String,
+    val purpose: KeyPurpose,
+    val keys: Path,
+    val dryRun: Boolean,
+    val register: Boolean,
+    val maxBatches: Int,
+)
 
 private fun arguments(args: Array<String>): Arguments {
     var from = ""
@@ -29,6 +44,7 @@ private fun arguments(args: Array<String>): Arguments {
     var register = false
     var batches = 100
     var index = 0
+
     fun value(): String = args.getOrElse(++index) { usage() }
     while (index < args.size) {
         when (args[index]) {
@@ -48,6 +64,8 @@ private fun arguments(args: Array<String>): Arguments {
 }
 
 private fun usage(): Nothing {
-    System.err.println("usage: KeyRotationCli --from ID --to ID --purpose DRAFT|PII|EMAIL_LOOKUP --keys /protected/map.json [--register-target] [--max-batches 100] [--dry-run]")
+    System.err.println(
+        "usage: KeyRotationCli --from ID --to ID --purpose DRAFT|PII|EMAIL_LOOKUP --keys /protected/map.json [--register-target] [--max-batches 100] [--dry-run]",
+    )
     kotlin.system.exitProcess(2)
 }

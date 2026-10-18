@@ -33,11 +33,23 @@ class AlertIngress(
             val episodes = webhook.parse(request.inputStream.readNBytes(65537))
             recorder.recordBatch(episodes, policy)
             response(202, "RECORDED")
-        } catch (_: AlertCapacity) { response(413, "PAYLOAD_TOO_LARGE") }
-        catch (_: InvalidAlert) { response(400, "INVALID_ALERT") }
-        catch (_: SQLException) { response(503, "UNAVAILABLE") }
-        catch (_: java.io.IOException) { response(400, "INVALID_ALERT") }
-        finally { slots.release() }
+        } catch (
+            _: AlertCapacity,
+        ) {
+            response(413, "PAYLOAD_TOO_LARGE")
+        } catch (
+            _: InvalidAlert,
+        ) {
+            response(400, "INVALID_ALERT")
+        } catch (
+            _: SQLException,
+        ) {
+            response(503, "UNAVAILABLE")
+        } catch (_: java.io.IOException) {
+            response(400, "INVALID_ALERT")
+        } finally {
+            slots.release()
+        }
     }
 
     private fun authorized(request: HttpServletRequest): Boolean {
@@ -45,11 +57,21 @@ class AlertIngress(
         if (!request.isSecure || request.localPort != port) return false
         val chain = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*> ?: return false
         val leaf = chain.firstOrNull() as? X509Certificate ?: return false
-        val names = leaf.subjectAlternativeNames.orEmpty().filter { it.size >= 2 && it[0] == 2 }.map { it[1] }
+        val names =
+            leaf.subjectAlternativeNames
+                .orEmpty()
+                .filter { it.size >= 2 && it[0] == 2 }
+                .map { it[1] }
         return names == listOf("alertmanager")
     }
 
-    private fun response(status: Int, code: String): ResponseEntity<Map<String, String>> =
-        ResponseEntity.status(status).header("Cache-Control", "no-store")
-            .header("X-Content-Type-Options", "nosniff").body(mapOf("status" to code))
+    private fun response(
+        status: Int,
+        code: String,
+    ): ResponseEntity<Map<String, String>> =
+        ResponseEntity
+            .status(status)
+            .header("Cache-Control", "no-store")
+            .header("X-Content-Type-Options", "nosniff")
+            .body(mapOf("status" to code))
 }

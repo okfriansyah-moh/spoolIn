@@ -79,17 +79,32 @@ class Application {
     }
 
     @Bean(initMethod = "start", destroyMethod = "close")
-    fun notificationDispatcher(dataSource: DataSource, environment: Environment): com.spoolin.support.notifications.NotificationDispatcher? =
-        com.spoolin.support.notifications.NotificationSettings.transport { environment.getProperty(it) }
-            ?.let { com.spoolin.support.notifications.NotificationDispatcher(dataSource, it) }
+    fun notificationDispatcher(
+        dataSource: DataSource,
+        environment: Environment,
+    ): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings
+            .transport { environment.getProperty(it) }
+            ?.let {
+                com.spoolin.support.notifications
+                    .NotificationDispatcher(dataSource, it)
+            }
 
     @Bean
-    fun ownerMetrics(registry: io.micrometer.core.instrument.MeterRegistry,
-        dataSource: HikariDataSource, schema: SchemaReadiness, rate: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.ratelimit.RateMaintenance>,
+    fun ownerMetrics(
+        registry: io.micrometer.core.instrument.MeterRegistry,
+        dataSource: HikariDataSource,
+        schema: SchemaReadiness,
+        rate: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.features.ratelimit.RateMaintenance>,
     ): com.spoolin.support.observability.OwnerMetrics =
-        com.spoolin.support.observability.OwnerMetrics(registry, dataSource, "core",
-            { dataSource.hikariPoolMXBean.activeConnections }, { dataSource.maximumPoolSize },
-            { schema.ready() && (rate.ifAvailable?.ready() ?: true) })
+        com.spoolin.support.observability.OwnerMetrics(
+            registry,
+            dataSource,
+            "core",
+            { dataSource.hikariPoolMXBean.activeConnections },
+            { dataSource.maximumPoolSize },
+            { schema.ready() && (rate.ifAvailable?.ready() ?: true) },
+        )
 
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
@@ -139,7 +154,8 @@ class Application {
     }
 
     @Bean
-    fun listenerBoundary(environment: Environment,
+    fun listenerBoundary(
+        environment: Environment,
         metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 
@@ -154,36 +170,42 @@ class Application {
     @Bean
     @GlobalServerInterceptor
     fun connectorAuth(): com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor =
-        com.spoolin.core.features.mcpgateway.ConnectorAuthInterceptor()
+        com.spoolin.core.features.mcpgateway
+            .ConnectorAuthInterceptor()
 
     @Bean
-    fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService =
-        gateway
+    fun mcpGatewayService(gateway: com.spoolin.core.features.mcpgateway.McpGatewayRpc): io.grpc.BindableService = gateway
 
     @Bean
     fun workPendingMetrics(
         registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
         dataSource: DataSource,
     ): com.spoolin.core.operations.metrics.WorkPendingMetrics? =
-        registry.ifAvailable?.let { com.spoolin.core.operations.metrics.WorkPendingMetrics(it, dataSource) }
+        registry.ifAvailable?.let {
+            com.spoolin.core.operations.metrics
+                .WorkPendingMetrics(it, dataSource)
+        }
 
     @Bean
     fun alertRecorder(
         dataSource: DataSource,
         workPendingMetrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.core.operations.metrics.WorkPendingMetrics>,
     ): com.spoolin.core.features.alerts.AlertRecorder =
-        com.spoolin.core.features.alerts.AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
+        com.spoolin.core.features.alerts
+            .AlertRecorder(dataSource, workPendingMetrics.ifAvailable)
 }
 
 fun main(args: Array<String>) {
-    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    com.spoolin.support.logging
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env
                 .StandardEnvironment()
         DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
     } else if (args.size == 1 && args[0].startsWith("--initialize-accounts=")) {
-        com.spoolin.core.features.bootstrap.runInitializationCli(args[0])
+        com.spoolin.core.features.bootstrap
+            .runInitializationCli(args[0])
     } else {
         check(args.isEmpty()) { "Use environment configuration or a supported maintenance argument" }
         org.springframework.boot.SpringApplication
@@ -487,9 +509,15 @@ class ListenerBoundary(
         response.setHeader("Cache-Control", "no-store")
         if (path == "/actuator/prometheus") {
             val measurement = metrics
-            if (measurement == null) { response.sendError(503); return }
+            if (measurement == null) {
+                response.sendError(503)
+                return
+            }
             synchronized(measurement) {
-                if (!measurement.prepareScrape()) { response.sendError(503); return }
+                if (!measurement.prepareScrape()) {
+                    response.sendError(503)
+                    return
+                }
                 chain.doFilter(request, response)
             }
             return

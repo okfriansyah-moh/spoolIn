@@ -18,19 +18,25 @@ class UiAssertionKeysTest {
     @TempDir lateinit var directory: Path
     private val active = ByteArray(32) { 2 }
     private val previous = ByteArray(32) { 1 }
+
     private fun clock(now: Long) = Clock.fixed(Instant.ofEpochSecond(now), ZoneOffset.UTC)
 
-    private fun key(name: String, value: ByteArray): Path = directory.resolve(name).also {
-        Files.write(it, value)
-        Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
-    }
+    private fun key(
+        name: String,
+        value: ByteArray,
+    ): Path =
+        directory.resolve(name).also {
+            Files.write(it, value)
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
 
-    private fun environment(): MockEnvironment = MockEnvironment()
-        .withProperty("MCP_UI_ASSERTION_KEY_ID", "v2")
-        .withProperty("MCP_UI_ASSERTION_KEY_FILE", key("active", active).toString())
-        .withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_ID", "v1")
-        .withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_FILE", key("previous", previous).toString())
-        .withProperty("MCP_UI_ASSERTION_ROTATED_AT", "1000")
+    private fun environment(): MockEnvironment =
+        MockEnvironment()
+            .withProperty("MCP_UI_ASSERTION_KEY_ID", "v2")
+            .withProperty("MCP_UI_ASSERTION_KEY_FILE", key("active", active).toString())
+            .withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_ID", "v1")
+            .withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_FILE", key("previous", previous).toString())
+            .withProperty("MCP_UI_ASSERTION_ROTATED_AT", "1000")
 
     @Test
     fun `previous read window is absolute survives restart and ends at equality`() {
@@ -58,7 +64,10 @@ class UiAssertionKeysTest {
             UiAssertionKeys.load(environment().withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_ID", "v2"), clock(1000))
         }
         assertThrows(IllegalArgumentException::class.java) {
-            UiAssertionKeys.load(environment().withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_FILE", key("same", active).toString()), clock(1000))
+            UiAssertionKeys.load(
+                environment().withProperty("MCP_UI_ASSERTION_PREVIOUS_KEY_FILE", key("same", active).toString()),
+                clock(1000),
+            )
         }
     }
 
@@ -75,7 +84,10 @@ class UiAssertionKeysTest {
             UiAssertionKeys.load(environment.withProperty("MCP_UI_ASSERTION_KEY_FILE", link.toString()), clock(1000))
         }
         assertThrows(IllegalArgumentException::class.java) {
-            UiAssertionKeys.load(environment().withProperty("MCP_UI_ASSERTION_KEY_FILE", key("short", ByteArray(31)).toString()), clock(1000))
+            UiAssertionKeys.load(
+                environment().withProperty("MCP_UI_ASSERTION_KEY_FILE", key("short", ByteArray(31)).toString()),
+                clock(1000),
+            )
         }
         assertThrows(IllegalArgumentException::class.java) {
             UiAssertionKeys.load(environment().withProperty("RATE_LIMIT_KEY_FILE", key("reused", active).toString()), clock(1000))

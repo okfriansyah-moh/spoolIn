@@ -15,9 +15,14 @@ import java.util.UUID
 class ImpactTokenRulesTest {
     private val now = Instant.parse("2026-10-18T00:00:00Z")
     private val key = ByteArray(32) { 71 }
+
     private fun signer(at: Instant = now) = ImpactToken("test", key, Clock.fixed(at, ZoneOffset.UTC))
-    private fun snapshot(credits: List<ImpactCredit> = emptyList(), version: Long = 3, impact: Long = 7) =
-        ImpactSnapshot.fromCredits(UUID(0, 1), version, impact, "ARCHIVED", credits)
+
+    private fun snapshot(
+        credits: List<ImpactCredit> = emptyList(),
+        version: Long = 3,
+        impact: Long = 7,
+    ) = ImpactSnapshot.fromCredits(UUID(0, 1), version, impact, "ARCHIVED", credits)
 
     @Test
     fun `signed token binds person versions complete tuples and exact five minute expiry`() {
@@ -49,8 +54,11 @@ class ImpactTokenRulesTest {
     @Test
     fun `GraphQL Int count admits maximum and rejects overflow without wrapping`() {
         assertEquals(Int.MAX_VALUE, ImpactSnapshot.exactCount(2147483647))
-        assertEquals(Status.Code.RESOURCE_EXHAUSTED, assertThrows(StatusRuntimeException::class.java) {
-            ImpactSnapshot.exactCount(2147483648)
-        }.status.code)
+        assertEquals(
+            Status.Code.RESOURCE_EXHAUSTED,
+            assertThrows(StatusRuntimeException::class.java) {
+                ImpactSnapshot.exactCount(2147483648)
+            }.status.code,
+        )
     }
 }

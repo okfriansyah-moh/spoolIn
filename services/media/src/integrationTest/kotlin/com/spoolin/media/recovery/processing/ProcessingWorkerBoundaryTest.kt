@@ -40,12 +40,15 @@ class ProcessingWorkerBoundaryTest {
             assertTrue(Files.isRegularFile(directory.resolve("output/$asset.png")))
             assertTrue(!Files.exists(store.stagingPath(asset)))
             pool.connection.use { connection ->
-                val state = connection.queryBound(
-                    "SELECT w.state AS work,r.state AS receipt,count(e.id) AS events FROM durable_work w " +
-                        "JOIN operation_receipt r ON r.id=w.operation_id " +
-                        "JOIN operational_event e ON e.work_id=w.id WHERE w.id=? GROUP BY w.state,r.state",
-                    listOf(claim.workId),
-                ) { Triple(it.getString("work"), it.getString("receipt"), it.getInt("events")) }.single()
+                val state =
+                    connection
+                        .queryBound(
+                            "SELECT w.state AS work,r.state AS receipt,count(e.id) AS events FROM durable_work w " +
+                                "JOIN operation_receipt r ON r.id=w.operation_id " +
+                                "JOIN operational_event e ON e.work_id=w.id WHERE w.id=? GROUP BY w.state,r.state",
+                            listOf(claim.workId),
+                        ) { Triple(it.getString("work"), it.getString("receipt"), it.getInt("events")) }
+                        .single()
                 assertEquals(Triple("DONE", "SUCCEEDED", 2), state)
             }
         }
@@ -71,15 +74,23 @@ class ProcessingWorkerBoundaryTest {
             MediaProcessingHandler(pool, store).handle(replacement)
             assertEquals(AssetState.READY, AssetSql.find(pool, asset)!!.state)
             pool.connection.use { connection ->
-                assertEquals(4, connection.queryBound(
-                    "SELECT count(*) AS n FROM operational_event WHERE work_id=?",
-                    listOf(claim.workId),
-                ) { it.getInt("n") }.single())
+                assertEquals(
+                    4,
+                    connection
+                        .queryBound(
+                            "SELECT count(*) AS n FROM operational_event WHERE work_id=?",
+                            listOf(claim.workId),
+                        ) { it.getInt("n") }
+                        .single(),
+                )
             }
         }
     }
 
-    private fun accepted(pool: DataSource, store: QuarantineStore): UUID {
+    private fun accepted(
+        pool: DataSource,
+        store: QuarantineStore,
+    ): UUID {
         val id = UUID.randomUUID()
         val operation = UUID.randomUUID()
         val source = store.stagingPath(id)
@@ -92,13 +103,23 @@ class ProcessingWorkerBoundaryTest {
                 "INSERT INTO operation_receipt " +
                     "(id,actor_scope,kind,request_hash,state,correlation_id,expires_at) " +
                     "VALUES (?,'account:test','UPLOAD',?,'PENDING',?,CURRENT_TIMESTAMP+interval '7 days')",
-                operation, hash, operation,
+                operation,
+                hash,
+                operation,
             )
             AssetSql.insertReceiving(connection, id, operation, UUID.randomUUID(), bytes.size.toLong(), "p1")
             ReceiptWork.enqueue(connection, operation, operation, request, Instant.now())
-            assertEquals(1, AssetSql.acceptProcessing(
-                connection, id, "quarantine/$id", hash, request.id(operation), Instant.now(),
-            ))
+            assertEquals(
+                1,
+                AssetSql.acceptProcessing(
+                    connection,
+                    id,
+                    "quarantine/$id",
+                    hash,
+                    request.id(operation),
+                    Instant.now(),
+                ),
+            )
         }
         return id
     }

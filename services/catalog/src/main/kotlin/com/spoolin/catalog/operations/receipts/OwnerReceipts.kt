@@ -81,18 +81,23 @@ class OwnerReceipts(
         result: SafeResult,
         errorCode: String? = null,
     ) {
-        val updated = connection.executeBound(
-            "UPDATE operation_receipt SET state=?,result=?::jsonb,error_code=? WHERE id=? AND state='PENDING'",
-            if (errorCode == null) "SUCCEEDED" else "FAILED",
-            if (errorCode == null) result.json() else null,
-            errorCode,
-            id,
-        )
+        val updated =
+            connection.executeBound(
+                "UPDATE operation_receipt SET state=?,result=?::jsonb,error_code=? WHERE id=? AND state='PENDING'",
+                if (errorCode == null) "SUCCEEDED" else "FAILED",
+                if (errorCode == null) result.json() else null,
+                errorCode,
+                id,
+            )
         check(updated == 1) { "Operation completion failed" }
         if (errorCode == null) {
-            val correlation = connection.queryBound(
-                "SELECT correlation_id FROM operation_receipt WHERE id=?", listOf(id),
-            ) { it.getObject("correlation_id", UUID::class.java) }.single()
+            val correlation =
+                connection
+                    .queryBound(
+                        "SELECT correlation_id FROM operation_receipt WHERE id=?",
+                        listOf(id),
+                    ) { it.getObject("correlation_id", UUID::class.java) }
+                    .single()
             ReceiptActivity.append(connection, id, correlation, result.resultId)
         }
     }

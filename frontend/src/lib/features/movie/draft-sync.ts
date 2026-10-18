@@ -7,8 +7,14 @@ type PendingDraft = Readonly<{
   operationId: string;
   draftId: string;
   expectedVersion: string | null;
-  input: { targetKind: string; targetId: string | null; baseVersion: string | null;
-    values: MovieDraft; operationId: string | null; policyRevision: string };
+  input: {
+    targetKind: string;
+    targetId: string | null;
+    baseVersion: string | null;
+    values: MovieDraft;
+    operationId: string | null;
+    policyRevision: string;
+  };
 }>;
 
 export class MovieDraftSync {
@@ -17,14 +23,27 @@ export class MovieDraftSync {
   private catalogOperationId: string | null = null;
   private timer: ReturnType<typeof globalThis.setTimeout> | undefined;
   private pending: PendingDraft | null = null;
-  private pendingDiscard: { operationId: string; draftId: string; expectedVersion: string } | null = null;
+  private pendingDiscard: {
+    operationId: string;
+    draftId: string;
+    expectedVersion: string;
+  } | null = null;
   private backed = false;
   private unbacked = false;
   private queue: Promise<void> = Promise.resolve();
 
-  constructor(private readonly source: DraftSource, private readonly targetId: string | null) {}
+  constructor(
+    private readonly source: DraftSource,
+    private readonly targetId: string | null,
+  ) {}
 
-  reset(options: { draftId?: string; catalogOperationId?: string | null; expectedVersion?: string | null } = {}): void {
+  reset(
+    options: {
+      draftId?: string;
+      catalogOperationId?: string | null;
+      expectedVersion?: string | null;
+    } = {},
+  ): void {
     globalThis.clearTimeout(this.timer);
     if (this.pending || this.pendingDiscard) return;
     this.draftId = options.draftId ?? globalThis.crypto.randomUUID();
@@ -35,63 +54,128 @@ export class MovieDraftSync {
   }
 
   get snapshot() {
-    return Object.freeze({ backed: this.backed, unbacked: this.unbacked,
-      pendingOperationId: this.pending?.operationId ?? null });
+    return Object.freeze({
+      backed: this.backed,
+      unbacked: this.unbacked,
+      pendingOperationId: this.pending?.operationId ?? null,
+    });
   }
 
-  async load(context: WriteContext, signal: AbortSignal): Promise<readonly DraftRecord[]> {
+  async load(
+    context: WriteContext,
+    signal: AbortSignal,
+  ): Promise<readonly DraftRecord[]> {
     const drafts = await this.source.listDrafts(context.csrf, signal);
-    return drafts.filter((draft) => draft.targetKind === 'MOVIE' && draft.targetId === this.targetId
-      && Date.parse(draft.expiresAt) > Date.now());
+    return drafts.filter(
+      (draft) =>
+        draft.targetKind === 'MOVIE' &&
+        draft.targetId === this.targetId &&
+        Date.parse(draft.expiresAt) > Date.now(),
+    );
   }
 
   adopt(draft: DraftRecord): void {
-    this.reset({ draftId: draft.id, expectedVersion: draft.version, catalogOperationId: draft.operationId });
+    this.reset({
+      draftId: draft.id,
+      expectedVersion: draft.version,
+      catalogOperationId: draft.operationId,
+    });
     this.backed = true;
   }
 
-  schedule(values: MovieDraft, context: WriteContext, baseVersion: string | null): void {
+  schedule(
+    values: MovieDraft,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): void {
     globalThis.clearTimeout(this.timer);
-    this.timer = globalThis.setTimeout(() => { void this.save(values, context, baseVersion); }, AUTOSAVE_IDLE_MS);
+    this.timer = globalThis.setTimeout(() => {
+      void this.save(values, context, baseVersion);
+    }, AUTOSAVE_IDLE_MS);
   }
 
-  async prepareSubmission(operationId: string, values: MovieDraft, context: WriteContext, baseVersion: string | null): Promise<boolean> {
+  async prepareSubmission(
+    operationId: string,
+    values: MovieDraft,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): Promise<boolean> {
     globalThis.clearTimeout(this.timer);
     this.catalogOperationId = operationId;
     await this.save(values, context, baseVersion);
     return this.backed && !this.pending;
   }
 
-  save(values: MovieDraft, context: WriteContext, baseVersion: string | null): Promise<void> {
-    const next = this.queue.then(() => this.saveSerial(values, context, baseVersion));
+  save(
+    values: MovieDraft,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): Promise<void> {
+    const next = this.queue.then(() =>
+      this.saveSerial(values, context, baseVersion),
+    );
     this.queue = next.catch(() => {});
     return next;
   }
 
-  private async saveSerial(values: MovieDraft, context: WriteContext, baseVersion: string | null): Promise<void> {
+  private async saveSerial(
+    values: MovieDraft,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): Promise<void> {
     this.backed = false;
-    if (this.pendingDiscard) { this.unbacked = true; return; }
+    if (this.pendingDiscard) {
+      this.unbacked = true;
+      return;
+    }
     try {
-      if (this.pending && !await this.reconcile(context)) { this.unbacked = true; return; }
+      if (this.pending && !(await this.reconcile(context))) {
+        this.unbacked = true;
+        return;
+      }
       this.backed = false;
-      this.pending = { operationId: globalThis.crypto.randomUUID(), draftId: this.draftId,
-        expectedVersion: this.expectedVersion, input: { targetKind: 'MOVIE', targetId: this.targetId,
-          baseVersion, values, operationId: this.catalogOperationId, policyRevision: context.policyRevision } };
+      this.pending = {
+        operationId: globalThis.crypto.randomUUID(),
+        draftId: this.draftId,
+        expectedVersion: this.expectedVersion,
+        input: {
+          targetKind: 'MOVIE',
+          targetId: this.targetId,
+          baseVersion,
+          values,
+          operationId: this.catalogOperationId,
+          policyRevision: context.policyRevision,
+        },
+      };
       const outcome = await this.sendPending(context);
       this.accept(outcome.receipt);
-    } catch { this.unbacked = true; }
+    } catch {
+      this.unbacked = true;
+    }
   }
 
   private async sendPending(context: WriteContext) {
     const pending = this.pending;
     if (!pending) throw new Error('No original draft intent.');
-    return this.source.saveDraft(pending.operationId, pending.draftId, pending.expectedVersion,
-      pending.input, context.csrf, new AbortController().signal);
+    return this.source.saveDraft(
+      pending.operationId,
+      pending.draftId,
+      pending.expectedVersion,
+      pending.input,
+      context.csrf,
+      new AbortController().signal,
+    );
   }
 
   private accept(receipt: DraftReceipt): boolean {
-    if (!this.pending || receipt.operationId !== this.pending.operationId) return false;
-    if (receipt.state !== 'SUCCEEDED' || receipt.resultExpired || !receipt.resultId || !receipt.version) {
+    if (!this.pending || receipt.operationId !== this.pending.operationId)
+      return false;
+    if (
+      receipt.state !== 'SUCCEEDED' ||
+      receipt.resultExpired ||
+      !receipt.resultId ||
+      !receipt.version
+    ) {
       this.unbacked = true;
       if (receipt.state === 'FAILED') this.pending = null;
       return false;
@@ -107,7 +191,11 @@ export class MovieDraftSync {
   private async reconcile(context: WriteContext): Promise<boolean> {
     const pending = this.pending;
     if (!pending) return true;
-    const receipt = await this.source.recoverOperation(pending.operationId, context.csrf, new AbortController().signal);
+    const receipt = await this.source.recoverOperation(
+      pending.operationId,
+      context.csrf,
+      new AbortController().signal,
+    );
     if (receipt) return this.accept(receipt);
     const outcome = await this.sendPending(context);
     return this.accept(outcome.receipt);
@@ -116,21 +204,41 @@ export class MovieDraftSync {
   async discard(context: WriteContext): Promise<boolean> {
     globalThis.clearTimeout(this.timer);
     await this.queue;
-    if (this.pending && !await this.reconcile(context)) return false;
+    if (this.pending && !(await this.reconcile(context))) return false;
     if (!this.expectedVersion) return true;
-    this.pendingDiscard ??= { operationId: globalThis.crypto.randomUUID(), draftId: this.draftId, expectedVersion: this.expectedVersion };
+    this.pendingDiscard ??= {
+      operationId: globalThis.crypto.randomUUID(),
+      draftId: this.draftId,
+      expectedVersion: this.expectedVersion,
+    };
     const pending = this.pendingDiscard;
     try {
-      const outcome = await this.source.discardDraft(pending.operationId, pending.draftId,
-        pending.expectedVersion, context.csrf, new AbortController().signal);
-      if (outcome.receipt.operationId !== pending.operationId || outcome.receipt.resultExpired) return false;
-      if (outcome.receipt.state === 'FAILED') { this.pendingDiscard = null; return false; }
+      const outcome = await this.source.discardDraft(
+        pending.operationId,
+        pending.draftId,
+        pending.expectedVersion,
+        context.csrf,
+        new AbortController().signal,
+      );
+      if (
+        outcome.receipt.operationId !== pending.operationId ||
+        outcome.receipt.resultExpired
+      )
+        return false;
+      if (outcome.receipt.state === 'FAILED') {
+        this.pendingDiscard = null;
+        return false;
+      }
       if (outcome.receipt.state !== 'SUCCEEDED') return false;
       this.pendingDiscard = null;
       this.reset();
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
-  dispose(): void { globalThis.clearTimeout(this.timer); }
+  dispose(): void {
+    globalThis.clearTimeout(this.timer);
+  }
 }

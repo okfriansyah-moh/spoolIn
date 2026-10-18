@@ -12,7 +12,11 @@ export function createGateway() {
     close: () => transport.close(),
     async start(options: GatewayOptions): Promise<void> {
       const probe = new GatewayClient('');
-      try { await probe.ready(); } finally { probe.close(); }
+      try {
+        await probe.ready();
+      } finally {
+        probe.close();
+      }
       await transport.listen(options);
     },
   };

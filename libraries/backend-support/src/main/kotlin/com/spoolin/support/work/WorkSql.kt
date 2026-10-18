@@ -50,8 +50,12 @@ object WorkSql {
         require(!connection.autoCommit) { "Work claims require an explicit transaction" }
         require(batchSize in 1..MAX_BATCH) { "Batch size must be between 1 and $MAX_BATCH" }
         val kinds = allowedKinds?.sorted().orEmpty()
-        require(allowedKinds == null || (kinds.isNotEmpty() && kinds.size <= 10 &&
-            kinds.all { it.matches(Regex("[A-Z][A-Z0-9_]{0,63}")) })) { "Work kinds are invalid" }
+        require(
+            allowedKinds == null || (
+                kinds.isNotEmpty() && kinds.size <= 10 &&
+                    kinds.all { it.matches(Regex("[A-Z][A-Z0-9_]{0,63}")) }
+            ),
+        ) { "Work kinds are invalid" }
         val kindFilter = if (allowedKinds == null) "" else "AND kind IN (${kinds.joinToString(",") { "?" }})"
         val sql =
             """
@@ -72,22 +76,21 @@ object WorkSql {
 
     private fun candidate(rs: java.sql.ResultSet): WorkClaim =
         WorkClaim(
-                workId = rs.getObject("id", UUID::class.java),
-                operationId = rs.getObject("operation_id", UUID::class.java),
-                kind = rs.getString("kind"),
-                payload = rs.getString("payload"),
-                attemptCount = rs.getInt("attempt_count"),
-                maxAttempts = rs.getInt("max_attempts"),
-                deadlineAt = rs.getTimestamp("deadline_at").toInstant(),
-                leaseOwner = UUID.randomUUID(),
-                leaseEpoch = rs.getLong("lease_epoch"),
-                correlationId = rs.getObject("correlation_id", UUID::class.java),
-                baseDelayMs = rs.getInt("base_delay_ms"),
-                capDelayMs = rs.getInt("cap_delay_ms"),
-                backoffMultiplier = rs.getInt("backoff_multiplier"),
-                generation = rs.getInt("generation"),
-            )
-
+            workId = rs.getObject("id", UUID::class.java),
+            operationId = rs.getObject("operation_id", UUID::class.java),
+            kind = rs.getString("kind"),
+            payload = rs.getString("payload"),
+            attemptCount = rs.getInt("attempt_count"),
+            maxAttempts = rs.getInt("max_attempts"),
+            deadlineAt = rs.getTimestamp("deadline_at").toInstant(),
+            leaseOwner = UUID.randomUUID(),
+            leaseEpoch = rs.getLong("lease_epoch"),
+            correlationId = rs.getObject("correlation_id", UUID::class.java),
+            baseDelayMs = rs.getInt("base_delay_ms"),
+            capDelayMs = rs.getInt("cap_delay_ms"),
+            backoffMultiplier = rs.getInt("backoff_multiplier"),
+            generation = rs.getInt("generation"),
+        )
 
     /**
      * Atomically transitions a READY row to LEASED and inserts the ATTEMPT_STARTED event.
@@ -135,14 +138,24 @@ object WorkSql {
         return claim
     }
 
-    private fun insertAttemptStarted(connection: Connection, claim: WorkClaim, eventId: UUID) {
+    private fun insertAttemptStarted(
+        connection: Connection,
+        claim: WorkClaim,
+        eventId: UUID,
+    ) {
         connection.executeBound(
             """INSERT INTO operational_event
                (id, operation_id, actor_kind, action, subject_kind, subject_id,
                 correlation_id, event_type, work_id, generation, attempt_no, lease_epoch)
                VALUES (?, ?, 'SERVICE', 'WORK_ATTEMPT', 'WORK', ?, ?, 'ATTEMPT_STARTED', ?, ?, ?, ?)""",
-            eventId, claim.operationId, claim.workId, claim.correlationId, claim.workId,
-            claim.generation, claim.attemptCount, claim.leaseEpoch,
+            eventId,
+            claim.operationId,
+            claim.workId,
+            claim.correlationId,
+            claim.workId,
+            claim.generation,
+            claim.attemptCount,
+            claim.leaseEpoch,
         )
     }
 
@@ -230,7 +243,10 @@ object WorkSql {
         return true
     }
 
-    private fun lockForMutation(connection: Connection, workId: UUID) {
+    private fun lockForMutation(
+        connection: Connection,
+        workId: UUID,
+    ) {
         require(!connection.autoCommit) { "Work lease changes require an explicit transaction" }
         connection.queryBound("SELECT id FROM durable_work WHERE id=? FOR UPDATE", listOf(workId)) { true }
     }
@@ -298,22 +314,34 @@ object WorkSql {
         require(!connection.autoCommit) { "Work recovery requires an explicit transaction" }
         val recoveryDeadlineAt = now.plusSeconds(RECOVERY_DEADLINE_SECONDS)
         WorkRecoveryRequest(workId, commit.operatorId, commit.reason, commit.correlationId)
-        val previous = connection.queryBound(
-            "SELECT generation,lease_epoch,operation_id,deadline_at FROM durable_work " +
-                "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' FOR UPDATE",
-            listOf(workId),
-        ) { row ->
-            RecoveryRow(row.getInt("generation"), row.getLong("lease_epoch"),
-                row.getObject("operation_id", UUID::class.java), row.getTimestamp("deadline_at").toInstant())
-        }.singleOrNull() ?: return false
-        val updated = connection.executeBound(
-            "UPDATE durable_work SET state='READY', generation=generation+1, attempt_count=0," +
-                "lease_owner=NULL,lease_until=NULL,last_error=NULL,next_attempt_at=?,deadline_at=?,updated_at=? " +
-                "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' AND generation=? AND lease_epoch=? " +
-                "AND ? > clock_timestamp()",
-            Timestamp.from(now), Timestamp.from(recoveryDeadlineAt), Timestamp.from(now), workId,
-            previous.generation, previous.epoch, Timestamp.from(recoveryDeadlineAt),
-        )
+        val previous =
+            connection
+                .queryBound(
+                    "SELECT generation,lease_epoch,operation_id,deadline_at FROM durable_work " +
+                        "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' FOR UPDATE",
+                    listOf(workId),
+                ) { row ->
+                    RecoveryRow(
+                        row.getInt("generation"),
+                        row.getLong("lease_epoch"),
+                        row.getObject("operation_id", UUID::class.java),
+                        row.getTimestamp("deadline_at").toInstant(),
+                    )
+                }.singleOrNull() ?: return false
+        val updated =
+            connection.executeBound(
+                "UPDATE durable_work SET state='READY', generation=generation+1, attempt_count=0," +
+                    "lease_owner=NULL,lease_until=NULL,last_error=NULL,next_attempt_at=?,deadline_at=?,updated_at=? " +
+                    "WHERE id=? AND state='EXHAUSTED' AND kind<>'NOTIFICATION' AND generation=? AND lease_epoch=? " +
+                    "AND ? > clock_timestamp()",
+                Timestamp.from(now),
+                Timestamp.from(recoveryDeadlineAt),
+                Timestamp.from(now),
+                workId,
+                previous.generation,
+                previous.epoch,
+                Timestamp.from(recoveryDeadlineAt),
+            )
         if (updated == 0) return false
         insertRecoveryEvent(connection, workId, commit, previous, recoveryDeadlineAt)
         return true
@@ -340,9 +368,17 @@ object WorkSql {
                 lease_epoch, operator_id, changes)
                VALUES (?, ?, 'SERVICE', 'WORK_RECOVERY', 'WORK', ?, 'SUCCEEDED',
                        ?, 'RECOVERY', ?, ?, ?, ?, ?::jsonb)""",
-            commit.eventId, previous.operationId, workId, commit.correlationId, workId,
-            previous.generation + 1, previous.epoch, commit.operatorId,
-            """{"reason":${escapeJson(commit.reason)},"previousDeadlineAt":"${previous.deadlineAt}","deadlineAt":"$deadlineAt"}""",
+            commit.eventId,
+            previous.operationId,
+            workId,
+            commit.correlationId,
+            workId,
+            previous.generation + 1,
+            previous.epoch,
+            commit.operatorId,
+            """{"reason":${escapeJson(
+                commit.reason,
+            )},"previousDeadlineAt":"${previous.deadlineAt}","deadlineAt":"$deadlineAt"}""",
         )
     }
 
@@ -369,5 +405,8 @@ object WorkSql {
             }.singleOrNull()
 
     private fun escapeJson(value: String): String =
-        tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(value)
+        tools.jackson.databind.json.JsonMapper
+            .builder()
+            .build()
+            .writeValueAsString(value)
 }

@@ -9,10 +9,18 @@ describe('CreditDraftSync', () => {
 
   it('autosaves credit draft values through DraftSource', async () => {
     vi.useFakeTimers();
-    const saveDraft = vi.fn<DraftSource['saveDraft']>(async (operationId, draftId) => ({
-      receipt: { operationId, state: 'SUCCEEDED', resultId: draftId, version: '1', resultExpired: false },
-      problemCode: null,
-    }));
+    const saveDraft = vi.fn<DraftSource['saveDraft']>(
+      async (operationId, draftId) => ({
+        receipt: {
+          operationId,
+          state: 'SUCCEEDED',
+          resultId: draftId,
+          version: '1',
+          resultExpired: false,
+        },
+        problemCode: null,
+      }),
+    );
     const source = {
       recoverOperation: vi.fn(),
       listDrafts: vi.fn(),

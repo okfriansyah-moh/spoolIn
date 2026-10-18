@@ -8,7 +8,8 @@ class RateMaintenance(
 ) {
     fun purge(): Int =
         dataSource.connection.use { connection ->
-            com.spoolin.support.maintenance.RetentionMaintenance.purgeRateWindows(connection)
+            com.spoolin.support.maintenance.RetentionMaintenance
+                .purgeRateWindows(connection)
         }
 
     fun ready(): Boolean =

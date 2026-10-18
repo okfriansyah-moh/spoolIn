@@ -58,50 +58,106 @@
     void open;
     reviewedCurrent = false;
   });
-  const inputDisabled = $derived(disabled || state.draftChoices.length > 0 || state.phase === 'submitting'
-    || state.phase === 'uncertain' || state.phase === 'target-changed' || (state.mode === 'create' && state.saved !== null));
+  const inputDisabled = $derived(
+    disabled ||
+      state.draftChoices.length > 0 ||
+      state.phase === 'submitting' ||
+      state.phase === 'uncertain' ||
+      state.phase === 'target-changed' ||
+      (state.mode === 'create' && state.saved !== null),
+  );
 </script>
 
 <MovieSaveFeedback {state} {onCheckOriginal} {onReviewStale} />
 
-{#if state.phase === 'idle' && state.message && !state.draftChoices.length}<p role="status">{state.message}</p>{/if}
+{#if state.phase === 'idle' && state.message && !state.draftChoices.length}<p
+    role="status"
+  >
+    {state.message}
+  </p>{/if}
 {#if state.draftChoices.length}
   <section class="recovery-panel" aria-labelledby="{reviewId}-drafts">
     <h2 id="{reviewId}-drafts">Choose a retained draft</h2>
     <p role="status">{state.message}</p>
     <ul>
       {#each state.draftChoices as choice (choice.id)}
-        <li><Button type="button" variant="secondary" onclick={() => onSelectDraft(choice.id)}>Resume {choice.label}</Button>
-          <small>Available until <time datetime={choice.expiresAt}>{choice.expiresAt}</time></small></li>
+        <li>
+          <Button
+            type="button"
+            variant="secondary"
+            onclick={() => onSelectDraft(choice.id)}
+            >Resume {choice.label}</Button
+          >
+          <small
+            >Available until <time datetime={choice.expiresAt}
+              >{choice.expiresAt}</time
+            ></small
+          >
+        </li>
       {/each}
     </ul>
-    <Button type="button" variant="secondary" onclick={onStartNewDraft}>Start a new draft from current values</Button>
+    <Button type="button" variant="secondary" onclick={onStartNewDraft}
+      >Start a new draft from current values</Button
+    >
   </section>
 {/if}
 {#if state.phase === 'stale' && state.staleReviewOpen && state.current}
   <section class="recovery-panel" aria-labelledby="{reviewId}-current">
     <h2 id="{reviewId}-current">Review current saved movie values</h2>
     <dl>
-      <dt>Title</dt><dd>{state.current.title}</dd>
-      <dt>Synopsis</dt><dd>{state.current.synopsis}</dd>
-      <dt>Original title</dt><dd>{state.current.originalTitle ?? 'Unknown'}</dd>
-      <dt>Release year</dt><dd>{state.current.releaseYear || 'Unknown'}</dd>
-      <dt>Genres</dt><dd>{state.current.genreIds.map((id) => state.genres.find((genre) => genre.id === id)?.label ?? id).join(', ')}</dd>
+      <dt>Title</dt>
+      <dd>{state.current.title}</dd>
+      <dt>Synopsis</dt>
+      <dd>{state.current.synopsis}</dd>
+      <dt>Original title</dt>
+      <dd>{state.current.originalTitle ?? 'Unknown'}</dd>
+      <dt>Release year</dt>
+      <dd>{state.current.releaseYear || 'Unknown'}</dd>
+      <dt>Genres</dt>
+      <dd>
+        {state.current.genreIds
+          .map(
+            (id) => state.genres.find((genre) => genre.id === id)?.label ?? id,
+          )
+          .join(', ')}
+      </dd>
     </dl>
     {#if state.draftBaseKnown}
-      <p>Compare these values with your retained form edits. Continuing keeps your changed fields and adopts current values for fields you did not change.</p>
+      <p>
+        Compare these values with your retained form edits. Continuing keeps
+        your changed fields and adopts current values for fields you did not
+        change.
+      </p>
     {:else}
-      <p>The older base values are unavailable after reload. Continuing applies every field shown in your retained form. Review each field carefully.</p>
+      <p>
+        The older base values are unavailable after reload. Continuing applies
+        every field shown in your retained form. Review each field carefully.
+      </p>
     {/if}
-    <label class="review-check" for="{reviewId}-reviewed"><input id="{reviewId}-reviewed" type="checkbox" bind:checked={reviewedCurrent} />I reviewed the current values and my retained edits.</label>
-    <Button type="button" variant="secondary" disabledReason={reviewedCurrent ? '' : 'Review the current values first.'}
-      onclick={() => onRebase(reviewedCurrent)}>Use reviewed version for my edits</Button>
+    <label class="review-check" for="{reviewId}-reviewed"
+      ><input
+        id="{reviewId}-reviewed"
+        type="checkbox"
+        bind:checked={reviewedCurrent}
+      />I reviewed the current values and my retained edits.</label
+    >
+    <Button
+      type="button"
+      variant="secondary"
+      disabledReason={reviewedCurrent ? '' : 'Review the current values first.'}
+      onclick={() => onRebase(reviewedCurrent)}
+      >Use reviewed version for my edits</Button
+    >
   </section>
 {/if}
 {#if state.mode === 'create' && state.saved}
   <section class="recovery-panel" aria-label="Continue with this movie">
-    <a href={resolve('/manage/movies/[id]', { id: state.saved.id })}>Edit saved movie</a>
-    <a href={resolve('/titles/[id]', { id: state.saved.id })}>Review public record</a>
+    <a href={resolve('/manage/movies/[id]', { id: state.saved.id })}
+      >Edit saved movie</a
+    >
+    <a href={resolve('/titles/[id]', { id: state.saved.id })}
+      >Review public record</a
+    >
   </section>
 {/if}
 
@@ -231,13 +287,39 @@
 </form>
 
 <style>
-  .recovery-panel { display: grid; gap: var(--primitive-space-3); padding: var(--primitive-space-4); border: 1px solid var(--line); border-radius: var(--radius); margin-block: var(--primitive-space-4); }
-  .recovery-panel ul { display: grid; gap: var(--primitive-space-3); padding-inline-start: var(--primitive-space-6); }
-  .recovery-panel li { display: grid; gap: var(--primitive-space-2); }
-  .recovery-panel dl { margin: 0; }
-  .recovery-panel dd { margin-inline-start: 0; margin-block-end: var(--primitive-space-3); white-space: pre-wrap; }
-  .review-check { display: flex; gap: var(--primitive-space-2); align-items: start; }
-  .review-check input { width: auto; }
+  .recovery-panel {
+    display: grid;
+    gap: var(--primitive-space-3);
+    padding: var(--primitive-space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-block: var(--primitive-space-4);
+  }
+  .recovery-panel ul {
+    display: grid;
+    gap: var(--primitive-space-3);
+    padding-inline-start: var(--primitive-space-6);
+  }
+  .recovery-panel li {
+    display: grid;
+    gap: var(--primitive-space-2);
+  }
+  .recovery-panel dl {
+    margin: 0;
+  }
+  .recovery-panel dd {
+    margin-inline-start: 0;
+    margin-block-end: var(--primitive-space-3);
+    white-space: pre-wrap;
+  }
+  .review-check {
+    display: flex;
+    gap: var(--primitive-space-2);
+    align-items: start;
+  }
+  .review-check input {
+    width: auto;
+  }
 
   form {
     display: grid;

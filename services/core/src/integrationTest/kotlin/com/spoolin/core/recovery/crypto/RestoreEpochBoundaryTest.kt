@@ -41,11 +41,23 @@ class RestoreEpochBoundaryTest {
             assertEquals(1, report["authenticatedRows"]["accounts"].asInt())
             assertEquals(0, child(fixture, plan))
             assertEquals(1, fixture.scalar("SELECT auth_epoch FROM appdata.user_account"))
-            val hash = fixture.pool.connection.use {
-                it.queryBound("SELECT password_hash FROM appdata.user_account WHERE id=?", listOf(account)) { row -> row.getString(1) }.single()
-            }
-            assertTrue(Argon2Engine().verify(PasswordInput.exactBytes("Restore source password 123!"),
-                com.spoolin.core.features.crypto.StoredPasswordHash(hash)).matched)
+            val hash =
+                fixture.pool.connection.use {
+                    it
+                        .queryBound(
+                            "SELECT password_hash FROM appdata.user_account WHERE id=?",
+                            listOf(account),
+                        ) { row -> row.getString(1) }
+                        .single()
+                }
+            assertTrue(
+                Argon2Engine()
+                    .verify(
+                        PasswordInput.exactBytes("Restore source password 123!"),
+                        com.spoolin.core.features.crypto
+                            .StoredPasswordHash(hash),
+                    ).matched,
+            )
         }
     }
 
@@ -79,14 +91,30 @@ class RestoreEpochBoundaryTest {
     private fun account(fixture: CryptoFixture): UUID {
         val id = UUID.randomUUID()
         val hash = Argon2Engine().hash(PasswordInput.exactBytes("Restore source password 123!"))
-        val stored = fixture.accounts.insert(id, IdentityRules().identity("Restore canary", "restore@example.invalid"), hash, AccountRole.MAINTAINER)
+        val stored =
+            fixture.accounts.insert(
+                id,
+                IdentityRules().identity("Restore canary", "restore@example.invalid"),
+                hash,
+                AccountRole.MAINTAINER,
+            )
         assertTrue(stored is AccountInsert.Stored)
         fixture.pool.connection.use {
-            it.executeBound("INSERT INTO appdata.browser_session(token_hash,id,account_id,auth_epoch,csrf_hash,expires_at) " +
-                "VALUES (?,?,?,0,?,clock_timestamp()+INTERVAL '1 hour')", ByteArray(32) { 1 }, UUID.randomUUID(), id, ByteArray(32) { 2 })
-            it.executeBound("INSERT INTO appdata.mcp_credential(id,token_hash,account_id,client_kind,auth_epoch,scope,expires_at) " +
-                "VALUES (?,?,?,'CLAUDE',0,'movie:propose movie:approve',clock_timestamp()+INTERVAL '1 hour')",
-                UUID.randomUUID(), ByteArray(32) { 3 }, id)
+            it.executeBound(
+                "INSERT INTO appdata.browser_session(token_hash,id,account_id,auth_epoch,csrf_hash,expires_at) " +
+                    "VALUES (?,?,?,0,?,clock_timestamp()+INTERVAL '1 hour')",
+                ByteArray(32) { 1 },
+                UUID.randomUUID(),
+                id,
+                ByteArray(32) { 2 },
+            )
+            it.executeBound(
+                "INSERT INTO appdata.mcp_credential(id,token_hash,account_id,client_kind,auth_epoch,scope,expires_at) " +
+                    "VALUES (?,?,?,'CLAUDE',0,'movie:propose movie:approve',clock_timestamp()+INTERVAL '1 hour')",
+                UUID.randomUUID(),
+                ByteArray(32) { 3 },
+                id,
+            )
         }
         return id
     }
@@ -94,42 +122,87 @@ class RestoreEpochBoundaryTest {
     private fun plan(fixture: CryptoFixture): Path {
         val directory = fixture.owner.root
         val mounts = fixture.mounts.toMutableMap()
-        val targets = KeyPurpose.entries.associate { purpose ->
-            val id = "restore-" + purpose.name.lowercase()
-            val file = directory.resolve(id)
-            Files.write(file, ByteArray(32).also { SecureRandom().nextBytes(it) })
-            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-------"))
-            mounts[id] = KeyMount(purpose, file)
-            purpose.name to id
-        }
+        val targets =
+            KeyPurpose.entries.associate { purpose ->
+                val id = "restore-" + purpose.name.lowercase()
+                val file = directory.resolve(id)
+                Files.write(file, ByteArray(32).also { SecureRandom().nextBytes(it) })
+                Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-------"))
+                mounts[id] = KeyMount(purpose, file)
+                purpose.name to id
+            }
         val keyFile = directory.resolve("restore-keys.json")
         val mapper = JsonMapper.builder().build()
-        protected(keyFile, mapper.writeValueAsString(mounts.mapValues { (_, mount) ->
-            mapOf("purpose" to mount.purpose.name, "file" to mount.file.toString())
-        }))
-        val counters = fixture.pool.connection.use {
-            it.queryBound("SELECT id,next_nonce FROM appdata.crypto_key_version") { row -> row.getString(1) to row.getLong(2).toString() }.toMap()
-        }
+        protected(
+            keyFile,
+            mapper.writeValueAsString(
+                mounts.mapValues { (_, mount) ->
+                    mapOf("purpose" to mount.purpose.name, "file" to mount.file.toString())
+                },
+            ),
+        )
+        val counters =
+            fixture.pool.connection.use {
+                it
+                    .queryBound(
+                        "SELECT id,next_nonce FROM appdata.crypto_key_version",
+                    ) { row -> row.getString(1) to row.getLong(2).toString() }
+                    .toMap()
+            }
         val epoch = UUID.randomUUID().toString()
         val checkpoint = "1".repeat(64)
-        protected(directory.resolve("restore-pending-validation"), mapper.writeValueAsString(mapOf("checkpointSha256" to checkpoint, "epoch" to epoch)))
-        val value = mapOf("checkpointSha256" to checkpoint, "epoch" to epoch, "keys" to keyFile.toString(),
-            "originals" to KeyPurpose.entries.associate { it.name to fixture.registry.writeKey(it).id },
-            "targets" to targets, "originalCounters" to counters)
+        protected(
+            directory.resolve("restore-pending-validation"),
+            mapper.writeValueAsString(
+                mapOf(
+                    "checkpointSha256" to checkpoint,
+                    "epoch" to epoch,
+                ),
+            ),
+        )
+        val value =
+            mapOf(
+                "checkpointSha256" to checkpoint,
+                "epoch" to epoch,
+                "keys" to keyFile.toString(),
+                "originals" to KeyPurpose.entries.associate { it.name to fixture.registry.writeKey(it).id },
+                "targets" to targets,
+                "originalCounters" to counters,
+            )
         return directory.resolve("restore-plan.json").also { protected(it, mapper.writeValueAsString(value)) }
     }
 
-    private fun protected(path: Path, value: String) {
+    private fun protected(
+        path: Path,
+        value: String,
+    ) {
         Files.writeString(path, value)
         Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rw-------"))
     }
 
-    private fun child(fixture: CryptoFixture, plan: Path): Int {
+    private fun child(
+        fixture: CryptoFixture,
+        plan: Path,
+    ): Int {
         val log = fixture.owner.root.resolve("restore-process.log")
-        val builder = ProcessBuilder(Path.of(System.getProperty("java.home"), "bin/java").toString(), "-cp",
-            System.getProperty("crypto.test.classpath"), RestoreCheckpointCli::class.java.name, "--plan=$plan")
-        builder.environment().putAll(mapOf("CORE_DB_URL" to fixture.owner.url("core"),
-            "CORE_DB_USER" to "spoolin_core_runtime", "CORE_DB_PASSWORD_FILE" to fixture.owner.passwords.getValue("core-runtime").toString()))
+        val builder =
+            ProcessBuilder(
+                Path.of(System.getProperty("java.home"), "bin/java").toString(),
+                "-cp",
+                System.getProperty("crypto.test.classpath"),
+                RestoreCheckpointCli::class.java.name,
+                "--plan=$plan",
+            )
+        builder.environment().putAll(
+            mapOf(
+                "CORE_DB_URL" to fixture.owner.url("core"),
+                "CORE_DB_USER" to "spoolin_core_runtime",
+                "CORE_DB_PASSWORD_FILE" to
+                    fixture.owner.passwords
+                        .getValue("core-runtime")
+                        .toString(),
+            ),
+        )
         val process = builder.redirectErrorStream(true).redirectOutput(log.toFile()).start()
         assertTrue(process.waitFor(60, TimeUnit.SECONDS))
         val output = Files.readString(log)

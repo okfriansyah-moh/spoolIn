@@ -11,17 +11,26 @@ object ImageEnvelope {
     private const val RIFF_LENGTH_END = 7
     private const val UNSIGNED_BYTE_MASK = 255L
     private const val BITS_PER_BYTE = 8
-    private val pngEnd = java.util.HexFormat.of().parseHex("0000000049454e44ae426082")
+    private val pngEnd =
+        java.util.HexFormat
+            .of()
+            .parseHex("0000000049454e44ae426082")
 
-    fun complete(bytes: ByteArray, format: ImageFormat): Boolean = when (format) {
-        ImageFormat.JPEG -> bytes.size >= JPEG_MIN_BYTES && bytes[bytes.size - 2] == JPEG_END_PREFIX.toByte() &&
-            bytes.last() == JPEG_END_SUFFIX.toByte()
-        ImageFormat.PNG -> {
-            bytes.size >= pngEnd.size && bytes.takeLast(pngEnd.size).toByteArray().contentEquals(pngEnd)
+    fun complete(
+        bytes: ByteArray,
+        format: ImageFormat,
+    ): Boolean =
+        when (format) {
+            ImageFormat.JPEG ->
+                bytes.size >= JPEG_MIN_BYTES && bytes[bytes.size - 2] == JPEG_END_PREFIX.toByte() &&
+                    bytes.last() == JPEG_END_SUFFIX.toByte()
+            ImageFormat.PNG -> {
+                bytes.size >= pngEnd.size && bytes.takeLast(pngEnd.size).toByteArray().contentEquals(pngEnd)
+            }
+            ImageFormat.WEBP ->
+                bytes.size >= WEBP_MIN_BYTES &&
+                    littleEndianLength(bytes) == bytes.size.toLong() - RIFF_HEADER_BYTES
         }
-        ImageFormat.WEBP -> bytes.size >= WEBP_MIN_BYTES &&
-            littleEndianLength(bytes) == bytes.size.toLong() - RIFF_HEADER_BYTES
-    }
 
     private fun littleEndianLength(bytes: ByteArray): Long =
         (RIFF_LENGTH_START..RIFF_LENGTH_END).fold(0L) { size, index ->

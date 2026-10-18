@@ -202,11 +202,12 @@ val receiptIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
 val catalogLifecycleIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
-    classpath = files(
-        bootstrapTests.output.classesDirs,
-        sourceSets["main"].output,
-        configurations["integrationTestRuntimeClasspath"],
-    )
+    classpath =
+        files(
+            bootstrapTests.output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
     filter { includeTestsMatching("com.spoolin.catalog.recovery.lifecycle.*") }
     useJUnitPlatform()
     maxHeapSize = "768m"
@@ -221,8 +222,12 @@ dependencies {
 val catalogProposalIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     dependsOn("integrationTestClasses")
-    classpath = files(sourceSets["integrationTest"].output.classesDirs, sourceSets["main"].output,
-        configurations["integrationTestRuntimeClasspath"])
+    classpath =
+        files(
+            sourceSets["integrationTest"].output.classesDirs,
+            sourceSets["main"].output,
+            configurations["integrationTestRuntimeClasspath"],
+        )
     filter { includeTestsMatching("com.spoolin.catalog.features.proposal.*") }
     useJUnitPlatform()
     maxHeapSize = "768m"

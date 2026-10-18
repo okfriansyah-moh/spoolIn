@@ -47,15 +47,39 @@ class ArtworkWorkHandler(
             val transient = failure.status.code in setOf(Status.Code.UNAVAILABLE, Status.Code.DEADLINE_EXCEEDED, Status.Code.NOT_FOUND)
             if (claim.kind == "ARTWORK_ATTACH" && (!transient || claim.attemptCount >= claim.maxAttempts)) {
                 store.abort(claim, intent, "ARTWORK_UNAVAILABLE")
-            } else guard.complete(claim, if (transient) AttemptOutcome.TRANSIENT else AttemptOutcome.PERMANENT, "ARTWORK_DOWNSTREAM_UNAVAILABLE")
+            } else {
+                guard.complete(
+                    claim,
+                    if (transient) AttemptOutcome.TRANSIENT else AttemptOutcome.PERMANENT,
+                    "ARTWORK_DOWNSTREAM_UNAVAILABLE",
+                )
+            }
         }
     }
 
-    private fun attach(claim: WorkClaim, intent: ArtworkIntent, payload: tools.jackson.databind.JsonNode) {
-        if (intent.state != "PREPARING") { guard.complete(claim, AttemptOutcome.SUCCEEDED); return }
-        val asset = mediaStub().getAsset(Spoolin.Id.newBuilder().setId(intent.asset.toString()).build())
-        if (asset.state == "FAILED" || asset.state == "DELETED") { store.abort(claim, intent, "FILE_INVALID"); return }
-        if (asset.state != "READY") { throw Status.UNAVAILABLE.withDescription("ARTWORK_PROCESSING").asRuntimeException() }
+    private fun attach(
+        claim: WorkClaim,
+        intent: ArtworkIntent,
+        payload: tools.jackson.databind.JsonNode,
+    ) {
+        if (intent.state != "PREPARING") {
+            guard.complete(claim, AttemptOutcome.SUCCEEDED)
+            return
+        }
+        val asset =
+            mediaStub().getAsset(
+                Spoolin.Id
+                    .newBuilder()
+                    .setId(intent.asset.toString())
+                    .build(),
+            )
+        if (asset.state == "FAILED" || asset.state == "DELETED") {
+            store.abort(claim, intent, "FILE_INVALID")
+            return
+        }
+        if (asset.state != "READY") {
+            throw Status.UNAVAILABLE.withDescription("ARTWORK_PROCESSING").asRuntimeException()
+        }
         verifyActor(intent, payload)
         mediaStub().reserve(hold(intent, "media-reserve", claim.correlationId, null))
         verifyActor(intent, payload)
@@ -63,22 +87,50 @@ class ArtworkWorkHandler(
         store.attach(claim, intent)
     }
 
-    private fun verifyActor(intent: ArtworkIntent, payload: tools.jackson.databind.JsonNode) {
-        val actor = identity.withDeadlineAfter(2, TimeUnit.SECONDS).checkActor(Spoolin.CheckActorRequest.newBuilder()
-            .setAccountId(intent.actor.toString()).setCredentialId(payload["credentialId"].asText()).setAuthEpoch(payload["authEpoch"].asLong()).setAudience("catalog").build())
+    private fun verifyActor(
+        intent: ArtworkIntent,
+        payload: tools.jackson.databind.JsonNode,
+    ) {
+        val actor =
+            identity.withDeadlineAfter(2, TimeUnit.SECONDS).checkActor(
+                Spoolin.CheckActorRequest
+                    .newBuilder()
+                    .setAccountId(
+                        intent.actor.toString(),
+                    ).setCredentialId(payload["credentialId"].asText())
+                    .setAuthEpoch(payload["authEpoch"].asLong())
+                    .setAudience("catalog")
+                    .build(),
+            )
         if (actor.accountId != intent.actor.toString() || actor.authEpoch != payload["authEpoch"].asLong() ||
-            actor.credentialId != payload["credentialId"].asText() || actor.expiresAt.seconds <= Instant.now().epochSecond || !Permissions.management(actor.role)) {
+            actor.credentialId != payload["credentialId"].asText() || actor.expiresAt.seconds <= Instant.now().epochSecond ||
+            !Permissions.management(actor.role)
+        ) {
             throw Status.PERMISSION_DENIED.asRuntimeException()
         }
     }
 
-    private fun hold(intent: ArtworkIntent, step: String, correlation: UUID, version: Long?): Spoolin.Hold =
-        Spoolin.Hold.newBuilder().setContext(Spoolin.Context.newBuilder()
-            .setOperationId(WorkRequest(step, "ARTWORK", intent.id, Instant.MAX).id(intent.id).toString())
-            .setCorrelationId(correlation.toString()).setPolicyRevision(intent.policy))
-            .setHoldId(intent.id.toString()).setAssetId(intent.asset.toString()).setTitleId(intent.title.toString())
-            .setActorId(intent.actor.toString()).setExpectedVersion(intent.expectedVersion)
-            .also { if (version != null) it.catalogVersion = version }.build()
+    private fun hold(
+        intent: ArtworkIntent,
+        step: String,
+        correlation: UUID,
+        version: Long?,
+    ): Spoolin.Hold =
+        Spoolin.Hold
+            .newBuilder()
+            .setContext(
+                Spoolin.Context
+                    .newBuilder()
+                    .setOperationId(WorkRequest(step, "ARTWORK", intent.id, Instant.MAX).id(intent.id).toString())
+                    .setCorrelationId(correlation.toString())
+                    .setPolicyRevision(intent.policy),
+            ).setHoldId(intent.id.toString())
+            .setAssetId(intent.asset.toString())
+            .setTitleId(intent.title.toString())
+            .setActorId(intent.actor.toString())
+            .setExpectedVersion(intent.expectedVersion)
+            .also { if (version != null) it.catalogVersion = version }
+            .build()
 
     private fun mediaStub(): MediaServiceGrpc.MediaServiceBlockingStub = media.withDeadlineAfter(5, TimeUnit.SECONDS)
 }

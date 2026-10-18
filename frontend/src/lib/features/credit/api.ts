@@ -143,51 +143,112 @@ const REMOVE_CREDIT = `mutation RemoveCredit($operationId: UUID!, $id: UUID!, $e
 }`;
 
 async function writeCredit(
-  request: GraphqlRequest, document: string, field: string,
-  variables: Record<string, unknown>, csrf: string, signal: AbortSignal,
+  request: GraphqlRequest,
+  document: string,
+  field: string,
+  variables: Record<string, unknown>,
+  csrf: string,
+  signal: AbortSignal,
 ): Promise<IdentityOutcome> {
-  const data = record(await request(document, variables, { mutation: true, csrf, signal }));
+  const data = record(
+    await request(document, variables, { mutation: true, csrf, signal }),
+  );
   return mutation(data[field], String(variables.operationId));
 }
 
 export async function addCredit(
-  request: GraphqlRequest, operationId: string, titleId: string,
-  expectedVersion: string, policyRevision: string,
+  request: GraphqlRequest,
+  operationId: string,
+  titleId: string,
+  expectedVersion: string,
+  policyRevision: string,
   input: { personId: string; roleId: string; characters: string[] },
-  csrf: string, signal: AbortSignal,
+  csrf: string,
+  signal: AbortSignal,
 ): Promise<IdentityOutcome> {
-  return writeCredit(request, ADD_CREDIT, 'addCredit', {
-    operationId, titleId, expectedVersion, policyRevision, input,
-  }, csrf, signal);
+  return writeCredit(
+    request,
+    ADD_CREDIT,
+    'addCredit',
+    {
+      operationId,
+      titleId,
+      expectedVersion,
+      policyRevision,
+      input,
+    },
+    csrf,
+    signal,
+  );
 }
 
 export async function updateCredit(
-  request: GraphqlRequest, operationId: string, id: string,
-  expectedVersion: string, policyRevision: string,
-  patch: { roleId?: string; characters?: string[] }, csrf: string, signal: AbortSignal,
+  request: GraphqlRequest,
+  operationId: string,
+  id: string,
+  expectedVersion: string,
+  policyRevision: string,
+  patch: { roleId?: string; characters?: string[] },
+  csrf: string,
+  signal: AbortSignal,
 ): Promise<IdentityOutcome> {
-  return writeCredit(request, UPDATE_CREDIT, 'updateCredit', {
-    operationId, id, expectedVersion, policyRevision, patch,
-  }, csrf, signal);
+  return writeCredit(
+    request,
+    UPDATE_CREDIT,
+    'updateCredit',
+    {
+      operationId,
+      id,
+      expectedVersion,
+      policyRevision,
+      patch,
+    },
+    csrf,
+    signal,
+  );
 }
 
 export async function removeCredit(
-  request: GraphqlRequest, operationId: string, id: string,
-  expectedVersion: string, csrf: string, signal: AbortSignal,
+  request: GraphqlRequest,
+  operationId: string,
+  id: string,
+  expectedVersion: string,
+  csrf: string,
+  signal: AbortSignal,
 ): Promise<IdentityOutcome> {
-  return writeCredit(request, REMOVE_CREDIT, 'removeCredit', {
-    operationId, id, expectedVersion,
-  }, csrf, signal);
+  return writeCredit(
+    request,
+    REMOVE_CREDIT,
+    'removeCredit',
+    {
+      operationId,
+      id,
+      expectedVersion,
+    },
+    csrf,
+    signal,
+  );
 }
 
 export async function recoverCredit(
-  request: GraphqlRequest, operationId: string, csrf: string, signal: AbortSignal,
+  request: GraphqlRequest,
+  operationId: string,
+  csrf: string,
+  signal: AbortSignal,
 ): Promise<IdentityOutcome | null> {
   const document = `query CreditOperation($id: UUID!) {
     operation(id: $id, owner: CATALOG) {
       id state resultExpired problem { code retryAfterMs }
     }
   }`;
-  const data = record(await request(document, { id: operationId }, withCsrfAndSignal(csrf, signal)));
-  return data.operation === null ? null : operation(data.operation, operationId);
+  const data = record(
+    await request(
+      document,
+      { id: operationId },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
+  return data.operation === null
+    ? null
+    : operation(data.operation, operationId);
 }

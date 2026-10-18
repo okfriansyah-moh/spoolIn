@@ -16,8 +16,7 @@ object ProposalContent {
             "sources" to request.sourcesList.map(::sourceMap),
         )
 
-    fun policyRevision(content: Map<String, Any?>): String =
-        content["policy_revision"] as? String ?: ""
+    fun policyRevision(content: Map<String, Any?>): String = content["policy_revision"] as? String ?: ""
 
     fun parseJson(raw: String): Map<String, Any?> {
         @Suppress("UNCHECKED_CAST")

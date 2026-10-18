@@ -121,7 +121,12 @@
     />
   {/if}
   {#if editorState.saved?.state === 'ACTIVE'}
-    <ArchiveAction kind="movie" id={editorState.saved.id} version={editorState.saved.version} disabled={editorState.phase === 'submitting'} />
+    <ArchiveAction
+      kind="movie"
+      id={editorState.saved.id}
+      version={editorState.saved.version}
+      disabled={editorState.phase === 'submitting'}
+    />
   {/if}
 {:else}
   <p role="status">Loading movie editor…</p>

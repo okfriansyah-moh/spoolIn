@@ -89,7 +89,8 @@ export class MovieEditorController {
         return;
       }
       await this.bootstrapExistingMovie(genres, context, signal);
-      if (this.current.phase !== 'target-changed') await this.restoreBackedDraft(context, signal);
+      if (this.current.phase !== 'target-changed')
+        await this.restoreBackedDraft(context, signal);
     } catch {
       if (signal.aborted) return;
       this.publish({
@@ -104,7 +105,12 @@ export class MovieEditorController {
     next: MovieDraft,
     options: { originalTitleTouched?: boolean } = {},
   ): void {
-    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain' || this.current.draftChoices.length) return;
+    if (
+      this.current.phase === 'submitting' ||
+      this.current.phase === 'uncertain' ||
+      this.current.draftChoices.length
+    )
+      return;
     if (options.originalTitleTouched) this.originalTitleTouched = true;
     this.publish({ ...this.current, draft: Object.freeze({ ...next }) });
     if (this.writeContext && this.current.saved) {
@@ -145,8 +151,13 @@ export class MovieEditorController {
 
   async confirmDiscard(): Promise<void> {
     if (!this.writeContext) return;
-    if (!await this.draftSync.discard(this.writeContext)) {
-      this.publish({ ...this.current, phase: 'failed', message: 'Discard is not confirmed. Retry the original discard before leaving.' });
+    if (!(await this.draftSync.discard(this.writeContext))) {
+      this.publish({
+        ...this.current,
+        phase: 'failed',
+        message:
+          'Discard is not confirmed. Retry the original discard before leaving.',
+      });
       return;
     }
     this.publish({ ...this.current, discardDialogOpen: false });
@@ -230,62 +241,118 @@ export class MovieEditorController {
     });
   }
 
-  private async restoreBackedDraft(context: WriteContext, signal: AbortSignal): Promise<void> {
+  private async restoreBackedDraft(
+    context: WriteContext,
+    signal: AbortSignal,
+  ): Promise<void> {
     const drafts = await this.draftSync.load(context, signal);
     if (signal.aborted || drafts.length === 0) return;
     if (drafts.length > 1) {
-      this.publish({ ...this.current, phase: 'idle', draftChoices: Object.freeze(drafts.map((draft) => ({
-        id: draft.id, label: (draft.values as MovieDraft).title || 'Untitled movie draft', expiresAt: draft.expiresAt,
-      }))), message: 'Choose a retained draft or deliberately start a new draft. No saved draft was selected automatically.' });
+      this.publish({
+        ...this.current,
+        phase: 'idle',
+        draftChoices: Object.freeze(
+          drafts.map((draft) => ({
+            id: draft.id,
+            label: (draft.values as MovieDraft).title || 'Untitled movie draft',
+            expiresAt: draft.expiresAt,
+          })),
+        ),
+        message:
+          'Choose a retained draft or deliberately start a new draft. No saved draft was selected automatically.',
+      });
       return;
     }
     const draft = drafts[0];
     if (draft) await this.applyBackedDraft(draft, signal);
   }
 
-  private async applyBackedDraft(draft: DraftRecord, signal: AbortSignal): Promise<void> {
+  private async applyBackedDraft(
+    draft: DraftRecord,
+    signal: AbortSignal,
+  ): Promise<void> {
     this.publish({ ...this.current, draftChoices: Object.freeze([]) });
     this.draftSync.adopt(draft);
     if (draft.operationId) {
-      this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: draft.operationId,
-        message: 'Check the original save before continuing this retained draft.' });
+      this.publish({
+        ...this.current,
+        phase: 'uncertain',
+        pendingOperationId: draft.operationId,
+        message:
+          'Check the original save before continuing this retained draft.',
+      });
       await this.checkOriginalResult();
       if (signal.aborted || this.current.phase !== 'failed') return;
     }
-    const stale = this.current.saved && draft.baseVersion !== this.current.saved.version;
-    this.originalTitleTouched = Object.prototype.hasOwnProperty.call(draft.values, 'originalTitle');
-    this.publish({ ...this.current, draft: draft.values as MovieDraft,
-      phase: stale ? 'stale' : 'idle', pendingOperationId: null, draftBaseKnown: !stale,
-      message: stale ? 'The saved movie changed. Compare its current values with the retained draft.' : 'Saved draft recovered.',
-      staleReviewOpen: !!stale });
+    const stale =
+      this.current.saved && draft.baseVersion !== this.current.saved.version;
+    this.originalTitleTouched = Object.prototype.hasOwnProperty.call(
+      draft.values,
+      'originalTitle',
+    );
+    this.publish({
+      ...this.current,
+      draft: draft.values as MovieDraft,
+      phase: stale ? 'stale' : 'idle',
+      pendingOperationId: null,
+      draftBaseKnown: !stale,
+      message: stale
+        ? 'The saved movie changed. Compare its current values with the retained draft.'
+        : 'Saved draft recovered.',
+      staleReviewOpen: !!stale,
+    });
   }
 
   async selectRetainedDraft(id: string): Promise<void> {
-    if (!this.writeContext || this.current.phase === 'uncertain' || this.current.phase === 'submitting') return;
+    if (
+      !this.writeContext ||
+      this.current.phase === 'uncertain' ||
+      this.current.phase === 'submitting'
+    )
+      return;
     const signal = this.active?.signal ?? new AbortController().signal;
     try {
       const drafts = await this.draftSync.load(this.writeContext, signal);
       const selected = drafts.find((draft) => draft.id === id);
       if (!selected || signal.aborted) {
-        this.publish({ ...this.current, message: 'That retained draft is no longer available. Choose another draft or start again.' });
+        this.publish({
+          ...this.current,
+          message:
+            'That retained draft is no longer available. Choose another draft or start again.',
+        });
         return;
       }
       await this.applyBackedDraft(selected, signal);
     } catch {
-      this.publish({ ...this.current, message: 'The retained draft could not be checked. Retry before continuing.' });
+      this.publish({
+        ...this.current,
+        message:
+          'The retained draft could not be checked. Retry before continuing.',
+      });
     }
   }
 
   startNewDraft(): void {
-    if (!this.current.draftChoices.length || this.current.phase === 'uncertain') return;
+    if (!this.current.draftChoices.length || this.current.phase === 'uncertain')
+      return;
     this.draftSync.reset();
-    this.publish({ ...this.current, draftChoices: Object.freeze([]), draftBaseKnown: true, phase: 'idle',
-      draft: this.current.saved ? movieToDraft(this.current.saved) : EMPTY_MOVIE_DRAFT,
-      message: 'Started a new draft. Other retained drafts remain available after reload.' });
+    this.publish({
+      ...this.current,
+      draftChoices: Object.freeze([]),
+      draftBaseKnown: true,
+      phase: 'idle',
+      draft: this.current.saved
+        ? movieToDraft(this.current.saved)
+        : EMPTY_MOVIE_DRAFT,
+      message:
+        'Started a new draft. Other retained drafts remain available after reload.',
+    });
   }
 
   private reviewedStale(reviewed: boolean): boolean {
-    return reviewed && this.current.phase === 'stale' && this.current.staleReviewOpen;
+    return (
+      reviewed && this.current.phase === 'stale' && this.current.staleReviewOpen
+    );
   }
 
   async rebaseAfterReview(reviewed: boolean): Promise<void> {
@@ -293,67 +360,142 @@ export class MovieEditorController {
     if (!this.writeContext || !this.movieId) return;
     const reviewedVersion = this.current.current?.version;
     try {
-      const latest = await fetchManagedMovie(this.request, this.movieId, this.writeContext.csrf);
+      const latest = await fetchManagedMovie(
+        this.request,
+        this.movieId,
+        this.writeContext.csrf,
+      );
       if (!latest || latest.state !== 'ACTIVE' || latest.kind !== 'MOVIE') {
-        this.publish({ ...this.current, phase: 'target-changed', current: latest,
-          message: 'This movie is no longer available for editing. The draft is retained.' });
+        this.publish({
+          ...this.current,
+          phase: 'target-changed',
+          current: latest,
+          message:
+            'This movie is no longer available for editing. The draft is retained.',
+        });
         return;
       }
       if (latest.version !== reviewedVersion) {
-        this.publish({ ...this.current, current: latest, message: 'Current values changed again. Review the new values before continuing.' });
+        this.publish({
+          ...this.current,
+          current: latest,
+          message:
+            'Current values changed again. Review the new values before continuing.',
+        });
         return;
       }
       const draft = this.rebaseDraft(latest);
       this.pendingWriteId = null;
-      this.publish({ ...this.current, saved: latest, current: latest, draft, draftBaseKnown: true, phase: 'idle',
-        pendingOperationId: null, staleReviewOpen: false,
-        message: 'Current values reviewed. Your draft is retained; save when ready to apply it.' });
-      this.draftSync.schedule(this.current.draft, this.writeContext, latest.version);
+      this.publish({
+        ...this.current,
+        saved: latest,
+        current: latest,
+        draft,
+        draftBaseKnown: true,
+        phase: 'idle',
+        pendingOperationId: null,
+        staleReviewOpen: false,
+        message:
+          'Current values reviewed. Your draft is retained; save when ready to apply it.',
+      });
+      this.draftSync.schedule(
+        this.current.draft,
+        this.writeContext,
+        latest.version,
+      );
     } catch {
-      this.publish({ ...this.current, message: 'The current record could not be checked. Review again before continuing.' });
+      this.publish({
+        ...this.current,
+        message:
+          'The current record could not be checked. Review again before continuing.',
+      });
     }
   }
 
-  private rebaseText<K extends 'title' | 'synopsis'>(field: K, latest: NonNullable<EditorState['saved']>): string {
+  private rebaseText<K extends 'title' | 'synopsis'>(
+    field: K,
+    latest: NonNullable<EditorState['saved']>,
+  ): string {
     const value = this.current.draft[field];
-    return value !== undefined && value !== this.current.saved?.[field] ? value ?? '' : latest[field];
+    return value !== undefined && value !== this.current.saved?.[field]
+      ? (value ?? '')
+      : latest[field];
   }
 
-  private rebaseRelease(latest: NonNullable<EditorState['saved']>): NonNullable<MovieDraft['release']> {
+  private rebaseRelease(
+    latest: NonNullable<EditorState['saved']>,
+  ): NonNullable<MovieDraft['release']> {
     const release = this.current.draft.release;
-    if (release?.year !== undefined && String(release.year ?? '') !== this.current.saved?.releaseYear) return release;
-    return movieToDraft(latest).release ?? { year: null, month: null, day: null };
+    if (
+      release?.year !== undefined &&
+      String(release.year ?? '') !== this.current.saved?.releaseYear
+    )
+      return release;
+    return (
+      movieToDraft(latest).release ?? { year: null, month: null, day: null }
+    );
   }
 
-  private rebaseGenres(latest: NonNullable<EditorState['saved']>): readonly string[] {
-    const baseGenres = [...(this.current.saved?.genreIds ?? [])].sort().join(',');
-    const draftGenres = [...(this.current.draft.genreIds ?? this.current.saved?.genreIds ?? [])].sort().join(',');
-    return draftGenres !== baseGenres ? this.current.draft.genreIds ?? [] : latest.genreIds;
+  private rebaseGenres(
+    latest: NonNullable<EditorState['saved']>,
+  ): readonly string[] {
+    const baseGenres = [...(this.current.saved?.genreIds ?? [])]
+      .sort()
+      .join(',');
+    const draftGenres = [
+      ...(this.current.draft.genreIds ?? this.current.saved?.genreIds ?? []),
+    ]
+      .sort()
+      .join(',');
+    return draftGenres !== baseGenres
+      ? (this.current.draft.genreIds ?? [])
+      : latest.genreIds;
   }
 
   private rebaseDraft(latest: NonNullable<EditorState['saved']>): MovieDraft {
-    if (!this.current.saved || !this.current.draftBaseKnown) return this.current.draft;
-    return { ...movieToDraft(latest), title: this.rebaseText('title', latest), synopsis: this.rebaseText('synopsis', latest),
-      originalTitle: this.originalTitleTouched ? this.current.draft.originalTitle ?? null : latest.originalTitle,
-      genreIds: this.rebaseGenres(latest), release: this.rebaseRelease(latest),
+    if (!this.current.saved || !this.current.draftBaseKnown)
+      return this.current.draft;
+    return {
+      ...movieToDraft(latest),
+      title: this.rebaseText('title', latest),
+      synopsis: this.rebaseText('synopsis', latest),
+      originalTitle: this.originalTitleTouched
+        ? (this.current.draft.originalTitle ?? null)
+        : latest.originalTitle,
+      genreIds: this.rebaseGenres(latest),
+      release: this.rebaseRelease(latest),
     };
   }
 
   private async backSubmission(operationId: string): Promise<boolean> {
     if (!this.writeContext) return false;
-    const backed = await this.draftSync.prepareSubmission(operationId, this.current.draft,
-      this.writeContext, this.current.saved?.version ?? null);
+    const backed = await this.draftSync.prepareSubmission(
+      operationId,
+      this.current.draft,
+      this.writeContext,
+      this.current.saved?.version ?? null,
+    );
     if (backed) return true;
     this.pendingWriteId = null;
-    this.publish({ ...this.current, phase: 'failed', pendingOperationId: null,
-      message: 'Changes are not backed up yet. Retry after the original draft save is confirmed.' });
+    this.publish({
+      ...this.current,
+      phase: 'failed',
+      pendingOperationId: null,
+      message:
+        'Changes are not backed up yet. Retry after the original draft save is confirmed.',
+    });
     return false;
   }
 
   private submissionBlocked(): boolean {
-    return !!this.pendingWriteId || this.current.draftChoices.length > 0
-      || ['submitting', 'uncertain', 'stale', 'target-changed'].includes(this.current.phase)
-      || (this.mode === 'create' && this.current.saved !== null);
+    return (
+      !!this.pendingWriteId ||
+      this.current.draftChoices.length > 0 ||
+      ['submitting', 'uncertain', 'stale', 'target-changed'].includes(
+        this.current.phase,
+      ) ||
+      (this.mode === 'create' && this.current.saved !== null)
+    );
   }
 
   private beginSubmit(): {
@@ -397,7 +539,7 @@ export class MovieEditorController {
     if (!started) return;
     const { operationId, generation, signal } = started;
     try {
-      if (!await this.backSubmission(operationId)) return;
+      if (!(await this.backSubmission(operationId))) return;
       if (this.mode === 'create') {
         await this.submitCreate(operationId, generation, signal);
         return;
@@ -510,8 +652,16 @@ export class MovieEditorController {
     receipt: Awaited<ReturnType<typeof recoverCatalogOperation>>,
     operationId: string,
   ): Promise<void> {
-    if (receipt?.state === 'EXPIRED' || (receipt && 'resultExpired' in receipt && receipt.resultExpired === true)) {
-      this.publish({ ...this.current, phase: 'uncertain', message: 'Original save result expired. Review the current record; do not repeat the original change.' });
+    if (
+      receipt?.state === 'EXPIRED' ||
+      (receipt && 'resultExpired' in receipt && receipt.resultExpired === true)
+    ) {
+      this.publish({
+        ...this.current,
+        phase: 'uncertain',
+        message:
+          'Original save result expired. Review the current record; do not repeat the original change.',
+      });
       return;
     }
     if (receipt?.state === 'SUCCEEDED') {

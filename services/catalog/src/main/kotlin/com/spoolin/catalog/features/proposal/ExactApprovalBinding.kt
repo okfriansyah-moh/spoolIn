@@ -23,25 +23,37 @@ data class ExactApprovalBinding(
             input: spoolin.v1.Spoolin.ApprovalInput,
             policyRevision: String,
             now: Instant,
-        ): ExactApprovalBinding = ExactApprovalBinding(
-            UUID.fromString(input.proposalId), input.revision, claims.accountId, claims.credentialId,
-            claims.clientKind ?: "", java.util.Base64.getDecoder().decode(input.contentHash), input.challenge,
-            policyRevision, now,
-        )
+        ): ExactApprovalBinding =
+            ExactApprovalBinding(
+                UUID.fromString(input.proposalId),
+                input.revision,
+                claims.accountId,
+                claims.credentialId,
+                claims.clientKind ?: "",
+                java.util.Base64
+                    .getDecoder()
+                    .decode(input.contentHash),
+                input.challenge,
+                policyRevision,
+                now,
+            )
     }
 
-    fun verify(row: ProposalRow, storedChallengeHash: ByteArray): Status? =
-        identityProblem(row) ?: challengeProblem(storedChallengeHash) ?: reviewProblem(row)
+    fun verify(
+        row: ProposalRow,
+        storedChallengeHash: ByteArray,
+    ): Status? = identityProblem(row) ?: challengeProblem(storedChallengeHash) ?: reviewProblem(row)
 
-    fun identityProblem(row: ProposalRow): Status? = when {
-        row.id != proposalId || row.revision != revision ->
-            Status.FAILED_PRECONDITION.withDescription("REVISION_MISMATCH")
-        row.actorId != actorId || row.connectorId != connectorId || row.clientKind != clientKind ->
-            Status.PERMISSION_DENIED.withDescription("ACTOR_BINDING_MISMATCH")
-        !MessageDigest.isEqual(contentHash, row.contentHash) ->
-            Status.FAILED_PRECONDITION.withDescription("CONTENT_HASH_MISMATCH")
-        else -> null
-    }
+    fun identityProblem(row: ProposalRow): Status? =
+        when {
+            row.id != proposalId || row.revision != revision ->
+                Status.FAILED_PRECONDITION.withDescription("REVISION_MISMATCH")
+            row.actorId != actorId || row.connectorId != connectorId || row.clientKind != clientKind ->
+                Status.PERMISSION_DENIED.withDescription("ACTOR_BINDING_MISMATCH")
+            !MessageDigest.isEqual(contentHash, row.contentHash) ->
+                Status.FAILED_PRECONDITION.withDescription("CONTENT_HASH_MISMATCH")
+            else -> null
+        }
 
     fun challengeProblem(storedChallengeHash: ByteArray): Status? {
         val digest = MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray(Charsets.UTF_8))

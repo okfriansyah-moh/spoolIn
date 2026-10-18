@@ -13,9 +13,15 @@ import spoolin.v1.MediaServiceGrpc
 @ConditionalOnProperty(name = ["spoolin.catalog-view.enabled"], havingValue = "true", matchIfMissing = true)
 class ArtworkGraphqlConfiguration {
     @Bean
-    fun artworkReadProxy(channels: GrpcChannelFactory, issuer: ObjectProvider<ActorIssuer>): ArtworkReadProxy =
-        ArtworkReadProxy(CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
-            MediaServiceGrpc.newBlockingStub(channels.createChannel("media")), issuer.ifAvailable)
+    fun artworkReadProxy(
+        channels: GrpcChannelFactory,
+        issuer: ObjectProvider<ActorIssuer>,
+    ): ArtworkReadProxy =
+        ArtworkReadProxy(
+            CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
+            MediaServiceGrpc.newBlockingStub(channels.createChannel("media")),
+            issuer.ifAvailable,
+        )
 
     @Bean
     fun artworkGraphql(

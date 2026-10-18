@@ -11,8 +11,8 @@ import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.ActorSigner
 import com.spoolin.support.identity.ActorVerifier
 import com.spoolin.support.receipts.IntentHashes
-import com.spoolin.support.receipts.queryBound
 import com.spoolin.support.receipts.executeBound
+import com.spoolin.support.receipts.queryBound
 import io.grpc.Metadata
 import io.grpc.ServerInterceptors
 import io.grpc.netty.GrpcSslContexts
@@ -46,11 +46,14 @@ internal class ProposalFixture : AutoCloseable {
     val connector: UUID = UUID.randomUUID()
     var now: Instant = Instant.now()
     var policy = "p1"
-    private val clock = object : Clock() {
-        override fun instant(): Instant = now
-        override fun getZone(): ZoneId = ZoneOffset.UTC
-        override fun withZone(zone: ZoneId): Clock = this
-    }
+    private val clock =
+        object : Clock() {
+            override fun instant(): Instant = now
+
+            override fun getZone(): ZoneId = ZoneOffset.UTC
+
+            override fun withZone(zone: ZoneId): Clock = this
+        }
     private val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
     private val signer = ActorSigner("test", keys.private)
     val pool: com.zaxxer.hikari.HikariDataSource
@@ -65,31 +68,62 @@ internal class ProposalFixture : AutoCloseable {
         pool = fixture.pool("catalog")
         val receipts = OwnerReceipts(pool, IntentHashes(mapOf("test" to ByteArray(KEY_BYTES) { 1 }), "test"), clock)
         val writes = ProposalWrites(pool, receipts, MovieWrites(receipts, clock), clock = clock) { policy }
-        val methods = setOf("ProposeMovie", "ApproveAndCreate", "RejectProposal")
-            .map { "spoolin.v1.CatalogService/$it" }.toSet()
-        val actors = ActorInterceptor("catalog", methods, ActorVerifier(mapOf("test" to keys.public)), { claims ->
-            require(claims.authEpoch == 1L)
-        })
-        server = NettyServerBuilder.forAddress(InetSocketAddress("127.0.0.1", 0)).sslContext(serverTls())
-            .addService(ServerInterceptors.intercept(service(writes), ServiceIdentityInterceptor(actors))).build().start()
-        channel = NettyChannelBuilder.forAddress("127.0.0.1", server.port).overrideAuthority("catalog")
-            .sslContext(clientTls()).build()
+        val methods =
+            setOf("ProposeMovie", "ApproveAndCreate", "RejectProposal")
+                .map { "spoolin.v1.CatalogService/$it" }
+                .toSet()
+        val actors =
+            ActorInterceptor("catalog", methods, ActorVerifier(mapOf("test" to keys.public)), { claims ->
+                require(claims.authEpoch == 1L)
+            })
+        server =
+            NettyServerBuilder
+                .forAddress(InetSocketAddress("127.0.0.1", 0))
+                .sslContext(serverTls())
+                .addService(ServerInterceptors.intercept(service(writes), ServiceIdentityInterceptor(actors)))
+                .build()
+                .start()
+        channel =
+            NettyChannelBuilder
+                .forAddress("127.0.0.1", server.port)
+                .overrideAuthority("catalog")
+                .sslContext(clientTls())
+                .build()
     }
 
     private fun service(writes: ProposalWrites): CatalogServiceGrpc.CatalogServiceImplBase =
         object : CatalogServiceGrpc.CatalogServiceImplBase() {
-            override fun proposeMovie(r: Spoolin.Proposal, o: StreamObserver<Spoolin.ProposalRevision>) = writes.propose(r, o)
-            override fun approveAndCreate(r: Spoolin.ApprovalInput, o: StreamObserver<Spoolin.Outcome>) = writes.approve(r, o)
-            override fun rejectProposal(r: Spoolin.ApprovalInput, o: StreamObserver<Spoolin.Outcome>) = writes.reject(r, o)
+            override fun proposeMovie(
+                r: Spoolin.Proposal,
+                o: StreamObserver<Spoolin.ProposalRevision>,
+            ) = writes.propose(r, o)
+
+            override fun approveAndCreate(
+                r: Spoolin.ApprovalInput,
+                o: StreamObserver<Spoolin.Outcome>,
+            ) = writes.approve(r, o)
+
+            override fun rejectProposal(
+                r: Spoolin.ApprovalInput,
+                o: StreamObserver<Spoolin.Outcome>,
+            ) = writes.reject(r, o)
         }
 
-    private fun serverTls(): io.netty.handler.ssl.SslContext = GrpcSslContexts.forServer(
-        fixture.root.resolve("catalog.crt").toFile(), fixture.root.resolve("catalog.key").toFile(),
-    ).trustManager(fixture.root.resolve("ca.crt").toFile()).clientAuth(ClientAuth.REQUIRE).build()
+    private fun serverTls(): io.netty.handler.ssl.SslContext =
+        GrpcSslContexts
+            .forServer(
+                fixture.root.resolve("catalog.crt").toFile(),
+                fixture.root.resolve("catalog.key").toFile(),
+            ).trustManager(fixture.root.resolve("ca.crt").toFile())
+            .clientAuth(ClientAuth.REQUIRE)
+            .build()
 
-    private fun clientTls(): io.netty.handler.ssl.SslContext = GrpcSslContexts.forClient()
-        .trustManager(fixture.root.resolve("ca.crt").toFile())
-        .keyManager(fixture.root.resolve("core.crt").toFile(), fixture.root.resolve("core.key").toFile()).build()
+    private fun clientTls(): io.netty.handler.ssl.SslContext =
+        GrpcSslContexts
+            .forClient()
+            .trustManager(fixture.root.resolve("ca.crt").toFile())
+            .keyManager(fixture.root.resolve("core.crt").toFile(), fixture.root.resolve("core.key").toFile())
+            .build()
 
     fun stub(
         method: String,
@@ -100,24 +134,43 @@ internal class ProposalFixture : AutoCloseable {
         correlation: UUID = UUID.randomUUID(),
     ): CatalogServiceGrpc.CatalogServiceBlockingStub {
         val issued = Instant.now().epochSecond
-        val claims = ActorClaims(
-            "catalog", "/spoolin.v1.CatalogService/$method", account, credential, client, "MAINTAINER", 1,
-            issued, issued + ASSERTION_SECONDS,
-            Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(NONCE_BYTES) { 1 }),
-            correlation, operation,
-        )
+        val claims =
+            ActorClaims(
+                "catalog",
+                "/spoolin.v1.CatalogService/$method",
+                account,
+                credential,
+                client,
+                "MAINTAINER",
+                1,
+                issued,
+                issued + ASSERTION_SECONDS,
+                Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(NONCE_BYTES) { 1 }),
+                correlation,
+                operation,
+            )
         val headers = Metadata().apply { put(ActorRpc.metadata, signer.sign(claims)) }
-        return CatalogServiceGrpc.newBlockingStub(channel).withDeadlineAfter(RPC_SECONDS, TimeUnit.SECONDS)
+        return CatalogServiceGrpc
+            .newBlockingStub(channel)
+            .withDeadlineAfter(RPC_SECONDS, TimeUnit.SECONDS)
             .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(headers))
     }
 
-    fun row(id: String, revision: Int): ProposalRow = pool.connection.use {
-        ProposalStore.requireForUpdate(it, UUID.fromString(id), revision)
-    }
+    fun row(
+        id: String,
+        revision: Int,
+    ): ProposalRow =
+        pool.connection.use {
+            ProposalStore.requireForUpdate(it, UUID.fromString(id), revision)
+        }
 
-    fun count(sql: String, value: Any): Int = pool.connection.use {
-        it.queryBound(sql, listOf(value)) { rows -> rows.getInt(1) }.single()
-    }
+    fun count(
+        sql: String,
+        value: Any,
+    ): Int =
+        pool.connection.use {
+            it.queryBound(sql, listOf(value)) { rows -> rows.getInt(1) }.single()
+        }
 
     fun rejectSecondRevision() {
         fixture.membership("catalog", "grant")
@@ -134,11 +187,13 @@ internal class ProposalFixture : AutoCloseable {
         }
     }
 
-    fun receipt(id: UUID): Pair<String, String?> = pool.connection.use {
-        it.queryBound("SELECT state,result::text FROM operation_receipt WHERE id=?", listOf(id)) { row ->
-            row.getString("state") to row.getString("result")
-        }.single()
-    }
+    fun receipt(id: UUID): Pair<String, String?> =
+        pool.connection.use {
+            it
+                .queryBound("SELECT state,result::text FROM operation_receipt WHERE id=?", listOf(id)) { row ->
+                    row.getString("state") to row.getString("result")
+                }.single()
+        }
 
     override fun close() {
         channel.shutdownNow().awaitTermination(STOP_SECONDS, TimeUnit.SECONDS)

@@ -11,13 +11,25 @@ const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});
 app.ontoolresult = (result) => {
   if (!root || !isRecord(result.structuredContent)) return;
   const proposal = result.structuredContent;
-  if (typeof proposal.proposalId !== 'string' || typeof proposal.contentHash !== 'string' || typeof proposal.revision !== 'number') return;
+  if (
+    typeof proposal.proposalId !== 'string' ||
+    typeof proposal.contentHash !== 'string' ||
+    typeof proposal.revision !== 'number'
+  )
+    return;
   const values = proposal.normalizedMovie;
   if (!isRecord(values)) return;
   const model: ReviewModel = {
-    proposalId: proposal.proposalId, revision: proposal.revision, contentHash: proposal.contentHash,
-    values, sources: Array.isArray(proposal.sources) ? proposal.sources : [],
-    unknowns: Array.isArray(proposal.unknowns) ? proposal.unknowns.filter((value): value is string => typeof value === 'string') : [],
+    proposalId: proposal.proposalId,
+    revision: proposal.revision,
+    contentHash: proposal.contentHash,
+    values,
+    sources: Array.isArray(proposal.sources) ? proposal.sources : [],
+    unknowns: Array.isArray(proposal.unknowns)
+      ? proposal.unknowns.filter(
+          (value): value is string => typeof value === 'string',
+        )
+      : [],
   };
   renderReview(root, model);
   // Display capability is separate from authenticated host approval enforcement (G-03).
@@ -25,9 +37,14 @@ app.ontoolresult = (result) => {
   for (const button of root.querySelectorAll('button')) button.disabled = true;
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
-  status.textContent = 'Approval is unavailable until this chat host has verified private review controls.';
+  status.textContent =
+    'Approval is unavailable until this chat host has verified private review controls.';
   root.append(status);
 };
-app.ontoolcancelled = () => { if (root) root.textContent = 'Proposal review cancelled.'; };
+app.ontoolcancelled = () => {
+  if (root) root.textContent = 'Proposal review cancelled.';
+};
 app.onteardown = async () => ({});
-void app.connect().catch(() => { if (root) root.textContent = 'The review host connection is unavailable.'; });
+void app.connect().catch(() => {
+  if (root) root.textContent = 'The review host connection is unavailable.';
+});

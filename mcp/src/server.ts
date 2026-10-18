@@ -8,5 +8,9 @@ await gateway.start({
   healthPort,
 });
 
-process.once('SIGTERM', () => { void gateway.close(); });
-process.once('SIGINT', () => { void gateway.close(); });
+process.once('SIGTERM', () => {
+  void gateway.close();
+});
+process.once('SIGINT', () => {
+  void gateway.close();
+});

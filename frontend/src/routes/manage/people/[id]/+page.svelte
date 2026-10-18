@@ -79,7 +79,12 @@
     }}
   />
   {#if editorState.saved?.state === 'ACTIVE'}
-    <ArchiveAction kind="person" id={editorState.saved.id} version={editorState.saved.version} disabled={editorState.phase === 'submitting'} />
+    <ArchiveAction
+      kind="person"
+      id={editorState.saved.id}
+      version={editorState.saved.version}
+      disabled={editorState.phase === 'submitting'}
+    />
   {/if}
 {:else}
   <p role="status">Loading person editor…</p>

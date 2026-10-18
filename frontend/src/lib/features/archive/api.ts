@@ -102,15 +102,26 @@ export async function fetchDeletionImpact(
 }> {
   const data = record(await request(DELETION_IMPACT, { personId }, { csrf }));
   const impact = record(data.deletionImpact);
-  if (typeof impact.token !== 'string' || !impact.token || impact.token.length > 512 ||
-      typeof impact.affectedCreditCount !== 'number' || !Number.isInteger(impact.affectedCreditCount) ||
-      impact.affectedCreditCount < 0 || impact.affectedCreditCount > 2147483647 ||
-      !Array.isArray(impact.affectedTitles) ||
-      !impact.affectedTitles.every((title) => typeof title === 'string' && title.length > 0)) {
+  if (
+    typeof impact.token !== 'string' ||
+    !impact.token ||
+    impact.token.length > 512 ||
+    typeof impact.affectedCreditCount !== 'number' ||
+    !Number.isInteger(impact.affectedCreditCount) ||
+    impact.affectedCreditCount < 0 ||
+    impact.affectedCreditCount > 2147483647 ||
+    !Array.isArray(impact.affectedTitles) ||
+    !impact.affectedTitles.every(
+      (title) => typeof title === 'string' && title.length > 0,
+    )
+  ) {
     throw new Error('Complete deletion impact unavailable.');
   }
-  return Object.freeze({ token: impact.token, affectedCreditCount: impact.affectedCreditCount,
-    affectedTitles: Object.freeze(impact.affectedTitles as string[]) });
+  return Object.freeze({
+    token: impact.token,
+    affectedCreditCount: impact.affectedCreditCount,
+    affectedTitles: Object.freeze(impact.affectedTitles as string[]),
+  });
 }
 
 export async function runMovieLifecycle(
@@ -125,11 +136,7 @@ export async function runMovieLifecycle(
   },
 ): Promise<string> {
   const data = record(
-    await request(
-      MOVIE_LIFECYCLE,
-      { ...input },
-      { mutation: true, csrf },
-    ),
+    await request(MOVIE_LIFECYCLE, { ...input }, { mutation: true, csrf }),
   );
   return lifecycleState(data.movieLifecycle, input.operationId);
 }
@@ -147,23 +154,22 @@ export async function runPersonLifecycle(
   },
 ): Promise<string> {
   const data = record(
-    await request(
-      PERSON_LIFECYCLE,
-      { ...input },
-      { mutation: true, csrf },
-    ),
+    await request(PERSON_LIFECYCLE, { ...input }, { mutation: true, csrf }),
   );
   return lifecycleState(data.personLifecycle, input.operationId);
 }
 
 export class LifecycleFailure extends Error {
-  constructor(readonly code: string) { super('Lifecycle change was not confirmed.'); }
+  constructor(readonly code: string) {
+    super('Lifecycle change was not confirmed.');
+  }
 }
 
 function lifecycleState(value: unknown, expected: string): string {
   const receipt = mutation(value, expected);
   if (receipt.resultExpired) throw new LifecycleFailure('RESULT_EXPIRED');
   if (receipt.problem) throw new LifecycleFailure(receipt.problem.code);
-  if (receipt.state === 'FAILED' || receipt.state === 'EXPIRED') throw new LifecycleFailure(receipt.state);
+  if (receipt.state === 'FAILED' || receipt.state === 'EXPIRED')
+    throw new LifecycleFailure(receipt.state);
   return receipt.state;
 }

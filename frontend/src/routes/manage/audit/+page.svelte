@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { createTransport } from '../../../lib/transport/graphql';
-  import { fetchAuditPage, type AuditRow } from '../../../lib/features/audit/api';
+  import {
+    fetchAuditPage,
+    type AuditRow,
+  } from '../../../lib/features/audit/api';
   import { loadWriteContext } from '../../../lib/features/movie/write-context';
 
   let rows = $state<readonly AuditRow[]>([]);
@@ -25,14 +28,20 @@
           return;
         }
         permitted = true;
-        const page = await fetchAuditPage(transport, context.csrf, abort.signal, endCursor);
+        const page = await fetchAuditPage(
+          transport,
+          context.csrf,
+          abort.signal,
+          endCursor,
+        );
         if (abort.signal.aborted) return;
         rows = [...rows, ...page.nodes];
         endCursor = page.endCursor;
         hasNextPage = page.hasNextPage;
         message = rows.length ? '' : 'No history entries yet.';
       } catch {
-        if (!abort.signal.aborted) message = 'History could not be loaded. Retry the read.';
+        if (!abort.signal.aborted)
+          message = 'History could not be loaded. Retry the read.';
       } finally {
         loading = false;
       }
@@ -42,7 +51,7 @@
   });
 
   function displayChange(value: unknown): string {
-    return typeof value === 'string' ? value : JSON.stringify(value) ?? '—';
+    return typeof value === 'string' ? value : (JSON.stringify(value) ?? '—');
   }
 </script>
 
@@ -53,7 +62,13 @@
 
 {#if rows.length}
   <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users must be able to scroll the history table.) -->
-  <div class="table-wrap" tabindex="0" role="region" aria-label="Catalog history" aria-busy={loading}>
+  <div
+    class="table-wrap"
+    tabindex="0"
+    role="region"
+    aria-label="Catalog history"
+    aria-busy={loading}
+  >
     <table>
       <thead>
         <tr>
@@ -90,20 +105,33 @@
   </div>
 {/if}
 {#if permitted && (hasNextPage || message.includes('Retry'))}
-  <button type="button" class="secondary" disabled={loading} onclick={() => void loadPage()}>
+  <button
+    type="button"
+    class="secondary"
+    disabled={loading}
+    onclick={() => void loadPage()}
+  >
     {message.includes('Retry') ? 'Retry history' : 'Load more history'}
   </button>
 {/if}
 
 <style>
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td {
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th,
+  td {
     text-align: left;
     vertical-align: top;
     padding: var(--space-2, 0.5rem);
     border-bottom: 1px solid var(--border, currentColor);
     overflow-wrap: anywhere;
   }
-  .muted { margin-bottom: var(--space-4, 1rem); }
+  .muted {
+    margin-bottom: var(--space-4, 1rem);
+  }
 </style>

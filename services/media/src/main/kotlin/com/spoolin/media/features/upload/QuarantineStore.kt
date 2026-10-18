@@ -64,11 +64,16 @@ class QuarantineStore(
     /** Crash leftovers are private attempt directories, never accepted inputs or published files. */
     fun sweepAbandonedScratch(now: java.time.Instant = java.time.Instant.now()) {
         Files.list(output).use { paths ->
-            paths.filter { Files.isDirectory(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }
+            paths
+                .filter { Files.isDirectory(it, java.nio.file.LinkOption.NOFOLLOW_LINKS) }
                 .filter { runCatching { UUID.fromString(it.fileName.toString()) }.isSuccess }
-                .filter { Files.getLastModifiedTime(it).toInstant()
-                    .isBefore(now.minusSeconds(SCRATCH_RETENTION_SECONDS)) }
-                .limit(SCRATCH_SWEEP_BATCH).forEach(::deleteScratch)
+                .filter {
+                    Files
+                        .getLastModifiedTime(it)
+                        .toInstant()
+                        .isBefore(now.minusSeconds(SCRATCH_RETENTION_SECONDS))
+                }.limit(SCRATCH_SWEEP_BATCH)
+                .forEach(::deleteScratch)
         }
     }
 

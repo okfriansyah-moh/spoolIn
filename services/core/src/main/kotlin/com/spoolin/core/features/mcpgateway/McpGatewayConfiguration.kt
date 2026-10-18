@@ -9,13 +9,16 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import org.springframework.grpc.client.GrpcChannelFactory
 import spoolin.v1.CatalogServiceGrpc
-import java.nio.file.Path
 import tools.jackson.databind.ObjectMapper
+import java.nio.file.Path
 
 @Configuration(proxyBeanMethods = false)
 class McpGatewayConfiguration {
     @Bean(destroyMethod = "close")
-    fun uiAssertionVerifier(environment: Environment, mapper: ObjectMapper): UiAssertionVerifier {
+    fun uiAssertionVerifier(
+        environment: Environment,
+        mapper: ObjectMapper,
+    ): UiAssertionVerifier {
         val enabled = environment.getProperty("MCP_PUBLICATION_ENABLED", Boolean::class.java, false)
         return UiAssertionVerifier(enabled, if (enabled) UiAssertionKeys.load(environment) else null, mapper)
     }

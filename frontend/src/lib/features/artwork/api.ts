@@ -55,7 +55,11 @@ function parseUploadResponse(
       ? String(record(problem).code)
       : null;
   const op = record(result.operation);
-  if (op.id !== operationId || !['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(String(op.state)) || typeof op.resultExpired !== 'boolean') {
+  if (
+    op.id !== operationId ||
+    !['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(String(op.state)) ||
+    typeof op.resultExpired !== 'boolean'
+  ) {
     throw new TransportFailure('uncertain');
   }
   if (op.resultExpired) throw new TransportFailure('uncertain');

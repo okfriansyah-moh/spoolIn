@@ -52,9 +52,14 @@ export async function fetchAuditPage(
     }),
   );
   const pageInfo = record(audit.pageInfo);
-  const endCursor = typeof pageInfo.endCursor === 'string' ? pageInfo.endCursor : null;
+  const endCursor =
+    typeof pageInfo.endCursor === 'string' ? pageInfo.endCursor : null;
   if (pageInfo.hasNextPage === true && !endCursor) {
     throw new Error('Audit pagination cursor is missing.');
   }
-  return Object.freeze({ nodes: rows, endCursor, hasNextPage: pageInfo.hasNextPage === true });
+  return Object.freeze({
+    nodes: rows,
+    endCursor,
+    hasNextPage: pageInfo.hasNextPage === true,
+  });
 }

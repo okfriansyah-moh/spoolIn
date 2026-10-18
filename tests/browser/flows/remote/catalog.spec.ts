@@ -4,19 +4,26 @@ import { test, expect, capture } from './helpers';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const tokens = JSON.parse(readFileSync(resolve('../../docs/design-system/tokens.json'), 'utf8')).primitive;
+const tokens = JSON.parse(
+  readFileSync(resolve('../../docs/design-system/tokens.json'), 'utf8'),
+).primitive;
 
-test('Public catalog uses real GraphQL, seeded artwork and durable detail navigation', async ({ page }, info) => {
+test('Public catalog uses real GraphQL, seeded artwork and durable detail navigation', async ({
+  page,
+}, info) => {
   const apiFailures: string[] = [];
   page.on('response', async (response) => {
     if (new URL(response.url()).pathname !== '/graphql') return;
     if (!response.ok()) apiFailures.push(`HTTP ${response.status()}`);
     const body: unknown = await response.json().catch(() => null);
-    if (body && typeof body === 'object' && 'errors' in body) apiFailures.push('GraphQL errors');
+    if (body && typeof body === 'object' && 'errors' in body)
+      apiFailures.push('GraphQL errors');
   });
   await test.step('Open the catalog and assert actual API results', async () => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Every reel holds a story.' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Every reel holds a story.' }),
+    ).toBeVisible();
     await expect(page.getByRole('list', { name: 'Titles' })).toBeVisible();
     await expect(page.locator('.title-card')).not.toHaveCount(0);
     await expect(page.getByLabel('Month', { exact: true })).toBeDisabled();
@@ -25,15 +32,37 @@ test('Public catalog uses real GraphQL, seeded artwork and durable detail naviga
   const theme = info.project.use.colorScheme ?? 'dark';
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   const required = ['bg', 'text', 'accent', 'surface', 'line'];
-  const values = await page.locator('html').evaluate((root, names) =>
-    Object.fromEntries(names.map((name) => [name, getComputedStyle(root).getPropertyValue(`--${name}`).trim()])), required);
-  for (const name of required) expect(values[name].toLowerCase()).toBe(tokens[`${theme}-${name}`]);
+  const values = await page
+    .locator('html')
+    .evaluate(
+      (root, names) =>
+        Object.fromEntries(
+          names.map((name) => [
+            name,
+            getComputedStyle(root).getPropertyValue(`--${name}`).trim(),
+          ]),
+        ),
+      required,
+    );
+  for (const name of required)
+    expect(values[name].toLowerCase()).toBe(tokens[`${theme}-${name}`]);
   await page.keyboard.press('Tab');
   const focused = page.locator(':focus-visible');
   await expect(focused).toHaveCount(1);
-  expect(await focused.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe('none');
-  expect(await page.locator('html').evaluate((root) => root.scrollWidth <= window.innerWidth)).toBe(true);
-  await capture(page, info, ['ATDD-001', 'ATDD-268', 'ATDD-270', 'ATDD-273'], 'catalog');
+  expect(
+    await focused.evaluate((element) => getComputedStyle(element).outlineStyle),
+  ).not.toBe('none');
+  expect(
+    await page
+      .locator('html')
+      .evaluate((root) => root.scrollWidth <= window.innerWidth),
+  ).toBe(true);
+  await capture(
+    page,
+    info,
+    ['ATDD-001', 'ATDD-268', 'ATDD-270', 'ATDD-273'],
+    'catalog',
+  );
   await test.step('Follow a visible title and reload the production detail route', async () => {
     const link = page.locator('.title-card h3 a').first();
     const title = await link.innerText();
@@ -43,24 +72,47 @@ test('Public catalog uses real GraphQL, seeded artwork and durable detail naviga
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
     expect(apiFailures).toEqual([]);
   });
-  await page.locator('img').evaluateAll((images) => Promise.all(images.map((image) => image.decode())));
-  const broken = await page.locator('img').evaluateAll((images) =>
-    images.filter((image) => !image.complete || image.naturalWidth === 0).map((image) => image.getAttribute('src')));
+  await page
+    .locator('img')
+    .evaluateAll((images) =>
+      Promise.all(images.map((image) => image.decode())),
+    );
+  const broken = await page
+    .locator('img')
+    .evaluateAll((images) =>
+      images
+        .filter((image) => !image.complete || image.naturalWidth === 0)
+        .map((image) => image.getAttribute('src')),
+    );
   expect(broken).toEqual([]);
   await capture(page, info, ['ATDD-001', 'ATDD-257'], 'detail');
 });
 
-test('ATDD-006/007/014 partial: visible search and filter changes produce actual results', async ({ page }, info) => {
+test('ATDD-006/007/014 partial: visible search and filter changes produce actual results', async ({
+  page,
+}, info) => {
   await page.goto('/');
   const title = await page.locator('.title-card h3 a').first().innerText();
   await page.getByLabel('Search titles', { exact: true }).fill(title);
-  await expect(page.locator('.title-card h3 a').filter({ hasText: title })).toBeVisible();
-  await page.getByLabel('Search titles', { exact: true }).fill('zzzz-nonexistent-remote-title-271828');
-  await expect(page.getByText('No matching titles — try changing your filters.', { exact: true })).toBeVisible();
+  await expect(
+    page.locator('.title-card h3 a').filter({ hasText: title }),
+  ).toBeVisible();
+  await page
+    .getByLabel('Search titles', { exact: true })
+    .fill('zzzz-nonexistent-remote-title-271828');
+  await expect(
+    page.getByText('No matching titles — try changing your filters.', {
+      exact: true,
+    }),
+  ).toBeVisible();
   await capture(page, info, ['ATDD-007'], 'no-match');
-  await page.getByRole('button', { name: 'Clear search text', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Clear search text', exact: true })
+    .click();
   await expect(page.locator('.title-card')).not.toHaveCount(0);
-  await page.getByLabel('Release year', { exact: true }).selectOption({ index: 1 });
+  await page
+    .getByLabel('Release year', { exact: true })
+    .selectOption({ index: 1 });
   await expect(page.getByLabel('Month', { exact: true })).toBeEnabled();
   await page.getByLabel('Month', { exact: true }).selectOption('10');
   await page.getByLabel('Release year', { exact: true }).selectOption('');

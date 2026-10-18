@@ -32,7 +32,13 @@
   let busy = $state(false);
   let csrf = $state('');
   let message = $state('');
-  type Intent = { operationId: string; row: ArchiveRow; tab: ArchiveTab; action: 'RESTORE' | 'DELETE'; impactToken?: string };
+  type Intent = {
+    operationId: string;
+    row: ArchiveRow;
+    tab: ArchiveTab;
+    action: 'RESTORE' | 'DELETE';
+    impactToken?: string;
+  };
   let intent = $state<Intent | null>(null);
 
   async function reload(signal?: AbortSignal) {
@@ -86,38 +92,63 @@
     busy = true;
     try {
       if (tab === 'people') {
-        const impact = await fetchDeletionImpact(createTransport(), row.id, csrf);
+        const impact = await fetchDeletionImpact(
+          createTransport(),
+          row.id,
+          csrf,
+        );
         impactToken = impact.token;
-        impactSummary = formatDeletionImpactSummary(impact.affectedCreditCount, impact.affectedTitles);
+        impactSummary = formatDeletionImpactSummary(
+          impact.affectedCreditCount,
+          impact.affectedTitles,
+        );
       }
       confirmOpen = true;
     } catch {
-      message = 'The complete deletion impact could not be loaded. No deletion was submitted.';
-    } finally { busy = false; }
+      message =
+        'The complete deletion impact could not be loaded. No deletion was submitted.';
+    } finally {
+      busy = false;
+    }
   }
 
   async function confirmDelete() {
-    if (!selected || !csrf || busy || intent || !permanentDeleteReady(tab, impactToken)) return;
-    intent = { operationId: crypto.randomUUID(), row: selected, tab, action: 'DELETE',
-      ...(impactToken ? { impactToken } : {}) };
+    if (
+      !selected ||
+      !csrf ||
+      busy ||
+      intent ||
+      !permanentDeleteReady(tab, impactToken)
+    )
+      return;
+    intent = {
+      operationId: crypto.randomUUID(),
+      row: selected,
+      tab,
+      action: 'DELETE',
+      ...(impactToken ? { impactToken } : {}),
+    };
     confirmOpen = false;
     await submitOriginal();
   }
 
   async function finish(state: string, expired = false) {
     if (expired || state === 'EXPIRED') {
-      message = 'The original result has expired. Reload and inspect the current record before another action.';
+      message =
+        'The original result has expired. Reload and inspect the current record before another action.';
     } else if (state === 'SUCCEEDED') {
       message = 'The change is confirmed.';
       intent = null;
       selected = null;
       await reload();
     } else if (state === 'FAILED') {
-      message = 'The change failed. Review the current record before trying again.';
+      message =
+        'The change failed. Review the current record before trying again.';
       intent = null;
       await reload();
     } else {
-      message = 'The result is pending. Check the original result before another action.';
+      message =
+        'The result is pending. Check the original result before another action.';
     }
   }
 
@@ -126,22 +157,38 @@
     busy = true;
     try {
       const original = intent;
-      const run = original.tab === 'movies' ? runMovieLifecycle : runPersonLifecycle;
-      await finish(await run(createTransport(), csrf, {
-        operationId: original.operationId, id: original.row.id, expectedVersion: original.row.version,
-        action: original.action, confirmed: true, ...(original.impactToken ? { impactToken: original.impactToken } : {}),
-      }));
+      const run =
+        original.tab === 'movies' ? runMovieLifecycle : runPersonLifecycle;
+      await finish(
+        await run(createTransport(), csrf, {
+          operationId: original.operationId,
+          id: original.row.id,
+          expectedVersion: original.row.version,
+          action: original.action,
+          confirmed: true,
+          ...(original.impactToken
+            ? { impactToken: original.impactToken }
+            : {}),
+        }),
+      );
     } catch (error) {
-      if (error instanceof LifecycleFailure && error.code !== 'RESULT_EXPIRED') {
+      if (
+        error instanceof LifecycleFailure &&
+        error.code !== 'RESULT_EXPIRED'
+      ) {
         intent = null;
-        message = error.code === 'IMPACT_CHANGED'
-          ? 'The deletion impact changed. Load and confirm the current impact before deletion.'
-          : 'The change failed. Reload the current record before trying again.';
+        message =
+          error.code === 'IMPACT_CHANGED'
+            ? 'The deletion impact changed. Load and confirm the current impact before deletion.'
+            : 'The change failed. Reload the current record before trying again.';
         await reload();
       } else {
-        message = 'The result is uncertain. Check the original result or retry the same request.';
+        message =
+          'The result is uncertain. Check the original result or retry the same request.';
       }
-    } finally { busy = false; }
+    } finally {
+      busy = false;
+    }
   }
 
   async function checkOriginal() {
@@ -149,10 +196,22 @@
     busy = true;
     const abort = new AbortController();
     try {
-      const receipt = await recoverCatalogOperation(createTransport(), intent.operationId, csrf, abort.signal);
-      await finish(receipt?.state ?? 'UNKNOWN', receipt?.resultExpired ?? false);
-    } catch { message = 'The original result could not be checked. Keep the original request for retry.'; }
-    finally { busy = false; }
+      const receipt = await recoverCatalogOperation(
+        createTransport(),
+        intent.operationId,
+        csrf,
+        abort.signal,
+      );
+      await finish(
+        receipt?.state ?? 'UNKNOWN',
+        receipt?.resultExpired ?? false,
+      );
+    } catch {
+      message =
+        'The original result could not be checked. Keep the original request for retry.';
+    } finally {
+      busy = false;
+    }
   }
 </script>
 
@@ -197,8 +256,10 @@
       {#each listState.items as item (item.id)}
         <li>
           <span>{item.label} · {item.state}</span>
-          <button type="button" disabled={busy || intent !== null} onclick={() => restoreRow(item)}
-            >Restore</button
+          <button
+            type="button"
+            disabled={busy || intent !== null}
+            onclick={() => restoreRow(item)}>Restore</button
           >
           <button
             type="button"
@@ -213,12 +274,23 @@
   <p role="status">{message}</p>
   {#if intent}
     <div class="actions">
-      <button type="button" disabled={busy} onclick={() => void checkOriginal()}>Check original result</button>
-      <button type="button" disabled={busy} onclick={() => void submitOriginal()}>Retry original request</button>
+      <button type="button" disabled={busy} onclick={() => void checkOriginal()}
+        >Check original result</button
+      >
+      <button
+        type="button"
+        disabled={busy}
+        onclick={() => void submitOriginal()}>Retry original request</button
+      >
     </div>
   {/if}
-  <ConfirmDialog bind:open={confirmOpen} title="Confirm permanent deletion" action="Permanently delete"
-    pending={busy || !permanentDeleteReady(tab, impactToken)} onconfirm={() => void confirmDelete()}>
+  <ConfirmDialog
+    bind:open={confirmOpen}
+    title="Confirm permanent deletion"
+    action="Permanently delete"
+    pending={busy || !permanentDeleteReady(tab, impactToken)}
+    onconfirm={() => void confirmDelete()}
+  >
     <p>This action is irreversible for <strong>{selected?.label}</strong>.</p>
     {#if impactSummary}<p>{impactSummary}</p>{/if}
   </ConfirmDialog>

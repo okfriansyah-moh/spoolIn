@@ -7,10 +7,19 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
 /** Two bounded lanes; no notification failure recursively produces another notification. */
-class NotificationDispatcher(dataSource: DataSource, private val transport: NotificationTransport) : AutoCloseable {
+class NotificationDispatcher(
+    dataSource: DataSource,
+    private val transport: NotificationTransport,
+) : AutoCloseable {
     private val store = NotificationStore(dataSource)
     private val running = AtomicBoolean(false)
-    private val executor = Executors.newScheduledThreadPool(2) { task -> Thread(task, "notification-worker").apply { isDaemon = true } }
+    private val executor =
+        Executors.newScheduledThreadPool(2) { task ->
+            Thread(task, "notification-worker").apply {
+                isDaemon =
+                    true
+            }
+        }
 
     fun start() {
         if (!running.compareAndSet(false, true)) return
@@ -20,15 +29,28 @@ class NotificationDispatcher(dataSource: DataSource, private val transport: Noti
     fun runOnce(): Boolean {
         val item = store.claim() ?: return false
         val remaining = store.budgetMs(item.work)
-        val result = if (remaining <= 0) NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_DEADLINE")
-            else if (item.mode != transport.mode) NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_MODE_CHANGED")
-            else transport.send(item, remaining)
+        val result =
+            if (remaining <= 0) {
+                NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_DEADLINE")
+            } else if (item.mode !=
+                transport.mode
+            ) {
+                NotificationResult(AttemptOutcome.PERMANENT, "NOTIFICATION_MODE_CHANGED")
+            } else {
+                transport.send(item, remaining)
+            }
         store.finish(item.work, result)
         return true
     }
 
     private fun safeRun() {
-        try { runOnce() } catch (_: Exception) { /* Durable expired leases become UNKNOWN; never log provider credentials. */ }
+        try {
+            runOnce()
+        } catch (
+            _: Exception,
+        ) {
+            // Durable expired leases become UNKNOWN; never log provider credentials.
+        }
     }
 
     override fun close() {
@@ -40,8 +62,16 @@ class NotificationDispatcher(dataSource: DataSource, private val transport: Noti
 
 interface NotificationTransport {
     val mode: String
-    fun send(item: NotificationClaim, timeoutMs: Long): NotificationResult
+
+    fun send(
+        item: NotificationClaim,
+        timeoutMs: Long,
+    ): NotificationResult
 }
 
-data class NotificationResult(val outcome: AttemptOutcome, val errorCode: String? = null,
-    val reference: String? = null, val retryAfterMs: Long = 0)
+data class NotificationResult(
+    val outcome: AttemptOutcome,
+    val errorCode: String? = null,
+    val reference: String? = null,
+    val retryAfterMs: Long = 0,
+)

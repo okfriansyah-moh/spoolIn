@@ -17,7 +17,8 @@ class MediaWorkDispatcher(
     private val handler: MediaProcessingHandler,
     private val sweepScratch: () -> Unit = {},
     private val notifications: com.spoolin.support.notifications.ExhaustionNotifications =
-        com.spoolin.support.notifications.ExhaustionNotifications.configured(dataSource, "media", System::getenv),
+        com.spoolin.support.notifications.ExhaustionNotifications
+            .configured(dataSource, "media", System::getenv),
 ) : AutoCloseable {
     private val watchdog = MediaWorkWatchdog(dataSource)
     private val claimer = WorkClaimer(dataSource)
@@ -34,17 +35,24 @@ class MediaWorkDispatcher(
         notifications.recordExhaustion()
         sweepScratch()
         lanes.forEach { lane ->
-            if (lane.compareAndSet(false, true)) workers.submit {
-                try { claimer.claim(1).singleOrNull()?.let(::execute) } finally { lane.set(false) }
+            if (lane.compareAndSet(false, true)) {
+                workers.submit {
+                    try {
+                        claimer.claim(1).singleOrNull()?.let(::execute)
+                    } finally {
+                        lane.set(false)
+                    }
+                }
             }
         }
     }
 
     private fun execute(claim: WorkClaim) {
         val currentThread = Thread.currentThread()
-        val renewal = heartbeats.scheduleAtFixedRate({
-            if (!guard.renew(claim)) currentThread.interrupt()
-        }, 10, 10, TimeUnit.SECONDS)
+        val renewal =
+            heartbeats.scheduleAtFixedRate({
+                if (!guard.renew(claim)) currentThread.interrupt()
+            }, 10, 10, TimeUnit.SECONDS)
         try {
             when (claim.kind) {
                 "MEDIA_PROCESS" -> handler.handle(claim)

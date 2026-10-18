@@ -80,17 +80,31 @@ class Application {
     }
 
     @Bean(initMethod = "start", destroyMethod = "close")
-    fun notificationDispatcher(dataSource: DataSource, environment: Environment): com.spoolin.support.notifications.NotificationDispatcher? =
-        com.spoolin.support.notifications.NotificationSettings.transport { environment.getProperty(it) }
-            ?.let { com.spoolin.support.notifications.NotificationDispatcher(dataSource, it) }
+    fun notificationDispatcher(
+        dataSource: DataSource,
+        environment: Environment,
+    ): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings
+            .transport { environment.getProperty(it) }
+            ?.let {
+                com.spoolin.support.notifications
+                    .NotificationDispatcher(dataSource, it)
+            }
 
     @Bean
-    fun ownerMetrics(registry: io.micrometer.core.instrument.MeterRegistry,
-        dataSource: HikariDataSource, schema: SchemaReadiness,
+    fun ownerMetrics(
+        registry: io.micrometer.core.instrument.MeterRegistry,
+        dataSource: HikariDataSource,
+        schema: SchemaReadiness,
     ): com.spoolin.support.observability.OwnerMetrics =
-        com.spoolin.support.observability.OwnerMetrics(registry, dataSource, "catalog",
-            { dataSource.hikariPoolMXBean.activeConnections }, { dataSource.maximumPoolSize },
-            { schema.ready() })
+        com.spoolin.support.observability.OwnerMetrics(
+            registry,
+            dataSource,
+            "catalog",
+            { dataSource.hikariPoolMXBean.activeConnections },
+            { dataSource.maximumPoolSize },
+            { schema.ready() },
+        )
 
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
@@ -104,7 +118,8 @@ class Application {
     fun receiptExpiry(
         @org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource,
     ): com.spoolin.catalog.operations.maintenance.ReceiptExpiry =
-        com.spoolin.catalog.operations.maintenance.ReceiptExpiry(dataSource)
+        com.spoolin.catalog.operations.maintenance
+            .ReceiptExpiry(dataSource)
 
     @Bean
     fun schema(
@@ -150,7 +165,8 @@ class Application {
     }
 
     @Bean
-    fun listenerBoundary(environment: Environment,
+    fun listenerBoundary(
+        environment: Environment,
         metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 
@@ -267,14 +283,21 @@ class CatalogWriteConfiguration {
     ): com.spoolin.catalog.features.artwork.ArtworkRpc =
         com.spoolin.catalog.features.artwork
             .ArtworkRpc(dataSource, receipts, policyRevision = {
-                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
             })
 
     @Bean
-    fun movieLifecycle(receipts: OwnerReceipts, environment: Environment): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
+    fun movieLifecycle(
+        receipts: OwnerReceipts,
+        environment: Environment,
+    ): com.spoolin.catalog.features.lifecycle.MovieLifecycle =
         com.spoolin.catalog.features.lifecycle
             .MovieLifecycle(receipts, policyRevision = {
-                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
             })
 
     @Bean
@@ -286,13 +309,16 @@ class CatalogWriteConfiguration {
     ): com.spoolin.catalog.features.lifecycle.PersonLifecycle =
         com.spoolin.catalog.features.lifecycle
             .PersonLifecycle(dataSource, receipts, tokens, policyRevision = {
-                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
             })
 
     @Bean
     fun impactToken(environment: Environment): com.spoolin.catalog.features.lifecycle.ImpactToken =
         com.spoolin.catalog.features.lifecycle.ImpactToken.fromKeyFile(
-            java.nio.file.Path.of(environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")),
+            java.nio.file.Path
+                .of(environment.getRequiredProperty("CATALOG_HMAC_KEY_FILE")),
             environment.getRequiredProperty("CATALOG_HMAC_KEY_ID"),
         )
 
@@ -327,7 +353,10 @@ class CatalogWriteConfiguration {
         registry: org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry>,
         dataSource: DataSource,
     ): com.spoolin.catalog.operations.metrics.ProposalMetrics? =
-        registry.ifAvailable?.let { com.spoolin.catalog.operations.metrics.ProposalMetrics(it, dataSource) }
+        registry.ifAvailable?.let {
+            com.spoolin.catalog.operations.metrics
+                .ProposalMetrics(it, dataSource)
+        }
 
     @Bean
     fun proposalWrites(
@@ -343,13 +372,16 @@ class CatalogWriteConfiguration {
             movieWrites,
             proposalMetrics,
             livePolicyRevision = {
-                com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
+                com.spoolin.support.policy.PolicyEnvironment
+                    .resolve { environment.getProperty(it) }
+                    .revision
             },
         )
 }
 
 fun main(args: Array<String>) {
-    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    com.spoolin.support.logging
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     when {
         args.contentEquals(arrayOf("--migrate")) -> {
             val environment =
@@ -358,7 +390,8 @@ fun main(args: Array<String>) {
             DatabaseSettings.load(environment, OWNER, true).pool().use { MigrationRunner(it).migrate() }
         }
         args.any { it.startsWith("--seed-manifest=") } ->
-            com.spoolin.catalog.seed.runSeedCli(args)
+            com.spoolin.catalog.seed
+                .runSeedCli(args)
         args.isEmpty() ->
             org.springframework.boot.SpringApplication
                 .run(Application::class.java)
@@ -685,9 +718,15 @@ class ListenerBoundary(
         response.setHeader("Cache-Control", "no-store")
         if (path == "/actuator/prometheus") {
             val measurement = metrics
-            if (measurement == null) { response.sendError(503); return }
+            if (measurement == null) {
+                response.sendError(503)
+                return
+            }
             synchronized(measurement) {
-                if (!measurement.prepareScrape()) { response.sendError(503); return }
+                if (!measurement.prepareScrape()) {
+                    response.sendError(503)
+                    return
+                }
                 chain.doFilter(request, response)
             }
             return

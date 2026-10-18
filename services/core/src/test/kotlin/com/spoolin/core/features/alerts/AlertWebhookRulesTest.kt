@@ -18,11 +18,17 @@ class AlertWebhookRulesTest {
 
     @Test
     fun `invalid fingerprints statuses timestamps services and duplicate properties fail the entire payload`() {
-        listOf("0123456789abcdef" to "0123456789abcdeF", "firing" to "unknown", "core" to "foreign",
-            "2026-10-18T01:00:00Z" to "yesterday", "\"version\":\"4\"" to "\"version\":\"4\",\"version\":\"4\"")
-            .forEach { (before, after) -> assertThrows(InvalidAlert::class.java) {
+        listOf(
+            "0123456789abcdef" to "0123456789abcdeF",
+            "firing" to "unknown",
+            "core" to "foreign",
+            "2026-10-18T01:00:00Z" to "yesterday",
+            "\"version\":\"4\"" to "\"version\":\"4\",\"version\":\"4\"",
+        ).forEach { (before, after) ->
+            assertThrows(InvalidAlert::class.java) {
                 parser.parse(payload().replace(before, after).toByteArray())
-            } }
+            }
+        }
         assertThrows(InvalidAlert::class.java) { parser.parse((payload() + "{}").toByteArray()) }
     }
 
@@ -30,11 +36,14 @@ class AlertWebhookRulesTest {
     fun `wire count body and field bounds reject rather than truncate`() {
         assertThrows(AlertCapacity::class.java) { parser.parse(ByteArray(65537)) }
         assertThrows(InvalidAlert::class.java) { parser.parse(payload().replace("private.invalid", "x".repeat(1025)).toByteArray()) }
-        assertThrows(InvalidAlert::class.java) { parser.parse(payload().replace("\"truncatedAlerts\":0", "\"truncatedAlerts\":1").toByteArray()) }
+        assertThrows(
+            InvalidAlert::class.java,
+        ) { parser.parse(payload().replace("\"truncatedAlerts\":0", "\"truncatedAlerts\":1").toByteArray()) }
     }
 
     companion object {
-        fun payload(): String = """{"version":"4","status":"firing","truncatedAlerts":0,"alerts":[{
+        fun payload(): String =
+            """{"version":"4","status":"firing","truncatedAlerts":0,"alerts":[{
           "status":"firing","fingerprint":"0123456789abcdef","startsAt":"2026-10-18T01:00:00Z",
           "endsAt":"0001-01-01T00:00:00Z","labels":{"service":"core","severity":"warning",
           "alertname":"WorkQueueBacklog","secret":"private.invalid"},"annotations":{

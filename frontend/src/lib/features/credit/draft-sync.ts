@@ -37,7 +37,11 @@ export class CreditDraftSync {
     return Object.freeze({ backed: this.backed, unbacked: this.unbacked });
   }
 
-  schedule(values: CreditDraftValues, context: WriteContext, baseVersion: string | null): void {
+  schedule(
+    values: CreditDraftValues,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): void {
     globalThis.clearTimeout(this.timer);
     this.timer = globalThis.setTimeout(() => {
       void this.save(values, context, baseVersion);

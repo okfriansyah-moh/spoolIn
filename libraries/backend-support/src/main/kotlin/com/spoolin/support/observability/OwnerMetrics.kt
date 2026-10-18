@@ -22,65 +22,125 @@ class OwnerMetrics(
     init {
         require(owner in setOf("core", "catalog", "media"))
         require(volumes.keys.all { it in setOf("database", "artwork", "backup") })
-        for (state in WORK_STATES) gauge(registry, "spoolin.work.items", "state", state) { snapshot().work.getValue(state) }
+        for (state in WORK_STATES) {
+            gauge(
+                registry,
+                "spoolin.work.items",
+                "state",
+                state,
+            ) { snapshot().work.getValue(state) }
+        }
         gauge(registry, "spoolin.oldest.due.work.seconds") { snapshot().oldest }
-        for (mode in MODES) for (state in NOTIFICATION_STATES) {
-            Gauge.builder("spoolin.notification.events") { snapshot().notifications.getValue(mode to state) }
-                .tags("service", owner, "mode", mode, "state", state).strongReference(true).register(registry)
+        for (mode in MODES) {
+            for (state in NOTIFICATION_STATES) {
+                Gauge
+                    .builder("spoolin.notification.events") { snapshot().notifications.getValue(mode to state) }
+                    .tags("service", owner, "mode", mode, "state", state)
+                    .strongReference(true)
+                    .register(registry)
+            }
         }
         gauge(registry, "spoolin.pool.active.connections") { snapshot().active.toDouble() }
         gauge(registry, "spoolin.pool.max.connections") { snapshot().maximum.toDouble() }
         gauge(registry, "spoolin.service.ready") { if (snapshot().ready) 1.0 else 0.0 }
         for (volume in volumes.keys) {
-            gauge(registry, "spoolin.disk.available.bytes", "volume", volume) { snapshot().disks.getValue(volume).first.toDouble() }
-            gauge(registry, "spoolin.disk.capacity.bytes", "volume", volume) { snapshot().disks.getValue(volume).second.toDouble() }
+            gauge(
+                registry,
+                "spoolin.disk.available.bytes",
+                "volume",
+                volume,
+            ) {
+                snapshot()
+                    .disks
+                    .getValue(volume)
+                    .first
+                    .toDouble()
+            }
+            gauge(
+                registry,
+                "spoolin.disk.capacity.bytes",
+                "volume",
+                volume,
+            ) {
+                snapshot()
+                    .disks
+                    .getValue(volume)
+                    .second
+                    .toDouble()
+            }
         }
     }
 
     @Synchronized
-    fun prepareScrape(): Boolean = try {
-        val current = dataSource.connection.use { connection ->
-            connection.isReadOnly = true
-            connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
-            connection.autoCommit = false
-            try {
-                val result = collect(connection)
-                connection.commit()
-                result
-            } finally { connection.rollback() }
+    fun prepareScrape(): Boolean =
+        try {
+            val current =
+                dataSource.connection.use { connection ->
+                    connection.isReadOnly = true
+                    connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
+                    connection.autoCommit = false
+                    try {
+                        val result = collect(connection)
+                        connection.commit()
+                        result
+                    } finally {
+                        connection.rollback()
+                    }
+                }
+            measured = current
+            true
+        } catch (_: Exception) {
+            measured = null
+            false
         }
-        measured = current
-        true
-    } catch (_: Exception) { measured = null; false }
 
     private fun collect(connection: Connection): Snapshot {
         val work = WORK_STATES.associateWith { 0.0 }.toMutableMap()
-        query(connection, """
+        query(
+            connection,
+            """
             SELECT state,count(*) FROM appdata.durable_work
             WHERE kind<>'NOTIFICATION' OR notification_mode<>'database' GROUP BY state
-        """.trimIndent()) { rows -> work[rows.getString(1)] = rows.getDouble(2) }
-        val notifications = MODES.flatMap { mode -> NOTIFICATION_STATES.map { (mode to it) to 0.0 } }.toMap().toMutableMap()
-        query(connection, """
+            """.trimIndent(),
+        ) { rows -> work[rows.getString(1)] = rows.getDouble(2) }
+        val notifications =
+            MODES
+                .flatMap { mode ->
+                    NOTIFICATION_STATES.map { (mode to it) to 0.0 }
+                }.toMap()
+                .toMutableMap()
+        query(
+            connection,
+            """
             SELECT notification_mode,notification_state,count(*) FROM appdata.durable_work
             WHERE kind='NOTIFICATION' GROUP BY notification_mode,notification_state
-        """.trimIndent()) { rows -> notifications[rows.getString(1) to rows.getString(2)] = rows.getDouble(3) }
+            """.trimIndent(),
+        ) { rows -> notifications[rows.getString(1) to rows.getString(2)] = rows.getDouble(3) }
         var oldest = 0.0
-        query(connection, """
+        query(
+            connection,
+            """
             SELECT COALESCE(EXTRACT(EPOCH FROM CURRENT_TIMESTAMP-MIN(next_attempt_at)),0)
             FROM appdata.durable_work WHERE state='READY' AND next_attempt_at<=CURRENT_TIMESTAMP
-        """.trimIndent()) { oldest = it.getDouble(1) }
+            """.trimIndent(),
+        ) { oldest = it.getDouble(1) }
         val active = activeConnections()
         val maximum = maximumConnections()
         require(maximum > 0 && active in 0..maximum)
-        val disks = volumes.mapValues { (_, path) ->
-            require(path.isAbsolute && Files.exists(path))
-            val store = Files.getFileStore(path)
-            (store.usableSpace to store.totalSpace).also { require(it.first >= 0 && it.second > 0) }
-        }
+        val disks =
+            volumes.mapValues { (_, path) ->
+                require(path.isAbsolute && Files.exists(path))
+                val store = Files.getFileStore(path)
+                (store.usableSpace to store.totalSpace).also { require(it.first >= 0 && it.second > 0) }
+            }
         return Snapshot(work, notifications, oldest, active, maximum, serviceReady(), disks)
     }
 
-    private fun query(connection: Connection, sql: String, row: (java.sql.ResultSet) -> Unit) {
+    private fun query(
+        connection: Connection,
+        sql: String,
+        row: (java.sql.ResultSet) -> Unit,
+    ) {
         connection.createStatement().use { statement ->
             statement.queryTimeout = 2
             statement.executeQuery(sql).use { rows -> while (rows.next()) row(rows) }
@@ -89,7 +149,13 @@ class OwnerMetrics(
 
     private fun snapshot(): Snapshot = checkNotNull(measured) { "No successful current owner measurement" }
 
-    private fun gauge(registry: MeterRegistry, name: String, label: String? = null, value: String? = null, sample: () -> Double) {
+    private fun gauge(
+        registry: MeterRegistry,
+        name: String,
+        label: String? = null,
+        value: String? = null,
+        sample: () -> Double,
+    ) {
         val gauge = Gauge.builder(name) { sample() }
         gauge.tag("service", owner)
         if (label != null) gauge.tag(label, requireNotNull(value))
@@ -97,13 +163,19 @@ class OwnerMetrics(
     }
 
     private data class Snapshot(
-        val work: Map<String, Double>, val notifications: Map<Pair<String, String>, Double>, val oldest: Double,
-        val active: Int, val maximum: Int, val ready: Boolean, val disks: Map<String, Pair<Long, Long>>,
+        val work: Map<String, Double>,
+        val notifications: Map<Pair<String, String>, Double>,
+        val oldest: Double,
+        val active: Int,
+        val maximum: Int,
+        val ready: Boolean,
+        val disks: Map<String, Pair<Long, Long>>,
     )
 
     companion object {
         private val WORK_STATES = listOf("READY", "LEASED", "DONE", "EXHAUSTED", "CANCELLED")
         private val MODES = listOf("database", "smtp", "slack", "google_chat")
-        private val NOTIFICATION_STATES = listOf("RECORDED", "PENDING", "ACCEPTED", "DELIVERY_CONFIRMED", "UNKNOWN", "FAILED")
+        private val NOTIFICATION_STATES =
+            listOf("RECORDED", "PENDING", "ACCEPTED", "DELIVERY_CONFIRMED", "UNKNOWN", "FAILED")
     }
 }

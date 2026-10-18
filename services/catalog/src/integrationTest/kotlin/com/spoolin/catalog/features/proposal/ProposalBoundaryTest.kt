@@ -23,10 +23,20 @@ class ProposalBoundaryTest {
             assertEquals("PENDING", f.receipt(UUID.fromString(request.context.operationId)).first)
             val row = f.row(first.proposalId, first.revision)
             assertEquals("A movie", first.values.title)
-            assertTrue(MessageDigest.isEqual(row.contentHash, java.util.Base64.getDecoder().decode(first.contentHash)))
-            assertTrue(MessageDigest.isEqual(
-                row.challengeHash, MessageDigest.getInstance("SHA-256").digest(first.uiChallenge.toByteArray()),
-            ))
+            assertTrue(
+                MessageDigest.isEqual(
+                    row.contentHash,
+                    java.util.Base64
+                        .getDecoder()
+                        .decode(first.contentHash),
+                ),
+            )
+            assertTrue(
+                MessageDigest.isEqual(
+                    row.challengeHash,
+                    MessageDigest.getInstance("SHA-256").digest(first.uiChallenge.toByteArray()),
+                ),
+            )
             f.now = f.now.plusSeconds(1)
             val replay = propose(f, request)
             assertEquals(first.expiresAt, replay.expiresAt)
@@ -46,15 +56,42 @@ class ProposalBoundaryTest {
             val first = propose(f, initial)
             val correction = proposal(first.proposalId, first.revision)
             val operation = UUID.fromString(correction.context.operationId)
-            assertEquals(Status.Code.PERMISSION_DENIED, failure {
-                f.stub("ProposeMovie", operation, account = UUID.randomUUID(), correlation = UUID.fromString(correction.context.correlationId)).proposeMovie(correction)
-            })
-            assertEquals(Status.Code.PERMISSION_DENIED, failure {
-                f.stub("ProposeMovie", operation, credential = UUID.randomUUID(), correlation = UUID.fromString(correction.context.correlationId)).proposeMovie(correction)
-            })
-            assertEquals(Status.Code.PERMISSION_DENIED, failure {
-                f.stub("ProposeMovie", operation, client = "CHATGPT", correlation = UUID.fromString(correction.context.correlationId)).proposeMovie(correction)
-            })
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                failure {
+                    f
+                        .stub(
+                            "ProposeMovie",
+                            operation,
+                            account = UUID.randomUUID(),
+                            correlation = UUID.fromString(correction.context.correlationId),
+                        ).proposeMovie(correction)
+                },
+            )
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                failure {
+                    f
+                        .stub(
+                            "ProposeMovie",
+                            operation,
+                            credential = UUID.randomUUID(),
+                            correlation = UUID.fromString(correction.context.correlationId),
+                        ).proposeMovie(correction)
+                },
+            )
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                failure {
+                    f
+                        .stub(
+                            "ProposeMovie",
+                            operation,
+                            client = "CHATGPT",
+                            correlation = UUID.fromString(correction.context.correlationId),
+                        ).proposeMovie(correction)
+                },
+            )
             assertEquals("REVIEW", f.row(first.proposalId, 1).state)
             assertEquals(0, f.count("SELECT count(*) FROM operation_receipt WHERE id=?", operation))
             val second = propose(f, correction)
@@ -82,9 +119,12 @@ class ProposalBoundaryTest {
             assertTrue(propose(f, proposal()).hasUiChallenge())
             assertEquals(Status.Code.FAILED_PRECONDITION, failure { propose(f, request) })
             assertEquals(Status.Code.FAILED_PRECONDITION, failure { propose(f, proposal(first.proposalId, 1)) })
-            assertEquals(Status.Code.FAILED_PRECONDITION, failure {
-                f.stub("ApproveAndCreate").approveAndCreate(approval(first))
-            })
+            assertEquals(
+                Status.Code.FAILED_PRECONDITION,
+                failure {
+                    f.stub("ApproveAndCreate").approveAndCreate(approval(first))
+                },
+            )
             f.policy = "p2"
             val oldPolicy = proposal()
             assertEquals(Status.Code.FAILED_PRECONDITION, failure { propose(f, oldPolicy) })
@@ -122,18 +162,30 @@ class ProposalBoundaryTest {
             val afterCreation = f.stub("RejectProposal").rejectProposal(input)
             assertEquals(created.resultId, afterCreation.resultId)
             assertEquals(originalOutcome, f.receipt(UUID.fromString(original.context.operationId)))
-            assertEquals(Status.Code.PERMISSION_DENIED, failure {
-                f.stub("ApproveAndCreate", credential = UUID.randomUUID()).approveAndCreate(input)
-            })
-            assertEquals(Status.Code.PERMISSION_DENIED, failure {
-                f.stub("ApproveAndCreate", account = UUID.randomUUID()).approveAndCreate(input)
-            })
-            assertEquals(Status.Code.PERMISSION_DENIED, failure {
-                f.stub("ApproveAndCreate", client = "CHATGPT").approveAndCreate(input)
-            })
-            assertEquals(Status.Code.FAILED_PRECONDITION, failure {
-                f.stub("ApproveAndCreate").approveAndCreate(input.toBuilder().setChallenge("wrong").build())
-            })
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                failure {
+                    f.stub("ApproveAndCreate", credential = UUID.randomUUID()).approveAndCreate(input)
+                },
+            )
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                failure {
+                    f.stub("ApproveAndCreate", account = UUID.randomUUID()).approveAndCreate(input)
+                },
+            )
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                failure {
+                    f.stub("ApproveAndCreate", client = "CHATGPT").approveAndCreate(input)
+                },
+            )
+            assertEquals(
+                Status.Code.FAILED_PRECONDITION,
+                failure {
+                    f.stub("ApproveAndCreate").approveAndCreate(input.toBuilder().setChallenge("wrong").build())
+                },
+            )
             assertEquals(1, f.count("SELECT count(*) FROM title WHERE id=?", UUID.fromString(created.resultId)))
         }
     }
@@ -151,31 +203,60 @@ class ProposalBoundaryTest {
             assertEquals(result, f.stub("RejectProposal").rejectProposal(rejection))
             assertEquals("REJECTED", f.row(rejected.proposalId, rejected.revision).state)
             assertEquals("FAILED", f.receipt(UUID.fromString(rejectedRequest.context.operationId)).first)
-            assertEquals(Status.Code.FAILED_PRECONDITION, failure {
-                f.stub("ApproveAndCreate").approveAndCreate(rejection)
-            })
+            assertEquals(
+                Status.Code.FAILED_PRECONDITION,
+                failure {
+                    f.stub("ApproveAndCreate").approveAndCreate(rejection)
+                },
+            )
         }
     }
 
-    private fun propose(f: ProposalFixture, request: Spoolin.Proposal): Spoolin.ProposalRevision =
-        f.stub(
-            "ProposeMovie", UUID.fromString(request.context.operationId),
-            correlation = UUID.fromString(request.context.correlationId),
-        ).proposeMovie(request)
+    private fun propose(
+        f: ProposalFixture,
+        request: Spoolin.Proposal,
+    ): Spoolin.ProposalRevision =
+        f
+            .stub(
+                "ProposeMovie",
+                UUID.fromString(request.context.operationId),
+                correlation = UUID.fromString(request.context.correlationId),
+            ).proposeMovie(request)
 
-    private fun failure(action: () -> Unit): Status.Code =
-        assertThrows(StatusRuntimeException::class.java) { action() }.status.code
+    private fun failure(action: () -> Unit): Status.Code = assertThrows(StatusRuntimeException::class.java) { action() }.status.code
 
-    private fun proposal(id: String? = null, revision: Int? = null): Spoolin.Proposal {
-        val values = Spoolin.MovieValues.newBuilder().setTitle("  A movie  ").setSynopsis("A synopsis")
-            .setSynopsisLanguage("en").setRelease(Spoolin.PartialDate.newBuilder().setYear(2020))
-        return Spoolin.Proposal.newBuilder().setValues(values).setContext(
-            Spoolin.Context.newBuilder().setOperationId(UUID.randomUUID().toString())
-                .setCorrelationId(UUID.randomUUID().toString()).setPolicyRevision("p1"),
-        ).also { b -> id?.let(b::setProposalId); revision?.let(b::setExpectedRevision) }.build()
+    private fun proposal(
+        id: String? = null,
+        revision: Int? = null,
+    ): Spoolin.Proposal {
+        val values =
+            Spoolin.MovieValues
+                .newBuilder()
+                .setTitle("  A movie  ")
+                .setSynopsis("A synopsis")
+                .setSynopsisLanguage("en")
+                .setRelease(Spoolin.PartialDate.newBuilder().setYear(2020))
+        return Spoolin.Proposal
+            .newBuilder()
+            .setValues(values)
+            .setContext(
+                Spoolin.Context
+                    .newBuilder()
+                    .setOperationId(UUID.randomUUID().toString())
+                    .setCorrelationId(UUID.randomUUID().toString())
+                    .setPolicyRevision("p1"),
+            ).also { b ->
+                id?.let(b::setProposalId)
+                revision?.let(b::setExpectedRevision)
+            }.build()
     }
 
     private fun approval(revision: Spoolin.ProposalRevision): Spoolin.ApprovalInput =
-        Spoolin.ApprovalInput.newBuilder().setProposalId(revision.proposalId).setRevision(revision.revision)
-            .setContentHash(revision.contentHash).setChallenge(revision.uiChallenge.toStringUtf8()).build()
+        Spoolin.ApprovalInput
+            .newBuilder()
+            .setProposalId(revision.proposalId)
+            .setRevision(revision.revision)
+            .setContentHash(revision.contentHash)
+            .setChallenge(revision.uiChallenge.toStringUtf8())
+            .build()
 }

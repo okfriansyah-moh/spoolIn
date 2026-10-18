@@ -16,10 +16,15 @@ class SeedManifestRulesTest {
     @Test
     fun `UUID matches independently assembled fixed length-prefixed source tuple`() {
         // 8-byte source, 5-byte kind and 3-byte external ID, each with a four-byte length.
-        val name = byteArrayOf(0, 0, 0, 8) + "wikidata".toByteArray() + byteArrayOf(0, 0, 0, 5) +
-            "MOVIE".toByteArray() + byteArrayOf(0, 0, 0, 3) + "Q42".toByteArray()
-        val bytes = ByteBuffer.allocate(16)
-            .putLong(namespace.mostSignificantBits).putLong(namespace.leastSignificantBits).array()
+        val name =
+            byteArrayOf(0, 0, 0, 8) + "wikidata".toByteArray() + byteArrayOf(0, 0, 0, 5) +
+                "MOVIE".toByteArray() + byteArrayOf(0, 0, 0, 3) + "Q42".toByteArray()
+        val bytes =
+            ByteBuffer
+                .allocate(16)
+                .putLong(namespace.mostSignificantBits)
+                .putLong(namespace.leastSignificantBits)
+                .array()
         val digest = MessageDigest.getInstance("SHA-1").digest(bytes + name)
         digest[6] = ((digest[6].toInt() and 15) or 80).toByte()
         digest[8] = ((digest[8].toInt() and 63) or 128).toByte()
@@ -48,12 +53,14 @@ class SeedManifestRulesTest {
 
     @Test
     fun `retrieval timestamps and property order do not change checksums but title edits do`() {
-        val original = mapper.readTree(
-            """{"title":"Example","sources":[{"retrievedAt":"2026-01-01T00:00:00Z","license":"CC0-1.0"}]}""",
-        )
-        val later = mapper.readTree(
-            """{"sources":[{"license":"CC0-1.0","retrievedAt":"2026-10-18T00:00:00Z"}],"title":"Example"}""",
-        )
+        val original =
+            mapper.readTree(
+                """{"title":"Example","sources":[{"retrievedAt":"2026-01-01T00:00:00Z","license":"CC0-1.0"}]}""",
+            )
+        val later =
+            mapper.readTree(
+                """{"sources":[{"license":"CC0-1.0","retrievedAt":"2026-10-18T00:00:00Z"}],"title":"Example"}""",
+            )
         assertEquals(SeedIdentities.hashHex(original), SeedIdentities.hashHex(later))
         assertNotEquals(
             SeedIdentities.hashHex(original),

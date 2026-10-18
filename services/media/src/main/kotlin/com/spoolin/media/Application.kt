@@ -76,17 +76,32 @@ class Application {
     }
 
     @Bean(initMethod = "start", destroyMethod = "close")
-    fun notificationDispatcher(dataSource: DataSource, environment: Environment): com.spoolin.support.notifications.NotificationDispatcher? =
-        com.spoolin.support.notifications.NotificationSettings.transport { environment.getProperty(it) }
-            ?.let { com.spoolin.support.notifications.NotificationDispatcher(dataSource, it) }
+    fun notificationDispatcher(
+        dataSource: DataSource,
+        environment: Environment,
+    ): com.spoolin.support.notifications.NotificationDispatcher? =
+        com.spoolin.support.notifications.NotificationSettings
+            .transport { environment.getProperty(it) }
+            ?.let {
+                com.spoolin.support.notifications
+                    .NotificationDispatcher(dataSource, it)
+            }
 
     @Bean
-    fun ownerMetrics(registry: io.micrometer.core.instrument.MeterRegistry,
-        dataSource: HikariDataSource, schema: SchemaReadiness,
+    fun ownerMetrics(
+        registry: io.micrometer.core.instrument.MeterRegistry,
+        dataSource: HikariDataSource,
+        schema: SchemaReadiness,
     ): com.spoolin.support.observability.OwnerMetrics =
-        com.spoolin.support.observability.OwnerMetrics(registry, dataSource, "media",
-            { dataSource.hikariPoolMXBean.activeConnections }, { dataSource.maximumPoolSize },
-            { schema.ready() }, mapOf("artwork" to Path.of("/var/spoolin/media")))
+        com.spoolin.support.observability.OwnerMetrics(
+            registry,
+            dataSource,
+            "media",
+            { dataSource.hikariPoolMXBean.activeConnections },
+            { dataSource.maximumPoolSize },
+            { schema.ready() },
+            mapOf("artwork" to Path.of("/var/spoolin/media")),
+        )
 
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
@@ -137,7 +152,8 @@ class Application {
     }
 
     @Bean
-    fun listenerBoundary(environment: Environment,
+    fun listenerBoundary(
+        environment: Environment,
         metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
 
@@ -160,13 +176,21 @@ class Application {
         val reads =
             com.spoolin.media.operations.receipts
                 .OwnerReceiptReads(dataSource)
-        val policyRevision = com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }.revision
-        val catalog = com.spoolin.media.features.asset.CatalogAttachments(
-            spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
-        )
-        val holdRpc = com.spoolin.media.features.hold.HoldRpc(dataSource, catalog)
+        val policyRevision =
+            com.spoolin.support.policy.PolicyEnvironment
+                .resolve { environment.getProperty(it) }
+                .revision
+        val catalog =
+            com.spoolin.media.features.asset.CatalogAttachments(
+                spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
+            )
+        val holdRpc =
+            com.spoolin.media.features.hold
+                .HoldRpc(dataSource, catalog)
         val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision, catalog = catalog)
-        val assets = com.spoolin.media.features.asset.AssetRpc(dataSource, quarantineStore, catalog)
+        val assets =
+            com.spoolin.media.features.asset
+                .AssetRpc(dataSource, quarantineStore, catalog)
         return MediaServiceImpl(uploadRpc, holdRpc, reads, assets)
     }
 
@@ -178,18 +202,24 @@ class Application {
         quarantineStore: QuarantineStore,
     ): com.spoolin.media.operations.work.MediaWorkDispatcher =
         com.spoolin.media.operations.work.MediaWorkDispatcher(
-            dataSource, schema,
-            com.spoolin.media.features.processing.MediaProcessingHandler(dataSource, quarantineStore),
+            dataSource,
+            schema,
+            com.spoolin.media.features.processing
+                .MediaProcessingHandler(dataSource, quarantineStore),
             { quarantineStore.sweepAbandonedScratch() },
-            com.spoolin.support.notifications.ExhaustionNotifications.configured(dataSource, "media") { environment.getProperty(it) },
+            com.spoolin.support.notifications.ExhaustionNotifications
+                .configured(dataSource, "media") { environment.getProperty(it) },
         )
 
     @Bean
-    fun receiptExpiry(@org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource): ReceiptExpiry = ReceiptExpiry(dataSource)
+    fun receiptExpiry(
+        @org.springframework.beans.factory.annotation.Qualifier("maintenanceDataSource") dataSource: DataSource,
+    ): ReceiptExpiry = ReceiptExpiry(dataSource)
 }
 
 fun main(args: Array<String>) {
-    com.spoolin.support.logging.applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
+    com.spoolin.support.logging
+        .applyNormalizedLogLevel(System.getenv("LOG_LEVEL"))
     if (args.contentEquals(arrayOf("--migrate"))) {
         val environment =
             org.springframework.core.env
@@ -442,11 +472,16 @@ class ServiceIdentityInterceptor(
             return object : ServerCall.Listener<ReqT>() {}
         }
         dispatched.incrementAndGet()
-        val checked = ServerCallHandler<ReqT, RespT> { request, metadata ->
-            actors?.interceptCall(request, metadata, next) ?: next.startCall(request, metadata)
-        }
+        val checked =
+            ServerCallHandler<ReqT, RespT> { request, metadata ->
+                actors?.interceptCall(request, metadata, next) ?: next.startCall(request, metadata)
+            }
         return io.grpc.Contexts.interceptCall(
-            com.spoolin.media.boundary.grpc.MediaPeer.context(requireNotNull(identity)), call, headers, checked,
+            com.spoolin.media.boundary.grpc.MediaPeer
+                .context(requireNotNull(identity)),
+            call,
+            headers,
+            checked,
         )
     }
 
@@ -503,9 +538,15 @@ class ListenerBoundary(
         response.setHeader("Cache-Control", "no-store")
         if (path == "/actuator/prometheus") {
             val measurement = metrics
-            if (measurement == null) { response.sendError(503); return }
+            if (measurement == null) {
+                response.sendError(503)
+                return
+            }
             synchronized(measurement) {
-                if (!measurement.prepareScrape()) { response.sendError(503); return }
+                if (!measurement.prepareScrape()) {
+                    response.sendError(503)
+                    return
+                }
                 chain.doFilter(request, response)
             }
             return

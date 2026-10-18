@@ -45,40 +45,79 @@ describe('PersonEditorController', () => {
   });
 });
 
-
 afterEach(() => vi.clearAllMocks());
 
 function sourceFixture(): DraftSource {
   return {
-    listDrafts: async () => [], recoverOperation: async () => null,
-    saveDraft: async (operationId, draftId) => ({ receipt: { operationId, state: 'SUCCEEDED',
-      resultId: draftId, version: '1', resultExpired: false }, problemCode: null }),
-    discardDraft: async (operationId, draftId) => ({ receipt: { operationId, state: 'SUCCEEDED',
-      resultId: draftId, version: '2', resultExpired: false }, discarded: true, problemCode: null }),
+    listDrafts: async () => [],
+    recoverOperation: async () => null,
+    saveDraft: async (operationId, draftId) => ({
+      receipt: {
+        operationId,
+        state: 'SUCCEEDED',
+        resultId: draftId,
+        version: '1',
+        resultExpired: false,
+      },
+      problemCode: null,
+    }),
+    discardDraft: async (operationId, draftId) => ({
+      receipt: {
+        operationId,
+        state: 'SUCCEEDED',
+        resultId: draftId,
+        version: '2',
+        resultExpired: false,
+      },
+      discarded: true,
+      problemCode: null,
+    }),
   };
 }
 
 function personDraft() {
-  return { id: '22222222-2222-4222-8222-222222222222', targetKind: 'PERSON', targetId: null,
-    baseVersion: null, values: { name: 'Retained mononym', biography: 'Retained biography' },
-    operationId: null, version: '11', expiresAt: new Date(Date.now() + 3600000).toISOString() };
+  return {
+    id: '22222222-2222-4222-8222-222222222222',
+    targetKind: 'PERSON',
+    targetId: null,
+    baseVersion: null,
+    values: { name: 'Retained mononym', biography: 'Retained biography' },
+    operationId: null,
+    version: '11',
+    expiresAt: new Date(Date.now() + 3600000).toISOString(),
+  };
 }
 
 describe('person reload and uncertain saves', () => {
   it('recovers a unique create draft from the authenticated source', async () => {
     const source = sourceFixture();
-    source.listDrafts = async () => [personDraft(), { ...personDraft(), targetKind: 'MOVIE' }];
-    const controller = new PersonEditorController(vi.fn(), source, 'create', null);
+    source.listDrafts = async () => [
+      personDraft(),
+      { ...personDraft(), targetKind: 'MOVIE' },
+    ];
+    const controller = new PersonEditorController(
+      vi.fn(),
+      source,
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     expect(controller.snapshot.draft).toEqual(personDraft().values);
     controller.dispose();
   });
 
   it('preserves the original identity after a lost create response', async () => {
-    const controller = new PersonEditorController(vi.fn(), sourceFixture(), 'create', null);
+    const controller = new PersonEditorController(
+      vi.fn(),
+      sourceFixture(),
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     controller.updateDraft({ name: 'Remote Maintainer person' });
-    vi.mocked(api.createPerson).mockRejectedValueOnce(new TransportFailure('uncertain'));
+    vi.mocked(api.createPerson).mockRejectedValueOnce(
+      new TransportFailure('uncertain'),
+    );
     await controller.submit();
     const original = controller.snapshot.pendingOperationId;
     expect(original).toBeTruthy();
@@ -91,12 +130,25 @@ describe('person reload and uncertain saves', () => {
   });
 
   it('does not treat PENDING as a failed operation eligible for a new create', async () => {
-    const controller = new PersonEditorController(vi.fn(), sourceFixture(), 'create', null);
+    const controller = new PersonEditorController(
+      vi.fn(),
+      sourceFixture(),
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     controller.updateDraft({ name: 'Pending person' });
-    vi.mocked(api.createPerson).mockResolvedValueOnce({ receipt: { operationId: 'pending',
-      state: 'PENDING', resultExpired: false, problem: null }, resultPersonId: null,
-      resultVersion: null, problemCode: null });
+    vi.mocked(api.createPerson).mockResolvedValueOnce({
+      receipt: {
+        operationId: 'pending',
+        state: 'PENDING',
+        resultExpired: false,
+        problem: null,
+      },
+      resultPersonId: null,
+      resultVersion: null,
+      problemCode: null,
+    });
     await controller.submit();
     expect(controller.snapshot.phase).toBe('uncertain');
     expect(controller.snapshot.pendingOperationId).toBeTruthy();
@@ -130,7 +182,11 @@ describe('draft mutation identity and optimistic versions', () => {
     const save = vi.fn<DraftSource['saveDraft']>(source.saveDraft);
     source.saveDraft = save;
     const sync = new PersonDraftSync(source, 'target');
-    sync.adopt({ ...personDraft(), targetId: 'target', baseVersion: '9007199254740993' });
+    sync.adopt({
+      ...personDraft(),
+      targetId: 'target',
+      baseVersion: '9007199254740993',
+    });
     await sync.save({ name: 'Updated' }, context, '9007199254740993');
     expect(save.mock.calls[0]?.[2]).toBe('11');
     expect(save.mock.calls[0]?.[3].baseVersion).toBe('9007199254740993');
@@ -145,13 +201,22 @@ describe('person draft binding after publication', () => {
     source.saveDraft = save;
     const sync = new PersonDraftSync(source, 'target');
     sync.reset();
-    await sync.prepareSubmission('44444444-4444-4444-8444-444444444444', { name: 'Published' }, context, '5');
+    await sync.prepareSubmission(
+      '44444444-4444-4444-8444-444444444444',
+      { name: 'Published' },
+      context,
+      '5',
+    );
     await sync.completeSubmission({ name: 'Published' }, context, '6');
     await sync.save({ name: 'Unsaved next edit' }, context, '6');
-    expect(save.mock.calls[0]?.[3].operationId).toBe('44444444-4444-4444-8444-444444444444');
+    expect(save.mock.calls[0]?.[3].operationId).toBe(
+      '44444444-4444-4444-8444-444444444444',
+    );
     expect(save.mock.calls[1]?.[3].operationId).toBeNull();
     expect(save.mock.calls[2]?.[3].operationId).toBeNull();
-    expect(save.mock.calls[2]?.[3].values).toEqual({ name: 'Unsaved next edit' });
+    expect(save.mock.calls[2]?.[3].values).toEqual({
+      name: 'Unsaved next edit',
+    });
     sync.dispose();
   });
 });
@@ -160,12 +225,21 @@ describe('explicit person recovery decisions', () => {
   it('keeps multiple drafts unselected until an exact retained identity is chosen', async () => {
     const source = sourceFixture();
     const first = personDraft();
-    const second = { ...first, id: '33333333-3333-4333-8333-333333333333', version: '22',
-      values: { name: 'Second retained person', biography: null } };
+    const second = {
+      ...first,
+      id: '33333333-3333-4333-8333-333333333333',
+      version: '22',
+      values: { name: 'Second retained person', biography: null },
+    };
     source.listDrafts = async () => [first, second];
     const save = vi.fn<DraftSource['saveDraft']>(source.saveDraft);
     source.saveDraft = save;
-    const controller = new PersonEditorController(vi.fn(), source, 'create', null);
+    const controller = new PersonEditorController(
+      vi.fn(),
+      source,
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     expect(controller.snapshot.draftChoices).toHaveLength(2);
     await controller.selectRetainedDraft(second.id);
@@ -178,8 +252,16 @@ describe('explicit person recovery decisions', () => {
 
   it('starts a separate draft only after the explicit new-draft action', async () => {
     const source = sourceFixture();
-    source.listDrafts = async () => [personDraft(), { ...personDraft(), id: '33333333-3333-4333-8333-333333333333' }];
-    const controller = new PersonEditorController(vi.fn(), source, 'create', null);
+    source.listDrafts = async () => [
+      personDraft(),
+      { ...personDraft(), id: '33333333-3333-4333-8333-333333333333' },
+    ];
+    const controller = new PersonEditorController(
+      vi.fn(),
+      source,
+      'create',
+      null,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     expect(controller.snapshot.draftChoices).toHaveLength(2);
     controller.startNewDraft();
@@ -190,12 +272,24 @@ describe('explicit person recovery decisions', () => {
   });
 
   it('discloses unavailable historical base values after restoring a stale draft', async () => {
-    const person = { id: '190db10d-02b8-437e-8e7c-ece9c105fe2a', name: 'Current person',
-      biography: 'Current biography', version: '5', state: 'ACTIVE' as const };
+    const person = {
+      id: '190db10d-02b8-437e-8e7c-ece9c105fe2a',
+      name: 'Current person',
+      biography: 'Current biography',
+      version: '5',
+      state: 'ACTIVE' as const,
+    };
     const source = sourceFixture();
-    source.listDrafts = async () => [{ ...personDraft(), targetId: person.id, baseVersion: '3' }];
+    source.listDrafts = async () => [
+      { ...personDraft(), targetId: person.id, baseVersion: '3' },
+    ];
     vi.mocked(api.fetchManagedPerson).mockResolvedValue(person);
-    const controller = new PersonEditorController(vi.fn(), source, 'edit', person.id);
+    const controller = new PersonEditorController(
+      vi.fn(),
+      source,
+      'edit',
+      person.id,
+    );
     await controller.bootstrap(policy, context, new AbortController().signal);
     expect(controller.snapshot.phase).toBe('stale');
     expect(controller.snapshot.draftBaseKnown).toBe(false);

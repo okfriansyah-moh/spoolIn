@@ -40,16 +40,20 @@ private fun initializeFromFile(path: Path) {
     val environment = StandardEnvironment()
     val policy = PolicyConfiguration().policyProvider(environment).policy
     val names = policy.textBounds.getValue("registrationName")
-    val rules = IdentityRules(
-        names.minCodePoints, names.maxCodePoints, policy.textBounds.getValue("email").maxCodePoints,
-    )
+    val rules =
+        IdentityRules(
+            names.minCodePoints,
+            names.maxCodePoints,
+            policy.textBounds.getValue("email").maxCodePoints,
+        )
     val config = InitializationConfiguration.load(path, rules)
     val passwords = policy.textBounds.getValue("password")
     DatabaseSettings.load(environment, "core", false).pool().use { source ->
-        val readKeys = System.getenv("ACCOUNT_READ_KEYS_FILE")?.let { value ->
-            require(value.isNotBlank()) { "Initialization read key configuration is empty" }
-            Path.of(value).also { require(it.isAbsolute) }
-        }
+        val readKeys =
+            System.getenv("ACCOUNT_READ_KEYS_FILE")?.let { value ->
+                require(value.isNotBlank()) { "Initialization read key configuration is empty" }
+                Path.of(value).also { require(it.isAbsolute) }
+            }
         val passwordPolicy = NewPasswordPolicy(passwords.minCodePoints, passwords.maxCodePoints)
         MountedKeys(InitializationReadKeys.merge(config.keys, readKeys)).use { keys ->
             initializeAccounts(source, config, keys, passwordPolicy, rules)

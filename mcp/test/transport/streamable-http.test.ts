@@ -4,10 +4,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
-import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
+import {
+  Client,
+  StreamableHTTPClientTransport,
+} from '@modelcontextprotocol/client';
 import { StreamableHttpTransport } from '../../src/transport/streamable-http.js';
 import { createSession } from '../../src/gateway/session.js';
-import type { MovieContext, Outcome, PolicySnapshot, ProposalRevision } from '../../src/generated/spoolin/v1/spoolin.js';
+import type {
+  MovieContext,
+  Outcome,
+  PolicySnapshot,
+  ProposalRevision,
+} from '../../src/generated/spoolin/v1/spoolin.js';
 
 // Unit protocol proof against a fake gateway only. This does not establish either chat host's isolation.
 describe('real SDK streamable HTTP session lifecycle', () => {
@@ -24,10 +32,23 @@ describe('real SDK streamable HTTP session lifecycle', () => {
       if (token !== 'synthetic-connector') throw new Error('DENIED');
       return createSession(token, {
         policy: async () => policy,
-        context: async (): Promise<MovieContext> => ({ policy, titles: { nodes: [], hasNextPage: false }, genres: { nodes: [] }, roles: { nodes: [] } }),
-        operation: async (id): Promise<Outcome> => ({ operationId: id, state: 'SUCCEEDED', resultExpired: false }),
-        propose: async (): Promise<ProposalRevision> => { throw new Error('synthetic upstream failure'); },
-        close: () => { closed += 1; },
+        context: async (): Promise<MovieContext> => ({
+          policy,
+          titles: { nodes: [], hasNextPage: false },
+          genres: { nodes: [] },
+          roles: { nodes: [] },
+        }),
+        operation: async (id): Promise<Outcome> => ({
+          operationId: id,
+          state: 'SUCCEEDED',
+          resultExpired: false,
+        }),
+        propose: async (): Promise<ProposalRevision> => {
+          throw new Error('synthetic upstream failure');
+        },
+        close: () => {
+          closed += 1;
+        },
       });
     });
     await server.listen({ httpPath: '/mcp', healthPort: 0 });
@@ -36,7 +57,8 @@ describe('real SDK streamable HTTP session lifecycle', () => {
   afterEach(async () => {
     await client?.close();
     await server.close();
-    transport = undefined; client = undefined;
+    transport = undefined;
+    client = undefined;
     delete process.env.MCP_PORT;
   });
   async function connect() {
@@ -49,50 +71,104 @@ describe('real SDK streamable HTTP session lifecycle', () => {
   }
   it('negotiates lists tools executes a gateway call and terminates its session', async () => {
     const connected = await connect();
-    expect((await connected.listTools()).tools.map((tool) => tool.name)).toEqual(['movie_context', 'movie_operation', 'propose_movie']);
-    const result = await connected.callTool({ name: 'movie_context', arguments: { query: '', limit: 1 } });
+    expect(
+      (await connected.listTools()).tools.map((tool) => tool.name),
+    ).toEqual(['movie_context', 'movie_operation', 'propose_movie']);
+    const result = await connected.callTool({
+      name: 'movie_context',
+      arguments: { query: '', limit: 1 },
+    });
     expect(result.isError).not.toBe(true);
-    expect(result.structuredContent).toMatchObject({ titles: [], genres: [], roles: [], policyRevision: policy.revision });
+    expect(result.structuredContent).toMatchObject({
+      titles: [],
+      genres: [],
+      roles: [],
+      policyRevision: policy.revision,
+    });
     await transport!.terminateSession();
     expect(closed).toBe(1);
   });
   it('rejects missing credentials disallowed origins and cross-connector session reuse', async () => {
     expect((await fetch(endpoint, { method: 'POST' })).status).toBe(401);
-    expect((await fetch(endpoint, { method: 'POST', headers: { origin: 'https://untrusted.example' } })).status).toBe(403);
+    expect(
+      (
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: { origin: 'https://untrusted.example' },
+        })
+      ).status,
+    ).toBe(403);
     await connect();
-    expect((await fetch(endpoint, { method: 'GET', headers: {
-      authorization: 'Bearer another-connector', 'mcp-session-id': transport!.sessionId!,
-    } })).status).toBe(404);
+    expect(
+      (
+        await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            authorization: 'Bearer another-connector',
+            'mcp-session-id': transport!.sessionId!,
+          },
+        })
+      ).status,
+    ).toBe(404);
   });
   it('bridges a real stdio process into the HTTP session without exposing its credential', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'spoolin-stdio-'));
     const tokenFile = join(directory, 'connector');
     writeFileSync(tokenFile, 'synthetic-connector', { mode: 0o600 });
-    const bridge = new StdioClientTransport({ command: process.execPath,
-      args: [fileURLToPath(new URL('../../dist/transport/stdio.js', import.meta.url))],
-      env: { PATH: process.env.PATH ?? '', MCP_CONNECTOR_TOKEN_FILE: tokenFile, MCP_ENDPOINT: endpoint }, stderr: 'pipe',
+    const bridge = new StdioClientTransport({
+      command: process.execPath,
+      args: [
+        fileURLToPath(
+          new URL('../../dist/transport/stdio.js', import.meta.url),
+        ),
+      ],
+      env: {
+        PATH: process.env.PATH ?? '',
+        MCP_CONNECTOR_TOKEN_FILE: tokenFile,
+        MCP_ENDPOINT: endpoint,
+      },
+      stderr: 'pipe',
     });
     client = new Client({ name: 'spoolin-stdio-unit', version: '1.0.0' });
     try {
       await client.connect(bridge);
       const tools = await client.listTools();
       expect(tools.tools.map((tool) => tool.name)).toContain('movie_context');
-      const response = await client.callTool({ name: 'movie_context', arguments: { query: 'movie' } });
+      const response = await client.callTool({
+        name: 'movie_context',
+        arguments: { query: 'movie' },
+      });
       expect(response.isError).not.toBe(true);
       expect(JSON.stringify(response)).not.toContain('synthetic-connector');
-    } finally { await client.close(); client = undefined; rmSync(directory, { recursive: true }); }
+    } finally {
+      await client.close();
+      client = undefined;
+      rmSync(directory, { recursive: true });
+    }
   });
   it('rejects malformed tool inputs and propagates safe gateway failures', async () => {
     const connected = await connect();
-    const invalid = await connected.callTool({ name: 'movie_context', arguments: { query: '', limit: 100 } });
+    const invalid = await connected.callTool({
+      name: 'movie_context',
+      arguments: { query: '', limit: 100 },
+    });
     expect(invalid.isError).toBe(true);
-    const unknown = await connected.callTool({ name: 'approve_movie', arguments: {} });
+    const unknown = await connected.callTool({
+      name: 'approve_movie',
+      arguments: {},
+    });
     expect(unknown.isError).toBe(true);
     expect(JSON.stringify(unknown)).not.toContain('synthetic-connector');
-    const failure = await connected.callTool({ name: 'propose_movie', arguments: {
-      operationId: '00000000-0000-4000-8000-000000000001', title: 'A movie', synopsis: 'A complete movie proposal',
-      genreIds: ['00000000-0000-4000-8000-000000000002'], release: { year: 2024 },
-    } });
+    const failure = await connected.callTool({
+      name: 'propose_movie',
+      arguments: {
+        operationId: '00000000-0000-4000-8000-000000000001',
+        title: 'A movie',
+        synopsis: 'A complete movie proposal',
+        genreIds: ['00000000-0000-4000-8000-000000000002'],
+        release: { year: 2024 },
+      },
+    });
     expect(failure.isError).toBe(true);
     expect(JSON.stringify(failure)).not.toContain('synthetic upstream failure');
   });

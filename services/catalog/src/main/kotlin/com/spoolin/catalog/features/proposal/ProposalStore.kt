@@ -24,21 +24,37 @@ object ProposalStore {
                 ::mapRow,
             ).singleOrNull()
 
-    fun initialForOperation(conn: Connection, operation: UUID): ProposalRow? = conn.queryBound(
-        "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
-            "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
-            "FROM movie_proposal WHERE operation_id=? AND revision=1 FOR UPDATE",
-        listOf(operation), ::mapRow,
-    ).singleOrNull()
+    fun initialForOperation(
+        conn: Connection,
+        operation: UUID,
+    ): ProposalRow? =
+        conn
+            .queryBound(
+                "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
+                    "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
+                    "FROM movie_proposal WHERE operation_id=? AND revision=1 FOR UPDATE",
+                listOf(operation),
+                ::mapRow,
+            ).singleOrNull()
 
-    fun latestForUpdate(conn: Connection, proposalId: UUID): ProposalRow? = conn.queryBound(
-        "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
-            "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
-            "FROM movie_proposal WHERE id=? ORDER BY revision DESC LIMIT 1 FOR UPDATE",
-        listOf(proposalId), ::mapRow,
-    ).singleOrNull()
+    fun latestForUpdate(
+        conn: Connection,
+        proposalId: UUID,
+    ): ProposalRow? =
+        conn
+            .queryBound(
+                "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
+                    "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
+                    "FROM movie_proposal WHERE id=? ORDER BY revision DESC LIMIT 1 FOR UPDATE",
+                listOf(proposalId),
+                ::mapRow,
+            ).singleOrNull()
 
-    fun requireForUpdate(conn: Connection, proposalId: UUID, revision: Int): ProposalRow =
+    fun requireForUpdate(
+        conn: Connection,
+        proposalId: UUID,
+        revision: Int,
+    ): ProposalRow =
         loadForUpdate(conn, proposalId, revision)
             ?: throw Status.NOT_FOUND.withDescription("PROPOSAL_NOT_FOUND").asRuntimeException()
 

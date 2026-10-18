@@ -43,7 +43,10 @@ class DraftCryptography(
         }
     }
 
-    fun requireCurrentWrite(connection: java.sql.Connection, envelope: ProtectedEnvelope) {
+    fun requireCurrentWrite(
+        connection: java.sql.Connection,
+        envelope: ProtectedEnvelope,
+    ) {
         registry.requireCurrentWrite(connection, envelope.keyId, KeyPurpose.DRAFT)
     }
 
