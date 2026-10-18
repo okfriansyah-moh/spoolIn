@@ -201,6 +201,7 @@ class IdentityHttpFixture(
             "CORE_DB_URL=${owner.url("core")}",
             "CORE_DB_USER=spoolin_core_runtime",
             "CORE_DB_PASSWORD_FILE=${owner.passwords.getValue("core-runtime")}",
+            "CORE_DB_MAINTENANCE_PASSWORD_FILE=${owner.passwords.getValue("core-maintenance")}",
             "SERVICE_CERT_FILE=${owner.root.resolve("core.crt")}",
             "SERVICE_KEY_FILE=${owner.root.resolve("core.key")}",
             "SERVICE_CA_FILE=${owner.root.resolve("ca.crt")}",

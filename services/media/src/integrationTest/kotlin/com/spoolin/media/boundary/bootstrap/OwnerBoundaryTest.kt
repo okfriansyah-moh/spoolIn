@@ -520,6 +520,7 @@ class OwnerBoundaryTest {
             "--${owner.uppercase()}_DB_URL=${fixture.url(owner)}",
             "--${owner.uppercase()}_DB_USER=spoolin_${owner}_runtime",
             "--${owner.uppercase()}_DB_PASSWORD_FILE=${fixture.passwords.getValue("$owner-runtime")}",
+            "--${owner.uppercase()}_DB_MAINTENANCE_PASSWORD_FILE=${fixture.passwords.getValue("$owner-maintenance")}",
             "--SERVICE_CERT_FILE=${fixture.root.resolve("$owner.crt")}",
             "--SERVICE_KEY_FILE=${fixture.root.resolve("$owner.key")}",
             "--SERVICE_CA_FILE=${fixture.root.resolve("ca.crt")}",
