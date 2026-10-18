@@ -961,6 +961,33 @@
           "runtime_accepted": false
         }
       ]
+    },
+    {
+      "id": "F-039",
+      "required": true,
+      "status": "open",
+      "area": "Catalog write contracts",
+      "summary": "Ordinary Catalog writes used incomplete intent hashes and omitted live effective-policy/presence checks. Corrected source9679ea7 and742d227; actual mTLS/PostgreSQL regressions pending remote execution.",
+      "evidence_paths": [
+        "services/catalog/src/main/kotlin/com/spoolin/catalog/boundary/policy/CatalogWriteIntent.kt",
+        "docs/operations/rpc-presence.md"
+      ],
+      "assessed_revision": "d8613467dc8ac0796c6d01ba1dc1a9d8d6916d92",
+      "runtime_proof": "Pending remote execution and final independent combined review."
+    },
+    {
+      "id": "F-040",
+      "required": true,
+      "status": "open",
+      "area": "Remote startup and codec prerequisites",
+      "summary": "Real hosted make start timed out with discarded readiness details; production codec host copy collided with runner man directory. Source6263b27/d861346 retain diagnostics and copy codec payloads. Actual cause of readiness failure remains unknown until rerun.",
+      "evidence_paths": [
+        "ops/bin/start.sh",
+        "ops/bin/readiness.py",
+        "ops/ci/prepare-codec-fixture.sh"
+      ],
+      "assessed_revision": "d8613467dc8ac0796c6d01ba1dc1a9d8d6916d92",
+      "runtime_proof": "Pending remote execution and final independent combined review."
     }
   ],
   "pending_acceptance": [
@@ -1201,9 +1228,56 @@
       {
         "run_id": 39088271262,
         "tested_sha": "7e6262f399a197fafed9269d60aaa8e9c640b44e",
-        "result": "cancellation-requested",
+        "result": "cancelled",
         "detail": "Actual hosted strict build and FE types failed before application startup. MCP52/53 and FE296/297 authored tests passed with one failure each; bounded source artifacts inspected. Corrections are source-only pending rerun; obsolete ongoing gates cancelled without acceptance.",
         "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39088271262",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39088635282,
+        "tested_sha": null,
+        "result": "cancelled",
+        "detail": "Incorrect abbreviated input; immediately cancelled without assessed application or accepted execution.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39088635282",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39088642769,
+        "tested_sha": "1a57827130b00784f8bbcc2bc277638a99079cf3",
+        "result": "cancelled",
+        "detail": "Core/Catalog boot jars passed; Media compile failed at HoldSql.releaseHold (later source correction). FE297 and MCP62 tests passed at this revision; obsolete gates cancelled. Bounded artifacts inspected.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39088642769",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39088989624,
+        "tested_sha": "b6c454b938e3098648b66234a1ecbb111bf08982",
+        "result": "succeeded-preparation",
+        "detail": "Dependency preparation succeeded; inspected Logback test lock changes committed0fd4297. No runtime acceptance.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39088989624",
+        "artifact_retention_days": 14
+      },
+      {
+        "run_id": 39089177637,
+        "tested_sha": "0fd42975286b16b78204d508549673cceadfa647",
+        "result": "cancelled",
+        "detail": "Strict all-owner build/contracts, FE/MCP checks/build/tests passed. Codec fixture copy failed at runner /usr/local/man; owner tests failed compilation. Real make start built containers and Catalog logged200 inserted titles, but readiness timed out; browser not run. No dataset correctness, artwork, restart or acceptance claim. Retained logs/artifacts inspected; later source fixes pending rerun.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39089177637",
+        "artifact_retention_days": 14,
+        "runner_os": "Ubuntu24.04 GitHub-hosted Linux",
+        "runner_image": "20261012.334.1",
+        "job_id": 117565160100,
+        "inspected_artifact_ids": [
+          12122550940,
+          12122446585
+        ]
+      },
+      {
+        "run_id": 39090435155,
+        "tested_sha": "9679ea72bc7306d9573cbdb45bfa6a1b50e76da3",
+        "result": "in_progress",
+        "detail": "Hosted dependency preparation for actual JVM/MCP tracing and test dependencies; not an acceptance run.",
+        "url": "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39090435155",
         "artifact_retention_days": 14
       }
     ],

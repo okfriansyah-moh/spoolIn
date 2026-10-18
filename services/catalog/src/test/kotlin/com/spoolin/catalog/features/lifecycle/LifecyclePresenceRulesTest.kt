@@ -27,7 +27,7 @@ class LifecyclePresenceRulesTest {
         val explicit = missing.toBuilder().setExpectedVersion(0).build()
         val encoded = Spoolin.VersionedId.parseFrom(explicit.toByteArray())
         assertTrue(encoded.hasExpectedVersion())
-        assertEquals(0, LifecycleCommand.parse(lifecycle(encoded), actor()).expectedVersion)
+        assertEquals(0L, LifecycleCommand.parse(lifecycle(encoded), actor()).expectedVersion)
     }
 
     @Test
