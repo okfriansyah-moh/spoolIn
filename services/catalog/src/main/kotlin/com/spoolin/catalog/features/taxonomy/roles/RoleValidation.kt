@@ -3,10 +3,9 @@
 package com.spoolin.catalog.features.taxonomy.roles
 
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.TextRules
-
 
 data class ValidatedRoleCreate(
     val category: String,

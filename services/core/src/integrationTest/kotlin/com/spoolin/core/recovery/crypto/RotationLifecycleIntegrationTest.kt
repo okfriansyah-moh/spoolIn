@@ -114,7 +114,8 @@ class RotationLifecycleIntegrationTest {
                 }
             fixture.pool.committed { connection ->
                 connection.executeBound(
-                    "INSERT INTO appdata.form_draft(id,account_id,target_kind,policy_revision,body_key_id,body_nonce,body_cipher,expires_at) " +
+                    "INSERT INTO appdata.form_draft(id,account_id,target_kind,policy_revision," +
+                        "body_key_id,body_nonce,body_cipher,expires_at) " +
                         "VALUES(?,?,'MOVIE','policy',?,?,?,?)",
                     id,
                     account,

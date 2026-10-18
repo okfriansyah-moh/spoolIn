@@ -3,8 +3,8 @@
 package com.spoolin.catalog.features.person.write
 
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PatchValue
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.TextBound
 import com.spoolin.support.policy.TextRules
 import spoolin.v1.Spoolin.PersonValues
@@ -48,9 +48,13 @@ object PersonValidation {
         val v = write.values
         return ValidatedPersonPatch(
             name = patchName("values.name", mask, v.name, policy.textBounds.getValue("personName")),
-            biography = patchBiography(
-                "values.biography", mask, v.biography.takeIf { v.hasBiography() }, policy.textBounds.getValue("biography"),
-            ),
+            biography =
+                patchBiography(
+                    "values.biography",
+                    mask,
+                    v.biography.takeIf { v.hasBiography() },
+                    policy.textBounds.getValue("biography"),
+                ),
         )
     }
 

@@ -24,11 +24,25 @@ class ProcessingMetricsRulesTest {
         assertEquals(null, registry.find("spoolin.media.processing").counter())
         assertEquals(1L, registry.get("spoolin.media.processing.duration").timer().count())
         metrics.committed(result)
-        assertEquals(1.0, registry.get("spoolin.media.processing").tag("outcome", "SUCCESS").counter().count())
+        assertEquals(
+            1.0,
+            registry
+                .get("spoolin.media.processing")
+                .tag("outcome", "SUCCESS")
+                .counter()
+                .count(),
+        )
         assertEquals(null, registry.find("spoolin.media.processing").tag("outcome", "FAILED").counter())
-        val buckets = registry.get("spoolin.media.processing.duration").timer().takeSnapshot().histogramCounts()
-        assertEquals(listOf(0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 3.0, 5.0, 15.0, 30.0),
-            buckets.map { it.bucket(java.util.concurrent.TimeUnit.SECONDS) })
+        val buckets =
+            registry
+                .get("spoolin.media.processing.duration")
+                .timer()
+                .takeSnapshot()
+                .histogramCounts()
+        assertEquals(
+            listOf(0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 3.0, 5.0, 15.0, 30.0),
+            buckets.map { it.bucket(java.util.concurrent.TimeUnit.SECONDS) },
+        )
         assertTrue(registry.meters.all { meter -> meter.id.tags.all { it.key in setOf("service", "outcome") } })
         assertFalse(registry.meters.any { it.id.tags.any { tag -> tag.value.contains("private") } })
     }
@@ -40,7 +54,14 @@ class ProcessingMetricsRulesTest {
         val outcome = metrics.measure { ProcessorRunner.Outcome.Rejected("private-input-path") }
         assertEquals(null, registry.find("spoolin.media.processing").counter())
         metrics.committed(outcome)
-        assertEquals(1.0, registry.get("spoolin.media.processing").tag("outcome", "FAILED").counter().count())
+        assertEquals(
+            1.0,
+            registry
+                .get("spoolin.media.processing")
+                .tag("outcome", "FAILED")
+                .counter()
+                .count(),
+        )
         assertTrue(registry.meters.flatMap { it.id.tags }.none { it.value.contains("private") })
     }
 
@@ -50,10 +71,23 @@ class ProcessingMetricsRulesTest {
         val metrics = ProcessingMetrics(registry)
         assertThrows(CodecFailure::class.java) { metrics.measure { throw CodecFailure("PROCESSING_UNAVAILABLE") } }
         assertEquals(1L, registry.get("spoolin.media.processing.duration").timer().count())
-        assertEquals(1.0, registry.get("spoolin.media.processing").tag("outcome", "FAILED").counter().count())
+        assertEquals(
+            1.0,
+            registry
+                .get("spoolin.media.processing")
+                .tag("outcome", "FAILED")
+                .counter()
+                .count(),
+        )
     }
 
-    private fun success(): ProcessorRunner.Outcome.Success = ProcessorRunner.Outcome.Success(
-        Path.of("/private/output.png"), ImageFormat.PNG, 1, 1, 1, ByteArray(32),
-    )
+    private fun success(): ProcessorRunner.Outcome.Success =
+        ProcessorRunner.Outcome.Success(
+            Path.of("/private/output.png"),
+            ImageFormat.PNG,
+            1,
+            1,
+            1,
+            ByteArray(32),
+        )
 }

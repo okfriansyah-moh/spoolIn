@@ -13,8 +13,8 @@ import com.spoolin.core.features.crypto.committed
 import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.crypto.observeProtection
 import com.spoolin.core.features.crypto.queryBound
-import com.spoolin.core.features.crypto.recordFailure
 import com.spoolin.core.features.crypto.readRows
+import com.spoolin.core.features.crypto.recordFailure
 import java.sql.Connection
 import java.sql.SQLException
 import java.util.UUID

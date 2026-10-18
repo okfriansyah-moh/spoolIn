@@ -19,7 +19,12 @@ class ProtectionMetricsRulesTest {
             ProtectionFailure.entries.forEach { alert.recordFailure(it) }
             assertEquals(4, registry.meters.size)
             registry.meters.forEach { meter ->
-                assertEquals(setOf("service", "code"), meter.id.tags.map { it.key }.toSet())
+                assertEquals(
+                    setOf("service", "code"),
+                    meter.id.tags
+                        .map { it.key }
+                        .toSet(),
+                )
                 assertEquals("core", meter.id.getTag("service"))
                 assertTrue(meter.id.getTag("code") in ProtectionFailure.entries.map { it.name })
             }
@@ -51,8 +56,22 @@ class ProtectionMetricsRulesTest {
                     observeProtection(alert, ProtectionFailure.UNAVAILABLE) { throw engine }
                 },
             )
-            assertEquals(2.0, registry.get("spoolin_crypto_failures_total").tag("code", "UNAVAILABLE").counter().count())
-            assertEquals(1.0, registry.get("spoolin_crypto_failures_total").tag("code", "KEY").counter().count())
+            assertEquals(
+                2.0,
+                registry
+                    .get("spoolin_crypto_failures_total")
+                    .tag("code", "UNAVAILABLE")
+                    .counter()
+                    .count(),
+            )
+            assertEquals(
+                1.0,
+                registry
+                    .get("spoolin_crypto_failures_total")
+                    .tag("code", "KEY")
+                    .counter()
+                    .count(),
+            )
         }
     }
 

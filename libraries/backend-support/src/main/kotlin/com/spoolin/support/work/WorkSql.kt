@@ -310,11 +310,14 @@ object WorkSql {
         workId: UUID,
         commit: WorkRecoveryCommit,
         now: Instant,
-    ): Boolean {
-        return recoverLocked(connection, workId, commit, now, false)
-    }
+    ): Boolean = recoverLocked(connection, workId, commit, now, false)
 
-    fun recoverNotificationWork(connection: Connection, workId: UUID, commit: WorkRecoveryCommit, now: Instant): Boolean {
+    fun recoverNotificationWork(
+        connection: Connection,
+        workId: UUID,
+        commit: WorkRecoveryCommit,
+        now: Instant,
+    ): Boolean {
         require(!connection.autoCommit)
         val inspected = requireNotNull(WorkRecoveryOperations.inspect(connection, workId, true))
         WorkRecoveryOperations.validateNotification(inspected, connection)
@@ -322,7 +325,11 @@ object WorkSql {
     }
 
     private fun recoverLocked(
-        connection: Connection, workId: UUID, commit: WorkRecoveryCommit, now: Instant, notification: Boolean,
+        connection: Connection,
+        workId: UUID,
+        commit: WorkRecoveryCommit,
+        now: Instant,
+        notification: Boolean,
     ): Boolean {
         val kind = if (notification) "kind='NOTIFICATION' AND notification_state='FAILED'" else "kind<>'NOTIFICATION'"
         require(!connection.autoCommit) { "Work recovery requires an explicit transaction" }

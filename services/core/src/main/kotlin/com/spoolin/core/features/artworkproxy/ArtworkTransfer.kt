@@ -41,17 +41,18 @@ internal object ArtworkTransfer {
         path: Path,
         maximum: Long,
         hash: MessageDigest,
-    ): Long = Files.newOutputStream(path).use { output ->
-        var bytes = 0L
-        while (chunks.hasNext()) {
-            val data = data(chunks.next())
-            if (data.size.toLong() > maximum - bytes) throw Status.DATA_LOSS.asRuntimeException()
-            bytes += data.size
-            hash.update(data)
-            output.write(data)
+    ): Long =
+        Files.newOutputStream(path).use { output ->
+            var bytes = 0L
+            while (chunks.hasNext()) {
+                val data = data(chunks.next())
+                if (data.size.toLong() > maximum - bytes) throw Status.DATA_LOSS.asRuntimeException()
+                bytes += data.size
+                hash.update(data)
+                output.write(data)
+            }
+            bytes
         }
-        bytes
-    }
 
     private fun data(chunk: Spoolin.AssetReadChunk): ByteArray {
         if (!chunk.hasData() || chunk.data.size() !in 1..MAX_CHUNK_BYTES) throw Status.DATA_LOSS.asRuntimeException()

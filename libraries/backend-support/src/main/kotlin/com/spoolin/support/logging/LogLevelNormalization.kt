@@ -20,10 +20,15 @@ fun normalizeConfiguredLogLevel(raw: String?): String {
     }
 }
 
-fun applyNormalizedLogLevel(raw: String?, service: String) {
+fun applyNormalizedLogLevel(
+    raw: String?,
+    service: String,
+) {
     applyNormalizedLogLevel(raw, service, { bytes ->
         BoundedDiagnosticSink(
-            service, FileOutputStream(FileDescriptor.err), FileOutputStream(FileDescriptor.out),
+            service,
+            FileOutputStream(FileDescriptor.err),
+            FileOutputStream(FileDescriptor.out),
             DiagnosticDropMetrics.shared,
         ).use { it.submit(bytes, DiagnosticLevel.FATAL) }
     }, ::exitProcess)
@@ -36,11 +41,12 @@ internal fun applyNormalizedLogLevel(
     terminate: (Int) -> Nothing,
 ) {
     require(service in DiagnosticDropMetrics.SERVICES)
-    val normalized = try {
-        normalizeConfiguredLogLevel(raw)
-    } catch (_: InvalidLogLevelException) {
-        null
-    }
+    val normalized =
+        try {
+            normalizeConfiguredLogLevel(raw)
+        } catch (_: InvalidLogLevelException) {
+            null
+        }
     if (normalized != null) {
         System.setProperty("LOG_LEVEL", normalized)
         return

@@ -20,12 +20,24 @@ export class DiagnosticSink {
     this.drops.set(key, (this.drops.get(key) ?? 0) + 1);
   }
   render(): string[] {
-    return ['# TYPE spoolin_log_dropped_total counter', ...[...this.drops].sort()
-      .map(([labels, count]) => `spoolin_log_dropped_total{${labels}} ${count}`)];
+    return [
+      '# TYPE spoolin_log_dropped_total counter',
+      ...[...this.drops]
+        .sort()
+        .map(
+          ([labels, count]) => `spoolin_log_dropped_total{${labels}} ${count}`,
+        ),
+    ];
   }
   send(line: string, level: Level): void {
-    if (this.failed) { this.drop(level, 'sink_failed'); return; }
-    if (this.queue.length >= 1024) { this.drop(level, 'queue_full'); return; }
+    if (this.failed) {
+      this.drop(level, 'sink_failed');
+      return;
+    }
+    if (this.queue.length >= 1024) {
+      this.drop(level, 'queue_full');
+      return;
+    }
     this.queue.push({ line, level });
     this.pump();
   }
@@ -38,7 +50,11 @@ export class DiagnosticSink {
       this.output.write(item.line, (error) => {
         if (this.pending !== item) return;
         this.pending = undefined;
-        if (error) { this.drop(item.level, 'sink_failed'); this.onError(); return; }
+        if (error) {
+          this.drop(item.level, 'sink_failed');
+          this.onError();
+          return;
+        }
         setImmediate(() => this.pump()).unref();
       });
     } catch {
@@ -49,7 +65,9 @@ export class DiagnosticSink {
     this.failed = true;
     if (this.pending) this.drop(this.pending.level, 'sink_failed');
     this.pending = undefined;
-    this.queue.splice(0).forEach((item) => this.drop(item.level, 'sink_failed'));
+    this.queue
+      .splice(0)
+      .forEach((item) => this.drop(item.level, 'sink_failed'));
   };
   async flush(timeoutMs = 100): Promise<void> {
     const until = Date.now() + Math.min(100, Math.max(0, timeoutMs));

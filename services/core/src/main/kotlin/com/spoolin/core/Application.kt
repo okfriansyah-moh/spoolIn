@@ -107,7 +107,9 @@ class Application {
         )
 
     @Bean(destroyMethod = "close")
-    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing = com.spoolin.support.tracing.OwnerTracing("core")
+    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing =
+        com.spoolin.support.tracing
+            .OwnerTracing("core")
 
     @Bean
     @GlobalServerInterceptor
@@ -123,24 +125,31 @@ class Application {
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
     fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
-        com.spoolin.support.tracing.TraceClientInterceptor(tracing)
+        com.spoolin.support.tracing
+            .TraceClientInterceptor(tracing)
 
     @Bean
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     fun browserTrace(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.core.boundary.http.BrowserTraceFilter =
-        com.spoolin.core.boundary.http.BrowserTraceFilter(tracing)
+        com.spoolin.core.boundary.http
+            .BrowserTraceFilter(tracing)
 
     @Bean
     fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
-        com.spoolin.support.logging.DiagnosticDropMetrics.shared.bind("core", registry)
-        return com.spoolin.support.observability.LogicalMetrics(registry, "core")
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared
+            .bind("core", registry)
+        return com.spoolin.support.observability
+            .LogicalMetrics(registry, "core")
     }
 
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    fun logicalRpcMetrics(metrics: com.spoolin.support.observability.LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
-        com.spoolin.support.observability.LogicalRpcMetricsInterceptor(metrics)
+    fun logicalRpcMetrics(
+        metrics: com.spoolin.support.observability.LogicalMetrics,
+    ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability
+            .LogicalRpcMetricsInterceptor(metrics)
 
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =

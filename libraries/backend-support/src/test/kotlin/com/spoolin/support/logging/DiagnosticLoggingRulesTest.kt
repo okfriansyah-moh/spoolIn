@@ -52,12 +52,13 @@ class DiagnosticLoggingRulesTest {
         assertTrue(registry.meters.isEmpty())
         val entered = CountDownLatch(1)
         val release = CountDownLatch(1)
-        val blocked = object : OutputStream() {
-            override fun write(value: Int) {
-                entered.countDown()
-                check(release.await(2, TimeUnit.SECONDS))
+        val blocked =
+            object : OutputStream() {
+                override fun write(value: Int) {
+                    entered.countDown()
+                    check(release.await(2, TimeUnit.SECONDS))
+                }
             }
-        }
         val sink = BoundedDiagnosticSink("media", blocked, ByteArrayOutputStream(), metrics, capacity = 1)
         try {
             val bytes = DiagnosticEnvelope("media", "test-version", "test").invalid(1)
@@ -65,7 +66,14 @@ class DiagnosticLoggingRulesTest {
             assertTrue(entered.await(1, TimeUnit.SECONDS))
             sink.submit(bytes, DiagnosticLevel.WARNING)
             sink.submit(bytes, DiagnosticLevel.WARNING)
-            assertEquals(1.0, registry.get("spoolin.log.dropped").tag("reason", "queue_full").functionCounter().count())
+            assertEquals(
+                1.0,
+                registry
+                    .get("spoolin.log.dropped")
+                    .tag("reason", "queue_full")
+                    .functionCounter()
+                    .count(),
+            )
             assertTrue(registry.meters.flatMap { it.id.tags }.all { it.key in setOf("service", "level", "reason") })
         } finally {
             release.countDown()
@@ -78,16 +86,24 @@ class DiagnosticLoggingRulesTest {
         val registry = SimpleMeterRegistry()
         val metrics = DiagnosticDropMetrics()
         metrics.bind("catalog", registry)
-        val failed = object : OutputStream() {
-            override fun write(value: Int): Unit = throw IOException("private-sink-error")
-        }
+        val failed =
+            object : OutputStream() {
+                override fun write(value: Int): Unit = throw IOException("private-sink-error")
+            }
         val alternate = ByteArrayOutputStream()
         val bytes = DiagnosticEnvelope("catalog", "test-version", "test").invalid(1)
         BoundedDiagnosticSink("catalog", failed, alternate, metrics).use { it.submit(bytes, DiagnosticLevel.ERROR) }
         assertEquals(bytes.toList(), alternate.toByteArray().toList())
         assertTrue(registry.meters.isEmpty())
         BoundedDiagnosticSink("catalog", failed, failed, metrics).use { it.submit(bytes, DiagnosticLevel.ERROR) }
-        assertEquals(1.0, registry.get("spoolin.log.dropped").tag("reason", "sink_failed").functionCounter().count())
+        assertEquals(
+            1.0,
+            registry
+                .get("spoolin.log.dropped")
+                .tag("reason", "sink_failed")
+                .functionCounter()
+                .count(),
+        )
     }
 
     @Test

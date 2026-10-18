@@ -11,18 +11,22 @@ private const val MAX_PIXELS = 40_000_000L
 private const val CONTENT_HASH_BYTES = 32
 
 internal object ArtworkReadValidation {
-    fun grant(grant: Spoolin.ArtworkGrant, assetId: UUID) {
+    fun grant(
+        grant: Spoolin.ArtworkGrant,
+        assetId: UUID,
+    ) {
         if (grant.assetId != assetId.toString() || grant.catalogVersion < 0) {
             throw Status.DATA_LOSS.asRuntimeException()
         }
         if (!isUuid(grant.holdId) || !isUuid(grant.titleId)) throw Status.DATA_LOSS.asRuntimeException()
     }
 
-    private fun isUuid(value: String): Boolean = try {
-        UUID.fromString(value).toString() == value
-    } catch (_: IllegalArgumentException) {
-        false
-    }
+    private fun isUuid(value: String): Boolean =
+        try {
+            UUID.fromString(value).toString() == value
+        } catch (_: IllegalArgumentException) {
+            false
+        }
 
     fun contentType(header: Spoolin.AssetReadHeader): String {
         validateBounds(header)

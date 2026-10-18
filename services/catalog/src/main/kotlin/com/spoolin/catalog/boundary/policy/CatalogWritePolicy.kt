@@ -5,8 +5,13 @@ import com.spoolin.support.policy.PublicPolicy
 import io.grpc.Status
 
 /** Resolve and compare only inside a fresh owner mutation; receipt replays bypass this check. */
-class CatalogWritePolicy(private val provider: () -> PublicPolicy = { environment() }) {
-    internal fun <T> bind(input: T, revision: String): PolicyWrite<T> {
+class CatalogWritePolicy(
+    private val provider: () -> PublicPolicy = { environment() },
+) {
+    internal fun <T> bind(
+        input: T,
+        revision: String,
+    ): PolicyWrite<T> {
         val effective = effective()
         if (revision != effective.revision) throw Status.FAILED_PRECONDITION.withDescription("POLICY_CHANGED").asRuntimeException()
         return PolicyWrite(input, effective)
@@ -19,4 +24,7 @@ class CatalogWritePolicy(private val provider: () -> PublicPolicy = { environmen
     }
 }
 
-internal data class PolicyWrite<T>(val input: T, val policy: PublicPolicy)
+internal data class PolicyWrite<T>(
+    val input: T,
+    val policy: PublicPolicy,
+)

@@ -21,10 +21,22 @@ type Session = {
 const MAX_SESSIONS = 100;
 const SESSION_IDLE_MS = 15 * 60_000;
 
-function refusalBody(established: boolean, id: unknown, problem: { code: string; retryAfterMs?: number }, limited: boolean) {
+function refusalBody(
+  established: boolean,
+  id: unknown,
+  problem: { code: string; retryAfterMs?: number },
+  limited: boolean,
+) {
   if (!established) return { problem };
-  return { jsonrpc: '2.0', id: typeof id === 'string' || typeof id === 'number' ? id : null,
-    error: { code: -32000, message: limited ? 'Request limit reached.' : 'Service unavailable.', data: problem } };
+  return {
+    jsonrpc: '2.0',
+    id: typeof id === 'string' || typeof id === 'number' ? id : null,
+    error: {
+      code: -32000,
+      message: limited ? 'Request limit reached.' : 'Service unavailable.',
+      data: problem,
+    },
+  };
 }
 
 export class StreamableHttpTransport {
@@ -68,11 +80,18 @@ export class StreamableHttpTransport {
     mcpDiagnostics.emit('ready');
     this.cleanup = setInterval(() => this.expireSessions(), 60_000).unref();
   }
-  private connector(path: string, origins: Set<string>, hosts: Set<string>): http.Server {
+  private connector(
+    path: string,
+    origins: Set<string>,
+    hosts: Set<string>,
+  ): http.Server {
     const listener = http.createServer((req, res) => {
       void mcpTracing
-        .ingress(req, res, () => this.metrics.ingress(req, res, () =>
-          this.handle(req, res, path, origins, hosts)))
+        .ingress(req, res, () =>
+          this.metrics.ingress(req, res, () =>
+            this.handle(req, res, path, origins, hosts),
+          ),
+        )
         .catch(() => {
           if (!res.headersSent) res.writeHead(503);
           res.end();
@@ -118,7 +137,9 @@ export class StreamableHttpTransport {
     for (const [id, session] of this.sessions) {
       if (Date.now() - session.touched > SESSION_IDLE_MS) {
         if (this.sessions.delete(id)) this.metrics.sessionClosed();
-        void session.close().catch(() => mcpDiagnostics.emit('session_cleanup_failed'));
+        void session
+          .close()
+          .catch(() => mcpDiagnostics.emit('session_cleanup_failed'));
       }
     }
   }
@@ -358,7 +379,16 @@ export class StreamableHttpTransport {
           }
         : {}),
     });
-    res.end(JSON.stringify(refusalBody(established && req.method === 'POST', message?.id, problem, limited)));
+    res.end(
+      JSON.stringify(
+        refusalBody(
+          established && req.method === 'POST',
+          message?.id,
+          problem,
+          limited,
+        ),
+      ),
+    );
   }
 
   private stopping?: Promise<void>;
@@ -369,8 +399,12 @@ export class StreamableHttpTransport {
   private async shutdown(): Promise<void> {
     this.closing = true;
     let readinessFailed = false;
-    try { this.readiness.close(); }
-    catch { readinessFailed = true; mcpDiagnostics.emit('transport_failed'); }
+    try {
+      this.readiness.close();
+    } catch {
+      readinessFailed = true;
+      mcpDiagnostics.emit('transport_failed');
+    }
     if (this.cleanup) clearInterval(this.cleanup);
     const sessionResults = await Promise.allSettled(
       [...this.sessions.values()].map((session) => session.close()),
@@ -387,7 +421,10 @@ export class StreamableHttpTransport {
             new Promise<void>((resolve) => server.close(() => resolve())),
         ),
     );
-    if (readinessFailed || sessionResults.some((result) => result.status === 'rejected')) {
+    if (
+      readinessFailed ||
+      sessionResults.some((result) => result.status === 'rejected')
+    ) {
       mcpDiagnostics.emit('session_cleanup_failed');
       throw new Error('MCP shutdown failed');
     }

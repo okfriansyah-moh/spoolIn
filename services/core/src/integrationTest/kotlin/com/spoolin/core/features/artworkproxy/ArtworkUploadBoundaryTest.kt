@@ -73,8 +73,13 @@ class ArtworkUploadBoundaryTest {
             val saved = spool()
             val path = saved.path
             saved.use { assertDeadline(fixture, it, scheduler) }
-            assertFalse(java.nio.file.Files.exists(path))
-        } finally { scheduler.shutdownNow() }
+            assertFalse(
+                java.nio.file.Files
+                    .exists(path),
+            )
+        } finally {
+            scheduler.shutdownNow()
+        }
     }
 
     private fun assertDeadline(
@@ -84,12 +89,15 @@ class ArtworkUploadBoundaryTest {
     ) {
         val deadline = Context.current().withDeadlineAfter(CANCEL_AFTER_MS, TimeUnit.MILLISECONDS, scheduler)
         try {
-            val error = assertThrows(StatusRuntimeException::class.java) {
-                deadline.call(Callable { ArtworkUpload.upload(fixture.request(spool)) })
-            }
+            val error =
+                assertThrows(StatusRuntimeException::class.java) {
+                    deadline.call(Callable { ArtworkUpload.upload(fixture.request(spool)) })
+                }
             assertTrue(error.status.code in setOf(Status.Code.DEADLINE_EXCEEDED, Status.Code.CANCELLED))
             assertTrue(fixture.cancelled.await(CANCEL_WAIT_SECONDS, TimeUnit.SECONDS))
-        } finally { deadline.cancel(null) }
+        } finally {
+            deadline.cancel(null)
+        }
     }
 
     private fun spool(): ArtworkSpool = ArtworkSpool.decode(Base64.getEncoder().encodeToString(input), SPOOL_LIMIT)

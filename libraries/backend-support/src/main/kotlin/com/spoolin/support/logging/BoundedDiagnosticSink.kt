@@ -17,24 +17,41 @@ internal class BoundedDiagnosticSink(
     private val metrics: DiagnosticDropMetrics,
     capacity: Int = DIAGNOSTIC_QUEUE,
 ) : AutoCloseable {
-    private data class Record(val bytes: ByteArray, val level: DiagnosticLevel)
+    private data class Record(
+        val bytes: ByteArray,
+        val level: DiagnosticLevel,
+    )
+
     private val queue = ArrayBlockingQueue<Record>(capacity)
     private val running = AtomicBoolean(true)
-    private val worker = Thread(::drain, "diagnostic-writer").apply { isDaemon = true; start() }
+    private val worker =
+        Thread(::drain, "diagnostic-writer").apply {
+            isDaemon = true
+            start()
+        }
 
     @Synchronized
-    fun submit(bytes: ByteArray, level: DiagnosticLevel) {
-        val reason = when {
-            bytes.size > DIAGNOSTIC_BYTES -> DiagnosticDrop.CONTRACT_INVALID
-            !running.get() || !queue.offer(Record(bytes, level)) -> DiagnosticDrop.QUEUE_FULL
-            else -> null
-        }
+    fun submit(
+        bytes: ByteArray,
+        level: DiagnosticLevel,
+    ) {
+        val reason =
+            when {
+                bytes.size > DIAGNOSTIC_BYTES -> DiagnosticDrop.CONTRACT_INVALID
+                !running.get() || !queue.offer(Record(bytes, level)) -> DiagnosticDrop.QUEUE_FULL
+                else -> null
+            }
         if (reason != null) metrics.record(service, level, reason)
     }
 
     private fun drain() {
         while (running.get() || queue.isNotEmpty()) {
-            val record = try { queue.poll(POLL_MS, TimeUnit.MILLISECONDS) } catch (_: InterruptedException) { null }
+            val record =
+                try {
+                    queue.poll(POLL_MS, TimeUnit.MILLISECONDS)
+                } catch (_: InterruptedException) {
+                    null
+                }
             if (record != null) deliver(record)
         }
     }
@@ -45,11 +62,17 @@ internal class BoundedDiagnosticSink(
         }
     }
 
-    private fun write(output: OutputStream, bytes: ByteArray): Boolean = try {
-        output.write(bytes)
-        output.flush()
-        true
-    } catch (_: IOException) { false }
+    private fun write(
+        output: OutputStream,
+        bytes: ByteArray,
+    ): Boolean =
+        try {
+            output.write(bytes)
+            output.flush()
+            true
+        } catch (_: IOException) {
+            false
+        }
 
     @Synchronized
     override fun close() {

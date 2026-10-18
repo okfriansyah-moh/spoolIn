@@ -9,17 +9,20 @@ import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
 
 class PrebootLoggingRulesTest {
-    private class Terminated(val status: Int) : RuntimeException()
+    private class Terminated(
+        val status: Int,
+    ) : RuntimeException()
 
     @Test
     fun `invalid private configuration emits fixed fatal JSON then preserves exit 78 for each owner`() {
         for (service in listOf("core", "catalog", "media")) {
             val records = mutableListOf<ByteArray>()
-            val terminated = assertThrows(Terminated::class.java) {
-                applyNormalizedLogLevel("private-token\nforged-event", service, { records.add(it) }) {
-                    throw Terminated(it)
+            val terminated =
+                assertThrows(Terminated::class.java) {
+                    applyNormalizedLogLevel("private-token\nforged-event", service, { records.add(it) }) {
+                        throw Terminated(it)
+                    }
                 }
-            }
             assertEquals(78, terminated.status)
             assertEquals(1, records.size)
             val raw = records.single().toString(Charsets.UTF_8)
@@ -38,11 +41,12 @@ class PrebootLoggingRulesTest {
 
     @Test
     fun `fatal diagnostic sink failure cannot replace required configuration exit`() {
-        val terminated = assertThrows(Terminated::class.java) {
-            applyNormalizedLogLevel("invalid", "media", { throw IOException("private-sink-error") }) {
-                throw Terminated(it)
+        val terminated =
+            assertThrows(Terminated::class.java) {
+                applyNormalizedLogLevel("invalid", "media", { throw IOException("private-sink-error") }) {
+                    throw Terminated(it)
+                }
             }
-        }
         assertEquals(78, terminated.status)
     }
 

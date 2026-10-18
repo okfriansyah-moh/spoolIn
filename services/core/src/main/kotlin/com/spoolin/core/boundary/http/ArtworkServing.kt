@@ -39,15 +39,26 @@ class ArtworkServing(
     private val identity: ObjectProvider<BrowserIdentity>,
     private val admission: ObjectProvider<TrustedAdmission>,
 ) {
-    private val workers = ThreadPoolExecutor(
-        ARTWORK_WORKERS, ARTWORK_WORKERS, 0, TimeUnit.SECONDS, ArrayBlockingQueue(ARTWORK_QUEUE_SIZE),
-    )
+    private val workers =
+        ThreadPoolExecutor(
+            ARTWORK_WORKERS,
+            ARTWORK_WORKERS,
+            0,
+            TimeUnit.SECONDS,
+            ArrayBlockingQueue(ARTWORK_QUEUE_SIZE),
+        )
 
     @PreDestroy
-    fun close() { workers.shutdownNow() }
+    fun close() {
+        workers.shutdownNow()
+    }
 
     @GetMapping("/artwork/{assetId}")
-    fun get(@PathVariable assetId: String, request: HttpServletRequest, response: HttpServletResponse) {
+    fun get(
+        @PathVariable assetId: String,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
         response.setHeader("Cache-Control", "no-store")
         response.setHeader("X-Content-Type-Options", "nosniff")
         if (request.getHeader("Range") != null) {
@@ -62,10 +73,15 @@ class ArtworkServing(
             serve(id, management, context, request, response)
         } catch (failure: RateLimited) {
             retryAfter(response, failure)
-        } catch (_: RateUnavailable) { response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
-        } catch (_: BrowserRejected) { response.sendError(HttpServletResponse.SC_FORBIDDEN)
-        } catch (failure: StatusRuntimeException) { response.sendError(artworkStatus(failure, false))
-        } catch (_: IllegalArgumentException) { response.sendError(HttpServletResponse.SC_NOT_FOUND) }
+        } catch (_: RateUnavailable) {
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
+        } catch (_: BrowserRejected) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN)
+        } catch (failure: StatusRuntimeException) {
+            response.sendError(artworkStatus(failure, false))
+        } catch (_: IllegalArgumentException) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+        }
     }
 
     private fun management(request: HttpServletRequest): Boolean {
@@ -74,12 +90,18 @@ class ArtworkServing(
         return view["view"]?.single()?.also { require(it == "management") } != null
     }
 
-    private fun admit(context: BrowserContext, management: Boolean) {
+    private fun admit(
+        context: BrowserContext,
+        management: Boolean,
+    ) {
         val limiter = admission.ifAvailable ?: throw RateUnavailable()
         limiter.reads(context.request, !management, management)
     }
 
-    private fun browser(request: HttpServletRequest, management: Boolean): BrowserContext {
+    private fun browser(
+        request: HttpServletRequest,
+        management: Boolean,
+    ): BrowserContext {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(ARTWORK_SECONDS)
         if (!management) {
             return BrowserContext(null, null, null, null, AuthenticationRequest(request.remoteAddr, null, deadline))
@@ -105,9 +127,13 @@ class ArtworkServing(
         val cancellation = Context.current().withCancellation()
         val async = ArtworkHttpAsync(request.startAsync(), cancellation, response)
         try {
-            workers.execute(com.spoolin.support.tracing.TraceContexts.wrap(Runnable {
-                runTransfer(id, management, browser, response, async)
-            }))
+            workers.execute(
+                com.spoolin.support.tracing.TraceContexts.wrap(
+                    Runnable {
+                        runTransfer(id, management, browser, response, async)
+                    },
+                ),
+            )
         } catch (_: RejectedExecutionException) {
             async.unavailable()
             async.close()
@@ -134,7 +160,12 @@ class ArtworkServing(
         }
     }
 
-    private fun transfer(id: UUID, management: Boolean, context: BrowserContext, response: HttpServletResponse) {
+    private fun transfer(
+        id: UUID,
+        management: Boolean,
+        context: BrowserContext,
+        response: HttpServletResponse,
+    ) {
         artwork.read(id, management, context).use { asset ->
             if (!Context.current().isCancelled) {
                 response.contentType = asset.contentType
@@ -144,7 +175,10 @@ class ArtworkServing(
         }
     }
 
-    private fun write(asset: ArtworkReadProxy.VerifiedAsset, response: HttpServletResponse) {
+    private fun write(
+        asset: ArtworkReadProxy.VerifiedAsset,
+        response: HttpServletResponse,
+    ) {
         Files.newInputStream(asset.path).use { input ->
             val buffer = ByteArray(TRANSFER_BYTES)
             while (!Context.current().isCancelled) {
@@ -156,24 +190,32 @@ class ArtworkServing(
     }
 }
 
-private fun retryAfter(response: HttpServletResponse, failure: RateLimited) {
+private fun retryAfter(
+    response: HttpServletResponse,
+    failure: RateLimited,
+) {
     val seconds = ((failure.retryAfterMs + SECOND_MS - 1) / SECOND_MS).coerceAtLeast(1)
     response.setHeader("Retry-After", seconds.toString())
     response.sendError(HTTP_RATE_LIMITED)
 }
 
-private fun artworkStatus(failure: StatusRuntimeException, publicRead: Boolean): Int = when (failure.status.code) {
-    Status.Code.NOT_FOUND -> HttpServletResponse.SC_NOT_FOUND
-    Status.Code.UNAUTHENTICATED -> HttpServletResponse.SC_UNAUTHORIZED
-    Status.Code.PERMISSION_DENIED -> if (publicRead) HttpServletResponse.SC_NOT_FOUND else HttpServletResponse.SC_FORBIDDEN
-    else -> HttpServletResponse.SC_SERVICE_UNAVAILABLE
-}
+private fun artworkStatus(
+    failure: StatusRuntimeException,
+    publicRead: Boolean,
+): Int =
+    when (failure.status.code) {
+        Status.Code.NOT_FOUND -> HttpServletResponse.SC_NOT_FOUND
+        Status.Code.UNAUTHENTICATED -> HttpServletResponse.SC_UNAUTHORIZED
+        Status.Code.PERMISSION_DENIED -> if (publicRead) HttpServletResponse.SC_NOT_FOUND else HttpServletResponse.SC_FORBIDDEN
+        else -> HttpServletResponse.SC_SERVICE_UNAVAILABLE
+    }
 
 private class ArtworkHttpAsync(
     private val async: AsyncContext,
     val cancellation: Context.CancellableContext,
     private val response: HttpServletResponse,
-) : AsyncListener, AutoCloseable {
+) : AsyncListener,
+    AutoCloseable {
     init {
         async.timeout = ARTWORK_TIMEOUT_MS
         async.addListener(this)
@@ -194,11 +236,18 @@ private class ArtworkHttpAsync(
         close()
     }
 
-    override fun onComplete(event: AsyncEvent) { cancellation.cancel(null) }
+    override fun onComplete(event: AsyncEvent) {
+        cancellation.cancel(null)
+    }
+
     override fun onStartAsync(event: AsyncEvent) = Unit
 
     override fun close() {
         cancellation.cancel(null)
-        try { async.complete() } catch (_: IllegalStateException) { /* Container already completed the request. */ }
+        try {
+            async.complete()
+        } catch (_: IllegalStateException) {
+            // Container already completed the request.
+        }
     }
 }

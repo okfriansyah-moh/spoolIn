@@ -143,15 +143,16 @@ class UiAssertionVerifier(
         consumed.clear()
     }
 
-    private fun deny(): Nothing =
-        throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
+    private fun deny(): Nothing = throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
 
     companion object {
         val assertionContext: Context.Key<String> = Context.key("mcp-private-ui-assertion")
     }
 }
 
-private class UiAssertionClaims(private val clock: Clock) {
+private class UiAssertionClaims(
+    private val clock: Clock,
+) {
     fun requireBinding(
         claims: JsonNode,
         connector: ConnectorRecord,
@@ -209,19 +210,27 @@ private class UiAssertionClaims(private val clock: Clock) {
         return value.stringValue()
     }
 
-    private fun deny(): Nothing =
-        throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
+    private fun deny(): Nothing = throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
 
     companion object {
         private val FIELDS =
             setOf(
-                "audience", "connector", "client", "session", "proposal",
-                "revision", "hash", "method", "invocation", "expiry",
+                "audience",
+                "connector",
+                "client",
+                "session",
+                "proposal",
+                "revision",
+                "hash",
+                "method",
+                "invocation",
+                "expiry",
             )
-        private val METHODS = setOf(
-            "/spoolin.v1.McpGatewayService/ApproveMovie",
-            "/spoolin.v1.McpGatewayService/RejectMovie",
-        )
+        private val METHODS =
+            setOf(
+                "/spoolin.v1.McpGatewayService/ApproveMovie",
+                "/spoolin.v1.McpGatewayService/RejectMovie",
+            )
         private val UUID_PATTERN = Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
     }
 }

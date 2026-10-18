@@ -10,8 +10,8 @@
 
 package com.spoolin.catalog.features.credit
 
-import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
@@ -457,9 +457,23 @@ class CreditWrites(
     }
 }
 
-private fun invalidOutcome(operation: String, violation: InputViolation): Outcome = Outcome.newBuilder()
-    .setOperationId(operation).setState("FAILED")
-    .setProblem(spoolin.v1.Spoolin.Problem.newBuilder().setCode("FIELD_INVALID")
-        .addFields(spoolin.v1.Spoolin.FieldIssue.newBuilder().setPath(violation.path).setCode("INVALID")
-            .setMessage(violation.correction)))
-    .build()
+private fun invalidOutcome(
+    operation: String,
+    violation: InputViolation,
+): Outcome =
+    Outcome
+        .newBuilder()
+        .setOperationId(operation)
+        .setState("FAILED")
+        .setProblem(
+            spoolin.v1.Spoolin.Problem
+                .newBuilder()
+                .setCode("FIELD_INVALID")
+                .addFields(
+                    spoolin.v1.Spoolin.FieldIssue
+                        .newBuilder()
+                        .setPath(violation.path)
+                        .setCode("INVALID")
+                        .setMessage(violation.correction),
+                ),
+        ).build()

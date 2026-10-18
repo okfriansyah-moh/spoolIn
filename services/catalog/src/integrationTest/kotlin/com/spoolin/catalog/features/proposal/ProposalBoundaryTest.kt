@@ -98,9 +98,12 @@ class ProposalBoundaryTest {
             assertEquals(2, second.revision)
             assertTrue(first.uiChallenge != second.uiChallenge, "A corrected revision requires a fresh challenge")
             assertEquals("SUPERSEDED", f.row(first.proposalId, 1).state)
-            assertEquals(Status.Code.FAILED_PRECONDITION, failure {
-                f.stub("ApproveAndCreate").approveAndCreate(approval(first))
-            })
+            assertEquals(
+                Status.Code.FAILED_PRECONDITION,
+                failure {
+                    f.stub("ApproveAndCreate").approveAndCreate(approval(first))
+                },
+            )
             assertEquals(UUID.fromString(initial.context.operationId), f.row(first.proposalId, 2).operationId)
             val stale = proposal(first.proposalId, 1)
             assertEquals(Status.Code.ABORTED, failure { propose(f, stale) })

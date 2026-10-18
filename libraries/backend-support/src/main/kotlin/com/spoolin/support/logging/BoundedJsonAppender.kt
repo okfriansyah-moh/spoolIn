@@ -28,19 +28,21 @@ class BoundedJsonAppender internal constructor(
 
     override fun append(event: ILoggingEvent) {
         val encoder = checkNotNull(envelope)
-        val level = when (event.level) {
-            Level.TRACE, Level.DEBUG -> DiagnosticLevel.DEBUG
-            Level.INFO -> DiagnosticLevel.INFO
-            Level.WARN -> DiagnosticLevel.WARNING
-            Level.ERROR -> DiagnosticLevel.ERROR
-            else -> null
-        }
-        val bytes = if (level == null) {
-            DiagnosticDropMetrics.shared.record(serviceName, DiagnosticLevel.ERROR, DiagnosticDrop.CONTRACT_INVALID)
-            encoder.invalid(event.timeStamp)
-        } else {
-            encoder.encode(level, event.timeStamp, event.loggerName)
-        }
+        val level =
+            when (event.level) {
+                Level.TRACE, Level.DEBUG -> DiagnosticLevel.DEBUG
+                Level.INFO -> DiagnosticLevel.INFO
+                Level.WARN -> DiagnosticLevel.WARNING
+                Level.ERROR -> DiagnosticLevel.ERROR
+                else -> null
+            }
+        val bytes =
+            if (level == null) {
+                DiagnosticDropMetrics.shared.record(serviceName, DiagnosticLevel.ERROR, DiagnosticDrop.CONTRACT_INVALID)
+                encoder.invalid(event.timeStamp)
+            } else {
+                encoder.encode(level, event.timeStamp, event.loggerName)
+            }
         checkNotNull(sink).submit(bytes, level ?: DiagnosticLevel.ERROR)
     }
 

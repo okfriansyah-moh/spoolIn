@@ -31,17 +31,29 @@ class WorkRecovery(
      */
     fun recover(request: WorkRecoveryRequest): Boolean =
         dataSource.committed { connection ->
-            val inspected = com.spoolin.support.work.WorkRecoveryOperations.inspect(connection, request.workId, true)
-                ?: return@committed false
-            val destination = java.util.ServiceLoader.load(com.spoolin.support.work.WorkRecoveryDestination::class.java)
-                .singleOrNull { it.owner == "core" }
+            val inspected =
+                com.spoolin.support.work.WorkRecoveryOperations
+                    .inspect(connection, request.workId, true)
+                    ?: return@committed false
+            val destination =
+                java.util.ServiceLoader
+                    .load(com.spoolin.support.work.WorkRecoveryDestination::class.java)
+                    .singleOrNull { it.owner == "core" }
             try {
                 com.spoolin.support.work.WorkRecoveryOperations.recover(
                     connection,
-                    com.spoolin.support.work.WorkRecoveryAction(request.workId, inspected.generation, inspected.leaseEpoch,
-                        WorkRecoveryCommit(request.operatorId, request.reason, request.correlationId)),
-                    java.nio.file.Path.of("/var/spoolin/media"), destination,
+                    com.spoolin.support.work.WorkRecoveryAction(
+                        request.workId,
+                        inspected.generation,
+                        inspected.leaseEpoch,
+                        WorkRecoveryCommit(request.operatorId, request.reason, request.correlationId),
+                    ),
+                    java.nio.file.Path
+                        .of("/var/spoolin/media"),
+                    destination,
                 )
-            } finally { destination?.close() }
+            } finally {
+                destination?.close()
+            }
         }
 }

@@ -36,13 +36,17 @@ class BrowserRequests {
         val result = DeferredResult<ResponseEntity<Map<String, Any?>>>(timeoutMs, timeout)
         try {
             val future =
-                executor.submit(com.spoolin.support.tracing.TraceContexts.wrap(Runnable {
-                    try {
-                        result.setResult(action(deadline))
-                    } catch (_: Exception) {
-                        result.setResult(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "UNAVAILABLE"))
-                    }
-                }))
+                executor.submit(
+                    com.spoolin.support.tracing.TraceContexts.wrap(
+                        Runnable {
+                            try {
+                                result.setResult(action(deadline))
+                            } catch (_: Exception) {
+                                result.setResult(BrowserResponses.failure(BrowserBoundary.UNAVAILABLE, "UNAVAILABLE"))
+                            }
+                        },
+                    ),
+                )
             result.onTimeout {
                 result.setResult(timeout)
                 future.cancel(true)

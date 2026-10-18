@@ -42,7 +42,8 @@ class ArtworkSpoolRulesTest {
         try {
             repeat(SCRATCH_LIMIT) { files.add(ArtworkScratch.create()) }
             assertEquals(SCRATCH_LIMIT, files.size)
-        } finally { files.forEach(ArtworkScratch::delete) }
+        } finally {
+            files.forEach(ArtworkScratch::delete)
+        }
     }
-
 }

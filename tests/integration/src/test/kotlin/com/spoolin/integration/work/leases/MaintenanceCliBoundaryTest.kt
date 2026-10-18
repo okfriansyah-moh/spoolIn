@@ -48,14 +48,15 @@ class MaintenanceCliBoundaryTest {
     @Test
     fun `strict arguments are rejected before any credential lookup`() {
         val good = args("core", "hourly", "inspect")
-        val invalid = listOf(
-            good + "--extra=value",
-            good + "--owner=core",
-            args("foreign", "hourly", "inspect"),
-            args("core", "vacuum", "execute"),
-            args("core", "hourly", "unknown"),
-            arrayOf("--owner=core"),
-        )
+        val invalid =
+            listOf(
+                good + "--extra=value",
+                good + "--owner=core",
+                args("foreign", "hourly", "inspect"),
+                args("core", "vacuum", "execute"),
+                args("core", "hourly", "unknown"),
+                arrayOf("--owner=core"),
+            )
         for (arguments in invalid) {
             assertThrows(IllegalArgumentException::class.java) {
                 RetentionMaintenanceCli.run(arguments) { error("Invalid arguments must not read credentials") }
@@ -99,9 +100,10 @@ class MaintenanceCliBoundaryTest {
         owner: String,
     ): Int =
         fixture.connection(owner).use { connection ->
-            connection.queryBound("SELECT count(*) FROM appdata.operation_receipt WHERE result IS NOT NULL", emptyList()) {
-                it.getInt(1)
-            }.single()
+            connection
+                .queryBound("SELECT count(*) FROM appdata.operation_receipt WHERE result IS NOT NULL", emptyList()) {
+                    it.getInt(1)
+                }.single()
         }
 
     private fun fixture(
@@ -112,9 +114,18 @@ class MaintenanceCliBoundaryTest {
             fixture.membership(owner, "grant")
             fixture.pool(owner, "migrator").use { source ->
                 when (owner) {
-                    "core" -> com.spoolin.core.MigrationRunner(source).migrate()
-                    "catalog" -> com.spoolin.catalog.MigrationRunner(source).migrate()
-                    "media" -> com.spoolin.media.MigrationRunner(source).migrate()
+                    "core" ->
+                        com.spoolin.core
+                            .MigrationRunner(source)
+                            .migrate()
+                    "catalog" ->
+                        com.spoolin.catalog
+                            .MigrationRunner(source)
+                            .migrate()
+                    "media" ->
+                        com.spoolin.media
+                            .MigrationRunner(source)
+                            .migrate()
                 }
             }
             fixture.grants(owner)

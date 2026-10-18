@@ -16,15 +16,24 @@ class CatalogIntentBoundaryTest {
     @Test
     fun `changed person biography presence and version cannot replay a committed different request`() {
         CatalogPolicyFixture().use { fixture ->
-            val original = fixture.person("Person").toBuilder().setValues(Spoolin.PersonValues.newBuilder()
-                .setName("Person").setBiography("Original")).build()
+            val original =
+                fixture
+                    .person("Person")
+                    .toBuilder()
+                    .setValues(
+                        Spoolin.PersonValues
+                            .newBuilder()
+                            .setName("Person")
+                            .setBiography("Original"),
+                    ).build()
             val result = fixture.person(original)
-            val variants = listOf(
-                original.toBuilder().setValues(original.values.toBuilder().setBiography("Changed")).build(),
-                original.toBuilder().setValues(original.values.toBuilder().clearBiography()).build(),
-                original.toBuilder().setExpectedVersion(0).build(),
-                original.toBuilder().setUpdateMask(FieldMask.newBuilder().addPaths("values.biography")).build(),
-            )
+            val variants =
+                listOf(
+                    original.toBuilder().setValues(original.values.toBuilder().setBiography("Changed")).build(),
+                    original.toBuilder().setValues(original.values.toBuilder().clearBiography()).build(),
+                    original.toBuilder().setExpectedVersion(0).build(),
+                    original.toBuilder().setUpdateMask(FieldMask.newBuilder().addPaths("values.biography")).build(),
+                )
             variants.forEach { conflict { fixture.person(it) } }
             assertEquals(result, fixture.person(original))
             assertEquals("Original", fixture.text("SELECT biography FROM person WHERE id=?", result.resultId))
@@ -39,16 +48,17 @@ class CatalogIntentBoundaryTest {
             val original = fixture.movie("Movie")
             val values = original.values
             val result = fixture.movie(original)
-            val variants = listOf(
-                original.toBuilder().setValues(values.toBuilder().setOriginalTitle("Original")).build(),
-                original.toBuilder().setValues(values.toBuilder().setOriginalLanguage("fr")).build(),
-                original.toBuilder().setValues(values.toBuilder().setSynopsisLanguage("fr")).build(),
-                original.toBuilder().setValues(values.toBuilder().setRuntimeMinutes(90)).build(),
-                original.toBuilder().setValues(values.toBuilder().addCountries("GB")).build(),
-                original.toBuilder().setValues(values.toBuilder().setRelease(values.release.toBuilder().setMonth(2))).build(),
-                original.toBuilder().setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(1))).build(),
-                original.toBuilder().setExpectedVersion(0).build(),
-            )
+            val variants =
+                listOf(
+                    original.toBuilder().setValues(values.toBuilder().setOriginalTitle("Original")).build(),
+                    original.toBuilder().setValues(values.toBuilder().setOriginalLanguage("fr")).build(),
+                    original.toBuilder().setValues(values.toBuilder().setSynopsisLanguage("fr")).build(),
+                    original.toBuilder().setValues(values.toBuilder().setRuntimeMinutes(90)).build(),
+                    original.toBuilder().setValues(values.toBuilder().addCountries("GB")).build(),
+                    original.toBuilder().setValues(values.toBuilder().setRelease(values.release.toBuilder().setMonth(2))).build(),
+                    original.toBuilder().setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(1))).build(),
+                    original.toBuilder().setExpectedVersion(0).build(),
+                )
             variants.forEach { conflict { fixture.movie(it) } }
             assertEquals(result, fixture.movie(original))
             assertEquals(1, fixture.count("SELECT count(*) FROM title"))
@@ -62,13 +72,33 @@ class CatalogIntentBoundaryTest {
             val title = fixture.movie(fixture.movie("Movie"))
             val person = fixture.person(fixture.person("Person"))
             val role = fixture.characterRole()
-            val original = fixture.credit(title.resultId, person.resultId, role, "First").toBuilder().addCharacters("Second").build()
+            val original =
+                fixture
+                    .credit(title.resultId, person.resultId, role, "First")
+                    .toBuilder()
+                    .addCharacters("Second")
+                    .build()
             val result = fixture.credit(original)
-            conflict { fixture.credit(original.toBuilder().clearCharacters().addCharacters("Second").addCharacters("First").build()) }
+            conflict {
+                fixture.credit(
+                    original
+                        .toBuilder()
+                        .clearCharacters()
+                        .addCharacters("Second")
+                        .addCharacters("First")
+                        .build(),
+                )
+            }
             conflict { fixture.credit(original.toBuilder().setExpectedVersion(1).build()) }
             conflict { fixture.credit(original.toBuilder().setUpdateMask(FieldMask.newBuilder().addPaths("characters")).build()) }
             assertEquals(result, fixture.credit(original))
-            val remove = Spoolin.VersionedId.newBuilder().setContext(fixture.context()).setId(result.resultId).setExpectedVersion(0).build()
+            val remove =
+                Spoolin.VersionedId
+                    .newBuilder()
+                    .setContext(fixture.context())
+                    .setId(result.resultId)
+                    .setExpectedVersion(0)
+                    .build()
             val removed = fixture.remove(remove)
             assertEquals("SUCCEEDED", removed.state)
             conflict { fixture.remove(remove.toBuilder().setExpectedVersion(1).build()) }
@@ -84,13 +114,21 @@ class CatalogIntentBoundaryTest {
             val executor = Executors.newFixedThreadPool(2)
             val start = CountDownLatch(1)
             try {
-                val responses = List(2) { executor.submit<Spoolin.Outcome> { start.await(); fixture.person(request) } }
+                val responses =
+                    List(2) {
+                        executor.submit<Spoolin.Outcome> {
+                            start.await()
+                            fixture.person(request)
+                        }
+                    }
                 start.countDown()
                 val results = responses.map { it.get(10, TimeUnit.SECONDS) }
                 assertEquals(results[0], results[1])
                 assertEquals(1, fixture.count("SELECT count(*) FROM person"))
                 assertEquals(1, fixture.count("SELECT count(*) FROM catalog_audit_event"))
-            } finally { executor.shutdownNow() }
+            } finally {
+                executor.shutdownNow()
+            }
             val lost = fixture.person("Lost reply")
             fixture.loseNextPersonReply.set(true)
             assertEquals(Status.Code.UNAVAILABLE, assertThrows(StatusRuntimeException::class.java) { fixture.person(lost) }.status.code)
@@ -105,8 +143,16 @@ class CatalogIntentBoundaryTest {
     @Test
     fun `legacy incomplete fingerprint fails closed while original lookup and historical hash remain intact`() {
         CatalogPolicyFixture().use { fixture ->
-            val legacy = fixture.person("Legacy").toBuilder().setValues(Spoolin.PersonValues.newBuilder()
-                .setName("Legacy").setBiography("Original")).build()
+            val legacy =
+                fixture
+                    .person("Legacy")
+                    .toBuilder()
+                    .setValues(
+                        Spoolin.PersonValues
+                            .newBuilder()
+                            .setName("Legacy")
+                            .setBiography("Original"),
+                    ).build()
             val person = fixture.legacyPerson(legacy)
             val before = fixture.receipt(legacy.context.operationId)
             val retained = fixture.lookup(legacy.context.operationId)
@@ -131,8 +177,13 @@ class CatalogIntentBoundaryTest {
             conflict { fixture.role(role.toBuilder().setLabel(" Role ").build()) }
             assertEquals(result, fixture.role(role))
             val person = fixture.person(fixture.person("Person"))
-            val missingVersion = fixture.person("Changed").toBuilder().setId(person.resultId)
-                .setUpdateMask(FieldMask.newBuilder().addPaths("values.name")).build()
+            val missingVersion =
+                fixture
+                    .person("Changed")
+                    .toBuilder()
+                    .setId(person.resultId)
+                    .setUpdateMask(FieldMask.newBuilder().addPaths("values.name"))
+                    .build()
             assertEquals("FIELD_INVALID", fixture.person(missingVersion).problem.code)
             assertEquals("Person", fixture.text("SELECT name FROM person WHERE id=?", person.resultId))
         }

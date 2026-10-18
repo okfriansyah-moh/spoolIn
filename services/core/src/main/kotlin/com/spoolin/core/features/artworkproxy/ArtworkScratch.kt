@@ -55,7 +55,11 @@ internal object ArtworkScratch {
 
     fun delete(path: Path) {
         if (active.remove(path)) {
-            try { Files.deleteIfExists(path) } finally { permits.release() }
+            try {
+                Files.deleteIfExists(path)
+            } finally {
+                permits.release()
+            }
         }
     }
 }

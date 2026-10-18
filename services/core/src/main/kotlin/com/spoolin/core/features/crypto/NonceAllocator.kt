@@ -22,11 +22,13 @@ class NonceAllocator(
         purpose: KeyPurpose,
     ): Nothing {
         val exhausted =
-            connection.queryBound(
-                "SELECT next_nonce=9223372036854775807 FROM appdata.crypto_key_version " +
-                    "WHERE id=? AND purpose=? AND state='WRITE'",
-                listOf(keyId, purpose.name),
-            ) { it.getBoolean(1) }.singleOrNull() == true
+            connection
+                .queryBound(
+                    "SELECT next_nonce=9223372036854775807 FROM appdata.crypto_key_version " +
+                        "WHERE id=? AND purpose=? AND state='WRITE'",
+                    listOf(keyId, purpose.name),
+                ) { it.getBoolean(1) }
+                .singleOrNull() == true
         throw ProtectionUnavailable(if (exhausted) ProtectionFailure.NONCE_EXHAUSTION else ProtectionFailure.UNAVAILABLE)
     }
 

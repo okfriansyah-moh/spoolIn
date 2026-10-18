@@ -14,20 +14,28 @@ import type {
   ProposalRevision,
 } from '../generated/spoolin/v1/spoolin.js';
 
-type Invocation<T> = (metadata: Metadata, options: { deadline: Date }, callback: (error: Error | null, value: T) => void) => ClientUnaryCall;
+type Invocation<T> = (
+  metadata: Metadata,
+  options: { deadline: Date },
+  callback: (error: Error | null, value: T) => void,
+) => ClientUnaryCall;
 function unary<T>(invoke: Invocation<T>, metadata: Metadata): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const signal = activeCancellation();
     let active: ClientUnaryCall | undefined;
     let finished = false;
     const cancel = () => active?.cancel();
-    active = invoke(metadata, { deadline: new Date(Date.now() + 5000) }, (error, value) => {
-      if (finished) return;
-      finished = true;
-      signal?.removeEventListener('abort', cancel);
-      if (error) reject(GatewayFailure.fromGrpc(error));
-      else resolve(value);
-    });
+    active = invoke(
+      metadata,
+      { deadline: new Date(Date.now() + 5000) },
+      (error, value) => {
+        if (finished) return;
+        finished = true;
+        signal?.removeEventListener('abort', cancel);
+        if (error) reject(GatewayFailure.fromGrpc(error));
+        else resolve(value);
+      },
+    );
     if (!finished) signal?.addEventListener('abort', cancel, { once: true });
     if (signal?.aborted) cancel();
   });
@@ -77,7 +85,9 @@ export class GatewayClient {
   }
 
   policy(): Promise<PolicySnapshot> {
-    return this.call('GetPolicy', (m, o, cb) => this.client.getPolicy({}, m, o, cb));
+    return this.call('GetPolicy', (m, o, cb) =>
+      this.client.getPolicy({}, m, o, cb),
+    );
   }
   context(query: string, limit: number): Promise<MovieContext> {
     return this.call('GetMovieContext', (m, o, cb) =>
@@ -85,7 +95,9 @@ export class GatewayClient {
     );
   }
   propose(request: Proposal): Promise<ProposalRevision> {
-    return this.call('ProposeMovie', (m, o, cb) => this.client.proposeMovie(request, m, o, cb));
+    return this.call('ProposeMovie', (m, o, cb) =>
+      this.client.proposeMovie(request, m, o, cb),
+    );
   }
   operation(id: string): Promise<Outcome> {
     return this.call('GetMovieOperation', (m, o, cb) =>

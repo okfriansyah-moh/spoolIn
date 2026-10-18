@@ -12,8 +12,13 @@ import java.util.UUID
 
 interface WorkRecoveryDestination : AutoCloseable {
     override fun close() = Unit
+
     val owner: String
-    fun validate(connection: Connection, work: WorkRecoveryInspection)
+
+    fun validate(
+        connection: Connection,
+        work: WorkRecoveryInspection,
+    )
 }
 
 data class WorkRecoveryAction(
@@ -69,6 +74,5 @@ object OperatorAccess {
         require(Files.getPosixFilePermissions(path) == PosixFilePermissions.fromString("rw-------"))
     }
 
-    fun required(name: String): String =
-        requireNotNull(System.getenv(name)) { "Protected configuration missing" }
+    fun required(name: String): String = requireNotNull(System.getenv(name)) { "Protected configuration missing" }
 }

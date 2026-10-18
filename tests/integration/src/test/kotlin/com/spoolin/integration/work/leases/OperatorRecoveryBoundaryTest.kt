@@ -53,8 +53,18 @@ class OperatorRecoveryBoundaryTest {
         fixture("operator-refused-recovery") { pool ->
             val changed = setup(pool)
             assertThrows(IllegalArgumentException::class.java) {
-                pool.committed { WorkRecoveryOperations.recover(it, WorkRecoveryAction(changed.id, 1, 1,
-                    WorkRecoveryCommit("local-uid:1001", "Review", UUID.randomUUID())), directory) }
+                pool.committed {
+                    WorkRecoveryOperations.recover(
+                        it,
+                        WorkRecoveryAction(
+                            changed.id,
+                            1,
+                            1,
+                            WorkRecoveryCommit("local-uid:1001", "Review", UUID.randomUUID()),
+                        ),
+                        directory,
+                    )
+                }
             }
             val unsupported = setup(pool)
             pool.committed { it.executeBound("UPDATE appdata.durable_work SET kind='UNSUPPORTED' WHERE id=?", unsupported.id) }
@@ -167,8 +177,16 @@ class OperatorRecoveryBoundaryTest {
         work: Pending,
     ): Boolean =
         pool.committed {
-            WorkRecoveryOperations.recover(it, WorkRecoveryAction(work.id, 0, 1,
-                WorkRecoveryCommit("local-uid:1001", "Inspected local processing destination", UUID.randomUUID())), directory)
+            WorkRecoveryOperations.recover(
+                it,
+                WorkRecoveryAction(
+                    work.id,
+                    0,
+                    1,
+                    WorkRecoveryCommit("local-uid:1001", "Inspected local processing destination", UUID.randomUUID()),
+                ),
+                directory,
+            )
         }
 
     private fun count(

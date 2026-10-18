@@ -7,7 +7,6 @@ import com.spoolin.media.features.asset.AssetState
 import com.spoolin.media.features.processing.MediaProcessingHandler
 import com.spoolin.media.features.processing.ProcessingMetrics
 import com.spoolin.media.features.processing.ProcessorRunner
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.spoolin.media.features.upload.QuarantineStore
 import com.spoolin.media.operations.receipts.ReceiptWork
 import com.spoolin.media.operations.work.MediaWorkWatchdog
@@ -16,9 +15,10 @@ import com.spoolin.support.receipts.WorkRequest
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.awt.image.BufferedImage
@@ -41,7 +41,14 @@ class ProcessingWorkerBoundaryTest {
             val claim = WorkClaimer(pool).claim(1).single()
             val registry = SimpleMeterRegistry()
             MediaProcessingHandler(pool, store, metrics = ProcessingMetrics(registry)).handle(claim)
-            assertEquals(1.0, registry.get("spoolin.media.processing").tag("outcome", "SUCCESS").counter().count())
+            assertEquals(
+                1.0,
+                registry
+                    .get("spoolin.media.processing")
+                    .tag("outcome", "SUCCESS")
+                    .counter()
+                    .count(),
+            )
             assertEquals(1L, registry.get("spoolin.media.processing.duration").timer().count())
             assertEquals(AssetState.READY, AssetSql.find(pool, asset)!!.state)
             assertTrue(Files.isRegularFile(directory.resolve("output/$asset.png")))
@@ -83,7 +90,14 @@ class ProcessingWorkerBoundaryTest {
             MediaWorkWatchdog(pool).reconcile()
             val replacement = WorkClaimer(pool).claim(1).single()
             handler.handle(replacement)
-            assertEquals(1.0, registry.get("spoolin.media.processing").tag("outcome", "SUCCESS").counter().count())
+            assertEquals(
+                1.0,
+                registry
+                    .get("spoolin.media.processing")
+                    .tag("outcome", "SUCCESS")
+                    .counter()
+                    .count(),
+            )
             assertEquals(2L, registry.get("spoolin.media.processing.duration").timer().count())
             assertEquals(AssetState.READY, AssetSql.find(pool, asset)!!.state)
             pool.connection.use { connection ->
@@ -125,7 +139,14 @@ class ProcessingWorkerBoundaryTest {
             MediaProcessingHandler(pool, store, processor, metrics = ProcessingMetrics(registry))
                 .handle(WorkClaimer(pool).claim(1).single())
             assertEquals(AssetState.REJECTED, AssetSql.find(pool, asset)!!.state)
-            assertEquals(1.0, registry.get("spoolin.media.processing").tag("outcome", "FAILED").counter().count())
+            assertEquals(
+                1.0,
+                registry
+                    .get("spoolin.media.processing")
+                    .tag("outcome", "FAILED")
+                    .counter()
+                    .count(),
+            )
             assertEquals(null, registry.find("spoolin.media.processing").tag("outcome", "SUCCESS").counter())
             assertEquals(1L, registry.get("spoolin.media.processing.duration").timer().count())
         }

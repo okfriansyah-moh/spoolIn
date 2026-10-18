@@ -65,51 +65,88 @@ class ArtworkGraphql(
         }
     }
 
-    private fun hold(env: DataFetchingEnvironment, context: BrowserContext): Spoolin.Hold {
+    private fun hold(
+        env: DataFetchingEnvironment,
+        context: BrowserContext,
+    ): Spoolin.Hold {
         val principal = context.principal ?: throw CredentialRejected()
         val operation = id(env)
         val titleId = requireNotNull(env.getArgument<String>("titleId"))
         validateUuid(titleId, "titleId")
         val policy = requireNotNull(env.getArgument<String>("policyRevision"))
-        return Spoolin.Hold.newBuilder().setContext(Spoolin.Context.newBuilder()
-            .setOperationId(operation.toString()).setCorrelationId(context.correlation.toString()).setPolicyRevision(policy))
-            .setHoldId(operation.toString()).setAssetId(child(operation, "asset").toString()).setTitleId(titleId)
+        return Spoolin.Hold
+            .newBuilder()
+            .setContext(
+                Spoolin.Context
+                    .newBuilder()
+                    .setOperationId(operation.toString())
+                    .setCorrelationId(context.correlation.toString())
+                    .setPolicyRevision(policy),
+            ).setHoldId(operation.toString())
+            .setAssetId(child(operation, "asset").toString())
+            .setTitleId(titleId)
             .setActorId(principal.accountId.toString())
-            .setExpectedVersion(requireNotNull(env.getArgument<Long>("expectedVersion"))).build()
+            .setExpectedVersion(requireNotNull(env.getArgument<Long>("expectedVersion")))
+            .build()
     }
 
-    private fun decodeSpool(encoded: String): ArtworkSpool? = try {
-        ArtworkSpool.decode(encoded, maximumBytes)
-    } catch (_: IllegalArgumentException) {
-        null
-    } catch (_: java.io.IOException) {
-        null
-    }
+    private fun decodeSpool(encoded: String): ArtworkSpool? =
+        try {
+            ArtworkSpool.decode(encoded, maximumBytes)
+        } catch (_: IllegalArgumentException) {
+            null
+        } catch (_: java.io.IOException) {
+            null
+        }
 
-    private fun uploadSpool(context: BrowserContext, hold: Spoolin.Hold, spool: ArtworkSpool) {
+    private fun uploadSpool(
+        context: BrowserContext,
+        hold: Spoolin.Hold,
+        spool: ArtworkSpool,
+    ) {
         val principal = requireNotNull(context.principal)
         val operation = UUID.fromString(hold.context.operationId)
         val upload = child(operation, "media-upload")
         val token = issueToken(principal, "/spoolin.v1.MediaService/Upload", upload, context.correlation)
-        val accepted = ArtworkUpload.upload(ArtworkUploadRequest(
-            media, token, principal, upload, context.correlation, hold.context.policyRevision,
-            UUID.fromString(hold.assetId), operation, spool,
-        ))
+        val accepted =
+            ArtworkUpload.upload(
+                ArtworkUploadRequest(
+                    media,
+                    token,
+                    principal,
+                    upload,
+                    context.correlation,
+                    hold.context.policyRevision,
+                    UUID.fromString(hold.assetId),
+                    operation,
+                    spool,
+                ),
+            )
         validateOutcome(accepted, upload)
         context.rememberOperation(upload, OperationOwner.MEDIA, outcomeMap(accepted))
     }
 
-    private fun validateOutcome(outcome: Spoolin.Outcome, operation: UUID) {
+    private fun validateOutcome(
+        outcome: Spoolin.Outcome,
+        operation: UUID,
+    ) {
         val validIdentity = outcome.operationId == operation.toString()
         val validState = outcome.state in setOf("PENDING", "SUCCEEDED", "FAILED", "EXPIRED")
-        if (!validIdentity || !validState) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
+        if (!validIdentity || !validState) {
+            throw io.grpc.Status.DATA_LOSS
+                .asRuntimeException()
+        }
         validateResult(outcome)
     }
 
     private fun validateResult(outcome: Spoolin.Outcome) {
-        if (outcome.hasVersion() && outcome.version < 0) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
+        if (outcome.hasVersion() && outcome.version < 0) {
+            throw io.grpc.Status.DATA_LOSS
+                .asRuntimeException()
+        }
         if (outcome.resultExpired && (outcome.hasVersion() || outcome.hasResultId())) {
-            throw io.grpc.Status.DATA_LOSS.asRuntimeException()
+            throw io.grpc.Status.DATA_LOSS
+                .asRuntimeException()
         }
         validateResultId(outcome)
     }
@@ -117,14 +154,26 @@ class ArtworkGraphql(
     private fun validateResultId(outcome: Spoolin.Outcome) {
         if (outcome.hasResultId()) {
             val valid = isUuid(outcome.resultId)
-            if (!valid) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
+            if (!valid) {
+                throw io.grpc.Status.DATA_LOSS
+                    .asRuntimeException()
+            }
         }
     }
 
-    private fun child(operation: UUID, step: String): UUID =
-        com.spoolin.support.receipts.WorkRequest(
-            step, "ARTWORK", operation, java.time.Instant.now().plusSeconds(CHILD_DEADLINE_SECONDS),
-        ).id(operation)
+    private fun child(
+        operation: UUID,
+        step: String,
+    ): UUID =
+        com.spoolin.support.receipts
+            .WorkRequest(
+                step,
+                "ARTWORK",
+                operation,
+                java.time.Instant
+                    .now()
+                    .plusSeconds(CHILD_DEADLINE_SECONDS),
+            ).id(operation)
 
     private fun cancelArtwork(env: DataFetchingEnvironment): Map<String, Any?> {
         val context = browser(env)
@@ -156,13 +205,17 @@ class ArtworkGraphql(
         uploadOperationId: UUID,
     ): Map<String, Any?> {
         validateOutcome(outcome.operation, operationId)
-        val original = if (outcome.hasUploadOperation()) {
-            validateOutcome(outcome.uploadOperation, uploadOperationId)
-            outcomeMap(outcome.uploadOperation)
-        } else {
-            if (outcome.cancelled) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
-            null
-        }
+        val original =
+            if (outcome.hasUploadOperation()) {
+                validateOutcome(outcome.uploadOperation, uploadOperationId)
+                outcomeMap(outcome.uploadOperation)
+            } else {
+                if (outcome.cancelled) {
+                    throw io.grpc.Status.DATA_LOSS
+                        .asRuntimeException()
+                }
+                null
+            }
         return mapOf(
             "operation" to outcomeMap(outcome.operation),
             "uploadOperation" to original,
@@ -230,8 +283,7 @@ class ArtworkGraphql(
             .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
     }
 
-    private fun browser(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun browser(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID {
         val value = requireNotNull(env.getArgument<String>("operationId"))
@@ -239,13 +291,17 @@ class ArtworkGraphql(
         return UUID.fromString(value)
     }
 
-    private fun validateUuid(id: String, path: String) {
+    private fun validateUuid(
+        id: String,
+        path: String,
+    ) {
         if (!isUuid(id)) throw InputViolation(path, "Supply a lowercase, hyphenated UUID.")
     }
 
-    private fun isUuid(value: String): Boolean = try {
-        UUID.fromString(value).toString() == value
-    } catch (_: IllegalArgumentException) {
-        false
-    }
+    private fun isUuid(value: String): Boolean =
+        try {
+            UUID.fromString(value).toString() == value
+        } catch (_: IllegalArgumentException) {
+            false
+        }
 }

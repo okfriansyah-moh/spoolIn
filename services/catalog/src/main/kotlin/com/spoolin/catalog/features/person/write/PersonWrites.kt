@@ -2,8 +2,8 @@
 
 package com.spoolin.catalog.features.person.write
 
-import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
+import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
@@ -303,9 +303,23 @@ class PersonWrites(
     }
 }
 
-private fun invalidOutcome(operation: String, violation: InputViolation): Outcome = Outcome.newBuilder()
-    .setOperationId(operation).setState("FAILED")
-    .setProblem(spoolin.v1.Spoolin.Problem.newBuilder().setCode("FIELD_INVALID")
-        .addFields(spoolin.v1.Spoolin.FieldIssue.newBuilder().setPath(violation.path).setCode("INVALID")
-            .setMessage(violation.correction)))
-    .build()
+private fun invalidOutcome(
+    operation: String,
+    violation: InputViolation,
+): Outcome =
+    Outcome
+        .newBuilder()
+        .setOperationId(operation)
+        .setState("FAILED")
+        .setProblem(
+            spoolin.v1.Spoolin.Problem
+                .newBuilder()
+                .setCode("FIELD_INVALID")
+                .addFields(
+                    spoolin.v1.Spoolin.FieldIssue
+                        .newBuilder()
+                        .setPath(violation.path)
+                        .setCode("INVALID")
+                        .setMessage(violation.correction),
+                ),
+        ).build()

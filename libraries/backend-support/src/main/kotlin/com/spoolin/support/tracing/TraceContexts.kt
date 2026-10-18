@@ -30,7 +30,10 @@ object TraceContexts {
         return span.traceId to span.spanId
     }
 
-    internal fun extract(headers: Metadata, trusted: Boolean): Context {
+    internal fun extract(
+        headers: Metadata,
+        trusted: Boolean,
+    ): Context {
         if (!trusted) return Context.root()
         val values = headers.getAll(traceparent)?.iterator() ?: return Context.root()
         if (!values.hasNext()) return Context.root()
@@ -38,20 +41,29 @@ object TraceContexts {
         if (values.hasNext() || value.length !in MIN_PARENT_BYTES..MAX_PARENT_BYTES || !shape.matches(value)) {
             return Context.root()
         }
-        val getter = object : TextMapGetter<String> {
-            override fun keys(carrier: String): Iterable<String> = listOf("traceparent")
-            override fun get(carrier: String?, key: String): String? = if (key == "traceparent") carrier else null
-        }
+        val getter =
+            object : TextMapGetter<String> {
+                override fun keys(carrier: String): Iterable<String> = listOf("traceparent")
+
+                override fun get(
+                    carrier: String?,
+                    key: String,
+                ): String? = if (key == "traceparent") carrier else null
+            }
         return propagator.extract(Context.root(), value, getter)
     }
 
-    internal fun inject(context: Context, headers: Metadata) {
+    internal fun inject(
+        context: Context,
+        headers: Metadata,
+    ) {
         headers.discardAll(traceparent)
         headers.discardAll(tracestate)
         headers.discardAll(baggage)
-        val setter = TextMapSetter<Metadata> { carrier, key, value ->
-            if (key == "traceparent") requireNotNull(carrier).put(traceparent, value)
-        }
+        val setter =
+            TextMapSetter<Metadata> { carrier, key, value ->
+                if (key == "traceparent") requireNotNull(carrier).put(traceparent, value)
+            }
         propagator.inject(context, headers, setter)
     }
 }

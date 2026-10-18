@@ -117,7 +117,8 @@
       <dd>
         {editorState.current.genreIds
           .map(
-            (id) => editorState.genres.find((genre) => genre.id === id)?.label ?? id,
+            (id) =>
+              editorState.genres.find((genre) => genre.id === id)?.label ?? id,
           )
           .join(', ')}
       </dd>
@@ -212,7 +213,9 @@
     <input
       id="movie-release-year"
       inputmode="numeric"
-      value={editorState.draft.release?.year ? String(editorState.draft.release.year) : ''}
+      value={editorState.draft.release?.year
+        ? String(editorState.draft.release.year)
+        : ''}
       required
       disabled={inputDisabled}
       aria-invalid={!!errorFor('movie-release-year')}

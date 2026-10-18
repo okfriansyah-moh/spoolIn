@@ -1,13 +1,32 @@
 import { fromJsonSchema } from '@modelcontextprotocol/server';
 import type { JsonSchemaType } from '@modelcontextprotocol/server';
-import type { PolicySnapshot, TextBound } from '../generated/spoolin/v1/spoolin.js';
+import type {
+  PolicySnapshot,
+  TextBound,
+} from '../generated/spoolin/v1/spoolin.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
 
 const fields = [
-  'registrationName', 'personName', 'title', 'originalTitle', 'synopsis',
-  'creditRole', 'characterName', 'biography', 'email', 'password', 'search', 'sourceUrl', 'reuseBasis',
+  'registrationName',
+  'personName',
+  'title',
+  'originalTitle',
+  'synopsis',
+  'creditRole',
+  'characterName',
+  'biography',
+  'email',
+  'password',
+  'search',
+  'sourceUrl',
+  'reuseBasis',
 ] as const;
-const optional = new Set(['originalTitle', 'characterName', 'biography', 'search']);
+const optional = new Set([
+  'originalTitle',
+  'characterName',
+  'biography',
+  'search',
+]);
 const MAX_INT = 2147483647;
 const MAX_LONG = 9223372036854775807n;
 const MAX_RESPONSE_BYTES = 128 * 1024;
@@ -20,9 +39,17 @@ export type EffectivePolicy = Readonly<{
   fingerprint: string;
 }>;
 
-function unavailable(): never { throw new GatewayFailure('UNAVAILABLE'); }
+function unavailable(): never {
+  throw new GatewayFailure('UNAVAILABLE');
+}
 function integer(value: unknown, minimum = 1): number {
-  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < minimum || value > MAX_INT) unavailable();
+  if (
+    typeof value !== 'number' ||
+    !Number.isSafeInteger(value) ||
+    value < minimum ||
+    value > MAX_INT
+  )
+    unavailable();
   return value;
 }
 function long(value: unknown): string {
@@ -35,60 +62,105 @@ function bound(value: TextBound): Readonly<TextBound> {
   const minimum = integer(value.minCodePoints, 0);
   const maximum = integer(value.maxCodePoints);
   if (minimum > maximum || typeof value.required !== 'boolean') unavailable();
-  if (value.required !== !optional.has(value.field) || (value.required && minimum < 1)) unavailable();
-  return Object.freeze({ field: value.field, minCodePoints: minimum, maxCodePoints: maximum, required: value.required });
+  if (
+    value.required !== !optional.has(value.field) ||
+    (value.required && minimum < 1)
+  )
+    unavailable();
+  return Object.freeze({
+    field: value.field,
+    minCodePoints: minimum,
+    maxCodePoints: maximum,
+    required: value.required,
+  });
 }
 function artwork(value: PolicySnapshot['artwork']) {
-  if (!value || !Array.isArray(value.formats) || !value.formats.length) unavailable();
-  if (value.formats.some((format) => !['JPEG', 'PNG', 'WEBP'].includes(format))) unavailable();
+  if (!value || !Array.isArray(value.formats) || !value.formats.length)
+    unavailable();
+  if (value.formats.some((format) => !['JPEG', 'PNG', 'WEBP'].includes(format)))
+    unavailable();
   if (new Set(value.formats).size !== value.formats.length) unavailable();
   return {
-    maxInputBytes: long(value.maxInputBytes), formats: [...value.formats].sort(),
-    maxDimensionPx: integer(value.maxDimensionPx), maxPixels: long(value.maxPixels),
+    maxInputBytes: long(value.maxInputBytes),
+    formats: [...value.formats].sort(),
+    maxDimensionPx: integer(value.maxDimensionPx),
+    maxPixels: long(value.maxPixels),
   };
 }
 export function readEffectivePolicy(value: PolicySnapshot): EffectivePolicy {
-  if (!value || typeof value.revision !== 'string' || !/^[0-9a-f]{64}$/.test(value.revision)) unavailable();
+  if (
+    !value ||
+    typeof value.revision !== 'string' ||
+    !/^[0-9a-f]{64}$/.test(value.revision)
+  )
+    unavailable();
   if (!Array.isArray(value.textBounds)) unavailable();
-  const entries = new Map(value.textBounds.map((entry) => {
-    const checked = bound(entry);
-    return [checked.field, checked] as const;
-  }));
-  if (entries.size !== fields.length || value.textBounds.length !== fields.length) unavailable();
+  const entries = new Map(
+    value.textBounds.map((entry) => {
+      const checked = bound(entry);
+      return [checked.field, checked] as const;
+    }),
+  );
+  if (
+    entries.size !== fields.length ||
+    value.textBounds.length !== fields.length
+  )
+    unavailable();
   if (fields.some((name) => !entries.has(name))) unavailable();
-  const bounds = Object.freeze(Object.fromEntries(fields.map((name) => [name, entries.get(name)!]))) as EffectivePolicy['bounds'];
+  const bounds = Object.freeze(
+    Object.fromEntries(fields.map((name) => [name, entries.get(name)!])),
+  ) as EffectivePolicy['bounds'];
   const requests = value.requestLimits;
   if (!requests) unavailable();
   const maxPage = integer(requests.maxPage);
   const metadataBytes = integer(requests.maxMetadataBytes);
-  if (integer(requests.maxSearchCodePoints) !== bounds.search.maxCodePoints) unavailable();
+  if (integer(requests.maxSearchCodePoints) !== bounds.search.maxCodePoints)
+    unavailable();
   const image = artwork(value.artwork);
   return Object.freeze({
-    revision: value.revision, bounds, maxPage, metadataBytes,
-    fingerprint: JSON.stringify([value.revision, bounds, maxPage, metadataBytes, image]),
+    revision: value.revision,
+    bounds,
+    maxPage,
+    metadataBytes,
+    fingerprint: JSON.stringify([
+      value.revision,
+      bounds,
+      maxPage,
+      metadataBytes,
+      image,
+    ]),
   });
 }
 
 function object(value: unknown): Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) unavailable();
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    unavailable();
   return value as Record<string, unknown>;
 }
 function text(schema: Record<string, unknown>, value: Readonly<TextBound>) {
   schema.minLength = value.minCodePoints;
   schema.maxLength = value.maxCodePoints;
 }
-export function effectiveInputSchemas(base: Record<string, JsonSchemaType>, policy: EffectivePolicy) {
+export function effectiveInputSchemas(
+  base: Record<string, JsonSchemaType>,
+  policy: EffectivePolicy,
+) {
   const schemas = structuredClone(base);
   const context = object(object(schemas.movie_context).properties);
   context.query = {
-    type: 'string', anyOf: [
+    type: 'string',
+    anyOf: [
       { maxLength: 0 },
-      { minLength: Math.max(1, policy.bounds.search.minCodePoints), maxLength: policy.bounds.search.maxCodePoints },
+      {
+        minLength: Math.max(1, policy.bounds.search.minCodePoints),
+        maxLength: policy.bounds.search.maxCodePoints,
+      },
     ],
   };
   object(context.limit).maximum = Math.min(20, policy.maxPage);
   const proposal = object(object(schemas.propose_movie).properties);
-  for (const name of ['title', 'originalTitle', 'synopsis'] as const) text(object(proposal[name]), policy.bounds[name]);
+  for (const name of ['title', 'originalTitle', 'synopsis'] as const)
+    text(object(proposal[name]), policy.bounds[name]);
   const source = object(object(object(proposal.sources).items).properties);
   text(object(source.url), policy.bounds.sourceUrl);
   text(object(source.reuseBasis), policy.bounds.reuseBasis);
@@ -99,7 +171,10 @@ export async function validateEffectiveInput(
   args: Record<string, unknown>,
   policy: EffectivePolicy,
 ): Promise<void> {
-  if (Buffer.byteLength(JSON.stringify(args)) > Math.min(MAX_RESPONSE_BYTES, policy.metadataBytes)) {
+  if (
+    Buffer.byteLength(JSON.stringify(args)) >
+    Math.min(MAX_RESPONSE_BYTES, policy.metadataBytes)
+  ) {
     throw new GatewayFailure('RESOURCE_EXHAUSTED');
   }
   const checked = await fromJsonSchema(schema)['~standard'].validate(args);
@@ -109,18 +184,29 @@ export async function validateEffectiveInput(
 export class SessionPolicy {
   current: EffectivePolicy;
   private loading: Promise<EffectivePolicy> | undefined;
-  constructor(initial: PolicySnapshot, private readonly load: () => Promise<PolicySnapshot>,
-    private readonly changed: (policy: EffectivePolicy) => void) {
+  constructor(
+    initial: PolicySnapshot,
+    private readonly load: () => Promise<PolicySnapshot>,
+    private readonly changed: (policy: EffectivePolicy) => void,
+  ) {
     this.current = readEffectivePolicy(initial);
   }
   async refresh(): Promise<EffectivePolicy> {
-    this.loading ??= this.fetch().finally(() => { this.loading = undefined; });
+    this.loading ??= this.fetch().finally(() => {
+      this.loading = undefined;
+    });
     return this.loading;
   }
-  private async fetch(): Promise<EffectivePolicy> { return this.accept(await this.load()); }
+  private async fetch(): Promise<EffectivePolicy> {
+    return this.accept(await this.load());
+  }
   accept(snapshot: PolicySnapshot): EffectivePolicy {
     const next = readEffectivePolicy(snapshot);
-    if (next.revision === this.current.revision && next.fingerprint !== this.current.fingerprint) unavailable();
+    if (
+      next.revision === this.current.revision &&
+      next.fingerprint !== this.current.fingerprint
+    )
+      unavailable();
     if (next.revision !== this.current.revision) {
       this.current = next;
       this.changed(next);

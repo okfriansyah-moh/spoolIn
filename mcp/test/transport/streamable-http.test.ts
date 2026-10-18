@@ -33,7 +33,9 @@ describe('real SDK streamable HTTP session lifecycle', () => {
   beforeEach(async () => {
     process.env.MCP_PORT = '0';
     closed = 0;
-    proposals = 0; proposedPolicy = undefined; policyChangesOnWrite = false;
+    proposals = 0;
+    proposedPolicy = undefined;
+    policyChangesOnWrite = false;
     policy = policyFixture();
     server = new StreamableHttpTransport(async (token) => {
       if (token !== 'synthetic-connector') throw new Error('DENIED');
@@ -166,7 +168,9 @@ describe('real SDK streamable HTTP session lifecycle', () => {
       arguments: { query: '', limit: 100 },
     });
     expect(invalid.isError).toBe(true);
-    await expect(connected.callTool({ name: 'approve_movie', arguments: {} })).rejects.toThrow('Tool approve_movie not found');
+    await expect(
+      connected.callTool({ name: 'approve_movie', arguments: {} }),
+    ).rejects.toThrow('Tool approve_movie not found');
     const failure = await connected.callTool({
       name: 'propose_movie',
       arguments: {
@@ -181,34 +185,61 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     expect(JSON.stringify(failure)).not.toContain('synthetic upstream failure');
   });
   function candidate(title = 'A movie') {
-    return { operationId: '00000000-0000-4000-8000-000000000001', title,
-      synopsis: 'A complete movie proposal', genreIds: ['00000000-0000-4000-8000-000000000002'], release: { year: 2024 } };
+    return {
+      operationId: '00000000-0000-4000-8000-000000000001',
+      title,
+      synopsis: 'A complete movie proposal',
+      genreIds: ['00000000-0000-4000-8000-000000000002'],
+      release: { year: 2024 },
+    };
   }
   function nextPolicy() {
-    const next = policyFixture(); next.revision = 'b'.repeat(64);
+    const next = policyFixture();
+    next.revision = 'b'.repeat(64);
     next.textBounds.find((bound) => bound.field === 'title')!.maxCodePoints = 5;
     return next;
   }
   it('advertises effective bounds and refreshes stale schemas without retrying or forwarding a stale write', async () => {
     const connected = await connect();
     policy = nextPolicy();
-    const stale = await connected.callTool({ name: 'propose_movie', arguments: candidate() });
-    expect(stale.structuredContent).toMatchObject({ problem: { code: 'POLICY_CHANGED' } });
+    const stale = await connected.callTool({
+      name: 'propose_movie',
+      arguments: candidate(),
+    });
+    expect(stale.structuredContent).toMatchObject({
+      problem: { code: 'POLICY_CHANGED' },
+    });
     expect(proposals).toBe(0);
     const listed = await connected.listTools();
-    expect(listed.tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({ properties: { title: { maxLength: 5 } } });
-    await connected.callTool({ name: 'propose_movie', arguments: candidate('Movie') });
+    expect(
+      listed.tools.find((tool) => tool.name === 'propose_movie')?.inputSchema,
+    ).toMatchObject({ properties: { title: { maxLength: 5 } } });
+    await connected.callTool({
+      name: 'propose_movie',
+      arguments: candidate('Movie'),
+    });
     expect(proposals).toBe(1);
     expect(proposedPolicy).toBe(policy.revision);
   });
   it('refreshes effective schemas on an empty context read and preserves required fields', async () => {
     const connected = await connect();
     policy = nextPolicy();
-    await connected.callTool({ name: 'movie_context', arguments: { query: '' } });
-    expect((await connected.listTools()).tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({
-      required: ['operationId', 'title', 'synopsis', 'genreIds', 'release'], properties: { title: { maxLength: 5 } },
+    await connected.callTool({
+      name: 'movie_context',
+      arguments: { query: '' },
     });
-    const invalid = await connected.callTool({ name: 'propose_movie', arguments: candidate() });
+    expect(
+      (await connected.listTools()).tools.find(
+        (tool) => tool.name === 'propose_movie',
+      )?.inputSchema,
+    ).toMatchObject({
+      required: ['operationId', 'title', 'synopsis', 'genreIds', 'release'],
+      properties: { title: { maxLength: 5 } },
+    });
+    const invalid = await connected.callTool({
+      name: 'propose_movie',
+      arguments: candidate(),
+    });
     expect(invalid.isError).toBe(true);
     expect(proposals).toBe(0);
   });
@@ -216,18 +247,30 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     const connected = await connect();
     policy = nextPolicy();
     const tools = (await connected.listTools()).tools;
-    expect(tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({ properties: { title: { maxLength: 5 } } });
+    expect(
+      tools.find((tool) => tool.name === 'propose_movie')?.inputSchema,
+    ).toMatchObject({ properties: { title: { maxLength: 5 } } });
     expect(tools.map((tool) => tool.name)).not.toContain('approve_movie');
-    expect(tools.find((tool) => tool.name === 'propose_movie')?._meta).toEqual({ ui: { resourceUri: 'ui://spoolin/movie-review' } });
+    expect(tools.find((tool) => tool.name === 'propose_movie')?._meta).toEqual({
+      ui: { resourceUri: 'ui://spoolin/movie-review' },
+    });
     expect(proposals).toBe(0);
   });
   it('refreshes a downstream stale-policy rejection but never automatically repeats the write', async () => {
     const connected = await connect();
     policyChangesOnWrite = true;
-    const rejected = await connected.callTool({ name: 'propose_movie', arguments: candidate() });
-    expect(rejected.structuredContent).toMatchObject({ problem: { code: 'POLICY_CHANGED' } });
+    const rejected = await connected.callTool({
+      name: 'propose_movie',
+      arguments: candidate(),
+    });
+    expect(rejected.structuredContent).toMatchObject({
+      problem: { code: 'POLICY_CHANGED' },
+    });
     expect(proposals).toBe(1);
-    expect((await connected.listTools()).tools.find((tool) => tool.name === 'propose_movie')?.inputSchema).toMatchObject({ properties: { title: { maxLength: 5 } } });
+    expect(
+      (await connected.listTools()).tools.find(
+        (tool) => tool.name === 'propose_movie',
+      )?.inputSchema,
+    ).toMatchObject({ properties: { title: { maxLength: 5 } } });
   });
-
 });

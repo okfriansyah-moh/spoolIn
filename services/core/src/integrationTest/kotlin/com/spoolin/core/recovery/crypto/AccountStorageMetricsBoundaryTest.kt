@@ -138,7 +138,12 @@ class AccountStorageMetricsBoundaryTest {
     private fun count(
         registry: SimpleMeterRegistry,
         code: String,
-    ): Double = registry.get("spoolin_crypto_failures_total").tag("code", code).counter().count()
+    ): Double =
+        registry
+            .get("spoolin_crypto_failures_total")
+            .tag("code", code)
+            .counter()
+            .count()
 }
 
 private inline fun <R> SimpleMeterRegistry.useRegistry(action: (SimpleMeterRegistry) -> R): R =

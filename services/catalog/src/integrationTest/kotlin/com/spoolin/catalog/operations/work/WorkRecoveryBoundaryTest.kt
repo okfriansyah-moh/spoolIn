@@ -38,7 +38,9 @@ class WorkRecoveryBoundaryTest {
     private lateinit var server: Server
     private lateinit var channel: ManagedChannel
     private lateinit var destination: WorkRecoveryDestination
+
     @Volatile private var receipt: Spoolin.Outcome? = null
+
     @Volatile private var failure = Status.NOT_FOUND
     private val observed = java.util.concurrent.CopyOnWriteArrayList<String>()
 
@@ -53,22 +55,48 @@ class WorkRecoveryBoundaryTest {
     }
 
     private fun startTransport() {
-        val tls = GrpcSslContexts.forServer(fixture.root.resolve("media.crt").toFile(),
-            fixture.root.resolve("media.key").toFile()).trustManager(fixture.root.resolve("ca.crt").toFile())
-            .clientAuth(ClientAuth.REQUIRE).build()
-        server = NettyServerBuilder.forAddress(InetSocketAddress("127.0.0.1", 0)).sslContext(tls)
-            .addService(object : MediaServiceGrpc.MediaServiceImplBase() {
-                override fun getOperation(request: Spoolin.Id, response: StreamObserver<Spoolin.Outcome>) {
-                    observed.add(request.id)
-                    val value = receipt
-                    if (value == null) response.onError(failure.asRuntimeException())
-                    else { response.onNext(value); response.onCompleted() }
-                }
-            }).build().start()
-        val client = GrpcSslContexts.forClient().trustManager(fixture.root.resolve("ca.crt").toFile())
-            .keyManager(fixture.root.resolve("catalog.crt").toFile(), fixture.root.resolve("catalog.key").toFile()).build()
-        channel = NettyChannelBuilder.forAddress("127.0.0.1", server.port).overrideAuthority("media")
-            .sslContext(client).build()
+        val tls =
+            GrpcSslContexts
+                .forServer(
+                    fixture.root.resolve("media.crt").toFile(),
+                    fixture.root.resolve("media.key").toFile(),
+                ).trustManager(fixture.root.resolve("ca.crt").toFile())
+                .clientAuth(ClientAuth.REQUIRE)
+                .build()
+        server =
+            NettyServerBuilder
+                .forAddress(InetSocketAddress("127.0.0.1", 0))
+                .sslContext(tls)
+                .addService(
+                    object : MediaServiceGrpc.MediaServiceImplBase() {
+                        override fun getOperation(
+                            request: Spoolin.Id,
+                            response: StreamObserver<Spoolin.Outcome>,
+                        ) {
+                            observed.add(request.id)
+                            val value = receipt
+                            if (value == null) {
+                                response.onError(failure.asRuntimeException())
+                            } else {
+                                response.onNext(value)
+                                response.onCompleted()
+                            }
+                        }
+                    },
+                ).build()
+                .start()
+        val client =
+            GrpcSslContexts
+                .forClient()
+                .trustManager(fixture.root.resolve("ca.crt").toFile())
+                .keyManager(fixture.root.resolve("catalog.crt").toFile(), fixture.root.resolve("catalog.key").toFile())
+                .build()
+        channel =
+            NettyChannelBuilder
+                .forAddress("127.0.0.1", server.port)
+                .overrideAuthority("media")
+                .sslContext(client)
+                .build()
         destination = WorkRecoveryDestination(MediaServiceGrpc.newBlockingStub(channel))
     }
 
@@ -111,9 +139,11 @@ class WorkRecoveryBoundaryTest {
         val target = setup()
         val base = outcome(target)
         for (invalid in listOf(
-            base.toBuilder().setState("PENDING").build(), base.toBuilder().setResultExpired(true).build(),
+            base.toBuilder().setState("PENDING").build(),
+            base.toBuilder().setResultExpired(true).build(),
             base.toBuilder().setOperationId(UUID.randomUUID().toString()).build(),
-            base.toBuilder().setResultId(UUID.randomUUID().toString()).build(), base.toBuilder().setVersion(3).build(),
+            base.toBuilder().setResultId(UUID.randomUUID().toString()).build(),
+            base.toBuilder().setVersion(3).build(),
         )) {
             receipt = invalid
             assertThrows(IllegalArgumentException::class.java) { recover(target) }
@@ -140,21 +170,31 @@ class WorkRecoveryBoundaryTest {
         val original = WorkRequest("media-release", "ARTWORK", target.hold, Instant.MAX).id(target.hold)
         receipt = outcome(target).toBuilder().setOperationId(original.toString()).build()
         fixture.connection("catalog").use { connection ->
-            connection.executeBound("UPDATE durable_work SET kind='ARTWORK_RELEASE',payload=?::jsonb WHERE id=?",
-                """{"subjectId":"${target.hold}","catalogVersion":"2"}""", target.work)
+            connection.executeBound(
+                "UPDATE durable_work SET kind='ARTWORK_RELEASE',payload=?::jsonb WHERE id=?",
+                """{"subjectId":"${target.hold}","catalogVersion":"2"}""",
+                target.work,
+            )
             connection.executeBound("UPDATE title SET attachment_id=NULL WHERE id=?", target.title)
         }
         assertThrows(IllegalArgumentException::class.java) { recover(target) }
         assertExhausted(target)
         fixture.connection("catalog").use { connection ->
-            connection.executeBound("UPDATE durable_work SET payload=?::jsonb WHERE id=?",
-                """{"subjectId":"${target.hold}","catalogVersion":2}""", target.work)
+            connection.executeBound(
+                "UPDATE durable_work SET payload=?::jsonb WHERE id=?",
+                """{"subjectId":"${target.hold}","catalogVersion":2}""",
+                target.work,
+            )
         }
         assertTrue(recover(target))
         assertEquals(original.toString(), observed.last())
     }
 
-    private data class Target(val hold: UUID, val title: UUID, val work: UUID) {
+    private data class Target(
+        val hold: UUID,
+        val title: UUID,
+        val work: UUID,
+    ) {
         val original = WorkRequest("media-confirm", "ARTWORK", hold, Instant.MAX).id(hold)
     }
 
@@ -164,44 +204,80 @@ class WorkRecoveryBoundaryTest {
             connection.executeBound(
                 "INSERT INTO operation_receipt(id,actor_scope,kind,request_hash,state,correlation_id,expires_at) " +
                     "VALUES (?,'SERVICE_TEST','ATTACH',?,'SUCCEEDED',?,clock_timestamp()+interval '1 hour')",
-                target.hold, ByteArray(32), UUID.randomUUID(),
+                target.hold,
+                ByteArray(32),
+                UUID.randomUUID(),
             )
             connection.executeBound(
                 "INSERT INTO title(id,kind,status,display_title,synopsis,synopsis_language,version,attachment_id) " +
-                    "VALUES (?,'MOVIE','ACTIVE','Recovery boundary','Synthetic target','en',2,?)", target.title, target.hold,
+                    "VALUES (?,'MOVIE','ACTIVE','Recovery boundary','Synthetic target','en',2,?)",
+                target.title,
+                target.hold,
             )
             connection.executeBound(
                 "INSERT INTO artwork_attachment_request(id,title_id,actor_id,expected_version,asset_id,state,policy_revision) " +
                     "VALUES (?,?,?,1,?,'ATTACHED','test-policy')",
-                target.hold, target.title, UUID.randomUUID(), UUID.randomUUID(),
+                target.hold,
+                target.title,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
             )
             connection.executeBound(
                 "INSERT INTO durable_work(id,operation_id,kind,payload,state,max_attempts,deadline_at,correlation_id," +
                     "base_delay_ms,cap_delay_ms,backoff_multiplier) VALUES (?,?,'ARTWORK_CONFIRM',?::jsonb,'EXHAUSTED',3," +
                     "clock_timestamp()-interval '1 second',?,500,5000,2)",
-                target.work, target.hold, """{"subjectId":"${target.hold}"}""", UUID.randomUUID(),
+                target.work,
+                target.hold,
+                """{"subjectId":"${target.hold}"}""",
+                UUID.randomUUID(),
             )
         }
         return target
     }
 
-    private fun outcome(target: Target): Spoolin.Outcome = Spoolin.Outcome.newBuilder()
-        .setOperationId(target.original.toString()).setState("SUCCEEDED").setResultId(target.hold.toString()).setVersion(2).build()
+    private fun outcome(target: Target): Spoolin.Outcome =
+        Spoolin.Outcome
+            .newBuilder()
+            .setOperationId(target.original.toString())
+            .setState("SUCCEEDED")
+            .setResultId(target.hold.toString())
+            .setVersion(2)
+            .build()
 
-    private fun recover(target: Target): Boolean = fixture.connection("catalog").use { connection ->
-        connection.autoCommit = false
-        try {
-            val result = WorkRecoveryOperations.recover(connection, WorkRecoveryAction(target.work, 0, 0,
-                WorkRecoveryCommit("local-uid:1001", "Original destination receipt inspected", UUID.randomUUID())),
-                Path.of("/unused-media-boundary"), destination)
-            connection.commit()
-            result
-        } finally { connection.rollback() }
-    }
+    private fun recover(target: Target): Boolean =
+        fixture.connection("catalog").use { connection ->
+            connection.autoCommit = false
+            try {
+                val result =
+                    WorkRecoveryOperations.recover(
+                        connection,
+                        WorkRecoveryAction(
+                            target.work,
+                            0,
+                            0,
+                            WorkRecoveryCommit("local-uid:1001", "Original destination receipt inspected", UUID.randomUUID()),
+                        ),
+                        Path.of("/unused-media-boundary"),
+                        destination,
+                    )
+                connection.commit()
+                result
+            } finally {
+                connection.rollback()
+            }
+        }
 
-    private fun assertExhausted(target: Target) = fixture.connection("catalog").use {
-        assertEquals("EXHAUSTED", WorkRecoveryOperations.inspect(it, target.work)?.state)
-        assertEquals(0, it.queryBound("SELECT count(*) FROM operational_event WHERE work_id=? AND event_type='RECOVERY'",
-            listOf(target.work)) { row -> row.getInt(1) }.single())
-    }
+    private fun assertExhausted(target: Target) =
+        fixture.connection("catalog").use {
+            assertEquals("EXHAUSTED", WorkRecoveryOperations.inspect(it, target.work)?.state)
+            assertEquals(
+                0,
+                it
+                    .queryBound(
+                        "SELECT count(*) FROM operational_event WHERE work_id=? AND event_type='RECOVERY'",
+                        listOf(target.work),
+                    ) { row -> row.getInt(1) }
+                    .single(),
+            )
+        }
 }

@@ -104,7 +104,9 @@ class Application {
         )
 
     @Bean(destroyMethod = "close")
-    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing = com.spoolin.support.tracing.OwnerTracing("media")
+    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing =
+        com.spoolin.support.tracing
+            .OwnerTracing("media")
 
     @Bean
     @GlobalServerInterceptor
@@ -120,19 +122,25 @@ class Application {
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
     fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
-        com.spoolin.support.tracing.TraceClientInterceptor(tracing)
+        com.spoolin.support.tracing
+            .TraceClientInterceptor(tracing)
 
     @Bean
     fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
-        com.spoolin.support.logging.DiagnosticDropMetrics.shared.bind("media", registry)
-        return com.spoolin.support.observability.LogicalMetrics(registry, "media")
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared
+            .bind("media", registry)
+        return com.spoolin.support.observability
+            .LogicalMetrics(registry, "media")
     }
 
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    fun logicalRpcMetrics(metrics: com.spoolin.support.observability.LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
-        com.spoolin.support.observability.LogicalRpcMetricsInterceptor(metrics)
+    fun logicalRpcMetrics(
+        metrics: com.spoolin.support.observability.LogicalMetrics,
+    ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability
+            .LogicalRpcMetricsInterceptor(metrics)
 
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
@@ -237,7 +245,13 @@ class Application {
             dataSource,
             schema,
             com.spoolin.media.features.processing
-                .MediaProcessingHandler(dataSource, quarantineStore, metrics = com.spoolin.media.features.processing.ProcessingMetrics(registry)),
+                .MediaProcessingHandler(
+                    dataSource,
+                    quarantineStore,
+                    metrics =
+                        com.spoolin.media.features.processing
+                            .ProcessingMetrics(registry),
+                ),
             { quarantineStore.sweepAbandonedScratch() },
             com.spoolin.support.notifications.ExhaustionNotifications
                 .configured(dataSource, "media") { environment.getProperty(it) },

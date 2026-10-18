@@ -15,8 +15,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.sql.DataSource
 
-class ArtworkDispatcher(private val dataSource: DataSource, private val readiness: SchemaReadiness,
-    private val handler: ArtworkWorkHandler, private val notifications: ArtworkNotifications) : AutoCloseable {
+class ArtworkDispatcher(
+    private val dataSource: DataSource,
+    private val readiness: SchemaReadiness,
+    private val handler: ArtworkWorkHandler,
+    private val notifications: ArtworkNotifications,
+) : AutoCloseable {
     private val watchdog = ArtworkWatchdog(dataSource)
     private val workers = Executors.newFixedThreadPool(WORKER_LANES)
     private val heartbeat = Executors.newScheduledThreadPool(1)
@@ -39,31 +43,61 @@ class ArtworkDispatcher(private val dataSource: DataSource, private val readines
     }
 
     private fun runLane(lane: AtomicBoolean) {
-        try { claim()?.let(::execute) } finally { lane.set(false) }
+        try {
+            claim()?.let(::execute)
+        } finally {
+            lane.set(false)
+        }
     }
 
-    private fun claim(): WorkClaim? = dataSource.committed { connection ->
-        val rows = connection.queryBound(
-            "SELECT * FROM durable_work WHERE kind IN ('ARTWORK_ATTACH','ARTWORK_CONFIRM','ARTWORK_RELEASE') " +
-                "AND state='READY' AND next_attempt_at<=clock_timestamp() AND deadline_at>clock_timestamp() " +
-                "AND attempt_count<max_attempts ORDER BY next_attempt_at,id LIMIT 1 FOR UPDATE SKIP LOCKED",
-            emptyList(), ::decodeClaim,
-        )
-        rows.singleOrNull()?.let { WorkSql.commitClaim(connection, it, UUID.randomUUID(), Instant.now()) }
-    }
+    private fun claim(): WorkClaim? =
+        dataSource.committed { connection ->
+            val rows =
+                connection.queryBound(
+                    "SELECT * FROM durable_work WHERE kind IN ('ARTWORK_ATTACH','ARTWORK_CONFIRM','ARTWORK_RELEASE') " +
+                        "AND state='READY' AND next_attempt_at<=clock_timestamp() AND deadline_at>clock_timestamp() " +
+                        "AND attempt_count<max_attempts ORDER BY next_attempt_at,id LIMIT 1 FOR UPDATE SKIP LOCKED",
+                    emptyList(),
+                    ::decodeClaim,
+                )
+            rows.singleOrNull()?.let { WorkSql.commitClaim(connection, it, UUID.randomUUID(), Instant.now()) }
+        }
 
     private fun execute(claim: WorkClaim) {
         val thread = Thread.currentThread()
-        val renewal = heartbeat.scheduleAtFixedRate(
-            { if (!guard.renew(claim)) thread.interrupt() }, HEARTBEAT_SECONDS, HEARTBEAT_SECONDS, TimeUnit.SECONDS,
-        )
-        try { handler.handle(claim) }
-        catch (_: java.sql.SQLException) { failed(claim) }
-        catch (_: IllegalArgumentException) { failed(claim) }
-        catch (_: IllegalStateException) { failed(claim) }
-        catch (_: io.grpc.StatusRuntimeException) { failed(claim) }
-        catch (_: tools.jackson.core.JacksonException) { failed(claim) }
-        finally { renewal.cancel(false); Thread.interrupted() }
+        val renewal =
+            heartbeat.scheduleAtFixedRate(
+                { if (!guard.renew(claim)) thread.interrupt() },
+                HEARTBEAT_SECONDS,
+                HEARTBEAT_SECONDS,
+                TimeUnit.SECONDS,
+            )
+        try {
+            handler.handle(claim)
+        } catch (
+            _: java.sql.SQLException,
+        ) {
+            failed(claim)
+        } catch (
+            _: IllegalArgumentException,
+        ) {
+            failed(claim)
+        } catch (
+            _: IllegalStateException,
+        ) {
+            failed(claim)
+        } catch (
+            _: io.grpc.StatusRuntimeException,
+        ) {
+            failed(claim)
+        } catch (
+            _: tools.jackson.core.JacksonException,
+        ) {
+            failed(claim)
+        } finally {
+            renewal.cancel(false)
+            Thread.interrupted()
+        }
     }
 
     private fun failed(claim: WorkClaim) {
@@ -83,10 +117,20 @@ private const val DISPATCH_DELAY_MS = 1000L
 private const val HEARTBEAT_SECONDS = 10L
 private const val SHUTDOWN_SECONDS = 30L
 
-private fun decodeClaim(row: ResultSet): WorkClaim = WorkClaim(
-    row.getObject("id", UUID::class.java), row.getObject("operation_id", UUID::class.java), row.getString("kind"),
-    row.getString("payload"), row.getInt("attempt_count"), row.getInt("max_attempts"),
-    row.getTimestamp("deadline_at").toInstant(), UUID.randomUUID(), row.getLong("lease_epoch"),
-    row.getObject("correlation_id", UUID::class.java), row.getInt("base_delay_ms"), row.getInt("cap_delay_ms"),
-    row.getInt("backoff_multiplier"), row.getInt("generation"),
-)
+private fun decodeClaim(row: ResultSet): WorkClaim =
+    WorkClaim(
+        row.getObject("id", UUID::class.java),
+        row.getObject("operation_id", UUID::class.java),
+        row.getString("kind"),
+        row.getString("payload"),
+        row.getInt("attempt_count"),
+        row.getInt("max_attempts"),
+        row.getTimestamp("deadline_at").toInstant(),
+        UUID.randomUUID(),
+        row.getLong("lease_epoch"),
+        row.getObject("correlation_id", UUID::class.java),
+        row.getInt("base_delay_ms"),
+        row.getInt("cap_delay_ms"),
+        row.getInt("backoff_multiplier"),
+        row.getInt("generation"),
+    )

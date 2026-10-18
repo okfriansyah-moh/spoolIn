@@ -9,27 +9,43 @@ import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
-class ArtworkReads(private val dataSource: DataSource) {
-    fun attachment(id: UUID): Spoolin.Attachment = dataSource.connection.use { connection ->
-        connection.queryBound(
-            "SELECT a.*,t.attachment_id AS selected_hold,t.version AS selected_version," +
-                "t.id AS surviving_title,t.status AS title_status " +
-                "FROM artwork_attachment_request a LEFT JOIN title t ON t.id=a.title_id WHERE a.id=?", listOf(id),
-        ) { row -> attachment(row, id) }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
-    }
+class ArtworkReads(
+    private val dataSource: DataSource,
+) {
+    fun attachment(id: UUID): Spoolin.Attachment =
+        dataSource.connection.use { connection ->
+            connection
+                .queryBound(
+                    "SELECT a.*,t.attachment_id AS selected_hold,t.version AS selected_version," +
+                        "t.id AS surviving_title,t.status AS title_status " +
+                        "FROM artwork_attachment_request a LEFT JOIN title t ON t.id=a.title_id WHERE a.id=?",
+                    listOf(id),
+                ) { row -> attachment(row, id) }
+                .singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+        }
 
-    private fun attachment(row: ResultSet, id: UUID): Spoolin.Attachment {
+    private fun attachment(
+        row: ResultSet,
+        id: UUID,
+    ): Spoolin.Attachment {
         if (row.getObject("surviving_title", UUID::class.java) == null) {
             throw Status.FAILED_PRECONDITION.withDescription("REFERENCE_VERSION_UNAVAILABLE").asRuntimeException()
         }
-        return Spoolin.Attachment.newBuilder().setHoldId(id.toString()).setState(attachmentState(row, id))
+        return Spoolin.Attachment
+            .newBuilder()
+            .setHoldId(id.toString())
+            .setState(attachmentState(row, id))
             .setAssetId(row.getObject("asset_id", UUID::class.java).toString())
             .setTitleId(row.getObject("title_id", UUID::class.java).toString())
             .setActorId(row.getObject("actor_id", UUID::class.java).toString())
-            .setCatalogVersion(row.getLong("selected_version")).build()
+            .setCatalogVersion(row.getLong("selected_version"))
+            .build()
     }
 
-    private fun attachmentState(row: ResultSet, id: UUID): String {
+    private fun attachmentState(
+        row: ResultSet,
+        id: UUID,
+    ): String {
         val survives = row.getString("title_status") != "DELETED"
         val selected = row.getObject("selected_hold", UUID::class.java) == id
         return when {
@@ -45,19 +61,27 @@ class ArtworkReads(private val dataSource: DataSource) {
         }
         val asset = parseId(request.assetId)
         return dataSource.connection.use { connection ->
-            connection.queryBound(
-                "SELECT id,attachment_id,version FROM title WHERE asset_id=? AND attachment_id IS NOT NULL " +
-                    if (request.management) "ORDER BY id LIMIT 1" else "AND status='ACTIVE' ORDER BY id LIMIT 1",
-                listOf(asset),
-            ) { row -> Spoolin.ArtworkGrant.newBuilder().setAssetId(asset.toString())
-                .setHoldId(row.getObject("attachment_id", UUID::class.java).toString())
-                .setTitleId(row.getObject("id", UUID::class.java).toString())
-                .setCatalogVersion(row.getLong("version")).build()
-            }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+            connection
+                .queryBound(
+                    "SELECT id,attachment_id,version FROM title WHERE asset_id=? AND attachment_id IS NOT NULL " +
+                        if (request.management) "ORDER BY id LIMIT 1" else "AND status='ACTIVE' ORDER BY id LIMIT 1",
+                    listOf(asset),
+                ) { row ->
+                    Spoolin.ArtworkGrant
+                        .newBuilder()
+                        .setAssetId(asset.toString())
+                        .setHoldId(row.getObject("attachment_id", UUID::class.java).toString())
+                        .setTitleId(row.getObject("id", UUID::class.java).toString())
+                        .setCatalogVersion(row.getLong("version"))
+                        .build()
+                }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
         }
     }
 
-    private fun parseId(value: String): UUID = try {
-        UUID.fromString(value).also { require(it.toString() == value) }
-    } catch (_: IllegalArgumentException) { throw Status.INVALID_ARGUMENT.asRuntimeException() }
+    private fun parseId(value: String): UUID =
+        try {
+            UUID.fromString(value).also { require(it.toString() == value) }
+        } catch (_: IllegalArgumentException) {
+            throw Status.INVALID_ARGUMENT.asRuntimeException()
+        }
 }

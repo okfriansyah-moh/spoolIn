@@ -62,27 +62,38 @@ object WorkRecoveryCli {
         val reasonPath = Path.of("/run/spoolin-operator-reason")
         OperatorAccess.protectedFile(reasonPath)
         require(
-            Files.getAttribute(reasonPath, "unix:uid", NOFOLLOW_LINKS).toString() == OperatorAccess.required("SPOOLIN_OPERATOR_UID"),
+            Files.getAttribute(reasonPath, "unix:uid", NOFOLLOW_LINKS).toString() ==
+                OperatorAccess.required("SPOOLIN_OPERATOR_UID"),
         )
         connection.autoCommit = false
         try {
-            val action = WorkRecoveryAction(
-                id, values.getValue("--expected-generation").toInt(), values.getValue("--expected-epoch").toLong(),
-                WorkRecoveryCommit(operator, Files.readString(reasonPath), UUID.randomUUID()),
-            )
-            val destination = java.util.ServiceLoader.load(WorkRecoveryDestination::class.java)
-                .singleOrNull { it.owner == owner }
+            val action =
+                WorkRecoveryAction(
+                    id,
+                    values.getValue("--expected-generation").toInt(),
+                    values.getValue("--expected-epoch").toLong(),
+                    WorkRecoveryCommit(operator, Files.readString(reasonPath), UUID.randomUUID()),
+                )
+            val destination =
+                java.util.ServiceLoader
+                    .load(WorkRecoveryDestination::class.java)
+                    .singleOrNull { it.owner == owner }
             try {
-                check(WorkRecoveryOperations.recover(
-                    connection, action,
-                    Path.of(System.getenv("SPOOLIN_MEDIA_VOLUME") ?: "/var/spoolin/media"), destination,
-                ))
-            } finally { destination?.close() }
+                check(
+                    WorkRecoveryOperations.recover(
+                        connection,
+                        action,
+                        Path.of(System.getenv("SPOOLIN_MEDIA_VOLUME") ?: "/var/spoolin/media"),
+                        destination,
+                    ),
+                )
+            } finally {
+                destination?.close()
+            }
             connection.commit()
             println("Work recovery committed; original effect identity and attempt evidence retained")
         } finally {
             connection.rollback()
         }
     }
-
 }

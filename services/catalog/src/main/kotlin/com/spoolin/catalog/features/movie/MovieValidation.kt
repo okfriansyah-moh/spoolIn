@@ -3,13 +3,13 @@
 package com.spoolin.catalog.features.movie
 
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PartialDate
 import com.spoolin.support.policy.PatchValue
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.StructuralRules
 import com.spoolin.support.policy.TextBound
 import com.spoolin.support.policy.TextRules
-import com.spoolin.support.policy.StructuralRules
 import spoolin.v1.Spoolin.MovieValues
 import spoolin.v1.Spoolin.MovieWrite
 
@@ -98,11 +98,26 @@ object MovieValidation {
         if ("values.release" in mask) parseRelease(v, requireYear = true)
         return ValidatedMoviePatch(
             displayTitle = patchText("values.title", mask, v.title, policy.textBounds.getValue("title"), "title"),
-            originalTitle = patchOptText("values.original_title", mask, v.originalTitle.takeIf { v.hasOriginalTitle() }, policy.textBounds.getValue("originalTitle"), "originalTitle"),
+            originalTitle =
+                patchOptText(
+                    "values.original_title",
+                    mask,
+                    v.originalTitle.takeIf {
+                        v.hasOriginalTitle()
+                    },
+                    policy.textBounds.getValue("originalTitle"),
+                    "originalTitle",
+                ),
             synopsis = patchText("values.synopsis", mask, v.synopsis, policy.textBounds.getValue("synopsis"), "synopsis"),
             synopsisLanguage = patchLanguage("values.synopsis_language", mask, v.synopsisLanguage, false, "synopsisLanguage"),
-            originalLanguage = patchLanguage("values.original_language", mask,
-                v.originalLanguage.takeIf { v.hasOriginalLanguage() }, true, "originalLanguage"),
+            originalLanguage =
+                patchLanguage(
+                    "values.original_language",
+                    mask,
+                    v.originalLanguage.takeIf { v.hasOriginalLanguage() },
+                    true,
+                    "originalLanguage",
+                ),
             countries = patchCountries("values.countries", mask, v),
             genreIds = patchGenres("values.genre_ids", mask, v),
             releaseYear = patchReleaseYear("values.release", mask, v),
@@ -134,16 +149,27 @@ object MovieValidation {
         PatchValue.Value(TextRules.ordinary(raw, bound, field))
     }
 
-    private fun language(raw: String, field: String): String {
+    private fun language(
+        raw: String,
+        field: String,
+    ): String {
         val value = TextRules.ordinary(raw, BCP47_BOUND, field)
-        return try { StructuralRules.language(value) } catch (failure: InputViolation) {
+        return try {
+            StructuralRules.language(value)
+        } catch (failure: InputViolation) {
             throw InputViolation(field, failure.correction)
         }
     }
 
     private fun country(raw: String): String = StructuralRules.country(TextRules.ordinary(raw, BCP47_BOUND, "countries"))
 
-    private fun patchLanguage(path: String, mask: Set<String>, raw: String?, optional: Boolean, field: String): PatchValue<String> =
+    private fun patchLanguage(
+        path: String,
+        mask: Set<String>,
+        raw: String?,
+        optional: Boolean,
+        field: String,
+    ): PatchValue<String> =
         when {
             path !in mask -> PatchValue.Omitted
             optional && (raw == null || TextRules.blank(raw)) -> PatchValue.Clear

@@ -61,12 +61,14 @@ export class McpMetrics {
     const finish = () => {
       if (finished) return;
       finished = true;
-      traceContext.with(tracing, () => this.record(
-        state.operation,
-        'ingress',
-        state.result ?? httpResult(res.statusCode, res.writableFinished),
-        started,
-      ));
+      traceContext.with(tracing, () =>
+        this.record(
+          state.operation,
+          'ingress',
+          state.result ?? httpResult(res.statusCode, res.writableFinished),
+          started,
+        ),
+      );
     };
     res.once('finish', finish);
     res.once('close', finish);
@@ -127,7 +129,10 @@ export class McpMetrics {
     const labels = `service="mcp",operation="${fixed}",boundary="${boundary}"`;
     const key = `${labels},outcome="${result.outcome}",code="${code}"`;
     mcpDiagnostics.emit(logEvent(result), {
-      operation: fixed, boundary, outcome: result.outcome, code,
+      operation: fixed,
+      boundary,
+      outcome: result.outcome,
+      code,
       duration_ms: Number(process.hrtime.bigint() - started) / 1e6,
     });
     this.results.set(key, (this.results.get(key) ?? 0) + 1);
@@ -156,7 +161,11 @@ export class McpMetrics {
         lines.push(`spoolin_operation_results_total{${labels}} ${value}`),
       );
     lines.push('# TYPE spoolin_operation_duration_seconds histogram');
-    [...this.durations].sort().forEach(([labels, histogram]) => lines.push(...renderHistogram(labels, histogram)));
+    [...this.durations]
+      .sort()
+      .forEach(([labels, histogram]) =>
+        lines.push(...renderHistogram(labels, histogram)),
+      );
     lines.push(
       '# TYPE spoolin_service_ready gauge',
       `spoolin_service_ready{service="mcp"} ${ready ? 1 : 0}`,
@@ -191,7 +200,15 @@ function renderHistogram(labels: string, histogram: Histogram): string[] {
 function logEvent(result: Result) {
   if (result.outcome === 'SYSTEM_FAILED') return 'request_failed';
   if (result.outcome === 'UNCERTAIN') return 'request_uncertain';
-  if (['PERMISSION_DENIED', 'UNAUTHENTICATED', 'FORBIDDEN', 'RATE_LIMITED', 'RESOURCE_EXHAUSTED'].includes(result.code))
+  if (
+    [
+      'PERMISSION_DENIED',
+      'UNAUTHENTICATED',
+      'FORBIDDEN',
+      'RATE_LIMITED',
+      'RESOURCE_EXHAUSTED',
+    ].includes(result.code)
+  )
     return 'request_denied';
   return 'request_completed';
 }

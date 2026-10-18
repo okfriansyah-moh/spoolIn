@@ -30,10 +30,17 @@ internal object ArtworkUpload {
     private fun transmit(request: ArtworkUploadRequest): Spoolin.Outcome {
         val response = UploadResponse()
         val meta = Metadata().apply { put(ActorRpc.metadata, request.actorToken) }
-        val stub = request.media.withDeadlineAfter(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
+        val stub =
+            request.media
+                .withDeadlineAfter(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
         val stream = stub.upload(response)
-        stream.onNext(Spoolin.UploadChunk.newBuilder().setHeader(header(request)).build())
+        stream.onNext(
+            Spoolin.UploadChunk
+                .newBuilder()
+                .setHeader(header(request))
+                .build(),
+        )
         sendBytes(request, stream, response)
         if (response.error.get() == null) stream.onCompleted()
         val outcome = response.await()
@@ -51,18 +58,31 @@ internal object ArtworkUpload {
             while (response.error.get() == null && !Context.current().isCancelled) {
                 val count = input.read(buffer)
                 if (count < 0) break
-                stream.onNext(Spoolin.UploadChunk.newBuilder().setData(ByteString.copyFrom(buffer, 0, count)).build())
+                stream.onNext(
+                    Spoolin.UploadChunk
+                        .newBuilder()
+                        .setData(ByteString.copyFrom(buffer, 0, count))
+                        .build(),
+                )
             }
         }
     }
 
-    private fun header(request: ArtworkUploadRequest): Spoolin.UploadHeader = Spoolin.UploadHeader.newBuilder()
-        .setContext(Spoolin.Context.newBuilder()
-            .setOperationId(request.uploadOperationId.toString())
-            .setCorrelationId(request.correlationId.toString()).setPolicyRevision(request.policyRevision))
-        .setActorId(request.principal.accountId.toString()).setInputBytes(request.spool.size)
-        .setAssetId(request.assetId.toString()).setInputSha256(ByteString.copyFrom(request.spool.sha256))
-        .setIntentId(request.intentId.toString()).build()
+    private fun header(request: ArtworkUploadRequest): Spoolin.UploadHeader =
+        Spoolin.UploadHeader
+            .newBuilder()
+            .setContext(
+                Spoolin.Context
+                    .newBuilder()
+                    .setOperationId(request.uploadOperationId.toString())
+                    .setCorrelationId(request.correlationId.toString())
+                    .setPolicyRevision(request.policyRevision),
+            ).setActorId(request.principal.accountId.toString())
+            .setInputBytes(request.spool.size)
+            .setAssetId(request.assetId.toString())
+            .setInputSha256(ByteString.copyFrom(request.spool.sha256))
+            .setIntentId(request.intentId.toString())
+            .build()
 }
 
 private class UploadResponse : StreamObserver<Spoolin.Outcome> {
@@ -79,7 +99,9 @@ private class UploadResponse : StreamObserver<Spoolin.Outcome> {
         latch.countDown()
     }
 
-    override fun onCompleted() { latch.countDown() }
+    override fun onCompleted() {
+        latch.countDown()
+    }
 
     fun await(): Spoolin.Outcome {
         if (!latch.await(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
@@ -89,5 +111,7 @@ private class UploadResponse : StreamObserver<Spoolin.Outcome> {
         return outcome.get() ?: throw Status.INTERNAL.withDescription("UPLOAD_EMPTY").asRuntimeException()
     }
 
-    private fun propagateFailure() { error.get()?.let { throw it } }
+    private fun propagateFailure() {
+        error.get()?.let { throw it }
+    }
 }

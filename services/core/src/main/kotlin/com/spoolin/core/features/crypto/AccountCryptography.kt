@@ -44,9 +44,10 @@ class AccountCryptography(
             observeProtection(alert, ProtectionFailure.KEY) {
                 if (registry.readable(envelope.keyId, KeyPurpose.PII)) keys.key(envelope.keyId, KeyPurpose.PII) else null
             }
-        val result = decryptProtected(alert, bytes) { key ->
-            cipher.decrypt(envelope, key, binding(rowId)) { alert.recordFailure(it) }
-        }
+        val result =
+            decryptProtected(alert, bytes) { key ->
+                cipher.decrypt(envelope, key, binding(rowId)) { alert.recordFailure(it) }
+            }
         if (result == ProtectedRead.Unavailable) alert.unavailable(rowId)
         return result
     }

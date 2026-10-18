@@ -3,11 +3,9 @@ import { fetchAuditPage } from './api';
 
 describe('audit api', () => {
   it('maps empty audit page', async () => {
-    const request = vi
-      .fn()
-      .mockResolvedValue({
-        audit: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
-      });
+    const request = vi.fn().mockResolvedValue({
+      audit: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
+    });
     const rows = await fetchAuditPage(
       request,
       'csrf',
@@ -62,11 +60,9 @@ describe('audit api', () => {
   });
 
   it('rejects an incomplete pagination response instead of hiding remaining history', async () => {
-    const request = vi
-      .fn()
-      .mockResolvedValue({
-        audit: { nodes: [], pageInfo: { hasNextPage: true } },
-      });
+    const request = vi.fn().mockResolvedValue({
+      audit: { nodes: [], pageInfo: { hasNextPage: true } },
+    });
     await expect(
       fetchAuditPage(request, 'csrf', new AbortController().signal),
     ).rejects.toThrow('cursor');

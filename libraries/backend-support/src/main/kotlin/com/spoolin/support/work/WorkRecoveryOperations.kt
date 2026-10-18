@@ -9,10 +9,14 @@ import java.sql.Connection
 import java.time.Instant
 import java.util.UUID
 
-private val SAFE_NOTIFICATION_ERRORS = setOf(
-    "NOTIFICATION_CONNECT_FAILED", "NOTIFICATION_RATE_LIMITED", "NOTIFICATION_REJECTED",
-    "NOTIFICATION_INVALID_SUMMARY", "NOTIFICATION_MODE_CHANGED",
-)
+private val SAFE_NOTIFICATION_ERRORS =
+    setOf(
+        "NOTIFICATION_CONNECT_FAILED",
+        "NOTIFICATION_RATE_LIMITED",
+        "NOTIFICATION_REJECTED",
+        "NOTIFICATION_INVALID_SUMMARY",
+        "NOTIFICATION_MODE_CHANGED",
+    )
 private const val MAX_RECOVERY_INPUT_BYTES = 5242880L
 
 /** Redacted operator evidence; payloads, credentials and private domain fields are excluded. */
@@ -88,8 +92,10 @@ object WorkRecoveryOperations {
     ): Boolean {
         require(!connection.autoCommit) { "Operator recovery requires an explicit transaction" }
         val work = requireNotNull(inspect(connection, action.id, true)) { "Work unavailable" }
-        require(work.state == "EXHAUSTED" && work.generation == action.expectedGeneration &&
-            work.leaseEpoch == action.expectedEpoch) { "Work changed since operator inspection" }
+        require(
+            work.state == "EXHAUSTED" && work.generation == action.expectedGeneration &&
+                work.leaseEpoch == action.expectedEpoch,
+        ) { "Work changed since operator inspection" }
         require(!work.historyTruncated) { "Complete retained evidence review is required before recovery" }
         when (work.kind) {
             "MEDIA_PROCESS" -> validateMedia(connection, work, mediaRoot)
@@ -99,20 +105,26 @@ object WorkRecoveryOperations {
         val now = connection.queryBound("SELECT clock_timestamp()") { it.getTimestamp(1).toInstant() }.single()
         return if (work.kind == "NOTIFICATION") {
             WorkSql.recoverNotificationWork(connection, action.id, action.commit, now)
-        } else WorkSql.recoverWork(connection, action.id, action.commit, now)
+        } else {
+            WorkSql.recoverWork(connection, action.id, action.commit, now)
+        }
     }
 
-    fun validateNotification(work: WorkRecoveryInspection, connection: Connection) {
-        val rows = connection.queryBound(
-            "SELECT notification_state,notification_mode,provider_reference,notification_summary " +
-                "FROM appdata.durable_work WHERE id=? AND kind='NOTIFICATION' FOR UPDATE",
-            listOf(work.id),
-        ) { row ->
-            require(row.getString("notification_state") == "FAILED") { "Unknown delivery cannot be blindly resent" }
-            require(row.getString("notification_mode") in setOf("slack", "google_chat"))
-            require(row.getString("provider_reference") == null && row.getString("notification_summary") != null)
-            true
-        }
+    fun validateNotification(
+        work: WorkRecoveryInspection,
+        connection: Connection,
+    ) {
+        val rows =
+            connection.queryBound(
+                "SELECT notification_state,notification_mode,provider_reference,notification_summary " +
+                    "FROM appdata.durable_work WHERE id=? AND kind='NOTIFICATION' FOR UPDATE",
+                listOf(work.id),
+            ) { row ->
+                require(row.getString("notification_state") == "FAILED") { "Unknown delivery cannot be blindly resent" }
+                require(row.getString("notification_mode") in setOf("slack", "google_chat"))
+                require(row.getString("provider_reference") == null && row.getString("notification_summary") != null)
+                true
+            }
         require(rows.size == 1 && !work.historyTruncated)
         val started = work.phaseHistory.filter { it["event_type"] == "ATTEMPT_STARTED" }
         val finished = work.phaseHistory.filter { it["event_type"] == "ATTEMPT_FINISHED" }
@@ -128,8 +140,10 @@ object WorkRecoveryOperations {
         }
     }
 
-    private fun sameAttempt(start: Map<String, String?>, end: Map<String, String?>): Boolean =
-        listOf("generation", "attempt_no", "lease_epoch").all { start[it] == end[it] }
+    private fun sameAttempt(
+        start: Map<String, String?>,
+        end: Map<String, String?>,
+    ): Boolean = listOf("generation", "attempt_no", "lease_epoch").all { start[it] == end[it] }
 
     private fun validateMedia(
         connection: Connection,

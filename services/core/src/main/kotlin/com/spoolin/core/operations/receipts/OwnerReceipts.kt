@@ -52,25 +52,29 @@ class OwnerReceipts(
         correlationId: UUID,
         options: ReceiptExecution,
         mutation: (Connection) -> SafeResult,
-    ): ReceiptOutcome = observe(intent.kind) {
-        dataSource.committed { connection ->
-            val inserted = reserve(connection, intent, correlationId, options.privateInput)
-            val existing = locked(connection, intent.id)
-            when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
-                Comparison.HIDDEN -> throw ReceiptHidden()
-                Comparison.CONFLICT -> throw ReceiptConflict()
-                Comparison.REPLAY -> Unit
+    ): ReceiptOutcome =
+        observe(intent.kind) {
+            dataSource.committed { connection ->
+                val inserted = reserve(connection, intent, correlationId, options.privateInput)
+                val existing = locked(connection, intent.id)
+                when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
+                    Comparison.HIDDEN -> throw ReceiptHidden()
+                    Comparison.CONFLICT -> throw ReceiptConflict()
+                    Comparison.REPLAY -> Unit
+                }
+                if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
+                val result = mutation(connection)
+                complete(connection, intent.id, result)
+                ReceiptActivity.append(connection, intent.id, correlationId, result.resultId, options.audit)
+                options.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
+                locked(connection, intent.id).outcome
             }
-            if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
-            val result = mutation(connection)
-            complete(connection, intent.id, result)
-            ReceiptActivity.append(connection, intent.id, correlationId, result.resultId, options.audit)
-            options.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
-            locked(connection, intent.id).outcome
         }
-    }
 
-    private fun observe(kind: String, operation: () -> ReceiptOutcome): ReceiptOutcome {
+    private fun observe(
+        kind: String,
+        operation: () -> ReceiptOutcome,
+    ): ReceiptOutcome {
         val started = System.nanoTime()
         var observed = LogicalResult.unknown()
         try {

@@ -107,7 +107,9 @@ class Application {
         )
 
     @Bean(destroyMethod = "close")
-    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing = com.spoolin.support.tracing.OwnerTracing("catalog")
+    fun ownerTracing(): com.spoolin.support.tracing.OwnerTracing =
+        com.spoolin.support.tracing
+            .OwnerTracing("catalog")
 
     @Bean
     @GlobalServerInterceptor
@@ -123,19 +125,25 @@ class Application {
     @Bean
     @org.springframework.grpc.client.GlobalClientInterceptor
     fun traceClient(tracing: com.spoolin.support.tracing.OwnerTracing): com.spoolin.support.tracing.TraceClientInterceptor =
-        com.spoolin.support.tracing.TraceClientInterceptor(tracing)
+        com.spoolin.support.tracing
+            .TraceClientInterceptor(tracing)
 
     @Bean
     fun logicalMetrics(registry: io.micrometer.core.instrument.MeterRegistry): com.spoolin.support.observability.LogicalMetrics {
-        com.spoolin.support.logging.DiagnosticDropMetrics.shared.bind("catalog", registry)
-        return com.spoolin.support.observability.LogicalMetrics(registry, "catalog")
+        com.spoolin.support.logging.DiagnosticDropMetrics.shared
+            .bind("catalog", registry)
+        return com.spoolin.support.observability
+            .LogicalMetrics(registry, "catalog")
     }
 
     @Bean
     @GlobalServerInterceptor
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    fun logicalRpcMetrics(metrics: com.spoolin.support.observability.LogicalMetrics): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
-        com.spoolin.support.observability.LogicalRpcMetricsInterceptor(metrics)
+    fun logicalRpcMetrics(
+        metrics: com.spoolin.support.observability.LogicalMetrics,
+    ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
+        com.spoolin.support.observability
+            .LogicalRpcMetricsInterceptor(metrics)
 
     @Bean("maintenanceDataSource")
     fun maintenanceDataSource(environment: Environment): DataSource =
@@ -295,12 +303,15 @@ class CatalogWriteConfiguration {
     @Bean
     fun catalogWritePolicy(environment: Environment): com.spoolin.catalog.boundary.policy.CatalogWritePolicy =
         com.spoolin.catalog.boundary.policy.CatalogWritePolicy {
-            com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) }
+            com.spoolin.support.policy.PolicyEnvironment
+                .resolve { environment.getProperty(it) }
         }
 
     @Bean
-    fun movieWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): MovieWrites =
-        MovieWrites(receipts, policy = policy)
+    fun movieWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): MovieWrites = MovieWrites(receipts, policy = policy)
 
     @Bean
     fun managedMovieReads(dataSource: DataSource): ManagedMovieReads {
@@ -311,8 +322,10 @@ class CatalogWriteConfiguration {
     }
 
     @Bean
-    fun personWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): PersonWrites =
-        PersonWrites(receipts, policy = policy)
+    fun personWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): PersonWrites = PersonWrites(receipts, policy = policy)
 
     @Bean
     fun artworkRpc(
@@ -373,12 +386,18 @@ class CatalogWriteConfiguration {
     fun managedPersonReads(dataSource: DataSource): ManagedPersonReads = ManagedPersonReads(dataSource)
 
     @Bean
-    fun roleWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
+    fun roleWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): com.spoolin.catalog.features.taxonomy.roles.RoleWrites =
         com.spoolin.catalog.features.taxonomy.roles
             .RoleWrites(receipts, policy = policy)
 
     @Bean
-    fun creditWrites(receipts: OwnerReceipts, policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy): com.spoolin.catalog.features.credit.CreditWrites =
+    fun creditWrites(
+        receipts: OwnerReceipts,
+        policy: com.spoolin.catalog.boundary.policy.CatalogWritePolicy,
+    ): com.spoolin.catalog.features.credit.CreditWrites =
         com.spoolin.catalog.features.credit
             .CreditWrites(receipts, policy = policy)
 

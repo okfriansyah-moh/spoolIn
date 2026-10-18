@@ -11,8 +11,11 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Local SDK context only: no collector, exporter, request payload attributes or global SDK mutation. */
-class OwnerTracing private constructor(private val provider: SdkTracerProvider) : AutoCloseable {
+class OwnerTracing private constructor(
+    private val provider: SdkTracerProvider,
+) : AutoCloseable {
     constructor(service: String) : this(provider(service))
+
     private val tracer = provider.get("com.spoolin.owner")
 
     fun browser(): OwnerSpan = span("browser.ingress", SpanKind.SERVER, Context.root())
@@ -23,12 +26,23 @@ class OwnerTracing private constructor(private val provider: SdkTracerProvider) 
 
     internal fun client(): OwnerSpan = span("grpc.client", SpanKind.CLIENT, TraceContexts.current())
 
-    private fun span(name: String, kind: SpanKind, parent: Context): OwnerSpan {
-        val span = tracer.spanBuilder(name).setSpanKind(kind).setParent(parent).startSpan()
+    private fun span(
+        name: String,
+        kind: SpanKind,
+        parent: Context,
+    ): OwnerSpan {
+        val span =
+            tracer
+                .spanBuilder(name)
+                .setSpanKind(kind)
+                .setParent(parent)
+                .startSpan()
         return OwnerSpan(parent.with(span), span)
     }
 
-    override fun close() { provider.close() }
+    override fun close() {
+        provider.close()
+    }
 
     companion object {
         internal fun testing(provider: SdkTracerProvider): OwnerTracing = OwnerTracing(provider)
@@ -41,13 +55,21 @@ class OwnerTracing private constructor(private val provider: SdkTracerProvider) 
     }
 }
 
-class OwnerSpan internal constructor(internal val context: Context, private val span: Span) {
+class OwnerSpan internal constructor(
+    internal val context: Context,
+    private val span: Span,
+) {
     private val ended = AtomicBoolean()
 
-    fun <T> scoped(action: () -> T): T = context.makeCurrent().use {
-        var returned = false
-        try { action().also { returned = true } } finally { if (!returned) finish(false) }
-    }
+    fun <T> scoped(action: () -> T): T =
+        context.makeCurrent().use {
+            var returned = false
+            try {
+                action().also { returned = true }
+            } finally {
+                if (!returned) finish(false)
+            }
+        }
 
     fun wrap(action: Runnable): Runnable = Runnable { scoped { action.run() } }
 

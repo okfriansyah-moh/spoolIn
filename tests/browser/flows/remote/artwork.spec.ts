@@ -103,13 +103,11 @@ test('ATDD-039 partial: malformed file fails and does not create a saved attachm
 }, info) => {
   await signInMaintainer(page);
   await createMovie(page);
-  await page
-    .getByLabel('Poster artwork')
-    .setInputFiles({
-      name: 'malformed.png',
-      mimeType: 'image/png',
-      buffer: Buffer.from('invalid image content'),
-    });
+  await page.getByLabel('Poster artwork').setInputFiles({
+    name: 'malformed.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('invalid image content'),
+  });
   await expect(page.locator('.artwork-upload [role="status"]')).toHaveText(
     'Upload failed',
     { timeout: 60000 },

@@ -25,22 +25,46 @@ class ArtworkReadProxy(
     private val media: MediaServiceGrpc.MediaServiceBlockingStub,
     private val issuer: ActorIssuer?,
 ) {
-    data class VerifiedAsset(val path: Path, val contentType: String, val bytes: Long) : AutoCloseable {
-        override fun close() { ArtworkScratch.delete(path) }
+    data class VerifiedAsset(
+        val path: Path,
+        val contentType: String,
+        val bytes: Long,
+    ) : AutoCloseable {
+        override fun close() {
+            ArtworkScratch.delete(path)
+        }
     }
 
-    private fun request(assetId: UUID, management: Boolean, context: BrowserContext): Spoolin.AssetReadRequest {
-        val request = Spoolin.ArtworkAccessRequest.newBuilder()
-            .setAssetId(assetId.toString()).setManagement(management).build()
+    private fun request(
+        assetId: UUID,
+        management: Boolean,
+        context: BrowserContext,
+    ): Spoolin.AssetReadRequest {
+        val request =
+            Spoolin.ArtworkAccessRequest
+                .newBuilder()
+                .setAssetId(assetId.toString())
+                .setManagement(management)
+                .build()
         val metadata = metadata(management, context)
-        val grant = catalog.withDeadlineAfter(ACCESS_SECONDS, TimeUnit.SECONDS)
-            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata)).resolveArtworkAccess(request)
+        val grant =
+            catalog
+                .withDeadlineAfter(ACCESS_SECONDS, TimeUnit.SECONDS)
+                .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
+                .resolveArtworkAccess(request)
         ArtworkReadValidation.grant(grant, assetId)
-        return Spoolin.AssetReadRequest.newBuilder().setAssetId(grant.assetId).setHoldId(grant.holdId)
-            .setCatalogVersion(grant.catalogVersion).build()
+        return Spoolin.AssetReadRequest
+            .newBuilder()
+            .setAssetId(grant.assetId)
+            .setHoldId(grant.holdId)
+            .setCatalogVersion(grant.catalogVersion)
+            .build()
     }
 
-    private fun metadata(management: Boolean, context: BrowserContext): Metadata {
+    private fun metadata(
+        management: Boolean,
+        context: BrowserContext,
+    ): Metadata {
         val metadata = Metadata()
         if (management) {
             val principal = context.principal
@@ -52,27 +76,39 @@ class ArtworkReadProxy(
         return metadata
     }
 
-    fun metadata(assetId: UUID, management: Boolean, context: BrowserContext): ArtworkMetadata {
+    fun metadata(
+        assetId: UUID,
+        management: Boolean,
+        context: BrowserContext,
+    ): ArtworkMetadata {
         val read = request(assetId, management, context)
         val cancellation = Context.current().withCancellation()
         return try {
-            cancellation.call(Callable {
-                val chunks = media.withDeadlineAfter(ACCESS_SECONDS, TimeUnit.SECONDS).readAsset(read)
-                val header = ArtworkTransfer.header(chunks)
-                ArtworkMetadata(assetId, management, header.width, header.height)
-            })
+            cancellation.call(
+                Callable {
+                    val chunks = media.withDeadlineAfter(ACCESS_SECONDS, TimeUnit.SECONDS).readAsset(read)
+                    val header = ArtworkTransfer.header(chunks)
+                    ArtworkMetadata(assetId, management, header.width, header.height)
+                },
+            )
         } finally {
             cancellation.cancel(null)
         }
     }
 
-    fun read(assetId: UUID, management: Boolean, context: BrowserContext): VerifiedAsset {
+    fun read(
+        assetId: UUID,
+        management: Boolean,
+        context: BrowserContext,
+    ): VerifiedAsset {
         val read = request(assetId, management, context)
         val cancellation = Context.current().withCancellation()
         return try {
-            cancellation.call(Callable {
-                ArtworkTransfer.receive(media.withDeadlineAfter(READ_SECONDS, TimeUnit.SECONDS).readAsset(read))
-            })
+            cancellation.call(
+                Callable {
+                    ArtworkTransfer.receive(media.withDeadlineAfter(READ_SECONDS, TimeUnit.SECONDS).readAsset(read))
+                },
+            )
         } finally {
             cancellation.cancel(null)
         }

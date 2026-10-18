@@ -3,13 +3,12 @@
 package com.spoolin.catalog.features.credit
 
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
-import com.spoolin.support.policy.TextRules
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.TextBound
+import com.spoolin.support.policy.TextRules
 import spoolin.v1.Spoolin.CreditWrite
-
 
 data class ValidatedCreditCreate(
     val personId: String,
@@ -95,5 +94,4 @@ object CreditValidation {
                 .also { require(it.toString() == value) }
                 .toString()
         }.getOrElse { throw InputViolation(path, "Supply a lowercase, hyphenated UUID.") }
-
 }

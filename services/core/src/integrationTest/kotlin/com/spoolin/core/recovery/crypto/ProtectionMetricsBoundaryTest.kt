@@ -100,9 +100,10 @@ class ProtectionMetricsBoundaryTest {
                         )
                     }
                 }
-                val missing = assertThrows(ProtectionUnavailable::class.java) {
-                    fixture.allocator.reserve("unknown-key", KeyPurpose.PII)
-                }
+                val missing =
+                    assertThrows(ProtectionUnavailable::class.java) {
+                        fixture.allocator.reserve("unknown-key", KeyPurpose.PII)
+                    }
                 assertEquals(ProtectionFailure.UNAVAILABLE, missing.reason)
                 val account = account(fixture, fixture.keys, observer)
                 val draft = DraftCryptography(fixture.registry, fixture.keys, fixture.allocator, AeadCipher(), observer)
@@ -143,7 +144,12 @@ class ProtectionMetricsBoundaryTest {
     private fun count(
         registry: SimpleMeterRegistry,
         code: String,
-    ): Double = registry.get("spoolin_crypto_failures_total").tag("code", code).counter().count()
+    ): Double =
+        registry
+            .get("spoolin_crypto_failures_total")
+            .tag("code", code)
+            .counter()
+            .count()
 
     private fun assertSameUnavailable(result: ProtectedRead<ByteArray>) {
         assertInstanceOf(ProtectedRead.Unavailable::class.java, result)

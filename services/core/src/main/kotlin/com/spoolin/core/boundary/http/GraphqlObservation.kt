@@ -6,7 +6,10 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.context.request.async.DeferredResult
 
 /** Observes the actual completed response, including typed failures carried by HTTP 200. */
-internal class GraphqlObservation(private val metrics: LogicalMetrics?, private val started: Long) {
+internal class GraphqlObservation(
+    private val metrics: LogicalMetrics?,
+    private val started: Long,
+) {
     @Volatile var roots: Set<String> = emptySet()
 
     fun attach(deferred: DeferredResult<ResponseEntity<Map<String, Any?>>>) {

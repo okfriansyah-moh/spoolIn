@@ -27,21 +27,36 @@ internal class McpCatalogAccess(
     private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val issuer: McpActorIssuer?,
 ) {
-    fun currentConnector(): ConnectorRecord? = ConnectorRpcContext.current()
-        ?.let(connectors::findByTokenHash)?.takeIf(connectors::live)
+    fun currentConnector(): ConnectorRecord? =
+        ConnectorRpcContext
+            .current()
+            ?.let(connectors::findByTokenHash)
+            ?.takeIf(connectors::live)
 
-    fun managementConnector(): ConnectorRecord? = currentConnector()?.takeIf {
-        Permissions.management(role(it))
-    }
+    fun managementConnector(): ConnectorRecord? =
+        currentConnector()?.takeIf {
+            Permissions.management(role(it))
+        }
 
-    fun <T> invoke(invocation: McpCatalogInvocation, call: (CatalogServiceGrpc.CatalogServiceBlockingStub) -> T): T {
+    fun <T> invoke(
+        invocation: McpCatalogInvocation,
+        call: (CatalogServiceGrpc.CatalogServiceBlockingStub) -> T,
+    ): T {
         val connector = managementConnector() ?: denied()
         val signer = issuer ?: denied()
-        val token = signer.issue(connector, role(connector), invocation.method,
-            invocation.operationId, invocation.correlationId)
+        val token =
+            signer.issue(
+                connector,
+                role(connector),
+                invocation.method,
+                invocation.operationId,
+                invocation.correlationId,
+            )
         val metadata = Metadata().apply { put(ActorRpc.metadata, token) }
-        val stub = catalog.withDeadlineAfter(CATALOG_DEADLINE_SECONDS, TimeUnit.SECONDS)
-            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
+        val stub =
+            catalog
+                .withDeadlineAfter(CATALOG_DEADLINE_SECONDS, TimeUnit.SECONDS)
+                .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
         return call(stub)
     }
 
