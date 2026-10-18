@@ -72,7 +72,7 @@ class ArtworkReadProxy(
     }
 
     private fun contentType(header: Spoolin.AssetReadHeader): String {
-        if (header.outputBytes !in 1..8388608 || header.width !in 1..8192 || header.height !in 1..8192 ||
+        if (header.outputBytes !in 1L..8388608L || header.width !in 1..8192 || header.height !in 1..8192 ||
             header.width.toLong() * header.height > 40000000 || header.contentHash.size() != 32) throw Status.DATA_LOSS.asRuntimeException()
         return when (header.format.lowercase(java.util.Locale.ROOT)) {
             "jpeg", "image/jpeg" -> "image/jpeg"
