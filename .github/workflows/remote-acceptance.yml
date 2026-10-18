@@ -24,6 +24,9 @@ jobs:
       TESTED_REF: ${{ inputs.tested_ref || github.sha }}
       CI: 'true'
       GRADLE_OPTS: '-Dorg.gradle.daemon=false'
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -75,13 +78,20 @@ jobs:
       - name: Check production frontend and MCP
         id: frontend
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
-        run: npm run check && npm run build
+        run: |
+          mkdir -p artifacts/source-checks
+          npm run check 2>&1 | tee artifacts/source-checks/check.log
+          npm run build 2>&1 | tee artifacts/source-checks/build.log
       - name: Production MCP coverage and transport checks
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
-        run: npm run test:coverage --workspace mcp
+        run: |
+          mkdir -p artifacts/source-checks
+          npm run test:coverage --workspace mcp 2>&1 | tee artifacts/source-checks/mcp-tests.log
       - name: Production frontend behavior checks
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
-        run: npm run test:coverage --workspace frontend
+        run: |
+          mkdir -p artifacts/source-checks
+          npm run test:coverage --workspace frontend 2>&1 | tee artifacts/source-checks/frontend-tests.log
       - name: Provision isolated synthetic environment
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'success' && steps.frontend.outcome == 'success' }}
         run: python3 ops/ci/prepare-environment.py
@@ -107,6 +117,14 @@ jobs:
       - name: Verify documented Make lifecycle and suites
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.application.outcome == 'success' }}
         run: bash ops/ci/verify-make-targets.sh
+      - name: Retain bounded check reports before delivery gates
+        if: ${{ !cancelled() && inputs.mode == 'verify' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: source-checks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/source-checks
+          retention-days: 14
+          if-no-files-found: error
       - name: Configured delivery gates
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
         run: python3 .ai/bin/agent-workflow gate --repo . --stage delivery --base 2764ca8bcdb5ee182852e2bdb26c95247c81c5ed
@@ -117,6 +135,7 @@ jobs:
           name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/source-checks
             data/seed/manifest.json
             data/seed/sources
             package-lock.json
