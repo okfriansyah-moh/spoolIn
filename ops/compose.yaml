@@ -229,7 +229,10 @@ services:
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
+    security_opt:
+      - no-new-privileges:true
+      - apparmor=spoolin-media
+      - seccomp=/etc/spoolin/security/media-seccomp.json
     mem_limit: 1g
     cpus: 1
     secrets:

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "upstreamDockerVersion": "28.0.4",
+  "upstreamSeccompUrl": "https://raw.githubusercontent.com/moby/moby/v28.0.4/profiles/seccomp/default.json",
+  "upstreamSeccompSha256": "9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76",
+  "dockerDefaultStructureSha256": "885442dc08f21f8d60f99ea43d59af88b1c529103815fe24bbf9ce998d3a609d",
+  "addedRules": [
+    {
+      "names": [
+        "clone"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "args": [
+        {
+          "index": 0,
+          "value": 2114060305,
+          "op": "SCMP_CMP_EQ"
+        }
+      ],
+      "comment": "Media bwrap --unshare-all: user/mount/pid/net/ipc/uts/cgroup namespaces plus SIGCHLD"
+    },
+    {
+      "names": [
+        "clone"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "args": [
+        {
+          "index": 0,
+          "value": 2080505873,
+          "op": "SCMP_CMP_EQ"
+        }
+      ],
+      "comment": "Same required namespaces on kernels without cgroup namespaces"
+    },
+    {
+      "names": [
+        "unshare"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "args": [
+        {
+          "index": 0,
+          "value": 268435456,
+          "op": "SCMP_CMP_EQ"
+        }
+      ],
+      "comment": "Media bwrap second user namespace after devpts setup"
+    },
+    {
+      "names": [
+        "mount",
+        "umount2",
+        "pivot_root"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "comment": "Kernel still requires namespace-local CAP_SYS_ADMIN; enforcing Media AppArmor limits setup mount paths"
+    }
+  ],
+  "files": {
+    "media-seccomp.json": "ffaa1e6a9b2ebeedc43c61c52150ce956a07f97f2632039379ce748698d80a7c",
+    "media-apparmor": "bbf441c955716bcfae902bceea93c6e54a8844581de029fd9dd856123573df60"
+  }
+}
