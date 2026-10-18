@@ -11,6 +11,7 @@ private const val LEASE_DURATION_SECONDS = 30L
 private const val HEARTBEAT_INTERVAL_SECONDS = 10L
 private const val MAX_EFFECT_SECONDS = 15L
 private const val MAX_BATCH = 10
+private const val RECOVERY_DEADLINE_SECONDS = 60L
 
 /**
  * Shared SQL operations for the durable_work / operational_event tables.
@@ -45,6 +46,7 @@ object WorkSql {
         now: Instant,
         batchSize: Int = MAX_BATCH,
     ): List<WorkClaim> {
+        require(!connection.autoCommit) { "Work claims require an explicit transaction" }
         require(batchSize in 1..MAX_BATCH) { "Batch size must be between 1 and $MAX_BATCH" }
         val sql =
             """
@@ -52,7 +54,8 @@ object WorkSql {
                    deadline_at, lease_epoch, correlation_id,
                    base_delay_ms, cap_delay_ms, backoff_multiplier, generation
             FROM durable_work
-            WHERE state = 'READY' AND next_attempt_at <= ? AND deadline_at > ?
+            WHERE state = 'READY' AND next_attempt_at <= ?
+              AND deadline_at > GREATEST(?, clock_timestamp()) AND attempt_count < max_attempts
             ORDER BY next_attempt_at, id
             LIMIT ?
             FOR UPDATE SKIP LOCKED
@@ -92,6 +95,7 @@ object WorkSql {
         now: Instant,
         eventId: UUID = UUID.randomUUID(),
     ): WorkClaim? {
+        lockForMutation(connection, candidate.workId)
         val leaseUntil = now.plusSeconds(LEASE_DURATION_SECONDS)
         val newEpoch = candidate.leaseEpoch + 1
         val newAttemptCount = candidate.attemptCount + 1
@@ -100,38 +104,43 @@ object WorkSql {
                 """UPDATE durable_work
                SET state = 'LEASED',
                    lease_owner = ?,
-                   lease_until = ?,
+                   lease_until = LEAST(GREATEST(?, clock_timestamp() + INTERVAL '30 seconds'), deadline_at),
                    lease_epoch = lease_epoch + 1,
                    attempt_count = attempt_count + 1,
                    updated_at = ?
-               WHERE id = ? AND state = 'READY' AND lease_epoch = ?""",
+               WHERE id = ? AND state = 'READY' AND lease_epoch = ? AND generation = ?
+                 AND attempt_count = ? AND attempt_count < max_attempts
+                 AND next_attempt_at <= ? AND deadline_at > GREATEST(?, clock_timestamp())""",
                 workerId,
                 Timestamp.from(leaseUntil),
                 Timestamp.from(now),
                 candidate.workId,
                 candidate.leaseEpoch,
+                candidate.generation,
+                candidate.attemptCount,
+                Timestamp.from(now),
+                Timestamp.from(now),
             )
         if (updated == 0) return null
+        val claim = candidate.copy(leaseOwner = workerId, leaseEpoch = newEpoch, attemptCount = newAttemptCount)
+        insertAttemptStarted(connection, claim, eventId)
+        return claim
+    }
+
+    private fun insertAttemptStarted(connection: Connection, claim: WorkClaim, eventId: UUID) {
         connection.executeBound(
             """INSERT INTO operational_event
                (id, operation_id, actor_kind, action, subject_kind, subject_id,
                 correlation_id, event_type, work_id, generation, attempt_no, lease_epoch)
                VALUES (?, ?, 'SERVICE', 'WORK_ATTEMPT', 'WORK', ?, ?, 'ATTEMPT_STARTED', ?, ?, ?, ?)""",
-            eventId,
-            candidate.operationId,
-            candidate.workId,
-            candidate.correlationId,
-            candidate.workId,
-            candidate.generation,
-            newAttemptCount,
-            newEpoch,
+            eventId, claim.operationId, claim.workId, claim.correlationId, claim.workId,
+            claim.generation, claim.attemptCount, claim.leaseEpoch,
         )
-        return candidate.copy(leaseOwner = workerId, leaseEpoch = newEpoch, attemptCount = newAttemptCount)
     }
 
     /**
      * Heartbeat renewal — extends [leaseUntil] when the caller is still the live owner.
-     * Uses a WHERE clause CAS on (id, lease_owner, lease_epoch, state='LEASED').
+     * Atomically validates the owner, epoch, generation, attempt, live lease and deadline.
      * Returns true when the renewal succeeded, false when the lease was lost.
      */
     fun renewLease(
@@ -139,22 +148,31 @@ object WorkSql {
         claim: WorkClaim,
         now: Instant,
     ): Boolean {
+        lockForMutation(connection, claim.workId)
         val newUntil = now.plusSeconds(LEASE_DURATION_SECONDS)
         return connection.executeBound(
             """UPDATE durable_work
-               SET lease_until = ?, updated_at = ?
-               WHERE id = ? AND state = 'LEASED' AND lease_owner = ? AND lease_epoch = ?""",
+               SET lease_until = LEAST(GREATEST(?, lease_until, clock_timestamp() + INTERVAL '30 seconds'), deadline_at),
+                   updated_at = GREATEST(?, clock_timestamp())
+               WHERE id = ? AND state = 'LEASED' AND lease_owner = ? AND lease_epoch = ?
+                 AND generation = ? AND attempt_count = ?
+                 AND lease_until > GREATEST(?, clock_timestamp())
+                 AND deadline_at > GREATEST(?, clock_timestamp())""",
             Timestamp.from(newUntil),
             Timestamp.from(now),
             claim.workId,
             claim.leaseOwner,
             claim.leaseEpoch,
+            claim.generation,
+            claim.attemptCount,
+            Timestamp.from(now),
+            Timestamp.from(now),
         ) == 1
     }
 
     /**
      * Fenced terminal or reschedule commit — writes ATTEMPT_FINISHED plus the new durable_work
-     * state in a single transaction.  The WHERE clause CAS ensures that a stale owner or a
+     * state in a single transaction.  The database time and tuple checks ensure that an expired owner or a
      * replacement worker cannot overwrite the current generation.
      *
      * Returns true when this worker's commit was accepted, false when already superseded.
@@ -168,19 +186,23 @@ object WorkSql {
         completion: WorkAttemptCompletion,
         now: Instant,
     ): Boolean {
+        lockForMutation(connection, claim.workId)
         val lease = leaseFieldsForCompletion(completion.nextState, claim, now)
         val nextAttemptTs =
             completion.nextAttemptAt?.let { Timestamp.from(it) } ?: Timestamp.from(now)
         val updated =
             connection.executeBound(
                 """UPDATE durable_work
-               SET state = ?,
-                   lease_owner = ?,
-                   lease_until = ?,
-                   last_error = ?,
-                   next_attempt_at = ?,
-                   updated_at = ?
-               WHERE id = ? AND state = 'LEASED' AND lease_owner = ? AND lease_epoch = ?""",
+               SET state = ?, lease_owner = ?, lease_until = ?, last_error = ?,
+                   next_attempt_at = ?, updated_at = ?
+               WHERE id = ? AND state = 'LEASED' AND lease_owner = ? AND lease_epoch = ?
+                 AND generation = ? AND attempt_count = ?
+                 AND lease_until > GREATEST(?, clock_timestamp())
+                 AND deadline_at > GREATEST(?, clock_timestamp())
+                 AND EXISTS (SELECT 1 FROM operational_event e
+                   WHERE e.work_id = durable_work.id AND e.event_type = 'ATTEMPT_STARTED'
+                     AND e.generation = durable_work.generation AND e.attempt_no = durable_work.attempt_count
+                     AND e.lease_epoch = durable_work.lease_epoch)""",
                 completion.nextState,
                 lease.owner,
                 lease.until,
@@ -190,10 +212,19 @@ object WorkSql {
                 claim.workId,
                 claim.leaseOwner,
                 claim.leaseEpoch,
+                claim.generation,
+                claim.attemptCount,
+                Timestamp.from(now),
+                Timestamp.from(now),
             )
         if (updated == 0) return false
         insertAttemptFinished(connection, claim, completion)
         return true
+    }
+
+    private fun lockForMutation(connection: Connection, workId: UUID) {
+        require(!connection.autoCommit) { "Work lease changes require an explicit transaction" }
+        connection.queryBound("SELECT id FROM durable_work WHERE id=? FOR UPDATE", listOf(workId)) { true }
     }
 
     private data class LeaseFields(
@@ -245,7 +276,7 @@ object WorkSql {
 
     /**
      * Operator-initiated controlled recovery. Transitions an EXHAUSTED work item to READY
-     * with an incremented generation, resets the attempt counter, and appends a RECOVERY event
+     * with an incremented generation, resets the attempt counter and bounded deadline, and appends a RECOVERY event
      * that preserves the original evidence and records the operator identity and reason.
      *
      * Returns true when recovery was committed, false when the work is not in EXHAUSTED state.
@@ -256,36 +287,44 @@ object WorkSql {
         commit: WorkRecoveryCommit,
         now: Instant,
     ): Boolean {
-        val updated =
-            connection.executeBound(
-                """UPDATE durable_work
-               SET state = 'READY',
-                   generation = generation + 1,
-                   attempt_count = 0,
-                   lease_owner = NULL,
-                   lease_until = NULL,
-                   last_error = NULL,
-                   next_attempt_at = ?,
-                   updated_at = ?
-               WHERE id = ? AND state = 'EXHAUSTED'""",
-                Timestamp.from(now),
-                Timestamp.from(now),
-                workId,
-            )
+        require(!connection.autoCommit) { "Work recovery requires an explicit transaction" }
+        val recoveryDeadlineAt = now.plusSeconds(RECOVERY_DEADLINE_SECONDS)
+        WorkRecoveryRequest(workId, commit.operatorId, commit.reason, commit.correlationId)
+        val previous = connection.queryBound(
+            "SELECT generation,lease_epoch,operation_id,deadline_at FROM durable_work " +
+                "WHERE id=? AND state='EXHAUSTED' FOR UPDATE",
+            listOf(workId),
+        ) { row ->
+            RecoveryRow(row.getInt("generation"), row.getLong("lease_epoch"),
+                row.getObject("operation_id", UUID::class.java), row.getTimestamp("deadline_at").toInstant())
+        }.singleOrNull() ?: return false
+        val updated = connection.executeBound(
+            "UPDATE durable_work SET state='READY', generation=generation+1, attempt_count=0," +
+                "lease_owner=NULL,lease_until=NULL,last_error=NULL,next_attempt_at=?,deadline_at=?,updated_at=? " +
+                "WHERE id=? AND state='EXHAUSTED' AND generation=? AND lease_epoch=? " +
+                "AND ? > clock_timestamp()",
+            Timestamp.from(now), Timestamp.from(recoveryDeadlineAt), Timestamp.from(now), workId,
+            previous.generation, previous.epoch, Timestamp.from(recoveryDeadlineAt),
+        )
         if (updated == 0) return false
-        val row =
-            connection
-                .queryBound(
-                    "SELECT generation, lease_epoch, operation_id, correlation_id FROM durable_work WHERE id = ?",
-                    listOf(workId),
-                ) { rs ->
-                    Triple(
-                        rs.getInt("generation"),
-                        rs.getLong("lease_epoch"),
-                        rs.getObject("operation_id", UUID::class.java),
-                    )
-                }.single()
-        val (newGeneration, currentEpoch, operationId) = row
+        insertRecoveryEvent(connection, workId, commit, previous, recoveryDeadlineAt)
+        return true
+    }
+
+    private data class RecoveryRow(
+        val generation: Int,
+        val epoch: Long,
+        val operationId: UUID?,
+        val deadlineAt: Instant,
+    )
+
+    private fun insertRecoveryEvent(
+        connection: Connection,
+        workId: UUID,
+        commit: WorkRecoveryCommit,
+        previous: RecoveryRow,
+        deadlineAt: Instant,
+    ) {
         connection.executeBound(
             """INSERT INTO operational_event
                (id, operation_id, actor_kind, action, subject_kind, subject_id,
@@ -293,17 +332,10 @@ object WorkSql {
                 lease_epoch, operator_id, changes)
                VALUES (?, ?, 'SERVICE', 'WORK_RECOVERY', 'WORK', ?, 'SUCCEEDED',
                        ?, 'RECOVERY', ?, ?, ?, ?, ?::jsonb)""",
-            commit.eventId,
-            operationId,
-            workId,
-            commit.correlationId,
-            workId,
-            newGeneration,
-            currentEpoch,
-            commit.operatorId,
-            """{"reason":${escapeJson(commit.reason)}}""",
+            commit.eventId, previous.operationId, workId, commit.correlationId, workId,
+            previous.generation + 1, previous.epoch, commit.operatorId,
+            """{"reason":${escapeJson(commit.reason)},"previousDeadlineAt":"${previous.deadlineAt}","deadlineAt":"$deadlineAt"}""",
         )
-        return true
     }
 
     /**
@@ -328,19 +360,6 @@ object WorkSql {
                 )
             }.singleOrNull()
 
-    private fun escapeJson(value: String): String {
-        val sb = StringBuilder("\"")
-        for (ch in value) {
-            when (ch) {
-                '"' -> sb.append("\\\"")
-                '\\' -> sb.append("\\\\")
-                '\n' -> sb.append("\\n")
-                '\r' -> sb.append("\\r")
-                '\t' -> sb.append("\\t")
-                else -> sb.append(ch)
-            }
-        }
-        sb.append('"')
-        return sb.toString()
-    }
+    private fun escapeJson(value: String): String =
+        tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(value)
 }
