@@ -1,7 +1,5 @@
 name: Remote application acceptance
 on:
-  push:
-    branches: [codex/remote-acceptance-closure]
   workflow_dispatch:
     inputs:
       tested_ref:
@@ -61,9 +59,12 @@ jobs:
       - name: Strict build and contract generation
         if: ${{ inputs.mode == 'verify' }}
         run: ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar
+      - name: Provision isolated synthetic environment
+        if: ${{ inputs.mode == 'verify' }}
+        run: python3 ops/ci/prepare-environment.py
       - name: Start documented application
         if: ${{ inputs.mode == 'verify' }}
-        run: make start
+        run: bash ops/ci/run-application.sh
       - name: Retain reports including failed baseline
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -71,6 +72,8 @@ jobs:
           name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             .ai/evidence/remote
+            artifacts/runtime
+            artifacts/make
             gradle/verification-metadata.xml
             gradle/locks
             contracts/grpc/gradle.lockfile

@@ -10,6 +10,7 @@ import java.time.Instant
 import java.util.HexFormat
 import java.util.UUID
 import javax.sql.DataSource
+import kotlin.io.path.readBytes
 
 /** Loads catalog rows from manifest.json (movies + series) with seed_member identity (T032/T033). */
 class CatalogSeedLoader(
