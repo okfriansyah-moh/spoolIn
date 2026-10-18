@@ -28,8 +28,8 @@ object ProposalContent {
         @Suppress("UNCHECKED_CAST")
         val values = content["values"] as? Map<String, Any?> ?: throw IllegalArgumentException("values missing")
         val builder = MovieValues.newBuilder()
-        builder.title = values["title"] as? String ?: throw IllegalArgumentException("title missing")
-        builder.synopsis = values["synopsis"] as? String ?: throw IllegalArgumentException("synopsis missing")
+        builder.title = requireNotNull(values["title"] as? String) { "title missing" }
+        builder.synopsis = requireNotNull(values["synopsis"] as? String) { "synopsis missing" }
         builder.synopsisLanguage = values["synopsis_language"] as? String ?: "en"
         (values["original_title"] as? String)?.let(builder::setOriginalTitle)
         (values["original_language"] as? String)?.let(builder::setOriginalLanguage)
@@ -53,16 +53,7 @@ object ProposalContent {
     }
 
     private fun valuesMap(values: MovieValues): Map<String, Any?> {
-        val release =
-            if (values.hasRelease()) {
-                buildMap<String, Int> {
-                    put("year", values.release.year)
-                    if (values.release.hasMonth()) put("month", values.release.month)
-                    if (values.release.hasDay()) put("day", values.release.day)
-                }
-            } else {
-                null
-            }
+        val release = releaseMap(values)
         return buildMap {
             put("title", values.title)
             if (values.hasOriginalTitle()) put("original_title", values.originalTitle)
@@ -75,6 +66,17 @@ object ProposalContent {
             if (release != null) put("release", release)
         }.entries.sortedBy { it.key }.associate { it.key to it.value }
     }
+
+    private fun releaseMap(values: MovieValues): Map<String, Int>? =
+        if (values.hasRelease()) {
+            buildMap {
+                put("year", values.release.year)
+                if (values.release.hasMonth()) put("month", values.release.month)
+                if (values.release.hasDay()) put("day", values.release.day)
+            }
+        } else {
+            null
+        }
 
     private fun sourceMap(source: FieldSource): Map<String, Any?> =
         buildMap {

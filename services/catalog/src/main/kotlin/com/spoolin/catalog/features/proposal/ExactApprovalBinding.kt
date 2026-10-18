@@ -20,56 +20,47 @@ data class ExactApprovalBinding(
     companion object {
         fun fromInput(
             claims: ActorClaims,
-            proposalId: UUID,
-            revision: Int,
-            contentHash: ByteArray,
-            challenge: String,
+            input: spoolin.v1.Spoolin.ApprovalInput,
             policyRevision: String,
             now: Instant,
-        ): ExactApprovalBinding =
-            ExactApprovalBinding(
-                proposalId = proposalId,
-                revision = revision,
-                actorId = claims.accountId,
-                connectorId = claims.credentialId,
-                clientKind = claims.clientKind ?: "",
-                contentHash = contentHash,
-                challenge = challenge,
-                policyRevision = policyRevision,
-                now = now,
-            )
+        ): ExactApprovalBinding = ExactApprovalBinding(
+            UUID.fromString(input.proposalId), input.revision, claims.accountId, claims.credentialId,
+            claims.clientKind ?: "", java.util.Base64.getDecoder().decode(input.contentHash), input.challenge,
+            policyRevision, now,
+        )
     }
 
-    fun verify(
-        row: ProposalRow,
-        storedChallengeHash: ByteArray,
-    ): Status? {
-        if (row.id != proposalId || row.revision != revision) {
-            return Status.FAILED_PRECONDITION.withDescription("REVISION_MISMATCH")
-        }
-        if (row.actorId != actorId || row.connectorId != connectorId || row.clientKind != clientKind) {
-            return Status.PERMISSION_DENIED.withDescription("ACTOR_BINDING_MISMATCH")
-        }
-        if (!contentHash.contentEquals(row.contentHash)) {
-            return Status.FAILED_PRECONDITION.withDescription("CONTENT_HASH_MISMATCH")
-        }
-        if (challenge.isBlank()) {
-            return Status.FAILED_PRECONDITION.withDescription("CHALLENGE_REQUIRED")
-        }
+    fun verify(row: ProposalRow, storedChallengeHash: ByteArray): Status? =
+        identityProblem(row) ?: challengeProblem(storedChallengeHash) ?: reviewProblem(row)
+
+    fun identityProblem(row: ProposalRow): Status? = when {
+        row.id != proposalId || row.revision != revision ->
+            Status.FAILED_PRECONDITION.withDescription("REVISION_MISMATCH")
+        row.actorId != actorId || row.connectorId != connectorId || row.clientKind != clientKind ->
+            Status.PERMISSION_DENIED.withDescription("ACTOR_BINDING_MISMATCH")
+        !MessageDigest.isEqual(contentHash, row.contentHash) ->
+            Status.FAILED_PRECONDITION.withDescription("CONTENT_HASH_MISMATCH")
+        else -> null
+    }
+
+    fun challengeProblem(storedChallengeHash: ByteArray): Status? {
         val digest = MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray(Charsets.UTF_8))
-        if (!digest.contentEquals(storedChallengeHash)) {
-            return Status.FAILED_PRECONDITION.withDescription("CHALLENGE_MISMATCH")
+        return when {
+            challenge.isBlank() -> Status.FAILED_PRECONDITION.withDescription("CHALLENGE_REQUIRED")
+            !MessageDigest.isEqual(digest, storedChallengeHash) ->
+                Status.FAILED_PRECONDITION.withDescription("CHALLENGE_MISMATCH")
+            else -> null
         }
+    }
+
+    fun reviewProblem(row: ProposalRow): Status? {
         val boundPolicy = ProposalContent.policyRevision(ProposalContent.parseJson(row.contentJson))
-        if (policyRevision != boundPolicy) {
-            return Status.FAILED_PRECONDITION.withDescription("POLICY_REVISION_MISMATCH")
+        return when {
+            policyRevision != boundPolicy -> Status.FAILED_PRECONDITION.withDescription("POLICY_REVISION_MISMATCH")
+            !now.isBefore(row.expiresAt) -> Status.FAILED_PRECONDITION.withDescription("PROPOSAL_EXPIRED")
+            row.state !in setOf("REVIEW", "CREATED") ->
+                Status.FAILED_PRECONDITION.withDescription("PROPOSAL_NOT_REVIEWABLE")
+            else -> null
         }
-        if (!now.isBefore(row.expiresAt)) {
-            return Status.FAILED_PRECONDITION.withDescription("PROPOSAL_EXPIRED")
-        }
-        if (row.state != "REVIEW" && row.state != "CREATED") {
-            return Status.FAILED_PRECONDITION.withDescription("PROPOSAL_NOT_REVIEWABLE")
-        }
-        return null
     }
 }

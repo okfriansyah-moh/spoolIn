@@ -24,6 +24,17 @@ object ProposalStore {
                 ::mapRow,
             ).singleOrNull()
 
+    fun latestForUpdate(conn: Connection, proposalId: UUID): ProposalRow? = conn.queryBound(
+        "SELECT id,revision,actor_id,connector_id,client_kind,content::text AS content_json," +
+            "content_hash,challenge_hash,state,operation_id,movie_id,expires_at " +
+            "FROM movie_proposal WHERE id=? ORDER BY revision DESC LIMIT 1 FOR UPDATE",
+        listOf(proposalId), ::mapRow,
+    ).singleOrNull()
+
+    fun requireForUpdate(conn: Connection, proposalId: UUID, revision: Int): ProposalRow =
+        loadForUpdate(conn, proposalId, revision)
+            ?: throw Status.NOT_FOUND.withDescription("PROPOSAL_NOT_FOUND").asRuntimeException()
+
     private fun mapRow(row: ResultSet): ProposalRow =
         ProposalRow(
             id = row.getObject("id", UUID::class.java),
@@ -42,15 +53,10 @@ object ProposalStore {
 
     fun markCreated(
         conn: Connection,
-        proposalId: UUID,
-        revision: Int,
+        row: ProposalRow,
         movieId: UUID,
         approvedAt: Instant,
         approvalExpiresAt: Instant,
-        actorId: UUID,
-        connectorId: UUID,
-        contentHash: ByteArray,
-        consumedAt: Instant,
     ) {
         val updated =
             conn.executeBound(
@@ -59,14 +65,14 @@ object ProposalStore {
                     "approval_expires_at = ?, approval_consumed_at = ? " +
                     "WHERE id = ? AND revision = ? AND state = 'REVIEW'",
                 movieId,
-                actorId,
-                connectorId,
-                contentHash,
+                row.actorId,
+                row.connectorId,
+                row.contentHash,
                 Timestamp.from(approvedAt),
                 Timestamp.from(approvalExpiresAt),
-                Timestamp.from(consumedAt),
-                proposalId,
-                revision,
+                Timestamp.from(approvedAt),
+                row.id,
+                row.revision,
             )
         if (updated != 1) throw Status.ABORTED.withDescription("PROPOSAL_RACE").asRuntimeException()
     }

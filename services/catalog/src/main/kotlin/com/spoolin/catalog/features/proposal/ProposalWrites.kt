@@ -11,23 +11,18 @@ import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
 import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
-import com.spoolin.support.receipts.executeBound
-import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.Spoolin
-import java.security.MessageDigest
 import java.security.SecureRandom
-import java.sql.Timestamp
 import java.time.Clock
 import java.time.Duration
 import java.util.Base64
 import java.util.UUID
 import javax.sql.DataSource
 
-private val PROPOSAL_TTL = Duration.ofMinutes(10)
+private const val HASH_BYTES = 32
 private val APPROVAL_TTL = Duration.ofMinutes(2)
-private const val MAX_PENDING = 20
 private const val APPROVE_METHOD = "/spoolin.v1.CatalogService/ApproveAndCreate"
 private const val REJECT_METHOD = "/spoolin.v1.CatalogService/RejectProposal"
 
@@ -46,70 +41,36 @@ class ProposalWrites(
         response: StreamObserver<Spoolin.ProposalRevision>,
     ) {
         try {
-            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            if (!Permissions.management(claims.role)) throw ActorRejected()
-            require(claims.clientKind != null) { "Connector required" }
-            val operationId = parseId(request.context.operationId)
-            val correlationId = parseId(request.context.correlationId)
-            val actorScope = "account:${claims.accountId}"
-            val content = ProposalContent.fromProposal(request)
-            val intent =
-                OperationIntent(
-                    operationId,
-                    actorScope,
-                    "ProposeMovie",
-                    request.context.policyRevision,
-                    listOf(
-                        "proposalId" to request.proposalId,
-                        "expectedRevision" to request.expectedRevision.takeIf { request.hasExpectedRevision() }?.toString(),
-                        "content" to DeterministicContentSerializer.json(content),
-                    ),
-                )
-            val challenge = randomChallenge()
-            val contentHash = DeterministicContentSerializer.digest(content)
-            val outcome =
-                receipts.execute(intent, correlationId, true) { conn ->
-                    enforcePendingQuota(conn, claims.accountId)
-                    val proposalId =
-                        request.proposalId.takeIf { it.isNotBlank() }?.let(::parseId) ?: UUID.randomUUID()
-                    val revision = if (request.hasExpectedRevision()) request.expectedRevision + 1 else 1
-                    supersedeReview(conn, proposalId)
-                    val challengeHash = sha256(challenge.toByteArray(Charsets.UTF_8))
-                    val expiresAt = clock.instant().plus(PROPOSAL_TTL)
-                    conn.executeBound(
-                        "INSERT INTO movie_proposal " +
-                            "(id, revision, actor_id, connector_id, client_kind, content, content_hash, " +
-                            "challenge_hash, state, operation_id, expires_at) " +
-                            "VALUES (?, ?, ?, ?, ?, ?::jsonb, ?, ?, 'REVIEW', ?, ?)",
-                        proposalId,
-                        revision,
-                        claims.accountId,
-                        claims.credentialId,
-                        claims.clientKind,
-                        DeterministicContentSerializer.json(content),
-                        contentHash,
-                        challengeHash,
-                        operationId,
-                        Timestamp.from(expiresAt),
-                    )
-                    SafeResult(proposalId, revision.toLong())
-                }
-            val stored = outcome.result ?: throw Status.INTERNAL.asRuntimeException()
-            response.onNext(
-                Spoolin.ProposalRevision
-                    .newBuilder()
-                    .setProposalId(stored.resultId.toString())
-                    .setRevision(stored.version?.toInt() ?: 1)
-                    .setValues(request.values)
-                    .setContentHash(Base64.getEncoder().encodeToString(contentHash))
-                    .setExpiresAt(protoTime(clock.instant().plus(PROPOSAL_TTL)))
-                    .setUiChallenge(com.google.protobuf.ByteString.copyFromUtf8(challenge))
-                    .build(),
-            )
+            val claims = proposalClaims()
+            val normalized = ProposalDraft.normalize(request)
+            checkPolicy(normalized.context.policyRevision)
+            var freshChallenge: String? = null
+            val intent = proposalIntent(normalized, claims)
+            val correlation = parseId(request.context.correlationId)
+            val outcome = receipts.execute(intent, correlation, true) { conn ->
+                checkPolicy(normalized.context.policyRevision)
+                val challenge = randomChallenge()
+                freshChallenge = challenge
+                ProposalRevisions.insert(conn, normalized, claims, challenge, clock.instant())
+            }
+            val result = outcome.result ?: throw Status.FAILED_PRECONDITION
+                .withDescription("RESULT_EXPIRED").asRuntimeException()
+            val row = dataSource.connection.use { conn ->
+                ProposalStore.loadForUpdate(conn, result.resultId, Math.toIntExact(requireNotNull(result.version)))
+            } ?: throw Status.NOT_FOUND.asRuntimeException()
+            ProposalRevisions.assertOwner(row, claims)
+            ProposalRevisions.requireReview(row, clock.instant())
+            response.onNext(ProposalResponse.fromRow(row, freshChallenge))
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
         } catch (_: ActorRejected) {
+            response.onError(Status.PERMISSION_DENIED.asRuntimeException())
+        } catch (_: IllegalArgumentException) {
+            response.onError(Status.INVALID_ARGUMENT.asRuntimeException())
+        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
+            response.onError(Status.ALREADY_EXISTS.withDescription("OPERATION_CONFLICT").asRuntimeException())
+        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
             response.onError(Status.PERMISSION_DENIED.asRuntimeException())
         }
     }
@@ -137,17 +98,9 @@ class ProposalWrites(
             val claims = assertApprovalClaims(approve)
             val proposalId = parseId(request.proposalId)
             val revision = request.revision
-            val wireHash = decodeContentHash(request.contentHash)
+            decodeContentHash(request.contentHash)
             val binding =
-                ExactApprovalBinding.fromInput(
-                    claims,
-                    proposalId,
-                    revision,
-                    wireHash,
-                    request.challenge,
-                    livePolicyRevision(),
-                    clock.instant(),
-                )
+                ExactApprovalBinding.fromInput(claims, request, livePolicyRevision(), clock.instant())
             val operationId = approvalOperationId(proposalId, revision, approve)
             val correlationId = UUID.randomUUID()
             val outcome =
@@ -177,11 +130,7 @@ class ProposalWrites(
     }
 
     private fun assertApprovalClaims(approve: Boolean): com.spoolin.support.identity.ActorClaims {
-        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role)) throw ActorRejected()
-        if (claims.clientKind == null) {
-            throw Status.PERMISSION_DENIED.withDescription("CONNECTOR_REQUIRED").asRuntimeException()
-        }
+        val claims = proposalClaims()
         val expectedMethod = if (approve) APPROVE_METHOD else REJECT_METHOD
         if (claims.method != expectedMethod) {
             throw Status.PERMISSION_DENIED.withDescription("MODEL_CONSENT_DENIED").asRuntimeException()
@@ -209,12 +158,22 @@ class ProposalWrites(
                 listOf(
                     "proposalId" to proposalId.toString(),
                     "revision" to revision.toString(),
+                    "connectorId" to claims.credentialId.toString(), "clientKind" to claims.clientKind,
                     "contentHash" to Base64.getEncoder().encodeToString(binding.contentHash),
                 ),
             )
+        verifyApprovalReplay(binding, proposalId, revision)
         return receipts.execute(intent, correlationId, true) { conn ->
             applyApprovalMutation(conn, claims, binding, proposalId, revision, approve, operationId, correlationId)
         }
+    }
+
+    private fun verifyApprovalReplay(binding: ExactApprovalBinding, proposalId: UUID, revision: Int) {
+        val row = dataSource.connection.use { ProposalStore.requireForUpdate(it, proposalId, revision) }
+        val problem = binding.identityProblem(row) ?: binding.challengeProblem(row.challengeHash)
+        problem?.let { throw it.asRuntimeException() }
+        val retained = if (row.state == "REJECTED") row.copy(state = "CREATED") else row
+        binding.reviewProblem(retained)?.let { throw it.asRuntimeException() }
     }
 
     private fun applyApprovalMutation(
@@ -227,22 +186,21 @@ class ProposalWrites(
         operationId: UUID,
         correlationId: UUID,
     ): SafeResult {
-        val row =
-            ProposalStore.loadForUpdate(conn, proposalId, revision)
-                ?: throw Status.NOT_FOUND.withDescription("PROPOSAL_NOT_FOUND").asRuntimeException()
+        val row = ProposalStore.requireForUpdate(conn, proposalId, revision)
+        checkPolicy(binding.policyRevision)
+        binding.copy(now = clock.instant()).verify(row, row.challengeHash)?.let { throw it.asRuntimeException() }
         if (row.state == "CREATED" && row.movieId != null) {
             return SafeResult(row.movieId, 0)
         }
-        binding.verify(row, row.challengeHash)?.let { throw it.asRuntimeException() }
         val content = ProposalContent.parseJson(row.contentJson)
         val storedDigest = DeterministicContentSerializer.digest(content)
         if (!storedDigest.contentEquals(row.contentHash)) {
             throw Status.FAILED_PRECONDITION.withDescription("STORED_CONTENT_INVALID").asRuntimeException()
         }
         val actorKind = auditActorKind(claims)
-        if (approve) {
+        return if (approve) {
             val outcome =
-                publishApprovedProposal(conn, claims, row, content, proposalId, revision, correlationId)
+                publishApprovedProposal(conn, claims, row, content, correlationId)
             AuditInsert.record(
                 conn,
                 operationId,
@@ -256,9 +214,9 @@ class ProposalWrites(
                 correlationId,
                 clock.instant(),
             )
-            return outcome
-        }
-        ProposalStore.markRejected(conn, proposalId, revision)
+            outcome
+        } else {
+            ProposalStore.markRejected(conn, proposalId, revision)
         AuditInsert.record(
             conn,
             operationId,
@@ -272,7 +230,8 @@ class ProposalWrites(
             correlationId,
             clock.instant(),
         )
-        return SafeResult(proposalId, revision.toLong())
+            SafeResult(proposalId, revision.toLong())
+        }
     }
 
     private fun publishApprovedProposal(
@@ -280,8 +239,6 @@ class ProposalWrites(
         claims: com.spoolin.support.identity.ActorClaims,
         row: ProposalRow,
         content: Map<String, Any?>,
-        proposalId: UUID,
-        revision: Int,
         correlationId: UUID,
     ): SafeResult {
         val values = ProposalContent.movieValues(content)
@@ -295,18 +252,7 @@ class ProposalWrites(
                 row.operationId,
                 correlationId,
             )
-        ProposalStore.markCreated(
-            conn,
-            proposalId,
-            revision,
-            movieOutcome.resultId,
-            approvedAt,
-            approvalExpires,
-            claims.accountId,
-            claims.credentialId,
-            row.contentHash,
-            clock.instant(),
-        )
+        ProposalStore.markCreated(conn, row, movieOutcome.resultId, approvedAt, approvalExpires)
         return movieOutcome
     }
 
@@ -330,7 +276,9 @@ class ProposalWrites(
         val decoded =
             runCatching { Base64.getDecoder().decode(value) }
                 .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException() }
-        if (decoded.size != 32) throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException()
+        if (decoded.size != HASH_BYTES) {
+            throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException()
+        }
         return decoded
     }
 
@@ -354,41 +302,36 @@ class ProposalWrites(
         return builder.build()
     }
 
-    private fun enforcePendingQuota(
-        conn: java.sql.Connection,
-        actorId: UUID,
-    ) {
-        val count =
-            conn.queryBound(
-                "SELECT count(*) FROM movie_proposal WHERE actor_id = ? AND state = 'REVIEW'",
-                listOf(actorId),
-            ) { it.getInt(1) }.single()
-        if (count >= MAX_PENDING) throw Status.RESOURCE_EXHAUSTED.asRuntimeException()
+    private fun proposalClaims(): com.spoolin.support.identity.ActorClaims {
+        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (!Permissions.management(claims.role) || claims.clientKind !in setOf("CLAUDE", "CHATGPT")) {
+            throw ActorRejected()
+        }
+        return claims
     }
 
-    private fun supersedeReview(
-        conn: java.sql.Connection,
-        proposalId: UUID,
-    ) {
-        conn.executeBound(
-            "UPDATE movie_proposal SET state = 'SUPERSEDED' WHERE id = ? AND state = 'REVIEW'",
-            proposalId,
-        )
+    private fun checkPolicy(revision: String) {
+        if (revision != livePolicyRevision()) {
+            throw Status.FAILED_PRECONDITION.withDescription("POLICY_REVISION_MISMATCH").asRuntimeException()
+        }
     }
+
+    private fun proposalIntent(request: Spoolin.Proposal, claims: com.spoolin.support.identity.ActorClaims): OperationIntent =
+        OperationIntent(
+            parseId(request.context.operationId), "account:${claims.accountId}", "ProposeMovie",
+            request.context.policyRevision,
+            listOf(
+                "proposalId" to request.proposalId,
+                "expectedRevision" to request.expectedRevision.takeIf { request.hasExpectedRevision() }?.toString(),
+                "connectorId" to claims.credentialId.toString(), "clientKind" to claims.clientKind,
+                "content" to DeterministicContentSerializer.json(ProposalContent.fromProposal(request)),
+            ),
+        )
 
     private fun randomChallenge(): String {
-        val bytes = ByteArray(32).also(random::nextBytes)
+        val bytes = ByteArray(HASH_BYTES).also(random::nextBytes)
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
-
-    private fun sha256(value: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(value)
-
-    private fun protoTime(instant: java.time.Instant): com.google.protobuf.Timestamp =
-        com.google.protobuf.Timestamp
-            .newBuilder()
-            .setSeconds(instant.epochSecond)
-            .setNanos(instant.nano)
-            .build()
 
     private fun parseId(value: String): UUID =
         UUID.fromString(value).also { require(it.toString() == value) }
