@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bounded local operator readiness probes with allowlisted diagnostic output only."""
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,10 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime, timezone
+
+_status_spec = importlib.util.spec_from_file_location("spoolin_operational_status", Path(__file__).with_name("operational_status.py"))
+operational_status = importlib.util.module_from_spec(_status_spec)
+_status_spec.loader.exec_module(operational_status)
 
 SERVICES = ("postgres", "core", "catalog", "media", "mcp", "prometheus", "alertmanager", "grafana")
 HEALTHCHECKED = {"postgres", "mcp", "prometheus", "alertmanager"}
@@ -122,9 +127,14 @@ def main():
     os.umask(0o077)
     report = {"observedAt": datetime.now(timezone.utc).isoformat(), "externalClients": "UNVERIFIED", "probes": []}
     try:
-        report["probes"] = observations(Path(__file__).resolve().parents[2])
+        root = Path(__file__).resolve().parents[2]
+        report["probes"] = observations(root) + operational_status.observations(root)
     except (OSError, ValueError, subprocess.TimeoutExpired):
         report["probes"].append({"probe": "execution", "result": "FAIL", "reason": "probe-unavailable-or-malformed"})
+    report["tunnel"] = operational_status.tunnel_observation()
+    report["scope"] = "local service and database readiness; tunnel/client acceptance remains separate"
+    if os.environ.get("MCP_PUBLICATION_ENABLED", "false").lower() == "true":
+        report["probes"].append({"probe": "required-tunnel-runner", "result": "FAIL", "reason": "registered-runner-unavailable"})
     report["result"] = "PASS" if report["probes"] and all(row["result"] == "PASS" for row in report["probes"]) else "FAIL"
     rendered = json.dumps(report, sort_keys=True, indent=2) + "\n"
     output = os.environ.get("SPOOLIN_READINESS_REPORT")
