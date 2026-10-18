@@ -6,19 +6,21 @@ import type {
   ProposalRevision,
 } from '../generated/spoolin/v1/spoolin.js';
 
-export function dateProjection(value: PartialDate | undefined) {
+function dateParts(value: PartialDate | undefined) {
   return {
     year: value?.year ?? null,
     month: value?.month ?? null,
     day: value?.day ?? null,
-    precision: value?.day
-      ? 'DAY'
-      : value?.month
-        ? 'MONTH'
-        : value?.year
-          ? 'YEAR'
-          : 'UNKNOWN',
   };
+}
+function datePrecision(value: PartialDate | undefined) {
+  if (value?.day) return 'DAY';
+  if (value?.month) return 'MONTH';
+  if (value?.year) return 'YEAR';
+  return 'UNKNOWN';
+}
+export function dateProjection(value: PartialDate | undefined) {
+  return { ...dateParts(value), precision: datePrecision(value) };
 }
 export function contextProjection(value: MovieContext) {
   return {
@@ -33,21 +35,28 @@ export function contextProjection(value: MovieContext) {
     policyRevision: value.policy?.revision ?? '',
   };
 }
-export function movieProjection(value: MovieValues | undefined) {
+function movieMetadata(value: Partial<MovieValues>) {
   return {
-    title: value?.title ?? '',
-    originalTitle: value?.originalTitle ?? null,
-    synopsis: value?.synopsis ?? '',
-    genreIds: value?.genreIds ?? [],
-    release: {
-      year: value?.release?.year ?? null,
-      month: value?.release?.month ?? null,
-      day: value?.release?.day ?? null,
-    },
-    runtimeMinutes: value?.runtimeMinutes ?? null,
-    originalLanguage: value?.originalLanguage ?? null,
-    synopsisLanguage: value?.synopsisLanguage ?? '',
-    countries: value?.countries ?? [],
+    originalTitle: value.originalTitle ?? null,
+    runtimeMinutes: value.runtimeMinutes ?? null,
+    originalLanguage: value.originalLanguage ?? null,
+    synopsisLanguage: value.synopsisLanguage ?? '',
+    countries: value.countries ?? [],
+  };
+}
+export function movieProjection(value: MovieValues | undefined) {
+  const movie: Partial<MovieValues> = value ?? {};
+  const metadata = movieMetadata(movie);
+  return {
+    title: movie.title ?? '',
+    originalTitle: metadata.originalTitle,
+    synopsis: movie.synopsis ?? '',
+    genreIds: movie.genreIds ?? [],
+    release: dateParts(movie.release),
+    runtimeMinutes: metadata.runtimeMinutes,
+    originalLanguage: metadata.originalLanguage,
+    synopsisLanguage: metadata.synopsisLanguage,
+    countries: metadata.countries,
   };
 }
 export function proposalProjection(

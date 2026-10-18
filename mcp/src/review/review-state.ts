@@ -93,6 +93,10 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
     }
     root.append(unknownList);
   }
+  renderActions(root);
+}
+
+function renderActions(root: HTMLElement): void {
   const actions = document.createElement('div');
   actions.className = 'review-actions';
   const approve = document.createElement('button');

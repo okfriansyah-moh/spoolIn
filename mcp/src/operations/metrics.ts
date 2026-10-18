@@ -230,37 +230,48 @@ function httpResult(status: number, finished: boolean): Result {
     : { outcome: 'SYSTEM_FAILED', code: 'UNAVAILABLE' };
 }
 
+type ToolContent = {
+  state?: string;
+  operationId?: string;
+  problem?: { code?: string };
+};
+
+function operationStatus(
+  content: ToolContent,
+  operation: string,
+  isError?: boolean,
+): boolean {
+  return (
+    operation === 'movie_operation' &&
+    !isError &&
+    typeof content.operationId === 'string' &&
+    ['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(content.state ?? '')
+  );
+}
+
+function problemResult(problem: { code?: string }): Result {
+  if (!problem.code || problem.code === 'OK' || !codes.has(problem.code))
+    return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
+  return {
+    outcome: ['UNAVAILABLE', 'DEADLINE_EXCEEDED'].includes(problem.code)
+      ? 'SYSTEM_FAILED'
+      : 'DOMAIN_REJECTED',
+    code: problem.code,
+  };
+}
+
 function toolResult(value: unknown, operation: string): Result {
   if (!value || typeof value !== 'object')
     return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
   const result = value as {
     isError?: boolean;
-    structuredContent?: {
-      state?: string;
-      operationId?: string;
-      problem?: { code?: string };
-    };
+    structuredContent?: ToolContent;
   };
   const content = result.structuredContent;
   if (!content) return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
-  if (
-    operation === 'movie_operation' &&
-    !result.isError &&
-    typeof content.operationId === 'string' &&
-    ['PENDING', 'SUCCEEDED', 'FAILED', 'EXPIRED'].includes(content.state ?? '')
-  )
+  if (operationStatus(content, operation, result.isError))
     return { outcome: 'SUCCESS', code: 'OK' };
-  const problem = content.problem;
-  if (problem) {
-    if (!problem.code || problem.code === 'OK' || !codes.has(problem.code))
-      return { outcome: 'UNCERTAIN', code: 'UNKNOWN' };
-    return {
-      outcome: ['UNAVAILABLE', 'DEADLINE_EXCEEDED'].includes(problem.code)
-        ? 'SYSTEM_FAILED'
-        : 'DOMAIN_REJECTED',
-      code: problem.code,
-    };
-  }
+  if (content.problem) return problemResult(content.problem);
   if (
     result.isError ||
     ['PENDING', 'FAILED', 'EXPIRED'].includes(content.state ?? '')

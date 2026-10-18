@@ -22,10 +22,9 @@ type Invocation<T> = (
 function unary<T>(invoke: Invocation<T>, metadata: Metadata): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const signal = activeCancellation();
-    let active: ClientUnaryCall | undefined;
     let finished = false;
     const cancel = () => active?.cancel();
-    active = invoke(
+    const active = invoke(
       metadata,
       { deadline: new Date(Date.now() + 5000) },
       (error, value) => {
