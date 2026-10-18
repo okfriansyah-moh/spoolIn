@@ -1004,7 +1004,8 @@
         "ATDD-134"
       ],
       "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
-      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance.",
+      "continuation_source_correction": "8a65fbe supplies TASK from both actual wrappers; earlier export-only correction was incomplete. Actual39093635908 helper timeout preserved; current exact argument regression and full Make rerun pending."
     },
     {
       "id": "F-042",
@@ -1089,7 +1090,39 @@
         "ATDD-177"
       ],
       "assessed_revision": "6f22c23de477abde0862b7924936a5bd6be3180b",
-      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance."
+      "runtime_proof": "Pending exact real boundary evidence at current final inputs and one final independent combined review; source correction is not task acceptance.",
+      "continuation_source_correction": "2b77c93/b5301d5/9ca5273 plus97b2ee9/7ac2f62 wire actual Environment policy, dynamic GraphQL defaults, signed current reader/filter/policy/page cursors and frontend omitted page sizes. Source inspected; authored real mTLS/PG boundary regressions not yet run."
+    },
+    {
+      "id": "F-047",
+      "required": true,
+      "status": "open",
+      "area": "Actual native owner boundary execution",
+      "summary": "Hosted run39093635908 retained686 native XML cases with41failures/0skips and an additional shared test-compilation failure. Failures include missing production class discovery, fixture cleanup and privileges, physical receipt expiry setup, absent proposal genre, crypto dependency cycle and isolated registry wiring. Codec failures share the observed host prerequisite denial; no whole-suite success inferred.",
+      "requirement_ids": [
+        "T003",
+        "T007",
+        "T026",
+        "T028",
+        "T039",
+        "T040"
+      ],
+      "evidence_paths": [
+        "services/core/build.gradle.kts",
+        "services/core/src/integrationTest/kotlin/com/spoolin/core/boundary/bootstrap/OwnerFixture.kt",
+        "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/features/proposal/ProposalFixture.kt"
+      ],
+      "assessed_revision": "890ff3d807fb2c90e6adf102495b836fe6d0daf2",
+      "evidence_links": [
+        "https://github.com/okfriansyah-moh/spoolIn/actions/runs/39093635908/artifacts/12124312646"
+      ],
+      "source_corrections": [
+        "29a2931",
+        "d77633b",
+        "12957d8",
+        "83df6ef"
+      ],
+      "runtime_proof": "Pending current-input full owner boundary rerun; original failures retained. No fixture-only correction is production runtime acceptance."
     }
   ],
   "pending_acceptance": [
