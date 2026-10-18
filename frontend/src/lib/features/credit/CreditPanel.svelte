@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { appendDistinct } from '../../state/pagination';
   import Notice from '../../components/Notice.svelte';
   import Button from '../../components/Button.svelte';
   import RoleCreator from './RoleCreator.svelte';
@@ -19,7 +20,7 @@
     recoverCredit,
     fetchActivePeoplePage,
     fetchCreditRoles,
-    fetchTitleCredits,
+    fetchTitleCreditsPage,
   } from './api';
   import type { CreditRoleOption, ManagedCredit, PersonOption } from './types';
   import { validateCharacterNames } from './validation';
@@ -45,6 +46,12 @@
   let people = $state<readonly PersonOption[]>([]);
   let loading = $state(true);
   let loadingPeople = $state(false);
+  let loadingCredits = $state(false);
+  let nextCredits = $state<string | null>(null);
+  let creditPageError = $state('');
+  let creditGeneration = 0;
+  let creditAbort: AbortController | null = null;
+  let awaitingDraft: DraftRecord | null = null;
   let nextPeople = $state<string | null>(null);
   let message = $state('');
   let personId = $state('');
@@ -56,7 +63,7 @@
   let pendingId = $state<string | null>(null);
   let pendingKind: 'save' | 'remove' = 'save';
   let retainedSubmissionDraft: DraftRecord | null = null;
-  let retryOriginal: (() => Promise<CreditCommandOutcome>) | null = null;
+  let retryOriginal = $state<(() => Promise<CreditCommandOutcome>) | null>(null);
 
   const selectedRole = $derived(
     roles.find((role) => role.id === roleId) ?? null,
@@ -97,12 +104,13 @@
     void (async () => {
       try {
         const [loadedCredits, loadedRoles, loadedPeople] = await Promise.all([
-          fetchTitleCredits(transport, titleId, context.csrf, abort.signal),
+          fetchTitleCreditsPage(transport, titleId, context.csrf, null, abort.signal),
           fetchCreditRoles(transport, abort.signal),
           fetchActivePeoplePage(transport, context.csrf, null, abort.signal),
         ]);
         if (abort.signal.aborted) return;
-        credits = loadedCredits;
+        credits = loadedCredits.nodes;
+        nextCredits = loadedCredits.pageInfo.hasNextPage ? loadedCredits.pageInfo.endCursor : null;
         roles = loadedRoles;
         people = loadedPeople.nodes;
         nextPeople = loadedPeople.next;
@@ -120,7 +128,7 @@
         if (!abort.signal.aborted) loading = false;
       }
     })();
-    return () => { abort.abort(); sync.dispose(); };
+    return () => { abort.abort(); creditAbort?.abort(); creditGeneration += 1; sync.dispose(); };
   });
 
   function draftValues(draft: DraftRecord): CreditDraftValues {
@@ -162,10 +170,15 @@
     return false;
   }
 
-  function requireDraftTarget(draft: DraftRecord, values: CreditDraftValues): ManagedCredit | null {
+  function requireDraftTarget(draft: DraftRecord, values: CreditDraftValues): ManagedCredit | null | undefined {
     if (!draft.targetId) return null;
     const target = credits.find((credit) => credit.id === draft.targetId);
-    if (!target || target.personId !== values.personId || target.personArchived)
+    if (!target && nextCredits) {
+      awaitingDraft = draft; draftUnavailable = true;
+      message = 'Load more credits to check the exact saved credit before resuming this draft.';
+      return undefined;
+    }
+    if (!target || target.personId !== values.personId || target.personArchived !== false)
       throw new Error('Saved credit reference unavailable.');
     return target;
   }
@@ -193,7 +206,10 @@
       message = 'Saved credit references changed. Discard this draft or restore its references before adding a credit.';
       return;
     }
-    installDraftFields(draft, values, requireDraftTarget(draft, values), references);
+    const target = requireDraftTarget(draft, values);
+    if (target === undefined) return;
+    awaitingDraft = null; draftUnavailable = false;
+    installDraftFields(draft, values, target, references);
     if (draft.operationId && !(await clearRejectedCreditDraft(draft.baseVersion)))
       message = 'Original failure confirmed. Retained edits are not backed up yet. Retry their backup before submitting.';
   }
@@ -203,6 +219,7 @@
     submitting = true;
     try {
       if (!(await draftSync.discard(context))) { message = 'Credit draft discard is not confirmed. Retry its original result.'; return; }
+      awaitingDraft = null;
       resetFields(); creditReviewRequired = false; reviewedCredit = false; draftUnavailable = false;
       discardingDraft = false;
       backup = draftSync.snapshot; message = 'Credit draft discarded. Saved credits are unchanged.';
@@ -225,6 +242,44 @@
       nextPeople = page.next;
     } catch { message = 'More people could not be loaded. Retry before choosing a missing person.'; }
     finally { loadingPeople = false; }
+  }
+
+  async function refreshCredits() {
+    creditAbort?.abort(); creditGeneration += 1;
+    creditAbort = new AbortController();
+    const signal = creditAbort.signal;
+    const page = await fetchTitleCreditsPage(createTransport(), titleId, context.csrf, null, signal);
+    if (signal.aborted) return;
+    credits = page.nodes;
+    nextCredits = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
+    loadingCredits = false; creditPageError = '';
+  }
+
+  async function checkCreditReferences() {
+    loadingCredits = true;
+    try { await refreshCredits(); }
+    catch { creditPageError = 'Current credit references could not be loaded. Retry the read.'; }
+    finally { loadingCredits = false; }
+  }
+
+  function creditPageAvailable(): boolean {
+    return !!nextCredits && !loadingCredits && !submitting && !pendingId;
+  }
+
+  async function loadMoreCredits() {
+    if (!creditPageAvailable()) return;
+    const generation = creditGeneration;
+    creditAbort = new AbortController();
+    const signal = creditAbort.signal;
+    loadingCredits = true; creditPageError = '';
+    try {
+      const page = await fetchTitleCreditsPage(createTransport(), titleId, context.csrf, nextCredits, signal);
+      if (signal.aborted || generation !== creditGeneration) return;
+      credits = appendDistinct(credits, page.nodes);
+      nextCredits = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
+      if (awaitingDraft) await resumeCreditDraft(awaitingDraft);
+    } catch { if (!signal.aborted) creditPageError = 'More credits could not be loaded. Retry this page.'; }
+    finally { if (!signal.aborted) loadingCredits = false; }
   }
 
   async function refreshCreatedRole(id: string) {
@@ -255,6 +310,7 @@
   }
 
   function editCredit(credit: ManagedCredit) {
+    if (credit.personArchived !== false) { message = 'Restore the person and check current references before editing this credit.'; return; }
     if (!draftSync || backup.backed || backup.unbacked || creditDirty || personId || roleId || pendingId) return;
     draftSync.reset({ targetId: credit.id });
     creditDirty = false;
@@ -314,7 +370,7 @@
     const transport = createTransport();
     const movie = await fetchManagedMovie(transport, titleId, context.csrf);
     if (!movie || movie.state !== 'ACTIVE') throw new Error('Current movie unavailable.');
-    credits = await fetchTitleCredits(transport, titleId, context.csrf);
+    await refreshCredits();
     onTitleVersionChange(movie.version);
     if (draftSync && !(await draftSync.discard(context))) {
       message = 'Credit result confirmed, but its draft cleanup is not confirmed. Check the original result again.';
@@ -478,14 +534,16 @@
           {#if credit.characters.length}
             — {credit.characters.join(', ')}
           {/if}
+          {#if credit.personArchived === true}<p>Private credit · hidden publicly while this person is archived. Removing it keeps the shared person; later restoration cannot recreate the removed credit.</p>
+          {:else if credit.personArchived === undefined}<p role="status">Current person reference unavailable. Check credit references before changing this relationship.</p>{/if}
           <button
             type="button"
-            disabled={submitting || !!pendingId || !!creditDraftChoices.length || draftUnavailable || !!personId || !!roleId || backup.backed || backup.unbacked}
+            disabled={credit.personArchived !== false || submitting || !!pendingId || !!creditDraftChoices.length || draftUnavailable || !!personId || !!roleId || backup.backed || backup.unbacked}
             onclick={() => editCredit(credit)}>Edit credit</button
           >
           <button
             type="button"
-            disabled={submitting || !!pendingId || !!creditDraftChoices.length || !!personId || !!roleId || backup.backed || backup.unbacked}
+            disabled={credit.personArchived === undefined || submitting || !!pendingId || !!creditDraftChoices.length || !!personId || !!roleId || backup.backed || backup.unbacked}
             onclick={() => (removing = credit)}>Remove credit</button
           >
         </li>
@@ -493,6 +551,12 @@
         <li>No credits yet for this movie.</li>
       {/each}
     </ul>
+    <button type="button" disabled={submitting || !!pendingId || loadingCredits} onclick={() => void checkCreditReferences()}>Check credit references</button>
+    {#if creditPageError}<p role="alert">{creditPageError}</p>{/if}
+    {#if nextCredits}<button type="button" disabled={loadingCredits || submitting || !!pendingId}
+      aria-busy={loadingCredits} onclick={() => void loadMoreCredits()}>
+      {creditPageError ? 'Retry more credits' : 'Load more credits'}
+    </button>{/if}
 
     <div class="field">
       <label for="credit-person">Person</label>
@@ -572,6 +636,7 @@
 >
   <p>
     Remove this movie credit. The shared person and their other credits remain.
+    {#if removing?.personArchived}Restoring this person later cannot recreate this removed credit.{/if}
   </p>
 </ConfirmDialog>
 

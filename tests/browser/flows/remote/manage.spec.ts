@@ -651,3 +651,51 @@ test('ATDD-017 partial: movie metadata survives a real update and editor reload'
   expect([...loaded.managedTitle.countries].sort()).toEqual(['GB', 'ID']);
   await capture(page, info, ['ATDD-017'], 'movie-complete-metadata-persisted');
 });
+
+test('ATDD-028/262 partial: archived-person credit is private, removable and never recreated by later restore', async ({ page }, info) => {
+  await signInMaintainer(page);
+  const person = await createPerson(page);
+  const movie = await createMovie(page);
+  await addActorCredit(page, person.id, ['Maya / Echo']);
+  await page.goto(`/manage/people/${person.id}`);
+  await page.getByRole('button', { name: 'Archive person', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Archive person', exact: true }).click();
+  await expect(page).toHaveURL(/\/manage\/archives$/);
+  await page.goto(`/manage/movies/${movie.id}`);
+  const credit = page.locator('.credit-list li').filter({ hasText: person.name });
+  await expect(credit).toContainText('Private credit · hidden publicly while this person is archived.');
+  await expect(credit.getByRole('button', { name: 'Edit credit', exact: true })).toBeDisabled();
+  await expect(credit.getByRole('button', { name: 'Remove credit', exact: true })).toBeEnabled();
+  await capture(page, info, ['ATDD-028', 'ATDD-262'], 'archived-person-credit-private');
+  await page.goto(`/titles/${movie.id}`);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(movie.title);
+  await expect(page.getByRole('link', { name: person.name, exact: true })).toHaveCount(0);
+  await page.goto(`/manage/movies/${movie.id}`);
+  await credit.getByRole('button', { name: 'Remove credit', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Restoring this person later cannot recreate this removed credit.');
+  await dialog.getByRole('button', { name: 'Remove credit', exact: true }).click();
+  await expect(credit).toHaveCount(0);
+  await page.reload();
+  expect((await currentCredits(page, movie.id)).some((entry) => entry.personId === person.id)).toBe(false);
+  const retained = await readApi(page, 'query RetainedPerson($id: UUID!) { managedPerson(id: $id) { id state } }', { id: person.id });
+  expect(retained.managedPerson).toMatchObject({ id: person.id, state: 'ARCHIVED' });
+  await page.goto('/manage/archives');
+  await page.getByRole('tab', { name: 'People', exact: true }).click();
+  await expect(page.getByRole('tabpanel')).not.toContainText('Loading archives…');
+  const archived = page.getByRole('tabpanel').locator('li').filter({ hasText: person.name });
+  while ((await archived.count()) === 0) {
+    await expect(page.getByRole('button', { name: 'Load more archives', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Load more archives', exact: true }).click();
+    const more = page.getByRole('button', { name: 'Load more archives', exact: true });
+    await expect.poll(async () => (await more.count()) === 0 || await more.isEnabled()).toBe(true);
+  }
+  await archived.getByRole('button', { name: 'Restore', exact: true }).click();
+  await expect(archived).toHaveCount(0);
+  await page.goto(`/people/${person.id}`);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(person.name);
+  await page.goto(`/manage/movies/${movie.id}`);
+  await expect(credit).toHaveCount(0);
+  expect((await currentCredits(page, movie.id)).some((entry) => entry.personId === person.id)).toBe(false);
+  await capture(page, info, ['ATDD-028', 'ATDD-262'], 'removed-credit-not-recreated-after-restore');
+});

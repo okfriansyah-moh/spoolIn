@@ -148,3 +148,20 @@ test('ATDD-001 partial: actual catalog cursor pages survive reload and browser B
   expect(await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')))).toEqual(first);
   await capture(page, info, ['ATDD-001'], 'catalog-cursor-history-restored');
 });
+
+test('ATDD-011/012 partial: an older known release year is selectable and invalid correction does not silently change it', async ({ page }, info) => {
+  await page.goto('/');
+  await expect(page.getByRole('list', { name: 'Titles' })).toBeVisible();
+  await page.getByLabel('Release year', { exact: true }).selectOption('other');
+  await page.getByLabel('Other release year', { exact: true }).fill('1999');
+  await expect(page).toHaveURL(/[?&]year=1999(?:&|$)/);
+  await expect(page.getByLabel('Month', { exact: true })).toBeEnabled();
+  await page.getByLabel('Other release year', { exact: true }).fill('invalid');
+  await expect(page.getByLabel('Other release year', { exact: true })).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Enter a release year from 1 to 9999. The current year filter stays unchanged.', { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/[?&]year=1999(?:&|$)/);
+  await capture(page, info, ['ATDD-011', 'ATDD-012'], 'older-year-correction');
+  await page.getByLabel('Release year', { exact: true }).selectOption('');
+  await expect(page.getByLabel('Month', { exact: true })).toBeDisabled();
+  await expect(page.getByLabel('Other release year', { exact: true })).toHaveCount(0);
+});

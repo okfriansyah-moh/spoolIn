@@ -183,3 +183,72 @@ it('checks the exact Catalog operation until its actual terminal result without 
     expect(call[1]).toEqual({ id });
   }
 });
+
+it('managed credit paging sends the exact cursor and refuses missing or repeated continuation', async () => {
+  const { fetchTitleCreditsPage } = await import('./api');
+  const request = vi.fn<GraphqlRequest>(async () => ({ managedCredits: { nodes: [{ id, personId: id,
+    personName: 'One', characters: ['Maya / Echo', 'Young Maya'], version: '9007199254740993',
+    role: { id, label: 'Actor', category: 'CAST', allowsCharacters: true } }],
+    pageInfo: { endCursor: 'next', hasNextPage: true } } }));
+  const page = await fetchTitleCreditsPage(request, id, 'csrf', 'prior');
+  expect(page.nodes[0]).toMatchObject({ characters: ['Maya / Echo', 'Young Maya'], version: '9007199254740993' });
+  expect(page.pageInfo).toEqual({ endCursor: 'next', hasNextPage: true });
+  expect(request.mock.calls[0]?.[1]).toEqual({ titleId: id, after: 'prior' });
+  expect(request.mock.calls[0]?.[0]).toContain('$after: Cursor');
+  await expect(fetchTitleCreditsPage(request, id, 'csrf', 'next')).rejects.toThrow('cursor');
+  request.mockResolvedValue({ managedCredits: { nodes: [], pageInfo: { endCursor: null, hasNextPage: true } } });
+  await expect(fetchTitleCreditsPage(request, id, 'csrf', null)).rejects.toThrow('cursor');
+});
+
+it('a final managed credit page exposes no invented next cursor and missing nodes never become empty success', async () => {
+  const { fetchTitleCreditsPage } = await import('./api');
+  const request = vi.fn<GraphqlRequest>(async () => ({ managedCredits: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } } }));
+  expect(await fetchTitleCreditsPage(request, id, 'csrf', 'last')).toEqual({ nodes: [], pageInfo: { endCursor: null, hasNextPage: false } });
+  request.mockResolvedValue({ managedCredits: { pageInfo: { endCursor: null, hasNextPage: false } } });
+  await expect(fetchTitleCreditsPage(request, id, 'csrf', null)).rejects.toThrow('data');
+});
+
+it('rejects malformed credit identities, Long versions, role flags and character arrays instead of inventing display values', async () => {
+  const { fetchTitleCreditsPage } = await import('./api');
+  const credit = { id, personId: id, personName: 'One', characters: ['Maya / Echo'], version: '9',
+    role: { id, label: 'Actor', category: 'CAST', allowsCharacters: true } };
+  for (const node of [{ ...credit, id: null }, { ...credit, version: '9223372036854775808' },
+    { ...credit, characters: [null] }, { ...credit, role: { ...credit.role, allowsCharacters: 'true' } }]) {
+    const request = vi.fn<GraphqlRequest>(async () => ({ managedCredits: { nodes: [node], pageInfo: { endCursor: null, hasNextPage: false } } }));
+    await expect(fetchTitleCreditsPage(request, id, 'csrf', null)).rejects.toThrow();
+  }
+});
+
+it('checks each unique loaded credit person through actual owner state without inferring archival from picker absence', async () => {
+  const { fetchTitleCreditsPage } = await import('./api');
+  const second = '22222222-2222-4222-8222-222222222222';
+  const node = { id, personId: id, personName: 'One', characters: [], version: '0',
+    role: { id, label: 'Director', category: 'CREATOR', allowsCharacters: false } };
+  const request = vi.fn<GraphqlRequest>(async (query, variables) => query.includes('query ManagedCredits(')
+    ? { managedCredits: { nodes: [node, { ...node, id: second }], pageInfo: { endCursor: null, hasNextPage: false } } }
+    : { managedPerson: { id: variables.id, state: 'ARCHIVED' } });
+  const page = await fetchTitleCreditsPage(request, id, 'csrf', null);
+  expect(page.nodes.map((credit) => credit.personArchived)).toEqual([true, true]);
+  expect(page.nodes[0]?.version).toBe('0');
+  expect(request.mock.calls.filter((call) => call[0].includes('query ManagedCreditPerson'))).toHaveLength(1);
+  expect(request.mock.calls[1]?.[1]).toEqual({ id });
+  expect(request.mock.calls[1]?.[0]).toContain('managedPerson(id: $id) { id state }');
+});
+
+it('only an exact current ACTIVE person enables editing; missing, failed and mismatched reads stay explicitly unknown', async () => {
+  const { fetchTitleCreditsPage } = await import('./api');
+  const node = { id, personId: id, personName: 'One', characters: [], version: '1',
+    role: { id, label: 'Director', category: 'CREATOR', allowsCharacters: false } };
+  for (const person of [null, { id, state: 'ACTIVE' }, { id: '22222222-2222-4222-8222-222222222222', state: 'ACTIVE' }]) {
+    const request = vi.fn<GraphqlRequest>(async (query) => query.includes('query ManagedCredits(')
+      ? { managedCredits: { nodes: [node], pageInfo: { endCursor: null, hasNextPage: false } } }
+      : { managedPerson: person });
+    const page = await fetchTitleCreditsPage(request, id, 'csrf', null);
+    expect(page.nodes[0]?.personArchived).toBe(person?.id === id ? false : undefined);
+  }
+  const failing = vi.fn<GraphqlRequest>(async (query) => {
+    if (query.includes('query ManagedCredits(')) return { managedCredits: { nodes: [node], pageInfo: { endCursor: null, hasNextPage: false } } };
+    throw new Error('Owner unavailable');
+  });
+  expect((await fetchTitleCreditsPage(failing, id, 'csrf', null)).nodes[0]?.personArchived).toBeUndefined();
+});

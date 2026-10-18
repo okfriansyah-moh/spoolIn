@@ -32,6 +32,9 @@
 
   let mounted = $state(false);
   let genres = $state<Array<{ id: string; name: string }>>([]);
+  let genreError = $state('');
+  let genresLoading = $state(false);
+  let genreAbort: AbortController | null = null;
   let years = $state<string[]>(
     Array.from({ length: 10 }, (_, i) => String(new Date().getFullYear() - i)),
   );
@@ -65,14 +68,7 @@
       catalogState = state;
     });
 
-    // Load genres (non-blocking)
-    fetchGenres(transport)
-      .then((gs) => {
-        genres = gs.map((g) => ({ id: g.id, name: g.label }));
-      })
-      .catch(() => {
-        // Genre list unavailable; filters still usable
-      });
+    void loadGenres();
 
     // Bootstrap from URL
     const initial = parseCriteria(page.url.searchParams);
@@ -83,9 +79,22 @@
 
     return () => {
       unsubscribe();
+      genreAbort?.abort();
       controller?.dispose();
     };
   });
+
+  async function loadGenres() {
+    genreAbort?.abort();
+    const abort = new AbortController(); genreAbort = abort;
+    genresLoading = true; genreError = '';
+    try {
+      const current = await fetchGenres(createTransport(), abort.signal);
+      if (!abort.signal.aborted) genres = current.map((genre) => ({ id: genre.id, name: genre.label }));
+    } catch {
+      if (!abort.signal.aborted) genreError = 'Genre choices could not be loaded. Your current filters are retained.';
+    } finally { if (!abort.signal.aborted) genresLoading = false; }
+  }
 
   // Push current criteria into the URL (replaceState = true for filter changes,
   // false for explicit navigation like clicking a title).
@@ -159,7 +168,7 @@
     if (controller.snapshot.pageError || JSON.stringify(controller.snapshot.criteria) !== criteriaKey) return;
     lastPageCursor = cursor;
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
-    await goto(page.url.href, { state: { ...page.state, catalogCursor: cursor }, noScroll: true, keepFocus: true });
+    await goto(page.url.href, { state: { ...page.state, catalogCursor: cursor }, reset: false });
   }
 
   const textInvalid = $derived(
@@ -189,6 +198,9 @@
       </p>
     {/if}
 
+    {#if genresLoading}<p role="status">Loading genre choices…</p>{/if}
+    {#if genreError}<p role="alert">{genreError}</p>
+      <button type="button" onclick={() => void loadGenres()}>Retry genre choices</button>{/if}
     <CatalogFilters bind:criteria {genres} {years} />
   </section>
 

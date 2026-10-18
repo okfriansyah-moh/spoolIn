@@ -1,6 +1,7 @@
-import type { GraphqlRequest } from '../../transport/graphql';
+import { readPageInfo, type PageSlice } from '../../state/pagination';
+import { TransportFailure, type GraphqlRequest } from '../../transport/graphql';
 import { withCsrfAndSignal, withSignal } from '../../transport/request-options';
-import { record } from '../session/parse';
+import { record, uuid } from '../session/parse';
 import { mutation, operation, safeProblem } from '../session/outcome';
 import type { IdentityOutcome } from '../session/commands';
 import type { CreditRoleOption, ManagedCredit, PersonOption } from './types';
@@ -13,12 +14,13 @@ export type CreditCommandOutcome =
       problem: NonNullable<IdentityOutcome['problem']>;
     }>;
 
-const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48) {
-  managedCredits(titleId: $titleId, first: $first) {
+const MANAGED_CREDITS = `query ManagedCredits($titleId: UUID!, $first: Int = 48, $after: Cursor) {
+  managedCredits(titleId: $titleId, first: $first, after: $after) {
     nodes {
       id personId personName version characters
       role { id label category allowsCharacters }
     }
+    pageInfo { endCursor hasNextPage }
   }
 }`;
 
@@ -50,44 +52,77 @@ const ADD_CREDIT = `mutation AddCredit(
   }
 }`;
 
+function requiredText(value: unknown): string {
+  if (typeof value !== 'string') throw new Error('Credit text unavailable.');
+  return value;
+}
+
+function creditVersion(value: unknown): string {
+  if (typeof value !== 'string' || !/^(0|[1-9][0-9]*)$/.test(value)) throw new Error('Credit version unavailable.');
+  if (BigInt(value) > 9223372036854775807n) throw new Error('Credit version unavailable.');
+  return value;
+}
+
+function mapRole(value: unknown): CreditRoleOption {
+  const role = record(value);
+  if ((role.category !== 'CAST' && role.category !== 'CREATOR') || typeof role.allowsCharacters !== 'boolean')
+    throw new Error('Credit role unavailable.');
+  return Object.freeze({ id: uuid(role.id), label: requiredText(role.label), category: role.category,
+    allowsCharacters: role.allowsCharacters });
+}
+
 function mapCredit(node: Record<string, unknown>): ManagedCredit {
-  const role = record(node.role);
-  return Object.freeze({
-    id: String(node.id),
-    personId: String(node.personId),
-    personName: String(node.personName),
-    version: String(node.version),
-    characters: Array.isArray(node.characters)
-      ? node.characters.map(String)
-      : [],
-    role: Object.freeze({
-      id: String(role.id),
-      label: String(role.label),
-      category: String(role.category),
-      allowsCharacters: Boolean(role.allowsCharacters),
-    }),
-  });
+  if (!Array.isArray(node.characters) || !node.characters.every((name) => typeof name === 'string'))
+    throw new Error('Credit character names unavailable.');
+  return Object.freeze({ id: uuid(node.id), personId: uuid(node.personId), personName: requiredText(node.personName),
+    version: creditVersion(node.version), characters: Object.freeze([...node.characters]), role: mapRole(node.role) });
 }
 
 export async function fetchTitleCredits(
-  request: GraphqlRequest,
-  titleId: string,
-  csrf: string,
-  signal?: AbortSignal,
+  request: GraphqlRequest, titleId: string, csrf: string, signal?: AbortSignal,
 ): Promise<readonly ManagedCredit[]> {
-  const data = record(
-    await request(
-      MANAGED_CREDITS,
-      { titleId },
-      withCsrfAndSignal(csrf, signal),
-    ),
-  );
+  return (await fetchTitleCreditsPage(request, titleId, csrf, null, signal)).nodes;
+}
+
+async function currentCreditPerson(
+  request: GraphqlRequest, id: string, csrf: string, signal?: AbortSignal,
+): Promise<boolean | undefined> {
+  const data = record(await request(`query ManagedCreditPerson($id: UUID!) {
+    managedPerson(id: $id) { id state }
+  }`, { id }, withCsrfAndSignal(csrf, signal)));
+  if (data.managedPerson === null) return undefined;
+  const person = record(data.managedPerson);
+  if (uuid(person.id) !== id) throw new Error('Current credit person identity unavailable.');
+  if (person.state === 'ACTIVE') return false;
+  if (person.state === 'ARCHIVED') return true;
+  throw new Error('Current credit person state unavailable.');
+}
+
+async function withCurrentPeople(
+  request: GraphqlRequest, nodes: readonly ManagedCredit[], csrf: string, signal?: AbortSignal,
+): Promise<readonly ManagedCredit[]> {
+  const states = new Map<string, boolean | undefined>();
+  for (const id of new Set(nodes.map((credit) => credit.personId))) {
+    if (signal?.aborted) throw new Error('Credit reference read cancelled.');
+    try { states.set(id, await currentCreditPerson(request, id, csrf, signal)); }
+    catch (error) {
+      if (error instanceof TransportFailure && error.code === 'RATE_LIMITED') throw error;
+      states.set(id, undefined);
+    }
+  }
+  if (signal?.aborted) throw new Error('Credit reference read cancelled.');
+  return Object.freeze(nodes.map((credit) => Object.freeze({ ...credit, personArchived: states.get(credit.personId) })));
+}
+
+export async function fetchTitleCreditsPage(
+  request: GraphqlRequest, titleId: string, csrf: string, after: string | null, signal?: AbortSignal,
+): Promise<PageSlice<ManagedCredit>> {
+  const data = record(await request(MANAGED_CREDITS, { titleId, after }, withCsrfAndSignal(csrf, signal)));
   const page = record(data.managedCredits);
-  const nodes = page.nodes;
-  if (!Array.isArray(nodes)) throw new Error('Credit data unavailable.');
-  return Object.freeze(
-    nodes.map((node) => mapCredit(node as Record<string, unknown>)),
-  );
+  if (!Array.isArray(page.nodes)) throw new Error('Credit data unavailable.');
+  const pageInfo = readPageInfo(page.pageInfo, after);
+  const nodes = page.nodes.map((node) => mapCredit(record(node)));
+  return Object.freeze({ nodes: await withCurrentPeople(request, nodes, csrf, signal), pageInfo });
 }
 
 export async function fetchCreditRoles(
@@ -98,15 +133,7 @@ export async function fetchCreditRoles(
   const roles = data.creditRoles;
   if (!Array.isArray(roles)) throw new Error('Credit roles unavailable.');
   return Object.freeze(
-    roles.map((role) => {
-      const node = role as Record<string, unknown>;
-      return Object.freeze({
-        id: String(node.id),
-        label: String(node.label),
-        category: String(node.category),
-        allowsCharacters: Boolean(node.allowsCharacters),
-      });
-    }),
+    roles.map(mapRole),
   );
 }
 
@@ -141,7 +168,7 @@ export async function fetchActivePeoplePage(
     throw new Error('Credit people cursor unavailable.');
   const nodes = page.nodes.map((node) => {
     const row = record(node);
-    return Object.freeze({ id: String(row.id), name: String(row.name) });
+    return Object.freeze({ id: uuid(row.id), name: requiredText(row.name) });
   });
   if (new Set(nodes.map((person) => person.id)).size !== nodes.length)
     throw new Error('Duplicate credit people page.');

@@ -3,7 +3,7 @@
   import { recoverCatalogOperation } from '../../../lib/features/movie/api';
   import { LifecycleFailure } from '../../../lib/features/archive/api';
   import { appendDistinct, type PageInfo } from '../../../lib/state/pagination';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { createTransport } from '../../../lib/transport/graphql';
   import { sessionController } from '../../../lib/features/session/context';
   import { loadWriteContext } from '../../../lib/features/movie/write-context';
@@ -111,6 +111,21 @@
   async function switchTab(next: ArchiveTab) {
     tab = next;
     await reload();
+  }
+
+  async function archiveTabKey(event: KeyboardEvent) {
+    if (busy || intent) return;
+    const moves: Readonly<Record<string, ArchiveTab>> = {
+      ArrowLeft: tab === 'movies' ? 'people' : 'movies',
+      ArrowRight: tab === 'movies' ? 'people' : 'movies', Home: 'movies', End: 'people',
+    };
+    const next = moves[event.key];
+    if (!next) return;
+    event.preventDefault();
+    const loading = switchTab(next);
+    await tick();
+    document.getElementById(`archives-tab-${next}`)?.focus();
+    await loading;
   }
 
   async function restoreRow(row: ArchiveRow) {
@@ -250,7 +265,7 @@
   }
 </script>
 
-<main class="stack">
+<section class="stack" aria-label="Archived records">
   <h1>Archives</h1>
   <p>
     Maintainer-only retained movies and people. Restore or confirm permanent
@@ -261,23 +276,30 @@
     <button
       type="button"
       role="tab"
+      id="archives-tab-movies" aria-controls="archives-panel"
+      tabindex={tab === 'movies' ? 0 : -1}
       aria-selected={tab === 'movies'}
       disabled={busy || intent !== null}
       onclick={() => switchTab('movies')}
+      onkeydown={(event) => void archiveTabKey(event)}
     >
       Movies
     </button>
     <button
       type="button"
       role="tab"
+      id="archives-tab-people" aria-controls="archives-panel"
+      tabindex={tab === 'people' ? 0 : -1}
       aria-selected={tab === 'people'}
       disabled={busy || intent !== null}
       onclick={() => switchTab('people')}
+      onkeydown={(event) => void archiveTabKey(event)}
     >
       People
     </button>
   </div>
 
+  <section id="archives-panel" role="tabpanel" aria-labelledby={`archives-tab-${tab}`} tabindex="0">
   {#if listState.kind === 'loading'}
     <p role="status">Loading archives…</p>
   {:else if listState.kind === 'denied'}
@@ -311,6 +333,7 @@
     </button>{/if}
   {/if}
 
+  </section>
   <p role="status">{message}</p>
   {#if intent}
     <div class="actions">
@@ -334,7 +357,7 @@
     <p>This action is irreversible for <strong>{selected?.label}</strong>.</p>
     {#if impactSummary}<p>{impactSummary}</p>{/if}
   </ConfirmDialog>
-</main>
+</section>
 
 <style>
   .stack {
