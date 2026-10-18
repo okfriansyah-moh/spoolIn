@@ -11,7 +11,7 @@ object MediaActors {
     fun interceptor(
         environment: Environment,
         clock: Clock = Clock.systemUTC(),
-    ): ActorInterceptor {
+    ): io.grpc.ServerInterceptor {
         val enabled = environment.getProperty("spoolin.actor.enabled", Boolean::class.java, false)
         val verifier =
             if (enabled) {
@@ -24,7 +24,7 @@ object MediaActors {
                 null
             }
         val methods = setOf("Upload", "GetOperation", "GetAsset").map { "spoolin.v1.MediaService/$it" }.toSet()
-        return ActorInterceptor("media", methods, verifier, { claims ->
+        val actorCheck = ActorInterceptor("media", methods, verifier, { claims ->
             if (claims.method.endsWith("/Upload") &&
                 !com.spoolin.support.identity.Permissions
                     .management(claims.role)
@@ -33,5 +33,22 @@ object MediaActors {
                     .ActorRejected()
             }
         }, clock)
+        return object : io.grpc.ServerInterceptor {
+            override fun <ReqT : Any, RespT : Any> interceptCall(
+                call: io.grpc.ServerCall<ReqT, RespT>,
+                headers: io.grpc.Metadata,
+                next: io.grpc.ServerCallHandler<ReqT, RespT>,
+            ): io.grpc.ServerCall.Listener<ReqT> {
+                val reconciliation = call.methodDescriptor.fullMethodName in setOf(
+                    "spoolin.v1.MediaService/GetAsset", "spoolin.v1.MediaService/GetOperation",
+                )
+                // Business handlers additionally require the persisted local/Catalog tuple.
+                return if (MediaPeer.current() == "catalog" && reconciliation) {
+                    next.startCall(call, headers)
+                } else {
+                    actorCheck.interceptCall(call, headers, next)
+                }
+            }
+        }
     }
 }

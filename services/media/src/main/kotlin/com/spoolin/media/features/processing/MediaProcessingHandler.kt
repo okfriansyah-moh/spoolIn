@@ -83,7 +83,7 @@ class MediaProcessingHandler(
                 "UPDATE operation_receipt SET state=?,result=?::jsonb,error_code=? WHERE id=? AND state='PENDING'",
                 if (success) "SUCCEEDED" else "FAILED",
                 if (success) "{\"resultId\":\"${asset.id}\"}" else null,
-                error, asset.uploadOperationId,
+                if (success) null else "FIELD_INVALID", asset.uploadOperationId,
             ) == 1)
             true
         }

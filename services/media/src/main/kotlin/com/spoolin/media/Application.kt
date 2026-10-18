@@ -131,16 +131,21 @@ class Application {
         dataSource: DataSource,
         environment: Environment,
         quarantineStore: QuarantineStore,
+        channels: org.springframework.grpc.client.GrpcChannelFactory,
     ): io.grpc.BindableService {
         val reads =
             com.spoolin.media.operations.receipts
                 .OwnerReceiptReads(dataSource)
         val policyRevision = environment.getProperty("spoolin.policy.revision", "default")
-        val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision)
         val holdRpc =
             com.spoolin.media.features.hold
                 .HoldRpc(dataSource)
-        return MediaServiceImpl(uploadRpc, holdRpc, reads)
+        val catalog = com.spoolin.media.features.asset.CatalogAttachments(
+            spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
+        )
+        val uploadRpc = UploadRpc(dataSource, quarantineStore, policyRevision, catalog = catalog)
+        val assets = com.spoolin.media.features.asset.AssetRpc(dataSource, quarantineStore, catalog)
+        return MediaServiceImpl(uploadRpc, holdRpc, reads, assets)
     }
 
     @Bean(destroyMethod = "close")
@@ -413,7 +418,12 @@ class ServiceIdentityInterceptor(
             return object : ServerCall.Listener<ReqT>() {}
         }
         dispatched.incrementAndGet()
-        return actors?.interceptCall(call, headers, next) ?: next.startCall(call, headers)
+        val checked = ServerCallHandler<ReqT, RespT> { request, metadata ->
+            actors?.interceptCall(request, metadata, next) ?: next.startCall(request, metadata)
+        }
+        return io.grpc.Contexts.interceptCall(
+            com.spoolin.media.boundary.grpc.MediaPeer.context(requireNotNull(identity)), call, headers, checked,
+        )
     }
 
     fun allowed(
