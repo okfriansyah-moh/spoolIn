@@ -25,7 +25,7 @@ private const val ATTACH_BASE_DELAY_MS = 10000
 private const val ATTACH_CAP_DELAY_MS = 60000
 
 class ArtworkRpc(
-    private val dataSource: DataSource,
+    dataSource: DataSource,
     private val receipts: OwnerReceipts,
     private val policyRevision: () -> String = { "unavailable" },
 ) {
@@ -33,7 +33,8 @@ class ArtworkRpc(
 
     fun beginArtwork(request: Spoolin.Hold, response: StreamObserver<Spoolin.Outcome>) = respond(response) {
         val command = beginCommand(request)
-        val receipt = receipts.defer(command.intent(), command.correlation, true, beforeReserve = ::lock) { connection ->
+        val receipt = receipts.defer(command.intent(), command.correlation, true,
+            beforeReserve = ::lock) { connection ->
             prepareBegin(connection, command)
         }
         outcome(receipt)
@@ -90,7 +91,8 @@ class ArtworkRpc(
         enqueueRelease(connection, command.upload, command.upload, command.correlation)
     }
 
-    private fun cancellationOutcome(result: ReceiptOutcome, command: CancelArtworkCommand): Spoolin.ArtworkCancelOutcome {
+    private fun cancellationOutcome(result: ReceiptOutcome,
+        command: CancelArtworkCommand): Spoolin.ArtworkCancelOutcome {
         val builder = Spoolin.ArtworkCancelOutcome.newBuilder().setOperation(outcome(result))
             .setCancelled(result.result?.discarded ?: false)
         if (result.errorCode != "NOT_FOUND") {
@@ -119,7 +121,8 @@ class ArtworkRpc(
                 "SELECT t.version FROM title t JOIN artwork_attachment_request a ON a.title_id=t.id WHERE a.id=?",
                 listOf(hold),
             ) { it.getLong("version") }.singleOrNull()
-                ?: throw Status.FAILED_PRECONDITION.withDescription("REFERENCE_VERSION_UNAVAILABLE").asRuntimeException()
+                ?: throw Status.FAILED_PRECONDITION
+                    .withDescription("REFERENCE_VERSION_UNAVAILABLE").asRuntimeException()
             ReceiptWork.enqueue(connection, parent, correlation, work, Instant.now())
             connection.executeBound("UPDATE durable_work SET payload=?::jsonb WHERE id=?",
                 "{\"subjectId\":\"$hold\",\"catalogVersion\":$version}", work.id(parent))
@@ -177,13 +180,16 @@ private fun managementActor(): ActorClaims {
     return claims
 }
 
-private fun outcome(receipt: ReceiptOutcome): Spoolin.Outcome = Spoolin.Outcome.newBuilder()
-    .setOperationId(receipt.id.toString()).setState(receipt.state.name).setResultExpired(receipt.resultExpired)
-    .also { builder ->
-        receipt.result?.let { result -> builder.resultId = result.resultId.toString()
-            result.version?.let { builder.version = it } }
-        receipt.errorCode?.let { builder.problem = Spoolin.Problem.newBuilder().setCode(it).build() }
-    }.build()
+private fun outcome(receipt: ReceiptOutcome): Spoolin.Outcome {
+    val builder = Spoolin.Outcome.newBuilder().setOperationId(receipt.id.toString())
+        .setState(receipt.state.name).setResultExpired(receipt.resultExpired)
+    receipt.result?.let { result ->
+        builder.resultId = result.resultId.toString()
+        result.version?.let { builder.version = it }
+    }
+    receipt.errorCode?.let { builder.problem = Spoolin.Problem.newBuilder().setCode(it).build() }
+    return builder.build()
+}
 
 private fun <T> respond(response: StreamObserver<T>, operation: () -> T) {
     try { response.onNext(operation()); response.onCompleted() }
