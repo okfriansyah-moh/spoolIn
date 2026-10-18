@@ -43,7 +43,7 @@ class MediaSandboxPolicyTest(unittest.TestCase):
         text = files['media-apparmor'].decode()
         self.assertIn('/** rwlkm,', text)
         self.assertNotIn('file rwlkm,', text)
-        self.assertIn('/usr/bin/prlimit px -> &spoolin-media-codec,', text)
+        self.assertIn('/usr/bin/prlimit px -> spoolin-media//&spoolin-media-codec,', text)
         codec = text.split('profile spoolin-media-codec ', 1)[1]
         for denied in ('network', 'capability', 'mount', 'umount', 'pivot_root', 'userns', 'ptrace'):
             self.assertIn('deny ' + denied + ',', codec)
@@ -55,6 +55,19 @@ class MediaSandboxPolicyTest(unittest.TestCase):
         self.assertIn('read_only: true', media)
         self.assertEqual(1, compose.count('apparmor=spoolin-media'))
         self.assertEqual(1, compose.count('seccomp=/etc/spoolin/security/media-seccomp.json'))
+
+    def test_compound_transition_has_no_inherit_fallback_and_missing_codec_is_a_failed_prerequisite(self):
+        files, _ = POLICY.validate_source()
+        text = files['media-apparmor'].decode()
+        transition = [line.strip() for line in text.splitlines() if '/usr/bin/prlimit ' in line]
+        self.assertEqual(['/usr/bin/prlimit px -> spoolin-media//&spoolin-media-codec,'], transition)
+        # A target-only &label requires an executable attachment or fallback; neither is the production design.
+        self.assertNotIn('px -> &spoolin-media-codec', text)
+        self.assertNotIn('pix ->', text)
+        self.assertNotIn('pux ->', text)
+        with patch.object(POLICY, 'loaded', return_value=['spoolin-media (enforce)']):
+            with self.assertRaisesRegex(ValueError, 'Both Media profiles'):
+                POLICY.check_loaded()
 
 
 if __name__ == '__main__':

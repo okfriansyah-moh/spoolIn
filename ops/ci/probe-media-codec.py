@@ -226,7 +226,10 @@ def main():
         code = checked(['docker', 'wait', name], seconds=20)
         record['containerExit'] = int(code)
         record['stage'] = 'pipeline-output'
-        logs = checked(['docker', 'logs', name], limit=4096).splitlines()
+        pipeline_log = checked(['docker', 'logs', name], limit=4096,
+                               boundary='fixed-codec-pipeline-log', diagnostic=True)
+        record['pipelineDiagnostics'] = {'text': pipeline_log, 'retainedByteLimit': 4096}
+        logs = pipeline_log.splitlines()
         record['versions'] = [line for line in logs if re.fullmatch(r'(vips-[0-9.]+|bubblewrap [0-9.]+|prlimit from util-linux [0-9.]+)', line)]
         record['stages'] = [line[6:] for line in logs
                             if re.fullmatch(r'stage=(versions|header-input|encode-(jpeg|png|webp)|header-(jpeg|png|webp)|completed)', line)]

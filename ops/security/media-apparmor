@@ -15,8 +15,8 @@ profile spoolin-media flags=(attach_disconnected,mediate_deleted) {
   /usr/bin/bwrap ix,
   /{usr/,}bin/{dash,bash,sh,id,awk,cat,readlink,mkdir,chmod,chown,stat,rm,ls,head,tail,grep,sed,env,true,false,sleep,find,timeout,uname,sha256sum,printf} ix,
   /usr/local/bin/{vips,spoolin-image-header} ix,
-  # Stacking only restricts the decoder; it does not grant privileges under NNP.
-  /usr/bin/prlimit px -> &spoolin-media-codec,
+  # The complete compound label retains Media under NNP; no attachment lookup or inheritance fallback.
+  /usr/bin/prlimit px -> spoolin-media//&spoolin-media-codec,
   signal (receive) peer=unconfined,
   signal (receive) peer=runc,
   signal (receive) peer=crun,
