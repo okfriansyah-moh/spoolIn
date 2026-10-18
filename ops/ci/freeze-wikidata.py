@@ -88,10 +88,15 @@ def request(url):
 
 def candidates(kind):
     entity = 'Q11424' if kind == 'MOVIE' else 'Q5398426'
-    # Fetch a bounded indexed type set; validate date, genre and English labels from frozen entity facts.
-    query = f'SELECT DISTINCT ?item WHERE {{ ?item wdt:P31 wd:{entity} }} LIMIT 500'
-    url = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
-    found = {row['item']['value'].rsplit('/', 1)[1] for row in request(url)['results']['bindings']}
+    # The Action API index avoids dependence on the separate SPARQL service.
+    # Every candidate is checked against its frozen entity facts before selection.
+    parameters = {'action': 'query', 'list': 'search', 'srsearch': f'haswbstatement:P31={entity}',
+                  'srnamespace': 0, 'srlimit': 500, 'format': 'json'}
+    response = request(API + '?' + urllib.parse.urlencode(parameters))
+    if 'error' in response:
+        raise RuntimeError('Wikidata candidate search rejected the bounded request')
+    found = {row['title'] for row in response.get('query', {}).get('search', [])
+             if row.get('title', '').startswith('Q') and row['title'][1:].isdigit()}
     print(f'Wikidata bounded candidate response: kind={kind}, distinct={len(found)}', flush=True)
     return sorted(found, key=lambda item: int(item[1:]))
 

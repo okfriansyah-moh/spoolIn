@@ -44,6 +44,8 @@ jobs:
           record = {k: os.environ.get(k) for k in ['GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'GITHUB_JOB', 'RUNNER_OS', 'RUNNER_ARCH', 'RUNNER_ENVIRONMENT', 'ImageOS', 'ImageVersion']}
           record['tested_sha'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
           record['platform'] = platform.platform()
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('TESTED_SHA=' + record['tested_sha'] + '\n')
           Path('artifacts/provenance/runner.json').write_text(json.dumps(record, indent=2) + '\n')
           PY
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
