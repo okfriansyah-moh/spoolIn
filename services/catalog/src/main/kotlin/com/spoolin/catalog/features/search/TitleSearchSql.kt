@@ -77,8 +77,14 @@ class TitleSearchSql(
                     "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\' " +
                     "OR (t.original_title IS NOT NULL AND " +
                     "casefold(t.original_title COLLATE pg_unicode_fast) " +
+                    "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\') " +
+                    "OR EXISTS (SELECT 1 FROM credit sc JOIN person sp ON sp.id=sc.person_id " +
+                    "JOIN credit_role sr ON sr.id=sc.role_id WHERE sc.title_id=t.id " +
+                    "AND sp.status='ACTIVE' AND sr.category IN ('CAST','CREATOR') " +
+                    "AND casefold(sp.name COLLATE pg_unicode_fast) " +
                     "LIKE casefold(? COLLATE pg_unicode_fast) ESCAPE '\\'))"
             where.add(condition)
+            params.add(pattern)
             params.add(pattern)
             params.add(pattern)
         }

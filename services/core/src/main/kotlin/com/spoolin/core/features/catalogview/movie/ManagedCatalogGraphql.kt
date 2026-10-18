@@ -248,7 +248,7 @@ class ManagedCatalogGraphql(
             "subjectId" to e.subjectId.takeIf { e.hasSubjectId() }?.let { UUID.fromString(it) },
             "changes" to
                 e.changesList.associate {
-                    it.path to mapOf("before" to it.beforeJson, "after" to it.afterJson)
+                    it.path to ManagedAuditValues.change(it)
                 },
             "operationId" to e.operationId.takeIf { e.hasOperationId() }?.let { UUID.fromString(it) },
             "at" to Instant.ofEpochSecond(e.at.seconds, e.at.nanos.toLong()).toString(),
@@ -316,5 +316,34 @@ class ManagedCatalogGraphql(
     private fun validateUuid(id: String) {
         runCatching { UUID.fromString(id).also { require(it.toString() == id) } }
             .onFailure { throw InputViolation("id", "Supply a lowercase, hyphenated UUID.") }
+    }
+}
+
+/** JSON wire values remain typed values; omission metadata is not presented as the original field value. */
+private object ManagedAuditValues {
+    private const val MAX_BYTES = 65536
+    private const val MAX_DEPTH = 8
+    private val mapper = tools.jackson.databind.json.JsonMapper.builder(
+        tools.jackson.core.json.JsonFactory.builder().streamReadConstraints(
+            tools.jackson.core.StreamReadConstraints.builder().maxNestingDepth(MAX_DEPTH)
+                .maxStringLength(MAX_BYTES).build(),
+        ).build(),
+    ).enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+        .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build()
+
+    fun change(change: spoolin.v1.Spoolin.AuditChange): Map<String, Any?> {
+        val before = if (change.hasBeforeJson()) decode(change.beforeJson) else null
+        val after = if (change.hasAfterJson()) decode(change.afterJson) else null
+        return if (after is Map<*, *> && after["valueOmitted"] == true) {
+            mapOf("valueOmitted" to true, "byteLength" to after["byteLength"],
+                "beforeDigest" to after["beforeDigest"], "afterDigest" to after["afterDigest"])
+        } else mapOf("before" to before, "after" to after)
+    }
+
+    private fun decode(value: String): Any? = try {
+        require(value.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
+        mapper.readValue(value, Any::class.java)
+    } catch (_: Exception) {
+        throw io.grpc.Status.DATA_LOSS.withDescription("Audit projection unavailable").asRuntimeException()
     }
 }
