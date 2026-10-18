@@ -143,6 +143,17 @@ class Application {
         return MediaServiceImpl(uploadRpc, holdRpc, reads)
     }
 
+    @Bean(destroyMethod = "close")
+    fun mediaWorker(
+        dataSource: DataSource,
+        schema: SchemaReadiness,
+        quarantineStore: QuarantineStore,
+    ): com.spoolin.media.operations.work.MediaWorkDispatcher =
+        com.spoolin.media.operations.work.MediaWorkDispatcher(
+            dataSource, schema,
+            com.spoolin.media.features.processing.MediaProcessingHandler(dataSource, quarantineStore),
+        )
+
     @Bean
     fun receiptExpiry(dataSource: DataSource): ReceiptExpiry = ReceiptExpiry(dataSource)
 }

@@ -10,6 +10,9 @@ import com.spoolin.media.operations.receipts.ReceiptWork
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.receipts.WorkRequest
 import com.spoolin.support.receipts.committed
+import com.spoolin.support.receipts.executeBound
+import java.security.MessageDigest
+import java.sql.Timestamp
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.MediaServiceGrpc
@@ -59,6 +62,7 @@ class UploadRpc(
             private var stagingPath: Path? = null
             private var stream: OutputStream? = null
             private var failed = false
+            private var acceptedJob = false
 
             override fun onNext(chunk: UploadChunk) {
                 if (failed) return
@@ -79,7 +83,7 @@ class UploadRpc(
                 failed = true
                 sink?.cancel()
                 cleanupStaging()
-                if (header != null) {
+                if (header != null && !acceptedJob) {
                     rejectAsset(header!!.assetId, "UPLOAD_CANCELLED")
                 }
             }
@@ -132,6 +136,7 @@ class UploadRpc(
                         return
                     }
 
+                    acceptedJob = true
                     response.onNext(pendingOutcome(h.uploadOperationId))
                     response.onCompleted()
                 } catch (e: Exception) {
@@ -168,9 +173,18 @@ class UploadRpc(
                     fail(response, Status.INVALID_ARGUMENT, null, headerCheck.errorCode)
                     return
                 }
-                // Insert asset in RECEIVING (idempotent via upload_operation_id UNIQUE)
+                // Reserve the parent receipt before its immediate asset foreign key.
                 val inserted =
                     dataSource.committed { connection ->
+                        val requestHash = MessageDigest.getInstance("SHA-256").digest(h.toByteArray())
+                        check(connection.executeBound(
+                            "INSERT INTO operation_receipt " +
+                                "(id,actor_scope,kind,request_hash,state,correlation_id,created_at,expires_at) " +
+                                "VALUES (?,?,'UPLOAD',?,'PENDING',?,?,?) ON CONFLICT (id) DO NOTHING",
+                            uploadOpId, "account:${actor.accountId}", requestHash, uploadOpId,
+                            Timestamp.from(clock.instant()),
+                            Timestamp.from(clock.instant().plus(Duration.ofDays(7))),
+                        ) == 1) { "Upload identity already exists; reconcile its receipt" }
                         AssetSql.insertReceiving(
                             connection,
                             assetId,
@@ -227,13 +241,18 @@ class UploadRpc(
                 runCatching {
                     dataSource.committed { connection ->
                         AssetSql.markRejected(connection, assetId, code)
+                        connection.executeBound(
+                            "UPDATE operation_receipt SET state='FAILED',error_code=? " +
+                                "WHERE id=(SELECT upload_operation_id FROM asset WHERE id=?) AND state='PENDING'",
+                            code, assetId,
+                        )
                     }
                 }
             }
 
             private fun cleanupStaging() {
                 runCatching { stream?.close() }
-                stagingPath?.let { runCatching { quarantineStore.deleteQuarantine(it) } }
+                if (!acceptedJob) stagingPath?.let { runCatching { quarantineStore.deleteQuarantine(it) } }
             }
 
             private fun commitProcessing(
@@ -244,26 +263,15 @@ class UploadRpc(
             ): Boolean {
                 val stagingKey = "${ProcessingBounds.STAGING_SUBDIR}/${h.assetId}"
                 return dataSource.committed { connection ->
-                    val updated =
-                        AssetSql.acceptProcessing(
-                            connection,
-                            h.assetId,
-                            stagingKey,
-                            completed.inputHash,
-                            workId,
-                            now,
-                        )
-                    if (updated == 1) {
-                        val workReq =
-                            WorkRequest(
-                                "upload-process",
-                                "MEDIA_PROCESS",
-                                h.assetId,
-                                now.plus(workDeadlineOffset),
-                            )
-                        ReceiptWork.enqueue(connection, h.uploadOperationId, h.uploadOperationId, workReq, now)
-                    }
-                    updated == 1
+                    val workReq = WorkRequest(
+                        "upload-process", "MEDIA_PROCESS", h.assetId, now.plus(workDeadlineOffset),
+                    )
+                    check(workReq.id(h.uploadOperationId) == workId)
+                    ReceiptWork.enqueue(connection, h.uploadOperationId, h.uploadOperationId, workReq, now)
+                    check(AssetSql.acceptProcessing(
+                        connection, h.assetId, stagingKey, completed.inputHash, workId, now,
+                    ) == 1) { "Asset processing acceptance conflicted" }
+                    true
                 }
             }
 
@@ -274,7 +282,7 @@ class UploadRpc(
                 code: String,
             ) {
                 failed = true
-                if (assetId != null) rejectAsset(assetId, code)
+                if (assetId != null && !acceptedJob) rejectAsset(assetId, code)
                 cleanupStaging()
                 responseObserver.onError(status.withDescription(code).asRuntimeException())
             }

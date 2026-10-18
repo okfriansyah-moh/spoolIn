@@ -1,6 +1,7 @@
 package com.spoolin.media.operations.work
 
 import com.spoolin.support.receipts.committed
+import com.spoolin.support.receipts.queryBound
 import com.spoolin.support.work.AttemptOutcome
 import com.spoolin.support.work.WorkAttemptCompletion
 import com.spoolin.support.work.WorkClaim
@@ -27,7 +28,14 @@ class WorkClaimer(
     fun claim(batchSize: Int = 10): List<WorkClaim> {
         val now = clock.instant()
         return dataSource.committed { connection ->
-            val candidates = WorkSql.selectForClaim(connection, now, batchSize)
+            connection.queryBound("SELECT pg_advisory_xact_lock(720022)", emptyList()) { true }
+            val active = connection.queryBound(
+                "SELECT count(*) AS count FROM durable_work WHERE kind='MEDIA_PROCESS' AND state='LEASED'",
+                emptyList(),
+            ) { it.getInt("count") }.single()
+            val capacity = minOf(batchSize, 2 - active)
+            if (capacity <= 0) return@committed emptyList()
+            val candidates = WorkSql.selectForClaim(connection, now, capacity)
             val workerId = UUID.randomUUID()
             candidates.mapNotNull { candidate ->
                 WorkSql.commitClaim(connection, candidate, workerId, now)

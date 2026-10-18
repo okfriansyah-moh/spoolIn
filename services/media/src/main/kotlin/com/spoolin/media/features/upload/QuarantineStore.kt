@@ -46,7 +46,8 @@ class QuarantineStore(
                         off: Int,
                         len: Int,
                     ) {
-                        channel.write(java.nio.ByteBuffer.wrap(b, off, len))
+                        val buffer = java.nio.ByteBuffer.wrap(b, off, len)
+                        while (buffer.hasRemaining()) channel.write(buffer)
                     }
 
                     override fun flush() = channel.force(true) // fsync (§7.6)
@@ -57,6 +58,14 @@ class QuarantineStore(
                     }
                 }
             }
+
+    fun outputDirectory(): Path = output
+
+    fun processingInput(assetId: UUID): Path {
+        val path = stagingPath(assetId)
+        require(Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS))
+        return path
+    }
 
     /** Delete a quarantine file idempotently (cleanup on rejection / cancellation). */
     fun deleteQuarantine(path: Path) = Files.deleteIfExists(path)
