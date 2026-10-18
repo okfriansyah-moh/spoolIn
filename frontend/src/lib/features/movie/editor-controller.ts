@@ -58,6 +58,15 @@ function receiptExpired(
   );
 }
 
+function sameMetadata(left: ManagedMovie, right: ManagedMovie): boolean {
+  const comparable = (movie: ManagedMovie) => ({
+    ...movieToDraft(movie),
+    genreIds: [...movie.genreIds].sort(),
+    countries: [...(movie.countries ?? [])].sort(),
+  });
+  return JSON.stringify(comparable(left)) === JSON.stringify(comparable(right));
+}
+
 export class MovieEditorController {
   private current = initialState('create', null);
   private readonly listeners = new Set<(state: EditorState) => void>();
@@ -560,6 +569,198 @@ export class MovieEditorController {
     } catch (error) {
       await this.handleSubmitFailure(error, generation, operationId);
     }
+  }
+
+  async finishEditing(): Promise<'saved' | 'unchanged' | 'blocked'> {
+    if (this.mode !== 'edit' || this.submissionBlocked()) return 'blocked';
+    const saved = this.current.saved;
+    if (!saved || !this.writeContext || !this.movieId) return 'blocked';
+    const patch = {
+      ...draftToUpdatePatch(
+        saved,
+        this.current.draft,
+        this.originalTitleTouched,
+      ),
+    };
+    if (patch.originalTitle === saved.originalTitle) delete patch.originalTitle;
+    if (!patchIsEmpty(patch)) {
+      await this.submit();
+      if (!['saved', 'resolved'].includes(this.current.phase)) return 'blocked';
+      return this.confirmCompletion('saved');
+    }
+    return this.confirmCompletion('unchanged');
+  }
+
+  private activeMovie(
+    latest: ManagedMovie | null,
+    saved: ManagedMovie,
+  ): latest is ManagedMovie {
+    if (
+      latest?.id === saved.id &&
+      latest.kind === 'MOVIE' &&
+      latest.state === 'ACTIVE'
+    )
+      return true;
+    this.publish({
+      ...this.current,
+      phase: 'target-changed',
+      current: latest,
+      message:
+        'This movie is now archived or unavailable. Your draft is retained.',
+    });
+    return false;
+  }
+
+  private completionVersion(
+    latest: ManagedMovie,
+    saved: ManagedMovie,
+  ): boolean {
+    if (latest.version === saved.version) return true;
+    this.publish({
+      ...this.current,
+      phase: 'stale',
+      current: latest,
+      staleReviewOpen: false,
+      message:
+        'The movie changed. Review the current version before finishing.',
+    });
+    return false;
+  }
+
+  private async confirmCompletion(
+    result: 'saved' | 'unchanged',
+  ): Promise<'saved' | 'unchanged' | 'blocked'> {
+    if (!this.writeContext || !this.movieId || !this.current.saved)
+      return 'blocked';
+    const saved = this.current.saved;
+    const generation = this.begin();
+    this.publish({
+      ...this.current,
+      phase: 'submitting',
+      message: 'Confirming saved movie.',
+    });
+    try {
+      const latest = await fetchManagedMovie(
+        this.request,
+        this.movieId,
+        this.writeContext.csrf,
+        this.active?.signal,
+      );
+      if (generation !== this.writeGeneration) return 'blocked';
+      if (
+        !this.activeMovie(latest, saved) ||
+        !this.completionVersion(latest, saved)
+      )
+        return 'blocked';
+      if (!(await this.completeDraft(latest, generation))) return 'blocked';
+      return result;
+    } catch {
+      if (generation === this.writeGeneration)
+        this.publish({
+          ...this.current,
+          phase: 'failed',
+          message:
+            'The saved movie could not be confirmed. Select Save movie again before leaving.',
+        });
+      return 'blocked';
+    }
+  }
+
+  private async completeDraft(
+    latest: ManagedMovie,
+    generation: number,
+  ): Promise<boolean> {
+    if (!this.writeContext) return false;
+    const discarded = await this.draftSync.discard(this.writeContext);
+    if (generation !== this.writeGeneration) return false;
+    if (!discarded) {
+      this.publish({
+        ...this.current,
+        phase: 'failed',
+        message:
+          'Movie details are saved, but draft cleanup is not confirmed. Select Save movie again before leaving.',
+      });
+      return false;
+    }
+    this.originalTitleTouched = false;
+    this.publish({
+      ...this.current,
+      phase: 'saved',
+      saved: latest,
+      current: latest,
+      draft: movieToDraft(latest),
+      pendingOperationId: null,
+      message: 'Movie saved.',
+    });
+    return true;
+  }
+
+  async refreshAfterArtwork(): Promise<boolean> {
+    const saved = this.current.saved;
+    if (
+      !saved ||
+      !this.movieId ||
+      !this.writeContext ||
+      this.submissionBlocked()
+    )
+      return false;
+    const generation = this.writeGeneration;
+    try {
+      const latest = await fetchManagedMovie(
+        this.request,
+        this.movieId,
+        this.writeContext.csrf,
+        this.active?.signal,
+      );
+      if (generation !== this.writeGeneration || this.current.saved !== saved)
+        return false;
+      if (
+        !this.activeMovie(latest, saved) ||
+        !this.artworkMetadata(latest, saved)
+      )
+        return false;
+      this.publish({
+        ...this.current,
+        saved: latest,
+        current: latest,
+        mediaOutage: latest.artworkUnavailable,
+      });
+      this.draftSync.schedule(
+        this.current.draft,
+        this.writeContext,
+        latest.version,
+      );
+      return true;
+    } catch {
+      if (generation === this.writeGeneration)
+        this.publish({
+          ...this.current,
+          message:
+            'Artwork was saved, but movie details could not be refreshed. Refresh the saved details before finishing.',
+        });
+      return false;
+    }
+  }
+
+  private artworkMetadata(latest: ManagedMovie, saved: ManagedMovie): boolean {
+    if (BigInt(latest.version) < BigInt(saved.version)) {
+      this.publish({
+        ...this.current,
+        message:
+          'Updated artwork details are not available yet. Refresh the saved details before finishing.',
+      });
+      return false;
+    }
+    if (sameMetadata(saved, latest)) return true;
+    this.publish({
+      ...this.current,
+      phase: 'stale',
+      current: latest,
+      staleReviewOpen: false,
+      message:
+        'Movie details changed while artwork was saved. Review the current version before saving your retained edits.',
+    });
+    return false;
   }
 
   private async submitCreate(

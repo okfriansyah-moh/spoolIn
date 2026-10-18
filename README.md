@@ -498,7 +498,7 @@ You can also open **People** and search for either name directly. People with id
 2. Choose **Create movie**. For a fictional example, enter `Letters from Tomorrow` as the title and `A lighthouse keeper receives letters dated one day ahead.` as the synopsis. Complete the other required fields; add release details and genres where available.
 3. Read any field errors and correct the named inputs. The form displays the current limits; don't shorten content based on an old screenshot's limits.
 4. Save and wait for confirmation. The app opens **Cast and creators** for the saved movie. Add credits as described below, then select **Done**, or choose **Skip for now**. Both return to **Movies**, where a success panel shows the newly created movie with **Edit movie** and **Review public record** links.
-5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, and save again.
+5. To change a movie, return to **Movies**, choose **Edit** for that record, edit its values, then select **Save movie** below **Poster artwork**. After confirmed completion, Movies retains your previous search and focuses a highlighted **Movie saved** panel with **Edit movie**, **Review public record**, and **Cast and creators** actions. The panel shows the saved movie even when it does not match your search.
 
 ![Signed-in Maintainer managing movies, with Letters from Tomorrow and Create movie and Edit controls visible](docs/assets/spoolin/manage-movies.png)
 
@@ -552,13 +552,13 @@ For the fictional movie, use the repository's sample lighthouse poster:
 1. Open **Movies** → **Edit** for `Letters from Tomorrow`.
 2. Find **Poster artwork** and choose `docs/design-system/mockup/assets/letters.png` from this checkout. You can also use a PNG, JPEG, or WebP image you have permission to use. If it exceeds the dimension or upload byte limit, the browser automatically prepares a smaller copy before transfer, preserving its aspect ratio and leaving your original file unchanged. The prepared image fits within 8192 pixels per side, 40 million pixels, and the current upload byte limit. Images already within those limits upload unchanged.
 3. Keep the page open while the file transfers and the server processes it. A complete transfer percentage doesn't mean the poster is attached yet.
-4. Wait for **Saved**, then open the movie's public page to see its poster.
+4. Wait for **Artwork saved. Select Save movie below to finish.** Artwork is already attached at this point; the app keeps you in the editor so you can finish any movie-detail changes. Select **Save movie** below the artwork to return to Movies with your previous search intact and the saved movie highlighted. If only artwork changed, completion confirms the current record without another metadata update.
 
 ![Maintainer Poster artwork field with the file chooser ready for an image](docs/assets/spoolin/maintainer-artwork.png)
 
-*Artwork example: choose an image in the Poster artwork field. The public movie page above shows the lighthouse poster already attached to this record.*
+*Artwork example: choose an image in the Poster artwork field. The public movie page above shows the lighthouse poster already attached to this record. This screenshot predates the bottom Save movie action and completion feedback.*
 
-If the artwork attached but details couldn't refresh, retry the details read before uploading again. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or unreadable files explain what to change. If the browser cannot prepare a copy within the limits, choose a smaller image. Server validation still applies to every upload.
+Completion stays unavailable during artwork preparation, transfer, processing, or an uncertain result. If the artwork attached but details could not refresh, select **Retry movie details** before finishing. Local movie-detail edits remain in the form; if saved metadata changed elsewhere, review the conflict before saving. **Cancel upload** applies while that action is available. If the outcome is uncertain, use the offered status check; unsupported or unreadable files explain what to change. If the browser cannot prepare a copy within the limits, choose a smaller image. Server validation still applies to every upload.
 
 ### Maintainer example: archive and delete records
 

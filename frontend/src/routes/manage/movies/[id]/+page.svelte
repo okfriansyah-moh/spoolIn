@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Notice from '../../../../lib/components/Notice.svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
@@ -33,12 +34,61 @@
     creditsStep && page.url.searchParams.get('created') === '1',
   );
 
+  let artworkBlocked = $state(false);
+  let artworkBusy = $state(false);
+  let artworkMessage = $state('');
+  let finishing = $state(false);
+  let finishRequested = false;
+  let completionError = $state('');
+  const finishBlocked = $derived(
+    artworkBlocked ||
+      finishing ||
+      !editorState?.saved ||
+      !!editorState?.draftChoices.length ||
+      ['submitting', 'uncertain', 'stale', 'target-changed'].includes(
+        editorState?.phase ?? 'idle',
+      ),
+  );
+
+  async function finishMovie() {
+    if (finishBlocked || !controller || creditsStep) return;
+    finishing = true;
+    finishRequested = true;
+    completionError = '';
+    try {
+      const result = await controller.finishEditing();
+      if (result === 'blocked') return;
+      const params = new URLSearchParams({ saved: movieId });
+      if (isRecordId(movieReturnToken)) params.set('restore', movieReturnToken);
+      await goto(resolve('/manage/movies') + '?' + params.toString());
+    } catch {
+      completionError =
+        'Completion could not finish. Your saved artwork is retained. Retry Save movie.';
+    } finally {
+      finishing = false;
+    }
+  }
+
+  async function checkSavedResult() {
+    await controller?.checkOriginalResult();
+    if (
+      finishRequested &&
+      (editorState?.phase === 'resolved' || editorState?.phase === 'saved')
+    )
+      await finishMovie();
+  }
+
   $effect(() => {
     const selectedId = movieId;
     ready = false;
     editorState = null;
     writeContext = null;
     creditTitleVersion = null;
+    artworkBlocked = false;
+    artworkBusy = false;
+    artworkMessage = '';
+    completionError = '';
+    finishRequested = false;
     if (!isRecordId(selectedId)) {
       ready = true;
       return;
@@ -114,9 +164,12 @@
         <MovieEditorForm
           state={editorState}
           policy={sessionCtl.snapshot.policy}
-          disabled={editorState.phase === 'target-changed'}
-          onSubmit={() => void controller?.submit()}
-          onCheckOriginal={() => void controller?.checkOriginalResult()}
+          disabled={editorState.phase === 'target-changed' ||
+            artworkBusy ||
+            finishing}
+          showActions={false}
+          onSubmit={() => void finishMovie()}
+          onCheckOriginal={() => void checkSavedResult()}
           onReviewStale={() => controller?.toggleStaleReview()}
           onRebase={(reviewed) => void controller?.rebaseAfterReview(reviewed)}
           onSelectDraft={(id) => void controller?.selectRetainedDraft(id)}
@@ -135,13 +188,57 @@
             expectedVersion={editorState.saved.version}
             policyRevision={sessionCtl.snapshot.policy.revision}
             artworkPolicy={sessionCtl.snapshot.policy.artwork}
-            disabled={editorState.phase === 'target-changed' ||
+            disabled={finishing ||
+              editorState.phase === 'submitting' ||
+              editorState.phase === 'uncertain' ||
+              editorState.phase === 'target-changed' ||
               editorState.phase === 'stale'}
+            onStateChange={(state) => {
+              artworkBlocked = state.blocked;
+              artworkBusy = state.busy;
+              artworkMessage = state.message;
+            }}
             onAttached={async () => {
-              await controller?.refreshExternalChange();
+              if (!(await controller?.refreshAfterArtwork()))
+                throw new Error('Movie details refresh is not confirmed.');
               creditTitleVersion = null;
             }}
           />
+          {#if completionError}<Notice title="Movie completion" tone="error"
+              ><p>{completionError}</p></Notice
+            >{/if}
+          <div class="finish-actions">
+            <button
+              type="button"
+              class="secondary"
+              disabled={artworkBlocked ||
+                finishing ||
+                editorState.phase === 'submitting' ||
+                editorState.phase === 'uncertain'}
+              onclick={() => controller?.openDiscardDialog()}
+              >Leave draft</button
+            >
+            <button
+              type="submit"
+              form="movie-editor-form"
+              disabled={finishBlocked}
+              aria-busy={finishing}
+              aria-describedby="movie-finish-help"
+              >{finishing ? 'Saving…' : 'Save movie'}</button
+            >
+          </div>
+          <p id="movie-finish-help" role="status">
+            {artworkMessage ||
+              (editorState.phase === 'stale'
+                ? 'Review the current movie values above before saving.'
+                : editorState.phase === 'uncertain'
+                  ? 'Check the original movie save result above before finishing.'
+                  : editorState.draftChoices.length
+                    ? 'Choose a retained draft above before saving.'
+                    : editorState.phase === 'target-changed'
+                      ? 'This movie is no longer available for editing.'
+                      : 'Save your movie details and return to Movies. Artwork is saved separately when its upload completes.')}
+          </p>
         {/if}
         {#if creditsStep}
           {@const version = creditTitleVersion ?? editorState.saved.version}
@@ -197,6 +294,12 @@
 </section>
 
 <style>
+  .finish-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--primitive-space-3);
+    margin-top: var(--primitive-space-4);
+  }
   .movie-editor-page {
     display: grid;
     grid-template-columns: 185px minmax(0, 1fr);

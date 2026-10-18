@@ -18,6 +18,7 @@
     disabled = false,
     artworkPolicy,
     onAttached,
+    onStateChange,
   }: {
     request: GraphqlRequest;
     csrf: string;
@@ -27,6 +28,12 @@
     disabled?: boolean;
     artworkPolicy?: Policy['artwork'];
     onAttached?: () => Promise<void>;
+    onStateChange?: (state: {
+      blocked: boolean;
+      busy: boolean;
+      message: string;
+      saved: boolean;
+    }) => void;
   } = $props();
 
   const inputId = $props.id();
@@ -46,6 +53,30 @@
       refreshNeeded ||
       ['transferring', 'processing', 'uncertain'].includes(view.stage),
   );
+
+  $effect(() => {
+    const active = ['transferring', 'processing', 'uncertain'].includes(
+      view.stage,
+    );
+    const blocked = validating || refreshing || refreshNeeded || active;
+    const message = validating
+      ? 'Wait for artwork preparation to finish.'
+      : refreshNeeded
+        ? 'Select Retry movie details before saving the movie.'
+        : refreshing
+          ? 'Wait for the saved artwork details to refresh.'
+          : view.stage === 'uncertain'
+            ? 'Check the original artwork result before saving the movie.'
+            : active
+              ? 'Wait for artwork transfer and processing to finish.'
+              : '';
+    onStateChange?.({
+      blocked,
+      busy: validating || refreshing || active,
+      message,
+      saved: view.stage === 'saved' && !blocked,
+    });
+  });
 
   onMount(() => {
     mounted = true;
@@ -148,7 +179,10 @@
     ></progress>
   {/if}
   <p role="status">
-    {validationMessage || view.message || stageLabel(view.stage)}
+    {validationMessage ||
+      (view.stage === 'saved' && !refreshing && !refreshNeeded
+        ? 'Artwork saved. Select Save movie below to finish.'
+        : view.message || stageLabel(view.stage))}
   </p>
   {#if refreshNeeded}
     <button

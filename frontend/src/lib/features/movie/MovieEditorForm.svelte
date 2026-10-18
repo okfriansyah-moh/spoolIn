@@ -11,6 +11,7 @@
     state: editorState,
     policy,
     disabled = false,
+    showActions = true,
     onSubmit,
     onCheckOriginal,
     onReviewStale,
@@ -24,6 +25,7 @@
     state: EditorState;
     policy: Policy;
     disabled?: boolean;
+    showActions?: boolean;
     onSubmit: () => void;
     onCheckOriginal: () => void;
     onReviewStale: () => void;
@@ -449,16 +451,18 @@
       />
     </div>
   </details>
-  <div class="editor-actions">
-    <Button type="button" variant="secondary" onclick={onDiscardOpen}
-      >Leave draft</Button
-    >
-    <Button
-      type="submit"
-      pending={editorState.phase === 'submitting'}
-      disabledReason={submitDisabledReason}>{submitLabel}</Button
-    >
-  </div>
+  {#if showActions}
+    <div class="editor-actions">
+      <Button type="button" variant="secondary" onclick={onDiscardOpen}
+        >Leave draft</Button
+      >
+      <Button
+        type="submit"
+        pending={editorState.phase === 'submitting'}
+        disabledReason={submitDisabledReason}>{submitLabel}</Button
+      >
+    </div>
+  {/if}
 </form>
 
 <style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   import { isRecordId } from '../../components/safe-url';
@@ -8,8 +9,41 @@
   import { fetchManagedMovie } from '../movie/api';
   import { fetchManagedPerson } from '../person/write/api';
 
-  let { kind }: { kind: 'movie' | 'person' } = $props();
-  const id = $derived(page.url.searchParams.get('created') ?? '');
+  let {
+    kind,
+    readyToFocus = true,
+    returnToken = '',
+    onOpenManagement,
+  }: {
+    kind: 'movie' | 'person';
+    readyToFocus?: boolean;
+    returnToken?: string;
+    onOpenManagement?: () => void;
+  } = $props();
+  const savedRecord = $derived(
+    kind === 'movie' && isRecordId(page.url.searchParams.get('saved') ?? ''),
+  );
+  const id = $derived(
+    (savedRecord
+      ? page.url.searchParams.get('saved')
+      : page.url.searchParams.get('created')) ?? '',
+  );
+  let panel: HTMLElement;
+  const returnSuffix = $derived(
+    isRecordId(returnToken) ? '?return=' + encodeURIComponent(returnToken) : '',
+  );
+  $effect(() => {
+    if (!savedRecord || !name || !readyToFocus) return;
+    let cancelled = false;
+    void tick().then(() => {
+      if (cancelled || !panel) return;
+      panel.focus({ preventScroll: true });
+      panel.scrollIntoView({ block: 'start', behavior: 'instant' });
+    });
+    return () => {
+      cancelled = true;
+    };
+  });
   let name = $state('');
   let loading = $state(false);
   let failed = $state(false);
@@ -59,39 +93,68 @@
 
 {#if isRecordId(id)}
   {#if loading}
-    <p role="status">Loading the created {kind}…</p>
+    <p role="status">Loading the saved {kind}…</p>
   {:else if failed}
-    <Notice title="Created record could not be loaded" tone="info">
-      <p>Your list is still available. Retry loading the created record.</p>
+    <Notice title="Saved record could not be loaded" tone="info">
+      <p>Your list is still available. Retry loading the saved record.</p>
       <button type="button" onclick={() => (attempt += 1)}
-        >Retry created record</button
+        >Retry saved record</button
       >
     </Notice>
   {:else if name}
-    <Notice
-      title={kind === 'movie' ? 'Movie created' : 'Person created'}
-      tone="success"
+    <section
+      bind:this={panel}
+      tabindex="-1"
+      class:saved-record={savedRecord}
+      aria-label={savedRecord ? 'Movie saved' : 'Created record'}
     >
-      <p>{name} is saved.</p>
-      <div class="created-actions">
-        <a
-          class="button secondary"
-          href={kind === 'movie'
-            ? resolve('/manage/movies/[id]', { id })
-            : resolve('/manage/people/[id]', { id })}>Edit {kind}</a
-        >
-        <a
-          class="button secondary"
-          href={kind === 'movie'
-            ? resolve('/titles/[id]', { id })
-            : resolve('/people/[id]', { id })}>Review public record</a
-        >
-      </div>
-    </Notice>
+      <Notice
+        title={savedRecord
+          ? 'Movie saved'
+          : kind === 'movie'
+            ? 'Movie created'
+            : 'Person created'}
+        tone="success"
+      >
+        <p>{name} is saved.</p>
+        <div class="created-actions">
+          <a
+            class="button secondary"
+            href={kind === 'movie'
+              ? resolve('/manage/movies/[id]', { id }) + returnSuffix
+              : resolve('/manage/people/[id]', { id })}
+            onclick={onOpenManagement}>Edit {kind}</a
+          >
+          <a
+            class="button secondary"
+            href={kind === 'movie'
+              ? resolve('/titles/[id]', { id })
+              : resolve('/people/[id]', { id })}>Review public record</a
+          >
+          {#if savedRecord}
+            <a
+              class="button secondary"
+              href={resolve('/manage/movies/[id]', { id }) +
+                '?step=credits' +
+                (isRecordId(returnToken)
+                  ? '&return=' + encodeURIComponent(returnToken)
+                  : '')}
+              onclick={onOpenManagement}>Cast and creators</a
+            >
+          {/if}
+        </div>
+      </Notice>
+    </section>
   {/if}
 {/if}
 
 <style>
+  .saved-record {
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    scroll-margin-top: var(--primitive-space-4);
+    margin-bottom: var(--primitive-space-6);
+  }
   .created-actions {
     display: flex;
     flex-wrap: wrap;

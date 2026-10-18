@@ -57,7 +57,7 @@
     if (abort.aborted) return;
     restoring = false;
     await tick();
-    if (!abort.aborted)
+    if (!abort.aborted && !page.url.searchParams.has('saved'))
       window.scrollTo({ top: state.scrollY, behavior: 'instant' });
   }
 
@@ -132,7 +132,12 @@
   <a class="button" href={resolve('/manage/movies/new')}>Create movie</a>
 </header>
 
-<CreatedRecordNotice kind="movie" />
+<CreatedRecordNotice
+  kind="movie"
+  readyToFocus={!restoring}
+  {returnToken}
+  onOpenManagement={rememberList}
+/>
 
 <form class="list-search" role="search" onsubmit={submitSearch}>
   <label for="managed-movies-search">Search movies</label>
@@ -196,7 +201,10 @@
               {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
                 <a
                   class="button secondary"
-                  href={resolve('/manage/movies/[id]', { id: row.id })}>Edit</a
+                  href={resolve('/manage/movies/[id]', { id: row.id }) +
+                    '?return=' +
+                    returnToken}
+                  onclick={rememberList}>Edit</a
                 >
                 <a
                   class="button secondary"
@@ -233,7 +241,10 @@
           {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
             <a
               class="button secondary"
-              href={resolve('/manage/movies/[id]', { id: row.id })}>Edit</a
+              href={resolve('/manage/movies/[id]', { id: row.id }) +
+                '?return=' +
+                returnToken}
+              onclick={rememberList}>Edit</a
             >
             <a
               class="button secondary"
