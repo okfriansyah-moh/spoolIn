@@ -13,7 +13,9 @@ class CatalogWritePolicy(
         revision: String,
     ): PolicyWrite<T> {
         val effective = effective()
-        if (revision != effective.revision) throw Status.FAILED_PRECONDITION.withDescription("POLICY_CHANGED").asRuntimeException()
+        if (revision != effective.revision) {
+            throw Status.FAILED_PRECONDITION.withDescription("POLICY_CHANGED").asRuntimeException()
+        }
         return PolicyWrite(input, effective)
     }
 

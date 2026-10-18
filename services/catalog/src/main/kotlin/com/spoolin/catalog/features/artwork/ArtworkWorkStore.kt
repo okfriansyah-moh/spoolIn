@@ -125,7 +125,8 @@ class ArtworkWorkStore(
             dataSource.connection.use { connection ->
                 connection.queryBound(
                     "SELECT a.id FROM artwork_attachment_request a JOIN durable_work w ON w.operation_id=a.id " +
-                        "WHERE a.state='PREPARING' AND w.kind='ARTWORK_ATTACH' AND w.state='EXHAUSTED' ORDER BY a.id LIMIT 10",
+                        "WHERE a.state='PREPARING' AND w.kind='ARTWORK_ATTACH' AND w.state='EXHAUSTED' " +
+                        "ORDER BY a.id LIMIT 10",
                     emptyList(),
                 ) { it.getObject("id", UUID::class.java) }
             }

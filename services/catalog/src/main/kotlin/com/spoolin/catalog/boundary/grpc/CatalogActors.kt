@@ -66,7 +66,12 @@ class CatalogActors(
                 }
             val live = CatalogActors(IdentityServiceGrpc.newBlockingStub(channels.createChannel("core")))
             val protected =
-                ActorInterceptor("catalog", protectedMethods + "spoolin.v1.CatalogService/ResolveArtworkAccess", verifier, live::check)
+                ActorInterceptor(
+                    "catalog",
+                    protectedMethods + "spoolin.v1.CatalogService/ResolveArtworkAccess",
+                    verifier,
+                    live::check,
+                )
             return object : io.grpc.ServerInterceptor {
                 override fun <ReqT : Any, RespT : Any> interceptCall(
                     call: io.grpc.ServerCall<ReqT, RespT>,

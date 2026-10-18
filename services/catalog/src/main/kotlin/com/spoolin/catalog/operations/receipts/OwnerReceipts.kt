@@ -56,12 +56,11 @@ class OwnerReceipts(
         intent: OperationIntent,
         correlationId: UUID,
         privateInput: Boolean,
-        work: List<WorkRequest> = emptyList(),
-        beforeReserve: (Connection) -> Unit = {},
+        deferred: DeferredWork = DeferredWork(),
         prepare: (Connection) -> Unit,
     ): ReceiptOutcome =
         dataSource.committed { connection ->
-            beforeReserve(connection)
+            deferred.beforeReserve(connection)
             val inserted = reserve(connection, intent, correlationId, privateInput)
             val existing = locked(connection, intent.id)
             when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {
@@ -71,7 +70,7 @@ class OwnerReceipts(
             }
             if (!inserted || existing.outcome.state != ReceiptState.PENDING) return@committed existing.outcome
             prepare(connection)
-            work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
+            deferred.work.forEach { ReceiptWork.enqueue(connection, intent.id, correlationId, it, clock.instant()) }
             locked(connection, intent.id).outcome
         }
 
@@ -193,3 +192,9 @@ internal object ReceiptRows {
         )
     }
 }
+
+/** Preparation locking runs before receipt reservation, including replay attempts. */
+class DeferredWork(
+    val work: List<WorkRequest> = emptyList(),
+    val beforeReserve: (Connection) -> Unit = {},
+)

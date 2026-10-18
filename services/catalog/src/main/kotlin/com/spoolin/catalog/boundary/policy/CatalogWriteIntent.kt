@@ -33,7 +33,8 @@ object CatalogWriteIntent {
                         .takeIf { values.release.hasDay() }
                         ?.toString(),
                 "mask.present" to request.hasUpdateMask().toString(),
-            ) + repeated("genres", values.genreIdsList.distinct().sorted()) + repeated("countries", values.countriesList) +
+            ) + repeated("genres", values.genreIdsList.distinct().sorted()) +
+            repeated("countries", values.countriesList) +
             repeated(
                 "mask",
                 request.updateMask.pathsList
@@ -96,7 +97,8 @@ object CatalogWriteIntent {
         name: String,
         values: List<String>,
     ): List<Pair<String, String?>> =
-        listOf("$name.count" to values.size.toString()) + values.mapIndexed { index, value -> "$name[$index]" to raw(value) }
+        listOf("$name.count" to values.size.toString()) +
+            values.mapIndexed { index, value -> "$name[$index]" to raw(value) }
 
     private fun raw(value: String?): String? {
         if (value == null) return null

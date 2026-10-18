@@ -116,7 +116,18 @@ internal class LifecycleStore(
         version: Long,
         command: LifecycleCommand,
     ): String {
-        if (version != command.expectedVersion) throw Status.ABORTED.withDescription("STALE_VERSION").asRuntimeException()
+        if (version != command.expectedVersion) {
+            throw Status.ABORTED.withDescription("STALE_VERSION").asRuntimeException()
+        }
+        validateTransition(status, command)
+        return when (command.action) {
+            LifecycleRules.Action.ARCHIVE -> "ARCHIVED"
+            LifecycleRules.Action.RESTORE -> "ACTIVE"
+            LifecycleRules.Action.DELETE -> "DELETED"
+        }
+    }
+
+    private fun validateTransition(status: String, command: LifecycleCommand) {
         if (command.action !in LifecycleRules.allowedActions(status)) {
             throw Status.FAILED_PRECONDITION
                 .withDescription("LIFECYCLE_STATE_CHANGED")
@@ -126,11 +137,6 @@ internal class LifecycleStore(
             throw Status.FAILED_PRECONDITION
                 .withDescription("CONFIRMATION_REQUIRED")
                 .asRuntimeException()
-        }
-        return when (command.action) {
-            LifecycleRules.Action.ARCHIVE -> "ARCHIVED"
-            LifecycleRules.Action.RESTORE -> "ACTIVE"
-            LifecycleRules.Action.DELETE -> "DELETED"
         }
     }
 

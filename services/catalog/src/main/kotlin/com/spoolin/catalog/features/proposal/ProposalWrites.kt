@@ -309,7 +309,9 @@ class ProposalWrites(
     private fun decodeContentHash(value: String): ByteArray {
         val decoded =
             runCatching { Base64.getDecoder().decode(value) }
-                .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException() }
+                .getOrElse {
+                    throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException()
+                }
         if (decoded.size != HASH_BYTES) {
             throw Status.INVALID_ARGUMENT.withDescription("CONTENT_HASH_INVALID").asRuntimeException()
         }

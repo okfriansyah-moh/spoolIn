@@ -1,8 +1,6 @@
 package com.spoolin.catalog.features.lifecycle
 
 import com.google.protobuf.Timestamp
-import com.spoolin.support.identity.ActorRpc
-import com.spoolin.support.identity.Permissions
 import com.spoolin.support.receipts.executeBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
@@ -21,24 +19,8 @@ class DeletionImpact(
         response: StreamObserver<Impact>,
     ) {
         try {
-            val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-            if (!Permissions.management(claims.role)) throw Status.PERMISSION_DENIED.asRuntimeException()
-            val person = parseId(request.id)
-            val snapshot =
-                dataSource.connection.use { connection ->
-                    connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
-                    connection.isReadOnly = true
-                    connection.autoCommit = false
-                    try {
-                        connection.executeBound("SET LOCAL statement_timeout='3000ms'")
-                        val result = ImpactSnapshot.read(connection, person)
-                        connection.commit()
-                        result
-                    } catch (failure: Exception) {
-                        connection.rollback()
-                        throw failure
-                    }
-                }
+            LifecycleAuthorization.management()
+            val snapshot = readSnapshot(parseId(request.id))
             response.onNext(project(snapshot))
             response.onCompleted()
         } catch (
@@ -52,12 +34,33 @@ class DeletionImpact(
         }
     }
 
+    private fun readSnapshot(person: UUID): ImpactSnapshot =
+        dataSource.connection.use { connection ->
+            connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
+            connection.isReadOnly = true
+            connection.autoCommit = false
+            readTransaction(connection, person)
+        }
+
+    private fun readTransaction(connection: Connection, person: UUID): ImpactSnapshot {
+        var committed = false
+        return try {
+            connection.executeBound("SET LOCAL statement_timeout='3000ms'")
+            val result = ImpactSnapshot.read(connection, person)
+            connection.commit()
+            committed = true
+            result
+        } finally {
+            if (!committed) connection.rollback()
+        }
+    }
+
     fun verify(
         connection: Connection,
         person: UUID,
         token: String?,
     ): ImpactSnapshot {
-        val signer = tokens ?: throw Status.UNAVAILABLE.withDescription("IMPACT_SIGNER_UNAVAILABLE").asRuntimeException()
+        val signer = signer()
         val current = ImpactSnapshot.read(connection, person)
         project(current)
         if (!signer.matches(token, current)) throw Status.ABORTED.withDescription("IMPACT_CHANGED").asRuntimeException()
@@ -65,7 +68,7 @@ class DeletionImpact(
     }
 
     fun project(snapshot: ImpactSnapshot): Impact {
-        val signer = tokens ?: throw Status.UNAVAILABLE.withDescription("IMPACT_SIGNER_UNAVAILABLE").asRuntimeException()
+        val signer = signer()
         val signed = signer.issue(snapshot)
         val result =
             Impact
@@ -75,7 +78,9 @@ class DeletionImpact(
                 .setToken(signed.token)
                 .setAffectedCreditCount(ImpactSnapshot.exactCount(snapshot.creditCount))
                 .addAllAffectedTitles(snapshot.affectedTitles)
-                .setExpiresAt(Timestamp.newBuilder().setSeconds(signed.expires.epochSecond).setNanos(signed.expires.nano))
+                .setExpiresAt(
+                    Timestamp.newBuilder().setSeconds(signed.expires.epochSecond).setNanos(signed.expires.nano),
+                )
                 .build()
         val json =
             tools.jackson.databind.ObjectMapper().writeValueAsBytes(
@@ -97,6 +102,9 @@ class DeletionImpact(
         }
         return result
     }
+
+    private fun signer(): ImpactToken = tokens ?: throw Status.UNAVAILABLE
+        .withDescription("IMPACT_SIGNER_UNAVAILABLE").asRuntimeException()
 
     private fun parseId(value: String): UUID = UUID.fromString(value).also { require(it.toString() == value) }
 }

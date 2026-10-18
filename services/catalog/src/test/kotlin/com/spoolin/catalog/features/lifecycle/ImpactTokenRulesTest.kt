@@ -38,12 +38,16 @@ class ImpactTokenRulesTest {
         assertFalse(signer().matches(token.token, snapshot(listOf(credit), version = 4)))
         assertFalse(signer().matches(token.token, snapshot(listOf(credit), impact = 8)))
         assertFalse(signer().matches(token.token.dropLast(1) + "!", original))
-        assertFalse(ImpactToken("test", ByteArray(32) { 72 }, Clock.fixed(now, ZoneOffset.UTC)).matches(token.token, original))
+        assertFalse(
+            ImpactToken("test", ByteArray(32) { 72 }, Clock.fixed(now, ZoneOffset.UTC)).matches(token.token, original),
+        )
     }
 
     @Test
     fun `full credit count is distinct from title count and tuple ordering is deterministic`() {
-        val credits = (1..25).map { ImpactCredit(UUID(0, it.toLong()), 1, UUID(0, 30), 1, "Same title", "MOVIE", "ACTIVE") }
+        val credits = (1..25).map {
+            ImpactCredit(UUID(0, it.toLong()), 1, UUID(0, 30), 1, "Same title", "MOVIE", "ACTIVE")
+        }
         val original = snapshot(credits)
         assertEquals(25L, original.creditCount)
         assertEquals(1, original.affectedTitles.size)

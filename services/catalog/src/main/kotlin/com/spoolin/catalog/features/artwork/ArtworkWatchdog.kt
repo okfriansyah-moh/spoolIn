@@ -14,7 +14,8 @@ class ArtworkWatchdog(
         dataSource.committed { connection ->
             val expired =
                 connection.queryBound(
-                    "SELECT id FROM durable_work WHERE kind IN ('ARTWORK_ATTACH','ARTWORK_CONFIRM','ARTWORK_RELEASE') " +
+                    "SELECT id FROM durable_work WHERE " +
+                        "kind IN ('ARTWORK_ATTACH','ARTWORK_CONFIRM','ARTWORK_RELEASE') " +
                         "AND ((state='LEASED' AND lease_until<=clock_timestamp()) OR (state='READY' " +
                         "AND (deadline_at<=clock_timestamp() OR attempt_count>=max_attempts))) " +
                         "ORDER BY updated_at,id LIMIT 10 FOR UPDATE SKIP LOCKED",
@@ -23,7 +24,8 @@ class ArtworkWatchdog(
             expired.forEach { id ->
                 connection.executeBound(
                     "INSERT INTO operational_event(id,operation_id,actor_kind,action,subject_kind,subject_id,outcome," +
-                        "correlation_id,event_type,work_id,generation,attempt_no,lease_epoch,attempt_outcome,error_code) " +
+                        "correlation_id,event_type,work_id,generation,attempt_no,lease_epoch," +
+                        "attempt_outcome,error_code) " +
                         "SELECT ?,operation_id,'SERVICE','WORK_ATTEMPT','WORK',id,'FAILED',correlation_id," +
                         "'ATTEMPT_FINISHED',id,generation,attempt_count,lease_epoch,'UNCERTAIN','LEASE_EXPIRED' " +
                         "FROM durable_work WHERE id=? AND state='LEASED' " +

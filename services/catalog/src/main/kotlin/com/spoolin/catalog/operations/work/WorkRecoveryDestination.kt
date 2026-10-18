@@ -59,18 +59,24 @@ class WorkRecoveryDestination(
                 }
             }
         val original = WorkRequest(step, "ARTWORK", hold, Instant.MAX).id(hold)
-        val expectedVersion =
-            when (work.kind) {
-                "ARTWORK_CONFIRM" -> Math.addExact(target.expectedVersion, 1)
-                "ARTWORK_RELEASE" ->
-                    payload["catalogVersion"].let { version ->
-                        require(version.isIntegralNumber)
-                        version.asText().toLong().also { require(it >= 0) }
-                    }
-                else -> null
-            }
+        val expectedVersion = expectedVersion(work.kind, payload, target)
         reconcile(original, hold, expectedVersion)
     }
+
+    private fun expectedVersion(
+        kind: String,
+        payload: tools.jackson.databind.JsonNode,
+        target: RecoveryTarget,
+    ): Long? =
+        when (kind) {
+            "ARTWORK_CONFIRM" -> Math.addExact(target.expectedVersion, 1)
+            "ARTWORK_RELEASE" ->
+                payload["catalogVersion"].let { version ->
+                    require(version.isIntegralNumber)
+                    version.asText().toLong().also { require(it >= 0) }
+                }
+            else -> null
+        }
 
     private fun preparing(
         connection: Connection,

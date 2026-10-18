@@ -62,7 +62,8 @@ object MovieValidation {
                 TextRules.ordinary(it, policy.textBounds.getValue("originalTitle"), "originalTitle")
             }
         val synopsis = TextRules.ordinary(values.synopsis, policy.textBounds.getValue("synopsis"), "synopsis")
-        val synopsisLang = if (values.hasSynopsisLanguage()) language(values.synopsisLanguage, "synopsisLanguage") else "und"
+        val synopsisLang =
+            if (values.hasSynopsisLanguage()) language(values.synopsisLanguage, "synopsisLanguage") else "und"
         val originalLang =
             values.originalLanguage.takeIf { values.hasOriginalLanguage() && !TextRules.blank(it) }?.let {
                 language(it, "originalLanguage")
@@ -108,8 +109,12 @@ object MovieValidation {
                     policy.textBounds.getValue("originalTitle"),
                     "originalTitle",
                 ),
-            synopsis = patchText("values.synopsis", mask, v.synopsis, policy.textBounds.getValue("synopsis"), "synopsis"),
-            synopsisLanguage = patchLanguage("values.synopsis_language", mask, v.synopsisLanguage, false, "synopsisLanguage"),
+            synopsis = patchText(
+                "values.synopsis", mask, v.synopsis, policy.textBounds.getValue("synopsis"), "synopsis",
+            ),
+            synopsisLanguage = patchLanguage(
+                "values.synopsis_language", mask, v.synopsisLanguage, false, "synopsisLanguage",
+            ),
             originalLanguage =
                 patchLanguage(
                     "values.original_language",
@@ -157,11 +162,12 @@ object MovieValidation {
         return try {
             StructuralRules.language(value)
         } catch (failure: InputViolation) {
-            throw InputViolation(field, failure.correction)
+            throw InputViolation(field, failure.correction).also { it.initCause(failure) }
         }
     }
 
-    private fun country(raw: String): String = StructuralRules.country(TextRules.ordinary(raw, BCP47_BOUND, "countries"))
+    private fun country(raw: String): String =
+        StructuralRules.country(TextRules.ordinary(raw, BCP47_BOUND, "countries"))
 
     private fun patchLanguage(
         path: String,

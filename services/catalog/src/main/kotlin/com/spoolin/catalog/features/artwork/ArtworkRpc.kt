@@ -1,6 +1,7 @@
 package com.spoolin.catalog.features.artwork
 
 import com.spoolin.catalog.operations.audit.AuditInsert
+import com.spoolin.catalog.operations.receipts.DeferredWork
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.catalog.operations.receipts.ReceiptWork
 import com.spoolin.support.identity.ActorClaims
@@ -41,7 +42,7 @@ class ArtworkRpc(
                 command.intent(),
                 command.correlation,
                 true,
-                beforeReserve = ::lock,
+                deferred = DeferredWork(beforeReserve = ::lock),
             ) { connection ->
                 prepareBegin(connection, command)
             }
@@ -97,7 +98,9 @@ class ArtworkRpc(
                 actor,
             )
         val result =
-            receipts.defer(command.intent(), command.correlation, true, beforeReserve = ::lock) { connection ->
+            receipts.defer(
+                command.intent(), command.correlation, true, deferred = DeferredWork(beforeReserve = ::lock),
+            ) { connection ->
                 prepareCancellation(connection, command)
             }
         cancellationOutcome(result, command)
@@ -196,7 +199,8 @@ class ArtworkRpc(
             val version =
                 connection
                     .queryBound(
-                        "SELECT t.version FROM title t JOIN artwork_attachment_request a ON a.title_id=t.id WHERE a.id=?",
+                        "SELECT t.version FROM title t JOIN artwork_attachment_request a ON a.title_id=t.id " +
+                            "WHERE a.id=?",
                         listOf(hold),
                     ) { it.getLong("version") }
                     .singleOrNull()
@@ -266,7 +270,11 @@ private fun beginTitle(
             .queryBound(
                 "SELECT version,status,attachment_id FROM title WHERE id=? AND kind='MOVIE' FOR UPDATE",
                 listOf(command.title),
-            ) { BeginTitle(it.getLong("version"), it.getString("status"), it.getObject("attachment_id", UUID::class.java)) }
+            ) {
+                BeginTitle(
+                    it.getLong("version"), it.getString("status"), it.getObject("attachment_id", UUID::class.java),
+                )
+            }
             .singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
     if (old.version != command.request.expectedVersion || old.status != "ACTIVE") {
         throw Status.FAILED_PRECONDITION.withDescription("STALE_VERSION").asRuntimeException()

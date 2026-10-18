@@ -26,7 +26,9 @@ class CreditBlankCharactersRulesTest {
     fun `blank entries clear optional characters while nonempty entries preserve order and normalization form`() {
         val mixed = request(listOf("\u00a0", " ABC ", "\t ", "Name"))
         assertEquals(listOf("ABC", "Name"), CreditValidation.validateCreate(mixed, policy).characters)
-        assertEquals(emptyList<String>(), CreditValidation.validateCreate(request(listOf("", "\u00a0\t ")), policy).characters)
+        assertEquals(
+            emptyList<String>(), CreditValidation.validateCreate(request(listOf("", "\u00a0\t ")), policy).characters,
+        )
         val result = CreditValidation.validateCreate(request(listOf("e\u0301x")), policy)
         assertEquals(listOf("e\u0301x"), result.characters)
     }
@@ -47,7 +49,9 @@ class CreditBlankCharactersRulesTest {
     @Test
     fun `trimmed duplicate names bounds and invalid scalars still reject rather than being discarded`() {
         listOf(listOf(" Name ", "\u00a0Name"), listOf("x"), listOf("ABCDE"), listOf("\u0000"), listOf("\uD800"))
-            .forEach { values -> assertThrows(InputViolation::class.java) { CreditValidation.validateCreate(request(values), policy) } }
+            .forEach { values ->
+                assertThrows(InputViolation::class.java) { CreditValidation.validateCreate(request(values), policy) }
+            }
     }
 
     private fun request(characters: List<String>): Spoolin.CreditWrite =

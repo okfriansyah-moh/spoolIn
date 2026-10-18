@@ -74,7 +74,9 @@ internal object ProposalRevisions {
         row: ProposalRow,
         claims: ActorClaims,
     ) {
-        if (row.actorId != claims.accountId || row.connectorId != claims.credentialId || row.clientKind != claims.clientKind) {
+        if (row.actorId != claims.accountId || row.connectorId != claims.credentialId ||
+            row.clientKind != claims.clientKind
+        ) {
             throw Status.PERMISSION_DENIED.withDescription("ACTOR_BINDING_MISMATCH").asRuntimeException()
         }
     }

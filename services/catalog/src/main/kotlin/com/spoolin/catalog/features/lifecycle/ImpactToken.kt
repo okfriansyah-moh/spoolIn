@@ -23,16 +23,16 @@ class ImpactToken(
     private val clock: Clock = Clock.systemUTC(),
 ) {
     private val selector = keyId.also { require(it.matches(Regex("[A-Za-z0-9_-]{1,64}"))) }
-    private val key = mac(sourceKey.also { require(it.size == 32) }, "spoolin-deletion-impact-v1".toByteArray())
+    private val key = mac(sourceKey.also { require(it.size == KEY_BYTES) }, "spoolin-deletion-impact-v1".toByteArray())
 
     fun issue(snapshot: ImpactSnapshot): SignedImpact {
         val now = clock.instant()
-        val expires = Instant.ofEpochSecond(now.epochSecond + 300)
+        val expires = Instant.ofEpochSecond(now.epochSecond + LIFETIME_SECONDS)
         val payload =
             ByteArrayOutputStream()
                 .also { buffer ->
                     DataOutputStream(buffer).use { output ->
-                        output.writeByte(1)
+                        output.writeByte(FORMAT_VERSION)
                         output.writeLong(snapshot.person.mostSignificantBits)
                         output.writeLong(snapshot.person.leastSignificantBits)
                         output.writeLong(snapshot.version)
@@ -52,34 +52,46 @@ class ImpactToken(
         snapshot: ImpactSnapshot,
     ): Boolean =
         runCatching {
-            require(token != null && token.length <= 512)
+            require(token != null && token.length <= MAX_TOKEN_LENGTH)
             val parts = token.split('.')
-            require(parts.size == 3 && parts[0] == selector)
+            require(parts.size == TOKEN_PARTS && parts[0] == selector)
             val body = "${parts[0]}.${parts[1]}".toByteArray(Charsets.US_ASCII)
             require(MessageDigest.isEqual(decode(parts[2]), mac(key, body)))
             val payload = decode(parts[1])
-            require(payload.size == 89)
+            require(payload.size == PAYLOAD_BYTES)
             DataInputStream(ByteArrayInputStream(payload)).use { input ->
-                require(input.readUnsignedByte() == 1)
+                require(input.readUnsignedByte() == FORMAT_VERSION)
                 require(UUID(input.readLong(), input.readLong()) == snapshot.person)
                 require(input.readLong() == snapshot.version && input.readLong() == snapshot.impactVersion)
                 require(input.readLong() == snapshot.creditCount)
-                require(MessageDigest.isEqual(input.readNBytes(32), snapshot.digest()))
+                require(MessageDigest.isEqual(input.readNBytes(DIGEST_BYTES), snapshot.digest()))
                 val issued = input.readLong()
                 val expires = input.readLong()
                 val now = clock.instant().epochSecond
-                require(expires - issued == 300L && issued <= now + 2 && now < expires)
+                require(expires - issued == LIFETIME_SECONDS && issued <= now + CLOCK_SKEW_SECONDS && now < expires)
             }
             true
         }.getOrDefault(false)
 
     companion object {
+        private const val KEY_BYTES = 32
+        private const val DIGEST_BYTES = 32
+        private const val LIFETIME_SECONDS = 300L
+        private const val MAX_TOKEN_LENGTH = 512
+        private const val TOKEN_PARTS = 3
+        private const val PAYLOAD_BYTES = 89
+        private const val FORMAT_VERSION = 1
+        private const val CLOCK_SKEW_SECONDS = 2
+
         fun fromKeyFile(
             path: Path,
             keyId: String,
         ): ImpactToken {
-            require(Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && Files.size(path) == 32L)
-            require(Files.getPosixFilePermissions(path, LinkOption.NOFOLLOW_LINKS) == PosixFilePermissions.fromString("rw-------"))
+            require(Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && Files.size(path) == KEY_BYTES.toLong())
+            require(
+                Files.getPosixFilePermissions(path, LinkOption.NOFOLLOW_LINKS) ==
+                    PosixFilePermissions.fromString("rw-------"),
+            )
             val source = Files.readAllBytes(path)
             return try {
                 ImpactToken(keyId, source)

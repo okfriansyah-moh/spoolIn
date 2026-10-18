@@ -9,18 +9,24 @@ import java.io.OutputStream
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 import java.util.UUID
 
 /** Every tuple contributes to the digest; response capacity never authorizes a partial consequence set. */
 class ImpactSnapshot private constructor(
-    val person: UUID,
-    val version: Long,
-    val impactVersion: Long,
-    val status: String,
+    private val subject: Subject,
     val creditCount: Long,
     val affectedTitles: List<String>,
     private val fingerprint: ByteArray,
 ) {
+    val person: UUID get() = subject.person
+    val version: Long get() = subject.version
+    val impactVersion: Long get() = subject.impactVersion
+    val status: String get() = subject.status
+
+    private data class Subject(val person: UUID, val version: Long, val impactVersion: Long, val status: String)
+
     fun digest(): ByteArray = fingerprint.copyOf()
 
     companion object {
@@ -59,7 +65,7 @@ class ImpactSnapshot private constructor(
             val deadline =
                 System.nanoTime() +
                     java.util.concurrent.TimeUnit.SECONDS
-                        .toNanos(3)
+                        .toNanos(READ_SECONDS)
             connection
                 .prepareStatement(
                     "SELECT c.id,c.version,c.title_id,t.version AS title_version," +
@@ -67,32 +73,39 @@ class ImpactSnapshot private constructor(
                         "WHERE c.person_id=? ORDER BY c.id",
                 ).use { statement ->
                     statement.setObject(1, person)
-                    statement.fetchSize = 100
-                    statement.executeQuery().use { rows ->
-                        while (rows.next()) {
-                            if (io.grpc.Context
-                                    .current()
-                                    .isCancelled
-                            ) {
-                                throw Status.CANCELLED.asRuntimeException()
-                            }
-                            if (System.nanoTime() >= deadline) throw Status.DEADLINE_EXCEEDED.asRuntimeException()
-                            accumulator.add(
-                                ImpactCredit(
-                                    rows.getObject("id", UUID::class.java),
-                                    rows.getLong("version"),
-                                    rows.getObject("title_id", UUID::class.java),
-                                    rows.getLong("title_version"),
-                                    rows.getString("display_title"),
-                                    rows.getString("kind"),
-                                    rows.getString("status"),
-                                ),
-                            )
-                        }
-                    }
+                    statement.fetchSize = FETCH_ROWS
+                    accumulate(statement, accumulator, deadline)
                 }
             return accumulator.finish()
         }
+
+        private fun accumulate(statement: PreparedStatement, accumulator: Accumulator, deadline: Long) {
+            statement.executeQuery().use { rows ->
+                while (rows.next()) {
+                    checkDeadline(deadline)
+                    accumulator.add(credit(rows))
+                }
+            }
+        }
+
+        private fun checkDeadline(deadline: Long) {
+            if (io.grpc.Context.current().isCancelled) throw Status.CANCELLED.asRuntimeException()
+            if (System.nanoTime() >= deadline) throw Status.DEADLINE_EXCEEDED.asRuntimeException()
+        }
+
+        private fun credit(rows: ResultSet): ImpactCredit = ImpactCredit(
+            rows.getObject("id", UUID::class.java),
+            rows.getLong("version"),
+            rows.getObject("title_id", UUID::class.java),
+            rows.getLong("title_version"),
+            rows.getString("display_title"),
+            rows.getString("kind"),
+            rows.getString("status"),
+        )
+
+        private const val READ_SECONDS = 3L
+        private const val FETCH_ROWS = 100
+        private const val TITLE_PROTOBUF_FIELD = 5
 
         private fun capacity(): Nothing =
             throw Status.RESOURCE_EXHAUSTED
@@ -124,7 +137,7 @@ class ImpactSnapshot private constructor(
             count++
             exactCount(count)
             if (titles.putIfAbsent(credit.title, credit.titleName) == null) {
-                protobufTitleBytes += CodedOutputStream.computeStringSize(5, credit.titleName)
+                protobufTitleBytes += CodedOutputStream.computeStringSize(TITLE_PROTOBUF_FIELD, credit.titleName)
                 jsonTitleBytes += mapper.writeValueAsBytes(credit.titleName).size + if (titles.size == 1) 0 else 1
                 if (protobufTitleBytes > RESPONSE_BYTES || jsonTitleBytes > RESPONSE_BYTES) capacity()
             }
@@ -141,7 +154,7 @@ class ImpactSnapshot private constructor(
             output.writeLong(count)
             output.close()
             val ordered = titles.entries.sortedWith(compareBy({ it.value }, { it.key.toString() })).map { it.value }
-            return ImpactSnapshot(person, version, impact, status, count, ordered, hash.digest())
+            return ImpactSnapshot(Subject(person, version, impact, status), count, ordered, hash.digest())
         }
 
         private fun text(value: String) {
