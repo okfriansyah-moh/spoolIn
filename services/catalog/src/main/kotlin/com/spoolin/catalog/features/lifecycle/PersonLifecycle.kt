@@ -21,7 +21,13 @@ class PersonLifecycle(dataSource: DataSource, private val receipts: OwnerReceipt
                 LifecycleStore().person(connection, command, impacts)
             }
             response.onNext(lifecycleOutcome(result)); response.onCompleted()
-        } catch (failure: io.grpc.StatusRuntimeException) { response.onError(failure) }
+        } catch (failure: io.grpc.StatusRuntimeException) {
+            if (failure.status.description == "IMPACT_CHANGED") {
+                response.onNext(Outcome.newBuilder().setOperationId(request.target.context.operationId).setState("FAILED")
+                    .setProblem(spoolin.v1.Spoolin.Problem.newBuilder().setCode("IMPACT_CHANGED")).build())
+                response.onCompleted()
+            } else response.onError(failure)
+        }
         catch (_: com.spoolin.support.receipts.ReceiptConflict) {
             response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
         } catch (_: com.spoolin.support.receipts.ReceiptHidden) { response.onError(Status.NOT_FOUND.asRuntimeException()) }

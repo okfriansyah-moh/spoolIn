@@ -35,6 +35,7 @@ class DeletionImpact(private val dataSource: DataSource, private val tokens: Imp
     fun verify(connection: Connection, person: UUID, token: String?): ImpactSnapshot {
         val signer = tokens ?: throw Status.UNAVAILABLE.withDescription("IMPACT_SIGNER_UNAVAILABLE").asRuntimeException()
         val current = ImpactSnapshot.read(connection, person)
+        project(current)
         if (!signer.matches(token, current)) throw Status.ABORTED.withDescription("IMPACT_CHANGED").asRuntimeException()
         return current
     }
@@ -42,10 +43,18 @@ class DeletionImpact(private val dataSource: DataSource, private val tokens: Imp
     fun project(snapshot: ImpactSnapshot): Impact {
         val signer = tokens ?: throw Status.UNAVAILABLE.withDescription("IMPACT_SIGNER_UNAVAILABLE").asRuntimeException()
         val signed = signer.issue(snapshot)
-        val titles = snapshot.credits.distinctBy { it.title }.sortedWith(compareBy({ it.titleName }, { it.title.toString() }))
-        return Impact.newBuilder().setTargetId(snapshot.person.toString()).setVersion(snapshot.version)
-            .setToken(signed.token).setAffectedCreditCount(snapshot.credits.size).addAllAffectedTitles(titles.map { it.titleName })
+        val result = Impact.newBuilder().setTargetId(snapshot.person.toString()).setVersion(snapshot.version)
+            .setToken(signed.token).setAffectedCreditCount(ImpactSnapshot.exactCount(snapshot.creditCount))
+            .addAllAffectedTitles(snapshot.affectedTitles)
             .setExpiresAt(Timestamp.newBuilder().setSeconds(signed.expires.epochSecond).setNanos(signed.expires.nano)).build()
+        val json = tools.jackson.databind.ObjectMapper().writeValueAsBytes(mapOf("data" to mapOf("deletionImpact" to mapOf(
+            "targetId" to result.targetId, "token" to result.token, "affectedCreditCount" to result.affectedCreditCount,
+            "affectedTitles" to result.affectedTitlesList,
+        ))))
+        if (result.serializedSize > ImpactSnapshot.RESPONSE_BYTES || json.size > ImpactSnapshot.RESPONSE_BYTES) {
+            throw Status.RESOURCE_EXHAUSTED.withDescription("IMPACT_RESPONSE_CAPACITY_EXCEEDED").asRuntimeException()
+        }
+        return result
     }
 
     private fun parseId(value: String): UUID = UUID.fromString(value).also { require(it.toString() == value) }

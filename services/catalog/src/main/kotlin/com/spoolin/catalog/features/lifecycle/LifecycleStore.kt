@@ -31,8 +31,6 @@ internal class LifecycleStore(private val clock: Clock = Clock.systemUTC()) {
         connection.queryBound("SELECT p.id FROM person p WHERE EXISTS " +
             "(SELECT 1 FROM credit c WHERE c.person_id=p.id AND c.title_id=?) ORDER BY p.id FOR UPDATE",
             listOf(target)) { it.getObject("id", UUID::class.java) }
-        connection.executeBound("UPDATE person SET impact_version=impact_version+1,updated_at=CURRENT_TIMESTAMP " +
-            "WHERE id IN (SELECT person_id FROM credit WHERE title_id=?)", target)
     }
 
     private fun deleteMovieContents(connection: Connection, command: LifecycleCommand, hold: UUID?) {

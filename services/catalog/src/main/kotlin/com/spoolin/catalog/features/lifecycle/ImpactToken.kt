@@ -27,7 +27,7 @@ class ImpactToken(keyId: String, sourceKey: ByteArray, private val clock: Clock 
         val payload = ByteArrayOutputStream().also { buffer -> DataOutputStream(buffer).use { output ->
             output.writeByte(1); output.writeLong(snapshot.person.mostSignificantBits)
             output.writeLong(snapshot.person.leastSignificantBits); output.writeLong(snapshot.version)
-            output.writeLong(snapshot.impactVersion); output.writeInt(snapshot.credits.size)
+            output.writeLong(snapshot.impactVersion); output.writeLong(snapshot.creditCount)
             output.write(snapshot.digest()); output.writeLong(now.epochSecond); output.writeLong(expires.epochSecond)
         } }.toByteArray()
         val body = "$selector.${encode(payload)}"
@@ -41,12 +41,12 @@ class ImpactToken(keyId: String, sourceKey: ByteArray, private val clock: Clock 
         val body = "${parts[0]}.${parts[1]}".toByteArray(Charsets.US_ASCII)
         require(MessageDigest.isEqual(decode(parts[2]), mac(key, body)))
         val payload = decode(parts[1])
-        require(payload.size == 85)
+        require(payload.size == 89)
         DataInputStream(ByteArrayInputStream(payload)).use { input ->
             require(input.readUnsignedByte() == 1)
             require(UUID(input.readLong(), input.readLong()) == snapshot.person)
             require(input.readLong() == snapshot.version && input.readLong() == snapshot.impactVersion)
-            require(input.readInt() == snapshot.credits.size)
+            require(input.readLong() == snapshot.creditCount)
             require(MessageDigest.isEqual(input.readNBytes(32), snapshot.digest()))
             val issued = input.readLong(); val expires = input.readLong(); val now = clock.instant().epochSecond
             require(expires - issued == 300L && issued <= now + 2 && now < expires)
