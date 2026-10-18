@@ -50,8 +50,28 @@ internal object SeedArtworkValidation {
             require(!Files.isSymbolicLink(path) && Files.size(path) in 1..MAX_BYTES)
             val hash = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path))
             require(HexFormat.of().formatHex(hash) == art["sha256"].asText())
-            val image = requireNotNull(ImageIO.read(path.toFile()))
-            require(image.width == art["width"].asInt() && image.height == art["height"].asInt())
+            validateImage(path, art["width"].asInt(), art["height"].asInt())
+        }
+    }
+
+    private fun validateImage(
+        path: Path,
+        width: Int,
+        height: Int,
+    ) {
+        ImageIO.createImageInputStream(path.toFile()).use { stream ->
+            val readers = ImageIO.getImageReaders(stream)
+            require(readers.hasNext()) { "Unsupported poster image" }
+            val reader = readers.next()
+            try {
+                reader.input = stream
+                require(reader.formatName.equals("JPEG", true))
+                require(reader.getWidth(0) == width)
+                require(reader.getHeight(0) == height)
+                reader.read(0)
+            } finally {
+                reader.dispose()
+            }
         }
     }
 }

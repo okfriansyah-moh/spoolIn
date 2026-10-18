@@ -50,15 +50,21 @@ class SeedProvenance(
         connection.executeBound(
             "INSERT INTO provenance_record(source,external_id,subject_kind,subject_id,record_url," +
                 "retrieved_at,reuse_note,field_sources) VALUES(?,?,?,?,?,?,?,?::jsonb) " +
-                "ON CONFLICT(source,external_id,subject_kind) DO NOTHING",
+                "ON CONFLICT(source,external_id,subject_kind) DO UPDATE SET " +
+                "record_url=EXCLUDED.record_url,retrieved_at=EXCLUDED.retrieved_at," +
+                "reuse_note=EXCLUDED.reuse_note,field_sources=EXCLUDED.field_sources " +
+                "WHERE provenance_record.deleted_at IS NULL",
             node["source"].asText(),
             node["externalId"].asText(),
             kind,
             id,
             first["url"].asText(),
             Timestamp.from(Instant.parse(first["retrievedAt"].asText())),
-            if (seed.publicPages) "Public webpage source recorded; no open-license claim."
-            else "CC0-1.0 Wikidata facts; original factual synopsis where applicable",
+            if (seed.publicPages) {
+                "Public webpage source recorded; no open-license claim."
+            } else {
+                "CC0-1.0 Wikidata facts; original factual synopsis where applicable"
+            },
             mapper.writeValueAsString(fields),
         )
     }
