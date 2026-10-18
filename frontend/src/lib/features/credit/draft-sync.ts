@@ -9,7 +9,6 @@ export type CreditDraftValues = Readonly<{
   characters: readonly string[];
 }>;
 
-
 type CreditDraftReset = {
   draftId?: string;
   targetId?: string | null;
@@ -50,13 +49,20 @@ export class CreditDraftSync {
   constructor(
     private readonly source: DraftSource,
     private readonly parentTitleId: string,
-    private readonly onChange: (state: Readonly<{ backed: boolean; unbacked: boolean; pendingOperationId: string | null }>) => void = () => {},
-  ) { this.reset(); }
+    private readonly onChange: (
+      state: Readonly<{
+        backed: boolean;
+        unbacked: boolean;
+        pendingOperationId: string | null;
+      }>,
+    ) => void = () => {},
+  ) {
+    this.reset();
+  }
 
-  reset(
-    options: CreditDraftReset | string = {},
-  ): void {
-    const selected: CreditDraftReset = typeof options === 'string' ? { catalogOperationId: options } : options;
+  reset(options: CreditDraftReset | string = {}): void {
+    const selected: CreditDraftReset =
+      typeof options === 'string' ? { catalogOperationId: options } : options;
     globalThis.clearTimeout(this.timer);
     if (this.pending || this.pendingDiscard) return;
     this.draftId = selected.draftId ?? globalThis.crypto.randomUUID();
@@ -83,7 +89,8 @@ export class CreditDraftSync {
     return drafts.filter(
       (draft) =>
         draft.targetKind === 'CREDIT' &&
-        (draft.values as Partial<CreditDraftValues>).titleId === this.parentTitleId &&
+        (draft.values as Partial<CreditDraftValues>).titleId ===
+          this.parentTitleId &&
         Date.parse(draft.expiresAt) > Date.now(),
     );
   }
@@ -122,7 +129,11 @@ export class CreditDraftSync {
     return this.backed && !this.pending;
   }
 
-  async clearSubmission(values: CreditDraftValues, context: WriteContext, baseVersion: string | null): Promise<void> {
+  async clearSubmission(
+    values: CreditDraftValues,
+    context: WriteContext,
+    baseVersion: string | null,
+  ): Promise<void> {
     this.catalogOperationId = null;
     await this.save(values, context, baseVersion);
   }
@@ -235,7 +246,10 @@ export class CreditDraftSync {
     globalThis.clearTimeout(this.timer);
     await this.queue;
     if (this.pending && !(await this.reconcile(context))) return false;
-    if (!this.expectedVersion) { this.reset(); return true; }
+    if (!this.expectedVersion) {
+      this.reset();
+      return true;
+    }
     this.pendingDiscard ??= {
       operationId: globalThis.crypto.randomUUID(),
       draftId: this.draftId,
@@ -259,7 +273,12 @@ export class CreditDraftSync {
         this.pendingDiscard = null;
         return false;
       }
-      if (outcome.receipt.state !== 'SUCCEEDED' || outcome.receipt.resultId !== pending.draftId || !outcome.discarded) return false;
+      if (
+        outcome.receipt.state !== 'SUCCEEDED' ||
+        outcome.receipt.resultId !== pending.draftId ||
+        !outcome.discarded
+      )
+        return false;
       this.pendingDiscard = null;
       this.reset();
       return true;

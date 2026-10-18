@@ -128,7 +128,10 @@ object ConnectorOperatorCli {
         )
         audit(connection, id, "CONNECTOR_ISSUE", operator)
         return mapOf(
-            "id" to id.toString(), "client" to command.client, "expiresAt" to expiry.toString(), "issued" to true,
+            "id" to id.toString(),
+            "client" to command.client,
+            "expiresAt" to expiry.toString(),
+            "issued" to true,
         )
     }
 
@@ -216,9 +219,15 @@ data class ConnectorOperatorCommand(
             require(
                 values.size == args.size &&
                     values.keys.all {
-                        it in setOf(
-                            "--command", "--account", "--client", "--output", "--credential-id", "--ttl-seconds",
-                        )
+                        it in
+                            setOf(
+                                "--command",
+                                "--account",
+                                "--client",
+                                "--output",
+                                "--credential-id",
+                                "--ttl-seconds",
+                            )
                     },
             )
             return ConnectorOperatorCommand(

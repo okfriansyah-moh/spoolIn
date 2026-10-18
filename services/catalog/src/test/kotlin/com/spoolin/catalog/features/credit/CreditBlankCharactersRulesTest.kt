@@ -27,7 +27,8 @@ class CreditBlankCharactersRulesTest {
         val mixed = request(listOf("\u00a0", " ABC ", "\t ", "Name"))
         assertEquals(listOf("ABC", "Name"), CreditValidation.validateCreate(mixed, policy).characters)
         assertEquals(
-            emptyList<String>(), CreditValidation.validateCreate(request(listOf("", "\u00a0\t ")), policy).characters,
+            emptyList<String>(),
+            CreditValidation.validateCreate(request(listOf("", "\u00a0\t ")), policy).characters,
         )
         val result = CreditValidation.validateCreate(request(listOf("e\u0301x")), policy)
         assertEquals(listOf("e\u0301x"), result.characters)

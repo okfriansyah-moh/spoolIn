@@ -51,9 +51,12 @@ class PolicyGraphql(
         views.artwork?.bind(wiring)
         views.lifecycle?.bind(wiring)
         views.drafts?.bind(wiring)
-        val definitions = EffectiveReadDefaults.apply(
-            SchemaParser().parse(schema), com.spoolin.support.policy.ReadPolicy(provider.policy),
-        )
+        val definitions =
+            EffectiveReadDefaults.apply(
+                SchemaParser().parse(schema),
+                com.spoolin.support.policy
+                    .ReadPolicy(provider.policy),
+            )
         val executable = SchemaGenerator().makeExecutableSchema(definitions, wiring.build())
         engine = GraphQL.newGraphQL(executable).build()
     }
@@ -81,15 +84,16 @@ class PolicyGraphql(
             else -> "UNAVAILABLE"
         }
 
-    private fun grpcFailureCode(failure: io.grpc.StatusRuntimeException): String = when (failure.status.code) {
-        io.grpc.Status.Code.INVALID_ARGUMENT -> "FIELD_INVALID"
-        io.grpc.Status.Code.UNAUTHENTICATED -> "UNAUTHENTICATED"
-        io.grpc.Status.Code.PERMISSION_DENIED -> "FORBIDDEN"
-        io.grpc.Status.Code.NOT_FOUND -> "NOT_FOUND"
-        io.grpc.Status.Code.RESOURCE_EXHAUSTED -> "RESOURCE_EXHAUSTED"
-        io.grpc.Status.Code.DEADLINE_EXCEEDED -> "DEADLINE_EXCEEDED"
-        else -> "UNAVAILABLE"
-    }
+    private fun grpcFailureCode(failure: io.grpc.StatusRuntimeException): String =
+        when (failure.status.code) {
+            io.grpc.Status.Code.INVALID_ARGUMENT -> "FIELD_INVALID"
+            io.grpc.Status.Code.UNAUTHENTICATED -> "UNAUTHENTICATED"
+            io.grpc.Status.Code.PERMISSION_DENIED -> "FORBIDDEN"
+            io.grpc.Status.Code.NOT_FOUND -> "NOT_FOUND"
+            io.grpc.Status.Code.RESOURCE_EXHAUSTED -> "RESOURCE_EXHAUSTED"
+            io.grpc.Status.Code.DEADLINE_EXCEEDED -> "DEADLINE_EXCEEDED"
+            else -> "UNAVAILABLE"
+        }
 
     private fun failureDetails(errors: List<graphql.GraphQLError>): Map<String, Any?> {
         val exception = errors.filterIsInstance<graphql.ExceptionWhileDataFetching>().firstOrNull()?.exception

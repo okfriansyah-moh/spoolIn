@@ -9,8 +9,8 @@ import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.features.ratelimit.RateUnavailable
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.ReadPolicy
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
@@ -249,8 +249,7 @@ class ManagedCreditGraphql(
             .setPolicyRevision(policyRevision)
             .build()
 
-    private fun context(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun context(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 

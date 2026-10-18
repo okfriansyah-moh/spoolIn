@@ -29,32 +29,40 @@ private const val ROTATION_REFUSAL_EXIT = 4
 /** Protected operator command; results contain no key material, database addresses or exception messages. */
 fun main(args: Array<String>) {
     applyNormalizedLogLevel(System.getenv("LOG_LEVEL"), "core")
-    val code = try {
-        val operator = OperatorAccess.operatorIdentity()
-        val options = RotationCliOptions.parse(args, System.getenv("ROTATION_KEYS_FILE"))
-        val environment = StandardEnvironment()
-        ConfigDataEnvironmentPostProcessor.applyTo(environment)
-        executeRotation(options, environment, operator)
-    } catch (_: IllegalArgumentException) {
-        refusal("ROTATION_INPUT_OR_CONFIGURATION_INVALID")
-    } catch (_: java.io.IOException) {
-        refusal("ROTATION_PROTECTED_INPUT_UNAVAILABLE")
-    } catch (_: java.sql.SQLException) {
-        refusal("ROTATION_DATABASE_UNAVAILABLE")
-    } catch (_: java.security.GeneralSecurityException) {
-        refusal("ROTATION_CRYPTO_UNAVAILABLE")
-    } catch (_: RuntimeException) {
-        // The process boundary must also redact framework/provider exceptions carrying connection or file details.
-        refusal("ROTATION_REFUSED")
-    }
+    val code =
+        try {
+            val operator = OperatorAccess.operatorIdentity()
+            val options = RotationCliOptions.parse(args, System.getenv("ROTATION_KEYS_FILE"))
+            val environment = StandardEnvironment()
+            ConfigDataEnvironmentPostProcessor.applyTo(environment)
+            executeRotation(options, environment, operator)
+        } catch (_: IllegalArgumentException) {
+            refusal("ROTATION_INPUT_OR_CONFIGURATION_INVALID")
+        } catch (_: java.io.IOException) {
+            refusal("ROTATION_PROTECTED_INPUT_UNAVAILABLE")
+        } catch (_: java.sql.SQLException) {
+            refusal("ROTATION_DATABASE_UNAVAILABLE")
+        } catch (_: java.security.GeneralSecurityException) {
+            refusal("ROTATION_CRYPTO_UNAVAILABLE")
+        } catch (_: RuntimeException) {
+            // The process boundary must also redact framework/provider exceptions carrying connection or file details.
+            refusal("ROTATION_REFUSED")
+        }
     if (code != 0) exitProcess(code)
 }
 
-private fun executeRotation(options: RotationCliOptions, environment: ConfigurableEnvironment, operator: String): Int {
+private fun executeRotation(
+    options: RotationCliOptions,
+    environment: ConfigurableEnvironment,
+    operator: String,
+): Int {
     val configured = Path.of(environment.getRequiredProperty("ROTATION_KEYS_FILE"))
     require(Files.isSameFile(configured, options.keys)) { "Use the application's configured rotation map" }
-    val settings = Binder.get(environment)
-        .bind("spoolin.account-protection", Bindable.of(AccountProtectionSettings::class.java)).get()
+    val settings =
+        Binder
+            .get(environment)
+            .bind("spoolin.account-protection", Bindable.of(AccountProtectionSettings::class.java))
+            .get()
     return RotationKeys.load(configured).use { keys ->
         validateApplicationSettings(settings, keys, options)
         rotateWithDatabase(options, environment, operator, keys)
@@ -74,17 +82,29 @@ private fun rotateWithDatabase(
     environment: ConfigurableEnvironment,
     operator: String,
     keys: MountedKeys,
-): Int = DatabaseSettings.load(environment, "core", false).pool().use { pool ->
-    val result = rotate(pool, keys, options, operator)
-    printOutcome(result, options)
-    if (result.ok) 0 else 1
-}
+): Int =
+    DatabaseSettings.load(environment, "core", false).pool().use { pool ->
+        val result = rotate(pool, keys, options, operator)
+        printOutcome(result, options)
+        if (result.ok) 0 else 1
+    }
 
-private fun printOutcome(result: RotationOutcome, options: RotationCliOptions) {
-    println(JsonMapper.builder().build().writeValueAsString(mapOf(
-        "ok" to result.ok, "purpose" to options.purpose.name, "dryRun" to options.dryRun,
-        "backfilled" to result.backfilled, "remaining" to result.remaining, "message" to result.message,
-    )))
+private fun printOutcome(
+    result: RotationOutcome,
+    options: RotationCliOptions,
+) {
+    println(
+        JsonMapper.builder().build().writeValueAsString(
+            mapOf(
+                "ok" to result.ok,
+                "purpose" to options.purpose.name,
+                "dryRun" to options.dryRun,
+                "backfilled" to result.backfilled,
+                "remaining" to result.remaining,
+                "message" to result.message,
+            ),
+        ),
+    )
 }
 
 private fun rotate(
@@ -110,24 +130,39 @@ private fun rotate(
 }
 
 /** The mounted application registry must survive restart and agree with the reload map before WRITE activation. */
-internal fun validateApplicationMaterial(application: MountedKeys, rotation: MountedKeys, options: RotationCliOptions) {
+internal fun validateApplicationMaterial(
+    application: MountedKeys,
+    rotation: MountedKeys,
+    options: RotationCliOptions,
+) {
     listOf(options.from, options.to).forEach { id ->
         val actual = application.key(id, options.purpose) ?: error("Application material missing")
         try {
             compareMaterial(actual, rotation, id, options.purpose)
-        } finally { actual.fill(0) }
+        } finally {
+            actual.fill(0)
+        }
     }
 }
 
-private fun compareMaterial(actual: ByteArray, rotation: MountedKeys, id: String, purpose: KeyPurpose) {
+private fun compareMaterial(
+    actual: ByteArray,
+    rotation: MountedKeys,
+    id: String,
+    purpose: KeyPurpose,
+) {
     val proposed = rotation.key(id, purpose) ?: error("Rotation material missing")
     try {
         check(MessageDigest.isEqual(actual, proposed)) { "Mounted material differs" }
-    } finally { proposed.fill(0) }
+    } finally {
+        proposed.fill(0)
+    }
 }
 
 private fun refusal(code: String): Int {
-    System.err.println("rotation: $code; verify operator authority, mounted source/target material, " +
-        "registration and database readiness")
+    System.err.println(
+        "rotation: $code; verify operator authority, mounted source/target material, " +
+            "registration and database readiness",
+    )
     return ROTATION_REFUSAL_EXIT
 }

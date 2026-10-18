@@ -61,8 +61,7 @@ class OwnerSpan internal constructor(
 ) {
     private val ended = AtomicBoolean()
 
-    fun <T> scoped(action: () -> T): T =
-        context.makeCurrent().use { invokeScoped(action) }
+    fun <T> scoped(action: () -> T): T = context.makeCurrent().use { invokeScoped(action) }
 
     private fun <T> invokeScoped(action: () -> T): T {
         var returned = false

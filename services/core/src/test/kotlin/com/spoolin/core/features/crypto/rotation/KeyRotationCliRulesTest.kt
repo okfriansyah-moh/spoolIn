@@ -21,9 +21,11 @@ class KeyRotationCliRulesTest {
 
     @Test
     fun `native options preserve real dry-run registration and bounded batch contracts`() {
-        val options = RotationCliOptions.parse(
-            valid + arrayOf("--dry-run", "--register-target", "--max-batches", "1"), map,
-        )
+        val options =
+            RotationCliOptions.parse(
+                valid + arrayOf("--dry-run", "--register-target", "--max-batches", "1"),
+                map,
+            )
         assertEquals(KeyPurpose.PII, options.purpose)
         assertTrue(options.dryRun)
         assertTrue(options.register)

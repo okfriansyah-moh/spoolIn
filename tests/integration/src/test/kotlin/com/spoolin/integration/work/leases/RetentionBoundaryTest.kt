@@ -68,10 +68,12 @@ class RetentionBoundaryTest {
             assertEquals(2, result.getValue("payloads"))
             assertEquals(0, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$old'"))
             assertEquals(
-                1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$recent' AND payload='{}'::jsonb"),
+                1,
+                scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$recent' AND payload='{}'::jsonb"),
             )
             assertEquals(
-                1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$fresh' AND payload<>'{}'::jsonb"),
+                1,
+                scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$fresh' AND payload<>'{}'::jsonb"),
             )
             assertEquals(
                 1,
@@ -97,7 +99,8 @@ class RetentionBoundaryTest {
             assertEquals(0, maintenance.daily().getValue("work"))
             for (id in listOf(sibling, blocked, waiting, uncertain, unmatched)) {
                 assertEquals(
-                    1, scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$id' AND payload<>'{}'::jsonb"),
+                    1,
+                    scalar(pool, "SELECT count(*) FROM durable_work WHERE id='$id' AND payload<>'{}'::jsonb"),
                 )
             }
             assertEquals(3, count(pool, "operational_event"))

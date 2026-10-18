@@ -67,7 +67,10 @@ class ArtworkFlowBoundaryTest {
         val transport = ScopedActorTest()
         val server =
             transport.server(
-                proof.root, "catalog", rpc(handler), com.spoolin.catalog.ServiceIdentityInterceptor(actors),
+                proof.root,
+                "catalog",
+                rpc(handler),
+                com.spoolin.catalog.ServiceIdentityInterceptor(actors),
             )
         val channel = transport.channel(proof.root, "core", "catalog", server.port)
         try {
@@ -100,7 +103,8 @@ class ArtworkFlowBoundaryTest {
         val operation = UUID.randomUUID()
         val correlation = UUID.randomUUID()
         val request =
-            Spoolin.Hold.newBuilder()
+            Spoolin.Hold
+                .newBuilder()
                 .setContext(context(operation, correlation).setPolicyRevision("policy"))
                 .setHoldId(operation.toString())
                 .setTitleId(title.toString())
@@ -125,22 +129,26 @@ class ArtworkFlowBoundaryTest {
         pool.connection.use { connection ->
             assertEquals(
                 0L,
-                connection.queryBound("SELECT version FROM title WHERE id=?", listOf(title)) {
-                    it.getLong("version")
-                }.single(),
+                connection
+                    .queryBound("SELECT version FROM title WHERE id=?", listOf(title)) {
+                        it.getLong("version")
+                    }.single(),
             )
             assertEquals(
                 "PREPARING",
-                connection.queryBound("SELECT state FROM artwork_attachment_request WHERE id=?", listOf(operation)) {
-                    it.getString("state")
-                }.single(),
+                connection
+                    .queryBound("SELECT state FROM artwork_attachment_request WHERE id=?", listOf(operation)) {
+                        it.getString("state")
+                    }.single(),
             )
             assertEquals(
                 1,
-                connection.queryBound(
-                    "SELECT count(*) AS total FROM durable_work WHERE operation_id=? AND kind='ARTWORK_ATTACH'",
-                    listOf(operation),
-                ) { it.getInt("total") }.single(),
+                connection
+                    .queryBound(
+                        "SELECT count(*) AS total FROM durable_work WHERE operation_id=? AND kind='ARTWORK_ATTACH'",
+                        listOf(operation),
+                    ) { it.getInt("total") }
+                    .single(),
             )
         }
     }
@@ -153,7 +161,8 @@ class ArtworkFlowBoundaryTest {
         val cancellation = UUID.randomUUID()
         val correlation = UUID.randomUUID()
         val cancel =
-            Spoolin.CancelArtworkRequest.newBuilder()
+            Spoolin.CancelArtworkRequest
+                .newBuilder()
                 .setContext(context(cancellation, correlation))
                 .setUploadOperationId(operation.toString())
                 .build()
@@ -171,7 +180,10 @@ class ArtworkFlowBoundaryTest {
         operation: UUID,
         correlation: UUID,
     ): Spoolin.Context.Builder =
-        Spoolin.Context.newBuilder().setOperationId(operation.toString()).setCorrelationId(correlation.toString())
+        Spoolin.Context
+            .newBuilder()
+            .setOperationId(operation.toString())
+            .setCorrelationId(correlation.toString())
 
     private fun client(
         proof: SignedReceiptFixture,
@@ -187,7 +199,8 @@ class ArtworkFlowBoundaryTest {
                 correlationId = correlation,
             )
         val metadata = Metadata().apply { put(ActorRpc.metadata, proof.signer.sign(claims)) }
-        return CatalogServiceGrpc.newBlockingStub(channel)
+        return CatalogServiceGrpc
+            .newBlockingStub(channel)
             .withDeadlineAfter(5, TimeUnit.SECONDS)
             .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
     }

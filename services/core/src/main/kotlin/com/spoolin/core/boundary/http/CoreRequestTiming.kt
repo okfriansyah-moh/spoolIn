@@ -14,11 +14,18 @@ import jdk.jfr.StackTrace
 @StackTrace(false)
 internal class CoreRequestTiming : Event() {
     @JvmField var operation: String = ""
+
     @JvmField var outcome: String = ""
+
     @JvmField var code: String = ""
+
     @JvmField var durationNanos: Long = 0
 
-    fun complete(root: String, result: LogicalResult, startedNanos: Long) {
+    fun complete(
+        root: String,
+        result: LogicalResult,
+        startedNanos: Long,
+    ) {
         end()
         if (root !in OPERATIONS) return
         operation = root

@@ -7,8 +7,8 @@ import com.spoolin.support.notifications.NotificationResult
 import com.spoolin.support.notifications.NotificationSettings
 import com.spoolin.support.notifications.NotificationStore
 import com.spoolin.support.notifications.NotificationTransport
-import com.spoolin.support.notifications.SmtpEndpoint
 import com.spoolin.support.notifications.SmtpCredentials
+import com.spoolin.support.notifications.SmtpEndpoint
 import com.spoolin.support.notifications.SmtpTransport
 import com.spoolin.support.notifications.WebhookTransport
 import com.spoolin.support.receipts.executeBound
@@ -210,7 +210,8 @@ class NotificationBoundaryTest {
         if (mode == "smtp") {
             SmtpTransport(
                 SmtpEndpoint("localhost", server.port, "implicit", "ops@example.invalid", "fixed@example.invalid"),
-                SmtpCredentials(null, null), ssl,
+                SmtpCredentials(null, null),
+                ssl,
             )
         } else {
             WebhookTransport(mode, URI("https://localhost:${server.port}/fixed"), setOf("localhost"), ssl)

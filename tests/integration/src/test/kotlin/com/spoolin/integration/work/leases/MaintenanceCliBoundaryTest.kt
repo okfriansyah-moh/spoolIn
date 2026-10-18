@@ -118,9 +118,18 @@ class MaintenanceCliBoundaryTest {
     ) {
         fixture.pool(owner, "migrator").use { source ->
             when (owner) {
-                "core" -> com.spoolin.core.MigrationRunner(source).migrate()
-                "catalog" -> com.spoolin.catalog.MigrationRunner(source).migrate()
-                "media" -> com.spoolin.media.MigrationRunner(source).migrate()
+                "core" ->
+                    com.spoolin.core
+                        .MigrationRunner(source)
+                        .migrate()
+                "catalog" ->
+                    com.spoolin.catalog
+                        .MigrationRunner(source)
+                        .migrate()
+                "media" ->
+                    com.spoolin.media
+                        .MigrationRunner(source)
+                        .migrate()
             }
         }
     }

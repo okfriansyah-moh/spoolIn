@@ -30,7 +30,12 @@ internal object ProtectedNotificationSecret {
         }
 
     private fun decode(buffer: ByteBuffer): String {
-        val value = Charsets.UTF_8.newDecoder().decode(buffer).toString().trimEnd('\n', '\r')
+        val value =
+            Charsets.UTF_8
+                .newDecoder()
+                .decode(buffer)
+                .toString()
+                .trimEnd('\n', '\r')
         require(value.isNotEmpty() && value.none(Char::isISOControl))
         return value
     }

@@ -67,9 +67,7 @@ internal object DiagnosticEvents {
             else -> origin(logger)
         }
 
-    private fun failure(first: IThrowableProxy?): KnownFailure? {
-        return first?.let(::causedFailure)
-    }
+    private fun failure(first: IThrowableProxy?): KnownFailure? = first?.let(::causedFailure)
 
     private fun causedFailure(first: IThrowableProxy): KnownFailure {
         var current = first

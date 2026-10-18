@@ -30,7 +30,11 @@ class AlertRecorder(
         return inserted
     }
 
-    private fun recordTransaction(connection: Connection, episodes: List<AlertEpisode>, policy: AlertPolicy): Int {
+    private fun recordTransaction(
+        connection: Connection,
+        episodes: List<AlertEpisode>,
+        policy: AlertPolicy,
+    ): Int {
         var committed = false
         try {
             connection.createStatement().use {

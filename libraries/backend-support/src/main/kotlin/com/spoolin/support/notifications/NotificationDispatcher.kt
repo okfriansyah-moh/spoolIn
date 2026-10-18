@@ -60,6 +60,7 @@ class NotificationDispatcher(
         executor.shutdown()
         if (!executor.awaitTermination(SHUTDOWN_SECONDS, TimeUnit.SECONDS)) executor.shutdownNow()
     }
+
     companion object {
         private const val POLL_MS = 250L
         private const val SHUTDOWN_SECONDS = 15L

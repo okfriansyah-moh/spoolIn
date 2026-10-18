@@ -25,7 +25,12 @@ class ImpactSnapshot private constructor(
     val impactVersion: Long get() = subject.impactVersion
     val status: String get() = subject.status
 
-    private data class Subject(val person: UUID, val version: Long, val impactVersion: Long, val status: String)
+    private data class Subject(
+        val person: UUID,
+        val version: Long,
+        val impactVersion: Long,
+        val status: String,
+    )
 
     fun digest(): ByteArray = fingerprint.copyOf()
 
@@ -79,7 +84,11 @@ class ImpactSnapshot private constructor(
             return accumulator.finish()
         }
 
-        private fun accumulate(statement: PreparedStatement, accumulator: Accumulator, deadline: Long) {
+        private fun accumulate(
+            statement: PreparedStatement,
+            accumulator: Accumulator,
+            deadline: Long,
+        ) {
             statement.executeQuery().use { rows ->
                 while (rows.next()) {
                     checkDeadline(deadline)
@@ -89,19 +98,25 @@ class ImpactSnapshot private constructor(
         }
 
         private fun checkDeadline(deadline: Long) {
-            if (io.grpc.Context.current().isCancelled) throw Status.CANCELLED.asRuntimeException()
+            if (io.grpc.Context
+                    .current()
+                    .isCancelled
+            ) {
+                throw Status.CANCELLED.asRuntimeException()
+            }
             if (System.nanoTime() >= deadline) throw Status.DEADLINE_EXCEEDED.asRuntimeException()
         }
 
-        private fun credit(rows: ResultSet): ImpactCredit = ImpactCredit(
-            rows.getObject("id", UUID::class.java),
-            rows.getLong("version"),
-            rows.getObject("title_id", UUID::class.java),
-            rows.getLong("title_version"),
-            rows.getString("display_title"),
-            rows.getString("kind"),
-            rows.getString("status"),
-        )
+        private fun credit(rows: ResultSet): ImpactCredit =
+            ImpactCredit(
+                rows.getObject("id", UUID::class.java),
+                rows.getLong("version"),
+                rows.getObject("title_id", UUID::class.java),
+                rows.getLong("title_version"),
+                rows.getString("display_title"),
+                rows.getString("kind"),
+                rows.getString("status"),
+            )
 
         private const val READ_SECONDS = 3L
         private const val FETCH_ROWS = 100

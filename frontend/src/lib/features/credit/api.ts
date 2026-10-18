@@ -58,74 +58,129 @@ function requiredText(value: unknown): string {
 }
 
 function creditVersion(value: unknown): string {
-  if (typeof value !== 'string' || !/^(0|[1-9][0-9]*)$/.test(value)) throw new Error('Credit version unavailable.');
-  if (BigInt(value) > 9223372036854775807n) throw new Error('Credit version unavailable.');
+  if (typeof value !== 'string' || !/^(0|[1-9][0-9]*)$/.test(value))
+    throw new Error('Credit version unavailable.');
+  if (BigInt(value) > 9223372036854775807n)
+    throw new Error('Credit version unavailable.');
   return value;
 }
 
 function mapRole(value: unknown): CreditRoleOption {
   const role = record(value);
-  if ((role.category !== 'CAST' && role.category !== 'CREATOR') || typeof role.allowsCharacters !== 'boolean')
+  if (
+    (role.category !== 'CAST' && role.category !== 'CREATOR') ||
+    typeof role.allowsCharacters !== 'boolean'
+  )
     throw new Error('Credit role unavailable.');
-  return Object.freeze({ id: uuid(role.id), label: requiredText(role.label), category: role.category,
-    allowsCharacters: role.allowsCharacters });
+  return Object.freeze({
+    id: uuid(role.id),
+    label: requiredText(role.label),
+    category: role.category,
+    allowsCharacters: role.allowsCharacters,
+  });
 }
 
 function mapCredit(node: Record<string, unknown>): ManagedCredit {
-  if (!Array.isArray(node.characters) || !node.characters.every((name) => typeof name === 'string'))
+  if (
+    !Array.isArray(node.characters) ||
+    !node.characters.every((name) => typeof name === 'string')
+  )
     throw new Error('Credit character names unavailable.');
-  return Object.freeze({ id: uuid(node.id), personId: uuid(node.personId), personName: requiredText(node.personName),
-    version: creditVersion(node.version), characters: Object.freeze([...node.characters]), role: mapRole(node.role) });
+  return Object.freeze({
+    id: uuid(node.id),
+    personId: uuid(node.personId),
+    personName: requiredText(node.personName),
+    version: creditVersion(node.version),
+    characters: Object.freeze([...node.characters]),
+    role: mapRole(node.role),
+  });
 }
 
 export async function fetchTitleCredits(
-  request: GraphqlRequest, titleId: string, csrf: string, signal?: AbortSignal,
+  request: GraphqlRequest,
+  titleId: string,
+  csrf: string,
+  signal?: AbortSignal,
 ): Promise<readonly ManagedCredit[]> {
-  return (await fetchTitleCreditsPage(request, titleId, csrf, null, signal)).nodes;
+  return (await fetchTitleCreditsPage(request, titleId, csrf, null, signal))
+    .nodes;
 }
 
 async function currentCreditPerson(
-  request: GraphqlRequest, id: string, csrf: string, signal?: AbortSignal,
+  request: GraphqlRequest,
+  id: string,
+  csrf: string,
+  signal?: AbortSignal,
 ): Promise<boolean | undefined> {
-  const data = record(await request(`query ManagedCreditPerson($id: UUID!) {
+  const data = record(
+    await request(
+      `query ManagedCreditPerson($id: UUID!) {
     managedPerson(id: $id) { id state }
-  }`, { id }, withCsrfAndSignal(csrf, signal)));
+  }`,
+      { id },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   if (data.managedPerson === null) return undefined;
   const person = record(data.managedPerson);
-  if (uuid(person.id) !== id) throw new Error('Current credit person identity unavailable.');
+  if (uuid(person.id) !== id)
+    throw new Error('Current credit person identity unavailable.');
   if (person.state === 'ACTIVE') return false;
   if (person.state === 'ARCHIVED') return true;
   throw new Error('Current credit person state unavailable.');
 }
 
 async function withCurrentPeople(
-  request: GraphqlRequest, nodes: readonly ManagedCredit[], csrf: string, signal?: AbortSignal,
+  request: GraphqlRequest,
+  nodes: readonly ManagedCredit[],
+  csrf: string,
+  signal?: AbortSignal,
 ): Promise<readonly ManagedCredit[]> {
   const states = new Map<string, boolean | undefined>();
   for (const id of new Set(nodes.map((credit) => credit.personId))) {
     if (signal?.aborted) throw new Error('Credit reference read cancelled.');
-    try { states.set(id, await currentCreditPerson(request, id, csrf, signal)); }
-    catch (error) {
-      if (error instanceof TransportFailure && error.code === 'RATE_LIMITED') throw error;
+    try {
+      states.set(id, await currentCreditPerson(request, id, csrf, signal));
+    } catch (error) {
+      if (error instanceof TransportFailure && error.code === 'RATE_LIMITED')
+        throw error;
       states.set(id, undefined);
     }
   }
   if (signal?.aborted) throw new Error('Credit reference read cancelled.');
-  return Object.freeze(nodes.map((credit) => {
-    const personArchived = states.get(credit.personId);
-    return Object.freeze({ ...credit, ...(personArchived === undefined ? {} : { personArchived }) });
-  }));
+  return Object.freeze(
+    nodes.map((credit) => {
+      const personArchived = states.get(credit.personId);
+      return Object.freeze({
+        ...credit,
+        ...(personArchived === undefined ? {} : { personArchived }),
+      });
+    }),
+  );
 }
 
 export async function fetchTitleCreditsPage(
-  request: GraphqlRequest, titleId: string, csrf: string, after: string | null, signal?: AbortSignal,
+  request: GraphqlRequest,
+  titleId: string,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
 ): Promise<PageSlice<ManagedCredit>> {
-  const data = record(await request(MANAGED_CREDITS, { titleId, after }, withCsrfAndSignal(csrf, signal)));
+  const data = record(
+    await request(
+      MANAGED_CREDITS,
+      { titleId, after },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   const page = record(data.managedCredits);
   if (!Array.isArray(page.nodes)) throw new Error('Credit data unavailable.');
   const pageInfo = readPageInfo(page.pageInfo, after);
   const nodes = page.nodes.map((node) => mapCredit(record(node)));
-  return Object.freeze({ nodes: await withCurrentPeople(request, nodes, csrf, signal), pageInfo });
+  return Object.freeze({
+    nodes: await withCurrentPeople(request, nodes, csrf, signal),
+    pageInfo,
+  });
 }
 
 export async function fetchCreditRoles(
@@ -135,9 +190,7 @@ export async function fetchCreditRoles(
   const data = record(await request(CREDIT_ROLES, {}, withSignal(signal)));
   const roles = data.creditRoles;
   if (!Array.isArray(roles)) throw new Error('Credit roles unavailable.');
-  return Object.freeze(
-    roles.map(mapRole),
-  );
+  return Object.freeze(roles.map(mapRole));
 }
 
 export async function fetchActivePeople(
@@ -302,7 +355,11 @@ export async function recoverCredit(
   operationId: string,
   csrf: string,
   signal: AbortSignal,
-): Promise<(IdentityOutcome & Readonly<{ resultId: string | null; version: string | null }>) | null> {
+): Promise<
+  | (IdentityOutcome &
+      Readonly<{ resultId: string | null; version: string | null }>)
+  | null
+> {
   const document = `query CreditOperation($id: UUID!) {
     operation(id: $id, owner: CATALOG) {
       id state resultId version resultExpired problem { code retryAfterMs }
@@ -319,7 +376,11 @@ export async function recoverCredit(
   const raw = record(data.operation);
   const receipt = operation(raw, operationId);
   const resultId = typeof raw.resultId === 'string' ? raw.resultId : null;
-  const version = typeof raw.version === 'string' && /^(0|[1-9][0-9]*)$/.test(raw.version) &&
-    BigInt(raw.version) <= 9223372036854775807n ? raw.version : null;
+  const version =
+    typeof raw.version === 'string' &&
+    /^(0|[1-9][0-9]*)$/.test(raw.version) &&
+    BigInt(raw.version) <= 9223372036854775807n
+      ? raw.version
+      : null;
   return Object.freeze({ ...receipt, resultId, version });
 }

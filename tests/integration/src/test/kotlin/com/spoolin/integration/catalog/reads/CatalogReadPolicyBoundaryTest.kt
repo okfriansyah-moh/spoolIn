@@ -57,7 +57,12 @@ class CatalogReadPolicyBoundaryTest {
             val seen = mutableListOf<String>()
             var after: String? = null
             repeat(5) {
-                val request = Search.newBuilder().setFirst(1).also { b -> after?.let { b.after = it } }.build()
+                val request =
+                    Search
+                        .newBuilder()
+                        .setFirst(1)
+                        .also { b -> after?.let { b.after = it } }
+                        .build()
                 val page = stub.searchTitles(request)
                 seen.add(page.nodesList.single().id)
                 after = page.endCursor
@@ -93,18 +98,22 @@ class CatalogReadPolicyBoundaryTest {
                 val next = fixture.managed("ManagedTitles").managedTitles(page(first.endCursor))
                 assertNotEquals(first.nodesList.single().id, next.nodesList.single().id)
                 invalid { fixture.managed("ManagedTitles").managedTitles(page(first.endCursor, "ARCHIVED")) }
-                val session = identity.fixture.pool.committed {
-                    identity.sessions.issue(it, identity.account, 0, null)
-                }
+                val session =
+                    identity.fixture.pool.committed {
+                        identity.sessions.issue(it, identity.account, 0, null)
+                    }
                 invalid { fixture.managed("ManagedTitles", session.principal.id).managedTitles(page(first.endCursor)) }
                 policy = configured("SEARCH_MAX_CODE_POINTS" to "3")
                 invalid { fixture.managed("ManagedTitles").managedTitles(page(first.endCursor)) }
                 identity.fixture.pool.committed {
                     identity.sessions.revoke(it, identity.issued.principal.id, identity.account)
                 }
-                assertEquals(Status.Code.PERMISSION_DENIED, assertThrows(StatusRuntimeException::class.java) {
-                    fixture.managed("ManagedTitles").managedTitles(page())
-                }.status.code)
+                assertEquals(
+                    Status.Code.PERMISSION_DENIED,
+                    assertThrows(StatusRuntimeException::class.java) {
+                        fixture.managed("ManagedTitles").managedTitles(page())
+                    }.status.code,
+                )
             }
         }
     }
@@ -117,7 +126,12 @@ class CatalogReadPolicyBoundaryTest {
                 val id = UUID.randomUUID()
                 fixture.pool.committed { it.executeBound("INSERT INTO person(id,name) VALUES(?,?)", id, name) }
                 val first = fixture.managed("ManagedPeople").managedPeople(page())
-                assertEquals(name, first.nodesList.single().values.name)
+                assertEquals(
+                    name,
+                    first.nodesList
+                        .single()
+                        .values.name,
+                )
                 val next = fixture.managed("ManagedPeople").managedPeople(page(first.endCursor))
                 assertEquals(fixture.person.toString(), next.nodesList.single().id)
                 invalid { fixture.managed("ManagedPeople").managedPeople(page("eA:$id")) }
@@ -131,26 +145,51 @@ class CatalogReadPolicyBoundaryTest {
         return (data["titles"] as Map<*, *>)["nodes"] as List<*>
     }
 
-    private fun page(after: String? = null, state: String = "ACTIVE"): PageRequest =
-        PageRequest.newBuilder().setState(state).also { b -> after?.let { b.after = it } }.build()
+    private fun page(
+        after: String? = null,
+        state: String = "ACTIVE",
+    ): PageRequest =
+        PageRequest
+            .newBuilder()
+            .setState(state)
+            .also { b -> after?.let { b.after = it } }
+            .build()
 
     private fun invalid(action: () -> Unit) {
         assertEquals(Status.Code.INVALID_ARGUMENT, assertThrows(StatusRuntimeException::class.java, action).status.code)
     }
 
-    private fun addTitle(fixture: PublicCatalogReadFixture, name: String, year: Int?, month: Int?, day: Int?): UUID =
+    private fun addTitle(
+        fixture: PublicCatalogReadFixture,
+        name: String,
+        year: Int?,
+        month: Int?,
+        day: Int?,
+    ): UUID =
         UUID.randomUUID().also { id ->
             fixture.pool.committed {
                 it.executeBound(
                     "INSERT INTO title(id,kind,display_title,synopsis,synopsis_language,release_year," +
                         "release_month,release_day) VALUES(?,'MOVIE',?,'Synthetic read fixture','en',?,?,?)",
-                    id, name, year, month, day,
+                    id,
+                    name,
+                    year,
+                    month,
+                    day,
                 )
             }
         }
 
-    private fun configured(vararg overrides: Pair<String, String>): PublicPolicy = PolicySettings.resolve(
-        ConfigurationSources(emptyMap(), mapOf("REQUEST_DEFAULT_PAGE" to "1", "REQUEST_MAX_PAGE" to "2",
-            "SEARCH_MIN_CODE_POINTS" to "2", "SEARCH_MAX_CODE_POINTS" to "4") + overrides),
-    )
+    private fun configured(vararg overrides: Pair<String, String>): PublicPolicy =
+        PolicySettings.resolve(
+            ConfigurationSources(
+                emptyMap(),
+                mapOf(
+                    "REQUEST_DEFAULT_PAGE" to "1",
+                    "REQUEST_MAX_PAGE" to "2",
+                    "SEARCH_MIN_CODE_POINTS" to "2",
+                    "SEARCH_MAX_CODE_POINTS" to "4",
+                ) + overrides,
+            ),
+        )
 }

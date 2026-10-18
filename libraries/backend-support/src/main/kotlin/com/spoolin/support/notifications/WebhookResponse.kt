@@ -17,7 +17,11 @@ internal object WebhookResponse {
     private const val MAX_BODY_BYTES = 8192
     private const val CHUNK_SIZE_RADIX = 16
 
-    fun read(input: InputStream, item: NotificationClaim, mode: String): NotificationResult {
+    fun read(
+        input: InputStream,
+        item: NotificationClaim,
+        mode: String,
+    ): NotificationResult {
         val line = boundedLine(input)
         val status = line.split(' ').getOrNull(1)?.toIntOrNull() ?: return unknown()
         val headers = headers(input, line.length)
@@ -30,20 +34,28 @@ internal object WebhookResponse {
         }
     }
 
-    private fun rateLimited(headers: Map<String, String>): NotificationResult = NotificationResult(
-        AttemptOutcome.TRANSIENT,
-        "NOTIFICATION_RATE_LIMITED",
-        retryAfterMs = (headers["retry-after"]?.toLongOrNull() ?: 1)
-            .coerceIn(1, MAX_RETRY_SECONDS) * MILLIS_PER_SECOND,
-    )
+    private fun rateLimited(headers: Map<String, String>): NotificationResult =
+        NotificationResult(
+            AttemptOutcome.TRANSIENT,
+            "NOTIFICATION_RATE_LIMITED",
+            retryAfterMs =
+                (headers["retry-after"]?.toLongOrNull() ?: 1)
+                    .coerceIn(1, MAX_RETRY_SECONDS) * MILLIS_PER_SECOND,
+        )
 
-    private fun accepted(body: ByteArray, item: NotificationClaim, mode: String): NotificationResult {
+    private fun accepted(
+        body: ByteArray,
+        item: NotificationClaim,
+        mode: String,
+    ): NotificationResult {
         val reference = if (mode == "slack") slackReference(body, item) else googleReference(body)
         return if (reference == null) unknown() else NotificationResult(AttemptOutcome.SUCCEEDED, reference = reference)
     }
 
-    private fun slackReference(body: ByteArray, item: NotificationClaim): String? =
-        if (body.toString(Charsets.UTF_8).trim() == "ok") "slack:http-200:${item.work.workId}" else null
+    private fun slackReference(
+        body: ByteArray,
+        item: NotificationClaim,
+    ): String? = if (body.toString(Charsets.UTF_8).trim() == "ok") "slack:http-200:${item.work.workId}" else null
 
     private fun googleReference(body: ByteArray): String? =
         mapper.readTree(body).path("name").asString().takeIf {

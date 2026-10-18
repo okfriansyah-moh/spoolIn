@@ -109,12 +109,22 @@ object MovieValidation {
                     policy.textBounds.getValue("originalTitle"),
                     "originalTitle",
                 ),
-            synopsis = patchText(
-                "values.synopsis", mask, v.synopsis, policy.textBounds.getValue("synopsis"), "synopsis",
-            ),
-            synopsisLanguage = patchLanguage(
-                "values.synopsis_language", mask, v.synopsisLanguage, false, "synopsisLanguage",
-            ),
+            synopsis =
+                patchText(
+                    "values.synopsis",
+                    mask,
+                    v.synopsis,
+                    policy.textBounds.getValue("synopsis"),
+                    "synopsis",
+                ),
+            synopsisLanguage =
+                patchLanguage(
+                    "values.synopsis_language",
+                    mask,
+                    v.synopsisLanguage,
+                    false,
+                    "synopsisLanguage",
+                ),
             originalLanguage =
                 patchLanguage(
                     "values.original_language",
@@ -166,8 +176,7 @@ object MovieValidation {
         }
     }
 
-    private fun country(raw: String): String =
-        StructuralRules.country(TextRules.ordinary(raw, BCP47_BOUND, "countries"))
+    private fun country(raw: String): String = StructuralRules.country(TextRules.ordinary(raw, BCP47_BOUND, "countries"))
 
     private fun patchLanguage(
         path: String,

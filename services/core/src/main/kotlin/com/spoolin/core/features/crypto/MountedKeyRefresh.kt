@@ -14,13 +14,21 @@ private const val MAX_RELOAD_VERSIONS = 64
 internal object MountedKeyRefresh {
     fun read(file: Path): Map<String, KeyMount> {
         requireProtectedFile(file, RELOAD_CONFIGURATION_BYTES)
-        val root = JsonMapper.builder()
-            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .build().readTree(Files.readAllBytes(file))
+        val root =
+            JsonMapper
+                .builder()
+                .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .build()
+                .readTree(Files.readAllBytes(file))
         require(root.isObject && root.size() in 2..MAX_RELOAD_VERSIONS)
         return root.properties().associate { entry ->
-            require(entry.value.properties().map { it.key }.toSet() == setOf("purpose", "file"))
+            require(
+                entry.value
+                    .properties()
+                    .map { it.key }
+                    .toSet() == setOf("purpose", "file"),
+            )
             val path = Path.of(entry.value["file"].asString()).also { require(it.isAbsolute) }
             entry.key to KeyMount(KeyPurpose.valueOf(entry.value["purpose"].asString()), path)
         }

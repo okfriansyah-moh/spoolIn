@@ -20,17 +20,32 @@ export class PersonListController {
     const generation = ++this.generation;
     this.publish({ kind: 'loading' });
     try {
-      const page = await fetchManagedPeoplePage(this.request, csrf, null, signal);
+      const page = await fetchManagedPeoplePage(
+        this.request,
+        csrf,
+        null,
+        signal,
+      );
       if (signal.aborted || generation !== this.generation) return;
-      this.publish({ kind: 'ready', people: page.nodes, pageInfo: page.pageInfo });
+      this.publish({
+        kind: 'ready',
+        people: page.nodes,
+        pageInfo: page.pageInfo,
+      });
     } catch {
       if (signal.aborted || generation !== this.generation) return;
       this.publish({ kind: 'failure' });
     }
   }
 
-  private pageReady(state: ListState): state is Extract<ListState, { kind: 'ready' }> & { pageInfo: PageInfo } {
-    return state.kind === 'ready' && !state.loadingMore && !!state.pageInfo?.hasNextPage;
+  private pageReady(
+    state: ListState,
+  ): state is Extract<ListState, { kind: 'ready' }> & { pageInfo: PageInfo } {
+    return (
+      state.kind === 'ready' &&
+      !state.loadingMore &&
+      !!state.pageInfo?.hasNextPage
+    );
   }
 
   async loadMore(csrf: string, signal: AbortSignal): Promise<void> {
@@ -39,12 +54,26 @@ export class PersonListController {
     const generation = this.generation;
     this.publish({ ...current, loadingMore: true, pageError: null });
     try {
-      const page = await fetchManagedPeoplePage(this.request, csrf, current.pageInfo.endCursor, signal);
+      const page = await fetchManagedPeoplePage(
+        this.request,
+        csrf,
+        current.pageInfo.endCursor,
+        signal,
+      );
       if (signal.aborted || generation !== this.generation) return;
-      this.publish({ ...current, people: appendDistinct(current.people, page.nodes), pageInfo: page.pageInfo, loadingMore: false });
+      this.publish({
+        ...current,
+        people: appendDistinct(current.people, page.nodes),
+        pageInfo: page.pageInfo,
+        loadingMore: false,
+      });
     } catch {
       if (!signal.aborted && generation === this.generation)
-        this.publish({ ...current, loadingMore: false, pageError: 'More people could not be loaded. Retry this page.' });
+        this.publish({
+          ...current,
+          loadingMore: false,
+          pageError: 'More people could not be loaded. Retry this page.',
+        });
     }
   }
 

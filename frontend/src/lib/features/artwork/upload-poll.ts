@@ -12,8 +12,14 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
       reject(signal.reason ?? new DOMException('Aborted', 'AbortError'));
       return;
     }
-    const abort = () => { clearTimeout(timer); reject(signal.reason ?? new DOMException('Aborted', 'AbortError')); };
-    const timer = setTimeout(() => { signal.removeEventListener('abort', abort); resolve(); }, ms);
+    const abort = () => {
+      clearTimeout(timer);
+      reject(signal.reason ?? new DOMException('Aborted', 'AbortError'));
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
     signal.addEventListener('abort', abort, { once: true });
   });
 }
@@ -28,9 +34,15 @@ async function artworkPollStep(
   signal: AbortSignal,
   isCurrent: () => boolean,
 ): Promise<ArtworkPollStep> {
-  const data = record(await request(`query ArtworkOperation($id: UUID!) {
+  const data = record(
+    await request(
+      `query ArtworkOperation($id: UUID!) {
     operation(id: $id, owner: CATALOG) { id state resultId version resultExpired problem { code retryAfterMs } }
-  }`, { id: operationId }, { csrf, signal }));
+  }`,
+      { id: operationId },
+      { csrf, signal },
+    ),
+  );
   if (!isCurrent()) return 'stale';
   if (data.operation === null) return 'continue';
   const receipt = operation(data.operation, operationId);
@@ -45,24 +57,48 @@ async function artworkPollStep(
 
 function attachedVersion(value: unknown, titleId: string): bigint {
   const receipt = record(value);
-  if (receipt.resultId !== titleId || typeof receipt.version !== 'string' || !/^[1-9][0-9]*$/.test(receipt.version))
+  if (
+    receipt.resultId !== titleId ||
+    typeof receipt.version !== 'string' ||
+    !/^[1-9][0-9]*$/.test(receipt.version)
+  )
     throw new Error('Confirmed attachment binding unavailable.');
   return BigInt(receipt.version);
 }
 
-function currentAttachment(movie: Awaited<ReturnType<typeof fetchManagedMovie>>, committedVersion: bigint, titleId: string): ArtworkPollStep {
-  if (!movie || movie.id !== titleId || movie.state !== 'ACTIVE') return 'failure';
-  return movie.artworkUrl && BigInt(movie.version) >= committedVersion ? 'success' : 'continue';
+function currentAttachment(
+  movie: Awaited<ReturnType<typeof fetchManagedMovie>>,
+  committedVersion: bigint,
+  titleId: string,
+): ArtworkPollStep {
+  if (!movie || movie.id !== titleId || movie.state !== 'ACTIVE')
+    return 'failure';
+  return movie.artworkUrl && BigInt(movie.version) >= committedVersion
+    ? 'success'
+    : 'continue';
 }
 
-function terminalPollFailure(step: ArtworkPollStep, onUpdate: (view: Partial<ArtworkUploadView>) => void): boolean {
+function terminalPollFailure(
+  step: ArtworkPollStep,
+  onUpdate: (view: Partial<ArtworkUploadView>) => void,
+): boolean {
   if (step === 'failure') {
-    onUpdate({ stage: 'failed', message: 'Upload failed', canCancel: false, canResumeCheck: false });
+    onUpdate({
+      stage: 'failed',
+      message: 'Upload failed',
+      canCancel: false,
+      canResumeCheck: false,
+    });
     return true;
   }
   if (step === 'expired') {
-    onUpdate({ stage: 'uncertain', message: 'The original upload result expired. Inspect the current movie before further changes.',
-      canCancel: false, canResumeCheck: true });
+    onUpdate({
+      stage: 'uncertain',
+      message:
+        'The original upload result expired. Inspect the current movie before further changes.',
+      canCancel: false,
+      canResumeCheck: true,
+    });
     return true;
   }
   return false;

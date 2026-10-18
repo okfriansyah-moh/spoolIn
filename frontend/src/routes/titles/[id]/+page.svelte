@@ -15,7 +15,10 @@
   import { resolve } from '$app/paths';
   import { createTransport } from '../../../lib/transport/graphql';
   import { readPageInfo, appendDistinct } from '../../../lib/state/pagination';
-  import { fetchTitle, fetchTitleCredits } from '../../../lib/features/catalog/api';
+  import {
+    fetchTitle,
+    fetchTitleCredits,
+  } from '../../../lib/features/catalog/api';
   import { formatReleaseDate } from '../../../lib/features/catalog/filter';
   import ArtworkSlot from '../../../lib/components/ArtworkSlot.svelte';
   import type { CatalogTitleDetail } from '../../../lib/features/catalog/api';
@@ -33,12 +36,18 @@
   let active: AbortController | null = null;
   let loadingCredits = $state(false);
   let creditError = $state('');
-  onMount(() => { mounted = true; return () => active?.abort(); });
-  $effect(() => { if (mounted) loadTitle(page.params.id); });
+  onMount(() => {
+    mounted = true;
+    return () => active?.abort();
+  });
+  $effect(() => {
+    if (mounted) loadTitle(page.params.id);
+  });
 
   function loadTitle(rawId: string | undefined) {
     active?.abort();
-    loadingCredits = false; creditError = '';
+    loadingCredits = false;
+    creditError = '';
     titleState = { kind: 'loading' };
     if (!isRecordId(rawId)) {
       titleState = { kind: 'unavailable', id: rawId ?? '' };
@@ -64,23 +73,41 @@
         void err;
         titleState = { kind: 'failure' };
       });
-
   }
 
   async function moreCredits() {
     const current = titleState;
-    if (loadingCredits || (current.kind !== 'movie' && current.kind !== 'tv')) return;
+    if (loadingCredits || (current.kind !== 'movie' && current.kind !== 'tv'))
+      return;
     const after = current.title.credits.pageInfo.endCursor;
     if (!after || !active) return;
     const signal = active.signal;
-    loadingCredits = true; creditError = '';
+    loadingCredits = true;
+    creditError = '';
     try {
-      const next = await fetchTitleCredits(createTransport(), current.title.id, after, signal);
+      const next = await fetchTitleCredits(
+        createTransport(),
+        current.title.id,
+        after,
+        signal,
+      );
       if (signal.aborted) return;
-      titleState = { ...current, title: { ...current.title, credits: {
-        nodes: [...appendDistinct(current.title.credits.nodes, next.nodes)], pageInfo: readPageInfo(next.pageInfo, after) } } };
-    } catch { if (!signal.aborted) creditError = 'More credits could not be loaded. Retry this page.'; }
-    finally { if (!signal.aborted) loadingCredits = false; }
+      titleState = {
+        ...current,
+        title: {
+          ...current.title,
+          credits: {
+            nodes: [...appendDistinct(current.title.credits.nodes, next.nodes)],
+            pageInfo: readPageInfo(next.pageInfo, after),
+          },
+        },
+      };
+    } catch {
+      if (!signal.aborted)
+        creditError = 'More credits could not be loaded. Retry this page.';
+    } finally {
+      if (!signal.aborted) loadingCredits = false;
+    }
   }
 
   function formatRuntime(minutes: number | null): string {
@@ -135,7 +162,9 @@
   <div role="alert" class="failure">
     <h1 tabindex="-1">Could not load title</h1>
     <p>The title could not be loaded. Please try again.</p>
-    <button type="button" onclick={() => loadTitle(page.params.id)}>Retry title</button>
+    <button type="button" onclick={() => loadTitle(page.params.id)}
+      >Retry title</button
+    >
     <a href={resolve('/')}>Return to catalog</a>
   </div>
 {:else if titleState.kind === 'movie'}
@@ -340,7 +369,11 @@
 
 {#if titleState.kind === 'movie' || titleState.kind === 'tv'}
   {#if creditError}<p role="alert">{creditError}</p>{/if}
-  {#if titleState.title.credits.pageInfo.hasNextPage}<button type="button" disabled={loadingCredits} onclick={() => void moreCredits()}>
-    {creditError ? 'Retry more credits' : 'Load more credits'}
-  </button>{/if}
+  {#if titleState.title.credits.pageInfo.hasNextPage}<button
+      type="button"
+      disabled={loadingCredits}
+      onclick={() => void moreCredits()}
+    >
+      {creditError ? 'Retry more credits' : 'Load more credits'}
+    </button>{/if}
 {/if}

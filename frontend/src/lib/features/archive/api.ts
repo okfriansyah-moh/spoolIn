@@ -67,28 +67,43 @@ const PERSON_LIFECYCLE = `mutation PersonLifecycle(
 export type ArchiveRow = ArchiveListItem;
 
 export async function fetchArchived(
-  request: GraphqlRequest, tab: ArchiveTab, csrf: string, signal?: AbortSignal,
+  request: GraphqlRequest,
+  tab: ArchiveTab,
+  csrf: string,
+  signal?: AbortSignal,
 ): Promise<readonly ArchiveRow[]> {
   return (await fetchArchivedPage(request, tab, csrf, null, signal)).nodes;
 }
 
 function archiveRow(node: unknown, tab: ArchiveTab): ArchiveRow {
   const row = record(node);
-  return Object.freeze({ id: String(row.id), label: String(tab === 'movies' ? row.title : row.name),
-    state: String(row.state), version: String(row.version) });
+  return Object.freeze({
+    id: String(row.id),
+    label: String(tab === 'movies' ? row.title : row.name),
+    state: String(row.state),
+    version: String(row.version),
+  });
 }
 
 export async function fetchArchivedPage(
-  request: GraphqlRequest, tab: ArchiveTab, csrf: string, after: string | null, signal?: AbortSignal,
+  request: GraphqlRequest,
+  tab: ArchiveTab,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
 ): Promise<PageSlice<ArchiveRow>> {
   const query = tab === 'movies' ? ARCHIVED_TITLES : ARCHIVED_PEOPLE;
   const options: RequestOptions = { csrf };
   if (signal) options.signal = signal;
   const data = record(await request(query, { after }, options));
-  const page = record(tab === 'movies' ? data.managedTitles : data.managedPeople);
+  const page = record(
+    tab === 'movies' ? data.managedTitles : data.managedPeople,
+  );
   if (!Array.isArray(page.nodes)) throw new Error('Archives unavailable.');
-  return Object.freeze({ nodes: Object.freeze(page.nodes.map((node) => archiveRow(node, tab))),
-    pageInfo: readPageInfo(page.pageInfo, after) });
+  return Object.freeze({
+    nodes: Object.freeze(page.nodes.map((node) => archiveRow(node, tab))),
+    pageInfo: readPageInfo(page.pageInfo, after),
+  });
 }
 
 export async function fetchDeletionImpact(

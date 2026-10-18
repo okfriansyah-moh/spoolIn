@@ -12,12 +12,14 @@ class WorkPendingMetrics(
     dataSource: DataSource,
 ) {
     private val alertEpisodes: Counter =
-        Counter.builder("spoolin.alert.episodes")
+        Counter
+            .builder("spoolin.alert.episodes")
             .description("Recorded alert episodes")
             .register(registry)
 
     init {
-        Gauge.builder("spoolin.work.pending") { pendingDepth(dataSource).toDouble() }
+        Gauge
+            .builder("spoolin.work.pending") { pendingDepth(dataSource).toDouble() }
             .description("Durable work backlog depth")
             .register(registry)
     }

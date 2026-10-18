@@ -34,9 +34,10 @@ class PeopleCursor(
         now: Instant,
     ): String {
         val expiresAt = now.plusSeconds(CURSOR_TTL_SECONDS).epochSecond
-        val payload = mapper.writeValueAsBytes(
-            mapOf("n" to keyset.name, "u" to keyset.id.toString(), "s" to scopeHash, "e" to expiresAt),
-        )
+        val payload =
+            mapper.writeValueAsBytes(
+                mapOf("n" to keyset.name, "u" to keyset.id.toString(), "s" to scopeHash, "e" to expiresAt),
+            )
         val mac = mac(payload)
         val bytes = payload + mac
         require(bytes.size <= MAX_CURSOR_BYTES) { "People cursor exceeds 1024 bytes" }
@@ -89,12 +90,17 @@ class PeopleCursor(
         }
 
         private const val MAX_ENCODED_BYTES = 1368
-        private val mapper = tools.jackson.databind.json.JsonMapper.builder()
-            .enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-            .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .build()
+        private val mapper =
+            tools.jackson.databind.json.JsonMapper
+                .builder()
+                .enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+                .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .build()
 
-        private fun text(node: tools.jackson.databind.JsonNode, field: String): String {
+        private fun text(
+            node: tools.jackson.databind.JsonNode,
+            field: String,
+        ): String {
             require(node[field].isString)
             return node[field].asString()
         }

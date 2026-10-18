@@ -166,19 +166,36 @@ export async function cancelArtwork(
   return confirmedCancellation(result, operationId, uploadOperationId);
 }
 
-function confirmedCancellation(result: Record<string, unknown>, operationId: string, uploadOperationId: string): boolean {
+function confirmedCancellation(
+  result: Record<string, unknown>,
+  operationId: string,
+  uploadOperationId: string,
+): boolean {
   const receipt = operation(result.operation, operationId);
-  const upload = result.uploadOperation === null ? null : operation(result.uploadOperation, uploadOperationId);
-  if (receipt.resultExpired || receipt.state === 'EXPIRED' || receipt.state === 'PENDING')
+  const upload =
+    result.uploadOperation === null
+      ? null
+      : operation(result.uploadOperation, uploadOperationId);
+  if (
+    receipt.resultExpired ||
+    receipt.state === 'EXPIRED' ||
+    receipt.state === 'PENDING'
+  )
     throw new TransportFailure('uncertain');
   if (receipt.state === 'FAILED') return false;
-  if (typeof result.cancelled !== 'boolean') throw new TransportFailure('uncertain');
+  if (typeof result.cancelled !== 'boolean')
+    throw new TransportFailure('uncertain');
   if (!result.cancelled) return false;
   return cancelledUpload(upload);
 }
 
 function cancelledUpload(upload: ReturnType<typeof operation> | null): boolean {
-  if (!upload || upload.resultExpired || upload.state !== 'FAILED' || upload.problem?.code !== 'CANCELLED')
+  if (
+    !upload ||
+    upload.resultExpired ||
+    upload.state !== 'FAILED' ||
+    upload.problem?.code !== 'CANCELLED'
+  )
     throw new TransportFailure('uncertain');
   return true;
 }

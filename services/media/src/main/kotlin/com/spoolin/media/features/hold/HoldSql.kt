@@ -85,7 +85,11 @@ object HoldSql {
         return inserted
     }
 
-    private fun validateReceipt(row: ResultSet, command: HoldCommand, inserted: Boolean) {
+    private fun validateReceipt(
+        row: ResultSet,
+        command: HoldCommand,
+        inserted: Boolean,
+    ) {
         requireScope(row, command)
         val compatible =
             row.getString("kind") == command.action.kind &&
@@ -100,7 +104,10 @@ object HoldSql {
         }
     }
 
-    private fun requireScope(row: ResultSet, command: HoldCommand) {
+    private fun requireScope(
+        row: ResultSet,
+        command: HoldCommand,
+    ) {
         if (row.getString("actor_scope") != command.scope) throw Status.NOT_FOUND.asRuntimeException()
     }
 

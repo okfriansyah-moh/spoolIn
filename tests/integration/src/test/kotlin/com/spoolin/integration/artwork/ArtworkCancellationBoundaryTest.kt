@@ -125,12 +125,14 @@ class ArtworkCancellationBoundaryTest {
                     ),
                 )
                 assertEquals(
-                    0, fixture.count("SELECT count(*) FROM catalog_audit_event WHERE operation_id=?", cancel.operation),
+                    0,
+                    fixture.count("SELECT count(*) FROM catalog_audit_event WHERE operation_id=?", cancel.operation),
                 )
                 assertEquals(
                     0,
                     fixture.count(
-                        "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload,
+                        "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'",
+                        upload,
                     ),
                 )
             }
@@ -153,8 +155,9 @@ class ArtworkCancellationBoundaryTest {
                 assertEquals(
                     0,
                     fixture.count(
-                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id,
-                ),
+                        "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'",
+                        upload.id,
+                    ),
                 )
             } finally {
                 fixture.auditFailure(false)
@@ -197,7 +200,8 @@ class ArtworkCancellationBoundaryTest {
             assertEquals(
                 if (cancelFirst) 1 else 0,
                 fixture.count(
-                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'", upload.id,
+                    "SELECT count(*) FROM durable_work WHERE operation_id=? AND kind='ARTWORK_RELEASE'",
+                    upload.id,
                 ),
             )
             assertEquals(

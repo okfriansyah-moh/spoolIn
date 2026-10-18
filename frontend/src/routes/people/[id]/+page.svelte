@@ -14,7 +14,11 @@
     fetchPerson,
     fetchPersonCredits,
   } from '../../../lib/features/person/read/api';
-  import { appendDistinct, readPageInfo, type PageInfo } from '../../../lib/state/pagination';
+  import {
+    appendDistinct,
+    readPageInfo,
+    type PageInfo,
+  } from '../../../lib/state/pagination';
   import { isRecordId } from '../../../lib/components/safe-url';
   import type {
     PublicPersonDetail,
@@ -38,11 +42,18 @@
   let active: AbortController | null = null;
   let loadingCredits = $state(false);
   let creditError = $state('');
-  onMount(() => { mounted = true; return () => active?.abort(); });
-  $effect(() => { if (mounted) loadPerson(page.params.id); });
+  onMount(() => {
+    mounted = true;
+    return () => active?.abort();
+  });
+  $effect(() => {
+    if (mounted) loadPerson(page.params.id);
+  });
 
   function loadPerson(id: string | undefined) {
-    active?.abort(); loadingCredits = false; creditError = '';
+    active?.abort();
+    loadingCredits = false;
+    creditError = '';
     pageState = { kind: 'loading' };
     if (!isRecordId(id)) {
       pageState = { kind: 'unavailable', id: id ?? '' };
@@ -76,7 +87,6 @@
         void err;
         pageState = { kind: 'failure' };
       });
-
   }
 
   async function moreCredits() {
@@ -85,13 +95,26 @@
     const after = current.pageInfo.endCursor;
     if (!after) return;
     const signal = active.signal;
-    loadingCredits = true; creditError = '';
+    loadingCredits = true;
+    creditError = '';
     try {
-      const next = await fetchPersonCredits(createTransport(), { id: current.person.id, after }, signal);
+      const next = await fetchPersonCredits(
+        createTransport(),
+        { id: current.person.id, after },
+        signal,
+      );
       if (signal.aborted) return;
-      pageState = { ...current, credits: [...appendDistinct(current.credits, next.nodes)], pageInfo: readPageInfo(next.pageInfo, after) };
-    } catch { if (!signal.aborted) creditError = 'More credits could not be loaded. Retry this page.'; }
-    finally { if (!signal.aborted) loadingCredits = false; }
+      pageState = {
+        ...current,
+        credits: [...appendDistinct(current.credits, next.nodes)],
+        pageInfo: readPageInfo(next.pageInfo, after),
+      };
+    } catch {
+      if (!signal.aborted)
+        creditError = 'More credits could not be loaded. Retry this page.';
+    } finally {
+      if (!signal.aborted) loadingCredits = false;
+    }
   }
 
   const documentTitle = $derived(
@@ -126,7 +149,9 @@
   <div role="alert" class="failure">
     <h1 tabindex="-1">Could not load person</h1>
     <p>The person could not be loaded. Please try again.</p>
-    <button type="button" onclick={() => loadPerson(page.params.id)}>Retry person</button>
+    <button type="button" onclick={() => loadPerson(page.params.id)}
+      >Retry person</button
+    >
     <a href={resolve('/people')}>Return to people</a>
   </div>
 {:else if pageState.kind === 'person'}
@@ -163,9 +188,13 @@
         </ul>
       {/if}
       {#if creditError}<p role="alert">{creditError}</p>{/if}
-      {#if pageState.pageInfo.hasNextPage}<button type="button" disabled={loadingCredits} onclick={() => void moreCredits()}>
-        {creditError ? 'Retry more credits' : 'Load more credits'}
-      </button>{/if}
+      {#if pageState.pageInfo.hasNextPage}<button
+          type="button"
+          disabled={loadingCredits}
+          onclick={() => void moreCredits()}
+        >
+          {creditError ? 'Retry more credits' : 'Load more credits'}
+        </button>{/if}
     </section>
   </article>
 {/if}

@@ -119,7 +119,11 @@ export class CatalogController {
   }
 
   private pageAvailable(current: CatalogState): boolean {
-    return current.kind === 'catalog' && !current.loadingMore && !!current.pageInfo?.hasNextPage;
+    return (
+      current.kind === 'catalog' &&
+      !current.loadingMore &&
+      !!current.pageInfo?.hasNextPage
+    );
   }
 
   async loadMore(): Promise<void> {
@@ -132,15 +136,30 @@ export class CatalogController {
     if (!filter) return;
     this.publish({ ...current, loadingMore: true, pageError: null });
     try {
-      const result = await fetchTitles(this.request,
-        { filter: filter as Parameters<typeof fetchTitles>[1]['filter'], after }, this.active?.signal);
+      const result = await fetchTitles(
+        this.request,
+        {
+          filter: filter as Parameters<typeof fetchTitles>[1]['filter'],
+          after,
+        },
+        this.active?.signal,
+      );
       if (generation !== this.generation) return;
       this.currentAfter = after;
-      this.publish({ ...current, titles: mapTitleNodes(result.nodes),
-        pageInfo: readPageInfo(result.pageInfo, after), loadingMore: false, pageError: null });
+      this.publish({
+        ...current,
+        titles: mapTitleNodes(result.nodes),
+        pageInfo: readPageInfo(result.pageInfo, after),
+        loadingMore: false,
+        pageError: null,
+      });
     } catch {
       if (generation === this.generation)
-        this.publish({ ...current, loadingMore: false, pageError: 'More titles could not be loaded. Retry this page.' });
+        this.publish({
+          ...current,
+          loadingMore: false,
+          pageError: 'More titles could not be loaded. Retry this page.',
+        });
     }
   }
 
@@ -150,7 +169,10 @@ export class CatalogController {
     this.listeners.clear();
   }
 
-  private async search(criteria: Criteria, after: string | null = null): Promise<void> {
+  private async search(
+    criteria: Criteria,
+    after: string | null = null,
+  ): Promise<void> {
     // Validate text before issuing a query
     const textCheck = validateText(criteria.text, MAX_SEARCH_CODE_POINTS);
     if (!textCheck.valid) {
@@ -180,7 +202,10 @@ export class CatalogController {
     try {
       const result = await fetchTitles(
         this.request,
-        { filter: input as Parameters<typeof fetchTitles>[1]['filter'], ...(after ? { after } : {}) },
+        {
+          filter: input as Parameters<typeof fetchTitles>[1]['filter'],
+          ...(after ? { after } : {}),
+        },
         signal,
       );
 

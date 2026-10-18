@@ -73,19 +73,33 @@ function toManaged(node: Record<string, unknown>): ManagedPerson {
 }
 
 export async function fetchManagedPeople(
-  request: GraphqlRequest, csrf: string, signal?: AbortSignal,
+  request: GraphqlRequest,
+  csrf: string,
+  signal?: AbortSignal,
 ): Promise<readonly PersonListRow[]> {
   return (await fetchManagedPeoplePage(request, csrf, null, signal)).nodes;
 }
 
 export async function fetchManagedPeoplePage(
-  request: GraphqlRequest, csrf: string, after: string | null, signal?: AbortSignal,
+  request: GraphqlRequest,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
 ): Promise<PageSlice<PersonListRow>> {
-  const data = record(await request(MANAGED_PEOPLE_QUERY, { state: 'ACTIVE', after }, withCsrfAndSignal(csrf, signal)));
+  const data = record(
+    await request(
+      MANAGED_PEOPLE_QUERY,
+      { state: 'ACTIVE', after },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   const page = record(data.managedPeople);
-  if (!Array.isArray(page.nodes)) throw new Error('Managed people unavailable.');
-  return Object.freeze({ nodes: Object.freeze(page.nodes.map((node) => toRow(record(node)))),
-    pageInfo: readPageInfo(page.pageInfo, after) });
+  if (!Array.isArray(page.nodes))
+    throw new Error('Managed people unavailable.');
+  return Object.freeze({
+    nodes: Object.freeze(page.nodes.map((node) => toRow(record(node)))),
+    pageInfo: readPageInfo(page.pageInfo, after),
+  });
 }
 
 export async function fetchManagedPerson(

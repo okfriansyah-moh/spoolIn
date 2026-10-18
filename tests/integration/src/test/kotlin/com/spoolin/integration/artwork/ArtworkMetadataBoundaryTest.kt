@@ -68,7 +68,10 @@ class ArtworkMetadataBoundaryTest {
             val wiring = RuntimeWiring.newRuntimeWiring()
             wiring.type("Title") { it.dataFetcher("credits") { "credits" } }
             ArtworkGraphql(
-                CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newStub(channel), null, reads = proxy,
+                CatalogServiceGrpc.newBlockingStub(channel),
+                MediaServiceGrpc.newStub(channel),
+                null,
+                reads = proxy,
             ).bind(wiring)
             assertTrue(
                 wiring
@@ -179,7 +182,9 @@ class ArtworkMetadataBoundaryTest {
         try {
             assertions(
                 ArtworkReadProxy(
-                    CatalogServiceGrpc.newBlockingStub(channel), MediaServiceGrpc.newBlockingStub(channel), null,
+                    CatalogServiceGrpc.newBlockingStub(channel),
+                    MediaServiceGrpc.newBlockingStub(channel),
+                    null,
                 ),
                 channel,
                 cancelled,

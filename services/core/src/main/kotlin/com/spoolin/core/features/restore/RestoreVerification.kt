@@ -43,7 +43,11 @@ object RestoreVerification {
         }
     }
 
-    private fun rows(source: DataSource, table: RestoredTable, after: UUID?): List<Row> {
+    private fun rows(
+        source: DataSource,
+        table: RestoredTable,
+        after: UUID?,
+    ): List<Row> {
         val predicate = if (after == null) "" else "WHERE id>? "
         val arguments = if (after == null) emptyList() else listOf(after)
         val prefix = table.prefix
@@ -122,7 +126,12 @@ object RestoreVerification {
         }
     }
 
-    private fun verifyAlias(keys: MountedKeys, email: String, key: String, stored: ByteArray) {
+    private fun verifyAlias(
+        keys: MountedKeys,
+        email: String,
+        key: String,
+        stored: ByteArray,
+    ) {
         val material = keys.key(key, KeyPurpose.EMAIL_LOOKUP) ?: error("Required lookup recovery key missing")
         try {
             val mac = Mac.getInstance("HmacSHA256")
@@ -138,7 +147,11 @@ object RestoreVerification {
         }
     }
 
-    private data class RestoredTable(val name: String, val prefix: String, val fields: String) {
+    private data class RestoredTable(
+        val name: String,
+        val prefix: String,
+        val fields: String,
+    ) {
         companion object {
             fun forPurpose(purpose: KeyPurpose): RestoredTable =
                 if (purpose == KeyPurpose.PII) {

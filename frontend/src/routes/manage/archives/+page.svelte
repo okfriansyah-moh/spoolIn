@@ -61,13 +61,24 @@
       return;
     }
     try {
-      const page = await fetchArchivedPage(createTransport(), selectedTab, csrf, null, activeList.signal);
+      const page = await fetchArchivedPage(
+        createTransport(),
+        selectedTab,
+        csrf,
+        null,
+        activeList.signal,
+      );
       if (!listCurrent(generation, signal)) return;
       const items = page.nodes;
       listState =
         items.length === 0
           ? { kind: 'empty' }
-          : { kind: 'ready', tab: selectedTab, items: [...items], pageInfo: page.pageInfo };
+          : {
+              kind: 'ready',
+              tab: selectedTab,
+              items: [...items],
+              pageInfo: page.pageInfo,
+            };
     } catch {
       if (!listCurrent(generation, signal)) return;
       listState = {
@@ -79,17 +90,41 @@
 
   onMount(() => {
     const abort = new AbortController();
-    void loadWriteContext(abort.signal).then((context) => {
-      if (abort.signal.aborted) return;
-      if (!context) { listState = { kind: 'denied' }; return; }
-      csrf = context.csrf;
-      void reload(abort.signal);
-    }).catch(() => { if (!abort.signal.aborted) listState = { kind: 'error', message: 'Archives could not be loaded. Reload this page to check your current session.' }; });
-    return () => { abort.abort(); activeList?.abort(); listGeneration += 1; };
+    void loadWriteContext(abort.signal)
+      .then((context) => {
+        if (abort.signal.aborted) return;
+        if (!context) {
+          listState = { kind: 'denied' };
+          return;
+        }
+        csrf = context.csrf;
+        void reload(abort.signal);
+      })
+      .catch(() => {
+        if (!abort.signal.aborted)
+          listState = {
+            kind: 'error',
+            message:
+              'Archives could not be loaded. Reload this page to check your current session.',
+          };
+      });
+    return () => {
+      abort.abort();
+      activeList?.abort();
+      listGeneration += 1;
+    };
   });
 
-  function archivePageReady(state: ArchiveListState): state is Extract<ArchiveListState, { kind: 'ready' }> & { pageInfo: PageInfo } {
-    return state.kind === 'ready' && !state.loadingMore && !!state.pageInfo?.hasNextPage;
+  function archivePageReady(
+    state: ArchiveListState,
+  ): state is Extract<ArchiveListState, { kind: 'ready' }> & {
+    pageInfo: PageInfo;
+  } {
+    return (
+      state.kind === 'ready' &&
+      !state.loadingMore &&
+      !!state.pageInfo?.hasNextPage
+    );
   }
 
   async function moreArchived() {
@@ -99,12 +134,27 @@
     const signal = activeList.signal;
     listState = { ...current, loadingMore: true, pageError: null };
     try {
-      const page = await fetchArchivedPage(createTransport(), current.tab, csrf, current.pageInfo.endCursor, signal);
+      const page = await fetchArchivedPage(
+        createTransport(),
+        current.tab,
+        csrf,
+        current.pageInfo.endCursor,
+        signal,
+      );
       if (generation !== listGeneration || signal.aborted) return;
-      listState = { ...current, items: appendDistinct(current.items, page.nodes), pageInfo: page.pageInfo, loadingMore: false };
+      listState = {
+        ...current,
+        items: appendDistinct(current.items, page.nodes),
+        pageInfo: page.pageInfo,
+        loadingMore: false,
+      };
     } catch {
       if (generation === listGeneration && !signal.aborted)
-        listState = { ...current, loadingMore: false, pageError: 'More archives could not be loaded. Retry this page.' };
+        listState = {
+          ...current,
+          loadingMore: false,
+          pageError: 'More archives could not be loaded. Retry this page.',
+        };
     }
   }
 
@@ -117,7 +167,9 @@
     if (busy || intent) return;
     const moves: Readonly<Record<string, ArchiveTab>> = {
       ArrowLeft: tab === 'movies' ? 'people' : 'movies',
-      ArrowRight: tab === 'movies' ? 'people' : 'movies', Home: 'movies', End: 'people',
+      ArrowRight: tab === 'movies' ? 'people' : 'movies',
+      Home: 'movies',
+      End: 'people',
     };
     const next = moves[event.key];
     if (!next) return;
@@ -276,7 +328,8 @@
     <button
       type="button"
       role="tab"
-      id="archives-tab-movies" aria-controls="archives-panel"
+      id="archives-tab-movies"
+      aria-controls="archives-panel"
       tabindex={tab === 'movies' ? 0 : -1}
       aria-selected={tab === 'movies'}
       disabled={busy || intent !== null}
@@ -288,7 +341,8 @@
     <button
       type="button"
       role="tab"
-      id="archives-tab-people" aria-controls="archives-panel"
+      id="archives-tab-people"
+      aria-controls="archives-panel"
       tabindex={tab === 'people' ? 0 : -1}
       aria-selected={tab === 'people'}
       disabled={busy || intent !== null}
@@ -299,40 +353,50 @@
     </button>
   </div>
 
-  <div id="archives-panel" role="tabpanel" aria-labelledby={`archives-tab-${tab}`} tabindex="0">
-  {#if listState.kind === 'loading'}
-    <p role="status">Loading archives…</p>
-  {:else if listState.kind === 'denied'}
-    <p role="alert">You do not have access to private archives.</p>
-  {:else if listState.kind === 'error'}
-    <p role="alert">{listState.message}</p>
-    {#if csrf}<button type="button" onclick={() => void reload()}>Retry archives</button>{/if}
-  {:else if listState.kind === 'empty'}
-    <p>No archived records in this view.</p>
-  {:else}
-    <ul>
-      {#each listState.items as item (item.id)}
-        <li>
-          <span>{item.label} · {item.state}</span>
-          <button
-            type="button"
-            disabled={busy || intent !== null}
-            onclick={() => restoreRow(item)}>Restore</button
-          >
-          <button
-            type="button"
-            disabled={busy || intent !== null}
-            onclick={() => openConfirm(item)}>Delete permanently</button
-          >
-        </li>
-      {/each}
-    </ul>
-    {#if listState.pageError}<p role="alert">{listState.pageError}</p>{/if}
-    {#if listState.pageInfo?.hasNextPage}<button type="button" disabled={listState.loadingMore || busy || !!intent} onclick={() => void moreArchived()}>
-      {listState.pageError ? 'Retry more archives' : 'Load more archives'}
-    </button>{/if}
-  {/if}
-
+  <div
+    id="archives-panel"
+    role="tabpanel"
+    aria-labelledby={`archives-tab-${tab}`}
+    tabindex="0"
+  >
+    {#if listState.kind === 'loading'}
+      <p role="status">Loading archives…</p>
+    {:else if listState.kind === 'denied'}
+      <p role="alert">You do not have access to private archives.</p>
+    {:else if listState.kind === 'error'}
+      <p role="alert">{listState.message}</p>
+      {#if csrf}<button type="button" onclick={() => void reload()}
+          >Retry archives</button
+        >{/if}
+    {:else if listState.kind === 'empty'}
+      <p>No archived records in this view.</p>
+    {:else}
+      <ul>
+        {#each listState.items as item (item.id)}
+          <li>
+            <span>{item.label} · {item.state}</span>
+            <button
+              type="button"
+              disabled={busy || intent !== null}
+              onclick={() => restoreRow(item)}>Restore</button
+            >
+            <button
+              type="button"
+              disabled={busy || intent !== null}
+              onclick={() => openConfirm(item)}>Delete permanently</button
+            >
+          </li>
+        {/each}
+      </ul>
+      {#if listState.pageError}<p role="alert">{listState.pageError}</p>{/if}
+      {#if listState.pageInfo?.hasNextPage}<button
+          type="button"
+          disabled={listState.loadingMore || busy || !!intent}
+          onclick={() => void moreArchived()}
+        >
+          {listState.pageError ? 'Retry more archives' : 'Load more archives'}
+        </button>{/if}
+    {/if}
   </div>
   <p role="status">{message}</p>
   {#if intent}

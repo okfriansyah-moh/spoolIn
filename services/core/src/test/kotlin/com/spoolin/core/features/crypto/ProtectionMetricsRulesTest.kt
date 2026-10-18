@@ -104,10 +104,12 @@ class ProtectionMetricsRulesTest {
         val invalidVersion = ProtectedEnvelope(2, valid.keyId, valid.nonce(), valid.cipher())
         assertSame(ProtectedRead.Unavailable, cipher.decrypt(invalidVersion, key, binding) { codes.add(it) })
         assertEquals(
-            listOf(ProtectionFailure.AUTHENTICATION, ProtectionFailure.KEY, ProtectionFailure.AUTHENTICATION), codes,
+            listOf(ProtectionFailure.AUTHENTICATION, ProtectionFailure.KEY, ProtectionFailure.AUTHENTICATION),
+            codes,
         )
         assertSame(
-            ProtectedRead.Unavailable, cipher.decrypt(corrupt, key, binding) { error("synthetic observer failure") },
+            ProtectedRead.Unavailable,
+            cipher.decrypt(corrupt, key, binding) { error("synthetic observer failure") },
         )
     }
 

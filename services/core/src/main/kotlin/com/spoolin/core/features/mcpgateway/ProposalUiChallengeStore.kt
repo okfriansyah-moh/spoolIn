@@ -44,29 +44,27 @@ class ProposalUiChallengeStore(
         revision: Int,
         contentHash: String,
         challenge: String,
-    ): Boolean {
-        return if (challenge.isBlank()) {
+    ): Boolean =
+        if (challenge.isBlank()) {
             false
         } else {
             val entry = liveEntry(proposalId, revision)
             entry != null && entry.contentHash == contentHash && constantTimeEquals(entry.challenge, challenge)
         }
-    }
 
     fun getChallenge(
         proposalId: String,
         revision: Int,
         contentHash: String,
         bindingToken: String,
-    ): String? {
-        return if (bindingToken.isBlank()) {
+    ): String? =
+        if (bindingToken.isBlank()) {
             null
         } else {
             liveEntry(proposalId, revision)
                 ?.takeIf { it.contentHash == contentHash && constantTimeEquals(it.bindingToken, bindingToken) }
                 ?.challenge
         }
-    }
 
     private fun liveEntry(
         proposalId: String,

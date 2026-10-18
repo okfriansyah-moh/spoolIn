@@ -79,7 +79,6 @@ class Application {
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
-
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
@@ -158,7 +157,6 @@ class ObservabilityConfiguration {
     ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
-
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
@@ -215,7 +213,6 @@ class RuntimeConfiguration {
         environment: Environment,
         metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
-
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
@@ -543,15 +540,22 @@ class ListenerBoundary(
     private val environment: Environment,
     private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
         val rejection = rejectionStatus(request)
         if (rejection != null) {
             response.sendError(rejection)
         } else {
             response.setHeader("X-Content-Type-Options", "nosniff")
             response.setHeader("Cache-Control", "no-store")
-            if (request.requestURI == "/actuator/prometheus") serveMetrics(request, response, chain)
-            else chain.doFilter(request, response)
+            if (request.requestURI == "/actuator/prometheus") {
+                serveMetrics(request, response, chain)
+            } else {
+                chain.doFilter(request, response)
+            }
         }
     }
 
@@ -560,22 +564,38 @@ class ListenerBoundary(
         if (!(path.startsWith("/actuator") || path == "/internal/alerts")) return null
         val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
         val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
-        val permitted = when (path) {
-                    "/internal/alerts" -> identity == "alertmanager"
-            "/actuator/prometheus" -> identity == "prometheus"
-            else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
-        }
+        val permitted =
+            when (path) {
+                "/internal/alerts" -> identity == "alertmanager"
+                "/actuator/prometheus" -> identity == "prometheus"
+                else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
+            }
         val privatePort = environment.getProperty("local.management.port", Int::class.java)
-        return if (request.isSecure && request.localPort == privatePort && permitted) null
-        else if (request.requestURI == "/internal/alerts" && request.localPort != privatePort) HTTP_NOT_FOUND else HTTP_FORBIDDEN
+        return if (request.isSecure && request.localPort == privatePort && permitted) {
+            null
+        } else if (request.requestURI == "/internal/alerts" && request.localPort != privatePort) {
+            HTTP_NOT_FOUND
+        } else {
+            HTTP_FORBIDDEN
+        }
     }
 
-    private fun serveMetrics(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+    private fun serveMetrics(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
         val measurement = metrics
-        if (measurement == null) response.sendError(HTTP_UNAVAILABLE)
-        else synchronized(measurement) {
-            if (measurement.prepareScrape()) chain.doFilter(request, response)
-            else response.sendError(HTTP_UNAVAILABLE)
+        if (measurement == null) {
+            response.sendError(HTTP_UNAVAILABLE)
+        } else {
+            synchronized(measurement) {
+                if (measurement.prepareScrape()) {
+                    chain.doFilter(request, response)
+                } else {
+                    response.sendError(HTTP_UNAVAILABLE)
+                }
+            }
         }
     }
 }

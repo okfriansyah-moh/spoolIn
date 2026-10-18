@@ -67,7 +67,9 @@ class ProposalUiChallengeStoreRulesTest {
     }
 }
 
-private class MutableClock(var current: Instant) : Clock() {
+private class MutableClock(
+    var current: Instant,
+) : Clock() {
     override fun getZone(): ZoneId = ZoneOffset.UTC
 
     override fun withZone(zone: ZoneId): Clock = Clock.fixed(current, zone)

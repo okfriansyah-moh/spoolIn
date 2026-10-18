@@ -155,10 +155,13 @@ class OwnerReceiptBoundaryTest {
         }
         fixture.pool("core").use { pool ->
             pool.connection.use { connection ->
-                val bodyPurged = connection.queryBound(
-                    "SELECT result IS NULL FROM operation_receipt WHERE id=?",
-                    listOf(intent.id),
-                ) { it.getBoolean(1) }.single()
+                val bodyPurged =
+                    connection
+                        .queryBound(
+                            "SELECT result IS NULL FROM operation_receipt WHERE id=?",
+                            listOf(intent.id),
+                        ) { it.getBoolean(1) }
+                        .single()
                 assertTrue(bodyPurged)
             }
             val clock = Clock.systemUTC()

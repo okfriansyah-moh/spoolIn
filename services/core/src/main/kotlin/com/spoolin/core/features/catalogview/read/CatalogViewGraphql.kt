@@ -331,5 +331,4 @@ class CatalogViewGraphql(
     }
 
     private fun stub() = catalog.withDeadlineAfter(CATALOG_DEADLINE_SECONDS, TimeUnit.SECONDS)
-
 }

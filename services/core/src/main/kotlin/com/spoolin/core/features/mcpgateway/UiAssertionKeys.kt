@@ -42,7 +42,10 @@ class UiAssertionKeys private constructor(
         }
     }
 
-    private fun previousReadable(id: String, now: Long): Boolean {
+    private fun previousReadable(
+        id: String,
+        now: Long,
+    ): Boolean {
         val rotated = rotatedAt ?: return false
         return id == previousId && now >= rotated && now < rotated + READ_OVERLAP_SECONDS
     }

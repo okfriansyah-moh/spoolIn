@@ -18,9 +18,12 @@ internal class GraphqlObservation(
         deferred.onCompletion {
             val response = deferred.result as? ResponseEntity<*>
             val operation = roots.singleOrNull() ?: "GraphQL"
-            val result = LogicalResult.fromGraphql(
-                response?.body as? Map<*, *>, response?.statusCode?.value() ?: 0, roots,
-            )
+            val result =
+                LogicalResult.fromGraphql(
+                    response?.body as? Map<*, *>,
+                    response?.statusCode?.value() ?: 0,
+                    roots,
+                )
             metrics?.complete(operation, "ingress", result, started)
             timing?.complete(operation, result, started)
         }

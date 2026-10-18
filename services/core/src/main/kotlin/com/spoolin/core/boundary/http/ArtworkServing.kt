@@ -184,7 +184,10 @@ class ArtworkServing(
         }
     }
 
-    private fun copyArtwork(input: java.io.InputStream, response: HttpServletResponse) {
+    private fun copyArtwork(
+        input: java.io.InputStream,
+        response: HttpServletResponse,
+    ) {
         val buffer = ByteArray(TRANSFER_BYTES)
         while (!Context.current().isCancelled) {
             val size = input.read(buffer)
@@ -192,7 +195,6 @@ class ArtworkServing(
             response.outputStream.write(buffer, 0, size)
         }
     }
-
 }
 
 private fun retryAfter(

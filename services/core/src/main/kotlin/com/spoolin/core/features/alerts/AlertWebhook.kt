@@ -82,8 +82,11 @@ class AlertWebhook(
         return AlertEpisode(fingerprint, start, status, summary.toMap())
     }
 
-    private fun allowed(labels: Map<String, String>, name: String, values: Set<String>): String =
-        labels[name]?.takeIf { it in values } ?: invalid()
+    private fun allowed(
+        labels: Map<String, String>,
+        name: String,
+        values: Set<String>,
+    ): String = labels[name]?.takeIf { it in values } ?: invalid()
 
     private fun fields(node: JsonNode): Map<String, String> {
         if (!node.isObject || node.size() > MAXIMUM_SOURCE_FIELDS) invalid()
@@ -97,13 +100,15 @@ class AlertWebhook(
 }
 
 private object AlertValues {
-    fun status(node: JsonNode): String = text(node, "status").also {
-        if (it !in setOf("firing", "resolved")) invalid()
-    }
+    fun status(node: JsonNode): String =
+        text(node, "status").also {
+            if (it !in setOf("firing", "resolved")) invalid()
+        }
 
-    fun fingerprint(node: JsonNode): String = text(node, "fingerprint").also {
-        if (!it.matches(Regex("[0-9a-f]{16}"))) invalid()
-    }
+    fun fingerprint(node: JsonNode): String =
+        text(node, "fingerprint").also {
+            if (!it.matches(Regex("[0-9a-f]{16}"))) invalid()
+        }
 
     fun instant(value: String): Instant {
         if (!value.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}T.*(Z|[+-][0-9]{2}:[0-9]{2})"))) invalid()

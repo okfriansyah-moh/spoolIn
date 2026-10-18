@@ -1,13 +1,13 @@
 package com.spoolin.catalog.features.person.read
 
-import com.spoolin.support.policy.PublicPolicy
-import com.spoolin.support.policy.PolicyEnvironment
-import com.spoolin.support.policy.ReadPolicy
-import com.spoolin.support.policy.InputViolation
 import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
@@ -19,7 +19,6 @@ import spoolin.v1.Spoolin.PersonValues
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
-
 
 /**
  * Managed (Maintainer-only) person read operations for the Catalog gRPC service.
@@ -146,10 +145,15 @@ class ManagedPersonReads(
             }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
-        val endCursor = page.lastOrNull()?.let {
-            cursors.people.encode(com.spoolin.catalog.features.search.PeopleCursor.Keyset(it.name, it.id),
-                scope, cursors.now())
-        }
+        val endCursor =
+            page.lastOrNull()?.let {
+                cursors.people.encode(
+                    com.spoolin.catalog.features.search.PeopleCursor
+                        .Keyset(it.name, it.id),
+                    scope,
+                    cursors.now(),
+                )
+            }
         return ManagedPersonPage(page, endCursor, hasNext)
     }
 

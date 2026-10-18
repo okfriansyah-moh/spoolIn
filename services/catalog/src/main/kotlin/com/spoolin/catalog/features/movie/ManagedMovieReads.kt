@@ -4,16 +4,16 @@ package com.spoolin.catalog.features.movie
 
 import com.spoolin.catalog.boundary.grpc.ProtoHelpers
 import com.spoolin.catalog.features.provenance.ProvenanceReads
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
-import com.spoolin.support.policy.PublicPolicy
-import com.spoolin.support.policy.PolicyEnvironment
-import com.spoolin.support.policy.ReadPolicy
-import com.spoolin.support.policy.InputViolation
-import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
@@ -26,7 +26,6 @@ import spoolin.v1.Spoolin.TitlePage
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
-
 
 /**
  * Managed (Maintainer-only) catalog read operations.
@@ -111,17 +110,25 @@ class ManagedMovieReads(
             requireMaintainer()
             val subjectId = request.targetId.takeIf { it.isNotEmpty() }?.let { parseId(it) }
             val first = ReadPolicy(policy()).rpcPageSize(request.first)
-            val scope = cursors.scope(ReadPolicy(policy()), "managed-audit", first,
-                mapOf("subject" to subjectId?.toString()))
+            val scope =
+                cursors.scope(
+                    ReadPolicy(policy()),
+                    "managed-audit",
+                    first,
+                    mapOf("subject" to subjectId?.toString()),
+                )
             val after = cursors.audit(request.after.takeIf { it.isNotEmpty() }, scope)
             val page = auditReads.list(subjectId, first, after)
             val builder = AuditPage.newBuilder()
             page.rows.forEach { row -> builder.addNodes(auditEvent(row)) }
             page.keyset?.let { ks ->
-                builder.endCursor = cursors.people.encode(
-                    com.spoolin.catalog.features.search.PeopleCursor.Keyset(ks.createdAt.toString(), ks.id),
-                    scope, cursors.now(),
-                )
+                builder.endCursor =
+                    cursors.people.encode(
+                        com.spoolin.catalog.features.search.PeopleCursor
+                            .Keyset(ks.createdAt.toString(), ks.id),
+                        scope,
+                        cursors.now(),
+                    )
             }
             builder.hasNextPage = page.hasNextPage
             response.onNext(builder.build())
@@ -133,19 +140,24 @@ class ManagedMovieReads(
         }
     }
 
-    private fun auditEvent(row: AuditReads.AuditRow): AuditEvent = AuditEvent.newBuilder()
-        .setId(row.id.toString())
-        .setActorRef(actorRef(row.actorId, row.actorKind))
-        .setAction(row.action)
-        .setOutcome(row.outcome)
-        .setSubjectKind(row.subjectKind)
-        .setAt(com.google.protobuf.Timestamp.newBuilder()
-            .setSeconds(row.createdAt.epochSecond).setNanos(row.createdAt.nano))
-        .addAllChanges(AuditReadChanges.read(row.changes, row.subjectKind))
-        .also { b ->
-            row.subjectId?.let { b.subjectId = it.toString() }
-            row.operationId?.let { b.operationId = it.toString() }
-        }.build()
+    private fun auditEvent(row: AuditReads.AuditRow): AuditEvent =
+        AuditEvent
+            .newBuilder()
+            .setId(row.id.toString())
+            .setActorRef(actorRef(row.actorId, row.actorKind))
+            .setAction(row.action)
+            .setOutcome(row.outcome)
+            .setSubjectKind(row.subjectKind)
+            .setAt(
+                com.google.protobuf.Timestamp
+                    .newBuilder()
+                    .setSeconds(row.createdAt.epochSecond)
+                    .setNanos(row.createdAt.nano),
+            ).addAllChanges(AuditReadChanges.read(row.changes, row.subjectKind))
+            .also { b ->
+                row.subjectId?.let { b.subjectId = it.toString() }
+                row.operationId?.let { b.operationId = it.toString() }
+            }.build()
 
     // ── private helpers ───────────────────────────────────────────────────────
 
@@ -208,13 +220,19 @@ class ManagedMovieReads(
         val rows = dataSource.connection.use { conn -> conn.queryBound(sql, params) { mapManagedRow(it) } }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
-        val cursor = page.lastOrNull()?.let {
-            cursors.titles.encode(
-                com.spoolin.catalog.features.search.CatalogCursor.Keyset(
-                    it.releaseYear, it.releaseMonth, it.releaseDay, it.id,
-                ), scope, cursors.now(),
-            )
-        }
+        val cursor =
+            page.lastOrNull()?.let {
+                cursors.titles.encode(
+                    com.spoolin.catalog.features.search.CatalogCursor.Keyset(
+                        it.releaseYear,
+                        it.releaseMonth,
+                        it.releaseDay,
+                        it.id,
+                    ),
+                    scope,
+                    cursors.now(),
+                )
+            }
         return ManagedPage(page, cursor, hasNext)
     }
 
@@ -298,32 +316,46 @@ class ManagedMovieReads(
 private object AuditReadChanges {
     private const val MAX_BYTES = 65536
     private const val MAX_DEPTH = 8
-    private val mapper = tools.jackson.databind.json.JsonMapper.builder(
-        tools.jackson.core.json.JsonFactory.builder().streamReadConstraints(
-            tools.jackson.core.StreamReadConstraints.builder().maxNestingDepth(MAX_DEPTH)
-                .maxStringLength(MAX_BYTES).build(),
-        ).build(),
-    ).enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-        .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build()
+    private val mapper =
+        tools.jackson.databind.json.JsonMapper
+            .builder(
+                tools.jackson.core.json.JsonFactory
+                    .builder()
+                    .streamReadConstraints(
+                        tools.jackson.core.StreamReadConstraints
+                            .builder()
+                            .maxNestingDepth(MAX_DEPTH)
+                            .maxStringLength(MAX_BYTES)
+                            .build(),
+                    ).build(),
+            ).enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+            .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .build()
 
-    fun read(json: String, kind: String): List<spoolin.v1.Spoolin.AuditChange> = try {
-        require(json.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
-        val root = mapper.readTree(json)
-        require(root.isObject)
-        val allowed = paths(kind)
-        if (root.has("changes")) structured(root, allowed) else legacy(root, allowed)
-    } catch (_: Exception) {
-        throw Status.DATA_LOSS.withDescription("Audit projection unavailable").asRuntimeException()
-    }
+    fun read(
+        json: String,
+        kind: String,
+    ): List<spoolin.v1.Spoolin.AuditChange> =
+        try {
+            require(json.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
+            val root = mapper.readTree(json)
+            require(root.isObject)
+            val allowed = paths(kind)
+            if (root.has("changes")) structured(root, allowed) else legacy(root, allowed)
+        } catch (_: Exception) {
+            throw Status.DATA_LOSS.withDescription("Audit projection unavailable").asRuntimeException()
+        }
 
-    private fun paths(kind: String): Set<String> = when (kind) {
-        "TITLE" -> com.spoolin.catalog.operations.audit.AuditDiff.MOVIE_PATHS +
-            setOf("assetId", "attachmentId", "artworkIntent.state")
-        "PERSON" -> com.spoolin.catalog.operations.audit.AuditDiff.PERSON_PATHS
-        "CREDIT" -> setOf("credit")
-        "ROLE" -> setOf("label", "category", "allowsCharacters")
-        else -> emptySet()
-    }
+    private fun paths(kind: String): Set<String> =
+        when (kind) {
+            "TITLE" ->
+                com.spoolin.catalog.operations.audit.AuditDiff.MOVIE_PATHS +
+                    setOf("assetId", "attachmentId", "artworkIntent.state")
+            "PERSON" -> com.spoolin.catalog.operations.audit.AuditDiff.PERSON_PATHS
+            "CREDIT" -> setOf("credit")
+            "ROLE" -> setOf("label", "category", "allowsCharacters")
+            else -> emptySet()
+        }
 
     private fun structured(
         root: tools.jackson.databind.JsonNode,
@@ -332,7 +364,8 @@ private object AuditReadChanges {
         val changes = root["changes"]
         require(changes.isArray)
         require(!root.path("truncated").asBoolean(false))
-        return changes.filter { it.path("path").isString && it.path("path").asString() in allowed }
+        return changes
+            .filter { it.path("path").isString && it.path("path").asString() in allowed }
             .map { change -> project(change["path"].asString(), change) }
     }
 
@@ -340,11 +373,21 @@ private object AuditReadChanges {
         root: tools.jackson.databind.JsonNode,
         allowed: Set<String>,
     ): List<spoolin.v1.Spoolin.AuditChange> =
-        root.propertyNames().filter { it in allowed }.sorted().map { path -> project(path, root[path]) }
+        root
+            .propertyNames()
+            .filter { it in allowed }
+            .sorted()
+            .map { path -> project(path, root[path]) }
 
-    private fun project(path: String, value: tools.jackson.databind.JsonNode): spoolin.v1.Spoolin.AuditChange {
+    private fun project(
+        path: String,
+        value: tools.jackson.databind.JsonNode,
+    ): spoolin.v1.Spoolin.AuditChange {
         require(value.isObject)
-        val result = spoolin.v1.Spoolin.AuditChange.newBuilder().setPath(path)
+        val result =
+            spoolin.v1.Spoolin.AuditChange
+                .newBuilder()
+                .setPath(path)
         if (value.path("valueOmitted").asBoolean(false)) {
             result.afterJson = summary(value)
         } else {
@@ -354,13 +397,17 @@ private object AuditReadChanges {
         return result.build()
     }
 
-    private fun valueJson(path: String, value: tools.jackson.databind.JsonNode): String {
-        val valid = when (path) {
-            "countries", "genreIds" -> value.isArray && value.all { it.isString }
-            "releaseYear", "releaseMonth", "releaseDay", "runtimeMinutes", "version" -> value.isIntegralNumber
-            "allowsCharacters" -> value.isBoolean
-            else -> value.isString
-        }
+    private fun valueJson(
+        path: String,
+        value: tools.jackson.databind.JsonNode,
+    ): String {
+        val valid =
+            when (path) {
+                "countries", "genreIds" -> value.isArray && value.all { it.isString }
+                "releaseYear", "releaseMonth", "releaseDay", "runtimeMinutes", "version" -> value.isIntegralNumber
+                "allowsCharacters" -> value.isBoolean
+                else -> value.isString
+            }
         require(value.isNull || valid)
         return mapper.writeValueAsString(value)
     }
@@ -370,11 +417,14 @@ private object AuditReadChanges {
         require(length.isIntegralNumber)
         val bytes = requireNotNull(length.asText().toLongOrNull())
         require(bytes >= 0)
-        return mapper.writeValueAsString(mapOf(
-            "valueOmitted" to true, "byteLength" to bytes,
-            "beforeDigest" to digest(value.path("beforeDigest")),
-            "afterDigest" to digest(value.path("afterDigest")),
-        ))
+        return mapper.writeValueAsString(
+            mapOf(
+                "valueOmitted" to true,
+                "byteLength" to bytes,
+                "beforeDigest" to digest(value.path("beforeDigest")),
+                "afterDigest" to digest(value.path("afterDigest")),
+            ),
+        )
     }
 
     private fun digest(value: tools.jackson.databind.JsonNode): String? {

@@ -127,7 +127,10 @@ internal class LifecycleStore(
         }
     }
 
-    private fun validateTransition(status: String, command: LifecycleCommand) {
+    private fun validateTransition(
+        status: String,
+        command: LifecycleCommand,
+    ) {
         if (command.action !in LifecycleRules.allowedActions(status)) {
             throw Status.FAILED_PRECONDITION
                 .withDescription("LIFECYCLE_STATE_CHANGED")

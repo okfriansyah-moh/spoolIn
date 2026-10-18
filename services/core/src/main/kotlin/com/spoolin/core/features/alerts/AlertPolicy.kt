@@ -51,9 +51,11 @@ data class AlertPolicy(
         require(multiplier in 1..MAXIMUM_ATTEMPTS)
         require(deadlineMs in MINIMUM_DEADLINE_MS..MAXIMUM_DELAY_MS)
         require(annotationValues.keys.all { it in setOf("summary", "description", "runbook") })
-        require(annotationValues.values.flatten().all {
-            it.codePointCount(0, it.length) <= MAXIMUM_ANNOTATION_CODE_POINTS && it.none(Char::isISOControl)
-        })
+        require(
+            annotationValues.values.flatten().all {
+                it.codePointCount(0, it.length) <= MAXIMUM_ANNOTATION_CODE_POINTS && it.none(Char::isISOControl)
+            },
+        )
     }
 
     companion object {

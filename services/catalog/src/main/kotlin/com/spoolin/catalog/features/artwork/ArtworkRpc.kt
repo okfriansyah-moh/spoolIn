@@ -99,7 +99,10 @@ class ArtworkRpc(
             )
         val result =
             receipts.defer(
-                command.intent(), command.correlation, true, deferred = DeferredWork(beforeReserve = ::lock),
+                command.intent(),
+                command.correlation,
+                true,
+                deferred = DeferredWork(beforeReserve = ::lock),
             ) { connection ->
                 prepareCancellation(connection, command)
             }
@@ -272,10 +275,11 @@ private fun beginTitle(
                 listOf(command.title),
             ) {
                 BeginTitle(
-                    it.getLong("version"), it.getString("status"), it.getObject("attachment_id", UUID::class.java),
+                    it.getLong("version"),
+                    it.getString("status"),
+                    it.getObject("attachment_id", UUID::class.java),
                 )
-            }
-            .singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+            }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
     if (old.version != command.request.expectedVersion || old.status != "ACTIVE") {
         throw Status.FAILED_PRECONDITION.withDescription("STALE_VERSION").asRuntimeException()
     }

@@ -19,9 +19,10 @@ class EffectiveCatalogPolicyRulesTest {
     @Test
     fun `all seven configurable owner fields honor effective minima maxima and Unicode scalars`() {
         cases().forEach { field ->
-            val policy = configured(
-                mapOf("${field.prefix}_MIN_CODE_POINTS" to "2", "${field.prefix}_MAX_CODE_POINTS" to "3"),
-            )
+            val policy =
+                configured(
+                    mapOf("${field.prefix}_MIN_CODE_POINTS" to "2", "${field.prefix}_MAX_CODE_POINTS" to "3"),
+                )
             assertEquals("e\u0301", field.validate("\u00a0e\u0301\u00a0", policy))
             assertEquals("🎬x", field.validate("🎬x", policy))
             assertEquals("abc", field.validate("abc", policy))
@@ -127,9 +128,11 @@ class EffectiveCatalogPolicyRulesTest {
             },
             Field("ORIGINAL_TITLE") { raw, policy ->
                 requireNotNull(
-                    MovieValidation.validateCreate(
-                        movie().toBuilder().setOriginalTitle(raw).build(), policy,
-                    ).originalTitle,
+                    MovieValidation
+                        .validateCreate(
+                            movie().toBuilder().setOriginalTitle(raw).build(),
+                            policy,
+                        ).originalTitle,
                 )
             },
             Field(
@@ -186,7 +189,6 @@ class EffectiveCatalogPolicyRulesTest {
     companion object {
         private const val ID = "00000000-0000-0000-0000-000000000001"
 
-        private fun configured(values: Map<String, String>): PublicPolicy =
-            PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        private fun configured(values: Map<String, String>): PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
     }
 }

@@ -68,7 +68,9 @@ internal class ProposalFixture : AutoCloseable {
             source.connection.use { connection ->
                 connection.executeBound(
                     "INSERT INTO genre(id,label,normalized_label) VALUES (?::uuid,?,?)",
-                    PROPOSAL_GENRE_ID, "Proposal fixture genre", "proposal fixture genre",
+                    PROPOSAL_GENRE_ID,
+                    "Proposal fixture genre",
+                    "proposal fixture genre",
                 )
             }
         }

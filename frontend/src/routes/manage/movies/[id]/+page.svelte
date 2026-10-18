@@ -111,8 +111,12 @@
       expectedVersion={editorState.saved.version}
       policyRevision={sessionCtl.snapshot.policy.revision}
       artworkPolicy={sessionCtl.snapshot.policy.artwork}
-      disabled={editorState.phase === 'target-changed' || editorState.phase === 'stale'}
-      onAttached={async () => { await controller?.refreshExternalChange(); creditTitleVersion = null; }}
+      disabled={editorState.phase === 'target-changed' ||
+        editorState.phase === 'stale'}
+      onAttached={async () => {
+        await controller?.refreshExternalChange();
+        creditTitleVersion = null;
+      }}
     />
     {@const version = creditTitleVersion ?? editorState.saved.version}
     <CreditPanel

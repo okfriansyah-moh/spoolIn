@@ -66,7 +66,9 @@ class LeaseRecoveryBoundaryTest {
                 val now = databaseNow(pool)
                 pool.committed { connection ->
                     connection.executeBound(
-                        "UPDATE durable_work SET $column=? WHERE id=?", Timestamp.from(now), claim.workId,
+                        "UPDATE durable_work SET $column=? WHERE id=?",
+                        Timestamp.from(now),
+                        claim.workId,
                     )
                 }
                 assertFalse(pool.committed { WorkSql.renewLease(it, claim, now) })
@@ -141,15 +143,19 @@ class LeaseRecoveryBoundaryTest {
             }
             val recovery =
                 WorkRecoveryCommit(
-                    "verified-operator", "Destination outcome checked\bexplicit reason", UUID.randomUUID(),
+                    "verified-operator",
+                    "Destination outcome checked\bexplicit reason",
+                    UUID.randomUUID(),
                 )
             assertTrue(pool.committed { WorkSql.recoverWork(it, first.workId, recovery, now) })
             assertFalse(pool.committed { WorkSql.recoverWork(it, first.workId, recovery, now) })
             val second =
                 pool.committed {
                     WorkSql.commitClaim(
-                        it, WorkSql.selectForClaim(it, databaseNow(pool), 1).single(),
-                        UUID.randomUUID(), databaseNow(pool),
+                        it,
+                        WorkSql.selectForClaim(it, databaseNow(pool), 1).single(),
+                        UUID.randomUUID(),
+                        databaseNow(pool),
                     )
                 }
             assertNotNull(second)
@@ -178,7 +184,8 @@ class LeaseRecoveryBoundaryTest {
                 pool.committed {
                     it.executeBound(
                         "UPDATE durable_work SET lease_until=? WHERE id=?",
-                        Timestamp.from(now.plusMillis(500)), claim.workId,
+                        Timestamp.from(now.plusMillis(500)),
+                        claim.workId,
                     )
                 }
                 assertFalse(blockedMutation(pool, claim, now, renew))
@@ -301,9 +308,10 @@ class LeaseRecoveryBoundaryTest {
         while (System.nanoTime() < deadline) {
             val blocked =
                 pool.committed {
-                    it.queryBound("SELECT cardinality(pg_blocking_pids(?)) > 0", listOf(backend)) { row ->
-                        row.getBoolean(1)
-                    }.single()
+                    it
+                        .queryBound("SELECT cardinality(pg_blocking_pids(?)) > 0", listOf(backend)) { row ->
+                            row.getBoolean(1)
+                        }.single()
                 }
             if (blocked) return
             Thread.sleep(10)

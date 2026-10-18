@@ -27,13 +27,16 @@ class CatalogWriteIntentRulesTest {
                 original.toBuilder().setValues(values.toBuilder().clearRuntimeMinutes()).build(),
                 original.toBuilder().setValues(values.toBuilder().setRuntimeMinutes(0)).build(),
                 original.toBuilder().setValues(values.toBuilder().clearRelease()).build(),
-                original.toBuilder()
+                original
+                    .toBuilder()
                     .setValues(values.toBuilder().setRelease(values.release.toBuilder().setYear(2021)))
                     .build(),
-                original.toBuilder()
+                original
+                    .toBuilder()
                     .setValues(values.toBuilder().setRelease(values.release.toBuilder().clearMonth()))
                     .build(),
-                original.toBuilder()
+                original
+                    .toBuilder()
                     .setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(28)))
                     .build(),
                 original.toBuilder().setValues(values.toBuilder().clearCountries().addCountries("FR")).build(),
@@ -42,7 +45,9 @@ class CatalogWriteIntentRulesTest {
             )
         alternatives.forEachIndexed { index, changed ->
             assertNotEquals(
-                CatalogWriteIntent.movie(original), CatalogWriteIntent.movie(changed), "movie variant $index",
+                CatalogWriteIntent.movie(original),
+                CatalogWriteIntent.movie(changed),
+                "movie variant $index",
             )
         }
         assertEquals("catalog-write-v2", CatalogWriteIntent.movie(original).first().second)
@@ -151,7 +156,8 @@ class CatalogWriteIntentRulesTest {
         val current = OperationIntent(UUID.randomUUID(), "account:$ID", "WriteMovie", "policy-a", fields)
         assertNotEquals(current.serialized().toList(), current.copy(policyRevision = "policy-b").serialized().toList())
         assertNotEquals(
-            current.serialized().toList(), current.copy(actorScope = "account:$OTHER").serialized().toList(),
+            current.serialized().toList(),
+            current.copy(actorScope = "account:$OTHER").serialized().toList(),
         )
         assertNotEquals(current.serialized().toList(), current.copy(kind = "WritePerson").serialized().toList())
         assertNotEquals(
@@ -165,7 +171,8 @@ class CatalogWriteIntentRulesTest {
                 .setLabel("Role")
                 .build()
         assertNotEquals(
-            CatalogWriteIntent.role(role), CatalogWriteIntent.role(role.toBuilder().setLabel("Other").build()),
+            CatalogWriteIntent.role(role),
+            CatalogWriteIntent.role(role.toBuilder().setLabel("Other").build()),
         )
     }
 

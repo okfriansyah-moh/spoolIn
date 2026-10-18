@@ -41,9 +41,10 @@ class OperatorRecoveryBoundaryTest {
             assertEquals(
                 "PROCESSING",
                 pool.connection.use {
-                    it.queryBound("SELECT state FROM appdata.asset WHERE id=?", listOf(work.asset)) { row ->
-                        row.getString(1)
-                    }.single()
+                    it
+                        .queryBound("SELECT state FROM appdata.asset WHERE id=?", listOf(work.asset)) { row ->
+                            row.getString(1)
+                        }.single()
                 },
             )
             assertThrows(IllegalArgumentException::class.java) { recover(pool, work) }
@@ -205,9 +206,10 @@ class OperatorRecoveryBoundaryTest {
         work: UUID,
     ): Int =
         pool.connection.use {
-            it.queryBound("SELECT count(*) FROM appdata.operational_event WHERE work_id=?", listOf(work)) { row ->
-                row.getInt(1)
-            }.single()
+            it
+                .queryBound("SELECT count(*) FROM appdata.operational_event WHERE work_id=?", listOf(work)) { row ->
+                    row.getInt(1)
+                }.single()
         }
 
     private fun fixture(

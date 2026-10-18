@@ -66,8 +66,7 @@ class LogicalMetrics(
                 EFFECT_BUCKET,
                 RECOVERY_BUCKET,
                 LONG_BUCKET,
-            )
-            .register(registry)
+            ).register(registry)
             .record((System.nanoTime() - startedNanos).coerceAtLeast(0), TimeUnit.NANOSECONDS)
         Counter
             .builder("spoolin.operation.results")
@@ -85,5 +84,4 @@ class LogicalMetrics(
             ).register(registry)
             .increment()
     }
-
 }

@@ -45,9 +45,10 @@ class DraftCryptography(
                 keys.key(key.id, KeyPurpose.DRAFT) ?: throw ProtectionUnavailable()
             }
         return try {
-            val nonce = observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
-                nonces.reserve(key.id, KeyPurpose.DRAFT)
-            }
+            val nonce =
+                observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
+                    nonces.reserve(key.id, KeyPurpose.DRAFT)
+                }
             observeProtection(alert, ProtectionFailure.UNAVAILABLE) {
                 cipher.encrypt(key.id, bytes, nonce.bytes(), binding(rowId), plaintext)
             }

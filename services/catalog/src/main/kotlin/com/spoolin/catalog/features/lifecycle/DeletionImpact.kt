@@ -42,7 +42,10 @@ class DeletionImpact(
             readTransaction(connection, person)
         }
 
-    private fun readTransaction(connection: Connection, person: UUID): ImpactSnapshot {
+    private fun readTransaction(
+        connection: Connection,
+        person: UUID,
+    ): ImpactSnapshot {
         var committed = false
         return try {
             connection.executeBound("SET LOCAL statement_timeout='3000ms'")
@@ -80,8 +83,7 @@ class DeletionImpact(
                 .addAllAffectedTitles(snapshot.affectedTitles)
                 .setExpiresAt(
                     Timestamp.newBuilder().setSeconds(signed.expires.epochSecond).setNanos(signed.expires.nano),
-                )
-                .build()
+                ).build()
         val json =
             tools.jackson.databind.ObjectMapper().writeValueAsBytes(
                 mapOf(
@@ -103,8 +105,10 @@ class DeletionImpact(
         return result
     }
 
-    private fun signer(): ImpactToken = tokens ?: throw Status.UNAVAILABLE
-        .withDescription("IMPACT_SIGNER_UNAVAILABLE").asRuntimeException()
+    private fun signer(): ImpactToken =
+        tokens ?: throw Status.UNAVAILABLE
+            .withDescription("IMPACT_SIGNER_UNAVAILABLE")
+            .asRuntimeException()
 
     private fun parseId(value: String): UUID = UUID.fromString(value).also { require(it.toString() == value) }
 }

@@ -70,19 +70,40 @@ describe('audit api', () => {
   });
 });
 
-
 it('refuses malformed rows and repeated cursors rather than presenting incomplete history', async () => {
-  const request = vi.fn().mockResolvedValue({ audit: { nodes: null, pageInfo: { hasNextPage: false } } });
-  await expect(fetchAuditPage(request, 'csrf', new AbortController().signal)).rejects.toThrow('rows');
-  request.mockResolvedValue({ audit: { nodes: [], pageInfo: { endCursor: 'same', hasNextPage: true } } });
-  await expect(fetchAuditPage(request, 'csrf', new AbortController().signal, 'same')).rejects.toThrow('cursor');
+  const request = vi
+    .fn()
+    .mockResolvedValue({
+      audit: { nodes: null, pageInfo: { hasNextPage: false } },
+    });
+  await expect(
+    fetchAuditPage(request, 'csrf', new AbortController().signal),
+  ).rejects.toThrow('rows');
+  request.mockResolvedValue({
+    audit: { nodes: [], pageInfo: { endCursor: 'same', hasNextPage: true } },
+  });
+  await expect(
+    fetchAuditPage(request, 'csrf', new AbortController().signal, 'same'),
+  ).rejects.toThrow('cursor');
 });
 
 it('the emitted audit document validates against the actual approved SDL', async () => {
   const { buildSchema, parse, validate } = await import('graphql');
   const { readFileSync } = await import('node:fs');
-  const schema = buildSchema(readFileSync(new URL('../../../../../contracts/graphql/schema.graphql', import.meta.url), 'utf8'));
-  const request = vi.fn().mockResolvedValue({ audit: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } } });
+  const schema = buildSchema(
+    readFileSync(
+      new URL(
+        '../../../../../contracts/graphql/schema.graphql',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  const request = vi
+    .fn()
+    .mockResolvedValue({
+      audit: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
+    });
   await fetchAuditPage(request, 'csrf', new AbortController().signal);
   expect(validate(schema, parse(request.mock.calls[0]?.[0]))).toEqual([]);
 });

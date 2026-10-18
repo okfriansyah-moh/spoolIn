@@ -12,7 +12,10 @@ internal object LifecycleAuthorization {
         return claims
     }
 
-    fun currentPolicy(requested: String, current: String) {
+    fun currentPolicy(
+        requested: String,
+        current: String,
+    ) {
         if (requested != current) throw Status.ABORTED.withDescription("POLICY_CHANGED").asRuntimeException()
     }
 }

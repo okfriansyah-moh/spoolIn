@@ -25,8 +25,13 @@ export type PersonListRow = Readonly<{
 export type ListState =
   | { kind: 'loading' }
   | { kind: 'failure' }
-  | { kind: 'ready'; people: readonly PersonListRow[];
-      pageInfo?: import('../../../state/pagination').PageInfo; loadingMore?: boolean; pageError?: string | null };
+  | {
+      kind: 'ready';
+      people: readonly PersonListRow[];
+      pageInfo?: import('../../../state/pagination').PageInfo;
+      loadingMore?: boolean;
+      pageError?: string | null;
+    };
 
 export type EditorPhase =
   | 'idle'

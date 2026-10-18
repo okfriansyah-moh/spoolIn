@@ -107,8 +107,7 @@ data class LogicalResult private constructor(
         internal fun message(
             operation: MetricOperation,
             value: Any?,
-        ): LogicalResult =
-            LogicalClassification.message(operation, value)
+        ): LogicalResult = LogicalClassification.message(operation, value)
 
         private fun domain(code: MetricCode) = LogicalResult(MetricOutcome.DOMAIN_REJECTED, code)
 
@@ -143,13 +142,12 @@ private object GraphqlResults {
         body: Map<*, *>?,
         status: Int,
         roots: Set<String>,
-    ): LogicalResult {
-        return if (status != HTTP_OK) {
+    ): LogicalResult =
+        if (status != HTTP_OK) {
             LogicalResult.fromStatus(httpFailures[status] ?: httpFailure(status), true)
         } else {
             body?.takeIf { validRoots(roots) }?.let { classifyBody(it, roots) } ?: LogicalResult.unknown()
         }
-    }
 
     private fun validRoots(roots: Set<String>): Boolean =
         roots.isNotEmpty() && roots.all { MetricOperations.graphql(it) != null }

@@ -443,7 +443,11 @@ export class MovieEditorController {
     if (!this.current.saved || !this.current.draftBaseKnown)
       return this.current.draft;
     return {
-      ...rebaseMovieMetadata(movieToDraft(this.current.saved), this.current.draft, movieToDraft(latest)),
+      ...rebaseMovieMetadata(
+        movieToDraft(this.current.saved),
+        this.current.draft,
+        movieToDraft(latest),
+      ),
       title: this.rebaseText('title', latest),
       synopsis: this.rebaseText('synopsis', latest),
       originalTitle: this.originalTitleTouched
@@ -684,24 +688,58 @@ export class MovieEditorController {
 
   async refreshExternalChange(): Promise<void> {
     if (!this.movieId || !this.writeContext || !this.current.saved) return;
-    const latest = await fetchManagedMovie(this.request, this.movieId, this.writeContext.csrf, this.active?.signal);
+    const latest = await fetchManagedMovie(
+      this.request,
+      this.movieId,
+      this.writeContext.csrf,
+      this.active?.signal,
+    );
     if (!latest || latest.state !== 'ACTIVE') {
-      this.publish({ ...this.current, phase: 'target-changed', current: latest,
-        message: 'This movie is now archived or unavailable. Retained edits have not been submitted.' });
+      this.publish({
+        ...this.current,
+        phase: 'target-changed',
+        current: latest,
+        message:
+          'This movie is now archived or unavailable. Retained edits have not been submitted.',
+      });
       return;
     }
-    if (this.current.phase === 'submitting' || this.current.phase === 'uncertain') {
-      this.publish({ ...this.current, current: latest,
-        message: 'The movie changed. Check the original save before reviewing current values.' });
+    if (
+      this.current.phase === 'submitting' ||
+      this.current.phase === 'uncertain'
+    ) {
+      this.publish({
+        ...this.current,
+        current: latest,
+        message:
+          'The movie changed. Check the original save before reviewing current values.',
+      });
       return;
     }
-    const dirty = !patchIsEmpty(draftToUpdatePatch(this.current.saved, this.current.draft, this.originalTitleTouched));
+    const dirty = !patchIsEmpty(
+      draftToUpdatePatch(
+        this.current.saved,
+        this.current.draft,
+        this.originalTitleTouched,
+      ),
+    );
     if (dirty || this.current.draftChoices.length) {
-      this.publish({ ...this.current, phase: 'stale', current: latest, staleReviewOpen: false,
-        message: 'The movie changed. Review the current version before saving your retained edits.' });
+      this.publish({
+        ...this.current,
+        phase: 'stale',
+        current: latest,
+        staleReviewOpen: false,
+        message:
+          'The movie changed. Review the current version before saving your retained edits.',
+      });
     } else {
-      this.publish({ ...this.current, saved: latest, current: latest, draft: movieToDraft(latest),
-        mediaOutage: latest.artworkUnavailable });
+      this.publish({
+        ...this.current,
+        saved: latest,
+        current: latest,
+        draft: movieToDraft(latest),
+        mediaOutage: latest.artworkUnavailable,
+      });
     }
   }
 
@@ -746,8 +784,13 @@ export class MovieEditorController {
     const { state } = receipt;
     if (receipt.resultExpired || state === 'EXPIRED') {
       this.pendingWriteId = operationId;
-      this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: operationId,
-        message: 'Original save result expired. Review the current record; do not repeat the original change.' });
+      this.publish({
+        ...this.current,
+        phase: 'uncertain',
+        pendingOperationId: operationId,
+        message:
+          'Original save result expired. Review the current record; do not repeat the original change.',
+      });
       return;
     }
     if (state === 'SUCCEEDED') {
@@ -810,15 +853,20 @@ export class MovieEditorController {
     phase: 'saved' | 'resolved',
     version?: string | null,
   ): Promise<void> {
-    if (!this.writeContext || !movieId) throw new Error('Saved movie identity unavailable.');
+    if (!this.writeContext || !movieId)
+      throw new Error('Saved movie identity unavailable.');
     const movie = await fetchManagedMovie(
       this.request,
       movieId,
       this.writeContext.csrf,
       this.active?.signal,
     );
-    if (!movie || movie.id !== movieId || movie.kind !== 'MOVIE' ||
-        (version && BigInt(movie.version) < BigInt(version)))
+    if (
+      !movie ||
+      movie.id !== movieId ||
+      movie.kind !== 'MOVIE' ||
+      (version && BigInt(movie.version) < BigInt(version))
+    )
       throw new Error('Saved movie result could not be verified.');
     const saved = movie;
     this.originalTitleTouched = false;

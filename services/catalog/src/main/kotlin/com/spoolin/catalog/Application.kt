@@ -5,12 +5,12 @@ import com.spoolin.catalog.features.movie.MovieWrites
 import com.spoolin.catalog.features.person.read.ManagedPersonReads
 import com.spoolin.catalog.features.person.write.PersonWrites
 import com.spoolin.catalog.features.provenance.ProvenanceReads
+import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.policy.PolicyEnvironment
 import com.spoolin.support.policy.PublicPolicy
-import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.receipts.ComparisonKeys
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -82,7 +82,6 @@ class Application {
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         return DatabaseSettings.load(environment, OWNER, false).pool()
     }
-
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
@@ -154,7 +153,6 @@ class ObservabilityConfiguration {
     ): com.spoolin.support.observability.LogicalRpcMetricsInterceptor =
         com.spoolin.support.observability
             .LogicalRpcMetricsInterceptor(metrics)
-
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
@@ -222,7 +220,6 @@ class RuntimeConfiguration {
         environment: Environment,
         metrics: org.springframework.beans.factory.ObjectProvider<com.spoolin.support.observability.OwnerMetrics>,
     ): ListenerBoundary = ListenerBoundary(environment, metrics.ifAvailable)
-
 }
 
 @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
@@ -335,7 +332,11 @@ class CatalogWriteConfiguration {
     ): MovieWrites = MovieWrites(receipts, policy = policy)
 
     @Bean
-    fun managedMovieReads(dataSource: DataSource, cursorKey: ByteArray, environment: Environment): ManagedMovieReads {
+    fun managedMovieReads(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        environment: Environment,
+    ): ManagedMovieReads {
         val policy = effectiveReadPolicy(environment)
         val provenance = ProvenanceReads(dataSource)
         val titleSearch = TitleSearchSql(dataSource, policy)
@@ -405,7 +406,11 @@ class CatalogWriteConfiguration {
             .DeletionImpact(dataSource, tokens)
 
     @Bean
-    fun managedPersonReads(dataSource: DataSource, cursorKey: ByteArray, environment: Environment): ManagedPersonReads =
+    fun managedPersonReads(
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        environment: Environment,
+    ): ManagedPersonReads =
         ManagedPersonReads(dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey))
 
     @Bean
@@ -426,7 +431,9 @@ class CatalogWriteConfiguration {
 
     @Bean
     fun managedCreditReads(
-        dataSource: DataSource, cursorKey: ByteArray, environment: Environment,
+        dataSource: DataSource,
+        cursorKey: ByteArray,
+        environment: Environment,
     ): com.spoolin.catalog.features.credit.ManagedCreditReads =
         com.spoolin.catalog.features.credit
             .ManagedCreditReads(dataSource, policy = effectiveReadPolicy(environment), cursors = ManagedReadCursors(cursorKey))
@@ -774,15 +781,22 @@ class ListenerBoundary(
     private val environment: Environment,
     private val metrics: com.spoolin.support.observability.OwnerMetrics? = null,
 ) : OncePerRequestFilter() {
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
         val rejection = rejectionStatus(request)
         if (rejection != null) {
             response.sendError(rejection)
         } else {
             response.setHeader("X-Content-Type-Options", "nosniff")
             response.setHeader("Cache-Control", "no-store")
-            if (request.requestURI == "/actuator/prometheus") serveMetrics(request, response, chain)
-            else chain.doFilter(request, response)
+            if (request.requestURI == "/actuator/prometheus") {
+                serveMetrics(request, response, chain)
+            } else {
+                chain.doFilter(request, response)
+            }
         }
     }
 
@@ -791,21 +805,35 @@ class ListenerBoundary(
         if (!(path.startsWith("/actuator"))) return null
         val certificates = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
         val identity = (certificates?.firstOrNull() as? X509Certificate)?.let(::certificateIdentity)
-        val permitted = when (path) {
-            "/actuator/prometheus" -> identity == "prometheus"
-            else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
-        }
+        val permitted =
+            when (path) {
+                "/actuator/prometheus" -> identity == "prometheus"
+                else -> identity in setOf("operator", "core", "catalog", "media", "mcp")
+            }
         val privatePort = environment.getProperty("local.management.port", Int::class.java)
-        return if (request.isSecure && request.localPort == privatePort && permitted) null
-        else HTTP_FORBIDDEN
+        return if (request.isSecure && request.localPort == privatePort && permitted) {
+            null
+        } else {
+            HTTP_FORBIDDEN
+        }
     }
 
-    private fun serveMetrics(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+    private fun serveMetrics(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
         val measurement = metrics
-        if (measurement == null) response.sendError(HTTP_UNAVAILABLE)
-        else synchronized(measurement) {
-            if (measurement.prepareScrape()) chain.doFilter(request, response)
-            else response.sendError(HTTP_UNAVAILABLE)
+        if (measurement == null) {
+            response.sendError(HTTP_UNAVAILABLE)
+        } else {
+            synchronized(measurement) {
+                if (measurement.prepareScrape()) {
+                    chain.doFilter(request, response)
+                } else {
+                    response.sendError(HTTP_UNAVAILABLE)
+                }
+            }
         }
     }
 }

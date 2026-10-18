@@ -30,7 +30,10 @@ object NotificationSettings {
         return WebhookTransport(mode, uri, setOf(host), SSLContext.getDefault())
     }
 
-    private fun validAuthority(uri: URI, host: String): Boolean =
+    private fun validAuthority(
+        uri: URI,
+        host: String,
+    ): Boolean =
         uri.scheme == "https" && uri.host == host && uri.port in setOf(-1, HTTPS_PORT) &&
             uri.userInfo == null && uri.fragment == null
 
@@ -40,7 +43,10 @@ object NotificationSettings {
 
     private fun validGooglePath(uri: URI): Boolean =
         uri.path.matches(Regex("/v1/spaces/[A-Za-z0-9_-]+/messages")) &&
-            uri.rawQuery?.split('&')?.map { it.substringBefore('=') }?.sorted() == listOf("key", "token")
+            uri.rawQuery
+                ?.split('&')
+                ?.map { it.substringBefore('=') }
+                ?.sorted() == listOf("key", "token")
 
     private fun smtp(read: (String) -> String?): NotificationTransport {
         val host = read("NOTIFICATION_SMTP_HOST") ?: invalid()
@@ -55,7 +61,9 @@ object NotificationSettings {
         val password = read("NOTIFICATION_SMTP_PASSWORD_FILE")?.let { secret(read, "NOTIFICATION_SMTP_PASSWORD_FILE") }
         requireSafe((user == null) == (password == null))
         return SmtpTransport(
-            SmtpEndpoint(host, port, tls, from, to), SmtpCredentials(user, password), SSLContext.getDefault(),
+            SmtpEndpoint(host, port, tls, from, to),
+            SmtpCredentials(user, password),
+            SSLContext.getDefault(),
         )
     }
 
@@ -70,8 +78,7 @@ object NotificationSettings {
     private fun secret(
         read: (String) -> String?,
         name: String,
-    ): String =
-        ProtectedNotificationSecret.read(read(name) ?: invalid())
+    ): String = ProtectedNotificationSecret.read(read(name) ?: invalid())
 
     private fun requireSafe(valid: Boolean) {
         if (!valid) invalid()

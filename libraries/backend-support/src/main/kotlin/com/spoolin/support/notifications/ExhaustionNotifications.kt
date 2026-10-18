@@ -98,14 +98,23 @@ class ExhaustionNotifications(
         return inserted
     }
 
-    private fun appendEvent(connection: Connection, source: Exhausted, id: UUID, summary: String) {
+    private fun appendEvent(
+        connection: Connection,
+        source: Exhausted,
+        id: UUID,
+        summary: String,
+    ) {
         check(
             connection.executeBound(
                 "INSERT INTO operational_event (id,operation_id,actor_kind,action," +
                     "subject_kind,subject_id,outcome,changes,correlation_id,event_type) " +
                     "VALUES (?,?,'SERVICE','WORK_EXHAUSTION_RECORDED','NOTIFICATION',?," +
                     "'SUCCEEDED',?::jsonb,?,'ACTIVITY')",
-                UUID.randomUUID(), source.operation, id, summary, source.correlation,
+                UUID.randomUUID(),
+                source.operation,
+                id,
+                summary,
+                source.correlation,
             ) == 1,
         )
     }

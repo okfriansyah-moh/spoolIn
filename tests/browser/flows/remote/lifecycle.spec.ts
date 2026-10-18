@@ -235,7 +235,9 @@ test('ATDD-103 partial: actual concurrent credit removal invalidates old impact 
   await competing.close();
 });
 
-test('ATDD-264 partial: archive tabs use roving focus, directional keys and labelled panels', async ({ page }, info) => {
+test('ATDD-264 partial: archive tabs use roving focus, directional keys and labelled panels', async ({
+  page,
+}, info) => {
   await signInMaintainer(page);
   await page.goto('/manage/archives');
   const movies = page.getByRole('tab', { name: 'Movies', exact: true });
@@ -246,12 +248,17 @@ test('ATDD-264 partial: archive tabs use roving focus, directional keys and labe
   await expect(people).toBeFocused();
   await expect(people).toHaveAttribute('aria-selected', 'true');
   await expect(movies).toHaveAttribute('tabindex', '-1');
-  await expect(page.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'archives-tab-people');
+  await expect(page.getByRole('tabpanel')).toHaveAttribute(
+    'aria-labelledby',
+    'archives-tab-people',
+  );
   await page.keyboard.press('Home');
   await expect(movies).toBeFocused();
   await expect(movies).toHaveAttribute('aria-selected', 'true');
   await page.keyboard.press('End');
   await expect(people).toBeFocused();
-  await expect(page.getByRole('tabpanel')).not.toContainText('Loading archives…');
+  await expect(page.getByRole('tabpanel')).not.toContainText(
+    'Loading archives…',
+  );
   await capture(page, info, ['ATDD-264'], 'archive-keyboard-tabs');
 });

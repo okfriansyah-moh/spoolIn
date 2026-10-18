@@ -34,10 +34,17 @@
         const context = await loadWriteContext(abort.signal);
         const policy = sessionCtl.snapshot.policy;
         if (abort.signal.aborted) return;
-        if (!context || !policy) { bootstrapError = 'Check your Maintainer session before loading this editor.'; return; }
+        if (!context || !policy) {
+          bootstrapError =
+            'Check your Maintainer session before loading this editor.';
+          return;
+        }
         await controller?.bootstrap(policy, context, abort.signal);
         if (!abort.signal.aborted) ready = true;
-      } catch { if (!abort.signal.aborted) bootstrapError = 'Person editor could not load. Retry the read.'; }
+      } catch {
+        if (!abort.signal.aborted)
+          bootstrapError = 'Person editor could not load. Retry the read.';
+      }
     };
     void retryBootstrap();
     return () => {
@@ -54,7 +61,9 @@
 
 {#if bootstrapError}
   <p role="alert">{bootstrapError}</p>
-  <button type="button" onclick={() => void retryBootstrap()}>Retry person editor</button>
+  <button type="button" onclick={() => void retryBootstrap()}
+    >Retry person editor</button
+  >
 {:else if ready && editorState && sessionCtl.snapshot.policy}
   <PersonEditorForm
     state={editorState}

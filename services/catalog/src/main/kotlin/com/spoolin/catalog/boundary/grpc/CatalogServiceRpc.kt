@@ -17,10 +17,10 @@ import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.features.taxonomy.read.TaxonomyReads
 import com.spoolin.catalog.features.taxonomy.roles.RoleWrites
 import com.spoolin.catalog.operations.receipts.OwnerReceiptReads
-import com.spoolin.support.policy.PublicPolicy
-import com.spoolin.support.policy.PolicyEnvironment
-import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.ReceiptAuthority
 import com.spoolin.support.receipts.ReceiptOutcome
 import io.grpc.Status
@@ -49,7 +49,6 @@ import spoolin.v1.Spoolin.TitlePage
 import spoolin.v1.Spoolin.VersionedId
 import java.time.Clock
 import java.util.UUID
-
 
 /**
  * Catalog gRPC service — public read methods, write methods, and receipt lookup.
@@ -132,11 +131,18 @@ class CatalogServiceRpc(
             val year = if (request.hasYear()) request.year else null
             val month = if (request.hasMonth()) request.month else null
             val first = pageSize(request.first)
-            val scopeHash = ReadPolicy(policy()).cursorScope(
-                "public-titles", first,
-                mapOf("text" to text, "kind" to kind, "genres" to request.genreIdsList.distinct().sorted(),
-                    "year" to year, "month" to month),
-            )
+            val scopeHash =
+                ReadPolicy(policy()).cursorScope(
+                    "public-titles",
+                    first,
+                    mapOf(
+                        "text" to text,
+                        "kind" to kind,
+                        "genres" to request.genreIdsList.distinct().sorted(),
+                        "year" to year,
+                        "month" to month,
+                    ),
+                )
             val afterCursor =
                 request.after.takeIf { it.isNotEmpty() }?.let { raw ->
                     titleCursor.decode(raw, scopeHash, clock.instant())
@@ -708,20 +714,27 @@ class CatalogServiceRpc(
     // ── credit cursor ────────────────────────────────────────────────────────
 
     /** Scope binds the cursor to a specific target (title or person) to prevent cross-use. */
-    private fun creditScope(targetId: UUID, kind: String, first: Int): String =
+    private fun creditScope(
+        targetId: UUID,
+        kind: String,
+        first: Int,
+    ): String =
         ReadPolicy(policy()).cursorScope(
-            "public-credits", first, mapOf("kind" to kind, "target" to targetId.toString()),
+            "public-credits",
+            first,
+            mapOf("kind" to kind, "target" to targetId.toString()),
         )
 
     private fun pageSize(first: Int): Int = readInput { ReadPolicy(policy()).rpcPageSize(first) }
 
     private fun searchText(raw: String?): String? = readInput { ReadPolicy(policy()).search(raw) }
 
-    private fun <T> readInput(read: () -> T): T = try {
-        read()
-    } catch (_: InputViolation) {
-        throw Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException()
-    }
+    private fun <T> readInput(read: () -> T): T =
+        try {
+            read()
+        } catch (_: InputViolation) {
+            throw Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException()
+        }
 
     private fun encodeCreditCursor(
         ks: PersonSearch.CreditKeyset,

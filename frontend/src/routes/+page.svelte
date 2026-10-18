@@ -86,14 +86,21 @@
 
   async function loadGenres() {
     genreAbort?.abort();
-    const abort = new AbortController(); genreAbort = abort;
-    genresLoading = true; genreError = '';
+    const abort = new AbortController();
+    genreAbort = abort;
+    genresLoading = true;
+    genreError = '';
     try {
       const current = await fetchGenres(createTransport(), abort.signal);
-      if (!abort.signal.aborted) genres = current.map((genre) => ({ id: genre.id, name: genre.label }));
+      if (!abort.signal.aborted)
+        genres = current.map((genre) => ({ id: genre.id, name: genre.label }));
     } catch {
-      if (!abort.signal.aborted) genreError = 'Genre choices could not be loaded. Your current filters are retained.';
-    } finally { if (!abort.signal.aborted) genresLoading = false; }
+      if (!abort.signal.aborted)
+        genreError =
+          'Genre choices could not be loaded. Your current filters are retained.';
+    } finally {
+      if (!abort.signal.aborted) genresLoading = false;
+    }
   }
 
   // Push current criteria into the URL (replaceState = true for filter changes,
@@ -103,7 +110,10 @@
     const qs = params.toString();
     const root = resolve('/');
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve catalog query string on /
-    void goto(qs ? `${root}?${qs}` : root, { replaceState: true, state: { ...page.state, catalogCursor: null } });
+    void goto(qs ? `${root}?${qs}` : root, {
+      replaceState: true,
+      state: { ...page.state, catalogCursor: null },
+    });
   }
 
   // Dispatch criteria to the controller, with optional debounce for text.
@@ -156,8 +166,13 @@
   });
 
   function sameCriteria(a: Criteria, b: Criteria): boolean {
-    return a.text === b.text && a.kind === b.kind && a.year === b.year && a.month === b.month &&
-      [...a.genres].sort().join(',') === [...b.genres].sort().join(',');
+    return (
+      a.text === b.text &&
+      a.kind === b.kind &&
+      a.year === b.year &&
+      a.month === b.month &&
+      [...a.genres].sort().join(',') === [...b.genres].sort().join(',')
+    );
   }
 
   async function nextTitlesPage() {
@@ -165,10 +180,17 @@
     if (!cursor || !controller) return;
     const criteriaKey = JSON.stringify(controller.snapshot.criteria);
     await controller.loadMore();
-    if (controller.snapshot.pageError || JSON.stringify(controller.snapshot.criteria) !== criteriaKey) return;
+    if (
+      controller.snapshot.pageError ||
+      JSON.stringify(controller.snapshot.criteria) !== criteriaKey
+    )
+      return;
     lastPageCursor = cursor;
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
-    await goto(page.url.href, { state: { ...page.state, catalogCursor: cursor }, reset: false });
+    await goto(page.url.href, {
+      state: { ...page.state, catalogCursor: cursor },
+      reset: false,
+    });
   }
 
   const textInvalid = $derived(
@@ -200,7 +222,9 @@
 
     {#if genresLoading}<p role="status">Loading genre choices…</p>{/if}
     {#if genreError}<p role="alert">{genreError}</p>
-      <button type="button" onclick={() => void loadGenres()}>Retry genre choices</button>{/if}
+      <button type="button" onclick={() => void loadGenres()}
+        >Retry genre choices</button
+      >{/if}
     <CatalogFilters bind:criteria {genres} {years} />
   </section>
 
@@ -263,11 +287,21 @@
           </li>
         {/each}
       </ul>
-      {#if catalogState.pageError}<p role="alert">{catalogState.pageError}</p>{/if}
-      {#if catalogState.pageInfo?.hasNextPage}<button type="button" disabled={catalogState.loadingMore}
-        aria-busy={catalogState.loadingMore} onclick={() => void nextTitlesPage()}>
-        {catalogState.pageError ? 'Retry next titles page' : catalogState.loadingMore ? 'Loading more titles…' : 'Next titles page'}
-      </button>{/if}
+      {#if catalogState.pageError}<p role="alert">
+          {catalogState.pageError}
+        </p>{/if}
+      {#if catalogState.pageInfo?.hasNextPage}<button
+          type="button"
+          disabled={catalogState.loadingMore}
+          aria-busy={catalogState.loadingMore}
+          onclick={() => void nextTitlesPage()}
+        >
+          {catalogState.pageError
+            ? 'Retry next titles page'
+            : catalogState.loadingMore
+              ? 'Loading more titles…'
+              : 'Next titles page'}
+        </button>{/if}
     </section>
   {/if}
 {:else}

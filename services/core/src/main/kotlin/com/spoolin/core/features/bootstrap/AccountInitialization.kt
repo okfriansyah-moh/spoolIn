@@ -113,7 +113,10 @@ class AccountInitialization(
                 require(MessageDigest.isEqual(row.getBytes("setup_manifest_hash"), config.checksum()))
                 if (row.getString("state") == "SUCCEEDED") {
                     validateStored(
-                        connection, config, row.getObject("setup_viewer_id", UUID::class.java), AccountRole.VIEWER,
+                        connection,
+                        config,
+                        row.getObject("setup_viewer_id", UUID::class.java),
+                        AccountRole.VIEWER,
                     )
                     validateStored(
                         connection,

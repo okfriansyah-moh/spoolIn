@@ -2,15 +2,14 @@
 
 package com.spoolin.catalog.features.search
 
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import java.sql.Connection
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
-
 
 /**
  * Native SQL title search with pg_unicode_fast casefold matching.
@@ -259,8 +258,6 @@ class TitleSearchSql(
             version = rs.getLong("version"),
         )
     }
-
-
 
     companion object {
         const val TITLE_COLUMNS =

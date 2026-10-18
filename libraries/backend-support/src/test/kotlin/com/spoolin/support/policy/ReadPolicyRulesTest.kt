@@ -7,10 +7,20 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class ReadPolicyRulesTest {
-    private val policy = ReadPolicy(PolicySettings.resolve(ConfigurationSources(emptyMap(), mapOf(
-        "REQUEST_DEFAULT_PAGE" to "2", "REQUEST_MAX_PAGE" to "3",
-        "SEARCH_MIN_CODE_POINTS" to "2", "SEARCH_MAX_CODE_POINTS" to "4",
-    ))))
+    private val policy =
+        ReadPolicy(
+            PolicySettings.resolve(
+                ConfigurationSources(
+                    emptyMap(),
+                    mapOf(
+                        "REQUEST_DEFAULT_PAGE" to "2",
+                        "REQUEST_MAX_PAGE" to "3",
+                        "SEARCH_MIN_CODE_POINTS" to "2",
+                        "SEARCH_MAX_CODE_POINTS" to "4",
+                    ),
+                ),
+            ),
+        )
 
     @Test
     fun `effective page defaults and inclusive bounds reject rather than clamp invalid requests`() {

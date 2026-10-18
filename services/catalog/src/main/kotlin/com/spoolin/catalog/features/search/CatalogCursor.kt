@@ -184,11 +184,14 @@ class CatalogCursor(
             month: Int?,
             visibility: String,
         ): String {
-            val serialized = com.spoolin.support.policy.PolicyJson.encode(
-                listOf("catalog-scope-v2", visibility, text, kind, genreIds.distinct().sorted(), year, month),
-            )
-            val digest = java.security.MessageDigest.getInstance("SHA-256")
-                .digest(serialized.toByteArray(Charsets.UTF_8))
+            val serialized =
+                com.spoolin.support.policy.PolicyJson.encode(
+                    listOf("catalog-scope-v2", visibility, text, kind, genreIds.distinct().sorted(), year, month),
+                )
+            val digest =
+                java.security.MessageDigest
+                    .getInstance("SHA-256")
+                    .digest(serialized.toByteArray(Charsets.UTF_8))
             return digest.joinToString("") { "%02x".format(it) }
         }
 
@@ -207,40 +210,80 @@ class ManagedReadCursors(
 ) {
     val titles = CatalogCursor(key)
     val people = PeopleCursor(key)
+
     fun now(): Instant = clock.instant()
 
-    fun scope(reads: com.spoolin.support.policy.ReadPolicy, surface: String, first: Int,
-              criteria: Map<String, Any?>): String {
-        val actor = com.spoolin.support.identity.ActorRpc.current()
-            ?: throw io.grpc.Status.PERMISSION_DENIED.asRuntimeException()
-        return reads.cursorScope(surface, first, mapOf(
-            "criteria" to criteria,
-            "reader" to listOf(actor.accountId.toString(), actor.credentialId.toString(), actor.authEpoch,
-                actor.role, actor.clientKind, actor.audience),
-        ))
+    fun scope(
+        reads: com.spoolin.support.policy.ReadPolicy,
+        surface: String,
+        first: Int,
+        criteria: Map<String, Any?>,
+    ): String {
+        val actor =
+            com.spoolin.support.identity.ActorRpc
+                .current()
+                ?: throw io.grpc.Status.PERMISSION_DENIED
+                    .asRuntimeException()
+        return reads.cursorScope(
+            surface,
+            first,
+            mapOf(
+                "criteria" to criteria,
+                "reader" to
+                    listOf(
+                        actor.accountId.toString(),
+                        actor.credentialId.toString(),
+                        actor.authEpoch,
+                        actor.role,
+                        actor.clientKind,
+                        actor.audience,
+                    ),
+            ),
+        )
     }
 
-    fun title(raw: String?, scope: String): CatalogCursor.Keyset? = raw?.let {
-        titles.decode(it, scope, now()) ?: invalid()
-    }
-
-    fun person(raw: String?, scope: String): PeopleCursor.Keyset? = raw?.let {
-        people.decode(it, scope, now()) ?: invalid()
-    }
-
-    fun audit(raw: String?, scope: String): com.spoolin.catalog.operations.audit.AuditReads.Keyset? =
-        person(raw, scope)?.let { key ->
-            val at = try { Instant.parse(key.name) } catch (_: java.time.format.DateTimeParseException) { invalid() }
-            com.spoolin.catalog.operations.audit.AuditReads.Keyset(at, key.id)
+    fun title(
+        raw: String?,
+        scope: String,
+    ): CatalogCursor.Keyset? =
+        raw?.let {
+            titles.decode(it, scope, now()) ?: invalid()
         }
 
-    private fun invalid(): Nothing = throw io.grpc.Status.INVALID_ARGUMENT
-        .withDescription("INVALID_CURSOR").asRuntimeException()
+    fun person(
+        raw: String?,
+        scope: String,
+    ): PeopleCursor.Keyset? =
+        raw?.let {
+            people.decode(it, scope, now()) ?: invalid()
+        }
+
+    fun audit(
+        raw: String?,
+        scope: String,
+    ): com.spoolin.catalog.operations.audit.AuditReads.Keyset? =
+        person(raw, scope)?.let { key ->
+            val at =
+                try {
+                    Instant.parse(key.name)
+                } catch (_: java.time.format.DateTimeParseException) {
+                    invalid()
+                }
+            com.spoolin.catalog.operations.audit.AuditReads
+                .Keyset(at, key.id)
+        }
+
+    private fun invalid(): Nothing =
+        throw io.grpc.Status.INVALID_ARGUMENT
+            .withDescription("INVALID_CURSOR")
+            .asRuntimeException()
 
     companion object {
         private const val SIGNING_KEY_BYTES = 32
-        fun ephemeral(): ManagedReadCursors = ManagedReadCursors(
-            ByteArray(SIGNING_KEY_BYTES).also { SecureRandom().nextBytes(it) },
-        )
+
+        fun ephemeral(): ManagedReadCursors =
+            ManagedReadCursors(
+                ByteArray(SIGNING_KEY_BYTES).also { SecureRandom().nextBytes(it) },
+            )
     }
 }

@@ -6,8 +6,14 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import javax.net.ssl.SSLContext
 
-internal class SmtpSession(val input: InputStream, val output: OutputStream) {
-    fun envelope(from: String, to: String) {
+internal class SmtpSession(
+    val input: InputStream,
+    val output: OutputStream,
+) {
+    fun envelope(
+        from: String,
+        to: String,
+    ) {
         command(output, "MAIL FROM:<$from>")
         expect(OK)
         command(output, "RCPT TO:<$to>")
@@ -43,7 +49,11 @@ internal class SmtpSession(val input: InputStream, val output: OutputStream) {
         private const val TEMPORARY_MIN = 400
         private const val TEMPORARY_MAX = 499
 
-        fun open(connection: TimedConnection, tlsMode: String, ssl: SSLContext): SmtpSession {
+        fun open(
+            connection: TimedConnection,
+            tlsMode: String,
+            ssl: SSLContext,
+        ): SmtpSession {
             val socket = if (tlsMode == "implicit") connection.tls(ssl) else connection.raw
             val initial = SmtpSession(BufferedInputStream(socket.inputStream), socket.outputStream)
             initial.expect(READY)
@@ -51,13 +61,19 @@ internal class SmtpSession(val input: InputStream, val output: OutputStream) {
             return if (tlsMode == "starttls") initial.upgrade(connection, ssl) else initial
         }
 
-        fun command(output: OutputStream, value: String) {
+        fun command(
+            output: OutputStream,
+            value: String,
+        ) {
             output.write((value + "\r\n").toByteArray(StandardCharsets.US_ASCII))
             output.flush()
         }
     }
 
-    private fun upgrade(connection: TimedConnection, ssl: SSLContext): SmtpSession {
+    private fun upgrade(
+        connection: TimedConnection,
+        ssl: SSLContext,
+    ): SmtpSession {
         command(output, "STARTTLS")
         expect(READY)
         val secured = connection.tls(ssl)
@@ -65,4 +81,6 @@ internal class SmtpSession(val input: InputStream, val output: OutputStream) {
     }
 }
 
-internal class SmtpRejection(val temporary: Boolean) : RuntimeException("SMTP request rejected")
+internal class SmtpRejection(
+    val temporary: Boolean,
+) : RuntimeException("SMTP request rejected")

@@ -3,7 +3,9 @@ package com.spoolin.support.policy
 import java.security.MessageDigest
 
 /** Effective policy for reads; empty normalized search clears criteria even with a nonzero text minimum. */
-class ReadPolicy(val effective: PublicPolicy) {
+class ReadPolicy(
+    val effective: PublicPolicy,
+) {
     fun pageSize(requested: Int?): Int {
         val first = requested ?: effective.requestLimits.getValue("defaultPage")
         val maximum = effective.requestLimits.getValue("maxPage")
@@ -17,14 +19,22 @@ class ReadPolicy(val effective: PublicPolicy) {
     fun search(raw: String?): String? {
         if (raw == null) return null
         TextRules.scalars(raw, "text")
-        return if (TextRules.blank(raw)) null else {
+        return if (TextRules.blank(raw)) {
+            null
+        } else {
             TextRules.ordinary(raw, effective.textBounds.getValue("search"), "text")
         }
     }
 
-    fun cursorScope(surface: String, first: Int, criteria: Map<String, Any?>): String {
+    fun cursorScope(
+        surface: String,
+        first: Int,
+        criteria: Map<String, Any?>,
+    ): String {
         val bytes = PolicyJson.encode(listOf("read-scope-v2", effective.revision, surface, first, criteria))
-        return MessageDigest.getInstance("SHA-256").digest(bytes.toByteArray(Charsets.UTF_8))
+        return MessageDigest
+            .getInstance("SHA-256")
+            .digest(bytes.toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it) }
     }
 }

@@ -375,11 +375,25 @@ describe('person explicit discard', () => {
 });
 
 it('an expired successful direct create retains its original intent and never refetches it as a current saved person', async () => {
-  const controller = new PersonEditorController(vi.fn(), sourceFixture(), 'create', null);
+  const controller = new PersonEditorController(
+    vi.fn(),
+    sourceFixture(),
+    'create',
+    null,
+  );
   await controller.bootstrap(policy, context, new AbortController().signal);
   controller.updateDraft({ name: 'Retained person' });
-  vi.mocked(api.createPerson).mockResolvedValueOnce({ receipt: { operationId: 'original', state: 'SUCCEEDED',
-    resultExpired: true, problem: null }, resultPersonId: 'result', resultVersion: '1', problemCode: null });
+  vi.mocked(api.createPerson).mockResolvedValueOnce({
+    receipt: {
+      operationId: 'original',
+      state: 'SUCCEEDED',
+      resultExpired: true,
+      problem: null,
+    },
+    resultPersonId: 'result',
+    resultVersion: '1',
+    problemCode: null,
+  });
   await controller.submit();
   expect(controller.snapshot.phase).toBe('uncertain');
   expect(controller.snapshot.saved).toBeNull();

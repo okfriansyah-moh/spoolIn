@@ -119,7 +119,13 @@ class SeedPolicyValidation(
         node: JsonNode,
         required: Set<String>,
     ) {
-        require(node["sources"].toList().map { it["field"].asText() }.toSet().containsAll(required)) { "Missing seed field provenance" }
+        require(
+            node["sources"]
+                .toList()
+                .map { it["field"].asText() }
+                .toSet()
+                .containsAll(required),
+        ) { "Missing seed field provenance" }
     }
 
     private fun sources(node: JsonNode) {

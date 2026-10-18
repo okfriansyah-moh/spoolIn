@@ -22,10 +22,15 @@
       try {
         const context = await loadWriteContext(abort.signal);
         if (abort.signal.aborted) return;
-        if (!context) { listState = { kind: 'failure' }; return; }
+        if (!context) {
+          listState = { kind: 'failure' };
+          return;
+        }
         loadMore = () => controller.loadMore(context.csrf, abort.signal);
         await controller.load(context.csrf, abort.signal);
-      } catch { if (!abort.signal.aborted) listState = { kind: 'failure' }; }
+      } catch {
+        if (!abort.signal.aborted) listState = { kind: 'failure' };
+      }
     };
     void reload();
     return () => {
@@ -80,9 +85,13 @@
     </table>
   </div>
   {#if listState.pageError}<p role="alert">{listState.pageError}</p>{/if}
-  {#if listState.pageInfo?.hasNextPage}<button type="button" disabled={listState.loadingMore} onclick={() => void loadMore()}>
-    {listState.pageError ? 'Retry more people' : 'Load more people'}
-  </button>{/if}
+  {#if listState.pageInfo?.hasNextPage}<button
+      type="button"
+      disabled={listState.loadingMore}
+      onclick={() => void loadMore()}
+    >
+      {listState.pageError ? 'Retry more people' : 'Load more people'}
+    </button>{/if}
 {/if}
 
 <style>

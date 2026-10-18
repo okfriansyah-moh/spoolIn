@@ -30,7 +30,10 @@
   let requested = '';
   onMount(() => {
     mounted = true;
-    return () => { globalThis.clearTimeout(debounceTimer); activeController?.abort(); };
+    return () => {
+      globalThis.clearTimeout(debounceTimer);
+      activeController?.abort();
+    };
   });
   $effect(() => {
     if (!mounted) return;
@@ -43,7 +46,10 @@
     void load(text, after);
   });
 
-  async function load(text: string, after: string | null = historyCursor(page.state, 'peopleCursor')): Promise<void> {
+  async function load(
+    text: string,
+    after: string | null = historyCursor(page.state, 'peopleCursor'),
+  ): Promise<void> {
     const gen = ++generation;
     activeController?.abort();
     activeController = new AbortController();
@@ -95,14 +101,20 @@
   function clearSearch() {
     globalThis.clearTimeout(debounceTimer);
     searchText = '';
-    void goto(resolve('/people'), { replaceState: false, state: { ...page.state, peopleCursor: null } });
+    void goto(resolve('/people'), {
+      replaceState: false,
+      state: { ...page.state, peopleCursor: null },
+    });
   }
 
   function nextPage() {
     const cursor = peopleState.pageInfo?.endCursor;
     if (!cursor) return;
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- preserve the current public criteria URL
-    void goto(page.url.href, { state: { ...page.state, peopleCursor: cursor }, reset: false });
+    void goto(page.url.href, {
+      state: { ...page.state, peopleCursor: cursor },
+      reset: false,
+    });
   }
 </script>
 
@@ -156,5 +168,8 @@
       </li>
     {/each}
   </ul>
-  {#if peopleState.pageInfo?.hasNextPage}<button type="button" onclick={nextPage}>Next people page</button>{/if}
+  {#if peopleState.pageInfo?.hasNextPage}<button
+      type="button"
+      onclick={nextPage}>Next people page</button
+    >{/if}
 {/if}

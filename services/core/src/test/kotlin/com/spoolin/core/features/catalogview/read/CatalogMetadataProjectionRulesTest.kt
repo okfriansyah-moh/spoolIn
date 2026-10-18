@@ -84,10 +84,12 @@ class CatalogMetadataProjectionRulesTest {
                     }
                 }.build()
         }.bind(wiring)
-        val schema = "type Query { titles: [Title!]! } type Title { genres: [Genre!]! } " +
-            "type Genre { id: ID! label: String! }"
-        return GraphQL.newGraphQL(
-            SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build()),
-        ).build()
+        val schema =
+            "type Query { titles: [Title!]! } type Title { genres: [Genre!]! } " +
+                "type Genre { id: ID! label: String! }"
+        return GraphQL
+            .newGraphQL(
+                SchemaGenerator().makeExecutableSchema(SchemaParser().parse(schema), wiring.build()),
+            ).build()
     }
 }

@@ -116,16 +116,24 @@ export async function fetchGenres(
 // Re-export typed document nodes for tests that want to mock at the document level
 export { TitlesDocument, TitleDocument, GenresDocument };
 
-
 export async function fetchTitleCredits(
-  request: GraphqlRequest, id: string, after: string | null, signal?: AbortSignal,
+  request: GraphqlRequest,
+  id: string,
+  after: string | null,
+  signal?: AbortSignal,
 ): Promise<CatalogTitleDetail['credits']> {
-  const data = record(await request(`query TitleCredits($id: UUID!, $first: Int, $after: Cursor) {
+  const data = record(
+    await request(
+      `query TitleCredits($id: UUID!, $first: Int, $after: Cursor) {
     titleCredits(id: $id, first: $first, after: $after) {
       nodes { id personId personName titleId titleName role { id label category allowsCharacters } characters version }
       pageInfo { endCursor hasNextPage }
     }
-  }`, { id, after }, withSignal(signal)));
+  }`,
+      { id, after },
+      withSignal(signal),
+    ),
+  );
   const result = data.titleCredits as CatalogTitleDetail['credits'];
   if (!Array.isArray(result?.nodes)) throw new Error('Credits unavailable.');
   return { ...result, pageInfo: readPageInfo(result.pageInfo, after) };

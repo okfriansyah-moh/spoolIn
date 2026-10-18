@@ -87,9 +87,12 @@ function applyReleasePatch(
 ): void {
   const year = draft.release?.year;
   if (year === null || year === undefined) return;
-  if (String(year) === saved.releaseYear &&
-      (draft.release?.month ?? null) === (saved.releaseMonth ?? null) &&
-      (draft.release?.day ?? null) === (saved.releaseDay ?? null)) return;
+  if (
+    String(year) === saved.releaseYear &&
+    (draft.release?.month ?? null) === (saved.releaseMonth ?? null) &&
+    (draft.release?.day ?? null) === (saved.releaseDay ?? null)
+  )
+    return;
   patch.release = {
     year,
     month: draft.release?.month ?? null,
@@ -125,13 +128,31 @@ export function patchIsEmpty(patch: MoviePatchPayload): boolean {
   return Object.keys(patch).length === 0;
 }
 
-function applyMetadataPatch(patch: Record<string, unknown>, saved: ManagedMovie, draft: MovieDraft): void {
-  if (draft.runtimeMinutes !== undefined && draft.runtimeMinutes !== (saved.runtimeMinutes ?? null))
+function applyMetadataPatch(
+  patch: Record<string, unknown>,
+  saved: ManagedMovie,
+  draft: MovieDraft,
+): void {
+  if (
+    draft.runtimeMinutes !== undefined &&
+    draft.runtimeMinutes !== (saved.runtimeMinutes ?? null)
+  )
     patch.runtimeMinutes = draft.runtimeMinutes;
-  if (draft.originalLanguage !== undefined && (draft.originalLanguage?.trim() || null) !== (saved.originalLanguage ?? null))
+  if (
+    draft.originalLanguage !== undefined &&
+    (draft.originalLanguage?.trim() || null) !==
+      (saved.originalLanguage ?? null)
+  )
     patch.originalLanguage = draft.originalLanguage?.trim() || null;
-  if (draft.synopsisLanguage !== undefined && draft.synopsisLanguage.trim() !== (saved.synopsisLanguage ?? 'und'))
+  if (
+    draft.synopsisLanguage !== undefined &&
+    draft.synopsisLanguage.trim() !== (saved.synopsisLanguage ?? 'und')
+  )
     patch.synopsisLanguage = draft.synopsisLanguage.trim();
-  if (draft.countries !== undefined && [...draft.countries].sort().join(',') !== [...(saved.countries ?? [])].sort().join(','))
+  if (
+    draft.countries !== undefined &&
+    [...draft.countries].sort().join(',') !==
+      [...(saved.countries ?? [])].sort().join(',')
+  )
     patch.countries = [...draft.countries];
 }

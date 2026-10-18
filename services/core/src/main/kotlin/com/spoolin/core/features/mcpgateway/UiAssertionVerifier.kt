@@ -143,8 +143,7 @@ class UiAssertionVerifier(
         consumed.clear()
     }
 
-    private fun deny(): Nothing =
-        throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
+    private fun deny(): Nothing = throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
 
     companion object {
         val assertionContext: Context.Key<String> = Context.key("mcp-private-ui-assertion")
@@ -211,8 +210,7 @@ private class UiAssertionClaims(
         return value.stringValue()
     }
 
-    private fun deny(): Nothing =
-        throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
+    private fun deny(): Nothing = throw Status.PERMISSION_DENIED.withDescription("TRUSTED_UI_REQUIRED").asRuntimeException()
 
     companion object {
         private val FIELDS =

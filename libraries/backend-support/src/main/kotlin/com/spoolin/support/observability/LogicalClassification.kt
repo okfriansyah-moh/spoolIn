@@ -7,13 +7,12 @@ internal object LogicalClassification {
     fun message(
         operation: MetricOperation,
         value: Any?,
-    ): LogicalResult {
-        return if (value is Message && value.descriptorForType.fullName == operation.response) {
+    ): LogicalResult =
+        if (value is Message && value.descriptorForType.fullName == operation.response) {
             if (operation.receiptLookup) lookup(value) else reply(operation, value)
         } else {
             LogicalResult.unknown()
         }
-    }
 
     private fun reply(
         operation: MetricOperation,

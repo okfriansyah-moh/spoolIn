@@ -28,7 +28,10 @@ export const INITIAL_ARTWORK_UPLOAD_VIEW: ArtworkUploadView = Object.freeze({
 
 export class ArtworkUploadController {
   private generation = 0;
-  private cancelIntent: { operationId: string; uploadOperationId: string } | null = null;
+  private cancelIntent: {
+    operationId: string;
+    uploadOperationId: string;
+  } | null = null;
   private view: ArtworkUploadView = INITIAL_ARTWORK_UPLOAD_VIEW;
   private activeXhr: XMLHttpRequest | null = null;
   private pollAbort: AbortController | null = null;
@@ -98,7 +101,8 @@ export class ArtworkUploadController {
       );
       if (generation !== this.generation) return;
       if (attached) this.publishSaved(operationId);
-      else if (this.view.stage === 'processing') this.publishFailed(operationId);
+      else if (this.view.stage === 'processing')
+        this.publishFailed(operationId);
     } catch (error) {
       this.handleUploadError(error, generation, operationId);
     }
@@ -106,28 +110,67 @@ export class ArtworkUploadController {
 
   async cancelActive(uploadOperationId: string | null): Promise<void> {
     if (!uploadOperationId) return;
-    this.cancelIntent ??= { operationId: globalThis.crypto.randomUUID(), uploadOperationId };
+    this.cancelIntent ??= {
+      operationId: globalThis.crypto.randomUUID(),
+      uploadOperationId,
+    };
     if (this.cancelIntent.uploadOperationId !== uploadOperationId) return;
     this.generation += 1;
     const generation = this.generation;
     this.activeXhr?.abort();
     this.activeXhr = null;
     this.pollAbort?.abort();
-    this.publishCancellation(uploadOperationId, 'Stopping local transfer. Checking server cancellation…', false);
+    this.publishCancellation(
+      uploadOperationId,
+      'Stopping local transfer. Checking server cancellation…',
+      false,
+    );
     try {
-      const cancelled = await cancelArtwork(this.request, this.csrf, this.cancelIntent.operationId, uploadOperationId);
+      const cancelled = await cancelArtwork(
+        this.request,
+        this.csrf,
+        this.cancelIntent.operationId,
+        uploadOperationId,
+      );
       if (generation !== this.generation) return;
       this.cancelIntent = null;
-      if (cancelled) this.publish({ ...this.view, stage: 'failed', message: 'Upload cancelled.', canCancel: false, canResumeCheck: false });
-      else this.publishCancellation(uploadOperationId, 'Cancellation was not applied. Check the original upload result.', false);
+      if (cancelled)
+        this.publish({
+          ...this.view,
+          stage: 'failed',
+          message: 'Upload cancelled.',
+          canCancel: false,
+          canResumeCheck: false,
+        });
+      else
+        this.publishCancellation(
+          uploadOperationId,
+          'Cancellation was not applied. Check the original upload result.',
+          false,
+        );
     } catch {
       if (generation === this.generation)
-        this.publishCancellation(uploadOperationId, 'Cancellation is not confirmed. Retry cancellation or check the original upload result.', true);
+        this.publishCancellation(
+          uploadOperationId,
+          'Cancellation is not confirmed. Retry cancellation or check the original upload result.',
+          true,
+        );
     }
   }
 
-  private publishCancellation(operationId: string, message: string, canCancel: boolean): void {
-    this.publish({ ...this.view, stage: 'uncertain', message, operationId, canCancel, canResumeCheck: true });
+  private publishCancellation(
+    operationId: string,
+    message: string,
+    canCancel: boolean,
+  ): void {
+    this.publish({
+      ...this.view,
+      stage: 'uncertain',
+      message,
+      operationId,
+      canCancel,
+      canResumeCheck: true,
+    });
   }
 
   async resumeCheck(
@@ -145,11 +188,20 @@ export class ArtworkUploadController {
       canResumeCheck: false,
     });
     try {
-      const attached = await this.pollAttachment(generation, operationId, titleId, signal);
+      const attached = await this.pollAttachment(
+        generation,
+        operationId,
+        titleId,
+        signal,
+      );
       if (generation !== this.generation) return;
       if (attached) this.publishSaved(operationId);
       else if (this.view.stage === 'processing')
-        this.publishCancellation(operationId, 'The upload result is not confirmed. Check the original result again.', false);
+        this.publishCancellation(
+          operationId,
+          'The upload result is not confirmed. Check the original result again.',
+          false,
+        );
     } catch (error) {
       this.handleUploadError(error, generation, operationId);
     }
@@ -214,7 +266,11 @@ export class ArtworkUploadController {
       });
       return;
     }
-    this.publishCancellation(operationId, 'The upload result is uncertain. Check the original result before another upload.', false);
+    this.publishCancellation(
+      operationId,
+      'The upload result is uncertain. Check the original result before another upload.',
+      false,
+    );
   }
 
   private publishTransferring(operationId: string, percent: number): void {

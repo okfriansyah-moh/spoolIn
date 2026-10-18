@@ -42,7 +42,8 @@ class CatalogSeedPolicyBoundaryTest {
                 assertEquals(0, count(pool, "SELECT count(*) FROM $table"))
             }
             assertEquals(
-                0, count(pool, "SELECT count(*) FROM operation_receipt WHERE receipt_type='CATALOG_INITIALIZATION'"),
+                0,
+                count(pool, "SELECT count(*) FROM operation_receipt WHERE receipt_type='CATALOG_INITIALIZATION'"),
             )
             current = configured()
             assertEquals(200, loader.loadFromManifest(path(fixture), manifest.version))
@@ -96,7 +97,8 @@ class CatalogSeedPolicyBoundaryTest {
             assertEquals(original, receipt(pool))
             assertEquals(0, count(pool, "SELECT count(*) FROM title"))
             assertEquals(
-                0, count(pool, "SELECT count(*) FROM operational_event WHERE action='SEED_INITIALIZATION_RETRY'"),
+                0,
+                count(pool, "SELECT count(*) FROM operational_event WHERE action='SEED_INITIALIZATION_RETRY'"),
             )
             current = configured()
             assertEquals(200, loader.loadFromManifest(path(fixture), manifest.version))
@@ -110,7 +112,8 @@ class CatalogSeedPolicyBoundaryTest {
             )
             assertEquals(0, loader.loadFromManifest(path(fixture), manifest.version))
             assertEquals(
-                1, count(pool, "SELECT count(*) FROM operational_event WHERE action='SEED_INITIALIZATION_RETRY'"),
+                1,
+                count(pool, "SELECT count(*) FROM operational_event WHERE action='SEED_INITIALIZATION_RETRY'"),
             )
         }
     }
@@ -124,7 +127,8 @@ class CatalogSeedPolicyBoundaryTest {
             val input = write(root, fixture.root.resolve("controlled-seed.json"))
             val policy = configured(mapOf("PERSON_NAME_MAX_CODE_POINTS" to "300"))
             assertEquals(
-                200, CatalogSeedLoader(pool) { policy }.loadFromManifest(input, root["manifestVersion"].asText()),
+                200,
+                CatalogSeedLoader(pool) { policy }.loadFromManifest(input, root["manifestVersion"].asText()),
             )
             assertEquals(
                 1,
@@ -143,7 +147,8 @@ class CatalogSeedPolicyBoundaryTest {
                 ),
             )
             assertEquals(
-                1, count(pool, "SELECT count(*) FROM credit WHERE characters=ARRAY['Reviewed Character']::text[]"),
+                1,
+                count(pool, "SELECT count(*) FROM credit WHERE characters=ARRAY['Reviewed Character']::text[]"),
             )
             val retained = receipt(pool)
             val loader = CatalogSeedLoader(pool) { error("Historical success must not consult new policy") }
@@ -166,7 +171,8 @@ class CatalogSeedPolicyBoundaryTest {
     ) {
         pool.committed { connection ->
             connection.executeBound(
-                "UPDATE title SET display_title='Retained user edit',status='DELETED',version=1 WHERE id=?", id,
+                "UPDATE title SET display_title='Retained user edit',status='DELETED',version=1 WHERE id=?",
+                id,
             )
             connection.executeBound(
                 "UPDATE seed_member SET removed_at=CURRENT_TIMESTAMP WHERE subject_kind='TITLE' AND subject_id=?",
@@ -189,8 +195,10 @@ class CatalogSeedPolicyBoundaryTest {
                 row["credits"].any { it["roleExternalId"].asText() == "P161" }
             } as ObjectNode
         val values = record["normalized"] as ObjectNode
-        values.put("originalTitle", "Reviewed fixture title")
-            .put("originalLanguage", "en").put("runtimeMinutes", 120)
+        values
+            .put("originalTitle", "Reviewed fixture title")
+            .put("originalLanguage", "en")
+            .put("runtimeMinutes", 120)
         values.putArray("countries").add("US")
         listOf("originalTitle", "originalLanguage", "runtimeMinutes", "countries").forEach { addSource(record, it) }
         val credit = record["credits"].first { it["roleExternalId"].asText() == "P161" } as ObjectNode
@@ -203,7 +211,9 @@ class CatalogSeedPolicyBoundaryTest {
         block: (SignedReceiptFixture, DataSource) -> Unit,
     ) {
         SignedReceiptFixture(name).use { fixture ->
-            fixture.fixture.owner.pool("catalog").use { pool -> block(fixture, pool) }
+            fixture.fixture.owner
+                .pool("catalog")
+                .use { pool -> block(fixture, pool) }
         }
     }
 
@@ -231,8 +241,7 @@ class CatalogSeedPolicyBoundaryTest {
         fixture.fixture.owner.repository
             .resolve("data/seed/manifest.json")
 
-    private fun configured(values: Map<String, String> = emptyMap()) =
-        PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
+    private fun configured(values: Map<String, String> = emptyMap()) = PolicySettings.resolve(ConfigurationSources(values, emptyMap()))
 
     private fun count(
         pool: DataSource,

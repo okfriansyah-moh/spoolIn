@@ -67,22 +67,30 @@ class MountedKeys(
         }
     }
 
-    private fun immutable(id: String, material: Material) {
+    private fun immutable(
+        id: String,
+        material: Material,
+    ) {
         val current = materials[id]
-        val unchanged = current == null ||
-            (current.purpose == material.purpose &&
-                java.security.MessageDigest.isEqual(current.bytes, material.bytes))
+        val unchanged =
+            current == null ||
+                (
+                    current.purpose == material.purpose &&
+                        java.security.MessageDigest.isEqual(current.bytes, material.bytes)
+                )
         require(unchanged) {
             "Existing protection key versions are immutable"
         }
     }
 
     private fun independent(values: List<Material>) {
-        require(values.indices.all { first ->
-            (first + 1 until values.size).all { second ->
-                !java.security.MessageDigest.isEqual(values[first].bytes, values[second].bytes)
-            }
-        }) { "Protection keys must be independent" }
+        require(
+            values.indices.all { first ->
+                (first + 1 until values.size).all { second ->
+                    !java.security.MessageDigest.isEqual(values[first].bytes, values[second].bytes)
+                }
+            },
+        ) { "Protection keys must be independent" }
     }
 
     @Synchronized

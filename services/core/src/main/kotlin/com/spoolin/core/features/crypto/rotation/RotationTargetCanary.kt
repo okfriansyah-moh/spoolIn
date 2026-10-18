@@ -39,18 +39,31 @@ internal class RotationTargetCanary(
         check(mac.doFinal("rotation-canary-v1".toByteArray()).size == HMAC_DIGEST_BYTES)
     }
 
-    private fun counter(): Long = dataSource.committed { connection ->
-        connection.queryBound(
-            "UPDATE appdata.crypto_key_version SET next_nonce=next_nonce+1 WHERE id=? AND purpose=? " +
-                "AND state IN ('WRITE','READ') AND next_nonce<9223372036854775807 RETURNING next_nonce-1 AS nonce",
-            listOf(id, purpose.name),
-        ) { it.getLong("nonce") }.single()
-    }
+    private fun counter(): Long =
+        dataSource.committed { connection ->
+            connection
+                .queryBound(
+                    "UPDATE appdata.crypto_key_version SET next_nonce=next_nonce+1 WHERE id=? AND purpose=? " +
+                        "AND state IN ('WRITE','READ') AND next_nonce<9223372036854775807 RETURNING next_nonce-1 AS nonce",
+                    listOf(id, purpose.name),
+                ) { it.getLong("nonce") }
+                .single()
+        }
 
     private fun encryption(material: ByteArray) {
-        val nonce = ByteBuffer.allocate(CANARY_NONCE_BYTES).putInt(0).putLong(counter()).array()
-        val binding = ProtectionBinding("core", if (purpose == KeyPurpose.PII) "user_account" else "form_draft",
-            UUID.randomUUID(), purpose)
+        val nonce =
+            ByteBuffer
+                .allocate(CANARY_NONCE_BYTES)
+                .putInt(0)
+                .putLong(counter())
+                .array()
+        val binding =
+            ProtectionBinding(
+                "core",
+                if (purpose == KeyPurpose.PII) "user_account" else "form_draft",
+                UUID.randomUUID(),
+                purpose,
+            )
         val clear = "rotation-canary-v1".toByteArray()
         try {
             roundTrip(material, nonce, binding, clear)
@@ -59,7 +72,12 @@ internal class RotationTargetCanary(
         }
     }
 
-    private fun roundTrip(material: ByteArray, nonce: ByteArray, binding: ProtectionBinding, clear: ByteArray) {
+    private fun roundTrip(
+        material: ByteArray,
+        nonce: ByteArray,
+        binding: ProtectionBinding,
+        clear: ByteArray,
+    ) {
         val envelope = AeadCipher().encrypt(id, material, nonce, binding, clear)
         val read = AeadCipher().decrypt(envelope, material, binding)
         check(read is ProtectedRead.Value && MessageDigest.isEqual(clear, read.value))

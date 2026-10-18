@@ -55,10 +55,14 @@ class CatalogIntentBoundaryTest {
                     original.toBuilder().setValues(values.toBuilder().setSynopsisLanguage("fr")).build(),
                     original.toBuilder().setValues(values.toBuilder().setRuntimeMinutes(90)).build(),
                     original.toBuilder().setValues(values.toBuilder().addCountries("GB")).build(),
-                    original.toBuilder()
-                        .setValues(values.toBuilder().setRelease(values.release.toBuilder().setMonth(2))).build(),
-                    original.toBuilder()
-                        .setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(1))).build(),
+                    original
+                        .toBuilder()
+                        .setValues(values.toBuilder().setRelease(values.release.toBuilder().setMonth(2)))
+                        .build(),
+                    original
+                        .toBuilder()
+                        .setValues(values.toBuilder().setRelease(values.release.toBuilder().setDay(1)))
+                        .build(),
                     original.toBuilder().setExpectedVersion(0).build(),
                 )
             variants.forEach { conflict { fixture.movie(it) } }

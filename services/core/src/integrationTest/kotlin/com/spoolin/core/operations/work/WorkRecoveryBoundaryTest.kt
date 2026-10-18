@@ -244,9 +244,10 @@ class WorkRecoveryBoundaryTest {
         // Explicit fixture corruption exercises recovery refusal; the runtime audit permissions stay unchanged.
         require(sql.count { it == '?' } == 1)
         if (sql.contains("operational_event")) {
-            val denied = assertThrows(SQLException::class.java) {
-                fixture.connection("core").use { it.executeBound(sql, id) }
-            }
+            val denied =
+                assertThrows(SQLException::class.java) {
+                    fixture.connection("core").use { it.executeBound(sql, id) }
+                }
             assertEquals("42501", denied.sqlState)
         }
         fixture.sql("core", sql.replace("?", "'$id'::uuid"))

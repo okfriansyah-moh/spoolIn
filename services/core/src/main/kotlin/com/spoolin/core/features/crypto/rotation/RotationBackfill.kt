@@ -127,9 +127,11 @@ class RotationBackfill(
         try {
             val identity = AccountPayload().decode(clear)
             check(identity is ProtectedRead.Value) { "Protected identity is invalid" }
-            val target = accountCrypto.lookupDigest(
-                RegisteredKey(plan.toAlias, KeyPurpose.EMAIL_LOOKUP), identity.value.emailNormalized,
-            )
+            val target =
+                accountCrypto.lookupDigest(
+                    RegisteredKey(plan.toAlias, KeyPurpose.EMAIL_LOOKUP),
+                    identity.value.emailNormalized,
+                )
             try {
                 return persistAlias(row, target)
             } finally {
@@ -140,30 +142,50 @@ class RotationBackfill(
         }
     }
 
-    private fun persistAlias(row: Row, target: ByteArray): Int = dataSource.committed { connection ->
-        val compatible = registry.lookupKeys(connection)
-        check(compatible.any { it.id == plan.toAlias && it.state == com.spoolin.core.features.crypto.KeyState.WRITE })
-        if (!unchanged(connection, row)) return@committed 0
-        val inserted = connection.executeBound(
-            "INSERT INTO appdata.account_email_lookup(key_id,digest,account_id) " +
-                "VALUES(?,?,?) ON CONFLICT DO NOTHING",
-            plan.toAlias, target, row.id,
-        )
-        verifyAlias(connection, row, target)
-        inserted
-    }
+    private fun persistAlias(
+        row: Row,
+        target: ByteArray,
+    ): Int =
+        dataSource.committed { connection ->
+            val compatible = registry.lookupKeys(connection)
+            check(compatible.any { it.id == plan.toAlias && it.state == com.spoolin.core.features.crypto.KeyState.WRITE })
+            if (!unchanged(connection, row)) return@committed 0
+            val inserted =
+                connection.executeBound(
+                    "INSERT INTO appdata.account_email_lookup(key_id,digest,account_id) " +
+                        "VALUES(?,?,?) ON CONFLICT DO NOTHING",
+                    plan.toAlias,
+                    target,
+                    row.id,
+                )
+            verifyAlias(connection, row, target)
+            inserted
+        }
 
-    private fun unchanged(connection: java.sql.Connection, row: Row): Boolean = connection.queryBound(
-        "SELECT id FROM appdata.user_account WHERE id=? AND version=? AND pii_key_id=? " +
-            "AND pii_nonce=? AND pii_cipher=? FOR UPDATE",
-        listOf(row.id, row.version, row.envelope.keyId, row.envelope.nonce(), row.envelope.cipher()),
-    ) { 1 }.isNotEmpty()
+    private fun unchanged(
+        connection: java.sql.Connection,
+        row: Row,
+    ): Boolean =
+        connection
+            .queryBound(
+                "SELECT id FROM appdata.user_account WHERE id=? AND version=? AND pii_key_id=? " +
+                    "AND pii_nonce=? AND pii_cipher=? FOR UPDATE",
+                listOf(row.id, row.version, row.envelope.keyId, row.envelope.nonce(), row.envelope.cipher()),
+            ) { 1 }
+            .isNotEmpty()
 
-    private fun verifyAlias(connection: java.sql.Connection, row: Row, target: ByteArray) {
-        val stored = connection.queryBound(
-            "SELECT digest FROM appdata.account_email_lookup WHERE key_id=? AND account_id=?",
-            listOf(plan.toAlias, row.id),
-        ) { it.getBytes("digest") }.singleOrNull()
+    private fun verifyAlias(
+        connection: java.sql.Connection,
+        row: Row,
+        target: ByteArray,
+    ) {
+        val stored =
+            connection
+                .queryBound(
+                    "SELECT digest FROM appdata.account_email_lookup WHERE key_id=? AND account_id=?",
+                    listOf(plan.toAlias, row.id),
+                ) { it.getBytes("digest") }
+                .singleOrNull()
         check(stored != null && MessageDigest.isEqual(stored, target)) {
             "Lookup alias collision or incompatible identity; rotation stopped"
         }

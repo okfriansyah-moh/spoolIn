@@ -1,14 +1,13 @@
 package com.spoolin.catalog.features.person.read
 
 import com.spoolin.catalog.features.search.CatalogCursor
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
-
 
 /**
  * Person and credit reads for the public catalog.
@@ -218,6 +217,4 @@ class PersonSearch(
             roleAllowsCharacters = rs.getBoolean("role_allows_characters"),
         )
     }
-
-
 }

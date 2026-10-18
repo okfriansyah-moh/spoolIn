@@ -29,9 +29,7 @@ class AlertIngress(
     private val slots = Semaphore(2)
 
     @PostMapping("/internal/alerts", consumes = ["application/json"])
-    fun accept(request: HttpServletRequest): ResponseEntity<Map<String, String>> {
-        return rejection(request) ?: record(request)
-    }
+    fun accept(request: HttpServletRequest): ResponseEntity<Map<String, String>> = rejection(request) ?: record(request)
 
     private fun rejection(request: HttpServletRequest): ResponseEntity<Map<String, String>>? =
         when {
@@ -44,8 +42,8 @@ class AlertIngress(
             else -> null
         }
 
-    private fun record(request: HttpServletRequest): ResponseEntity<Map<String, String>> {
-        return try {
+    private fun record(request: HttpServletRequest): ResponseEntity<Map<String, String>> =
+        try {
             val episodes = webhook.parse(request.inputStream.readNBytes(MAXIMUM_ALERT_BYTES + 1))
             recorder.recordBatch(episodes, policy)
             response(HttpStatus.ACCEPTED.value(), "RECORDED")
@@ -66,7 +64,6 @@ class AlertIngress(
         } finally {
             slots.release()
         }
-    }
 
     private fun authorized(request: HttpServletRequest): Boolean {
         val port = environment.getProperty("local.management.port")?.toIntOrNull()
@@ -76,7 +73,9 @@ class AlertIngress(
     private fun certificateNames(request: HttpServletRequest): List<Any?> {
         val chain = request.getAttribute("jakarta.servlet.request.X509Certificate") as? Array<*>
         val leaf = chain?.firstOrNull() as? X509Certificate
-        return leaf?.subjectAlternativeNames.orEmpty()
+        return leaf
+            ?.subjectAlternativeNames
+            .orEmpty()
             .filter { it.size >= SAN_ENTRY_MINIMUM_SIZE && it[0] == DNS_SAN_TYPE }
             .map { it[1] }
     }

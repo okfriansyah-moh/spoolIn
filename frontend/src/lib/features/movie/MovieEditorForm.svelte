@@ -114,11 +114,19 @@
       <dd>{editorState.current.originalTitle ?? 'Unknown'}</dd>
       <dt>Release year</dt>
       <dd>{editorState.current.releaseYear || 'Unknown'}</dd>
-      <dt>Release month / day</dt><dd>{editorState.current.releaseMonth ?? 'Unknown'} / {editorState.current.releaseDay ?? 'Unknown'}</dd>
-      <dt>Runtime</dt><dd>{editorState.current.runtimeMinutes ?? 'Unknown'}</dd>
-      <dt>Original language</dt><dd>{editorState.current.originalLanguage ?? 'Unknown'}</dd>
-      <dt>Synopsis language</dt><dd>{editorState.current.synopsisLanguage ?? 'und'}</dd>
-      <dt>Countries</dt><dd>{editorState.current.countries?.join(', ') || 'Unknown'}</dd>
+      <dt>Release month / day</dt>
+      <dd>
+        {editorState.current.releaseMonth ?? 'Unknown'} / {editorState.current
+          .releaseDay ?? 'Unknown'}
+      </dd>
+      <dt>Runtime</dt>
+      <dd>{editorState.current.runtimeMinutes ?? 'Unknown'}</dd>
+      <dt>Original language</dt>
+      <dd>{editorState.current.originalLanguage ?? 'Unknown'}</dd>
+      <dt>Synopsis language</dt>
+      <dd>{editorState.current.synopsisLanguage ?? 'und'}</dd>
+      <dt>Countries</dt>
+      <dd>{editorState.current.countries?.join(', ') || 'Unknown'}</dd>
       <dt>Genres</dt>
       <dd>
         {editorState.current.genreIds
@@ -281,7 +289,12 @@
         {errorFor('movie-originalTitle')}
       </p>{/if}
   </div>
-  <MovieMetadataFields draft={editorState.draft} disabled={inputDisabled} {errorFor} onChange={onDraftChange} />
+  <MovieMetadataFields
+    draft={editorState.draft}
+    disabled={inputDisabled}
+    {errorFor}
+    onChange={onDraftChange}
+  />
   <div class="editor-actions">
     <Button type="button" variant="secondary" onclick={onDiscardOpen}
       >Leave draft</Button

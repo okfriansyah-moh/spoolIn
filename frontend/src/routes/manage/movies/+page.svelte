@@ -43,7 +43,11 @@
 {:else if listState.kind === 'failure'}
   <Notice title="Movies could not be loaded" tone="error">
     <p>Try again after confirming your Maintainer session.</p>
-    <Button variant="secondary" onclick={() => signal && controller?.load(csrf, signal)}>Retry movies</Button>
+    <Button
+      variant="secondary"
+      onclick={() => signal && controller?.load(csrf, signal)}
+      >Retry movies</Button
+    >
   </Notice>
 {:else}
   <div class="table-wrap">
@@ -83,9 +87,16 @@
       </tbody>
     </table>
   </div>
-  {#if listState.pagingError}<p role="alert">More movies could not be loaded. Retry the same page.</p>{/if}
+  {#if listState.pagingError}<p role="alert">
+      More movies could not be loaded. Retry the same page.
+    </p>{/if}
   {#if listState.next}
-    <Button variant="secondary" pending={listState.loadingMore} onclick={() => signal && controller?.loadMore(csrf, signal)}>Load more movies</Button>
+    <Button
+      variant="secondary"
+      pending={listState.loadingMore}
+      onclick={() => signal && controller?.loadMore(csrf, signal)}
+      >Load more movies</Button
+    >
   {/if}
 {/if}
 

@@ -10,8 +10,8 @@ import com.spoolin.core.features.catalogview.read.CatalogMetadataProjection
 import com.spoolin.core.features.ratelimit.RateUnavailable
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
-import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.ReceiptState
 import graphql.schema.DataFetchingEnvironment
@@ -308,8 +308,7 @@ class ManagedCatalogGraphql(
             .setPolicyRevision(policyRevision)
             .build()
 
-    private fun context(env: DataFetchingEnvironment): BrowserContext =
-        requireNotNull(env.graphQlContext.get("browser"))
+    private fun context(env: DataFetchingEnvironment): BrowserContext = requireNotNull(env.graphQlContext.get("browser"))
 
     private fun id(env: DataFetchingEnvironment): UUID = UUID.fromString(env.getArgument<String>("operationId"))
 
@@ -323,27 +322,44 @@ class ManagedCatalogGraphql(
 private object ManagedAuditValues {
     private const val MAX_BYTES = 65536
     private const val MAX_DEPTH = 8
-    private val mapper = tools.jackson.databind.json.JsonMapper.builder(
-        tools.jackson.core.json.JsonFactory.builder().streamReadConstraints(
-            tools.jackson.core.StreamReadConstraints.builder().maxNestingDepth(MAX_DEPTH)
-                .maxStringLength(MAX_BYTES).build(),
-        ).build(),
-    ).enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-        .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).build()
+    private val mapper =
+        tools.jackson.databind.json.JsonMapper
+            .builder(
+                tools.jackson.core.json.JsonFactory
+                    .builder()
+                    .streamReadConstraints(
+                        tools.jackson.core.StreamReadConstraints
+                            .builder()
+                            .maxNestingDepth(MAX_DEPTH)
+                            .maxStringLength(MAX_BYTES)
+                            .build(),
+                    ).build(),
+            ).enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+            .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .build()
 
     fun change(change: spoolin.v1.Spoolin.AuditChange): Map<String, Any?> {
         val before = if (change.hasBeforeJson()) decode(change.beforeJson) else null
         val after = if (change.hasAfterJson()) decode(change.afterJson) else null
         return if (after is Map<*, *> && after["valueOmitted"] == true) {
-            mapOf("valueOmitted" to true, "byteLength" to after["byteLength"],
-                "beforeDigest" to after["beforeDigest"], "afterDigest" to after["afterDigest"])
-        } else mapOf("before" to before, "after" to after)
+            mapOf(
+                "valueOmitted" to true,
+                "byteLength" to after["byteLength"],
+                "beforeDigest" to after["beforeDigest"],
+                "afterDigest" to after["afterDigest"],
+            )
+        } else {
+            mapOf("before" to before, "after" to after)
+        }
     }
 
-    private fun decode(value: String): Any? = try {
-        require(value.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
-        mapper.readValue(value, Any::class.java)
-    } catch (_: Exception) {
-        throw io.grpc.Status.DATA_LOSS.withDescription("Audit projection unavailable").asRuntimeException()
-    }
+    private fun decode(value: String): Any? =
+        try {
+            require(value.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
+            mapper.readValue(value, Any::class.java)
+        } catch (_: Exception) {
+            throw io.grpc.Status.DATA_LOSS
+                .withDescription("Audit projection unavailable")
+                .asRuntimeException()
+        }
 }

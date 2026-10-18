@@ -20,10 +20,17 @@ class ProcessingMetrics(
                 .builder("spoolin.media.processing.duration")
                 .tag("service", "media")
                 .serviceLevelObjectives(
-                    FAST_BUCKET, SHORT_BUCKET, TENTH_BUCKET, RESPONSE_BUCKET, HALF_SECOND_BUCKET,
-                    SECOND_BUCKET, SLOW_BUCKET, EFFECT_BUCKET, RECOVERY_BUCKET, LONG_BUCKET,
-                )
-                .register(registry)
+                    FAST_BUCKET,
+                    SHORT_BUCKET,
+                    TENTH_BUCKET,
+                    RESPONSE_BUCKET,
+                    HALF_SECOND_BUCKET,
+                    SECOND_BUCKET,
+                    SLOW_BUCKET,
+                    EFFECT_BUCKET,
+                    RECOVERY_BUCKET,
+                    LONG_BUCKET,
+                ).register(registry)
                 .record((System.nanoTime() - started).coerceAtLeast(0), TimeUnit.NANOSECONDS)
             if (!returned) count("FAILED")
         }

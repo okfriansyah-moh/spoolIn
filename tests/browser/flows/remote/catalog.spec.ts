@@ -121,35 +121,59 @@ test('ATDD-006/007/014 partial: visible search and filter changes produce actual
   await capture(page, info, ['ATDD-006', 'ATDD-014'], 'filters-cleared');
 });
 
-test('ATDD-001 partial: actual catalog cursor pages survive reload and browser Back', async ({ page }, info) => {
+test('ATDD-001 partial: actual catalog cursor pages survive reload and browser Back', async ({
+  page,
+}, info) => {
   await page.goto('/');
   await expect(page.getByRole('list', { name: 'Titles' })).toBeVisible();
-  const first = await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  const first = await page
+    .locator('.title-card h3 a')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
   const response = page.waitForResponse((item) => {
     if (new URL(item.url()).pathname !== '/graphql') return false;
     const input = item.request().postDataJSON();
-    return input?.query?.includes('query Titles(') && typeof input?.variables?.after === 'string';
+    return (
+      input?.query?.includes('query Titles(') &&
+      typeof input?.variables?.after === 'string'
+    );
   });
-  await page.getByRole('button', { name: 'Next titles page', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Next titles page', exact: true })
+    .click();
   const actual = await response;
   expect(actual.ok()).toBe(true);
   const body = await actual.json();
   expect(body.errors).toBeUndefined();
   expect(body.data.titles.nodes.length).toBeGreaterThan(0);
   const nextId = String(body.data.titles.nodes[0].id);
-  await expect(page.locator(`.title-card h3 a[href$="/${nextId}"]`)).toBeVisible();
-  const second = await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  await expect(
+    page.locator(`.title-card h3 a[href$="/${nextId}"]`),
+  ).toBeVisible();
+  const second = await page
+    .locator('.title-card h3 a')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
   expect(second.every((href) => !first.includes(href))).toBe(true);
   await capture(page, info, ['ATDD-001'], 'catalog-next-page');
   await page.reload();
-  await expect(page.locator(`.title-card h3 a[href$="/${nextId}"]`)).toBeVisible();
+  await expect(
+    page.locator(`.title-card h3 a[href$="/${nextId}"]`),
+  ).toBeVisible();
   await page.goBack();
-  await expect(page.locator('.title-card h3 a').first()).toHaveAttribute('href', first[0]!);
-  expect(await page.locator('.title-card h3 a').evaluateAll((links) => links.map((link) => link.getAttribute('href')))).toEqual(first);
+  await expect(page.locator('.title-card h3 a').first()).toHaveAttribute(
+    'href',
+    first[0]!,
+  );
+  expect(
+    await page
+      .locator('.title-card h3 a')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href'))),
+  ).toEqual(first);
   await capture(page, info, ['ATDD-001'], 'catalog-cursor-history-restored');
 });
 
-test('ATDD-011/012 partial: an older known release year is selectable and invalid correction does not silently change it', async ({ page }, info) => {
+test('ATDD-011/012 partial: an older known release year is selectable and invalid correction does not silently change it', async ({
+  page,
+}, info) => {
   await page.goto('/');
   await expect(page.getByRole('list', { name: 'Titles' })).toBeVisible();
   await page.getByLabel('Release year', { exact: true }).selectOption('other');
@@ -157,11 +181,20 @@ test('ATDD-011/012 partial: an older known release year is selectable and invali
   await expect(page).toHaveURL(/[?&]year=1999(?:&|$)/);
   await expect(page.getByLabel('Month', { exact: true })).toBeEnabled();
   await page.getByLabel('Other release year', { exact: true }).fill('invalid');
-  await expect(page.getByLabel('Other release year', { exact: true })).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.getByText('Enter a release year from 1 to 9999. The current year filter stays unchanged.', { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel('Other release year', { exact: true }),
+  ).toHaveAttribute('aria-invalid', 'true');
+  await expect(
+    page.getByText(
+      'Enter a release year from 1 to 9999. The current year filter stays unchanged.',
+      { exact: true },
+    ),
+  ).toBeVisible();
   await expect(page).toHaveURL(/[?&]year=1999(?:&|$)/);
   await capture(page, info, ['ATDD-011', 'ATDD-012'], 'older-year-correction');
   await page.getByLabel('Release year', { exact: true }).selectOption('');
   await expect(page.getByLabel('Month', { exact: true })).toBeDisabled();
-  await expect(page.getByLabel('Other release year', { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByLabel('Other release year', { exact: true }),
+  ).toHaveCount(0);
 });

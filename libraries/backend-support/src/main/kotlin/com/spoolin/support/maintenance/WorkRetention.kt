@@ -4,18 +4,21 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 /** Preserve media asset-before-work lock ordering and recheck resolved eligibility in the caller transaction. */
-internal class WorkRetention(private val owner: String) {
+internal class WorkRetention(
+    private val owner: String,
+) {
     fun candidates(connection: Connection): List<Any> =
         connection.createStatement().use { statement ->
-            statement.executeQuery(
-                """
-                SELECT w.id FROM appdata.durable_work w WHERE ${resolved()} ${mediaResolved()}
-                  AND ((w.kind<>'NOTIFICATION' AND w.payload<>'{}'::jsonb
-                    AND w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '7 days')
-                    OR w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '90 days')
-                ORDER BY w.updated_at,w.id LIMIT 100
-                """.trimIndent(),
-            ).use(::readIds)
+            statement
+                .executeQuery(
+                    """
+                    SELECT w.id FROM appdata.durable_work w WHERE ${resolved()} ${mediaResolved()}
+                      AND ((w.kind<>'NOTIFICATION' AND w.payload<>'{}'::jsonb
+                        AND w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '7 days')
+                        OR w.updated_at<=CURRENT_TIMESTAMP-INTERVAL '90 days')
+                    ORDER BY w.updated_at,w.id LIMIT 100
+                    """.trimIndent(),
+                ).use(::readIds)
         }
 
     fun purge(
@@ -151,8 +154,6 @@ internal class WorkRetention(private val owner: String) {
             it.setObject(1, id)
             it.executeUpdate()
         }
-
 }
 
-private fun readIds(rows: ResultSet): List<Any> =
-    buildList { while (rows.next()) add(rows.getObject(1)) }
+private fun readIds(rows: ResultSet): List<Any> = buildList { while (rows.next()) add(rows.getObject(1)) }

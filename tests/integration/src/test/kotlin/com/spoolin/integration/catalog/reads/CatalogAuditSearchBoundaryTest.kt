@@ -44,9 +44,14 @@ class CatalogAuditSearchBoundaryTest {
             PublicCatalogReadFixture(proof = identity).use { fixture ->
                 record(fixture, identity.account, INLINE)
                 record(fixture, identity.account, LEGACY)
-                record(fixture, identity.account, AuditDiff.movie(
-                    mapOf("synopsis" to "x".repeat(70000)), mapOf("synopsis" to "y".repeat(70000)),
-                ))
+                record(
+                    fixture,
+                    identity.account,
+                    AuditDiff.movie(
+                        mapOf("synopsis" to "x".repeat(70000)),
+                        mapOf("synopsis" to "y".repeat(70000)),
+                    ),
+                )
                 val result = fixture.graphql("{ audit(first: 3) { nodes { id changes actorRef } } }")
                 assertFalse(result.containsKey("errors"), result.toString())
                 val data = result["data"] as Map<*, *>
@@ -68,36 +73,84 @@ class CatalogAuditSearchBoundaryTest {
         }
     }
 
-    private fun search(stub: CatalogServiceGrpc.CatalogServiceBlockingStub, text: String): Set<String> =
-        stub.searchTitles(Search.newBuilder().setText(text).build()).nodesList.map { it.id }.toSet()
+    private fun search(
+        stub: CatalogServiceGrpc.CatalogServiceBlockingStub,
+        text: String,
+    ): Set<String> =
+        stub
+            .searchTitles(Search.newBuilder().setText(text).build())
+            .nodesList
+            .map { it.id }
+            .toSet()
 
-    private fun title(fixture: PublicCatalogReadFixture, name: String): UUID = UUID.randomUUID().also { id ->
-        fixture.pool.committed {
-            it.executeBound("INSERT INTO title(id,kind,display_title,synopsis,synopsis_language) " +
-                "VALUES(?,'MOVIE',?,'Synthetic search record','en')", id, name)
+    private fun title(
+        fixture: PublicCatalogReadFixture,
+        name: String,
+    ): UUID =
+        UUID.randomUUID().also { id ->
+            fixture.pool.committed {
+                it.executeBound(
+                    "INSERT INTO title(id,kind,display_title,synopsis,synopsis_language) " +
+                        "VALUES(?,'MOVIE',?,'Synthetic search record','en')",
+                    id,
+                    name,
+                )
+            }
         }
-    }
 
-    private fun person(fixture: PublicCatalogReadFixture, name: String): UUID = UUID.randomUUID().also { id ->
-        fixture.pool.committed { it.executeBound("INSERT INTO person(id,name) VALUES(?,?)", id, name) }
-    }
+    private fun person(
+        fixture: PublicCatalogReadFixture,
+        name: String,
+    ): UUID =
+        UUID.randomUUID().also { id ->
+            fixture.pool.committed { it.executeBound("INSERT INTO person(id,name) VALUES(?,?)", id, name) }
+        }
 
-    private fun credit(fixture: PublicCatalogReadFixture, title: UUID, person: UUID, category: String) {
+    private fun credit(
+        fixture: PublicCatalogReadFixture,
+        title: UUID,
+        person: UUID,
+        category: String,
+    ) {
         fixture.pool.committed { connection ->
             val role = UUID.randomUUID()
             connection.executeBound(
                 "INSERT INTO credit_role(id,category,label,normalized_label,allows_characters) VALUES(?,?,?,?,?)",
-                role, category, role.toString(), role.toString(), category == "CAST",
+                role,
+                category,
+                role.toString(),
+                role.toString(),
+                category == "CAST",
             )
-            connection.executeBound("INSERT INTO credit(id,title_id,person_id,role_id) VALUES(?,?,?,?)",
-                UUID.randomUUID(), title, person, role)
+            connection.executeBound(
+                "INSERT INTO credit(id,title_id,person_id,role_id) VALUES(?,?,?,?)",
+                UUID.randomUUID(),
+                title,
+                person,
+                role,
+            )
         }
     }
 
-    private fun record(fixture: PublicCatalogReadFixture, actor: UUID, changes: String) {
+    private fun record(
+        fixture: PublicCatalogReadFixture,
+        actor: UUID,
+        changes: String,
+    ) {
         fixture.pool.committed { connection ->
-            AuditInsert.record(connection, null, actor, "HUMAN", "UPDATE_MOVIE", "TITLE", fixture.title,
-                "SUCCEEDED", changes, UUID.randomUUID(), Instant.now())
+            AuditInsert.record(
+                connection,
+                null,
+                actor,
+                "HUMAN",
+                "UPDATE_MOVIE",
+                "TITLE",
+                fixture.title,
+                "SUCCEEDED",
+                changes,
+                UUID.randomUUID(),
+                Instant.now(),
+            )
         }
     }
 

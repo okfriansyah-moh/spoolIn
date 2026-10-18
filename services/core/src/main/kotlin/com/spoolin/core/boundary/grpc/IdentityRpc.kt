@@ -41,7 +41,8 @@ class IdentityRpc(
     }
 
     private fun sessionActor(session: ActorAuthority): Actor =
-        Actor.newBuilder()
+        Actor
+            .newBuilder()
             .setAccountId(session.account.id.toString())
             .setCredentialId(session.credentialId.toString())
             .setRole(session.account.role.name)
@@ -59,7 +60,8 @@ class IdentityRpc(
             store.findByCredential(credential, account, epoch) ?: throw Status.PERMISSION_DENIED.asRuntimeException()
         if (!store.live(connector)) throw Status.PERMISSION_DENIED.asRuntimeException()
         val role = store.accountRole(connector.accountId) ?: "VIEWER"
-        return Actor.newBuilder()
+        return Actor
+            .newBuilder()
             .setAccountId(connector.accountId.toString())
             .setCredentialId(connector.id.toString())
             .setRole(role)
@@ -72,7 +74,11 @@ class IdentityRpc(
     private fun availableConnectors(): ConnectorStore = connectors() ?: throw Status.UNAVAILABLE.asRuntimeException()
 
     private fun timestamp(value: Instant): Timestamp =
-        Timestamp.newBuilder().setSeconds(value.epochSecond).setNanos(value.nano).build()
+        Timestamp
+            .newBuilder()
+            .setSeconds(value.epochSecond)
+            .setNanos(value.nano)
+            .build()
 
     private fun uuid(value: String): UUID = UUID.fromString(value).also { require(it.toString() == value) }
 }

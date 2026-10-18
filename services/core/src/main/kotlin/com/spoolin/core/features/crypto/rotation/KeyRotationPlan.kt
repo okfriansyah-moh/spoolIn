@@ -29,8 +29,11 @@ data class KeyRotationPlan(
     ): RotationOutcome {
         require(maxBatches in 1..MAX_ROTATION_BATCHES)
         if (keys == null) {
-            return RotationOutcome(false, "Rotation requires validated mounted source and target key material; " +
-                    "no state changed")
+            return RotationOutcome(
+                false,
+                "Rotation requires validated mounted source and target key material; " +
+                    "no state changed",
+            )
         }
         return dataSource.connection.use { lock ->
             lock.queryBound("SELECT pg_advisory_lock(734850220,?)", listOf(purpose.ordinal)) { true }
@@ -48,14 +51,13 @@ data class KeyRotationPlan(
         dryRun: Boolean,
         keys: MountedKeys,
         maxBatches: Int,
-    ): RotationOutcome {
-        return when {
+    ): RotationOutcome =
+        when {
             !eligible(states(dataSource)) ->
                 RotationOutcome(false, "Rotation source/target state is incompatible; no state changed")
             dryRun -> validateDryRun(keys)
             else -> activateAndBackfill(dataSource, registry, keys, maxBatches)
         }
-    }
 
     private fun activateAndBackfill(
         dataSource: DataSource,
@@ -70,8 +72,10 @@ data class KeyRotationPlan(
     }
 
     private fun validateDryRun(keys: MountedKeys): RotationOutcome {
-        require(keys.key(fromAlias, purpose)?.also { it.fill(0) } != null &&
-            keys.key(toAlias, purpose)?.also { it.fill(0) } != null)
+        require(
+            keys.key(fromAlias, purpose)?.also { it.fill(0) } != null &&
+                keys.key(toAlias, purpose)?.also { it.fill(0) } != null,
+        )
         return RotationOutcome(
             true,
             "Dry run validated key availability and registration; no activation, backfill or retirement performed",
@@ -90,8 +94,10 @@ data class KeyRotationPlan(
 
     private fun eligible(states: Map<String, String>): Boolean =
         states.size == 2 &&
-            ((states[fromAlias] == "WRITE" && states[toAlias] == "READ") ||
-                (states[fromAlias] == "READ" && states[toAlias] == "WRITE"))
+            (
+                (states[fromAlias] == "WRITE" && states[toAlias] == "READ") ||
+                    (states[fromAlias] == "READ" && states[toAlias] == "WRITE")
+            )
 
     private fun activate(dataSource: DataSource) =
         dataSource.committed { connection ->

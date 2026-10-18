@@ -74,13 +74,27 @@ export async function fetchManagedTitles(
 }
 
 export async function fetchManagedTitlesPage(
-  request: GraphqlRequest, csrf: string, after: string | null, signal?: AbortSignal,
+  request: GraphqlRequest,
+  csrf: string,
+  after: string | null,
+  signal?: AbortSignal,
 ): Promise<PageSlice<ManagedTitleRow>> {
-  const data = record(await request(MANAGED_TITLES_QUERY, { state: 'ACTIVE', after }, withCsrfAndSignal(csrf, signal)));
+  const data = record(
+    await request(
+      MANAGED_TITLES_QUERY,
+      { state: 'ACTIVE', after },
+      withCsrfAndSignal(csrf, signal),
+    ),
+  );
   const page = record(data.managedTitles);
-  if (!Array.isArray(page.nodes)) throw new Error('Managed titles unavailable.');
+  if (!Array.isArray(page.nodes))
+    throw new Error('Managed titles unavailable.');
   return Object.freeze({
-    nodes: Object.freeze(page.nodes.map(node => toManagedRow(node as Parameters<typeof toManagedRow>[0]))),
+    nodes: Object.freeze(
+      page.nodes.map((node) =>
+        toManagedRow(node as Parameters<typeof toManagedRow>[0]),
+      ),
+    ),
     pageInfo: readPageInfo(page.pageInfo, after),
   });
 }

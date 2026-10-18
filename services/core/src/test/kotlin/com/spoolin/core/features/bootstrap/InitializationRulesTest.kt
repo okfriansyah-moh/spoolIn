@@ -26,9 +26,10 @@ class InitializationRulesTest {
     @Test
     fun `checksum ignores password locations and ordering but binds identity role and setup version`() {
         val first = configuration()
-        val moved = first.accounts.reversed().map {
-            InitializationAccount(it.id, it.identity, it.role, Path.of("/new-secret"))
-        }
+        val moved =
+            first.accounts.reversed().map {
+                InitializationAccount(it.id, it.identity, it.role, Path.of("/new-secret"))
+            }
         val movedKeys =
             first.keys.entries
                 .reversed()
@@ -36,13 +37,17 @@ class InitializationRulesTest {
         assertArrayEquals(first.checksum(), InitializationConfiguration("v1", moved, movedKeys).checksum())
         assertFalse(
             MessageDigest.isEqual(
-                first.checksum(), InitializationConfiguration("v2", first.accounts, first.keys).checksum(),
+                first.checksum(),
+                InitializationConfiguration("v2", first.accounts, first.keys).checksum(),
             ),
         )
         val renamed =
             first.accounts.map {
                 InitializationAccount(
-                    it.id, rules.identity("Changed name", it.identity.emailDisplay), it.role, it.passwordFile,
+                    it.id,
+                    rules.identity("Changed name", it.identity.emailDisplay),
+                    it.role,
+                    it.passwordFile,
                 )
             }
         assertFalse(
@@ -56,9 +61,10 @@ class InitializationRulesTest {
         assertThrows(IllegalArgumentException::class.java) {
             InitializationConfiguration("v1", listOf(source.accounts[0], source.accounts[0]), source.keys)
         }
-        val duplicateIdentity = source.accounts.map {
-            InitializationAccount(it.id, source.accounts[0].identity, it.role, it.passwordFile)
-        }
+        val duplicateIdentity =
+            source.accounts.map {
+                InitializationAccount(it.id, source.accounts[0].identity, it.role, it.passwordFile)
+            }
         assertThrows(IllegalArgumentException::class.java) {
             InitializationConfiguration("v1", duplicateIdentity, source.keys)
         }
@@ -99,9 +105,10 @@ class InitializationRulesTest {
                             "passwordFile" to it.passwordFile.toString(),
                         )
                     },
-                "keys" to config.keys.mapValues { (_, mount) ->
-                    mapOf("purpose" to mount.purpose.name, "file" to mount.file.toString())
-                },
+                "keys" to
+                    config.keys.mapValues { (_, mount) ->
+                        mapOf("purpose" to mount.purpose.name, "file" to mount.file.toString())
+                    },
             )
         val path = directory.resolve("valid.json")
         Files.writeString(path, JsonMapper.builder().build().writeValueAsString(value))

@@ -45,7 +45,9 @@ internal class SeedRecordValidation(
         val end = values.path("end")
         if (!end.isNull && !end.isMissingNode) {
             structure.date(end)
-            require(PartialDate.ordered(structure.partial(values["release"]), structure.partial(end)) != false) { "Series ends before its known start" }
+            require(
+                PartialDate.ordered(structure.partial(values["release"]), structure.partial(end)) != false,
+            ) { "Series ends before its known start" }
         }
     }
 
@@ -73,5 +75,4 @@ internal class SeedRecordValidation(
         structure.sources(credit, setOf("person", "role"))
         require(credit["characters"].isArray)
     }
-
 }

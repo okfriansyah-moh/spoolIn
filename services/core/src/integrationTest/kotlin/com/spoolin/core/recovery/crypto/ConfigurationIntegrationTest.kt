@@ -32,7 +32,11 @@ class ConfigurationIntegrationTest {
             }
         }
 
-    private fun configuredContext(fixture: CryptoFixture, settings: Map<String, Any>, registry: MeterRegistry) {
+    private fun configuredContext(
+        fixture: CryptoFixture,
+        settings: Map<String, Any>,
+        registry: MeterRegistry,
+    ) {
         AnnotationConfigApplicationContext().use { context ->
             context.environment.propertySources.addFirst(MapPropertySource("fixture", settings))
             context.registerBean("dataSource", DataSource::class.java, java.util.function.Supplier { fixture.pool })

@@ -2,14 +2,14 @@
 
 package com.spoolin.catalog.features.credit
 
-import com.spoolin.support.policy.PublicPolicy
-import com.spoolin.support.policy.PolicyEnvironment
-import com.spoolin.support.policy.ReadPolicy
-import com.spoolin.support.policy.InputViolation
 import com.spoolin.catalog.features.search.ManagedReadCursors
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
+import com.spoolin.support.policy.InputViolation
+import com.spoolin.support.policy.PolicyEnvironment
+import com.spoolin.support.policy.PublicPolicy
+import com.spoolin.support.policy.ReadPolicy
 import com.spoolin.support.receipts.queryBound
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
@@ -20,7 +20,6 @@ import spoolin.v1.Spoolin.PageRequest
 import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
-
 
 /**
  * Maintainer managed credit reads — includes retained archived-person credits on active movies.
@@ -48,17 +47,25 @@ class ManagedCreditReads(
                 throw Status.INVALID_ARGUMENT.withDescription("INVALID_SELECTOR").asRuntimeException()
             }
             val first = ReadPolicy(policy()).rpcPageSize(request.first)
-            val scope = cursors.scope(ReadPolicy(policy()), "managed-credits", first,
-                mapOf("kind" to kind, "target" to targetId.toString()))
+            val scope =
+                cursors.scope(
+                    ReadPolicy(policy()),
+                    "managed-credits",
+                    first,
+                    mapOf("kind" to kind, "target" to targetId.toString()),
+                )
             val after = cursors.title(request.after.takeIf { it.isNotEmpty() }, scope)?.id
             val page = listCredits(titleId, personId, first, after)
             val builder = CreditPage.newBuilder()
             page.rows.forEach { builder.addNodes(creditProto(it)) }
             page.endCursor?.let {
-                builder.endCursor = cursors.titles.encode(
-                    com.spoolin.catalog.features.search.CatalogCursor.Keyset(null, null, null, it),
-                    scope, cursors.now(),
-                )
+                builder.endCursor =
+                    cursors.titles.encode(
+                        com.spoolin.catalog.features.search.CatalogCursor
+                            .Keyset(null, null, null, it),
+                        scope,
+                        cursors.now(),
+                    )
             }
             builder.hasNextPage = page.hasNextPage
             response.onNext(builder.build())

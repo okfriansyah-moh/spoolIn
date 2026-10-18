@@ -63,7 +63,10 @@ export async function fetchPeople(
   );
   const result = (data as { people: PeopleQuery['people'] }).people;
   if (!Array.isArray(result?.nodes)) throw new Error('People unavailable.');
-  return { ...result, pageInfo: readPageInfo(result.pageInfo, variables.after ?? null) };
+  return {
+    ...result,
+    pageInfo: readPageInfo(result.pageInfo, variables.after ?? null),
+  };
 }
 
 export async function fetchPerson(
@@ -93,7 +96,12 @@ export async function fetchPersonCredits(
       withSignal(signal),
     ),
   );
-  const result = (data as { personCredits: PersonCreditsQuery['personCredits'] }).personCredits;
+  const result = (
+    data as { personCredits: PersonCreditsQuery['personCredits'] }
+  ).personCredits;
   if (!Array.isArray(result?.nodes)) throw new Error('Credits unavailable.');
-  return { ...result, pageInfo: readPageInfo(result.pageInfo, variables.after ?? null) };
+  return {
+    ...result,
+    pageInfo: readPageInfo(result.pageInfo, variables.after ?? null),
+  };
 }

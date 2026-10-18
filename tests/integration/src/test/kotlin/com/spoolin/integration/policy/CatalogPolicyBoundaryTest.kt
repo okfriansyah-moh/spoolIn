@@ -248,8 +248,7 @@ class CatalogPolicyBoundaryTest {
         }
 
     companion object {
-        private fun configured(values: Map<String, String>): PublicPolicy =
-            PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
+        private fun configured(values: Map<String, String>): PublicPolicy = PolicySettings.resolve(ConfigurationSources(emptyMap(), values))
     }
 }
 
@@ -317,7 +316,8 @@ internal class CatalogPolicyFixture : AutoCloseable {
         UUID.randomUUID().also { id ->
             pool.committed {
                 it.executeBound(
-                    "INSERT INTO genre(id,label,normalized_label) VALUES (?,'Policy proof','policy proof')", id,
+                    "INSERT INTO genre(id,label,normalized_label) VALUES (?,'Policy proof','policy proof')",
+                    id,
                 )
             }
         }
@@ -337,8 +337,7 @@ internal class CatalogPolicyFixture : AutoCloseable {
             .setValues(Spoolin.PersonValues.newBuilder().setName(name))
             .build()
 
-    fun person(request: Spoolin.PersonWrite): Spoolin.Outcome =
-        client("WritePerson", request.context).writePerson(request)
+    fun person(request: Spoolin.PersonWrite): Spoolin.Outcome = client("WritePerson", request.context).writePerson(request)
 
     fun movie(title: String): Spoolin.MovieWrite =
         Spoolin.MovieWrite
@@ -397,11 +396,9 @@ internal class CatalogPolicyFixture : AutoCloseable {
             .addCharacters(character)
             .build()
 
-    fun credit(request: Spoolin.CreditWrite): Spoolin.Outcome =
-        client("WriteCredit", request.context).writeCredit(request)
+    fun credit(request: Spoolin.CreditWrite): Spoolin.Outcome = client("WriteCredit", request.context).writeCredit(request)
 
-    fun count(sql: String): Int =
-        pool.connection.use { it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single() }
+    fun count(sql: String): Int = pool.connection.use { it.queryBound(sql, emptyList()) { row -> row.getInt(1) }.single() }
 
     fun text(
         sql: String,
@@ -411,8 +408,7 @@ internal class CatalogPolicyFixture : AutoCloseable {
             it.queryBound(sql, listOf(UUID.fromString(id))) { row -> row.getString(1) }.single()
         }
 
-    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome =
-        client("RemoveCredit", request.context).removeCredit(request)
+    fun remove(request: Spoolin.VersionedId): Spoolin.Outcome = client("RemoveCredit", request.context).removeCredit(request)
 
     fun lookup(operation: String): Spoolin.Outcome =
         client("GetOperation", context().toBuilder().setOperationId(operation).build())
@@ -445,7 +441,11 @@ internal class CatalogPolicyFixture : AutoCloseable {
             )
         val intent =
             OperationIntent(
-                operation, "account:${proof.account}", "WritePerson", request.context.policyRevision, fields,
+                operation,
+                "account:${proof.account}",
+                "WritePerson",
+                request.context.policyRevision,
+                fields,
             )
         receipts.execute(intent, correlation, true) { connection ->
             connection.executeBound(

@@ -51,14 +51,23 @@
   });
 
   function displayValue(value: unknown): string {
-    if (value && typeof value === 'object' && 'valueOmitted' in value && value.valueOmitted === true) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      'valueOmitted' in value &&
+      value.valueOmitted === true
+    ) {
       return `Value omitted. Retained summary: ${JSON.stringify(value)}`;
     }
     return typeof value === 'string' ? value : (JSON.stringify(value) ?? '—');
   }
 
   function displayChange(value: unknown): string {
-    if (value && typeof value === 'object' && ('before' in value || 'after' in value)) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      ('before' in value || 'after' in value)
+    ) {
       const change = value as { before?: unknown; after?: unknown };
       return `Before: ${displayValue(change.before)}; After: ${displayValue(change.after)}`;
     }

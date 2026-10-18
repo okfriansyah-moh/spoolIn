@@ -24,9 +24,20 @@ export class MovieListController {
     const generation = ++this.generation;
     this.publish({ kind: 'loading' });
     try {
-      const page = await fetchManagedTitlesPage(this.request, csrf, null, signal);
+      const page = await fetchManagedTitlesPage(
+        this.request,
+        csrf,
+        null,
+        signal,
+      );
       if (signal.aborted || generation !== this.generation) return;
-      this.publish({ kind: 'ready', titles: page.nodes, next: page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null, loadingMore: false, pagingError: false });
+      this.publish({
+        kind: 'ready',
+        titles: page.nodes,
+        next: page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null,
+        loadingMore: false,
+        pagingError: false,
+      });
     } catch (_error) {
       if (signal.aborted || generation !== this.generation) return;
       this.publish({ kind: 'failure' });
@@ -35,14 +46,25 @@ export class MovieListController {
 
   async loadMore(csrf: string, signal: AbortSignal): Promise<void> {
     const current = this.current;
-    if (current.kind !== 'ready' || !current.next || current.loadingMore) return;
+    if (current.kind !== 'ready' || !current.next || current.loadingMore)
+      return;
     const generation = this.generation;
     this.publish({ ...current, loadingMore: true, pagingError: false });
     try {
-      const page = await fetchManagedTitlesPage(this.request, csrf, current.next, signal);
+      const page = await fetchManagedTitlesPage(
+        this.request,
+        csrf,
+        current.next,
+        signal,
+      );
       if (signal.aborted || generation !== this.generation) return;
-      this.publish({ kind: 'ready', titles: appendDistinct(current.titles, page.nodes),
-        next: page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null, loadingMore: false, pagingError: false });
+      this.publish({
+        kind: 'ready',
+        titles: appendDistinct(current.titles, page.nodes),
+        next: page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null,
+        loadingMore: false,
+        pagingError: false,
+      });
     } catch {
       if (!signal.aborted && generation === this.generation)
         this.publish({ ...current, loadingMore: false, pagingError: true });

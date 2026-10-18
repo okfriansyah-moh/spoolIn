@@ -6,7 +6,9 @@ import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 import java.util.UUID
 
-internal class SeedStructure(private val namespace: UUID) {
+internal class SeedStructure(
+    private val namespace: UUID,
+) {
     fun identity(
         node: JsonNode,
         kind: String,
@@ -72,5 +74,4 @@ internal class SeedStructure(private val namespace: UUID) {
             }
         require(node.path("precision").asText() == precision)
     }
-
 }

@@ -38,7 +38,10 @@
   let view = $state(INITIAL_ARTWORK_UPLOAD_VIEW);
   let controller: ArtworkUploadController | null = null;
   const uploadBlocked = $derived(
-    disabled || refreshing || refreshNeeded || ['transferring', 'processing', 'uncertain'].includes(view.stage),
+    disabled ||
+      refreshing ||
+      refreshNeeded ||
+      ['transferring', 'processing', 'uncertain'].includes(view.stage),
   );
 
   onMount(() => {
@@ -46,7 +49,11 @@
     controller = new ArtworkUploadController(request, csrf);
     const unsubscribe = controller.subscribe((next) => {
       view = next;
-      if (next.stage === 'saved' && next.operationId && next.operationId !== notifiedOperation) {
+      if (
+        next.stage === 'saved' &&
+        next.operationId &&
+        next.operationId !== notifiedOperation
+      ) {
         notifiedOperation = next.operationId;
         void refreshParent();
       }
@@ -63,13 +70,19 @@
     refreshing = true;
     try {
       await onAttached();
-      if (mounted) { refreshNeeded = false; validationMessage = ''; }
+      if (mounted) {
+        refreshNeeded = false;
+        validationMessage = '';
+      }
     } catch {
       if (mounted) {
         refreshNeeded = true;
-        validationMessage = 'Artwork attached. Current movie details could not be refreshed. Retry details before another upload.';
+        validationMessage =
+          'Artwork attached. Current movie details could not be refreshed. Retry details before another upload.';
       }
-    } finally { if (mounted) refreshing = false; }
+    } finally {
+      if (mounted) refreshing = false;
+    }
   }
 
   async function onFileChange(event: Event) {
@@ -78,7 +91,10 @@
     const file = input.files?.[0];
     if (!file || uploadBlocked || !controller) return;
     validationMessage = validateArtworkFile(file, artworkPolicy);
-    if (validationMessage) { input.value = ''; return; }
+    if (validationMessage) {
+      input.value = '';
+      return;
+    }
     await controller.uploadFile(file, titleId, expectedVersion, policyRevision);
     input.value = '';
   }
@@ -109,9 +125,16 @@
       aria-label="Transfer progress"
     ></progress>
   {/if}
-  <p role="status">{validationMessage || view.message || stageLabel(view.stage)}</p>
+  <p role="status">
+    {validationMessage || view.message || stageLabel(view.stage)}
+  </p>
   {#if refreshNeeded}
-    <button type="button" class="secondary" disabled={refreshing} onclick={() => void refreshParent()}>Retry movie details</button>
+    <button
+      type="button"
+      class="secondary"
+      disabled={refreshing}
+      onclick={() => void refreshParent()}>Retry movie details</button
+    >
   {/if}
   {#if view.canCancel}
     <button type="button" class="secondary" onclick={onCancel}

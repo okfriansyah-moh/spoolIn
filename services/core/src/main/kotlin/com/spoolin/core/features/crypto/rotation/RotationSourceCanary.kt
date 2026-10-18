@@ -27,8 +27,9 @@ internal class RotationSourceCanary(
 
     fun verify() {
         val source = read() ?: return
-        val material = keys.key(source.envelope.keyId, encryptionPurpose)
-            ?: error("Canary decryption key is unavailable")
+        val material =
+            keys.key(source.envelope.keyId, encryptionPurpose)
+                ?: error("Canary decryption key is unavailable")
         try {
             authenticate(source, material)
         } finally {
@@ -36,26 +37,34 @@ internal class RotationSourceCanary(
         }
     }
 
-    private fun read(): Source? = dataSource.connection.use { connection ->
-        val from = if (purpose == KeyPurpose.EMAIL_LOOKUP) {
-            "appdata.user_account r JOIN appdata.account_email_lookup e ON e.account_id=r.id"
-        } else {
-            "appdata.$table r"
+    private fun read(): Source? =
+        dataSource.connection.use { connection ->
+            val from =
+                if (purpose == KeyPurpose.EMAIL_LOOKUP) {
+                    "appdata.user_account r JOIN appdata.account_email_lookup e ON e.account_id=r.id"
+                } else {
+                    "appdata.$table r"
+                }
+            val predicate = if (purpose == KeyPurpose.EMAIL_LOOKUP) "e.key_id=?" else "r.${prefix}_key_id=?"
+            val digest = if (purpose == KeyPurpose.EMAIL_LOOKUP) "e.digest" else "NULL::bytea"
+            connection
+                .queryBound(
+                    "SELECT r.id,r.${prefix}_key_id AS key_id,r.${prefix}_nonce AS nonce," +
+                        "r.${prefix}_cipher AS cipher,$digest AS digest FROM $from WHERE $predicate ORDER BY r.id LIMIT 1",
+                    listOf(id),
+                ) {
+                    Source(
+                        it.getObject("id", UUID::class.java),
+                        ProtectedEnvelope(1, it.getString("key_id"), it.getBytes("nonce"), it.getBytes("cipher")),
+                        it.getBytes("digest"),
+                    )
+                }.singleOrNull()
         }
-        val predicate = if (purpose == KeyPurpose.EMAIL_LOOKUP) "e.key_id=?" else "r.${prefix}_key_id=?"
-        val digest = if (purpose == KeyPurpose.EMAIL_LOOKUP) "e.digest" else "NULL::bytea"
-        connection.queryBound(
-            "SELECT r.id,r.${prefix}_key_id AS key_id,r.${prefix}_nonce AS nonce," +
-                "r.${prefix}_cipher AS cipher,$digest AS digest FROM $from WHERE $predicate ORDER BY r.id LIMIT 1",
-            listOf(id),
-        ) {
-            Source(it.getObject("id", UUID::class.java),
-                ProtectedEnvelope(1, it.getString("key_id"), it.getBytes("nonce"), it.getBytes("cipher")),
-                it.getBytes("digest"))
-        }.singleOrNull()
-    }
 
-    private fun authenticate(source: Source, material: ByteArray) {
+    private fun authenticate(
+        source: Source,
+        material: ByteArray,
+    ) {
         val binding = ProtectionBinding("core", table, source.id, encryptionPurpose)
         val read = AeadCipher().decrypt(source.envelope, material, binding)
         check(read is ProtectedRead.Value) { "Existing protected canary failed authentication" }
@@ -66,7 +75,10 @@ internal class RotationSourceCanary(
         }
     }
 
-    private fun verifyAlias(source: Source, clear: ByteArray) {
+    private fun verifyAlias(
+        source: Source,
+        clear: ByteArray,
+    ) {
         val identity = AccountPayload().decode(clear)
         check(identity is ProtectedRead.Value) { "Lookup canary identity is invalid" }
         val material = keys.key(id, KeyPurpose.EMAIL_LOOKUP) ?: error("Lookup key is unavailable")
@@ -84,11 +96,18 @@ internal class RotationSourceCanary(
         }
     }
 
-    private fun digest(material: ByteArray, normalized: String): ByteArray {
+    private fun digest(
+        material: ByteArray,
+        normalized: String,
+    ): ByteArray {
         val mac = Mac.getInstance("HmacSHA256")
         mac.init(SecretKeySpec(material, "HmacSHA256"))
         return mac.doFinal(("email-lookup-v1\u0000" + normalized).toByteArray(Charsets.UTF_8))
     }
 
-    private data class Source(val id: UUID, val envelope: ProtectedEnvelope, val digest: ByteArray?)
+    private data class Source(
+        val id: UUID,
+        val envelope: ProtectedEnvelope,
+        val digest: ByteArray?,
+    )
 }

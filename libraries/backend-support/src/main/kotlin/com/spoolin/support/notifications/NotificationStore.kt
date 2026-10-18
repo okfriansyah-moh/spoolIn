@@ -69,7 +69,9 @@ class NotificationStore(
                                 row.getInt("generation"),
                             )
                         NotificationClaim(
-                            work, row.getString("notification_mode"), row.getString("notification_summary"),
+                            work,
+                            row.getString("notification_mode"),
+                            row.getString("notification_summary"),
                         )
                     }.singleOrNull() ?: return@committed null
             WorkSql.commitClaim(connection, selected.work, UUID.randomUUID(), now)?.let { selected.copy(work = it) }
@@ -112,9 +114,13 @@ class NotificationStore(
         val retry =
             result.outcome == AttemptOutcome.TRANSIENT && claim.attemptCount < claim.maxAttempts &&
                 next < claim.deadlineAt
-        val completion = WorkAttemptCompletion(
-            result.outcome, result.errorCode, workState(result, retry), if (retry) next else null,
-        )
+        val completion =
+            WorkAttemptCompletion(
+                result.outcome,
+                result.errorCode,
+                workState(result, retry),
+                if (retry) next else null,
+            )
         if (!WorkSql.completeAttempt(connection, claim, completion, now)) return@committed false
         check(
             connection.executeBound(
@@ -127,18 +133,28 @@ class NotificationStore(
         true
     }
 
-    private fun workState(result: NotificationResult, retry: Boolean): String =
+    private fun workState(
+        result: NotificationResult,
+        retry: Boolean,
+    ): String =
         when {
             result.outcome == AttemptOutcome.SUCCEEDED -> "DONE"
             retry -> "READY"
             else -> "EXHAUSTED"
         }
 
-    private fun notificationState(result: NotificationResult, retry: Boolean): String =
-        if (retry) "PENDING" else when (result.outcome) {
-            AttemptOutcome.SUCCEEDED -> "ACCEPTED"
-            AttemptOutcome.UNCERTAIN -> "UNKNOWN"
-            else -> "FAILED"
+    private fun notificationState(
+        result: NotificationResult,
+        retry: Boolean,
+    ): String =
+        if (retry) {
+            "PENDING"
+        } else {
+            when (result.outcome) {
+                AttemptOutcome.SUCCEEDED -> "ACCEPTED"
+                AttemptOutcome.UNCERTAIN -> "UNKNOWN"
+                else -> "FAILED"
+            }
         }
 
     private fun expire(connection: Connection) {
