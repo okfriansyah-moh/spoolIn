@@ -147,11 +147,25 @@ class ArtworkGraphql(
                 .build()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/CancelArtwork", operationId, context.correlation)
         val outcome = catalogStub(token).cancelArtwork(request)
+        return cancellationResult(outcome, operationId, uploadOperationId)
+    }
+
+    internal fun cancellationResult(
+        outcome: Spoolin.ArtworkCancelOutcome,
+        operationId: UUID,
+        uploadOperationId: UUID,
+    ): Map<String, Any?> {
         validateOutcome(outcome.operation, operationId)
-        validateOutcome(outcome.uploadOperation, uploadOperationId)
+        val original = if (outcome.hasUploadOperation()) {
+            validateOutcome(outcome.uploadOperation, uploadOperationId)
+            outcomeMap(outcome.uploadOperation)
+        } else {
+            if (outcome.cancelled) throw io.grpc.Status.DATA_LOSS.asRuntimeException()
+            null
+        }
         return mapOf(
             "operation" to outcomeMap(outcome.operation),
-            "uploadOperation" to outcomeMap(outcome.uploadOperation),
+            "uploadOperation" to original,
             "cancelled" to outcome.cancelled,
         )
     }
