@@ -36,6 +36,7 @@ class OwnerReceipts(
         mutation: (Connection) -> SafeResult,
     ): ReceiptOutcome =
         dataSource.committed { connection ->
+            connection.queryBound("SELECT pg_advisory_xact_lock(41001,1)", emptyList()) { 1 }
             val inserted = reserve(connection, intent, correlationId, privateInput)
             val existing = locked(connection, intent.id)
             when (hashes.compare(intent, existing.actor, existing.kind, existing.hash, existing.keyId)) {

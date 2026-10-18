@@ -27,6 +27,10 @@ BEGIN
       EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON appdata.%I TO %I',table_name,runtime_role);
     END IF;
   END LOOP;
+  IF db = 'spoolin_media' AND to_regclass('appdata.hold_operation_binding') IS NOT NULL THEN
+    EXECUTE format('GRANT SELECT,INSERT ON appdata.hold_operation_binding TO %I',runtime_role);
+    EXECUTE format('GRANT SELECT ON appdata.hold_operation_binding TO %I',maintenance_role);
+  END IF;
   IF to_regclass('appdata.operation_receipt') IS NOT NULL THEN
     EXECUTE format('REVOKE DELETE ON appdata.operation_receipt FROM %I',runtime_role);
     EXECUTE format('GRANT SELECT,UPDATE ON appdata.operation_receipt TO %I',maintenance_role);
