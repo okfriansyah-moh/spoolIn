@@ -83,6 +83,17 @@ jobs:
         run: |
           mkdir -p artifacts/source-checks
           ./gradlew --no-daemon --console plain generateContracts :services:core:bootJar :services:catalog:bootJar :services:media:bootJar 2>&1 | tee artifacts/source-checks/strict-build.log
+      - name: Retain failed strict build diagnostics immediately
+        if: ${{ !cancelled() && inputs.mode == 'verify' && steps.build.outcome == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: strict-build-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/provenance
+            artifacts/source-checks/strict-build.log
+            **/build/reports/dependency-verification
+          retention-days: 14
+          if-no-files-found: error
       - name: Check production frontend and MCP
         id: frontend
         if: ${{ !cancelled() && inputs.mode == 'verify' && steps.dependencies.outcome == 'success' }}
