@@ -9,7 +9,7 @@ on:
       mode:
         description: Dependency preparation or strict acceptance
         type: choice
-        options: [verify, dependencies, seed]
+        options: [verify, dependencies, seed, format]
         default: verify
 permissions:
   contents: read
@@ -19,7 +19,7 @@ concurrency:
 jobs:
   application:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 360
     env:
       TESTED_REF: ${{ inputs.tested_ref || github.sha }}
       CI: 'true'
@@ -68,6 +68,9 @@ jobs:
       - name: Prepare dependency locks and verification entries
         if: ${{ (inputs.mode || 'dependencies') == 'dependencies' }}
         run: ./gradlew --no-daemon --console plain --write-verification-metadata sha256 --write-locks resolveLocks
+      - name: Prepare source formatting patch
+        if: ${{ inputs.mode == 'format' }}
+        run: python3 ops/ci/format-selection.py
       - name: Install pinned delivery scanners
         if: ${{ inputs.mode == 'verify' }}
         run: bash ops/ci/install-gates.sh
@@ -140,6 +143,7 @@ jobs:
           name: remote-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             artifacts/provenance
+            artifacts/source-formatting.patch
             artifacts/source-checks
             data/seed/manifest.json
             data/seed/sources
