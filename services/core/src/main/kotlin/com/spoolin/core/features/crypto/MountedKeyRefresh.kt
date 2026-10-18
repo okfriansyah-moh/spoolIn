@@ -7,7 +7,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.nio.file.Files
 import java.nio.file.Path
 
-private const val RELOAD_CONFIGURATION_BYTES = 16384
+private const val RELOAD_CONFIGURATION_BYTES = 16384L
 private const val MAX_RELOAD_VERSIONS = 64
 
 /** Reads only protected configuration; material validation and atomic publication remain under MountedKeys' monitor. */

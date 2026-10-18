@@ -14,7 +14,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import javax.sql.DataSource
 
-private const val ROTATION_CONFIGURATION_BYTES = 16384
+private const val ROTATION_CONFIGURATION_BYTES = 16384L
 private const val MAX_ROTATION_VERSIONS = 64
 
 object RotationKeys {
