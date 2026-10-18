@@ -195,7 +195,7 @@ test('Responsive route review: production pages reflow across approved widths an
     .getByLabel('Synopsis · Required', { exact: true })
     .fill('A movie used to check the optional detail validation flow.');
   await page.getByLabel('Release year · Required').fill('2025');
-  await page.getByText('Choose genres', { exact: true }).click();
+  await page.locator('#movie-genres summary').click();
   await page.locator('#movie-genres input[type="checkbox"]').first().check();
   await page.getByText('More movie details', { exact: true }).click();
   await page.getByLabel('Release month', { exact: true }).fill('2');

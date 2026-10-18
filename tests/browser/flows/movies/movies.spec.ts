@@ -50,7 +50,7 @@ test('T017-create: movie details stay focused and optional fields are disclosed'
   await expect(
     page.getByRole('button', { name: 'Create movie' }),
   ).toBeVisible();
-  await page.getByText('Choose genres', { exact: true }).click();
+  await page.locator('#movie-genres summary').click();
   await expect(
     page.getByRole('searchbox', { name: 'Find a genre' }),
   ).toBeVisible();

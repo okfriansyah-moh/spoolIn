@@ -214,7 +214,7 @@ async function assertGenreRegion(page: Page) {
   });
   const disclosure = group.locator('details');
   await expect(disclosure).not.toHaveAttribute('open', '');
-  await group.getByText('Choose genres', { exact: true }).click();
+  await group.locator('summary').click();
   await expect(disclosure).toHaveAttribute('open', '');
   const choices = region.locator('input[type="checkbox"]');
   const data = await readApi(page, 'query { genres { id } }');
@@ -259,6 +259,6 @@ async function assertGenreRegion(page: Page) {
   ).toBeVisible();
   await search.clear();
   await expect(choices).toHaveCount(data.genres.length);
-  await group.getByText('Choose genres', { exact: true }).click();
+  await group.locator('summary').click();
   await expect(disclosure).not.toHaveAttribute('open', '');
 }
