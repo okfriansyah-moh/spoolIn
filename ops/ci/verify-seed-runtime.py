@@ -11,12 +11,56 @@ import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
+PROGRESS = {'phase': 'initialization', 'apiRequests': 0, 'completedRecords': 0, 'throttledRequests': 0}
+SAFE_CODES = {'FIELD_INVALID', 'UNAUTHENTICATED', 'FORBIDDEN', 'NOT_FOUND', 'STALE_VERSION',
+              'POLICY_CHANGED', 'IDEMPOTENCY_CONFLICT', 'RESOURCE_EXHAUSTED', 'DEADLINE_EXCEEDED',
+              'UNAVAILABLE', 'RATE_LIMITED', 'GRAPHQL_VALIDATION_FAILED', 'BAD_USER_INPUT',
+              'INVALID_REQUEST', 'REQUEST_TOO_LARGE', 'INTERNAL_ERROR', 'INTERNAL'}
 TABLES = ('title', 'person', 'genre', 'credit_role', 'credit', 'title_genre', 'provenance_record', 'seed_member')
 TITLE_FIELDS = '''id kind state title originalTitle synopsis synopsisLanguage originalLanguage countries
 release {year month day precision} tvEnd {year month day precision} tvStatus releaseContext
 runtimeMinutes genres {id label} artwork {assetId url width height}
 credits {nodes {id personId personName titleId titleName role {id label category allowsCharacters} characters version}
 pageInfo {hasNextPage}} provenance {source externalId fieldSources locallyChanged}'''
+
+
+class SeedApiFailure(RuntimeError):
+    def __init__(self, observed):
+        super().__init__('Seed API comparison failed; inspect bounded report')
+        self.observed = observed
+
+
+def api_observation(status, body):
+    codes = set()
+    if isinstance(body, dict):
+        errors = body.get('errors')
+        if isinstance(errors, list):
+            for error in errors[:200]:
+                extensions = error.get('extensions') if isinstance(error, dict) else None
+                value = extensions.get('code') if isinstance(extensions, dict) else None
+                if isinstance(value, str) and value in SAFE_CODES:
+                    codes.add(value)
+        problem = body.get('problem')
+        if isinstance(problem, dict) and isinstance(problem.get('code'), str) and problem['code'] in SAFE_CODES:
+            codes.add(problem['code'])
+    status = status if isinstance(status, int) and not isinstance(status, bool) and 100 <= status <= 599 else None
+    operation = {'api-order': 'SeedOrder', 'api-records': 'SeedTitle'}.get(PROGRESS['phase'], 'NONE')
+    return {'httpStatus': status, 'operation': operation, 'errorCodes': sorted(codes), 'rawBodyRetained': False,
+            'phase': PROGRESS['phase'], 'apiRequests': PROGRESS['apiRequests'],
+            'completedRecords': PROGRESS['completedRecords']}
+
+
+def bounded_json(response):
+    try:
+        raw = response.read(131073)
+    except OSError:
+        return None
+    if len(raw) > 131072:
+        return {'problem': {'code': 'REQUEST_TOO_LARGE'}}
+    try:
+        return json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        return None
 
 
 def require(value, message):
@@ -139,13 +183,23 @@ def graphql(query, variables):
     request = urllib.request.Request(endpoint, data=payload, headers={'Content-Type': 'application/json', 'Origin': endpoint.removesuffix('/graphql'), 'X-Spoolin-Client': 'web'})
     for attempt in range(3):
         try:
+            PROGRESS['apiRequests'] += 1
             with urllib.request.urlopen(request, context=context, timeout=20) as response:
-                body = json.load(response)
-            require(not body.get('errors'), 'GraphQL returned errors during full seed comparison')
+                body = bounded_json(response)
+                observed = api_observation(response.status, body)
+            if not isinstance(body, dict) or body.get('errors') or not isinstance(body.get('data'), dict):
+                raise SeedApiFailure(observed)
             return body['data']
         except urllib.error.HTTPError as error:
+            try:
+                observed = api_observation(error.code, bounded_json(error))
+            finally:
+                error.close()
+            observed['attempt'] = attempt + 1
+            if error.code == 429:
+                PROGRESS['throttledRequests'] += 1
             if error.code != 429 or attempt == 2:
-                raise
+                raise SeedApiFailure(observed) from None
             delay = int(error.headers.get('Retry-After', '60'))
             require(0 < delay <= 120, 'Invalid admission retry delay')
             time.sleep(delay)
@@ -168,6 +222,7 @@ def verify_api_credits(actual, node, manifest, role_ids):
 
 
 def verify_api_order(manifest):
+    PROGRESS['phase'] = 'api-order'
     actual = []
     cursor = None
     while True:
@@ -184,8 +239,10 @@ def verify_api_order(manifest):
     require(actual == [row['stableUUID'] for row in expected], 'Complete discovery ordering differs from release-date/UUID contract')
 
 
-def verify_api(manifest, role_ids):
-    results = []
+def verify_api(manifest, role_ids, results=None):
+    PROGRESS['phase'] = 'api-records'
+    if results is None:
+        results = []
     query = 'query SeedTitle($id:UUID!){title(id:$id){' + TITLE_FIELDS + '}}'
     for node in manifest['records']:
         actual = graphql(query, {'id': node['stableUUID']})['title']
@@ -202,6 +259,7 @@ def verify_api(manifest, role_ids):
                        'fieldSources': {row['field']: row for row in node['sources']}, 'locallyChanged': []}, node['stableUUID'])
         results.append({'id': node['stableUUID'], 'kind': node['kind'], 'database': 'pass', 'https_api': 'pass',
                         'credit_count': len(node['credits']), 'artwork': 'not supplied; approved optional placeholders'})
+        PROGRESS['completedRecords'] = len(results)
         time.sleep(0.6)
     return results
 
@@ -213,26 +271,32 @@ def main():
     spec = importlib.util.spec_from_file_location('seed_validator', ROOT / 'build-tools/validate-seed/validate_manifest.py')
     validator = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(validator)
-    report = {'tested_sha': os.environ['TESTED_SHA'], 'run_id': os.environ['GITHUB_RUN_ID'], 'snapshot': manifest['snapshotSHA256'], 'result': 'failed'}
+    report = {'tested_sha': os.environ['TESTED_SHA'], 'run_id': os.environ['GITHUB_RUN_ID'], 'snapshot': manifest['snapshotSHA256'], 'result': 'failed', 'records': []}
     output = ROOT / 'artifacts/runtime/seed-verification.json'
     output.parent.mkdir(parents=True, exist_ok=True)
     try:
+        PROGRESS['phase'] = 'database-comparison'
         before = snapshot()
         verify_titles(manifest, before)
         roles = verify_people_credits(manifest, before, validator)
         verify_provenance(manifest, before, validator, roles)
         verify_api_order(manifest)
-        report['records'] = verify_api(manifest, roles)
+        verify_api(manifest, roles, report['records'])
         for label, arguments in (('repeat-seed', ['seed']), ('seed-restart', ['restart'])):
+            PROGRESS['phase'] = label
             with (output.parent / (label + '.log')).open('w') as log:
                 subprocess.run(['make', *arguments], env={**os.environ, 'SPOOLIN_SEED_APPLY': '1'}, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=1500)
+        PROGRESS['phase'] = 'restart-database-comparison'
         require(snapshot() == before, 'Full seed database snapshot changed after repeat seed/restart')
         report.update(result='passed', repeat_safe='passed', restart_persistence='passed', artwork_files=len(manifest['files']),
                       people=len(before['person']), credits=len(before['credit']), seed_members=len(before['seed_member']))
     except Exception as error:
         report['failure_type'] = type(error).__name__
-        raise
+        if isinstance(error, SeedApiFailure):
+            report['api_failure'] = error.observed
+        raise RuntimeError('Full seed verification failed; inspect bounded report') from None
     finally:
+        report['progress'] = dict(PROGRESS)
         output.write_text(json.dumps(report, indent=2) + '\n')
 
 
