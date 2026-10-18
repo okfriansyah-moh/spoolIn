@@ -15,6 +15,9 @@ import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.UUID
 
+private const val KEY_PURPOSE_COUNT = 3
+private const val CONFIGURATION_FILE_LIMIT = 16384L
+
 class InitializationAccount(
     val id: UUID,
     val identity: AccountIdentity,
@@ -34,13 +37,15 @@ class InitializationConfiguration(
         require(accounts.size == 2 && accounts.map { it.role }.toSet() == AccountRole.entries.toSet())
         require(accounts.map { it.id }.toSet().size == 2)
         require(accounts.map { it.identity.emailNormalized }.toSet().size == 2)
-        require(keys.size == 3 && keys.values.map { it.purpose }.toSet() == KeyPurpose.entries.toSet())
+        require(keys.size == KEY_PURPOSE_COUNT && keys.values.map { it.purpose }.toSet() == KeyPurpose.entries.toSet())
         require(keys.keys.all { it.matches(Regex("[a-zA-Z0-9_-]{1,64}")) })
     }
 
     fun checksum(): ByteArray {
         val identities = accounts.sortedBy { it.role.name }.map {
-            listOf(it.id.toString(), it.identity.name, it.identity.emailDisplay, it.identity.emailNormalized, it.role.name)
+            listOf(
+                it.id.toString(), it.identity.name, it.identity.emailDisplay, it.identity.emailNormalized, it.role.name,
+            )
         }
         val mounts = keys.toSortedMap().map { (id, mount) -> listOf(id, mount.purpose.name) }
         val bytes = JsonMapper.builder().build().writeValueAsBytes(listOf(version, identities, mounts))
@@ -51,13 +56,15 @@ class InitializationConfiguration(
 
     companion object {
         fun load(path: Path, rules: IdentityRules): InitializationConfiguration {
-            requireProtectedFile(path, 16384)
+            requireProtectedFile(path, CONFIGURATION_FILE_LIMIT)
             val mapper = JsonMapper.builder()
                 .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
                 .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
                 .build()
             val root = mapper.readTree(Files.readAllBytes(path))
-            require(root.isObject && root.properties().map { it.key }.toSet() == setOf("setupVersion", "accounts", "keys"))
+            require(
+                root.isObject && root.properties().map { it.key }.toSet() == setOf("setupVersion", "accounts", "keys"),
+            )
             val accounts = requireNotNull(root.get("accounts"))
             require(accounts.isArray && accounts.size() == 2)
             val keys = requireNotNull(root.get("keys"))
@@ -67,13 +74,16 @@ class InitializationConfiguration(
                 (0 until accounts.size()).map { account(accounts.get(it), rules) },
                 keys.properties().associate { entry ->
                     require(entry.value.properties().map { it.key }.toSet() == setOf("purpose", "file"))
-                    entry.key to KeyMount(KeyPurpose.valueOf(text(entry.value, "purpose")), absolute(text(entry.value, "file")))
+                    entry.key to KeyMount(
+                        KeyPurpose.valueOf(text(entry.value, "purpose")), absolute(text(entry.value, "file")),
+                    )
                 },
             )
         }
 
         private fun account(node: JsonNode, rules: IdentityRules): InitializationAccount {
-            require(node.isObject && node.properties().map { it.key }.toSet() == setOf("id", "name", "email", "role", "passwordFile"))
+            val fields = setOf("id", "name", "email", "role", "passwordFile")
+            require(node.isObject && node.properties().map { it.key }.toSet() == fields)
             return InitializationAccount(
                 UUID.fromString(text(node, "id")),
                 rules.identity(text(node, "name"), text(node, "email")),
