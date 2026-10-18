@@ -72,18 +72,20 @@
   let backup = $state({ backed: false, unbacked: false, pendingOperationId: null as string | null });
 
 
+  function creditFormLocked(): boolean {
+    return submitting || !!pendingId || !!creditDraftChoices.length || creditReviewRequired || draftUnavailable;
+  }
+
+  function creditBaseVersion(): string { return editing?.version ?? titleVersion; }
+
+  function autosaveCreditValues(): CreditDraftValues {
+    return { titleId, personId, roleId,
+      characters: selectedRole?.allowsCharacters ? characterText.split('\n') : [] };
+  }
+
   $effect(() => {
-    if (!creditDirty || !draftSync || loading || creditDraftChoices.length || draftUnavailable || creditReviewRequired || !personId || !roleId || pendingId) return;
-    draftSync.schedule(
-      {
-        titleId,
-        personId,
-        roleId,
-        characters: selectedRole?.allowsCharacters ? characterText.split('\n') : [],
-      },
-      context,
-      editing?.version ?? titleVersion,
-    );
+    if (!creditDirty || !draftSync || loading || creditFormLocked() || !personId || !roleId) return;
+    draftSync.schedule(autosaveCreditValues(), context, creditBaseVersion());
     creditDirty = false;
   });
 
@@ -145,19 +147,45 @@
     catch { draftUnavailable = true; message = 'Saved credit draft could not be checked. Reload before continuing.'; }
   }
 
+  async function reconcileStoredSubmission(draft: DraftRecord): Promise<boolean> {
+    if (!draft.operationId) return true;
+    pendingId = draft.operationId;
+    retainedSubmissionDraft = draft;
+    retryOriginal = null;
+    const receipt = await recoverCredit(createTransport(), pendingId, context.csrf, new AbortController().signal);
+    if (receipt?.state === 'FAILED' && !receipt.resultExpired) {
+      pendingId = null;
+      retainedSubmissionDraft = null;
+      return true;
+    }
+    await applyReceipt(receipt);
+    return false;
+  }
+
+  function requireDraftTarget(draft: DraftRecord, values: CreditDraftValues): ManagedCredit | null {
+    if (!draft.targetId) return null;
+    const target = credits.find((credit) => credit.id === draft.targetId);
+    if (!target || target.personId !== values.personId || target.personArchived)
+      throw new Error('Saved credit reference unavailable.');
+    return target;
+  }
+
+  function installDraftFields(draft: DraftRecord, values: CreditDraftValues,
+    target: ManagedCredit | null, references: NonNullable<Awaited<ReturnType<typeof currentDraftReferences>>>) {
+    const { person, movie } = references;
+    editing = target;
+    if (!people.some((entry) => entry.id === person.id)) people = [...people, { id: person.id, name: person.name }];
+    personId = values.personId; roleId = values.roleId; characterText = values.characters.join('\n');
+    creditReviewRequired = draft.baseVersion !== (target?.version ?? movie.version);
+    onTitleVersionChange(movie.version);
+    message = creditReviewRequired ? 'The saved relationship changed. Review its current values and retained edits before continuing.' : 'Saved credit draft recovered.';
+  }
+
   async function restoreCreditDraft(draft: DraftRecord) {
     if (!draftSync) return;
     creditDraftChoices = [];
     draftSync.adopt(draft);
-    if (draft.operationId) {
-      pendingId = draft.operationId;
-      retainedSubmissionDraft = draft;
-      retryOriginal = null;
-      const receipt = await recoverCredit(createTransport(), pendingId, context.csrf, new AbortController().signal);
-      if (!receipt || receipt.state !== 'FAILED' || receipt.resultExpired) { await applyReceipt(receipt); return; }
-      pendingId = null;
-      retainedSubmissionDraft = null;
-    }
+    if (!(await reconcileStoredSubmission(draft))) return;
     const values = draftValues(draft);
     const references = await currentDraftReferences(values);
     if (!references) {
@@ -165,19 +193,7 @@
       message = 'Saved credit references changed. Discard this draft or restore its references before adding a credit.';
       return;
     }
-    const target = draft.targetId ? credits.find((credit) => credit.id === draft.targetId) : null;
-    if (draft.targetId && (!target || target.personId !== values.personId || target.personArchived)) {
-      draftUnavailable = true;
-      message = 'The saved credit is unavailable. Discard this draft or restore its references before editing.';
-      return;
-    }
-    const { person, movie } = references;
-    editing = target ?? null;
-    if (!people.some((entry) => entry.id === person.id)) people = [...people, { id: person.id, name: person.name }];
-    personId = values.personId; roleId = values.roleId; characterText = values.characters.join('\n');
-    creditReviewRequired = draft.baseVersion !== (target?.version ?? movie.version);
-    onTitleVersionChange(movie.version);
-    message = creditReviewRequired ? 'The saved relationship changed. Review its current values and retained edits before continuing.' : 'Saved credit draft recovered.';
+    installDraftFields(draft, values, requireDraftTarget(draft, values), references);
     if (draft.operationId && !(await clearRejectedCreditDraft(draft.baseVersion)))
       message = 'Original failure confirmed. Retained edits are not backed up yet. Retry their backup before submitting.';
   }
@@ -267,40 +283,37 @@
     return !!draftSync?.snapshot.backed && !draftSync.snapshot.unbacked;
   }
 
-  async function applyReceipt(receipt: CreditCommandOutcome | null) {
+  function creditFailureMessage(code: string | undefined): string {
+    return code === 'ALREADY_EXISTS' || code === 'CREDIT_DUPLICATE'
+      ? 'Review the credit — no duplicate added.' : 'Changes were not saved. Review the current credit.';
+  }
+
+  async function applyCreditFailure(receipt: CreditCommandOutcome) {
+    if (retainedSubmissionDraft) { await restoreCreditDraft(retainedSubmissionDraft); return; }
+    if (!(await clearRejectedCreditDraft())) {
+      message = 'The original failure is confirmed, but draft recovery is not backed up. Check the original result again.';
+      return;
+    }
+    pendingId = null; retryOriginal = null;
+    message = creditFailureMessage(receipt.problem?.code);
+  }
+
+  function unresolvedCredit(receipt: CreditCommandOutcome | null): boolean {
     if (!receipt || receipt.state === 'PENDING') {
-      message =
-        'Credit result not confirmed. Check the original result before repeating it.';
-      return;
+      message = 'Credit result not confirmed. Check the original result before repeating it.';
+      return true;
     }
-    if (receipt.state === 'REJECTED') {
-      if (!(await clearRejectedCreditDraft())) { message = 'The original failure is confirmed, but draft recovery is not backed up. Check the original result again.'; return; }
-      pendingId = null; retryOriginal = null;
-      message = receipt.problem.code === 'ALREADY_EXISTS' || receipt.problem.code === 'CREDIT_DUPLICATE'
-        ? 'Review the credit — no duplicate added.' : 'Changes were not saved. Review the current credit.';
-      return;
+    if (receipt.state !== 'REJECTED' && (receipt.state === 'EXPIRED' || receipt.resultExpired)) {
+      message = 'Original credit result expired. Review the current record before further changes.';
+      return true;
     }
-    if (receipt.state === 'EXPIRED' || receipt.resultExpired) {
-      message =
-        'Original credit result expired. Review the current record before further changes.';
-      return;
-    }
-    if (receipt.state === 'FAILED') {
-      if (retainedSubmissionDraft) { await restoreCreditDraft(retainedSubmissionDraft); return; }
-      if (!(await clearRejectedCreditDraft())) { message = 'The original failure is confirmed, but draft recovery is not backed up. Check the original result again.'; return; }
-      pendingId = null;
-      retryOriginal = null;
-      message =
-        receipt.problem?.code === 'ALREADY_EXISTS' ||
-        receipt.problem?.code === 'CREDIT_DUPLICATE'
-          ? 'Review the credit — no duplicate added.'
-          : 'Changes were not saved. Review the current credit.';
-      return;
-    }
+    return false;
+  }
+
+  async function applyConfirmedCredit() {
     const transport = createTransport();
     const movie = await fetchManagedMovie(transport, titleId, context.csrf);
-    if (!movie || movie.state !== 'ACTIVE')
-      throw new Error('Current movie unavailable.');
+    if (!movie || movie.state !== 'ACTIVE') throw new Error('Current movie unavailable.');
     credits = await fetchTitleCredits(transport, titleId, context.csrf);
     onTitleVersionChange(movie.version);
     if (draftSync && !(await draftSync.discard(context))) {
@@ -309,11 +322,18 @@
     }
     if (draftSync) backup = draftSync.snapshot;
     creditReviewRequired = false; reviewedCredit = false; draftUnavailable = false;
-    pendingId = null;
-    retainedSubmissionDraft = null;
-    retryOriginal = null;
+    pendingId = null; retainedSubmissionDraft = null; retryOriginal = null;
     resetFields();
     message = pendingKind === 'remove' ? 'Credit removed.' : 'Credit saved.';
+  }
+
+  async function applyReceipt(receipt: CreditCommandOutcome | null) {
+    if (unresolvedCredit(receipt) || !receipt) return;
+    if (receipt.state === 'FAILED' || receipt.state === 'REJECTED') {
+      await applyCreditFailure(receipt);
+      return;
+    }
+    await applyConfirmedCredit();
   }
 
   async function executeOriginal() {
@@ -348,22 +368,7 @@
     }
   }
 
-  async function submitCredit(): Promise<void> {
-    if (!personId || !roleId || submitting || pendingId || creditDraftChoices.length || creditReviewRequired || draftUnavailable) return;
-    const characters = parseCreditCharacters(
-      selectedRole ?? undefined,
-      characterText,
-    );
-    const validation = validateCharacterNames(
-      characters,
-      policy,
-      selectedRole?.allowsCharacters ?? false,
-    );
-    if (validation) {
-      message = validation;
-      return;
-    }
-    const operationId = globalThis.crypto.randomUUID();
+  function originalCreditSubmission(operationId: string, characters: string[]): () => Promise<CreditCommandOutcome> {
     const transport = createTransport();
     const signal = new AbortController().signal;
     const input = { personId, roleId, characters };
@@ -371,36 +376,26 @@
     const originalTitleVersion = titleVersion;
     const originalTitleId = titleId;
     const { policyRevision, csrf } = context;
-    pendingKind = 'save';
-    pendingId = operationId;
     const send = selected
-      ? () =>
-          updateCredit(
-            transport,
-            operationId,
-            selected.id,
-            selected.version,
-            policyRevision,
-            { roleId: input.roleId, characters: input.characters },
-            csrf,
-            signal,
-          )
-      : () =>
-          addCredit(
-            transport,
-            operationId,
-            originalTitleId,
-            originalTitleVersion,
-            policyRevision,
-            input,
-            csrf,
-            signal,
-          );
-    retryOriginal = async () => {
+      ? () => updateCredit(transport, operationId, selected.id, selected.version, policyRevision,
+          { roleId: input.roleId, characters: input.characters }, csrf, signal)
+      : () => addCredit(transport, operationId, originalTitleId, originalTitleVersion, policyRevision, input, csrf, signal);
+    return async () => {
       await backOriginalCredit(operationId, { titleId: originalTitleId, personId: input.personId,
         roleId: input.roleId, characters: input.characters }, selected?.version ?? originalTitleVersion);
       return send();
     };
+  }
+
+  async function submitCredit(): Promise<void> {
+    if (!personId || !roleId || creditFormLocked()) return;
+    const characters = parseCreditCharacters(selectedRole ?? undefined, characterText);
+    const validation = validateCharacterNames(characters, policy, selectedRole?.allowsCharacters ?? false);
+    if (validation) { message = validation; return; }
+    const operationId = globalThis.crypto.randomUUID();
+    retryOriginal = originalCreditSubmission(operationId, characters);
+    pendingKind = 'save';
+    pendingId = operationId;
     await executeOriginal();
   }
 

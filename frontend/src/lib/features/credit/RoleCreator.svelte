@@ -29,19 +29,23 @@
     if (failed) feedback?.focus();
   }
 
+  function duplicateRole(code: string | undefined): boolean {
+    return code === 'ALREADY_EXISTS' || code === 'ROLE_EXISTS';
+  }
+
   async function accept(result: RoleOutcome | null) {
     if (!result || result.state === 'PENDING') {
       await report('Role result not confirmed. Check the original result before repeating it.');
     } else if (result.state === 'REJECTED') {
       original = null;
-      await report(result.problem.code === 'ALREADY_EXISTS' || result.problem.code === 'ROLE_EXISTS'
+      await report(duplicateRole(result.problem.code)
         ? 'This role already exists. Choose the existing role or correct its name.'
         : 'Role was not created. Review the name, category and current policy.');
     } else if (result.resultExpired || result.state === 'EXPIRED') {
       await report('Original role result expired. Review current roles before further changes.');
     } else if (result.state === 'FAILED') {
       original = null;
-      await report(result.problem?.code === 'ALREADY_EXISTS' || result.problem?.code === 'ROLE_EXISTS'
+      await report(duplicateRole(result.problem?.code)
         ? 'This role already exists. Choose the existing role or correct its name.'
         : 'Role was not created. Review the name, category and current policy.');
     } else {
