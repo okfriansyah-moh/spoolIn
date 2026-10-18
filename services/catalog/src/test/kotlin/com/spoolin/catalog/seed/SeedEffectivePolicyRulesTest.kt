@@ -62,6 +62,31 @@ class SeedEffectivePolicyRulesTest {
     }
 
     @Test
+    fun `optional biography and original title enforce configured minima and maxima when supplied`() {
+        val root = snapshot()
+        val person = root["people"][0] as ObjectNode
+        person.put("biography", "Biography")
+        val personSource = (person["sources"].first() as ObjectNode).deepCopy()
+        personSource.put("field", "biography")
+        (person["sources"] as tools.jackson.databind.node.ArrayNode).add(personSource)
+        val record = root["records"][0] as ObjectNode
+        (record["normalized"] as ObjectNode).put("originalTitle", "Title")
+        val titleSource = (record["sources"].first() as ObjectNode).deepCopy()
+        titleSource.put("field", "originalTitle")
+        (record["sources"] as tools.jackson.databind.node.ArrayNode).add(titleSource)
+        val path = write(root)
+        SeedManifest.prepare(path, configured())
+        listOf("BIOGRAPHY", "ORIGINAL_TITLE").forEach { key ->
+            assertThrows(InputViolation::class.java) {
+                SeedManifest.prepare(path, configured(mapOf("${key}_MAX_CODE_POINTS" to "1")))
+            }
+            assertThrows(InputViolation::class.java) {
+                SeedManifest.prepare(path, configured(mapOf("${key}_MIN_CODE_POINTS" to "10")))
+            }
+        }
+    }
+
+    @Test
     fun `preparation never silently trims frozen metadata or accepts malformed source Unicode`() {
         val root = snapshot()
         (root["people"][0] as ObjectNode).put("name", " Name ")
