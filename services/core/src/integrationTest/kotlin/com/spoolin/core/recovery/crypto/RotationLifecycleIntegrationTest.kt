@@ -11,8 +11,8 @@ import com.spoolin.core.features.crypto.StoredPasswordHash
 import com.spoolin.core.features.crypto.committed
 import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.crypto.queryBound
-import com.spoolin.core.features.crypto.rotation.KeyRotationPlan
-import com.spoolin.core.features.crypto.rotation.RotationRetirement
+import com.spoolin.core.operations.crypto.KeyRotationPlan
+import com.spoolin.core.operations.crypto.RotationRetirement
 import com.spoolin.core.features.draft.DraftCryptography
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

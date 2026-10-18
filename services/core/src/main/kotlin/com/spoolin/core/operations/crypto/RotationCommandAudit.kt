@@ -1,4 +1,4 @@
-package com.spoolin.core.features.crypto.rotation
+package com.spoolin.core.operations.crypto
 
 import com.spoolin.support.receipts.committed
 import com.spoolin.support.receipts.executeBound

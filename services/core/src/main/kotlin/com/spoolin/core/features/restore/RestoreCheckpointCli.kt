@@ -7,8 +7,8 @@ import com.spoolin.core.features.crypto.MountedKeys
 import com.spoolin.core.features.crypto.committed
 import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.crypto.queryBound
-import com.spoolin.core.features.crypto.rotation.KeyRotationPlan
-import com.spoolin.core.features.crypto.rotation.RotationKeys
+import com.spoolin.core.operations.crypto.KeyRotationPlan
+import com.spoolin.core.operations.crypto.RotationKeys
 import com.spoolin.core.requireProtectedFile
 import org.springframework.core.env.StandardEnvironment
 import tools.jackson.core.StreamReadFeature
