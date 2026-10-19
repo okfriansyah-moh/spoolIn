@@ -52,18 +52,25 @@
         break;
       await controller.loadMore(csrf, abort);
       const after = controller.snapshot;
-      if (
-        after.kind !== 'ready' ||
-        after.pagingError ||
-        after.titles.length <= before.titles.length
-      )
-        break;
+      if (listStopped(after, before.titles.length)) break;
     }
+    await restoreScroll(state, abort);
+  }
+
+  async function restoreScroll(state: MovieListReturn, abort: AbortSignal) {
     if (abort.aborted) return;
     restoring = false;
     await tick();
     if (!abort.aborted && !page.url.searchParams.has('saved'))
       window.scrollTo({ top: state.scrollY, behavior: 'instant' });
+  }
+
+  function listStopped(after: ListState, count: number): boolean {
+    return (
+      after.kind !== 'ready' ||
+      after.pagingError ||
+      after.titles.length <= count
+    );
   }
 
   function submitSearch(event: SubmitEvent) {
@@ -202,9 +209,7 @@
               {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
                 <a
                   class="button secondary"
-                  href={resolve('/manage/movies/[id]', { id: row.id }) +
-                    '?return=' +
-                    returnToken}
+                  href={resolve(`/manage/movies/[id]?return=${returnToken}`, { id: row.id })}
                   onclick={rememberList}>Edit</a
                 >
                 <a
@@ -213,9 +218,7 @@
                 >
                 <a
                   class="button secondary"
-                  href={resolve('/manage/movies/[id]', { id: row.id }) +
-                    '?step=credits&return=' +
-                    returnToken}
+                  href={resolve(`/manage/movies/[id]?step=credits&return=${returnToken}`, { id: row.id })}
                   onclick={rememberList}>Cast and creators</a
                 >
               {:else}
@@ -242,9 +245,7 @@
           {#if row.kind === 'MOVIE' && row.state === 'ACTIVE'}
             <a
               class="button secondary"
-              href={resolve('/manage/movies/[id]', { id: row.id }) +
-                '?return=' +
-                returnToken}
+              href={resolve(`/manage/movies/[id]?return=${returnToken}`, { id: row.id })}
               onclick={rememberList}>Edit</a
             >
             <a
@@ -253,9 +254,7 @@
             >
             <a
               class="button secondary"
-              href={resolve('/manage/movies/[id]', { id: row.id }) +
-                '?step=credits&return=' +
-                returnToken}
+              href={resolve(`/manage/movies/[id]?step=credits&return=${returnToken}`, { id: row.id })}
               onclick={rememberList}>Cast and creators</a
             >
           {:else}

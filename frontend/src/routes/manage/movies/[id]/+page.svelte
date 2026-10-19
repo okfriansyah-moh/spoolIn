@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import Notice from '../../../../lib/components/Notice.svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
@@ -62,9 +63,9 @@
     try {
       const result = await controller.finishEditing();
       if (result === 'blocked') return;
-      const params = new URLSearchParams({ saved: movieId });
+      const params = new SvelteURLSearchParams({ saved: movieId });
       if (isRecordId(movieReturnToken)) params.set('restore', movieReturnToken);
-      await goto(resolve('/manage/movies') + '?' + params.toString());
+      await goto(resolve(`/manage/movies?${params.toString()}`));
     } catch {
       completionError =
         'Completion could not finish. Your saved artwork is retained. Retry Save movie.';
@@ -248,12 +249,11 @@
             showSkip={createdFlow}
             onFinish={() => {
               void goto(
-                resolve('/manage/movies') +
-                  (createdFlow
-                    ? '?created=' + encodeURIComponent(movieId)
+                resolve(createdFlow
+                    ? `/manage/movies?created=${encodeURIComponent(movieId)}`
                     : isRecordId(movieReturnToken)
-                      ? '?restore=' + encodeURIComponent(movieReturnToken)
-                      : ''),
+                      ? `/manage/movies?restore=${encodeURIComponent(movieReturnToken)}`
+                      : '/manage/movies'),
               );
             }}
             policy={sessionCtl.snapshot.policy}

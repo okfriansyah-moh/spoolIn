@@ -113,9 +113,12 @@
     );
   }
 
+  function canLeaveCredit(): boolean {
+    return !submitting && !pendingId && !roleBlocked && !hasUnfinishedCredit();
+  }
+
   beforeNavigate((navigation) => {
-    if (!submitting && !pendingId && !roleBlocked && !hasUnfinishedCredit())
-      return;
+    if (canLeaveCredit()) return;
     navigation.cancel();
     if (roleBlocked) {
       message = 'Finish checking the custom role result before leaving.';
@@ -167,7 +170,10 @@
     if (finishRequested) {
       finishRequested = false;
       onFinish?.();
-    } else if (destination) void goto(destination);
+    } else if (destination) {
+      // eslint-disable-next-line svelte/no-navigation-without-resolve -- pending router navigation already includes the application base path.
+      void goto(destination);
+    }
   }
 
   async function saveAndLeave() {
@@ -243,41 +249,7 @@
       backup = next;
     });
     draftSync = sync;
-    void (async () => {
-      try {
-        const [loadedCredits, loadedRoles, loadedPeople] = await Promise.all([
-          fetchTitleCreditsPage(
-            transport,
-            titleId,
-            context.csrf,
-            null,
-            abort.signal,
-          ),
-          fetchCreditRoles(transport, abort.signal),
-          fetchActivePeoplePage(transport, context.csrf, null, abort.signal),
-        ]);
-        if (abort.signal.aborted) return;
-        credits = loadedCredits.nodes;
-        nextCredits = loadedCredits.pageInfo.hasNextPage
-          ? loadedCredits.pageInfo.endCursor
-          : null;
-        roles = loadedRoles;
-        people = loadedPeople.nodes;
-        nextPeople = loadedPeople.next;
-        const drafts = await sync.load(context, abort.signal);
-        if (abort.signal.aborted) return;
-        if (drafts.length > 1) creditDraftChoices = drafts;
-        else if (drafts[0]) await resumeCreditDraft(drafts[0]);
-      } catch {
-        if (!abort.signal.aborted) {
-          draftUnavailable = true;
-          message =
-            'Credits could not be loaded. Reload before making changes.';
-        }
-      } finally {
-        if (!abort.signal.aborted) loading = false;
-      }
-    })();
+    void loadCreditEditor(transport, abort, sync);
     return () => {
       abort.abort();
       creditAbort?.abort();
@@ -287,6 +259,45 @@
       sync.dispose();
     };
   });
+
+  async function loadCreditEditor(
+    transport: ReturnType<typeof createTransport>,
+    abort: AbortController,
+    sync: CreditDraftSync,
+  ) {
+    try {
+      const [loadedCredits, loadedRoles, loadedPeople] = await Promise.all([
+        fetchTitleCreditsPage(
+          transport,
+          titleId,
+          context.csrf,
+          null,
+          abort.signal,
+        ),
+        fetchCreditRoles(transport, abort.signal),
+        fetchActivePeoplePage(transport, context.csrf, null, abort.signal),
+      ]);
+      if (abort.signal.aborted) return;
+      credits = loadedCredits.nodes;
+      nextCredits = loadedCredits.pageInfo.hasNextPage
+        ? loadedCredits.pageInfo.endCursor
+        : null;
+      roles = loadedRoles;
+      people = loadedPeople.nodes;
+      nextPeople = loadedPeople.next;
+      const drafts = await sync.load(context, abort.signal);
+      if (abort.signal.aborted) return;
+      if (drafts.length > 1) creditDraftChoices = drafts;
+      else if (drafts[0]) await resumeCreditDraft(drafts[0]);
+    } catch {
+      if (!abort.signal.aborted) {
+        draftUnavailable = true;
+        message = 'Credits could not be loaded. Reload before making changes.';
+      }
+    } finally {
+      if (!abort.signal.aborted) loading = false;
+    }
+  }
 
   function draftValues(draft: DraftRecord): CreditDraftValues {
     const value = draft.values as Partial<CreditDraftValues>;
@@ -501,6 +512,15 @@
       people = [];
       nextPeople = null;
     }
+    await requestPeople(previous, cursor, generation, signal);
+  }
+
+  async function requestPeople(
+    previous: readonly PersonOption[],
+    cursor: string | null,
+    generation: number,
+    signal: AbortSignal,
+  ) {
     try {
       const page = await fetchPeopleMatches(
         createTransport(),
@@ -758,6 +778,16 @@
     return false;
   }
 
+  function confirmedCreditLabel(): string {
+    return [
+      people.find((person) => person.id === personId)?.name ??
+        editing?.personName,
+      selectedRole?.label,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+
   async function applyConfirmedCredit() {
     const transport = createTransport();
     const movie = await fetchManagedMovie(transport, titleId, context.csrf);
@@ -777,13 +807,7 @@
     pendingId = null;
     retainedSubmissionDraft = null;
     retryOriginal = null;
-    const savedLabel = [
-      people.find((person) => person.id === personId)?.name ??
-        editing?.personName,
-      selectedRole?.label,
-    ]
-      .filter(Boolean)
-      .join(' · ');
+    const savedLabel = confirmedCreditLabel();
     resetFields();
     message =
       pendingKind === 'remove'

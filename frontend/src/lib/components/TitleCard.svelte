@@ -22,10 +22,9 @@
 <article class="title-card">
   <div class="card-poster">
     {#if isRecordId(id)}
-      <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- use the same validated detail route as the title link. -->
       <a
         class="poster-link"
-        href={`${resolve('/')}titles/${encodeURIComponent(id)}`}
+        href={resolve('/titles/[id]', { id })}
         aria-label={title}
       >
         <ArtworkSlot src={artwork ?? null} />

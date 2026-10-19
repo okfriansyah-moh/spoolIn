@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { onMount } from 'svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
@@ -37,10 +38,10 @@
     try {
       const result = await controller.finishEditing();
       if (result === 'blocked') return;
-      const params = new URLSearchParams({ saved: personId });
+      const params = new SvelteURLSearchParams({ saved: personId });
       if (isRecordId(personReturnToken))
         params.set('restore', personReturnToken);
-      await goto(resolve('/manage/people') + '?' + params.toString());
+      await goto(resolve(`/manage/people?${params.toString()}`));
     } catch {
       completionError =
         'Person completion could not finish. Retry Save person to confirm the saved record.';

@@ -59,7 +59,17 @@
       view.stage,
     );
     const blocked = validating || refreshing || refreshNeeded || active;
-    const message = validating
+    const message = uploadMessage(active);
+    onStateChange?.({
+      blocked,
+      busy: validating || refreshing || active,
+      message,
+      saved: view.stage === 'saved' && !blocked,
+    });
+  });
+
+  function uploadMessage(active: boolean): string {
+    return validating
       ? 'Wait for artwork preparation to finish.'
       : refreshNeeded
         ? 'Select Retry movie details before saving the movie.'
@@ -70,13 +80,7 @@
             : active
               ? 'Wait for artwork transfer and processing to finish.'
               : '';
-    onStateChange?.({
-      blocked,
-      busy: validating || refreshing || active,
-      message,
-      saved: view.stage === 'saved' && !blocked,
-    });
-  });
+  }
 
   onMount(() => {
     mounted = true;
@@ -138,15 +142,17 @@
         policyRevision,
       );
     } catch (error) {
-      if (mounted)
-        validationMessage =
-          error instanceof Error
-            ? error.message
-            : 'This image could not be prepared. Choose another image.';
+      if (mounted) validationMessage = preparationError(error);
     } finally {
       validating = false;
       input.value = '';
     }
+  }
+
+  function preparationError(error: unknown): string {
+    return error instanceof Error
+      ? error.message
+      : 'This image could not be prepared. Choose another image.';
   }
 
   function onCancel() {

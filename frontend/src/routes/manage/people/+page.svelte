@@ -55,14 +55,17 @@
         break;
       await controller.loadMore(csrf, signal);
       const after = controller.snapshot;
-      if (
-        after.kind !== 'ready' ||
-        after.pageError ||
-        after.people.length <= before.people.length
-      )
-        break;
+      if (listStopped(after, before.people.length)) break;
     }
     if (!signal.aborted) restoring = false;
+  }
+
+  function listStopped(after: ListState, count: number): boolean {
+    return (
+      after.kind !== 'ready' ||
+      !!after.pageError ||
+      after.people.length <= count
+    );
   }
 
   function submitSearch(event: SubmitEvent) {
@@ -75,6 +78,47 @@
     searchText = '';
     appliedSearch = '';
     search();
+  }
+
+  let reloadGeneration = 0;
+  let cachedContext: Awaited<ReturnType<typeof loadWriteContext>> = null;
+
+  function currentLoad(signal: AbortSignal, generation: number): boolean {
+    return !signal.aborted && generation === reloadGeneration;
+  }
+
+  async function reloadPeople(
+    activeController: ReturnType<typeof createPersonListController>,
+    saved: PersonListReturn | null,
+    signal: AbortSignal,
+  ) {
+    const generation = ++reloadGeneration;
+    listOverride = { kind: 'loading' };
+    try {
+      const context = cachedContext ?? (await loadWriteContext(signal));
+      if (!currentLoad(signal, generation)) return;
+      if (!context) {
+        restoring = false;
+        listOverride = { kind: 'failure' };
+        return;
+      }
+      cachedContext = context;
+      loadMore = () => activeController.loadMore(context.csrf, signal);
+      listOverride = null;
+      await activeController.load(context.csrf, signal, appliedSearch);
+      if (
+        !signal.aborted &&
+        generation === reloadGeneration &&
+        saved &&
+        restoring
+      )
+        await restoreDepth(activeController, saved, context.csrf, signal);
+    } catch {
+      if (currentLoad(signal, generation)) {
+        restoring = false;
+        listOverride = { kind: 'failure' };
+      }
+    }
   }
 
   onMount(() => {
@@ -91,42 +135,8 @@
     controller = createPersonListController(transport);
     const activeController = controller;
     const abort = new AbortController();
-    let reloadGeneration = 0;
-    let cachedContext: Awaited<ReturnType<typeof loadWriteContext>> = null;
-    reload = async () => {
-      const generation = ++reloadGeneration;
-      listOverride = { kind: 'loading' };
-      try {
-        const context = cachedContext ?? (await loadWriteContext(abort.signal));
-        if (abort.signal.aborted || generation !== reloadGeneration) return;
-        if (!context) {
-          restoring = false;
-          listOverride = { kind: 'failure' };
-          return;
-        }
-        cachedContext = context;
-        loadMore = () => activeController.loadMore(context.csrf, abort.signal);
-        listOverride = null;
-        await activeController.load(context.csrf, abort.signal, appliedSearch);
-        if (
-          !abort.signal.aborted &&
-          generation === reloadGeneration &&
-          saved &&
-          restoring
-        )
-          await restoreDepth(
-            activeController,
-            saved,
-            context.csrf,
-            abort.signal,
-          );
-      } catch {
-        if (!abort.signal.aborted && generation === reloadGeneration) {
-          restoring = false;
-          listOverride = { kind: 'failure' };
-        }
-      }
-    };
+    reload = () => reloadPeople(activeController, saved, abort.signal);
+
     search = () => {
       void reload();
     };
@@ -205,9 +215,7 @@
             <td data-label="Actions">
               <a
                 class="button secondary"
-                href={resolve('/manage/people/[id]', { id: row.id }) +
-                  '?return=' +
-                  returnToken}
+                href={resolve(`/manage/people/[id]?return=${returnToken}`, { id: row.id })}
                 onclick={rememberList}>Edit</a
               >
               <a
@@ -227,9 +235,7 @@
         <div class="record-actions">
           <a
             class="button secondary"
-            href={resolve('/manage/people/[id]', { id: row.id }) +
-              '?return=' +
-              returnToken}
+            href={resolve(`/manage/people/[id]?return=${returnToken}`, { id: row.id })}
             onclick={rememberList}>Edit</a
           >
           <a

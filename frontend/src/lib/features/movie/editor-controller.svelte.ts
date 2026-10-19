@@ -621,6 +621,24 @@ export class MovieEditorController {
     return false;
   }
 
+  private confirmedMovie(
+    latest: ManagedMovie | null,
+    saved: ManagedMovie,
+  ): latest is ManagedMovie {
+    return (
+      this.activeMovie(latest, saved) && this.completionVersion(latest, saved)
+    );
+  }
+
+  private refreshedArtwork(
+    latest: ManagedMovie | null,
+    saved: ManagedMovie,
+  ): latest is ManagedMovie {
+    return (
+      this.activeMovie(latest, saved) && this.artworkMetadata(latest, saved)
+    );
+  }
+
   private async confirmCompletion(
     result: 'saved' | 'unchanged',
   ): Promise<'saved' | 'unchanged' | 'blocked'> {
@@ -641,11 +659,7 @@ export class MovieEditorController {
         this.active?.signal,
       );
       if (generation !== this.writeGeneration) return 'blocked';
-      if (
-        !this.activeMovie(latest, saved) ||
-        !this.completionVersion(latest, saved)
-      )
-        return 'blocked';
+      if (!this.confirmedMovie(latest, saved)) return 'blocked';
       if (!(await this.completeDraft(latest, generation))) return 'blocked';
       return result;
     } catch {
@@ -689,6 +703,13 @@ export class MovieEditorController {
     return true;
   }
 
+  private artworkRequestCurrent(
+    generation: number,
+    saved: ManagedMovie,
+  ): boolean {
+    return generation === this.writeGeneration && this.current.saved === saved;
+  }
+
   async refreshAfterArtwork(): Promise<boolean> {
     const saved = this.current.saved;
     if (
@@ -706,13 +727,8 @@ export class MovieEditorController {
         this.writeContext.csrf,
         this.active?.signal,
       );
-      if (generation !== this.writeGeneration || this.current.saved !== saved)
-        return false;
-      if (
-        !this.activeMovie(latest, saved) ||
-        !this.artworkMetadata(latest, saved)
-      )
-        return false;
+      if (!this.artworkRequestCurrent(generation, saved)) return false;
+      if (!this.refreshedArtwork(latest, saved)) return false;
       this.publish({
         ...this.current,
         saved: latest,

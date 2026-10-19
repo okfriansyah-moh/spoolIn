@@ -38,10 +38,9 @@
         (next.phase === 'saved' || next.phase === 'resolved')
       ) {
         navigating = true;
-        const destination =
-          resolve('/manage/people') +
-          '?created=' +
-          encodeURIComponent(next.saved.id);
+        const destination = resolve(
+          `/manage/people?created=${encodeURIComponent(next.saved.id)}`,
+        );
         void goto(destination, { replaceState: true }).catch(() => {
           navigating = false;
         });

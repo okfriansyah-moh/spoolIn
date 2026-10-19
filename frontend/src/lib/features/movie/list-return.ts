@@ -24,17 +24,7 @@ export function readMovieListReturn(token: string): MovieListReturn | null {
     );
     if (!value || typeof value !== 'object') return null;
     const state = Object.fromEntries(Object.entries(value));
-    if (
-      typeof state.searchText !== 'string' ||
-      typeof state.appliedSearch !== 'string' ||
-      typeof state.rowCount !== 'number' ||
-      !Number.isSafeInteger(state.rowCount) ||
-      state.rowCount < 0 ||
-      typeof state.scrollY !== 'number' ||
-      !Number.isFinite(state.scrollY) ||
-      state.scrollY < 0
-    )
-      return null;
+    if (!validText(state) || !validPosition(state)) return null;
     return {
       searchText: state.searchText,
       appliedSearch: state.appliedSearch,
@@ -44,4 +34,28 @@ export function readMovieListReturn(token: string): MovieListReturn | null {
   } catch {
     return null;
   }
+}
+
+function validText(
+  state: Record<string, unknown>,
+): state is Record<string, unknown> &
+  Pick<MovieListReturn, 'searchText' | 'appliedSearch'> {
+  return !(
+    typeof state.searchText !== 'string' ||
+    typeof state.appliedSearch !== 'string'
+  );
+}
+
+function validPosition(
+  state: Record<string, unknown>,
+): state is Record<string, unknown> &
+  Pick<MovieListReturn, 'rowCount' | 'scrollY'> {
+  return !(
+    typeof state.rowCount !== 'number' ||
+    !Number.isSafeInteger(state.rowCount) ||
+    state.rowCount < 0 ||
+    typeof state.scrollY !== 'number' ||
+    !Number.isFinite(state.scrollY) ||
+    state.scrollY < 0
+  );
 }

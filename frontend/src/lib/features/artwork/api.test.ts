@@ -77,3 +77,62 @@ describe('actual cancellation receipt binding', () => {
     }
   });
 });
+
+describe('artwork HTTP response classification', () => {
+  it.each([
+    {
+      status: 429,
+      errors: [{ extensions: { code: 'RATE_LIMITED' } }],
+      kind: 'rejected',
+      code: 'RATE_LIMITED',
+    },
+    {
+      status: 503,
+      errors: [{ extensions: { code: 'FORBIDDEN' } }],
+      kind: 'uncertain',
+      code: 'FORBIDDEN',
+    },
+    {
+      status: 200,
+      errors: [{ extensions: { code: 'UNEXPECTED' } }],
+      kind: 'uncertain',
+      code: 'UNAVAILABLE',
+    },
+  ])(
+    'preserves $status/$code rejection certainty',
+    async ({ status, errors, kind, code }) => {
+      const { uploadArtworkWithProgress } = await import('./api');
+      vi.stubGlobal(
+        'XMLHttpRequest',
+        class {
+          status = status;
+          responseText = JSON.stringify({ errors });
+          upload = { onprogress: null };
+          onload: (() => void) | null = null;
+          open() {}
+          setRequestHeader() {}
+          send() {
+            this.onload?.();
+          }
+        },
+      );
+      try {
+        await expect(
+          uploadArtworkWithProgress(
+            'csrf',
+            {
+              operationId: upload,
+              titleId: cancellation,
+              expectedVersion: '1',
+              policyRevision: 'revision',
+              contentBase64: 'AA==',
+            },
+            vi.fn(),
+          ),
+        ).rejects.toMatchObject({ kind, code });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    },
+  );
+});

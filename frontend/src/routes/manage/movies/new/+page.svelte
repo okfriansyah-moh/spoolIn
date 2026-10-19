@@ -38,9 +38,10 @@
         (next.phase === 'saved' || next.phase === 'resolved')
       ) {
         navigating = true;
-        const destination =
-          resolve('/manage/movies/[id]', { id: next.saved.id }) +
-          '?step=credits&created=1';
+        const destination = resolve(
+          '/manage/movies/[id]?step=credits&created=1',
+          { id: next.saved.id },
+        );
         void goto(destination, { replaceState: true }).catch(() => {
           navigating = false;
         });

@@ -46,7 +46,7 @@
   );
   const activeId = $derived(
     open && active >= 0 && matches[active]
-      ? `credit-person-option-${matches[active].id}`
+      ? `credit-person-option-${matches[active]?.id}`
       : undefined,
   );
 
@@ -98,6 +98,12 @@
     });
   }
 
+  function chooseActive() {
+    const person = active >= 0 ? matches[active] : undefined;
+    if (person) select(person);
+    else onSearch(query);
+  }
+
   function keydown(event: KeyboardEvent) {
     if (event.isComposing) return;
     if (event.key === 'Escape') {
@@ -110,8 +116,7 @@
     } else if (event.key === 'Enter' && open) {
       event.preventDefault();
       clearTimeout(timer);
-      if (active >= 0 && matches[active]) select(matches[active]);
-      else onSearch(query);
+      chooseActive();
     }
   }
 
