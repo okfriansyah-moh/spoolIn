@@ -85,6 +85,28 @@ function artworkUploadBody(input: UploadArtworkInput): string {
   });
 }
 
+function artworkResponseFailure(
+  errors: unknown,
+  status: number,
+): TransportFailure {
+  const first = Array.isArray(errors) ? errors[0] : null;
+  const code = first ? record(record(first).extensions).code : null;
+  const known =
+    typeof code === 'string' &&
+    [
+      'RATE_LIMITED',
+      'UNAUTHENTICATED',
+      'FORBIDDEN',
+      'FIELD_INVALID',
+      'VALIDATION_FAILED',
+      'RESOURCE_EXHAUSTED',
+    ].includes(code);
+  return new TransportFailure(
+    known && status < 500 ? 'rejected' : 'uncertain',
+    known ? code : 'UNAVAILABLE',
+  );
+}
+
 function handleArtworkUploadLoad(
   xhr: XMLHttpRequest,
   operationId: string,
@@ -97,24 +119,7 @@ function handleArtworkUploadLoad(
       errors?: unknown;
     };
     if (parsed.errors) {
-      const first = Array.isArray(parsed.errors) ? parsed.errors[0] : null;
-      const code = first ? record(record(first).extensions).code : null;
-      const known =
-        typeof code === 'string' &&
-        [
-          'RATE_LIMITED',
-          'UNAUTHENTICATED',
-          'FORBIDDEN',
-          'FIELD_INVALID',
-          'VALIDATION_FAILED',
-          'RESOURCE_EXHAUSTED',
-        ].includes(code);
-      reject(
-        new TransportFailure(
-          known && xhr.status < 500 ? 'rejected' : 'uncertain',
-          known ? code : 'UNAVAILABLE',
-        ),
-      );
+      reject(artworkResponseFailure(parsed.errors, xhr.status));
       return;
     }
     if (xhr.status < 200 || xhr.status >= 300 || !parsed.data) {

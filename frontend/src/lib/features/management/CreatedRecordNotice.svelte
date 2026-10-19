@@ -28,9 +28,9 @@
       ? page.url.searchParams.get('saved')
       : page.url.searchParams.get('created')) ?? '',
   );
-  let panel: HTMLElement;
-  const returnSuffix = $derived(
-    isRecordId(returnToken) ? '?return=' + encodeURIComponent(returnToken) : '',
+  let panel = $state<HTMLElement>();
+  const returnSuffix = $derived<'' | `?return=${string}`>(
+    isRecordId(returnToken) ? `?return=${encodeURIComponent(returnToken)}` : '',
   );
   $effect(() => {
     if (!savedRecord || !name || !readyToFocus) return;
@@ -51,7 +51,7 @@
 
   $effect(() => {
     const recordId = id;
-    attempt;
+    void attempt;
     name = '';
     failed = false;
     if (!isRecordId(recordId)) return;
@@ -62,21 +62,11 @@
         const context = await loadWriteContext(abort.signal);
         if (abort.signal.aborted) return;
         if (!context) throw new Error('Maintainer session unavailable.');
-        const request = createTransport();
-        const record =
-          kind === 'movie'
-            ? await fetchManagedMovie(
-                request,
-                recordId,
-                context.csrf,
-                abort.signal,
-              )
-            : await fetchManagedPerson(
-                request,
-                recordId,
-                context.csrf,
-                abort.signal,
-              );
+        const record = await readSavedRecord(
+          recordId,
+          context.csrf,
+          abort.signal,
+        );
         if (abort.signal.aborted) return;
         if (!record || record.state !== 'ACTIVE')
           throw new Error('Created record unavailable.');
@@ -89,6 +79,16 @@
     })();
     return () => abort.abort();
   });
+  async function readSavedRecord(
+    recordId: string,
+    csrf: string,
+    signal: AbortSignal,
+  ) {
+    const request = createTransport();
+    return kind === 'movie'
+      ? await fetchManagedMovie(request, recordId, csrf, signal)
+      : await fetchManagedPerson(request, recordId, csrf, signal);
+  }
 </script>
 
 {#if isRecordId(id)}
@@ -127,8 +127,8 @@
           <a
             class="button secondary"
             href={kind === 'movie'
-              ? resolve('/manage/movies/[id]', { id }) + returnSuffix
-              : resolve('/manage/people/[id]', { id }) + returnSuffix}
+              ? resolve(`/manage/movies/[id]${returnSuffix}`, { id })
+              : resolve(`/manage/people/[id]${returnSuffix}`, { id })}
             onclick={onOpenManagement}>Edit {kind}</a
           >
           <a
@@ -140,11 +140,7 @@
           {#if savedRecord && kind === 'movie'}
             <a
               class="button secondary"
-              href={resolve('/manage/movies/[id]', { id }) +
-                '?step=credits' +
-                (isRecordId(returnToken)
-                  ? '&return=' + encodeURIComponent(returnToken)
-                  : '')}
+              href={resolve(`/manage/movies/[id]?step=credits${isRecordId(returnToken) ? '&return=' + encodeURIComponent(returnToken) : ''}`, { id })}
               onclick={onOpenManagement}>Cast and creators</a
             >
           {/if}

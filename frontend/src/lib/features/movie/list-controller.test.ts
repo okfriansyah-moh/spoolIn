@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { MovieListController } from './list-controller';
+import { MovieListController } from './list-controller.svelte';
 
 function page(id: string, cursor: string | null = null) {
   return {

@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { specimenPolicy } from '../../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';
-import { SessionController } from './controller';
+import { SessionController } from './controller.svelte';
 import type { SessionBootstrap, SessionSource } from './types';
 const firstId = '10000000-0000-4000-8000-000000000001';
 const secondId = '20000000-0000-4000-8000-000000000002';
@@ -132,4 +132,30 @@ it('an expired successful registration receipt stays uncertain without announcin
   expect(controller.hasPendingIdentity).toBe(true);
   expect(controller.snapshot.identity).toBeNull();
   controller.dispose();
+});
+
+it('keeps instances isolated and clears credentials synchronously before concealment is rendered', async () => {
+  const first = new SessionController({
+    bootstrap: async () => response(firstId),
+  });
+  const second = new SessionController({
+    bootstrap: async () => response(secondId),
+  });
+  const reset = vi.fn();
+  first.onCredentialReset = reset;
+  try {
+    await first.check();
+    await second.check();
+    expect(reset).toHaveBeenLastCalledWith(true);
+    reset.mockClear();
+    first.conceal();
+    expect(reset).toHaveBeenCalledWith(false);
+    expect(first.snapshot.identity).toBeNull();
+    expect(second.snapshot.identity?.accountId).toBe(secondId);
+    first.dispose();
+    expect(first.onCredentialReset).toBeUndefined();
+  } finally {
+    first.dispose();
+    second.dispose();
+  }
 });

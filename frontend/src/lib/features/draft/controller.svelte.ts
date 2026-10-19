@@ -89,25 +89,18 @@ export class DraftController {
   private autosaveTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
   private active: AbortController | null = null;
   private readonly handles = new DraftHandles();
-  private readonly listeners = new Set<(state: DraftViewState) => void>();
   private readonly requestLog: DraftRequestKind[] = [];
+
+  private current = $state.raw<DraftViewState>(concealedView());
 
   constructor(private readonly source: DraftSource) {}
 
   get snapshot(): DraftViewState {
-    return this.view();
+    return this.current;
   }
 
   get requestSequence(): readonly DraftRequestKind[] {
     return this.requestLog;
-  }
-
-  subscribe(listener: (state: DraftViewState) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.view());
-    return () => {
-      this.listeners.delete(listener);
-    };
   }
 
   bindSession(next: DraftSession): void {
@@ -277,7 +270,6 @@ export class DraftController {
     globalThis.clearTimeout(this.autosaveTimer);
     this.active?.abort();
     this.handles.release();
-    this.listeners.clear();
   }
 
   private scheduleAutosave(): void {
@@ -512,8 +504,7 @@ export class DraftController {
   }
 
   private publish(): void {
-    const state = this.view();
-    for (const listener of this.listeners) listener(state);
+    this.current = this.view();
   }
 
   private begin(): number {

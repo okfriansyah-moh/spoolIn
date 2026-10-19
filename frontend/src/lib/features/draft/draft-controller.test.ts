@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PersonDraft } from '../../generated/json-types';
-import { DraftController } from './controller';
+import { DraftController } from './controller.svelte';
 import type {
   DraftDiscardOutcome,
   DraftMutationOutcome,

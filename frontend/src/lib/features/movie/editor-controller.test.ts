@@ -19,7 +19,7 @@ vi.mock('./api', () => ({
 }));
 
 import * as api from './api';
-import { MovieEditorController } from './editor-controller';
+import { MovieEditorController } from './editor-controller.svelte';
 
 const policy = specimenPolicy();
 
@@ -115,6 +115,7 @@ describe('T017 movie editor controller', () => {
       problemCode: 'STALE_VERSION',
       resultMovieId: movieId,
       resultVersion: null,
+      fieldErrors: [],
     });
     const controller = new MovieEditorController(
       request,
@@ -318,6 +319,7 @@ describe('explicit movie recovery decisions', () => {
       problemCode: 'STALE_VERSION',
       resultMovieId: original.id,
       resultVersion: null,
+      fieldErrors: [],
     });
     const controller = new MovieEditorController(
       vi.fn(),
@@ -366,4 +368,96 @@ describe('explicit movie recovery decisions', () => {
     expect(controller.snapshot.message).toMatch(/changed again/);
     controller.dispose();
   });
+});
+
+it('notifies creation navigation synchronously with the verified saved movie and releases it on disposal', async () => {
+  const movie = activeMovie();
+  vi.mocked(api.fetchManagedMovie).mockResolvedValue(movie);
+  vi.mocked(api.createMovie).mockResolvedValueOnce({
+    receipt: {
+      operationId: 'saved',
+      state: 'SUCCEEDED',
+      resultExpired: false,
+      problem: null,
+    },
+    problemCode: null,
+    resultMovieId: movie.id,
+    resultVersion: movie.version,
+    fieldErrors: [],
+  });
+  const controller = new MovieEditorController(
+    vi.fn(),
+    draftSource(),
+    'create',
+    null,
+  );
+  const saved = vi.fn(() => expect(controller.snapshot.phase).toBe('saved'));
+  controller.onSaved = saved;
+  try {
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    controller.updateDraft({
+      ...controller.snapshot.draft,
+      title: movie.title,
+      synopsis: movie.synopsis,
+      release: { year: 2024, month: null, day: null },
+      genreIds: movie.genreIds,
+    });
+    await controller.submit();
+    expect(saved).toHaveBeenCalledWith(controller.snapshot);
+    expect(controller.snapshot.saved?.id).toBe(movie.id);
+    controller.dispose();
+    expect(controller.onSaved).toBeUndefined();
+  } finally {
+    controller.dispose();
+  }
+});
+
+it('confirms unchanged saved details before allowing the editor to finish', async () => {
+  const movie = activeMovie();
+  vi.mocked(api.fetchManagedMovie).mockResolvedValue(movie);
+  const controller = new MovieEditorController(
+    vi.fn(),
+    draftSource(),
+    'edit',
+    movie.id,
+  );
+  try {
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    await expect(controller.finishEditing()).resolves.toBe('unchanged');
+    expect(controller.snapshot.phase).toBe('saved');
+    expect(controller.snapshot.saved).toEqual(movie);
+    vi.mocked(api.fetchManagedMovie).mockResolvedValueOnce({
+      ...movie,
+      version: '6',
+      title: 'Changed elsewhere',
+    });
+    await expect(controller.finishEditing()).resolves.toBe('blocked');
+    expect(controller.snapshot.phase).toBe('stale');
+  } finally {
+    controller.dispose();
+  }
+});
+it('refreshes attached artwork without losing an edited metadata draft', async () => {
+  const movie = activeMovie();
+  vi.mocked(api.fetchManagedMovie).mockResolvedValue(movie);
+  const controller = new MovieEditorController(
+    vi.fn(),
+    draftSource(),
+    'edit',
+    movie.id,
+  );
+  try {
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    controller.updateDraft({ ...controller.snapshot.draft, title: 'My draft' });
+    vi.mocked(api.fetchManagedMovie).mockResolvedValueOnce({
+      ...movie,
+      version: '6',
+      artworkUrl: 'https://example.test/poster.png',
+    });
+    await expect(controller.refreshAfterArtwork()).resolves.toBe(true);
+    expect(controller.snapshot.saved?.version).toBe('6');
+    expect(controller.snapshot.draft.title).toBe('My draft');
+  } finally {
+    controller.dispose();
+  }
 });

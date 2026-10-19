@@ -4,11 +4,12 @@
   import {
     ArtworkUploadController,
     INITIAL_ARTWORK_UPLOAD_VIEW,
-  } from './upload-controller';
+  } from './upload-controller.svelte';
   import type { Policy } from '../../policy/types';
   import { prepareArtworkFile } from './prepare-file';
   import type { GraphqlRequest } from '../../transport/graphql';
 
+  let controller = $state.raw<ArtworkUploadController | null>(null);
   let {
     request,
     csrf,
@@ -44,8 +45,7 @@
   let refreshNeeded = $state(false);
   let notifiedOperation: string | null = null;
   let mounted = false;
-  let view = $state(INITIAL_ARTWORK_UPLOAD_VIEW);
-  let controller: ArtworkUploadController | null = null;
+  const view = $derived(controller?.snapshot ?? INITIAL_ARTWORK_UPLOAD_VIEW);
   const uploadBlocked = $derived(
     disabled ||
       validating ||
@@ -59,7 +59,17 @@
       view.stage,
     );
     const blocked = validating || refreshing || refreshNeeded || active;
-    const message = validating
+    const message = uploadMessage(active);
+    onStateChange?.({
+      blocked,
+      busy: validating || refreshing || active,
+      message,
+      saved: view.stage === 'saved' && !blocked,
+    });
+  });
+
+  function uploadMessage(active: boolean): string {
+    return validating
       ? 'Wait for artwork preparation to finish.'
       : refreshNeeded
         ? 'Select Retry movie details before saving the movie.'
@@ -70,19 +80,12 @@
             : active
               ? 'Wait for artwork transfer and processing to finish.'
               : '';
-    onStateChange?.({
-      blocked,
-      busy: validating || refreshing || active,
-      message,
-      saved: view.stage === 'saved' && !blocked,
-    });
-  });
+  }
 
   onMount(() => {
     mounted = true;
     controller = new ArtworkUploadController(request, csrf);
-    const unsubscribe = controller.subscribe((next) => {
-      view = next;
+    controller.onSaved = (next) => {
       if (
         next.stage === 'saved' &&
         next.operationId &&
@@ -91,10 +94,9 @@
         notifiedOperation = next.operationId;
         void refreshParent();
       }
-    });
+    };
     return () => {
       mounted = false;
-      unsubscribe();
       controller?.dispose();
     };
   });
@@ -140,15 +142,17 @@
         policyRevision,
       );
     } catch (error) {
-      if (mounted)
-        validationMessage =
-          error instanceof Error
-            ? error.message
-            : 'This image could not be prepared. Choose another image.';
+      if (mounted) validationMessage = preparationError(error);
     } finally {
       validating = false;
       input.value = '';
     }
+  }
+
+  function preparationError(error: unknown): string {
+    return error instanceof Error
+      ? error.message
+      : 'This image could not be prepared. Choose another image.';
   }
 
   function onCancel() {

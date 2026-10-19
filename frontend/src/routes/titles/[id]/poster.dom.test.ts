@@ -1,8 +1,17 @@
 import { cleanup, render, screen } from '@testing-library/svelte';
 import { afterEach, expect, it, vi } from 'vitest';
 import TitlePage from './+page.svelte';
+import TitleCard from '../../../lib/components/TitleCard.svelte';
 import { fetchTitle } from '../../../lib/features/catalog/api';
 
+vi.mock('$app/paths', () => ({
+  resolve: (path: string, params: Record<string, string> = {}) =>
+    Object.entries(params).reduce(
+      (result, [key, value]) =>
+        result.replace(`[${key}]`, encodeURIComponent(value)),
+      path,
+    ),
+}));
 vi.mock('$app/state', () => ({
   page: { params: { id: '07b0fb38-32f0-5478-92cc-57e1315430cf' } },
 }));
@@ -64,3 +73,20 @@ it.each(['MOVIE', 'TV'] as const)(
     expect(screen.queryByRole('button', { name: /edit|upload/i })).toBeNull();
   },
 );
+
+it('keeps poster and title links on the same resolved detail route', () => {
+  const id = '07b0fb38-32f0-5478-92cc-57e1315430cf';
+  render(TitleCard, { props: { id, title: 'Card title', kind: 'Movie' } });
+  const links = screen.getAllByRole('link', { name: 'Card title' });
+  expect(links.map((link) => link.getAttribute('href'))).toEqual([
+    '/titles/' + id,
+    '/titles/' + id,
+  ]);
+});
+it('shows an invalid record identity without creating a detail link', () => {
+  render(TitleCard, {
+    props: { id: 'invalid', title: 'Unlinked title', kind: 'Movie' },
+  });
+  expect(screen.getByRole('heading', { name: 'Unlinked title' })).toBeTruthy();
+  expect(screen.queryByRole('link')).toBeNull();
+});

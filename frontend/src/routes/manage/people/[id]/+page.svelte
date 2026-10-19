@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { onMount } from 'svelte';
   import ArchiveAction from '../../../../lib/features/archive/ArchiveAction.svelte';
   import { page } from '$app/state';
@@ -8,17 +9,21 @@
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
-  import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller';
+  import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller.svelte';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import PersonEditorForm from '../../../../lib/features/person/write/PersonEditorForm.svelte';
   import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
   import type { EditorState } from '../../../../lib/features/person/write/types';
   import { isRecordId } from '../../../../lib/components/safe-url';
 
+  let controller = $state.raw<ReturnType<
+    typeof createPersonEditorController
+  > | null>(null);
   const sessionCtl = sessionController();
-  let editorState = $state<EditorState | null>(null);
+  const editorState = $derived<EditorState | null>(
+    controller?.snapshot ?? null,
+  );
   let ready = $state(false);
-  let controller: ReturnType<typeof createPersonEditorController> | null = null;
   const personId = $derived(page.params.id ?? '');
   const personReturnToken = $derived(page.url.searchParams.get('return') ?? '');
   let finishing = $state(false);
@@ -33,10 +38,10 @@
     try {
       const result = await controller.finishEditing();
       if (result === 'blocked') return;
-      const params = new URLSearchParams({ saved: personId });
+      const params = new SvelteURLSearchParams({ saved: personId });
       if (isRecordId(personReturnToken))
         params.set('restore', personReturnToken);
-      await goto(resolve('/manage/people') + '?' + params.toString());
+      await goto(resolve(`/manage/people?${params.toString()}`));
     } catch {
       completionError =
         'Person completion could not finish. Retry Save person to confirm the saved record.';
@@ -68,7 +73,7 @@
   function loadEditor(id: string) {
     cleanupEditor();
     ready = false;
-    editorState = null;
+    controller = null;
     bootstrapError = '';
     finishRequested = false;
     completionError = '';
@@ -84,13 +89,9 @@
       id,
     );
     controller = next;
-    const unsubscribe = next.subscribe((state) => {
-      editorState = state;
-    });
     const abort = new AbortController();
     cleanupEditor = () => {
       abort.abort();
-      unsubscribe();
       next.dispose();
     };
     void bootstrapEditor(next, abort.signal);

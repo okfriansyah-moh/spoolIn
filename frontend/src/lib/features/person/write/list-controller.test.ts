@@ -1,6 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { PersonListController } from './list-controller';
-import type { ListState } from './types';
+import { PersonListController } from './list-controller.svelte';
 
 function page(id: string, cursor: string | null = null) {
   return {
@@ -17,10 +16,6 @@ it('appends the actual next page and refuses duplicate identities without hiding
     .mockResolvedValueOnce(page('two', 'later'))
     .mockResolvedValue(page('two'));
   const controller = new PersonListController(request);
-  let current: ListState = { kind: 'loading' };
-  controller.subscribe((next) => {
-    current = next;
-  });
   const signal = new AbortController().signal;
   await controller.load('csrf', signal);
   await controller.loadMore('csrf', signal);
@@ -28,12 +23,12 @@ it('appends the actual next page and refuses duplicate identities without hiding
     state: 'ACTIVE',
     after: 'next',
   });
-  expect(current).toMatchObject({
+  expect(controller.snapshot).toMatchObject({
     kind: 'ready',
     people: [{ id: 'one' }, { id: 'two' }],
   });
   await controller.loadMore('csrf', signal);
-  expect(current).toMatchObject({
+  expect(controller.snapshot).toMatchObject({
     kind: 'ready',
     pageError: expect.stringContaining('Retry'),
     people: [{ id: 'one' }, { id: 'two' }],

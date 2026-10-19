@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import DraftEditor from '../../../../../../frontend/src/lib/features/draft/DraftEditor.svelte';
-  import { DraftController } from '../../../../../../frontend/src/lib/features/draft/controller';
+  import { DraftController } from '../../../../../../frontend/src/lib/features/draft/controller.svelte';
   import type {
     DraftDiscardOutcome,
     DraftMutationOutcome,

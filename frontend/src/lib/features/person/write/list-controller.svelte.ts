@@ -7,19 +7,12 @@ import type { ListState } from './types';
 export class PersonListController {
   private generation = 0;
   private query = '';
-  private current: ListState = { kind: 'loading' };
-  private readonly listeners = new Set<(state: ListState) => void>();
+  private current: ListState = $state.raw<ListState>({ kind: 'loading' });
 
   constructor(private readonly request: GraphqlRequest) {}
 
   get snapshot(): ListState {
     return this.current;
-  }
-
-  subscribe(listener: (state: ListState) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.current);
-    return () => this.listeners.delete(listener);
   }
 
   async load(
@@ -92,12 +85,10 @@ export class PersonListController {
 
   dispose(): void {
     this.generation += 1;
-    this.listeners.clear();
   }
 
   private publish(state: ListState): void {
     this.current = Object.freeze(state);
-    this.listeners.forEach((listener) => listener(this.current));
   }
 }
 

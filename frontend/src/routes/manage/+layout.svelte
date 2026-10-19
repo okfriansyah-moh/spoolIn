@@ -6,7 +6,7 @@
   import SessionBoundary from '../../lib/components/SessionBoundary.svelte';
   let { children }: { children: Snippet } = $props();
   const controller = sessionController();
-  let session = $state(controller.snapshot);
+  const session = $derived(controller.snapshot);
   let ready = $state(false);
   const boundary = $derived(
     !ready
@@ -24,13 +24,9 @@
               : 'unavailable',
   );
   onMount(() => {
-    const unsubscribe = controller.subscribe((next) => {
-      session = next;
-    });
     void controller.check().finally(() => {
       ready = true;
     });
-    return unsubscribe;
   });
 </script>
 

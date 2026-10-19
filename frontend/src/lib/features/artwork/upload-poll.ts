@@ -4,7 +4,7 @@ import { record } from '../session/parse';
 import { operation } from '../session/outcome';
 import { FOREGROUND_POLL_CAP_MS, pollDelayMs } from './polling';
 import { stageLabel, artworkFailureMessage } from './progress';
-import type { ArtworkUploadView } from './upload-controller';
+import type { ArtworkUploadView } from './upload-controller.svelte';
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {

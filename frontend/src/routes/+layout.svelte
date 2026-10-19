@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, setContext, flushSync, type Snippet } from 'svelte';
-  import { SessionController } from '../lib/features/session/controller';
+  import { SessionController } from '../lib/features/session/controller.svelte';
   import { createSessionSource } from '../lib/features/session/api';
   import { sessionContext } from '../lib/features/session/context';
   import SessionMenu from '../lib/features/session/SessionMenu.svelte';
@@ -13,15 +13,12 @@
   let { children }: { children: Snippet } = $props();
   const controller = new SessionController(createSessionSource());
   setContext(sessionContext, controller);
-  let session = $state(controller.snapshot);
+  const session = $derived(controller.snapshot);
   const capabilities = $derived({
     verified: session.kind === 'verified',
     manageCatalog: session.identity?.role === 'MAINTAINER',
   });
   onMount(() => {
-    const unsubscribe = controller.subscribe((state) => {
-      session = state;
-    });
     void controller.check();
     const hide = () => {
       flushSync(() => {
@@ -37,7 +34,6 @@
     return () => {
       window.removeEventListener('pagehide', hide);
       window.removeEventListener('pageshow', show);
-      unsubscribe();
       controller.dispose();
     };
   });

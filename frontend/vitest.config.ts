@@ -41,6 +41,8 @@ export default defineConfig({
           environment: 'jsdom',
           include: [
             'src/lib/features/session/*.dom.test.ts',
+            'src/lib/features/draft/*.dom.test.ts',
+            'src/lib/features/credit/*.dom.test.ts',
             'src/routes/**/*.dom.test.ts',
           ],
           environmentOptions: { jsdom: { url: 'https://localhost/' } },

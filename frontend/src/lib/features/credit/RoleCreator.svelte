@@ -147,6 +147,30 @@
     return result.resultId;
   }
 
+  function creationRejected(
+    fresh: boolean,
+    failure: unknown,
+  ): failure is TransportFailure {
+    return (
+      fresh &&
+      failure instanceof TransportFailure &&
+      failure.kind === 'rejected' &&
+      [
+        'FORBIDDEN',
+        'UNAUTHENTICATED',
+        'FIELD_INVALID',
+        'VALIDATION_FAILED',
+        'RATE_LIMITED',
+      ].includes(failure.code)
+    );
+  }
+
+  function roleRejectionMessage(code: string): string {
+    return code === 'RATE_LIMITED'
+      ? 'Role creation was rate limited. Wait before trying again.'
+      : 'Role creation was rejected. Review the name and sign-in before trying again.';
+  }
+
   async function execute(recover = false, fresh = false) {
     if (!original || pending || disabled) return;
     pending = true;
@@ -164,24 +188,9 @@
         : await createCreditRole(request, original, context.csrf, signal);
       if (!signal.aborted) await accept(result);
     } catch (failure) {
-      if (
-        fresh &&
-        failure instanceof TransportFailure &&
-        failure.kind === 'rejected' &&
-        [
-          'FORBIDDEN',
-          'UNAUTHENTICATED',
-          'FIELD_INVALID',
-          'VALIDATION_FAILED',
-          'RATE_LIMITED',
-        ].includes(failure.code)
-      ) {
+      if (creationRejected(fresh, failure)) {
         original = null;
-        await report(
-          failure.code === 'RATE_LIMITED'
-            ? 'Role creation was rate limited. Wait before trying again.'
-            : 'Role creation was rejected. Review the name and sign-in before trying again.',
-        );
+        await report(roleRejectionMessage(failure.code));
         return;
       }
       await report(

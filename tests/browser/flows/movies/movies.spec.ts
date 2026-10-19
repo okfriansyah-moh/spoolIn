@@ -64,7 +64,7 @@ test('T017-create: movie details stay focused and optional fields are disclosed'
   await expect(
     page.getByRole('button', { name: 'Remove genre Drama' }),
   ).toHaveCount(0);
-  await page.getByText('More movie details', { exact: true }).click();
+  await page.locator('.optional-details > summary').click();
   await expect(
     page.getByRole('textbox', { name: 'Original title Optional' }),
   ).toBeVisible();

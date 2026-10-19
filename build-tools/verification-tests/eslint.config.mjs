@@ -37,6 +37,12 @@ export default [
         AbortSignal: 'readonly',
         crypto: 'readonly',
         HTMLInputElement: 'readonly',
+        HTMLDetailsElement: 'readonly',
+        MouseEvent: 'readonly',
+        PointerEvent: 'readonly',
+        Node: 'readonly',
+        queueMicrotask: 'readonly',
+        requestAnimationFrame: 'readonly',
         URLSearchParams: 'readonly',
         location: 'readonly',
         setTimeout: 'readonly',
@@ -61,7 +67,7 @@ export default [
     },
   },
   {
-    files: ['**/*.svelte'],
+    files: ['**/*.svelte', '**/*.svelte.ts'],
     languageOptions: { parserOptions: { parser: ts.parser } },
   },
   {
