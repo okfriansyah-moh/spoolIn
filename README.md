@@ -324,6 +324,7 @@ Run these commands from the repository folder when you need the corresponding ac
 | `make local-setup` | Prepares configuration and preserves existing credentials |
 | `make local-trust` | Trusts the generated local HTTPS certificate in the host certificate store |
 | `make local-start` | Builds and starts services, loads seed data, and checks readiness and codec isolation |
+| `make local-mcp` | Builds and starts the optional MCP adapter after the local services are running |
 | `make local-status` | Checks container state, service readiness, and codec isolation |
 | `make local-logs` | Prints the latest 200 log lines per service, then returns to the terminal |
 | `make local-stop` | Stops the services while retaining data and artwork |

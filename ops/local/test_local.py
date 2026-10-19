@@ -15,12 +15,12 @@ SPEC.loader.exec_module(RUNNER)
 
 
 class LocalSetupTest(unittest.TestCase):
-    def test_configuration_preserves_security_and_excludes_external_services(self):
+    def test_configuration_preserves_security_and_excludes_monitoring_services(self):
         service = {'image': 'production', 'read_only': True, 'cap_drop': ['ALL'],
                    'security_opt': ['no-new-privileges:true'], 'networks': ['private']}
         document = {'services': {name: copy.deepcopy(service) for name in (*RUNNER.SERVICES, 'mcp', 'grafana')}}
         result = RUNNER.local_configuration(document)
-        self.assertNotIn('mcp', result['services'])
+        self.assertIn('mcp', result['services'])
         self.assertNotIn('grafana', result['services'])
         for name in RUNNER.SERVICES:
             self.assertTrue(result['services'][name]['read_only'])
@@ -90,9 +90,10 @@ class LocalSetupTest(unittest.TestCase):
             (state / 'environment.json').write_text('{}')
             document = {'services': {name: {'image': 'production'} for name in RUNNER.SERVICES}}
             process = subprocess.CompletedProcess([], 0, stdout=json.dumps(document))
-            with patch.object(RUNNER, 'STATE', state), patch.dict(RUNNER.os.environ, {'CORE_HTTPS_PORT': '9999', 'LOG_LEVEL': 'TRACE'}), patch.object(RUNNER, 'run', return_value=process) as command:
+            with patch.object(RUNNER, 'STATE', state), patch.dict(RUNNER.os.environ, {'CORE_HTTPS_PORT': '9999', 'MCP_HTTP_PORT': '9998', 'LOG_LEVEL': 'TRACE'}), patch.object(RUNNER, 'run', return_value=process) as command:
                 RUNNER.render_compose()
             self.assertEqual('8443', command.call_args.kwargs['env']['CORE_HTTPS_PORT'])
+            self.assertEqual('8787', command.call_args.kwargs['env']['MCP_HTTP_PORT'])
             self.assertNotIn('LOG_LEVEL', command.call_args.kwargs['env'])
             self.assertIn('--env-file', command.call_args.args)
             self.assertIn('/dev/null', command.call_args.args)
@@ -136,6 +137,21 @@ class LocalCommandsTest(unittest.TestCase):
         self.assertEqual(unittest.mock.call('up', '-d', *RUNNER.OWNERS), command.call_args_list[-1])
         ready.assert_called_once()
 
+    def test_mcp_start_builds_only_adapter_after_core_is_running(self):
+        running = subprocess.CompletedProcess([], 0, stdout='core-container\n')
+        with patch.object(RUNNER, 'render_compose'), patch.object(RUNNER, 'tooling') as tool, patch.object(RUNNER, 'compose', side_effect=[running, None, None]) as command:
+            RUNNER.start_mcp()
+        tool.assert_called_once_with('npm', 'run', 'build', '--workspace', 'mcp')
+        self.assertEqual(unittest.mock.call('build', 'mcp'), command.call_args_list[1])
+        self.assertEqual(unittest.mock.call('up', '-d', '--wait', '--wait-timeout', '120', 'mcp'), command.call_args_list[2])
+
+    def test_mcp_start_requires_running_core(self):
+        stopped = subprocess.CompletedProcess([], 0, stdout='')
+        with patch.object(RUNNER, 'render_compose'), patch.object(RUNNER, 'tooling') as tool, patch.object(RUNNER, 'compose', return_value=stopped):
+            with self.assertRaisesRegex(RuntimeError, 'make local-start'):
+                RUNNER.start_mcp()
+        tool.assert_not_called()
+
     def test_source_checks_include_types_unit_tests_and_backend_tests(self):
         with tempfile.TemporaryDirectory() as temporary:
             with patch.object(RUNNER, 'STATE', Path(temporary)), patch.object(RUNNER, 'run'), patch.object(RUNNER, 'tooling') as command:
@@ -168,7 +184,7 @@ class LocalCommandsTest(unittest.TestCase):
             with patch.object(RUNNER, 'STATE', state), patch.object(RUNNER, 'compose') as command:
                 RUNNER.dispatch('logs')
                 RUNNER.dispatch('stop')
-            self.assertEqual(unittest.mock.call('logs', '--tail', '200', *RUNNER.OWNERS, 'postgres'), command.call_args_list[0])
+            self.assertEqual(unittest.mock.call('logs', '--tail', '200', *RUNNER.OWNERS, 'mcp', 'postgres'), command.call_args_list[0])
             self.assertEqual(unittest.mock.call('down', '--remove-orphans'), command.call_args_list[1])
 
     def test_action_lock_rejects_concurrent_command(self):
