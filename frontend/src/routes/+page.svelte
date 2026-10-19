@@ -16,7 +16,7 @@
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { createTransport } from '../lib/transport/graphql';
-  import { CatalogController } from '../lib/features/catalog/controller';
+  import { CatalogController } from '../lib/features/catalog/controller.svelte';
   import {
     parseCriteria,
     criteriaToParams,
@@ -31,6 +31,7 @@
   import CatalogFilters from '../lib/components/CatalogFilters.svelte';
   import TitleCard from '../lib/components/TitleCard.svelte';
 
+  let controller = $state.raw<CatalogController | null>(null);
   let mounted = $state(false);
   let genres = $state<Array<{ id: string; name: string }>>([]);
   let genreError = $state('');
@@ -42,18 +43,18 @@
     releaseYears.find((date) => String(date.year) === criteria.year)?.months ??
       [],
   );
-  let catalogState = $state<CatalogState>({
-    kind: 'loading',
-    criteria: EMPTY_CRITERIA,
-    titles: [],
-    pageInfo: null,
-    invalidField: null,
-  });
+  const catalogState = $derived<CatalogState>(
+    controller?.snapshot ?? {
+      kind: 'loading',
+      criteria: EMPTY_CRITERIA,
+      titles: [],
+      pageInfo: null,
+      invalidField: null,
+    },
+  );
 
   // Criteria state: synced from URL on load and updated by filters.
   let criteria = $state<Criteria>({ ...EMPTY_CRITERIA });
-
-  let controller: CatalogController | null = null;
 
   // Non-reactive: track last criteria dispatched to controller to avoid duplicate sends.
   let lastDispatched: Criteria = EMPTY_CRITERIA;
@@ -68,10 +69,6 @@
     const transport = createTransport();
     controller = new CatalogController(transport);
 
-    const unsubscribe = controller.subscribe((state) => {
-      catalogState = state;
-    });
-
     void loadFilterOptions();
 
     // Bootstrap from URL
@@ -82,7 +79,6 @@
     controller.load(initial, lastPageCursor);
 
     return () => {
-      unsubscribe();
       genreAbort?.abort();
       controller?.dispose();
     };

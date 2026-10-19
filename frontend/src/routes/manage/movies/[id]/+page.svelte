@@ -7,7 +7,7 @@
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
-  import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller';
+  import { createMovieEditorController } from '../../../../lib/features/movie/editor-controller.svelte';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import MovieEditorForm from '../../../../lib/features/movie/MovieEditorForm.svelte';
   import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
@@ -21,12 +21,16 @@
   import ArtworkUploadField from '../../../../lib/features/artwork/ArtworkUploadField.svelte';
   import { applyMovieDraftField } from '../../../../lib/features/movie/draft-field-update';
 
+  let controller = $state.raw<ReturnType<
+    typeof createMovieEditorController
+  > | null>(null);
   const sessionCtl = sessionController();
-  let editorState = $state<EditorState | null>(null);
+  const editorState = $derived<EditorState | null>(
+    controller?.snapshot ?? null,
+  );
   let writeContext = $state<WriteContext | null>(null);
   let creditTitleVersion = $state<string | null>(null);
   let ready = $state(false);
-  let controller: ReturnType<typeof createMovieEditorController> | null = null;
   const movieId = $derived(page.params.id ?? '');
   const movieReturnToken = $derived(page.url.searchParams.get('return') ?? '');
   const creditsStep = $derived(page.url.searchParams.get('step') === 'credits');
@@ -81,7 +85,7 @@
   $effect(() => {
     const selectedId = movieId;
     ready = false;
-    editorState = null;
+    controller = null;
     writeContext = null;
     creditTitleVersion = null;
     artworkBlocked = false;
@@ -100,9 +104,6 @@
       'edit',
       selectedId,
     );
-    const unsubscribe = controller.subscribe((next) => {
-      editorState = next;
-    });
     const abort = new AbortController();
     void (async () => {
       const context = await loadWriteContext(abort.signal);
@@ -114,7 +115,6 @@
     })();
     return () => {
       abort.abort();
-      unsubscribe();
       controller?.dispose();
     };
   });

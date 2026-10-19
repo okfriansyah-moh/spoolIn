@@ -12,7 +12,7 @@
   import type { AccountSubmission, FormOutcome } from './commands';
   let { mode }: { mode: 'signIn' | 'register' } = $props();
   const controller = sessionController();
-  let session = $state(controller.snapshot);
+  const session = $derived(controller.snapshot);
   let name = $state('');
   let email = $state('');
   let password = $state('');
@@ -45,20 +45,21 @@
     outcome?.kind === 'registered' ? outcome.message : '',
   );
   onMount(() => {
-    const unsubscribe = controller.subscribe((next) => {
-      session = next;
-      if (next.kind !== 'anonymous') password = '';
-      if (next.identity) {
+    controller.onCredentialReset = (clearIdentity) => {
+      password = '';
+      if (clearIdentity) {
         name = '';
         email = '';
       }
-    });
+    };
+    if (session.kind !== 'anonymous' || session.identity)
+      controller.onCredentialReset(session.identity !== null);
     if (session.kind !== 'checking') {
       if (mode === 'signIn') void controller.prepareSignIn();
       else void controller.check();
     }
     return () => {
-      unsubscribe();
+      controller.onCredentialReset = undefined;
       password = '';
       globalThis.clearTimeout(retryTimer);
     };

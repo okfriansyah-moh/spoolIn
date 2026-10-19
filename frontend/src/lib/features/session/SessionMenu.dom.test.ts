@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/svelte';
 import { afterEach, expect, it, vi } from 'vitest';
 import { specimenPolicy } from '../../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';
 import SessionMenu from './SessionMenu.svelte';
-import { SessionController } from './controller';
+import { SessionController } from './controller.svelte';
 import type { SessionBootstrap, SessionSource } from './types';
 
 afterEach(() => cleanup());

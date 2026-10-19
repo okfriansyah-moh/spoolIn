@@ -21,8 +21,6 @@ import {
 } from './filter';
 import { fetchTitles } from './api';
 
-export type CatalogListener = (state: CatalogState) => void;
-
 const DEBOUNCE_MS = 250;
 
 function invalidCatalogState(criteria: Criteria): CatalogState {
@@ -62,28 +60,19 @@ export class CatalogController {
   private currentAfter: string | null = null;
   private active: AbortController | null = null;
   private debounceTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
-  private readonly listeners = new Set<CatalogListener>();
 
-  private current: CatalogState = {
+  private current: CatalogState = $state.raw<CatalogState>({
     kind: 'loading',
     criteria: EMPTY_CRITERIA,
     titles: [],
     pageInfo: null,
     invalidField: null,
-  };
+  });
 
   constructor(private readonly request: GraphqlRequest) {}
 
   get snapshot(): CatalogState {
     return this.current;
-  }
-
-  subscribe(listener: CatalogListener): () => void {
-    this.listeners.add(listener);
-    listener(this.current);
-    return () => {
-      this.listeners.delete(listener);
-    };
   }
 
   /** Apply new criteria. Text changes are debounced; others fire immediately. */
@@ -168,7 +157,6 @@ export class CatalogController {
   dispose(): void {
     globalThis.clearTimeout(this.debounceTimer);
     this.active?.abort();
-    this.listeners.clear();
   }
 
   private validSearchInput(criteria: Criteria) {
@@ -253,7 +241,6 @@ export class CatalogController {
 
   private publish(state: CatalogState): void {
     this.current = Object.freeze(state);
-    this.listeners.forEach((l) => l(this.current));
   }
 }
 

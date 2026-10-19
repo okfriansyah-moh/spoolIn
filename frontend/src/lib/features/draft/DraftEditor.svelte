@@ -3,7 +3,7 @@
   import Field from '../../components/Field.svelte';
   import Button from '../../components/Button.svelte';
   import DraftNotice from './DraftNotice.svelte';
-  import { DraftController } from './controller';
+  import { DraftController } from './controller.svelte';
   import type { PersonDraft } from '../../generated/json-types';
   import type {
     DraftSession,
@@ -24,7 +24,7 @@
     catalogOperationId?: string | null;
     initialName?: string;
   } = $props();
-  let draftView = $state<DraftViewState>(untrack(() => controller.snapshot));
+  const draftView = $derived<DraftViewState>(controller.snapshot);
   let localName = $state(untrack(() => initialName));
   $effect(() => {
     controller.bindSession(session);
@@ -37,8 +37,10 @@
       });
       localName = initialName;
     });
-    return controller.subscribe((next) => {
-      draftView = next;
+  });
+  $effect(() => {
+    const next = draftView;
+    untrack(() => {
       if (document.activeElement?.id !== 'draft-name') {
         localName = (next.layers?.draft as PersonDraft | undefined)?.name ?? '';
       }

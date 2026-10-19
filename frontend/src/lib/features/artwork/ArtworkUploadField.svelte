@@ -4,11 +4,12 @@
   import {
     ArtworkUploadController,
     INITIAL_ARTWORK_UPLOAD_VIEW,
-  } from './upload-controller';
+  } from './upload-controller.svelte';
   import type { Policy } from '../../policy/types';
   import { prepareArtworkFile } from './prepare-file';
   import type { GraphqlRequest } from '../../transport/graphql';
 
+  let controller = $state.raw<ArtworkUploadController | null>(null);
   let {
     request,
     csrf,
@@ -44,8 +45,7 @@
   let refreshNeeded = $state(false);
   let notifiedOperation: string | null = null;
   let mounted = false;
-  let view = $state(INITIAL_ARTWORK_UPLOAD_VIEW);
-  let controller: ArtworkUploadController | null = null;
+  const view = $derived(controller?.snapshot ?? INITIAL_ARTWORK_UPLOAD_VIEW);
   const uploadBlocked = $derived(
     disabled ||
       validating ||
@@ -81,8 +81,7 @@
   onMount(() => {
     mounted = true;
     controller = new ArtworkUploadController(request, csrf);
-    const unsubscribe = controller.subscribe((next) => {
-      view = next;
+    controller.onSaved = (next) => {
       if (
         next.stage === 'saved' &&
         next.operationId &&
@@ -91,10 +90,9 @@
         notifiedOperation = next.operationId;
         void refreshParent();
       }
-    });
+    };
     return () => {
       mounted = false;
-      unsubscribe();
       controller?.dispose();
     };
   });

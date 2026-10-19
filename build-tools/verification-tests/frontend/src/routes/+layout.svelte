@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import SessionMenu from '../../../../../frontend/src/lib/features/session/SessionMenu.svelte';
-  import { SessionController } from '../../../../../frontend/src/lib/features/session/controller';
+  import { SessionController } from '../../../../../frontend/src/lib/features/session/controller.svelte';
   import { createSessionSource } from '../../../../../frontend/src/lib/features/session/api';
   import type { SessionState } from '../../../../../frontend/src/lib/features/session/types';
   import { afterNavigate } from '$app/navigation';

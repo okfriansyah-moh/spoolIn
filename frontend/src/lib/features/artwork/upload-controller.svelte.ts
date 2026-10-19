@@ -31,15 +31,17 @@ export const INITIAL_ARTWORK_UPLOAD_VIEW: ArtworkUploadView = Object.freeze({
 });
 
 export class ArtworkUploadController {
+  onSaved: ((view: ArtworkUploadView) => void) | undefined;
   private generation = 0;
   private cancelIntent: {
     operationId: string;
     uploadOperationId: string;
   } | null = null;
-  private view: ArtworkUploadView = INITIAL_ARTWORK_UPLOAD_VIEW;
+  private view: ArtworkUploadView = $state.raw<ArtworkUploadView>(
+    INITIAL_ARTWORK_UPLOAD_VIEW,
+  );
   private activeXhr: XMLHttpRequest | null = null;
   private pollAbort: AbortController | null = null;
-  private readonly listeners = new Set<(view: ArtworkUploadView) => void>();
 
   constructor(
     private readonly request: GraphqlRequest,
@@ -50,13 +52,8 @@ export class ArtworkUploadController {
     return this.view;
   }
 
-  subscribe(listener: (view: ArtworkUploadView) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.view);
-    return () => this.listeners.delete(listener);
-  }
-
   dispose(): void {
+    this.onSaved = undefined;
     this.generation += 1;
     this.activeXhr?.abort();
     this.activeXhr = null;
@@ -349,6 +346,6 @@ export class ArtworkUploadController {
 
   private publish(next: ArtworkUploadView): void {
     this.view = Object.freeze(next);
-    for (const listener of this.listeners) listener(this.view);
+    if (next.stage === 'saved') this.onSaved?.(this.view);
   }
 }

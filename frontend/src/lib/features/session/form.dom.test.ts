@@ -7,7 +7,7 @@ import {
 } from '@testing-library/svelte';
 import { afterEach, expect, it, vi } from 'vitest';
 import AccountForm from './AccountForm.svelte';
-import { SessionController } from './controller';
+import { SessionController } from './controller.svelte';
 import { sessionContext } from './context';
 import type { AccountCommands } from './commands';
 import { specimenPolicy } from '../../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';

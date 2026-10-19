@@ -2,7 +2,7 @@ import { render } from 'svelte/server';
 import { expect, it } from 'vitest';
 import AccountForm from './AccountForm.svelte';
 import SessionMenu from './SessionMenu.svelte';
-import { SessionController } from './controller';
+import { SessionController } from './controller.svelte';
 import { sessionContext } from './context';
 import { specimenPolicy } from '../../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';
 async function visitor() {

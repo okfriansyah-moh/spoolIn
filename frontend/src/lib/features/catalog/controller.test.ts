@@ -10,8 +10,7 @@
  * - Month cleared when year is cleared (AC-014)
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CatalogController } from './controller';
-import type { CatalogState } from './types';
+import { CatalogController } from './controller.svelte';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -61,12 +60,6 @@ function oneTitle() {
   ];
 }
 
-function collect(controller: CatalogController): CatalogState[] {
-  const states: CatalogState[] = [];
-  controller.subscribe((s) => states.push(s));
-  return states;
-}
-
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -86,14 +79,12 @@ describe('CatalogController', () => {
   it('transitions to catalog state on successful response', async () => {
     const req = makeRequest(() => Promise.resolve(titlesResponse(oneTitle())));
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     ctrl.load({ text: '', kind: '', genres: [], year: '', month: '' });
     await vi.runAllTimersAsync();
 
-    const kinds = states.map((s) => s.kind);
-    expect(kinds).toContain('catalog');
-    const catalog = states.find((s) => s.kind === 'catalog')!;
+    expect(ctrl.snapshot.kind).toBe('catalog');
+    const catalog = ctrl.snapshot;
     expect(catalog.titles).toHaveLength(1);
     expect(catalog.titles[0]!.title).toBe('Light');
     ctrl.dispose();
@@ -102,19 +93,17 @@ describe('CatalogController', () => {
   it('transitions to empty when no filters and no results', async () => {
     const req = makeRequest(() => Promise.resolve(titlesResponse([])));
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     ctrl.load({ text: '', kind: '', genres: [], year: '', month: '' });
     await vi.runAllTimersAsync();
 
-    expect(states.some((s) => s.kind === 'empty')).toBe(true);
+    expect(ctrl.snapshot.kind).toBe('empty');
     ctrl.dispose();
   });
 
   it('transitions to no-match when filters active and no results', async () => {
     const req = makeRequest(() => Promise.resolve(titlesResponse([])));
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     ctrl.load({
       text: 'ZZ-no-match',
@@ -125,20 +114,19 @@ describe('CatalogController', () => {
     });
     await vi.runAllTimersAsync();
 
-    expect(states.some((s) => s.kind === 'no-match')).toBe(true);
+    expect(ctrl.snapshot.kind).toBe('no-match');
     ctrl.dispose();
   });
 
   it('transitions to failure on transport error', async () => {
     const req = makeRequest(() => Promise.reject(new Error('network down')));
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     ctrl.load({ text: '', kind: '', genres: [], year: '', month: '' });
     await vi.runAllTimersAsync();
 
-    const failure = states.find((s) => s.kind === 'failure');
-    expect(failure).toBeDefined();
+    const failure = ctrl.snapshot;
+    expect(failure.kind).toBe('failure');
     expect(failure!.criteria.text).toBe('');
     ctrl.dispose();
   });
@@ -151,26 +139,24 @@ describe('CatalogController', () => {
       return Promise.resolve(titlesResponse(oneTitle()));
     });
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     ctrl.load({ text: 'Light', kind: '', genres: [], year: '', month: '' });
     await vi.runAllTimersAsync();
 
-    const failure = states.find((s) => s.kind === 'failure');
+    const failure = ctrl.snapshot;
     expect(failure).toBeDefined();
     expect(failure!.criteria.text).toBe('Light');
 
     ctrl.retry();
     await vi.runAllTimersAsync();
 
-    expect(states.some((s) => s.kind === 'catalog')).toBe(true);
+    expect(ctrl.snapshot.kind).toBe('catalog');
     ctrl.dispose();
   });
 
   it('moves to invalid state for text > 200 code points without querying', async () => {
     const req = makeRequest(() => Promise.resolve(titlesResponse(oneTitle())));
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     ctrl.load({
       text: 'a'.repeat(201),
@@ -182,8 +168,8 @@ describe('CatalogController', () => {
     await vi.runAllTimersAsync();
 
     expect(req).not.toHaveBeenCalled();
-    const invalid = states.find((s) => s.kind === 'invalid');
-    expect(invalid).toBeDefined();
+    const invalid = ctrl.snapshot;
+    expect(invalid.kind).toBe('invalid');
     expect(invalid!.invalidField).toBe('text');
     // Criteria retained
     expect(invalid!.criteria.text).toBe('a'.repeat(201));
@@ -207,7 +193,6 @@ describe('CatalogController', () => {
     });
 
     const ctrl = new CatalogController(req);
-    const states = collect(ctrl);
 
     // First search (generation 1) – will respond late
     ctrl.load({ text: 'Light', kind: '', genres: [], year: '', month: '' });
@@ -220,7 +205,7 @@ describe('CatalogController', () => {
     resolveEarly(titlesResponse(oneTitle()));
     await vi.runAllTimersAsync();
 
-    const afterEarly = states.at(-1)!;
+    const afterEarly = ctrl.snapshot;
     expect(afterEarly.kind).toBe('catalog');
     expect(afterEarly.criteria.text).toBe('Map');
 
@@ -229,7 +214,7 @@ describe('CatalogController', () => {
     await vi.runAllTimersAsync();
 
     // State must NOT change – stale response is suppressed
-    const afterLate = states.at(-1)!;
+    const afterLate = ctrl.snapshot;
     expect(afterLate.kind).toBe('catalog');
     expect(afterLate.criteria.text).toBe('Map');
 
@@ -256,7 +241,6 @@ describe('CatalogController', () => {
   it('applies 250ms debounce on text changes', async () => {
     const req = makeRequest(() => Promise.resolve(titlesResponse(oneTitle())));
     const ctrl = new CatalogController(req);
-    collect(ctrl);
 
     // Trigger text change with debounce
     ctrl.setCriteria(

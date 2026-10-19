@@ -5,18 +5,22 @@
   import { createTransport } from '../../../../lib/transport/graphql';
   import { sessionController } from '../../../../lib/features/session/context';
   import { createDraftSource } from '../../../../lib/features/draft/api';
-  import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller';
+  import { createPersonEditorController } from '../../../../lib/features/person/write/editor-controller.svelte';
   import { loadWriteContext } from '../../../../lib/features/movie/write-context';
   import PersonEditorForm from '../../../../lib/features/person/write/PersonEditorForm.svelte';
   import EditorPageHeading from '../../../../lib/components/EditorPageHeading.svelte';
   import type { EditorState } from '../../../../lib/features/person/write/types';
 
+  let controller = $state.raw<ReturnType<
+    typeof createPersonEditorController
+  > | null>(null);
   const sessionCtl = sessionController();
-  let editorState = $state<EditorState | null>(null);
+  const editorState = $derived<EditorState | null>(
+    controller?.snapshot ?? null,
+  );
   let ready = $state(false);
   let bootstrapError = $state('');
   let retryBootstrap = async () => {};
-  let controller: ReturnType<typeof createPersonEditorController> | null = null;
 
   onMount(() => {
     const transport = createTransport();
@@ -27,8 +31,7 @@
       null,
     );
     let navigating = false;
-    const unsubscribe = controller.subscribe((next) => {
-      editorState = next;
+    controller.onSaved = (next) => {
       if (
         !navigating &&
         next.saved &&
@@ -43,7 +46,7 @@
           navigating = false;
         });
       }
-    });
+    };
     const abort = new AbortController();
     retryBootstrap = async () => {
       bootstrapError = '';
@@ -66,7 +69,6 @@
     void retryBootstrap();
     return () => {
       abort.abort();
-      unsubscribe();
       controller?.dispose();
     };
   });

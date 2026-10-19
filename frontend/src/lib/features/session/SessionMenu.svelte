@@ -1,7 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import ConfirmDialog from '../../components/ConfirmDialog.svelte';
-  import type { SessionController } from './controller';
+  import type { SessionController } from './controller.svelte';
   import type { SessionState } from './types';
   let {
     controller,

@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { specimenPolicy } from '../../../../../build-tools/verification-tests/frontend/src/routes/policy/fixture';
-import { SessionController } from './controller';
+import { SessionController } from './controller.svelte';
 import { TransportFailure } from '../../transport/graphql';
 import type { SessionBootstrap, SessionSource } from './types';
 import type { AccountCommands, IdentityOutcome } from './commands';

@@ -68,8 +68,8 @@ function sameMetadata(left: ManagedMovie, right: ManagedMovie): boolean {
 }
 
 export class MovieEditorController {
-  private current = initialState('create', null);
-  private readonly listeners = new Set<(state: EditorState) => void>();
+  private current = $state.raw(initialState('create', null));
+  onSaved: ((state: EditorState) => void) | undefined;
   private writeContext: WriteContext | null = null;
   private policy: Policy | null = null;
   private pendingWriteId: string | null = null;
@@ -90,12 +90,6 @@ export class MovieEditorController {
 
   get snapshot(): EditorState {
     return this.current;
-  }
-
-  subscribe(listener: (state: EditorState) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.current);
-    return () => this.listeners.delete(listener);
   }
 
   async bootstrap(
@@ -991,9 +985,9 @@ export class MovieEditorController {
   }
 
   dispose(): void {
+    this.onSaved = undefined;
     this.active?.abort();
     this.draftSync.dispose();
-    this.listeners.clear();
   }
 
   private async finishWrite(
@@ -1122,7 +1116,8 @@ export class MovieEditorController {
 
   private publish(state: EditorState): void {
     this.current = Object.freeze(state);
-    this.listeners.forEach((listener) => listener(this.current));
+    if (state.saved && (state.phase === 'saved' || state.phase === 'resolved'))
+      this.onSaved?.(this.current);
   }
 }
 

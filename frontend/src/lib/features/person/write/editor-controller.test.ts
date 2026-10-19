@@ -12,7 +12,7 @@ import type { DraftSource } from '../../draft/types';
 import { TransportFailure } from '../../../transport/graphql';
 import { PersonDraftSync } from './draft-sync';
 import * as api from './api';
-import { PersonEditorController } from './editor-controller';
+import { PersonEditorController } from './editor-controller.svelte';
 
 const policy = specimenPolicy();
 const context = Object.freeze({
@@ -35,13 +35,9 @@ describe('PersonEditorController', () => {
       'create',
       null,
     );
-    let phase = 'idle';
-    controller.subscribe((state) => {
-      phase = state.phase;
-    });
     await controller.bootstrap(policy, context, new AbortController().signal);
     await controller.submit();
-    expect(phase).toBe('failed');
+    expect(controller.snapshot.phase).toBe('failed');
   });
 });
 
@@ -402,4 +398,45 @@ it('an expired successful direct create retains its original intent and never re
   await controller.submit();
   expect(vi.mocked(api.createPerson).mock.calls.length).toBe(count);
   controller.dispose();
+});
+
+it('notifies creation navigation with the verified saved person and releases it on disposal', async () => {
+  const person = {
+    id: context.accountId,
+    name: 'Saved person',
+    biography: null,
+    state: 'ACTIVE' as const,
+    version: '1',
+  };
+  vi.mocked(api.fetchManagedPerson).mockResolvedValueOnce(person);
+  vi.mocked(api.createPerson).mockResolvedValueOnce({
+    receipt: {
+      operationId: 'saved',
+      state: 'SUCCEEDED',
+      resultExpired: false,
+      problem: null,
+    },
+    problemCode: null,
+    resultPersonId: person.id,
+    resultVersion: person.version,
+  });
+  const controller = new PersonEditorController(
+    vi.fn(),
+    sourceFixture(),
+    'create',
+    null,
+  );
+  const saved = vi.fn(() => expect(controller.snapshot.phase).toBe('saved'));
+  controller.onSaved = saved;
+  try {
+    await controller.bootstrap(policy, context, new AbortController().signal);
+    controller.updateDraft({ name: person.name });
+    await controller.submit();
+    expect(saved).toHaveBeenCalledWith(controller.snapshot);
+    expect(controller.snapshot.saved?.id).toBe(person.id);
+    controller.dispose();
+    expect(controller.onSaved).toBeUndefined();
+  } finally {
+    controller.dispose();
+  }
 });

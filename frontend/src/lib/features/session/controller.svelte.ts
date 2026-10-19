@@ -28,12 +28,15 @@ type LogoutAttempt = {
   signal: AbortSignal;
 };
 export class SessionController {
-  private current: SessionState = Object.freeze({
-    kind: 'checking',
-    identity: null,
-    policy: null,
-    message: 'Checking your session',
-  });
+  onCredentialReset: ((clearIdentity: boolean) => void) | undefined;
+  private current: SessionState = $state.raw<SessionState>(
+    Object.freeze({
+      kind: 'checking',
+      identity: null,
+      policy: null,
+      message: 'Checking your session',
+    }),
+  );
   private expiryTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
   private generation = 0;
   private active: AbortController | null = null;
@@ -44,7 +47,6 @@ export class SessionController {
     id: string;
     kind: AccountSubmission['kind'];
   } | null = null;
-  private readonly listeners = new Set<(state: SessionState) => void>();
   constructor(
     private readonly source: SessionSource & Partial<AccountCommands>,
   ) {}
@@ -52,13 +54,6 @@ export class SessionController {
     return this.current;
   }
 
-  subscribe(listener: (state: SessionState) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.current);
-    return () => {
-      this.listeners.delete(listener);
-    };
-  }
   async check(): Promise<void> {
     if (this.logout) return this.reconcileSignOut();
     const generation = this.begin();
@@ -428,8 +423,8 @@ export class SessionController {
     this.begin();
   }
   dispose(): void {
+    this.onCredentialReset = undefined;
     this.begin();
-    this.listeners.clear();
   }
   private begin(): number {
     this.csrf = '';
@@ -468,6 +463,7 @@ export class SessionController {
       }
     }
     this.current = Object.freeze(state);
-    this.listeners.forEach((listener) => listener(this.current));
+    if (state.kind !== 'anonymous' || state.identity)
+      this.onCredentialReset?.(state.identity !== null);
   }
 }
