@@ -10,6 +10,7 @@ const root = document.querySelector<HTMLElement>('#app');
 let current: ReviewModel | undefined;
 let submitting = false;
 let posterReady = true;
+let stopped = false;
 const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});
 app.ontoolresult = (result) => {
   if (!root || !isRecord(result.structuredContent)) return;
@@ -108,14 +109,15 @@ if (root) wireTrustedApproval(root, () => current!, async (action, model) => {
       };
       throw new Error(messages[code] ?? 'The decision could not be submitted. Retry when SpoolIn is available, or use browser review.');
     }
-    const receipt = isRecord(reply.structuredContent) ? reply.structuredContent : {};
+    const initialReceipt = isRecord(reply.structuredContent) ? reply.structuredContent : {};
+    const receipt = await waitForCompletion(initialReceipt, model, status);
     const state = String(receipt.state ?? 'UNKNOWN');
     const problem = isRecord(receipt.problem) ? receipt.problem : undefined;
     if (problem || receipt.resultExpired === true || state === 'FAILED' || state === 'EXPIRED') {
       throw new Error(`Decision was not completed (${String(problem?.code ?? state)}). Use browser review for the current proposal.`);
     }
     if (state === 'SUCCEEDED') {
-      if (status) status.textContent = action === 'approve' ? 'Approved. Movie creation completed.' : 'Proposal rejected.';
+      if (status) status.textContent = action === 'approve' ? 'Approved. Movie and included poster saved.' : 'Proposal rejected.';
     } else if (state === 'PENDING') {
       if (status) status.textContent = 'Your decision is still processing. Check the operation or browser review for completion.';
     } else throw new Error(`Unexpected operation status (${state}). Check browser review before trying again.`);
@@ -125,9 +127,27 @@ if (root) wireTrustedApproval(root, () => current!, async (action, model) => {
   } finally { submitting = false; }
 });
 app.ontoolcancelled = () => {
+  stopped = true;
   if (root) root.textContent = 'Proposal review cancelled.';
 };
-app.onteardown = async () => ({});
+app.onteardown = async () => { stopped = true; return {}; };
 void app.connect().catch(() => {
   if (root) root.textContent = 'The review host connection is unavailable.';
 });
+
+async function waitForCompletion(
+  initial: Record<string, unknown>, model: ReviewModel, status: Element | null,
+): Promise<Record<string, unknown>> {
+  let receipt = initial;
+  if (typeof receipt.operationId !== 'string') return receipt;
+  const operationId = receipt.operationId;
+  for (let attempt = 0; receipt.state === 'PENDING' && attempt < 15; attempt += 1) {
+    if (status) status.textContent = 'Your decision was saved. Finishing movie and poster storage…';
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (stopped || current !== model) return receipt;
+    const reply = await app.callServerTool({ name: 'movie_operation', arguments: { operationId } });
+    if (reply.isError || !isRecord(reply.structuredContent)) return receipt;
+    receipt = reply.structuredContent;
+  }
+  return receipt;
+}
