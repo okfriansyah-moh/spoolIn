@@ -78,7 +78,7 @@ async function download(url: URL, maximum: number, signal: AbortSignal): Promise
     const pinned = await resolvePublic(url, signal);
     const reply = await new Promise<import('node:http').IncomingMessage>((resolve, reject) => {
       const req = request(url, {
-        method: 'GET', signal, agent: false, autoSelectFamily: false, maxHeaderSize: 16 * 1024,
+        method: 'GET', signal, agent: false, family: pinned.family, maxHeaderSize: 16 * 1024,
         headers: { accept: 'image/jpeg,image/png,image/webp', 'accept-encoding': 'identity' },
         lookup: (_hostname, _options, callback) => callback(null, pinned.address, pinned.family),
       }, resolve);
