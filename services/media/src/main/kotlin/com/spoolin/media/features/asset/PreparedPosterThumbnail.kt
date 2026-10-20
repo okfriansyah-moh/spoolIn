@@ -15,10 +15,10 @@ internal object PreparedPosterThumbnail {
         val scratch = Files.createDirectory(output.resolve(UUID.randomUUID().toString()))
         try {
             val error = CodecSandbox().execute(output.resolve("${row.id}.$extension"),scratch,
-                listOf("/usr/local/bin/vips","thumbnail","/input","/output/preview.jpeg[Q=80,strip=true]","320","--height","320","--size","down","--vips-concurrency","1","--vips-cache-max","0"),
+                listOf("/usr/local/bin/vips","thumbnail","/input","/output/encoded.jpeg[Q=80,strip=true]","320","--height","320","--size","down","--vips-concurrency","1","--vips-cache-max","0"),
                 System.nanoTime()+TimeUnit.SECONDS.toNanos(10))
             if (error != null) throw Status.UNAVAILABLE.withDescription("POSTER_PREVIEW_UNAVAILABLE").asRuntimeException()
-            val file = scratch.resolve("preview.jpeg")
+            val file = scratch.resolve("encoded.jpeg")
             require(Files.size(file) in 1..1_048_576)
             val bytes = Files.readAllBytes(file)
             val image = javax.imageio.ImageIO.read(java.io.ByteArrayInputStream(bytes)) ?: throw Status.UNAVAILABLE.asRuntimeException()
