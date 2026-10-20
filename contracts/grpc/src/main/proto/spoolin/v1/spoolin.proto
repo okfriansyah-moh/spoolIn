@@ -522,6 +522,7 @@ service MediaService {
 }
 
 service McpGatewayService {
+  rpc GetReviewIdentity(google.protobuf.Empty) returns(Actor);
   rpc GetPolicy(google.protobuf.Empty) returns(PolicySnapshot);
   rpc GetMovieContext(MovieContextRequest) returns(MovieContext);
   rpc PrepareMoviePoster(PrepareMoviePosterRequest) returns(PreparedPoster);

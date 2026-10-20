@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 private const val MAX_PENDING = 20
-private const val PROPOSAL_SECONDS = 600L
+private const val PROPOSAL_SECONDS = 86_400L
 
 internal object ProposalRevisions {
     fun insert(

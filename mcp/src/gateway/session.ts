@@ -16,12 +16,14 @@ import { GatewayClient } from '../operations/gateway-client.js';
 import { posterInput } from '../tools/poster-import.js';
 import { contextPosters, posterProjection, publicOrigin } from '../tools/poster-output.js';
 import type { MovieContent } from '../tools/poster-output.js';
-import { PrepareMoviePosterRequest, Proposal } from '../generated/spoolin/v1/spoolin.js';
+import { PrepareMoviePosterRequest, MoviePosterReadRequest, Proposal } from '../generated/spoolin/v1/spoolin.js';
 import {
   effectiveInputSchemas,
   SessionPolicy,
   validateEffectiveInput,
 } from '../tools/effective-policy.js';
+import { UiAssertionSigner } from '../identity/ui-assertion.js';
+import { registerReviewAction } from './review-action.js';
 import { reviewHtml } from '../resources/review.js';
 import { buildProposeMovieCallToolResult } from '../transport/propose-tool-result.js';
 import {
@@ -124,14 +126,16 @@ function registerResources(
 
 type GatewayOperations = Pick<
   GatewayClient,
-  'policy' | 'context' | 'propose' | 'operation' | 'preparePoster' | 'readPoster' | 'close'
+  'policy' | 'context' | 'propose' | 'operation' | 'preparePoster' | 'readPoster' | 'reviewIdentity' | 'approve' | 'reject' | 'close'
 >;
 
-type ProposalCache = Map<
+export type ProposalCache = Map<
   string,
-  { content: Record<string, unknown>; expires: number }
+  { content: Record<string, unknown>; expires: number; challenge: string }
 >;
-type SessionState = {
+export type SessionState = {
+  sessionId: string;
+  signer: UiAssertionSigner | undefined;
   gateway: GatewayOperations;
   policy: SessionPolicy;
   schemas: Record<string, JsonSchemaType>;
@@ -159,6 +163,8 @@ export async function createSession(
       },
     );
     const state: SessionState = {
+      sessionId: randomUUID(),
+      signer: UiAssertionSigner.fromEnvironment(),
       gateway,
       policy,
       schemas: effectiveInputSchemas(inputs, policy.current),
@@ -172,10 +178,12 @@ export async function createSession(
     registerOperation(server, state);
     registerProposal(server, state);
     registerPoster(server, state);
+    registerReviewAction(server, state);
     registerToolListing(server, state);
     return {
       server,
       close: async () => {
+        state.signer?.close();
         state.proposals.clear();
         gateway.close();
         await server.close();
@@ -193,6 +201,7 @@ function registerToolListing(server: McpServer, state: SessionState) {
     movie_operation: 'operationReceipt',
     propose_movie: 'proposalReview',
     prepare_movie_poster: 'preparedPoster',
+    review_movie_proposal: 'operationReceipt',
   };
   server.server.setRequestHandler('tools/list', async () => {
     await state.policy.refresh();
@@ -316,9 +325,26 @@ async function propose(state: SessionState, args: Record<string, unknown>) {
         ? Buffer.from(revision.uiChallenge).toString('utf8')
         : '',
     });
+    if (revision.poster) {
+      try {
+        const image = await state.gateway.readPoster(MoviePosterReadRequest.fromJSON({ refId: revision.poster.refId }));
+        if (image.imageBytes.length <= 4 * 1024 * 1024 && image.poster &&
+            ['image/jpeg', 'image/png', 'image/webp'].includes(image.poster.mediaType)) {
+          const ui = envelope._meta.ui as Record<string, unknown>;
+          // Metadata objects are frozen; preserve the private challenge while adding the stored image.
+          const meta = { ...envelope._meta, ui: { ...ui, posterPreview: {
+            data: Buffer.from(image.imageBytes).toString('base64'), mimeType: image.poster.mediaType,
+          } } };
+          state.proposals.set(projection.reviewResourceUri, { content: { ...projection, sources },
+            expires: Date.parse(projection.expiresAt), challenge: revision.uiChallenge ? Buffer.from(revision.uiChallenge).toString('utf8') : '' });
+          return { ...envelope, _meta: meta, content: result(envelope.structuredContent).content };
+        }
+      } catch { /* Browser review remains available when the stored preview cannot be read. */ }
+    }
     state.proposals.set(projection.reviewResourceUri, {
       content: { ...projection, sources },
       expires: Date.parse(projection.expiresAt),
+      challenge: revision.uiChallenge ? Buffer.from(revision.uiChallenge).toString('utf8') : '',
     });
     return { ...envelope, content: result(envelope.structuredContent).content };
   } catch (failure) {

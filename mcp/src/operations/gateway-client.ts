@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { credentials, Metadata } from '@grpc/grpc-js';
 import { McpGatewayServiceClient } from '../generated/spoolin/v1/spoolin.js';
 import type {
+  Actor,
   ApprovalInput,
   MovieContext,
   Outcome,
@@ -88,6 +89,9 @@ export class GatewayClient {
     });
   }
 
+  reviewIdentity(): Promise<Actor> {
+    return this.call('GetReviewIdentity', (m, o, cb) => this.client.getReviewIdentity({}, m, o, cb));
+  }
   policy(): Promise<PolicySnapshot> {
     return this.call('GetPolicy', (m, o, cb) =>
       this.client.getPolicy({}, m, o, cb),

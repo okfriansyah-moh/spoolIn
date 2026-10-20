@@ -41,6 +41,7 @@ export function traceparent(span: Span): string {
   return `00-${value.traceId}-${value.spanId}-${value.traceFlags.toString(16).padStart(2, '0')}`;
 }
 export type GatewayOperation =
+  | 'GetReviewIdentity'
   | 'GetPolicy'
   | 'PrepareMoviePoster'
   | 'ReadMoviePoster'

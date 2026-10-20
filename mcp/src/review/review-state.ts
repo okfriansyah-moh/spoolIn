@@ -131,7 +131,7 @@ export function wireTrustedApproval(
 ): void {
   root.addEventListener('click', (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLButtonElement)) return;
+    if (!(target instanceof HTMLButtonElement) || !event.isTrusted) return;
     const action = target.dataset.action;
     if (action !== 'approve' && action !== 'reject') return;
     const model = readModel();

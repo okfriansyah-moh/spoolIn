@@ -26,6 +26,19 @@ class McpGatewayRpc(
 ) : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {
     private val access = McpCatalogAccess(connectors, catalog, issuer)
 
+    override fun getReviewIdentity(request: Empty, response: StreamObserver<Spoolin.Actor>) {
+        val connector = access.managementConnector()
+        if (connector == null) {
+            response.onError(Status.PERMISSION_DENIED.withDescription("CONNECTOR_DENIED").asRuntimeException())
+            return
+        }
+        response.onNext(Spoolin.Actor.newBuilder()
+            .setAccountId(connector.accountId.toString())
+            .setCredentialId(connector.id.toString())
+            .setClientKind(connector.clientKind).build())
+        response.onCompleted()
+    }
+
     override fun getPolicy(
         request: Empty,
         response: StreamObserver<Spoolin.PolicySnapshot>,

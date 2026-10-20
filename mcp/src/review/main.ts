@@ -1,5 +1,5 @@
 import { App } from '@modelcontextprotocol/ext-apps';
-import { renderReview } from './review-state.js';
+import { renderReview, wireTrustedApproval } from './review-state.js';
 import type { ReviewModel } from './review-state.js';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -7,6 +7,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 const root = document.querySelector<HTMLElement>('#app');
+let current: ReviewModel | undefined;
+let submitting = false;
+let posterReady = true;
 const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});
 app.ontoolresult = (result) => {
   if (!root || !isRecord(result.structuredContent)) return;
@@ -24,6 +27,8 @@ app.ontoolresult = (result) => {
     revision: proposal.revision,
     contentHash: proposal.contentHash,
     values,
+    ...(isRecord(result._meta) && isRecord(result._meta.ui) && typeof result._meta.ui.challenge === 'string'
+      ? { challenge: result._meta.ui.challenge } : {}),
     sources: Array.isArray(proposal.sources) ? proposal.sources : [],
     unknowns: Array.isArray(proposal.unknowns)
       ? proposal.unknowns.filter(
@@ -31,7 +36,33 @@ app.ontoolresult = (result) => {
         )
       : [],
   };
+  current = model;
   renderReview(root, model);
+  const poster = isRecord(proposal.poster) ? proposal.poster : undefined;
+  const ui = isRecord(result._meta) && isRecord(result._meta.ui) ? result._meta.ui : undefined;
+  const preview = ui && isRecord(ui.posterPreview) ? ui.posterPreview : undefined;
+  posterReady = !poster;
+  if (poster) {
+    const figure = document.createElement('figure');
+    const caption = document.createElement('figcaption');
+    caption.textContent = 'Poster included in this exact revision';
+    figure.append(caption);
+    if (preview && typeof preview.data === 'string' &&
+        ['image/jpeg', 'image/png', 'image/webp'].includes(String(preview.mimeType))) {
+      const image = document.createElement('img');
+      image.alt = `Proposed poster for ${String(values.title ?? 'this movie')}`;
+      image.src = `data:${String(preview.mimeType)};base64,${preview.data}`;
+      image.addEventListener('load', () => {
+        if (current !== model) return;
+        posterReady = true;
+        const approve = root.querySelector<HTMLButtonElement>('[data-action="approve"]');
+        if (approve) approve.disabled = !model.challenge || submitting;
+      });
+      image.addEventListener('error', () => { caption.textContent = 'Poster preview unavailable. Inspect it in signed-in browser review before approval.'; });
+      figure.append(image);
+    } else caption.textContent = 'Poster preview unavailable. Inspect it in signed-in browser review before approval.';
+    root.append(figure);
+  }
   if (typeof proposal.reviewUrl === 'string') {
     try {
       const url = new URL(proposal.reviewUrl);
@@ -45,15 +76,42 @@ app.ontoolresult = (result) => {
       }
     } catch { /* Invalid review links are not rendered. */ }
   }
-  // Display capability is separate from authenticated host approval enforcement (G-03).
-  // Neither tool metadata nor a parent-window message establishes trusted human intent.
-  for (const button of root.querySelectorAll('button')) button.disabled = true;
+  for (const button of root.querySelectorAll('button')) button.disabled = !model.challenge || (button.dataset.action === 'approve' && !posterReady);
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
-  status.textContent =
-    'Open the browser review link to approve or reject this exact revision with your Maintainer account.';
+  status.textContent = model.challenge
+    ? 'Review this exact revision, then approve or reject below.'
+    : 'This host did not provide private review metadata. Use the signed-in browser review link.';
   root.append(status);
 };
+if (root) wireTrustedApproval(root, () => current!, async (action, model) => {
+  if (submitting || !model.challenge) return;
+  submitting = true;
+  for (const button of root.querySelectorAll('button')) button.disabled = true;
+  const status = root.querySelector('[role="status"]');
+  if (status) status.textContent = 'Submitting your decision…';
+  try {
+    const reply = await app.callServerTool({ name: 'review_movie_proposal', arguments: {
+      proposalId: model.proposalId, revision: model.revision, contentHash: model.contentHash,
+      challenge: model.challenge, action,
+    } });
+    if (reply.isError) throw new Error('Review was not accepted. The proposal may have expired or changed; use browser review.');
+    const receipt = isRecord(reply.structuredContent) ? reply.structuredContent : {};
+    const state = String(receipt.state ?? 'UNKNOWN');
+    const problem = isRecord(receipt.problem) ? receipt.problem : undefined;
+    if (problem || receipt.resultExpired === true || state === 'FAILED' || state === 'EXPIRED') {
+      throw new Error(`Decision was not completed (${String(problem?.code ?? state)}). Use browser review for the current proposal.`);
+    }
+    if (state === 'SUCCEEDED') {
+      if (status) status.textContent = action === 'approve' ? 'Approved. Movie creation completed.' : 'Proposal rejected.';
+    } else if (state === 'PENDING') {
+      if (status) status.textContent = 'Your decision is still processing. Check the operation or browser review for completion.';
+    } else throw new Error(`Unexpected operation status (${state}). Check browser review before trying again.`);
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Review unavailable. Use browser review.';
+    for (const button of root.querySelectorAll('button')) button.disabled = button.dataset.action === 'approve' && !posterReady;
+  } finally { submitting = false; }
+});
 app.ontoolcancelled = () => {
   if (root) root.textContent = 'Proposal review cancelled.';
 };

@@ -296,5 +296,42 @@
       }
     ],
     "additionalProperties": false
+  },
+  "review_movie_proposal": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "proposalId",
+      "revision",
+      "contentHash",
+      "challenge",
+      "action"
+    ],
+    "properties": {
+      "proposalId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "revision": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "contentHash": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "challenge": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096
+      },
+      "action": {
+        "type": "string",
+        "enum": [
+          "approve",
+          "reject"
+        ]
+      }
+    }
   }
 }
