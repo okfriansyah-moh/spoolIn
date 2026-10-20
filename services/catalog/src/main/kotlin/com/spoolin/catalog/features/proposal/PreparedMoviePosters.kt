@@ -70,7 +70,13 @@ class PreparedMoviePosters(private val dataSource: DataSource, private val media
             ) { 1 }.isNotEmpty()
             if (!held) throw Status.FAILED_PRECONDITION.withDescription("POSTER_EXPIRED").asRuntimeException()
         }
-        return posterFromMap(ProposalContent.parseJson(row[2] as String))
+        val poster = posterFromMap(ProposalContent.parseJson(row[2] as String))
+        val asset = media.withDeadlineAfter(5, TimeUnit.SECONDS)
+            .getAsset(Spoolin.Id.newBuilder().setId(poster.assetId).build())
+        if (asset.state != "READY") {
+            throw Status.FAILED_PRECONDITION.withDescription("POSTER_UNAVAILABLE_REIMPORT_REQUIRED").asRuntimeException()
+        }
+        return poster
     }
 
     fun read(request: Spoolin.MoviePosterReadRequest): Spoolin.MoviePosterImage {

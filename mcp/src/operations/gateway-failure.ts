@@ -28,6 +28,10 @@ export class GatewayFailure extends Error {
   static fromGrpc(failure: Error): GatewayFailure {
     const status = 'code' in failure ? failure.code : undefined;
     const details = 'details' in failure ? failure.details : undefined;
+    if (status === 9 && ['CHALLENGE_MISMATCH', 'REVISION_MISMATCH', 'CONTENT_HASH_MISMATCH'].includes(String(details)))
+      return new GatewayFailure('STALE_VERSION');
+    if (status === 9 && ['PROPOSAL_EXPIRED', 'PROPOSAL_NOT_REVIEWABLE'].includes(String(details)))
+      return new GatewayFailure('NOT_FOUND');
     if (details === 'POLICY_CHANGED' && status === 9)
       return new GatewayFailure('POLICY_CHANGED');
     const codes = new Map<unknown, Code>([

@@ -95,7 +95,19 @@ if (root) wireTrustedApproval(root, () => current!, async (action, model) => {
       proposalId: model.proposalId, revision: model.revision, contentHash: model.contentHash,
       challenge: model.challenge, action,
     } });
-    if (reply.isError) throw new Error('Review was not accepted. The proposal may have expired or changed; use browser review.');
+    if (reply.isError) {
+      const payload = isRecord(reply.structuredContent) ? reply.structuredContent : {};
+      const problem = isRecord(payload.problem) ? payload.problem : {};
+      const code = String(problem.code ?? 'UNAVAILABLE');
+      const messages: Record<string, string> = {
+        STALE_VERSION: 'This review changed or was reopened in the browser. Open browser review for the current decision controls.',
+        NOT_FOUND: 'This proposal expired or was already decided. Open browser review to see its current state.',
+        UNAUTHENTICATED: 'Reconnect SpoolIn to sign in again, or use signed-in browser review.',
+        FORBIDDEN: 'This connection cannot decide this proposal. Use its owning Maintainer account in browser review.',
+        POLICY_CHANGED: 'The movie policy changed. Prepare a fresh proposal before approval.',
+      };
+      throw new Error(messages[code] ?? 'The decision could not be submitted. Retry when SpoolIn is available, or use browser review.');
+    }
     const receipt = isRecord(reply.structuredContent) ? reply.structuredContent : {};
     const state = String(receipt.state ?? 'UNKNOWN');
     const problem = isRecord(receipt.problem) ? receipt.problem : undefined;

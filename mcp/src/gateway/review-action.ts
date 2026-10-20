@@ -1,17 +1,9 @@
-import { timingSafeEqual } from 'node:crypto';
 import { fromJsonSchema } from '@modelcontextprotocol/server';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { ApprovalInput } from '../generated/spoolin/v1/spoolin.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
 import { outcomeProjection } from './projections.js';
 import type { SessionState } from './session.js';
-
-function equalChallenge(expected: string, actual: unknown): boolean {
-  if (!expected || typeof actual !== 'string') return false;
-  const left = Buffer.from(expected);
-  const right = Buffer.from(actual);
-  return left.length === right.length && timingSafeEqual(left, right);
-}
 
 /** Only the rendered app receives the challenge; identity comes from authenticated Core. */
 export function registerReviewAction(server: McpServer, state: SessionState): void {
@@ -22,10 +14,12 @@ export function registerReviewAction(server: McpServer, state: SessionState): vo
   }, async (args) => {
     try {
       if (!state.signer) throw new GatewayFailure('FORBIDDEN');
-      const uri = `spoolin://proposal/${String(args.proposalId)}/${Number(args.revision)}`;
-      const entry = state.proposals.get(uri);
-      if (!entry || entry.expires <= Date.now() || entry.content.contentHash !== args.contentHash ||
-          !equalChallenge(entry.challenge, args.challenge)) throw new GatewayFailure('FORBIDDEN');
+      if (typeof args.challenge !== 'string' || !args.challenge.trim() ||
+          typeof args.contentHash !== 'string' || !/^[a-f0-9]{64}$/.test(args.contentHash)) {
+        throw new GatewayFailure('FORBIDDEN');
+      }
+      // Catalog validates the private challenge, revision, digest, expiry and connector ownership.
+      // Hosts may route app tool calls through a new authenticated MCP session.
       const identity = await state.gateway.reviewIdentity();
       if (identity.clientKind !== 'CHATGPT' && identity.clientKind !== 'CLAUDE') throw new GatewayFailure('FORBIDDEN');
       const method = args.action === 'approve' ? 'ApproveMovie' : 'RejectMovie';
@@ -34,7 +28,7 @@ export function registerReviewAction(server: McpServer, state: SessionState): vo
         session: state.sessionId, proposal: String(args.proposalId), revision: Number(args.revision),
         hash, method: `/spoolin.v1.McpGatewayService/${method}` });
       const input = ApprovalInput.fromJSON({ proposalId: args.proposalId, revision: args.revision,
-        contentHash: hash, challenge: entry.challenge });
+        contentHash: hash, challenge: args.challenge });
       const outcome = await (args.action === 'approve' ? state.gateway.approve(input, assertion) : state.gateway.reject(input, assertion));
       const projection = outcomeProjection(outcome);
       return { content: [{ type: 'text' as const, text: JSON.stringify(projection) }], structuredContent: projection };
