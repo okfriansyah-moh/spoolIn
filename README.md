@@ -735,3 +735,16 @@ OpenAI image generation produced four fictional prototype artwork assets. Their 
 - [Acceptance scenarios](docs/05-atdd.md)
 - [Implementation plan](docs/06-PLAN.md)
 - [Media isolation policy](docs/release/media-sandbox-policy.md)
+
+
+### MCP movie posters and proposal review
+
+The MCP adapter uses `SPOOLIN_PUBLIC_ORIGIN` to generate HTTPS review links and poster URLs. Set it to the website origin, matching Core's `BROWSER_ORIGIN`. Compose defaults it to `https://localhost:${CORE_HTTPS_PORT:-8443}`.
+
+Call `movie_context` to read movie matches, artwork policy, and stored poster thumbnails. Results include poster URLs and image content associated with movie IDs. Image content has a combined 4 MiB response budget; unavailable or omitted previews are identified in each movie's poster metadata.
+
+Use `prepare_movie_poster` with an `operationId`, a `reuseBasis`, and either a direct HTTPS image `url` or base64 `content` plus `mediaType`. Optional `sourceUrl` records provenance for direct uploads. The input limit is the lower of the artwork policy limit and the existing Media processing ceiling of 5 MiB. Remote imports use bounded downloads and reject private-network destinations. If preparation returns `PREPARING` or `PROCESSING`, repeat the same request with the same operation ID until it returns `READY`.
+
+Pass the returned `posterRef` to `propose_movie`. The immutable proposal includes the stored image identity and digest. Open its `reviewUrl`, sign in with the owning Maintainer account, and review the movie, sources, and poster before approving or rejecting. Browser uploads can replace the poster by creating a new revision. The browser path also works when the chat host does not render the embedded card.
+
+After approval, `movie_operation` remains pending until the poster is attached. Poll the original proposal operation ID to read its persisted outcome. Retry uncertain requests using their original operation IDs. No movie is approved by preparing a poster or creating a proposal.

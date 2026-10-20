@@ -2,6 +2,7 @@
 export const MODEL_MCP_TOOLS = Object.freeze([
   'movie_context',
   'propose_movie',
+  'prepare_movie_poster',
   'movie_operation',
 ] as const);
 

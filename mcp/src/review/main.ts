@@ -32,13 +32,26 @@ app.ontoolresult = (result) => {
       : [],
   };
   renderReview(root, model);
+  if (typeof proposal.reviewUrl === 'string') {
+    try {
+      const url = new URL(proposal.reviewUrl);
+      if (url.protocol === 'https:' && !url.username && !url.password) {
+        const link = document.createElement('a');
+        link.href = url.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Open signed-in browser review';
+        root.append(link);
+      }
+    } catch { /* Invalid review links are not rendered. */ }
+  }
   // Display capability is separate from authenticated host approval enforcement (G-03).
   // Neither tool metadata nor a parent-window message establishes trusted human intent.
   for (const button of root.querySelectorAll('button')) button.disabled = true;
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
   status.textContent =
-    'Approval is unavailable until this chat host has verified private review controls.';
+    'Open the browser review link to approve or reject this exact revision with your Maintainer account.';
   root.append(status);
 };
 app.ontoolcancelled = () => {

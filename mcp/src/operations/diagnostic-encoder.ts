@@ -32,6 +32,7 @@ const operations = new Set([
   'movie_context',
   'movie_operation',
   'propose_movie',
+  'prepare_movie_poster',
   'unknown',
 ]);
 const outcomes = new Set([

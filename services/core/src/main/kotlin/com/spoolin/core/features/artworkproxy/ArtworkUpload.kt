@@ -86,7 +86,7 @@ internal object ArtworkUpload {
                     .setOperationId(request.uploadOperationId.toString())
                     .setCorrelationId(request.correlationId.toString())
                     .setPolicyRevision(request.policyRevision),
-            ).setActorId(request.principal.accountId.toString())
+            ).setActorId(request.actorId.toString())
             .setInputBytes(request.spool.size)
             .setAssetId(request.assetId.toString())
             .setInputSha256(ByteString.copyFrom(request.spool.sha256))

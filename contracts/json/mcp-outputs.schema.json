@@ -67,13 +67,68 @@
                   "format": "uuid"
                 },
                 "maxItems": 20
+              },
+              "poster": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "assetId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "mediaType": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "width": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "height": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "preview": {
+                        "enum": [
+                          "INCLUDED",
+                          "UNAVAILABLE",
+                          "OMITTED_BUDGET"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "assetId",
+                      "url",
+                      "mediaType",
+                      "width",
+                      "height",
+                      "preview"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
               "id",
               "title",
               "release",
-              "genreIds"
+              "genreIds",
+              "poster"
             ],
             "additionalProperties": false
           },
@@ -133,13 +188,45 @@
         "policyRevision": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
+        },
+        "artworkPolicy": {
+          "type": "object",
+          "properties": {
+            "maxInputBytes": {
+              "type": "string"
+            },
+            "formats": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "maxDimensionPx": {
+              "type": "integer"
+            },
+            "maxPixels": {
+              "type": "string"
+            },
+            "maxImageResponseBytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maxInputBytes",
+            "formats",
+            "maxDimensionPx",
+            "maxPixels",
+            "maxImageResponseBytes"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "titles",
         "genres",
         "roles",
-        "policyRevision"
+        "policyRevision",
+        "artworkPolicy"
       ],
       "additionalProperties": false
     },
@@ -267,6 +354,93 @@
         "reviewResourceUri": {
           "type": "string",
           "pattern": "^spoolin://proposal/[0-9a-f-]{36}/[0-9]+$"
+        },
+        "poster": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "posterRef": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "assetId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "contentHash": {
+                  "type": "string"
+                },
+                "mediaType": {
+                  "type": "string"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "sourceUrl": {
+                  "type": "string"
+                },
+                "reuseBasis": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "required": [
+                "posterRef",
+                "assetId",
+                "contentHash",
+                "mediaType",
+                "width",
+                "height",
+                "sourceUrl",
+                "reuseBasis",
+                "state",
+                "url"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "reuseBasis": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "field",
+              "url",
+              "reuseBasis"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [
@@ -277,7 +451,10 @@
         "normalizedMovie",
         "policyRevision",
         "status",
-        "reviewResourceUri"
+        "reviewResourceUri",
+        "poster",
+        "reviewUrl",
+        "sources"
       ],
       "additionalProperties": false
     },
@@ -375,6 +552,59 @@
         "resultExpired"
       ],
       "additionalProperties": false
+    },
+    "preparedPoster": {
+      "type": "object",
+      "properties": {
+        "posterRef": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assetId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "contentHash": {
+          "type": "string"
+        },
+        "mediaType": {
+          "type": "string"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sourceUrl": {
+          "type": "string"
+        },
+        "reuseBasis": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "posterRef",
+        "assetId",
+        "contentHash",
+        "mediaType",
+        "width",
+        "height",
+        "sourceUrl",
+        "reuseBasis",
+        "state",
+        "url"
+      ],
+      "additionalProperties": false
     }
   },
   "toolOutputs": {
@@ -392,6 +622,9 @@
     },
     "reject_movie": {
       "$ref": "#/$defs/operationReceipt"
+    },
+    "prepare_movie_poster": {
+      "$ref": "#/$defs/preparedPoster"
     }
   }
 }

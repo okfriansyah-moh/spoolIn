@@ -42,6 +42,8 @@ export function traceparent(span: Span): string {
 }
 export type GatewayOperation =
   | 'GetPolicy'
+  | 'PrepareMoviePoster'
+  | 'ReadMoviePoster'
   | 'GetMovieContext'
   | 'ProposeMovie'
   | 'GetMovieOperation'

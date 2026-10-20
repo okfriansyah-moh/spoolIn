@@ -22,6 +22,7 @@ class McpGatewayRpc(
     issuer: McpActorIssuer?,
     private val uiChallenges: ProposalUiChallengeStore,
     private val uiAssertions: UiAssertionVerifier? = null,
+    private val posterUploads: com.spoolin.core.features.artworkproxy.PreparedPosterUpload? = null,
 ) : McpGatewayServiceGrpc.McpGatewayServiceImplBase() {
     private val access = McpCatalogAccess(connectors, catalog, issuer)
 
@@ -66,6 +67,38 @@ class McpGatewayRpc(
                 .setRoles(roles)
                 .setPolicy(policy.protobuf())
                 .build()
+        }
+    }
+
+    override fun prepareMoviePoster(
+        request: Spoolin.PrepareMoviePosterRequest,
+        response: StreamObserver<Spoolin.PreparedPoster>,
+    ) {
+        if (request.imageBytes.isEmpty || request.imageBytes.size().toLong() > policy.policy.artwork.maxInputBytes) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FILE_INVALID").asRuntimeException())
+            return
+        }
+        access.forward(
+            McpCatalogInvocation(CATALOG_SERVICE + "PrepareMoviePoster", UUID.fromString(request.context.operationId),
+                UUID.fromString(request.context.correlationId)), response,
+        ) { stub ->
+            val uploads = posterUploads ?: throw Status.UNAVAILABLE.asRuntimeException()
+            val actor = access.managementConnector() ?: denied()
+            uploads.prepare(request, actor.accountId, { operation, correlation ->
+                access.actorToken("/spoolin.v1.MediaService/Upload", operation, correlation).second
+            }) { access.invoke(McpCatalogInvocation(CATALOG_SERVICE + "PrepareMoviePoster",
+                UUID.fromString(request.context.operationId), UUID.fromString(request.context.correlationId))) {
+                it.prepareMoviePoster(request)
+            } }
+        }
+    }
+
+    override fun readMoviePoster(
+        request: Spoolin.MoviePosterReadRequest,
+        response: StreamObserver<Spoolin.MoviePosterImage>,
+    ) {
+        access.forward(McpCatalogInvocation(CATALOG_SERVICE + "ReadMoviePoster"), response) {
+            it.readMoviePoster(request)
         }
     }
 

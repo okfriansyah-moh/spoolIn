@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { MAX_POSTER_REQUEST_BYTES } from '../tools/poster-import.js';
 import { mcpTracing } from '../operations/tracing.js';
 import { mcpDiagnostics } from '../operations/diagnostics.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
@@ -309,7 +310,7 @@ export class StreamableHttpTransport {
     let sessionId: string | undefined;
     const transport = new NodeStreamableHTTPServerTransport({
       sessionIdGenerator: randomUUID,
-      maxRequestBodySize: 128 * 1024,
+      maxRequestBodySize: MAX_POSTER_REQUEST_BYTES,
       onsessioninitialized: (value) => {
         sessionId = value;
         this.sessions.set(value, {
@@ -342,7 +343,7 @@ export class StreamableHttpTransport {
     for await (const chunk of req) {
       const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
       bytes += buffer.length;
-      if (bytes > 128 * 1024) {
+      if (bytes > MAX_POSTER_REQUEST_BYTES) {
         res.writeHead(413).end();
         return undefined;
       }

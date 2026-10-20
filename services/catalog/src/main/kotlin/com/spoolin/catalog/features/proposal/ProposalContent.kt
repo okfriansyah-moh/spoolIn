@@ -10,11 +10,27 @@ object ProposalContent {
     private val mapper = JsonMapper.builder().build()
 
     fun fromProposal(request: Proposal): Map<String, Any?> =
-        mapOf(
+        buildMap { putAll(mapOf(
             "policy_revision" to request.context.policyRevision,
             "values" to valuesMap(request.values),
             "sources" to request.sourcesList.map(::sourceMap),
-        )
+        )); if (request.hasPosterRef()) put("poster_ref",request.posterRef) }
+
+    fun poster(content: Map<String,Any?>): Spoolin.PreparedPoster? {
+        @Suppress("UNCHECKED_CAST")
+        val map = content["poster"] as? Map<String,Any?> ?: return null
+        return posterFromMap(map)
+    }
+
+    fun sources(content: Map<String,Any?>): List<FieldSource> {
+        @Suppress("UNCHECKED_CAST")
+        return (content["sources"] as? List<Map<String,Any?>> ?: emptyList()).map { source ->
+            FieldSource.newBuilder().setField(source["field"] as String).setUrl(source["url"] as String)
+                .setReuseBasis(source["reuse_basis"] as String)
+                .setRetrievedAt(com.google.protobuf.Timestamp.newBuilder().setSeconds((source["retrieved_at"] as Number).toLong()))
+                .also { b -> (source["precision"] as? String)?.let(b::setPrecision) }.build()
+        }
+    }
 
     fun policyRevision(content: Map<String, Any?>): String = content["policy_revision"] as? String ?: ""
 

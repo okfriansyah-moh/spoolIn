@@ -396,6 +396,16 @@ class CatalogServiceRpc(
         handler.audit(request, response)
     }
 
+    override fun prepareMoviePoster(request: spoolin.v1.Spoolin.PrepareMoviePosterRequest, response: StreamObserver<spoolin.v1.Spoolin.PreparedPoster>) {
+        proposalWrites?.preparePoster(request,response) ?: response.onError(Status.UNAVAILABLE.asRuntimeException())
+    }
+    override fun getMovieProposal(request: spoolin.v1.Spoolin.MovieProposalRequest, response: StreamObserver<spoolin.v1.Spoolin.ProposalRevision>) {
+        proposalWrites?.read(request,response) ?: response.onError(Status.UNAVAILABLE.asRuntimeException())
+    }
+    override fun readMoviePoster(request: spoolin.v1.Spoolin.MoviePosterReadRequest, response: StreamObserver<spoolin.v1.Spoolin.MoviePosterImage>) {
+        proposalWrites?.readPoster(request,response) ?: response.onError(Status.UNAVAILABLE.asRuntimeException())
+    }
+
     override fun proposeMovie(
         request: spoolin.v1.Spoolin.Proposal,
         response: StreamObserver<spoolin.v1.Spoolin.ProposalRevision>,

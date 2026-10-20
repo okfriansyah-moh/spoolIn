@@ -245,7 +245,10 @@ class UploadRpc(
                     Timestamp.from(clock.instant().plus(Duration.ofDays(UPLOAD_RECEIPT_RETENTION_DAYS))),
                 ) == 1,
             ) { "Upload identity already exists; reconcile its receipt" }
-            AssetSql.insertReceiving(connection, assetId, uploadOpId, actor, h.inputBytes, policyRevision)
+            val inserted = AssetSql.insertReceiving(connection, assetId, uploadOpId, actor, h.inputBytes, policyRevision)
+            val intent = catalog?.find(UUID.fromString(h.intentId))
+            if (intent?.titleId == h.intentId) connection.executeBound("UPDATE asset SET provenance='{\"preparedPoster\":true}'::jsonb WHERE id=?",assetId)
+            inserted
         }
 
     private fun rejectAsset(

@@ -12,6 +12,10 @@ import type {
   PolicySnapshot,
   Proposal,
   ProposalRevision,
+  PrepareMoviePosterRequest,
+  PreparedPoster,
+  MoviePosterReadRequest,
+  MoviePosterImage,
 } from '../generated/spoolin/v1/spoolin.js';
 
 type Invocation<T> = (
@@ -19,14 +23,14 @@ type Invocation<T> = (
   options: { deadline: Date },
   callback: (error: Error | null, value: T) => void,
 ) => ClientUnaryCall;
-function unary<T>(invoke: Invocation<T>, metadata: Metadata): Promise<T> {
+function unary<T>(invoke: Invocation<T>, metadata: Metadata, timeout = 5000): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const signal = activeCancellation();
     let finished = false;
     const cancel = () => active?.cancel();
     const active = invoke(
       metadata,
-      { deadline: new Date(Date.now() + 5000) },
+      { deadline: new Date(Date.now() + timeout) },
       (error, value) => {
         if (finished) return;
         finished = true;
@@ -56,6 +60,7 @@ export class GatewayClient {
         readFileSync(required('GRPC_CLIENT_KEY_FILE')),
         readFileSync(required('GRPC_CLIENT_CERT_FILE')),
       ),
+      { 'grpc.max_send_message_length': 17 * 1024 * 1024, 'grpc.max_receive_message_length': 17 * 1024 * 1024 },
     );
   }
   ready(): Promise<void> {
@@ -79,7 +84,7 @@ export class GatewayClient {
       metadata.set('authorization', `Bearer ${this.connectorToken}`);
       metadata.set('traceparent', traceparent(span));
       if (assertion) metadata.set('mcp-ui-assertion', assertion);
-      return unary(invoke, metadata);
+      return unary(invoke, metadata, operation === 'PrepareMoviePoster' ? 25_000 : operation === 'ReadMoviePoster' ? 3000 : 5000);
     });
   }
 
@@ -96,6 +101,16 @@ export class GatewayClient {
   propose(request: Proposal): Promise<ProposalRevision> {
     return this.call('ProposeMovie', (m, o, cb) =>
       this.client.proposeMovie(request, m, o, cb),
+    );
+  }
+  preparePoster(request: PrepareMoviePosterRequest): Promise<PreparedPoster> {
+    return this.call('PrepareMoviePoster', (m, o, cb) =>
+      this.client.prepareMoviePoster(request, m, o, cb),
+    );
+  }
+  readPoster(request: MoviePosterReadRequest): Promise<MoviePosterImage> {
+    return this.call('ReadMoviePoster', (m, o, cb) =>
+      this.client.readMoviePoster(request, m, o, cb),
     );
   }
   operation(id: string): Promise<Outcome> {

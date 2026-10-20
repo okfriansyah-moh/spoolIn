@@ -135,6 +135,11 @@
           ],
           "additionalProperties": false
         }
+      },
+      "posterRef": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Owned prepared poster reference returned by prepare_movie_poster in READY state."
       }
     },
     "required": [
@@ -214,6 +219,81 @@
       "revision",
       "contentHash",
       "challenge"
+    ],
+    "additionalProperties": false
+  },
+  "prepare_movie_poster": {
+    "type": "object",
+    "properties": {
+      "operationId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "maxLength": 2048,
+        "description": "Direct HTTPS image URL, not a webpage."
+      },
+      "content": {
+        "type": "string",
+        "minLength": 4,
+        "maxLength": 22369624,
+        "description": "Image bytes encoded as base64 without a data URL prefix."
+      },
+      "mediaType": {
+        "type": "string",
+        "enum": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ]
+      },
+      "sourceUrl": {
+        "type": "string",
+        "maxLength": 2048
+      },
+      "reuseBasis": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "operationId",
+      "reuseBasis"
+    ],
+    "oneOf": [
+      {
+        "required": [
+          "url"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "content"
+              ]
+            },
+            {
+              "required": [
+                "sourceUrl"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "required": [
+          "content",
+          "mediaType"
+        ],
+        "not": {
+          "required": [
+            "url"
+          ]
+        }
+      }
     ],
     "additionalProperties": false
   }

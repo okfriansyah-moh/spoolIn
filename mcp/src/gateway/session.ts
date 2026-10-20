@@ -13,7 +13,10 @@ import type {
 import { McpMetrics, mcpMetrics } from '../operations/metrics.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
 import { GatewayClient } from '../operations/gateway-client.js';
-import { Proposal } from '../generated/spoolin/v1/spoolin.js';
+import { posterInput } from '../tools/poster-import.js';
+import { contextPosters, posterProjection, publicOrigin } from '../tools/poster-output.js';
+import type { MovieContent } from '../tools/poster-output.js';
+import { PrepareMoviePosterRequest, Proposal } from '../generated/spoolin/v1/spoolin.js';
 import {
   effectiveInputSchemas,
   SessionPolicy,
@@ -43,7 +46,7 @@ const input = (state: SessionState, name: string) =>
   fromJsonSchema<Record<string, unknown>>(state.schemas[name]!);
 const output = (name: string) =>
   fromJsonSchema<Record<string, unknown>>(outputs.$defs[name]!);
-function result(value: Record<string, unknown>) {
+function result(value: Record<string, unknown>): { content: MovieContent[]; structuredContent: Record<string, unknown> } {
   const text = JSON.stringify(value);
   if (Buffer.byteLength(text) > 128 * 1024)
     throw new GatewayFailure('RESOURCE_EXHAUSTED');
@@ -121,7 +124,7 @@ function registerResources(
 
 type GatewayOperations = Pick<
   GatewayClient,
-  'policy' | 'context' | 'propose' | 'operation' | 'close'
+  'policy' | 'context' | 'propose' | 'operation' | 'preparePoster' | 'readPoster' | 'close'
 >;
 
 type ProposalCache = Map<
@@ -150,7 +153,7 @@ export async function createSession(
       () => gateway.policy(),
       (next) => {
         state.schemas = effectiveInputSchemas(inputs, next);
-        for (const name of ['movie_context', 'propose_movie']) {
+        for (const name of ['movie_context', 'propose_movie', 'prepare_movie_poster']) {
           tools.get(name)?.update({ paramsSchema: input(state, name) });
         }
       },
@@ -168,6 +171,7 @@ export async function createSession(
     registerContext(server, state);
     registerOperation(server, state);
     registerProposal(server, state);
+    registerPoster(server, state);
     registerToolListing(server, state);
     return {
       server,
@@ -188,6 +192,7 @@ function registerToolListing(server: McpServer, state: SessionState) {
     movie_context: 'context',
     movie_operation: 'operationReceipt',
     propose_movie: 'proposalReview',
+    prepare_movie_poster: 'preparedPoster',
   };
   server.server.setRequestHandler('tools/list', async () => {
     await state.policy.refresh();
@@ -223,7 +228,7 @@ function registerContext(server: McpServer, state: SessionState) {
   const tool = server.registerTool(
     'movie_context',
     {
-      description: 'Read current movie context and effective policy',
+      description: 'Read current movies and stored poster thumbnails. Includes image content and poster URLs when available.',
       inputSchema: input(state, 'movie_context'),
       outputSchema: output('context'),
     },
@@ -235,7 +240,11 @@ function registerContext(server: McpServer, state: SessionState) {
       );
       if (!reply.policy) throw new GatewayFailure('UNAVAILABLE');
       state.policy.accept(reply.policy);
-      return result(contextProjection(reply));
+      const projection = contextProjection(reply);
+      const images = await contextPosters(reply, projection.titles, (request) => state.gateway.readPoster(request));
+      const envelope = result(projection);
+      envelope.content.push(...images);
+      return envelope;
     }),
   );
   state.tools.set('movie_context', tool);
@@ -277,12 +286,13 @@ function registerProposal(server: McpServer, state: SessionState) {
 
 async function propose(state: SessionState, args: Record<string, unknown>) {
   const policy = await refreshInput(state, 'propose_movie', args);
+  publicOrigin();
   for (const [uri, entry] of state.proposals) {
     if (entry.expires <= Date.now()) state.proposals.delete(uri);
   }
   if (state.proposals.size >= 20)
     throw new GatewayFailure('RESOURCE_EXHAUSTED');
-  const { operationId, proposalId, expectedRevision, sources, ...values } =
+  const { operationId, proposalId, expectedRevision, posterRef, sources, ...values } =
     args;
   try {
     const revision = await state.gateway.propose(
@@ -296,6 +306,7 @@ async function propose(state: SessionState, args: Record<string, unknown>) {
         sources,
         proposalId,
         expectedRevision,
+        posterRef,
       }),
     );
     const projection = proposalProjection(revision, policy.revision);
@@ -318,4 +329,27 @@ async function propose(state: SessionState, args: Record<string, unknown>) {
       await state.policy.refresh();
     throw failure;
   }
+}
+
+function registerPoster(server: McpServer, state: SessionState) {
+  const tool = server.registerTool(
+    'prepare_movie_poster',
+    {
+      description: 'Import a direct HTTPS poster image URL or upload base64 image bytes. Returns posterRef for propose_movie when READY. If PREPARING or PROCESSING, repeat the identical request with the same operationId until READY. Files are limited by effective artwork policy and a 5 MiB processing ceiling.',
+      inputSchema: input(state, 'prepare_movie_poster'),
+      outputSchema: output('preparedPoster'),
+    },
+    safe('prepare_movie_poster', state.metrics, async (args) => {
+      const policy = await refreshInput(state, 'prepare_movie_poster', args);
+      publicOrigin();
+      const image = await posterInput(args, Number(policy.artwork.maxInputBytes));
+      const poster = await state.gateway.preparePoster(PrepareMoviePosterRequest.fromJSON({
+        context: { operationId: args.operationId, correlationId: randomUUID(), policyRevision: policy.revision },
+        imageBytes: image.bytes.toString('base64'), mediaType: image.mediaType,
+        sourceUrl: image.sourceUrl, reuseBasis: args.reuseBasis,
+      }));
+      return result(posterProjection(poster));
+    }),
+  );
+  state.tools.set('prepare_movie_poster', tool);
 }

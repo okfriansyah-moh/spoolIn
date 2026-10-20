@@ -258,6 +258,7 @@ class OwnerServiceConfiguration {
         schema: SchemaReadiness,
         quarantineStore: QuarantineStore,
         registry: MeterRegistry,
+        channels: org.springframework.grpc.client.GrpcChannelFactory,
     ): com.spoolin.media.operations.work.MediaWorkDispatcher =
         com.spoolin.media.operations.work.MediaWorkDispatcher(
             dataSource,
@@ -270,7 +271,7 @@ class OwnerServiceConfiguration {
                         com.spoolin.media.features.processing
                             .ProcessingMetrics(registry),
                 ),
-            { quarantineStore.sweepAbandonedScratch() },
+            { quarantineStore.sweepAbandonedScratch(); com.spoolin.media.features.cleanup.PreparedPosterCleanup(dataSource,com.spoolin.media.features.asset.CatalogAttachments(spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog"))),quarantineStore).sweep() },
             com.spoolin.support.notifications.ExhaustionNotifications
                 .configured(dataSource, "media") { environment.getProperty(it) },
         )
@@ -565,7 +566,8 @@ class ServiceIdentityInterceptor(
     private val methodCallers: Map<String, Set<String>> =
         buildMap {
             put("spoolin.v1.MediaService/Upload", setOf("core"))
-            put("spoolin.v1.MediaService/ReadAsset", setOf("core"))
+            put("spoolin.v1.MediaService/ReadAsset", setOf("core", "catalog"))
+            put("spoolin.v1.MediaService/ReadMoviePoster", setOf("catalog"))
             put("spoolin.v1.MediaService/GetAsset", setOf("core", "catalog"))
             put("spoolin.v1.MediaService/GetOperation", setOf("core", "catalog"))
             put("spoolin.v1.MediaService/Reserve", setOf("catalog"))

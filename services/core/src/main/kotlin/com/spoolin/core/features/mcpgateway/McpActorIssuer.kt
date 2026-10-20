@@ -30,7 +30,7 @@ class McpActorIssuer(
         val nonce = ByteArray(ACTOR_NONCE_BYTES).also(random::nextBytes)
         return signer.sign(
             ActorClaims(
-                audience = "catalog",
+                audience = if (method.contains("MediaService")) "media" else "catalog",
                 method = method,
                 accountId = connector.accountId,
                 credentialId = connector.id,
