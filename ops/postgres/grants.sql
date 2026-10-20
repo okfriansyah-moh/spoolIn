@@ -17,7 +17,7 @@ BEGIN
     names := names || ARRAY['user_account','account_email_lookup','browser_session','mcp_credential','form_draft','request_rate_window'];
   ELSIF db = 'spoolin_catalog' THEN
     audit_names := audit_names || ARRAY['catalog_audit_event'];
-    names := names || ARRAY['title','title_genre','person','credit','genre','credit_role','provenance_record','seed_member','artwork_attachment_request','movie_proposal','seed_artwork_attribution'];
+    names := names || ARRAY['title','title_genre','person','credit','genre','credit_role','provenance_record','seed_member','artwork_attachment_request','movie_proposal','prepared_movie_poster','seed_artwork_attribution'];
   ELSE
     names := names || ARRAY['asset','asset_reference'];
   END IF;
