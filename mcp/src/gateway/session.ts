@@ -46,8 +46,12 @@ const outputs = JSON.parse(readFileSync(schemaFile('mcp-outputs'), 'utf8')) as {
 };
 const input = (state: SessionState, name: string) =>
   fromJsonSchema<Record<string, unknown>>(state.schemas[name]!);
+function outputSchema(name: string): JsonSchemaType {
+  const schema = outputs.$defs[name]!;
+  return name === 'proposalQueue' ? { ...schema, $defs: outputs.$defs } : schema;
+}
 const output = (name: string) =>
-  fromJsonSchema<Record<string, unknown>>(outputs.$defs[name]!);
+  fromJsonSchema<Record<string, unknown>>(outputSchema(name));
 function result(value: Record<string, unknown>): { content: MovieContent[]; structuredContent: Record<string, unknown> } {
   const text = JSON.stringify(value);
   if (Buffer.byteLength(text) > 128 * 1024)
@@ -213,7 +217,7 @@ function registerToolListing(server: McpServer, state: SessionState) {
         name,
         description: tool.description!,
         inputSchema: state.schemas[name]! as Tool['inputSchema'],
-        outputSchema: outputs.$defs[results[name]!]! as NonNullable<
+        outputSchema: outputSchema(results[name]!) as NonNullable<
           Tool['outputSchema']
         >,
         ...(tool._meta ? { _meta: tool._meta } : {}),
