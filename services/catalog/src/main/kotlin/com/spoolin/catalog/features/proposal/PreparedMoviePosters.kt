@@ -51,7 +51,7 @@ class PreparedMoviePosters(private val dataSource: DataSource, private val media
         }
         val result = initial.toBuilder().setState(ready.state)
         if (ready.state == "READY") result.setContentHash(ready.contentHash).setWidth(ready.width).setHeight(ready.height)
-            .setMediaType("image/" + ready.format.lowercase().replace("jpeg","jpeg"))
+            .setMediaType("image/" + ready.format.lowercase())
         return result.build().also { poster -> dataSource.committed { conn ->
             conn.executeBound("UPDATE prepared_movie_poster SET metadata=?::jsonb WHERE id=?",posterJson(poster),id)
         } }

@@ -158,13 +158,13 @@ class UploadRpc(
                 }
                 val h = chunk.header
                 val state = headerState(h, actor.accountId)
-                verifyIntent(state.intentId, state.assetId, state.actorId)
+                val intent = verifyIntent(state.intentId, state.assetId, state.actorId)
                 val newSink = ChunkSink(openStaging(state.assetId), h.inputBytes, h.inputSha256.toByteArray())
                 val headerCheck = newSink.validateHeader()
                 if (headerCheck is ChunkSink.WriteResult.Rejected) {
                     fail(response, Status.INVALID_ARGUMENT, null, headerCheck.errorCode)
                 } else {
-                    val inserted = reserveReceiving(h, state.actorId, state.assetId, state.uploadOperationId)
+                    val inserted = reserveReceiving(h, state.actorId, state.assetId, state.uploadOperationId, intent.titleId == state.intentId.toString())
                     if (inserted != 1) {
                         fail(response, Status.ALREADY_EXISTS, null, "DUPLICATE_UPLOAD")
                     } else {
@@ -229,6 +229,7 @@ class UploadRpc(
         actor: UUID,
         assetId: UUID,
         uploadOpId: UUID,
+        preparedPoster: Boolean,
     ): Int =
         dataSource.committed { connection ->
             val requestHash = MessageDigest.getInstance("SHA-256").digest(h.toByteArray())
@@ -246,8 +247,7 @@ class UploadRpc(
                 ) == 1,
             ) { "Upload identity already exists; reconcile its receipt" }
             val inserted = AssetSql.insertReceiving(connection, assetId, uploadOpId, actor, h.inputBytes, policyRevision)
-            val intent = catalog?.find(UUID.fromString(h.intentId))
-            if (intent?.titleId == h.intentId) connection.executeBound("UPDATE asset SET provenance='{\"preparedPoster\":true}'::jsonb WHERE id=?",assetId)
+            if (preparedPoster) connection.executeBound("UPDATE asset SET provenance='{\"preparedPoster\":true}'::jsonb WHERE id=?",assetId)
             inserted
         }
 
@@ -329,7 +329,7 @@ class UploadRpc(
         intentId: UUID,
         assetId: UUID,
         actorId: UUID,
-    ) {
+    ): spoolin.v1.Spoolin.Attachment {
         val authority =
             catalog ?: throw Status.UNAVAILABLE
                 .withDescription("ATTACHMENT_AUTHORITY_UNAVAILABLE")
@@ -339,6 +339,7 @@ class UploadRpc(
             intent.holdId == intentId.toString() && intent.assetId == assetId.toString() &&
                 intent.hasActorId() && intent.actorId == actorId.toString() && intent.state == "PREPARING"
         if (!bound) throw Status.PERMISSION_DENIED.withDescription("UPLOAD_INTENT_INVALID").asRuntimeException()
+        return intent
     }
 
     private fun pendingOutcome(operationId: UUID): Outcome =

@@ -109,7 +109,7 @@ class AssetRpc(
         request: AssetReadRequest,
         response: StreamObserver<AssetReadChunk>,
     ) = protect(response) {
-        if (MediaPeer.current() !in setOf("core", "catalog")) throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (MediaPeer.current() != "core") throw Status.PERMISSION_DENIED.asRuntimeException()
         val opened = openAsset(request)
         val stream = response as? ServerCallStreamObserver<AssetReadChunk>
         if (stream == null) {
