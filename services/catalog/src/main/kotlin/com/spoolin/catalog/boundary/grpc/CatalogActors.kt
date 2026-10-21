@@ -107,6 +107,7 @@ class CatalogActors(
                 "ProposeMovie",
                 "PrepareMoviePoster",
                 "GetMovieProposal",
+                "ListMovieProposals",
                 "ReadMoviePoster",
                 "ApproveAndCreate",
                 "RejectProposal",
