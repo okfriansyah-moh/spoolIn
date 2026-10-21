@@ -304,7 +304,7 @@ val accountIntegrationThresholds by tasks.registering(io.gitlab.arturbosch.detek
             "src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/NonceTlsFixture.kt",
         ),
     )
-    config.setFrom(rootProject.file(".ai/bundles/1.2.1/profiles/kotlin/detekt.yml"))
+    config.setFrom(rootProject.file(".ai/bundles/1.3.0/profiles/kotlin/detekt.yml"))
     buildUponDefaultConfig = false
     ignoreFailures = false
     reports {
