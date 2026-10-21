@@ -10,6 +10,15 @@ internal object MovieProposalJson {
         "expiresAt" to Instant.ofEpochSecond(value.expiresAt.seconds, value.expiresAt.nanos.toLong()).toString(),
         "state" to value.state, "operationId" to value.operationId,
         "values" to values(value.values), "poster" to if (value.hasPoster()) poster(value.poster) else null,
+        "credits" to value.creditsList.map { credit -> mapOf(
+            "personId" to credit.personId.takeIf { credit.hasPersonId() },
+            "personName" to credit.personName.takeIf { credit.hasPersonName() },
+            "personLabel" to credit.personLabel.takeIf { credit.hasPersonLabel() },
+            "roleId" to credit.roleId,
+            "roleLabel" to credit.roleLabel.takeIf { credit.hasRoleLabel() },
+            "characterNames" to credit.characterNamesList,
+            "billingOrder" to credit.billingOrder.takeIf { credit.hasBillingOrder() },
+        ) },
         "sources" to value.sourcesList.map { mapOf("field" to it.field, "url" to it.url, "note" to it.reuseBasis) },
     )
 

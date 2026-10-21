@@ -1,153 +1,148 @@
 import { App } from '@modelcontextprotocol/ext-apps';
 import { renderReview, wireTrustedApproval } from './review-state.js';
 import type { ReviewModel } from './review-state.js';
+import { renderPoster, renderReviewLink } from './presentation.js';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 const root = document.querySelector<HTMLElement>('#app');
-let current: ReviewModel | undefined;
-let submitting = false;
-let posterReady = true;
-let stopped = false;
 const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});
+let generation = 0;
+
 app.ontoolresult = (result) => {
   if (!root || !isRecord(result.structuredContent)) return;
-  const proposal = result.structuredContent;
-  if (
-    typeof proposal.proposalId !== 'string' ||
-    typeof proposal.contentHash !== 'string' ||
-    typeof proposal.revision !== 'number'
-  )
-    return;
-  const values = proposal.normalizedMovie;
-  if (!isRecord(values)) return;
-  const model: ReviewModel = {
-    proposalId: proposal.proposalId,
-    revision: proposal.revision,
-    contentHash: proposal.contentHash,
-    values,
-    ...(isRecord(result._meta) && isRecord(result._meta.ui) && typeof result._meta.ui.challenge === 'string'
-      ? { challenge: result._meta.ui.challenge } : {}),
-    sources: Array.isArray(proposal.sources) ? proposal.sources : [],
-    unknowns: Array.isArray(proposal.unknowns)
-      ? proposal.unknowns.filter(
-          (value): value is string => typeof value === 'string',
-        )
-      : [],
+  const data = result.structuredContent;
+  const proposals = Array.isArray(data.proposals) ? data.proposals : [data];
+  if (!Array.isArray(data.proposals) && typeof data.proposalId !== 'string') return;
+  const selectedGeneration = ++generation;
+  root.replaceChildren();
+  const heading = document.createElement('h1');
+  heading.textContent = proposals.length === 1 ? 'Review movie proposal' : `Review ${proposals.length} movie proposals`;
+  root.append(heading);
+  const intro = document.createElement('p');
+  intro.textContent = proposals.length ? 'Review each poster, movie details and credits. Approve or reject each movie separately.' : 'No proposals are awaiting your review.';
+  root.append(intro);
+  const grid = document.createElement('div');
+  grid.className = 'review-queue';
+  root.append(grid);
+  const ui = isRecord(result._meta) && isRecord(result._meta.ui) ? result._meta.ui : {};
+  const items = isRecord(ui.items) ? ui.items : {};
+  for (const proposal of proposals) {
+    if (!isRecord(proposal) || typeof proposal.proposalId !== 'string') continue;
+    const metadata = Array.isArray(data.proposals) ? items[proposal.proposalId] : ui;
+    renderCard(grid, proposal, isRecord(metadata) ? metadata : {}, selectedGeneration);
+  }
+};
+
+function reviewModel(proposal: Record<string, unknown>, metadata: Record<string, unknown>): ReviewModel | null {
+  if (typeof proposal.proposalId !== 'string' || typeof proposal.contentHash !== 'string' ||
+      typeof proposal.revision !== 'number' || !isRecord(proposal.normalizedMovie)) return null;
+  return {
+    proposalId: proposal.proposalId, revision: proposal.revision, contentHash: proposal.contentHash,
+    values: proposal.normalizedMovie,
+    credits: Array.isArray(proposal.credits) ? proposal.credits : [],
+    sources: Array.isArray(proposal.sources) ? proposal.sources : [], unknowns: [],
+    ...(typeof metadata.challenge === 'string' ? { challenge: metadata.challenge } : {}),
   };
-  current = model;
-  renderReview(root, model);
-  const poster = isRecord(proposal.poster) ? proposal.poster : undefined;
-  const ui = isRecord(result._meta) && isRecord(result._meta.ui) ? result._meta.ui : undefined;
-  const preview = ui && isRecord(ui.posterPreview) ? ui.posterPreview : undefined;
-  posterReady = !poster;
-  if (poster) {
-    const figure = document.createElement('figure');
-    const caption = document.createElement('figcaption');
-    caption.textContent = 'Poster included in this exact revision';
-    figure.append(caption);
-    if (preview && typeof preview.data === 'string' &&
-        ['image/jpeg', 'image/png', 'image/webp'].includes(String(preview.mimeType))) {
-      const image = document.createElement('img');
-      image.alt = `Proposed poster for ${String(values.title ?? 'this movie')}`;
-      image.src = `data:${String(preview.mimeType)};base64,${preview.data}`;
-      image.addEventListener('load', () => {
-        if (current !== model) return;
-        posterReady = true;
-        const approve = root.querySelector<HTMLButtonElement>('[data-action="approve"]');
-        if (approve) approve.disabled = !model.challenge || submitting;
-      });
-      image.addEventListener('error', () => { caption.textContent = 'Poster preview unavailable. Inspect it in signed-in browser review before approval.'; });
-      figure.append(image);
-    } else caption.textContent = 'Poster preview unavailable. Inspect it in signed-in browser review before approval.';
-    root.append(figure);
-  }
-  if (typeof proposal.reviewUrl === 'string') {
-    try {
-      const url = new URL(proposal.reviewUrl);
-      if (url.protocol === 'https:' && !url.username && !url.password) {
-        const link = document.createElement('a');
-        link.href = url.href;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = 'Open signed-in browser review';
-        root.append(link);
-      }
-    } catch { /* Invalid review links are not rendered. */ }
-  }
-  for (const button of root.querySelectorAll('button')) button.disabled = !model.challenge || (button.dataset.action === 'approve' && !posterReady);
+}
+
+function renderCard(grid: HTMLElement, proposal: Record<string, unknown>, metadata: Record<string, unknown>, selectedGeneration: number): void {
+  const model = reviewModel(proposal, metadata);
+  if (!model) return;
+  const article = document.createElement('article');
+  article.className = 'review-card';
+  const heading = document.createElement('h2');
+  heading.textContent = String(model.values.title ?? 'Movie');
+  article.append(heading);
+  const revision = document.createElement('p');
+  revision.className = 'revision';
+  revision.textContent = `Revision ${model.revision} · ${model.credits?.length ?? 0} credits`;
+  article.append(revision);
+  const details = document.createElement('details');
+  const summary = document.createElement('summary');
+  summary.textContent = 'Movie details, credits and sources';
+  const content = document.createElement('div');
+  renderReview(content, model);
+  const actions = content.querySelector<HTMLElement>('.review-actions')!;
+  actions.remove();
+  details.append(summary, content);
+  let busy = false;
+  let decided = false;
+  let posterReady = !isRecord(proposal.poster);
+  const updateButtons = () => {
+    for (const button of actions.querySelectorAll('button')) {
+      button.disabled = busy || decided || !model.challenge || (button.dataset.action === 'approve' && !posterReady);
+    }
+  };
+  renderPoster(article, proposal, metadata, () => {
+    posterReady = true;
+    updateButtons();
+  });
+  article.append(details);
+  renderReviewLink(article, proposal.reviewUrl);
+  article.append(actions);
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
-  status.textContent = model.challenge
-    ? 'Review this exact revision, then approve or reject below.'
-    : 'This host did not provide private review metadata. Use the signed-in browser review link.';
-  root.append(status);
-};
-if (root) wireTrustedApproval(root, () => current!, async (action, model) => {
-  if (submitting || !model.challenge) return;
-  submitting = true;
-  for (const button of root.querySelectorAll('button')) button.disabled = true;
-  const status = root.querySelector('[role="status"]');
-  if (status) status.textContent = 'Submitting your decision…';
-  try {
-    const reply = await app.callServerTool({ name: 'review_movie_proposal', arguments: {
-      proposalId: model.proposalId, revision: model.revision, contentHash: model.contentHash,
-      challenge: model.challenge, action,
-    } });
-    if (reply.isError) {
-      const payload = isRecord(reply.structuredContent) ? reply.structuredContent : {};
-      const problem = isRecord(payload.problem) ? payload.problem : {};
-      const code = String(problem.code ?? 'UNAVAILABLE');
-      const messages: Record<string, string> = {
-        STALE_VERSION: 'This review changed or was reopened in the browser. Open browser review for the current decision controls.',
-        NOT_FOUND: 'This proposal expired or was already decided. Open browser review to see its current state.',
-        UNAUTHENTICATED: 'Reconnect SpoolIn to sign in again, or use signed-in browser review.',
-        FORBIDDEN: 'This connection cannot decide this proposal. Use its owning Maintainer account in browser review.',
-        POLICY_CHANGED: 'The movie policy changed. Prepare a fresh proposal before approval.',
-      };
-      throw new Error(messages[code] ?? 'The decision could not be submitted. Retry when SpoolIn is available, or use browser review.');
+  status.textContent = model.challenge ? 'Awaiting your decision.' : 'Private review controls unavailable. Open signed-in browser review.';
+  article.append(status);
+  grid.append(article);
+  updateButtons();
+  wireTrustedApproval(article, () => model, async (action) => {
+    if (busy || decided || !model.challenge || (action === 'approve' && !posterReady)) return;
+    busy = true;
+    updateButtons();
+    status.textContent = 'Submitting your decision…';
+    try {
+      const reply = await app.callServerTool({ name: 'review_movie_proposal', arguments: {
+        proposalId: model.proposalId, revision: model.revision, contentHash: model.contentHash,
+        challenge: model.challenge, action,
+      } });
+      if (reply.isError) throw reviewFailure(reply.structuredContent);
+      decided = true;
+      const initial = isRecord(reply.structuredContent) ? reply.structuredContent : {};
+      await showCompletion(initial, action, status, selectedGeneration);
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : 'Review unavailable. Use signed-in browser review.';
+    } finally {
+      busy = false;
+      updateButtons();
     }
-    const initialReceipt = isRecord(reply.structuredContent) ? reply.structuredContent : {};
-    const receipt = await waitForCompletion(initialReceipt, model, status);
-    const state = String(receipt.state ?? 'UNKNOWN');
-    const problem = isRecord(receipt.problem) ? receipt.problem : undefined;
-    if (problem || receipt.resultExpired === true || state === 'FAILED' || state === 'EXPIRED') {
-      throw new Error(`Decision was not completed (${String(problem?.code ?? state)}). Use browser review for the current proposal.`);
-    }
-    if (state === 'SUCCEEDED') {
-      if (status) status.textContent = action === 'approve' ? 'Approved. Movie and included poster saved.' : 'Proposal rejected.';
-    } else if (state === 'PENDING') {
-      if (status) status.textContent = 'Your decision is still processing. Check the operation or browser review for completion.';
-    } else throw new Error(`Unexpected operation status (${state}). Check browser review before trying again.`);
-  } catch (error) {
-    if (status) status.textContent = error instanceof Error ? error.message : 'Review unavailable. Use browser review.';
-    for (const button of root.querySelectorAll('button')) button.disabled = button.dataset.action === 'approve' && !posterReady;
-  } finally { submitting = false; }
-});
-app.ontoolcancelled = () => {
-  stopped = true;
-  if (root) root.textContent = 'Proposal review cancelled.';
-};
-app.onteardown = async () => { stopped = true; return {}; };
-void app.connect().catch(() => {
-  if (root) root.textContent = 'The review host connection is unavailable.';
-});
+  });
+}
 
-async function waitForCompletion(
-  initial: Record<string, unknown>, model: ReviewModel, status: Element | null,
-): Promise<Record<string, unknown>> {
+function reviewFailure(payload: unknown): Error {
+  const problem = isRecord(payload) && isRecord(payload.problem) ? payload.problem : {};
+  const messages: Record<string, string> = {
+    STALE_VERSION: 'This revision or its review controls changed. Reopen the review queue.',
+    NOT_FOUND: 'This proposal expired or was already decided. Open browser review for its current state.',
+    UNAUTHENTICATED: 'Reconnect SpoolIn to sign in again.',
+    FORBIDDEN: 'Use the owning Maintainer account in browser review.',
+    POLICY_CHANGED: 'The movie policy changed. Prepare a fresh proposal.',
+  };
+  return new Error(messages[String(problem.code)] ?? 'The decision could not be submitted. Use signed-in browser review.');
+}
+
+async function showCompletion(initial: Record<string, unknown>, action: string, status: HTMLElement, selectedGeneration: number): Promise<void> {
   let receipt = initial;
-  if (typeof receipt.operationId !== 'string') return receipt;
   const operationId = receipt.operationId;
-  for (let attempt = 0; receipt.state === 'PENDING' && attempt < 15; attempt += 1) {
-    if (status) status.textContent = 'Your decision was saved. Finishing movie and poster storage…';
+  for (let attempt = 0; receipt.state === 'PENDING' && typeof operationId === 'string' && attempt < 15; attempt += 1) {
+    status.textContent = 'Decision saved. Finishing movie and poster storage…';
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    if (stopped || current !== model) return receipt;
+    if (generation !== selectedGeneration) return;
     const reply = await app.callServerTool({ name: 'movie_operation', arguments: { operationId } });
-    if (reply.isError || !isRecord(reply.structuredContent)) return receipt;
+    if (reply.isError || !isRecord(reply.structuredContent)) break;
     receipt = reply.structuredContent;
   }
-  return receipt;
+  if (generation !== selectedGeneration) return;
+  if (receipt.state === 'SUCCEEDED' && !receipt.problem && receipt.resultExpired !== true) {
+    status.textContent = action === 'approve' ? 'Approved. Movie, credits and included poster saved.' : 'Proposal rejected.';
+  } else if (receipt.state === 'PENDING') {
+    status.textContent = 'Decision saved; storage is still processing. Check browser review for completion.';
+  } else status.textContent = `Decision was not completed (${String(isRecord(receipt.problem) ? receipt.problem.code : receipt.state)}). Open browser review.`;
 }
+
+app.ontoolcancelled = () => { generation += 1; if (root) root.textContent = 'Proposal review cancelled.'; };
+app.onteardown = async () => { generation += 1; return {}; };
+void app.connect().catch(() => { if (root) root.textContent = 'The review host connection is unavailable.'; });

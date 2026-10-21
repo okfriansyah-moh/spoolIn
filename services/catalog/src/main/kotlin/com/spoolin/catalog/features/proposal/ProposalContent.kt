@@ -14,7 +14,13 @@ object ProposalContent {
             "policy_revision" to request.context.policyRevision,
             "values" to valuesMap(request.values),
             "sources" to request.sourcesList.map(::sourceMap),
-        )); if (request.hasPosterRef()) put("poster_ref",request.posterRef) }
+        )); if (request.hasPosterRef()) put("poster_ref",request.posterRef)
+            if (request.creditsCount > 0) put("credits", request.creditsList.map(ProposalCredits::content)) }
+
+    fun credits(content: Map<String, Any?>): List<Spoolin.ProposalCredit> {
+        @Suppress("UNCHECKED_CAST")
+        return (content["credits"] as? List<Map<String, Any?>> ?: emptyList()).map(ProposalCredits::fromContent)
+    }
 
     fun poster(content: Map<String,Any?>): Spoolin.PreparedPoster? {
         @Suppress("UNCHECKED_CAST")

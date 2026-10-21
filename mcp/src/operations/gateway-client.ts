@@ -17,6 +17,8 @@ import type {
   PreparedPoster,
   MoviePosterReadRequest,
   MoviePosterImage,
+  MovieProposalQueueRequest,
+  MovieProposalQueue,
 } from '../generated/spoolin/v1/spoolin.js';
 
 type Invocation<T> = (
@@ -101,6 +103,9 @@ export class GatewayClient {
     return this.call('GetMovieContext', (m, o, cb) =>
       this.client.getMovieContext({ query, limit }, m, o, cb),
     );
+  }
+  reviewQueue(request: MovieProposalQueueRequest): Promise<MovieProposalQueue> {
+    return this.call('ListMovieProposals', (m, o, cb) => this.client.listMovieProposals(request, m, o, cb));
   }
   propose(request: Proposal): Promise<ProposalRevision> {
     return this.call('ProposeMovie', (m, o, cb) =>

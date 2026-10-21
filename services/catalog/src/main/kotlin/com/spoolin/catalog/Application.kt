@@ -795,6 +795,7 @@ class ServiceIdentityInterceptor(
             put("spoolin.v1.CatalogService/ProposeMovie", setOf("core"))
             put("spoolin.v1.CatalogService/PrepareMoviePoster", setOf("core"))
             put("spoolin.v1.CatalogService/GetMovieProposal", setOf("core"))
+            put("spoolin.v1.CatalogService/ListMovieProposals", setOf("core"))
             put("spoolin.v1.CatalogService/ReadMoviePoster", setOf("core"))
             put("spoolin.v1.CatalogService/ApproveAndCreate", setOf("core"))
             put("spoolin.v1.CatalogService/RejectProposal", setOf("core"))

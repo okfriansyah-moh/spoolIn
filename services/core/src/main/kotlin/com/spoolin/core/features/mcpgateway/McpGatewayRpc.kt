@@ -115,6 +115,26 @@ class McpGatewayRpc(
         }
     }
 
+    override fun listMovieProposals(
+        request: Spoolin.MovieProposalQueueRequest,
+        response: StreamObserver<Spoolin.MovieProposalQueue>,
+    ) {
+        if (request.proposalIdsCount > MAX_CONTEXT_TITLES || request.limit !in 1..MAX_CONTEXT_TITLES) {
+            response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
+            return
+        }
+        access.forward(McpCatalogInvocation(CATALOG_SERVICE + "ListMovieProposals"), response) { stub ->
+            val queue = stub.listMovieProposals(request)
+            queue.proposalsList.forEach { revision ->
+                if (revision.hasUiChallenge() && !revision.uiChallenge.isEmpty) {
+                    uiChallenges.put(revision.proposalId, revision.revision,
+                        revision.contentHash, revision.uiChallenge.toStringUtf8())
+                }
+            }
+            queue
+        }
+    }
+
     override fun proposeMovie(
         request: Spoolin.Proposal,
         response: StreamObserver<Spoolin.ProposalRevision>,

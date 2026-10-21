@@ -11,6 +11,7 @@ import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
 import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.committed
+import com.spoolin.support.receipts.queryBound
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.SafeResult
 import io.grpc.Status
@@ -52,6 +53,7 @@ class ProposalWrites(
             val correlation = parseId(request.context.correlationId)
             val mutation: (java.sql.Connection) -> SafeResult = { conn ->
                 checkPolicy(normalized.context.policyRevision)
+                ProposalCredits.validate(conn, normalized.creditsList)
                 val challenge = randomChallenge().also { freshChallenge = it }
                 val poster = if (normalized.hasPosterRef()) requireNotNull(posters).resolve(conn,normalized.posterRef,claims.clientKind == null) else null
                 if (poster != null && poster.state != "READY") throw Status.FAILED_PRECONDITION.withDescription("POSTER_NOT_READY").asRuntimeException()
@@ -66,7 +68,7 @@ class ProposalWrites(
             val row = proposalRow(normalized, outcome)
             ProposalRevisions.assertOwner(row, claims)
             ProposalRevisions.requireReview(row, clock.instant())
-            response.onNext(ProposalResponse.fromRow(row, freshChallenge))
+            response.onNext(dataSource.connection.use { ProposalResponse.fromRow(row, freshChallenge,it) })
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
@@ -92,6 +94,36 @@ class ProposalWrites(
         requireNotNull(posters).read(request)
     }
 
+    fun list(request: Spoolin.MovieProposalQueueRequest, response: StreamObserver<Spoolin.MovieProposalQueue>) = respond(response) {
+        val claims = proposalClaims()
+        require(request.proposalIdsCount <= 20)
+        val requested = request.proposalIdsList.map(::parseId).toSet()
+        val limit = if (request.limit == 0) 20 else request.limit.also { require(it in 1..20) }
+        dataSource.committed { conn ->
+            val connectorClause = if (claims.clientKind == null) "" else " AND connector_id=? AND client_kind=?"
+            val args = mutableListOf<Any?>(claims.accountId)
+            if (claims.clientKind != null) { args.add(claims.credentialId); args.add(claims.clientKind) }
+            val idClause = if (requested.isEmpty()) "" else " AND id IN (${requested.joinToString(",") { "?" }})"
+            args.addAll(requested)
+            args.add(limit)
+            val ids = conn.queryBound(
+                "SELECT p.id FROM movie_proposal p WHERE actor_id=? AND state='REVIEW' AND expires_at>CURRENT_TIMESTAMP" +
+                    connectorClause + idClause +
+                    " AND NOT EXISTS (SELECT 1 FROM movie_proposal newer WHERE newer.id=p.id AND newer.revision>p.revision)" +
+                    " ORDER BY created_at DESC,id LIMIT ? FOR UPDATE OF p", args,
+            ) { it.getObject(1,UUID::class.java) }
+            val proposals = ids.map { id ->
+                val row = requireNotNull(ProposalStore.latestForUpdate(conn,id))
+                ProposalRevisions.assertOwner(row,claims)
+                val challenge = randomChallenge()
+                conn.executeBound("UPDATE movie_proposal SET challenge_hash=? WHERE id=? AND revision=?",
+                    java.security.MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray()),id,row.revision)
+                ProposalResponse.fromRow(row,challenge,conn)
+            }
+            Spoolin.MovieProposalQueue.newBuilder().addAllProposals(proposals).build()
+        }
+    }
+
     fun read(request: Spoolin.MovieProposalRequest,response: StreamObserver<Spoolin.ProposalRevision>) = respond(response) {
         val claims = proposalClaims()
         dataSource.committed { conn ->
@@ -103,7 +135,7 @@ class ProposalWrites(
             if (challenge != null) conn.executeBound(
                 "UPDATE movie_proposal SET challenge_hash=? WHERE id=? AND revision=?",
                 java.security.MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray()),row.id,row.revision)
-            ProposalResponse.fromRow(row,challenge)
+            ProposalResponse.fromRow(row,challenge,conn)
         }
     }
 
@@ -325,11 +357,14 @@ class ProposalWrites(
                 row.operationId,
                 correlationId,
             )
-        ProposalStore.markCreated(conn, row, movieOutcome.resultId, approvedAt, approvalExpires)
+        val credits = ProposalContent.credits(content)
+        ProposalCredits.publish(conn,credits,movieOutcome.resultId,claims.accountId,row.operationId,correlationId)
+        val published = movieOutcome.copy(version = (movieOutcome.version ?: 0) + credits.size)
+        ProposalStore.markCreated(conn, row, published.resultId, approvedAt, approvalExpires)
         val poster = ProposalContent.poster(content)
-        if (poster == null) receipts.completePending(conn, row.operationId, movieOutcome)
-        else enqueuePosterAttachment(conn,claims,row,movieOutcome,poster,correlationId)
-        return movieOutcome
+        if (poster == null) receipts.completePending(conn, row.operationId, published)
+        else enqueuePosterAttachment(conn,claims,row,published,poster,correlationId)
+        return published
     }
 
     private fun enqueuePosterAttachment(conn: java.sql.Connection,claims: com.spoolin.support.identity.ActorClaims,row: ProposalRow,movie: SafeResult,poster: Spoolin.PreparedPoster,correlation: UUID) {

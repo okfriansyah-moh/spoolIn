@@ -13,6 +13,7 @@ const operations = new Set([
   'movie_context',
   'movie_operation',
   'propose_movie',
+  'movie_review_queue',
   'prepare_movie_poster',
   'unknown',
 ]);

@@ -103,7 +103,7 @@ class MovieProposalReview(
         if (poster.state != "READY") return@json mapOf("poster" to MovieProposalJson.poster(poster), "state" to poster.state)
         val proposal = Spoolin.Proposal.newBuilder().setProposalId(id).setExpectedRevision(body.revision)
             .setContext(operationContext(context, UUID.nameUUIDFromBytes("poster-revision:$operation".toByteArray())))
-            .setValues(current.values).addAllSources(current.sourcesList).setPosterRef(poster.refId).build()
+            .setValues(current.values).addAllSources(current.sourcesList).addAllCredits(current.creditsList.map { it.toBuilder().clearPersonLabel().clearRoleLabel().build() }).setPosterRef(poster.refId).build()
         MovieProposalJson.revision(stub(context, "ProposeMovie", UUID.fromString(proposal.context.operationId)).proposeMovie(proposal))
     }
 

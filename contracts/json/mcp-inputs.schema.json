@@ -140,6 +140,66 @@
         "type": "string",
         "format": "uuid",
         "description": "Owned prepared poster reference returned by prepare_movie_poster in READY state."
+      },
+      "credits": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+          "type": "object",
+          "properties": {
+            "personId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "personName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "roleId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "characterNames": {
+              "type": "array",
+              "maxItems": 100,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "billingOrder": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "roleId"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "personId"
+              ],
+              "not": {
+                "required": [
+                  "personName"
+                ]
+              }
+            },
+            {
+              "required": [
+                "personName"
+              ],
+              "not": {
+                "required": [
+                  "personId"
+                ]
+              }
+            }
+          ],
+          "additionalProperties": false
+        }
       }
     },
     "required": [
@@ -333,5 +393,25 @@
         ]
       }
     }
+  },
+  "movie_review_queue": {
+    "type": "object",
+    "properties": {
+      "proposalIds": {
+        "type": "array",
+        "maxItems": 20,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20
+      }
+    },
+    "additionalProperties": false
   }
 }

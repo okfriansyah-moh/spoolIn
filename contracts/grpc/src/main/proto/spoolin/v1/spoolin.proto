@@ -243,6 +243,25 @@ message Impact {
   google.protobuf.Timestamp expires_at = 6;
 }
 
+message ProposalCredit {
+  optional string person_id = 1;
+  optional string person_name = 2;
+  string role_id = 3;
+  repeated string character_names = 4;
+  optional int32 billing_order = 5;
+  optional string person_label = 6;
+  optional string role_label = 7;
+}
+
+message MovieProposalQueueRequest {
+  repeated string proposal_ids = 1;
+  int32 limit = 2;
+}
+
+message MovieProposalQueue {
+  repeated ProposalRevision proposals = 1;
+}
+
 message Proposal {
   Context context = 1;
   MovieValues values = 2;
@@ -250,6 +269,7 @@ message Proposal {
   optional string proposal_id = 4;
   optional int32 expected_revision = 5;
   optional string poster_ref = 6;
+  repeated ProposalCredit credits = 7;
 }
 
 message ProposalRevision {
@@ -264,6 +284,7 @@ message ProposalRevision {
   string state = 9;
   string operation_id = 10;
   optional string review_url = 11;
+  repeated ProposalCredit credits = 12;
 }
 
 message PrepareMoviePosterRequest {
@@ -504,6 +525,7 @@ service CatalogService {
   rpc ResolveArtworkAccess(ArtworkAccessRequest) returns(ArtworkGrant);
   rpc PrepareMoviePoster(PrepareMoviePosterRequest) returns(PreparedPoster);
   rpc GetMovieProposal(MovieProposalRequest) returns(ProposalRevision);
+  rpc ListMovieProposals(MovieProposalQueueRequest) returns(MovieProposalQueue);
   rpc ReadMoviePoster(MoviePosterReadRequest) returns(MoviePosterImage);
   rpc ProposeMovie(Proposal) returns(ProposalRevision);
   rpc ApproveAndCreate(ApprovalInput) returns(Outcome);
@@ -527,6 +549,7 @@ service McpGatewayService {
   rpc GetMovieContext(MovieContextRequest) returns(MovieContext);
   rpc PrepareMoviePoster(PrepareMoviePosterRequest) returns(PreparedPoster);
   rpc GetMovieProposal(MovieProposalRequest) returns(ProposalRevision);
+  rpc ListMovieProposals(MovieProposalQueueRequest) returns(MovieProposalQueue);
   rpc ReadMoviePoster(MoviePosterReadRequest) returns(MoviePosterImage);
   rpc ProposeMovie(Proposal) returns(ProposalRevision);
   rpc ApproveMovie(ApprovalInput) returns(Outcome);

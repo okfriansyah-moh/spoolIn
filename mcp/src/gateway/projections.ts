@@ -90,6 +90,15 @@ export function proposalProjection(
     status: 'REVIEW',
     reviewUrl: value.reviewUrl || reviewUrl(value.proposalId, value.revision),
     poster: value.poster ? posterProjection(value.poster) : null,
+    credits: value.credits.map((credit) => ({
+      ...(credit.personId ? { personId: credit.personId } : {}),
+      ...(credit.personName ? { personName: credit.personName } : {}),
+      roleId: credit.roleId,
+      ...(credit.personLabel ? { personLabel: credit.personLabel } : {}),
+      ...(credit.roleLabel ? { roleLabel: credit.roleLabel } : {}),
+      characterNames: credit.characterNames,
+      ...(credit.billingOrder !== undefined ? { billingOrder: credit.billingOrder } : {}),
+    })),
     sources: value.sources.map((source) => ({ field: source.field, url: source.url, reuseBasis: source.reuseBasis })),
     reviewResourceUri: `spoolin://proposal/${value.proposalId}/${value.revision}`,
   };

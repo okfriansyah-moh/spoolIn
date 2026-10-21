@@ -11,6 +11,7 @@ export type ProposalReview = Readonly<{
   state: string;
   operationId: string;
   values: Record<string, unknown>;
+  credits: Record<string, unknown>[];
   sources: { field: string; url: string; note: string }[];
   poster: { url: string; width: number; height: number; mediaType: string } | null;
 }>;
@@ -38,6 +39,7 @@ export function parseProposal(value: unknown): ProposalReview {
     state: text(data.state),
     operationId: text(data.operationId),
     values: record(data.values),
+    credits: Array.isArray(data.credits) ? data.credits.map(record) : [],
     sources: data.sources.map((value) => {
       const source = record(value);
       return { field: text(source.field), url: text(source.url), note: [source.note, source.reuseBasis, source.retrievedAt, source.precision].filter((item): item is string => typeof item === 'string' && item.length > 0).join(' · ') };

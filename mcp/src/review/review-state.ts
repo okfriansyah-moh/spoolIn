@@ -4,6 +4,7 @@ export type ReviewModel = Readonly<{
   contentHash: string;
   values: Record<string, unknown>;
   sources: readonly unknown[];
+  credits?: readonly unknown[];
   unknowns: readonly string[];
   challenge?: string;
 }>;
@@ -57,7 +58,7 @@ function displayValue(value: unknown): string {
 
 export function renderReview(root: HTMLElement, model: ReviewModel): void {
   root.replaceChildren();
-  const heading = document.createElement('h1');
+  const heading = document.createElement('h3');
   heading.textContent = `Review proposal revision ${model.revision}`;
   root.append(heading);
   const list = document.createElement('dl');
@@ -69,6 +70,25 @@ export function renderReview(root: HTMLElement, model: ReviewModel): void {
     list.append(term, detail);
   }
   root.append(list);
+  const creditsHeading = document.createElement('h3');
+  creditsHeading.textContent = 'Cast and crew';
+  root.append(creditsHeading);
+  const creditsList = document.createElement('ul');
+  for (const value of model.credits ?? []) {
+    if (typeof value !== 'object' || value === null) continue;
+    const credit = value as Record<string, unknown>;
+    const item = document.createElement('li');
+    const characters = Array.isArray(credit.characterNames) ? credit.characterNames.join(', ') : '';
+    const billing = credit.billingOrder == null ? '' : ` · billing ${String(credit.billingOrder)}`;
+    item.textContent = `${String(credit.personLabel ?? credit.personName ?? credit.personId ?? 'Unknown person')} — ${String(credit.roleLabel ?? credit.roleId ?? 'Unknown role')}${characters ? ` as ${characters}` : ''}${billing}`;
+    creditsList.append(item);
+  }
+  if (!creditsList.children.length) {
+    const empty = document.createElement('li');
+    empty.textContent = 'No credits included in this revision.';
+    creditsList.append(empty);
+  }
+  root.append(creditsList);
   if (model.sources.length > 0) {
     const sourcesHeading = document.createElement('h2');
     sourcesHeading.textContent = 'Source references';

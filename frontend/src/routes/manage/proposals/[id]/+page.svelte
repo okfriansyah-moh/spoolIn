@@ -154,7 +154,16 @@
         </form>{/if}
       </section>
     </div>
-    <section class="panel"><h2>Decision</h2><p>Approval creates the movie using this exact revision. Its poster must finish attaching before the operation is complete.</p>
+    <section class="panel"><h2>Cast and crew</h2>
+      {#if proposal.credits.length}
+        <ul>{#each proposal.credits as credit}<li>
+          {proposalValue(credit.personLabel ?? credit.personName ?? credit.personId)} — {proposalValue(credit.roleLabel ?? credit.roleId)}
+          {#if Array.isArray(credit.characterNames) && credit.characterNames.length} as {proposalValue(credit.characterNames)}{/if}
+          {#if credit.billingOrder != null} · Billing order: {proposalValue(credit.billingOrder)}{/if}
+        </li>{/each}</ul>
+      {:else}<p>No credits included in this revision.</p>{/if}
+    </section>
+    <section class="panel"><h2>Decision</h2><p>Approval creates the movie and included credits using this exact revision. Its poster must finish attaching before the operation is complete.</p>
       {#if proposal.state !== 'REVIEW'}<p>This proposal is {proposal.state.toLowerCase()}. Approval and replacement are unavailable.</p>{/if}
       <div class="actions"><button type="button" disabled={!reviewable || busy || processingPoster} aria-busy={busy} onclick={() => void decide('approve')}>Approve exact revision</button><button type="button" class="secondary" disabled={!reviewable || busy || processingPoster} onclick={() => void decide('reject')}>Reject</button></div>
       <p class="revision">Content digest: {proposal.contentHash}</p>

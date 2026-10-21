@@ -441,6 +441,72 @@
             ],
             "additionalProperties": false
           }
+        },
+        "credits": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "properties": {
+              "personId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "personName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255
+              },
+              "roleId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "characterNames": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "billingOrder": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "personLabel": {
+                "type": "string"
+              },
+              "roleLabel": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "roleId"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "personId"
+                ],
+                "not": {
+                  "required": [
+                    "personName"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "personName"
+                ],
+                "not": {
+                  "required": [
+                    "personId"
+                  ]
+                }
+              }
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [
@@ -605,6 +671,22 @@
         "url"
       ],
       "additionalProperties": false
+    },
+    "proposalQueue": {
+      "type": "object",
+      "properties": {
+        "proposals": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/proposalReview"
+          }
+        }
+      },
+      "required": [
+        "proposals"
+      ],
+      "additionalProperties": false
     }
   },
   "toolOutputs": {
@@ -625,6 +707,9 @@
     },
     "prepare_movie_poster": {
       "$ref": "#/$defs/preparedPoster"
+    },
+    "movie_review_queue": {
+      "$ref": "#/$defs/proposalQueue"
     }
   }
 }

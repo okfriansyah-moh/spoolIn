@@ -588,6 +588,7 @@ class ServiceIdentityInterceptor : ServerInterceptor {
             put("spoolin.v1.McpGatewayService/ProposeMovie", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/PrepareMoviePoster", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/ReadMoviePoster", setOf("mcp"))
+            put("spoolin.v1.McpGatewayService/ListMovieProposals", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/GetReviewIdentity", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/ApproveMovie", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/RejectMovie", setOf("mcp"))
