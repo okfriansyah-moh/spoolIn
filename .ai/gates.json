@@ -643,7 +643,7 @@
         "tests/browser/flows/policy/**/*.ts",
         "tests/browser/playwright.policy.config.ts",
         ".ai/gates.json",
-        ".ai/bundles/1.2.1/profiles/security/semgrep.yml"
+        ".ai/bundles/1.3.0/profiles/security/semgrep.yml"
       ],
       "argv": [
         "semgrep",
@@ -690,8 +690,8 @@
         "tests/browser/playwright.policy.config.ts",
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
-        ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
-        ".ai/bundles/1.2.1/docs/verification-tools.json"
+        ".ai/bundles/1.3.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.3.0/docs/verification-tools.json"
       ],
       "argv": [
         "gitleaks",
@@ -762,8 +762,8 @@
         "build-tools/verification-tests/*.py",
         ".ai/gates.json",
         ".ai/security/gitleaks.toml",
-        ".ai/bundles/1.2.1/profiles/security/gitleaks.toml",
-        ".ai/bundles/1.2.1/docs/verification-tools.json"
+        ".ai/bundles/1.3.0/profiles/security/gitleaks.toml",
+        ".ai/bundles/1.3.0/docs/verification-tools.json"
       ],
       "argv": [
         "python3",
@@ -1729,7 +1729,7 @@
     "Commands are required build contracts for application setup; missing wrappers/tasks/scripts block applicable checks.",
     "Do not run application tasks during workflow installation.",
     "Documentation mockup scripts are source requirements, not application components; their content remains fingerprinted.",
-    "Service changes conservatively select all checks because identity and data calls cross service boundaries in both directions; frontend-only changes can remain narrow."
+    "Ordinary component changes select affected components and downstream consumers; unknown executable inputs and shared build or policy changes broaden conservatively."
   ],
   "source_exclude": [
     "docs/**"
@@ -1741,14 +1741,22 @@
     ],
     "contracts": [
       "contracts/**",
-      "tests/contracts/**"
+      "tests/contracts/**",
+      "build-tools/generate-*.mjs",
+      "build-tools/contracts/**",
+      "build-tools/contracts.gradle.kts"
     ],
     "core": [
       "services/core/**",
-      "tests/core/**"
+      "tests/core/**",
+      "libraries/backend-support/**"
     ],
     "foundation": [
-      "build-tools/verification-tests/**"
+      "build-tools/verification-tests/**",
+      "ops/local/**",
+      "ops/bin/**",
+      "ops/ci/**",
+      "ops/monitoring/**"
     ],
     "frontend": [
       "frontend/**",
@@ -1805,9 +1813,7 @@
     "gradle.properties",
     "gradle.lockfile",
     "Makefile",
-    "ops/**",
-    "build-tools/**",
     "services/shared/**",
-    "services/**"
+    "libraries/backend-support/**"
   ]
 }
