@@ -426,3 +426,20 @@ SpoolIn's specified in-chat movie proposal and approval flow for ChatGPT and Cla
 ## Ownership transfer between coding hosts
 
 After the old coordinator stops and releases its active claims, use the selected bundle's `selection --action transfer` with the existing selection ID, recorded owner, next owner and expected full Git revision. The new host resumes that same record; inputs, constraints, findings and budgets are retained. Stale revisions and mutations by the former owner are rejected. See the [transfer contract](../.ai/bundles/1.3.0/docs/COORDINATION.md#transfer-a-selection-between-hosts).
+
+## Release 1.3.0 verification on 21 October 2026
+
+The reviewed reusable source is `2dfeba592b4ccc6e7cfe5ca29415f846b2384e77`. Its required source suite passed 296 tests. The combined independent review accepted the source, project changes and candidate installation with no unresolved required findings.
+
+Global and movie-app updates selected 1.3.0 with 74 skills, zero conflicts and healthy integrity results. Every file under the source runtime, skills, docs, prompts, roles, adapters, profiles and schemas matched both installed bundles. An isolated 1.2.1 → 1.3.0 → rollback → 1.3.0 exercise returned healthy results and preserved its personal-settings control. Existing detekt policy bytes were unchanged when the build references moved to 1.3.0.
+
+| Host and observed surface | Actual observation | Remaining limits |
+|---|---|---|
+| Codex embedded desktop engine | Bounded native smoke stopped after its patch operation failed; no product work was performed. | Fixture freshness also changed. Native profile, review and hook proof remain unverified; this is not a desktop UI loading pass. |
+| Cursor AI desktop 3.25.6 | In the disposable workspace, the current chat edited `smoke.json` once to exactly `{"value":"pass"}`. A separate native subagent completed read-only review. The UI reported 56 seconds and no tests, shell, Git or publication. File content was inspected independently. | Named profile identity, complete skill-origin discovery and correlated hook execution were not established. This observation is not a blanket host-certification result. |
+| Claude Code CLI | Native initialization listed the expected agents. | Captured metadata did not establish the main profile, project skill origins or correlated notification hooks; full native proof remains incomplete. |
+| GitHub Copilot CLI | Native catalogs returned the required enabled skills and instruction sources. | Bounded smoke timed out; complete review/hook proof and IDE behavior remain unverified. |
+
+Native verification limits do not invalidate the passing source/adapter checks, and source/adapter checks do not establish missing native observations. The GitHub Copilot IDE surface was not exercised. No application feature or application acceptance suite was started by this release task.
+
+The source bundle is delivered through the movie-app draft PR. The standalone harness source remains local until its owner creates a separate repository. The completion message supplies the published project revision and PR link. Installation backups are retained by the existing installer; historical verification sections above retain their original dates and results.
