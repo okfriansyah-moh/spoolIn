@@ -422,3 +422,7 @@ The [PRD skill comparison](research/prd-skills-comparison-2026-10-09.md) and [de
 OpenAI `image_gen`, through the installed imagegen skill, produced four fictional prototype artwork assets. Their prompts, generator, purpose, and provenance are retained in the [artwork record](design-system/mockup/assets/artwork-provenance.json). They are illustrative design fixtures, not production catalog seed data. The imagegen capability is supporting host/plugin tooling, outside the 74-skill workflow inventory.
 
 SpoolIn's specified in-chat movie proposal and approval flow for ChatGPT and Claude is product functionality. It is not the development harness's Context7 connection or coding-agent permissions. Its transport, exact-content approval, replay prevention, and real-client acceptance are specified in [the technical design](04-spoolin-techdoc.md), [ATDD](05-atdd.md), and [assisted creation task group](plan/18-assisted-movie-creation-transport-and-review/group.md). Development host fixtures do not satisfy those product cases.
+
+## Ownership transfer between coding hosts
+
+After the old coordinator stops and releases its active claims, use the selected bundle's `selection --action transfer` with the existing selection ID, recorded owner, next owner and expected full Git revision. The new host resumes that same record; inputs, constraints, findings and budgets are retained. Stale revisions and mutations by the former owner are rejected. See the [transfer contract](../.ai/bundles/1.3.0/docs/COORDINATION.md#transfer-a-selection-between-hosts).
