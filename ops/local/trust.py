@@ -31,8 +31,9 @@ def trust(certificate=CERTIFICATE):
     print(f'Trusting SpoolIn local CA (SHA-256: {fingerprint}).', flush=True)
     system = platform.system()
     if system == 'Darwin':
+        # Chromium ignores macOS trust entries carrying a hostname policy string.
         run('security', 'add-trusted-cert', '-r', 'trustRoot', '-p', 'ssl',
-            '-s', 'localhost', '-k', str(Path.home() / 'Library/Keychains/login.keychain-db'),
+            '-k', str(Path.home() / 'Library/Keychains/login.keychain-db'),
             str(certificate))
     elif system == 'Windows':
         run('certutil.exe', '-user', '-addstore', '-f', 'Root', str(certificate))

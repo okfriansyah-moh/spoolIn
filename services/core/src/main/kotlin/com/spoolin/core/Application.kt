@@ -222,7 +222,7 @@ class RuntimeConfiguration {
     ): SecurityFilterChain {
         http.authorizeHttpRequests { it.anyRequest().permitAll() }
         http.csrf {
-            it.ignoringRequestMatchers("/graphql")
+            it.ignoringRequestMatchers("/graphql", "/api/movie-proposals/**")
             it.ignoringRequestMatchers(RequestMatcher { request -> alertMachineRequest(request, environment) })
         }
         return http.build()
@@ -586,6 +586,10 @@ class ServiceIdentityInterceptor : ServerInterceptor {
             put("spoolin.v1.McpGatewayService/GetPolicy", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/GetMovieContext", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/ProposeMovie", setOf("mcp"))
+            put("spoolin.v1.McpGatewayService/PrepareMoviePoster", setOf("mcp"))
+            put("spoolin.v1.McpGatewayService/ReadMoviePoster", setOf("mcp"))
+            put("spoolin.v1.McpGatewayService/ListMovieProposals", setOf("mcp"))
+            put("spoolin.v1.McpGatewayService/GetReviewIdentity", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/ApproveMovie", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/RejectMovie", setOf("mcp"))
             put("spoolin.v1.McpGatewayService/GetMovieOperation", setOf("mcp"))

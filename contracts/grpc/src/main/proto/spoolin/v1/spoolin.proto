@@ -243,12 +243,33 @@ message Impact {
   google.protobuf.Timestamp expires_at = 6;
 }
 
+message ProposalCredit {
+  optional string person_id = 1;
+  optional string person_name = 2;
+  string role_id = 3;
+  repeated string character_names = 4;
+  optional int32 billing_order = 5;
+  optional string person_label = 6;
+  optional string role_label = 7;
+}
+
+message MovieProposalQueueRequest {
+  repeated string proposal_ids = 1;
+  int32 limit = 2;
+}
+
+message MovieProposalQueue {
+  repeated ProposalRevision proposals = 1;
+}
+
 message Proposal {
   Context context = 1;
   MovieValues values = 2;
   repeated FieldSource sources = 3;
   optional string proposal_id = 4;
   optional int32 expected_revision = 5;
+  optional string poster_ref = 6;
+  repeated ProposalCredit credits = 7;
 }
 
 message ProposalRevision {
@@ -258,6 +279,47 @@ message ProposalRevision {
   string content_hash = 4;
   google.protobuf.Timestamp expires_at = 5;
   optional bytes ui_challenge = 6;
+  repeated FieldSource sources = 7;
+  optional PreparedPoster poster = 8;
+  string state = 9;
+  string operation_id = 10;
+  optional string review_url = 11;
+  repeated ProposalCredit credits = 12;
+}
+
+message PrepareMoviePosterRequest {
+  Context context = 1;
+  bytes image_bytes = 2;
+  string media_type = 3;
+  string source_url = 4;
+  string reuse_basis = 5;
+}
+
+message PreparedPoster {
+  string ref_id = 1;
+  string asset_id = 2;
+  string content_hash = 3;
+  string media_type = 4;
+  int32 width = 5;
+  int32 height = 6;
+  string source_url = 7;
+  string reuse_basis = 8;
+  string state = 9;
+}
+
+message MovieProposalRequest {
+  string proposal_id = 1;
+  optional int32 revision = 2;
+}
+
+message MoviePosterReadRequest {
+  string ref_id = 1;
+  optional string asset_id = 2;
+}
+
+message MoviePosterImage {
+  PreparedPoster poster = 1;
+  bytes image_bytes = 2;
 }
 
 message ApprovalInput {
@@ -345,6 +407,7 @@ message Asset {
   optional int32 height = 5;
   optional int64 output_bytes = 6;
   optional Problem problem = 7;
+  optional string content_hash = 8;
 }
 
 message Attachment {
@@ -460,12 +523,17 @@ service CatalogService {
   rpc GetAttachment(Id) returns(Attachment);
   rpc CancelArtwork(CancelArtworkRequest) returns(ArtworkCancelOutcome);
   rpc ResolveArtworkAccess(ArtworkAccessRequest) returns(ArtworkGrant);
+  rpc PrepareMoviePoster(PrepareMoviePosterRequest) returns(PreparedPoster);
+  rpc GetMovieProposal(MovieProposalRequest) returns(ProposalRevision);
+  rpc ListMovieProposals(MovieProposalQueueRequest) returns(MovieProposalQueue);
+  rpc ReadMoviePoster(MoviePosterReadRequest) returns(MoviePosterImage);
   rpc ProposeMovie(Proposal) returns(ProposalRevision);
   rpc ApproveAndCreate(ApprovalInput) returns(Outcome);
   rpc RejectProposal(ApprovalInput) returns(Outcome);
 }
 
 service MediaService {
+  rpc ReadMoviePoster(MoviePosterReadRequest) returns(MoviePosterImage);
   rpc Upload(stream UploadChunk) returns(Outcome);
   rpc GetAsset(Id) returns(Asset);
   rpc Reserve(Hold) returns(Attachment);
@@ -476,8 +544,13 @@ service MediaService {
 }
 
 service McpGatewayService {
+  rpc GetReviewIdentity(google.protobuf.Empty) returns(Actor);
   rpc GetPolicy(google.protobuf.Empty) returns(PolicySnapshot);
   rpc GetMovieContext(MovieContextRequest) returns(MovieContext);
+  rpc PrepareMoviePoster(PrepareMoviePosterRequest) returns(PreparedPoster);
+  rpc GetMovieProposal(MovieProposalRequest) returns(ProposalRevision);
+  rpc ListMovieProposals(MovieProposalQueueRequest) returns(MovieProposalQueue);
+  rpc ReadMoviePoster(MoviePosterReadRequest) returns(MoviePosterImage);
   rpc ProposeMovie(Proposal) returns(ProposalRevision);
   rpc ApproveMovie(ApprovalInput) returns(Outcome);
   rpc RejectMovie(ApprovalInput) returns(Outcome);

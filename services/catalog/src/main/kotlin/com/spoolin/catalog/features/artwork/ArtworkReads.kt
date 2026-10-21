@@ -21,8 +21,21 @@ class ArtworkReads(
                         "FROM artwork_attachment_request a LEFT JOIN title t ON t.id=a.title_id WHERE a.id=?",
                     listOf(id),
                 ) { row -> attachment(row, id) }
-                .singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
+                .singleOrNull() ?: preparedAttachment(connection, id)
         }
+
+    private fun preparedAttachment(connection: java.sql.Connection, id: UUID): Spoolin.Attachment =
+        connection.queryBound(
+            "SELECT * FROM prepared_movie_poster WHERE id=?", listOf(id),
+        ) { row ->
+            val active = row.getTimestamp("expires_at").toInstant().isAfter(java.time.Instant.now()) ||
+                connection.queryBound("SELECT 1 FROM movie_proposal WHERE state='REVIEW' AND expires_at>CURRENT_TIMESTAMP AND content->'poster'->>'ref_id'=?",listOf(id.toString())) { 1 }.isNotEmpty() ||
+                connection.queryBound("SELECT 1 FROM artwork_attachment_request WHERE asset_id=? AND state='PREPARING'",listOf(row.getObject("asset_id",UUID::class.java))) { 1 }.isNotEmpty()
+            Spoolin.Attachment.newBuilder().setHoldId(id.toString())
+                .setAssetId(row.getObject("asset_id",UUID::class.java).toString())
+                .setActorId(row.getObject("actor_id",UUID::class.java).toString())
+                .setTitleId(id.toString()).setState(if (active) "PREPARING" else "RELEASED").build()
+        }.singleOrNull() ?: throw Status.NOT_FOUND.asRuntimeException()
 
     private fun attachment(
         row: ResultSet,

@@ -324,6 +324,7 @@ Run these commands from the repository folder when you need the corresponding ac
 | `make local-setup` | Prepares configuration and preserves existing credentials |
 | `make local-trust` | Trusts the generated local HTTPS certificate in the host certificate store |
 | `make local-start` | Builds and starts services, loads seed data, and checks readiness and codec isolation |
+| `make local-mcp` | Builds and starts the optional MCP adapter after the local services are running |
 | `make local-status` | Checks container state, service readiness, and codec isolation |
 | `make local-logs` | Prints the latest 200 log lines per service, then returns to the terminal |
 | `make local-stop` | Stops the services while retaining data and artwork |
@@ -734,3 +735,20 @@ OpenAI image generation produced four fictional prototype artwork assets. Their 
 - [Acceptance scenarios](docs/05-atdd.md)
 - [Implementation plan](docs/06-PLAN.md)
 - [Media isolation policy](docs/release/media-sandbox-policy.md)
+
+
+### MCP movie posters and proposal review
+
+The MCP adapter uses `SPOOLIN_PUBLIC_ORIGIN` to generate HTTPS review links and poster URLs. Set it to the website origin, matching Core's `BROWSER_ORIGIN`. Compose defaults it to `https://localhost:${CORE_HTTPS_PORT:-8443}`.
+
+Call `movie_context` to read movie matches, artwork policy, and stored poster thumbnails. Results include poster URLs and image content associated with movie IDs. Image content has a combined 4 MiB response budget; unavailable or omitted previews are identified in each movie's poster metadata.
+
+Use `prepare_movie_poster` with an `operationId`, a `reuseBasis`, and either a direct HTTPS image `url` or base64 `content` plus `mediaType`. Optional `sourceUrl` records provenance for direct uploads. The input limit is the lower of the artwork policy limit and the existing Media processing ceiling of 5 MiB. Remote imports use bounded downloads and reject private-network destinations. If preparation returns `PREPARING` or `PROCESSING`, repeat the same request with the same operation ID until it returns `READY`.
+
+Pass the returned `posterRef` to `propose_movie`. The immutable proposal includes the stored image identity and digest. Open its `reviewUrl`, sign in with the owning Maintainer account, and review the movie, sources, and poster before approving or rejecting. Browser uploads can replace the poster by creating a new revision. The browser path also works when the chat host does not render the embedded card.
+
+Use `movie_review_queue` with optional `proposalIds` and `limit` (maximum 20) to open all selected pending movies in one chat component. Each movie has its own poster, expandable metadata and credits, and exact-revision approve/reject controls. The queue reads persisted, owned proposals and renews private review controls without creating revisions. Reopening a queue or browser review replaces the earlier challenge; use the newest controls. Poster preview data shares a 4 MiB budget across the queue. Chat connections may need a tool-catalog refresh to discover the new tool.
+
+`propose_movie` accepts optional `credits` (up to 100): each credit supplies either an existing `personId` or a `personName`, a `roleId` from `movie_context`, optional `characterNames` when the role allows them, and optional nonnegative `billingOrder`. Record evidence in `sources` with `field: "credits"`. Credits participate in the immutable revision digest and are shown before approval. New people and credits are saved in the movie publication transaction only after approval. Exact active names are reused; ambiguous names require a person ID. Existing proposals with no credits preserve their earlier digest. Previously published movies are not backfilled automatically.
+
+After approval, `movie_operation` remains pending until the poster is attached. Poll the original proposal operation ID to read its persisted outcome. Retry uncertain requests using their original operation IDs. No movie is approved by preparing a poster or creating a proposal.

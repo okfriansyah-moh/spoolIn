@@ -26,6 +26,8 @@ class MediaServiceImpl(
 ) : MediaServiceGrpc.MediaServiceImplBase() {
     override fun upload(response: StreamObserver<Outcome>): StreamObserver<UploadChunk> = upload.upload(response)
 
+    override fun readMoviePoster(request: spoolin.v1.Spoolin.MoviePosterReadRequest, response: StreamObserver<spoolin.v1.Spoolin.MoviePosterImage>) = assets.readMoviePoster(request,response)
+
     override fun getAsset(
         request: Id,
         response: StreamObserver<spoolin.v1.Spoolin.Asset>,

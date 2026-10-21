@@ -36,6 +36,7 @@ spring:
           default:
             deadline: 2s
     server:
+      max-inbound-message-size: 17MB
       address: ${GRPC_ADDRESS:0.0.0.0}
       port: ${GRPC_PORT:9090}
       ssl:

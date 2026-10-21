@@ -114,5 +114,7 @@ object ProposalStore {
         if (updated != 1) {
             throw Status.FAILED_PRECONDITION.withDescription("PROPOSAL_NOT_REVIEWABLE").asRuntimeException()
         }
+        conn.executeBound("UPDATE prepared_movie_poster SET expires_at=CURRENT_TIMESTAMP WHERE id::text=(SELECT content->'poster'->>'ref_id' FROM movie_proposal WHERE id=? AND revision=?)",proposalId,revision)
+
     }
 }

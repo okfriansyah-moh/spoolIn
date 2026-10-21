@@ -44,10 +44,23 @@ internal class HoldAuthority(
     ) {
         if (asset.actorId != command.actor) throw Status.PERMISSION_DENIED.asRuntimeException()
         if (command.action == HoldAction.RESERVE &&
-            (asset.uploadOperationId != command.child("media-upload") || asset.id != command.child("asset"))
+            (asset.uploadOperationId != command.child("media-upload") || asset.id != command.child("asset")) &&
+            !preparedUpload(asset, command)
         ) {
             throw Status.PERMISSION_DENIED.withDescription("HOLD_UPLOAD_BINDING_INVALID").asRuntimeException()
         }
+    }
+
+    private fun preparedUpload(asset: AssetRow, command: HoldCommand): Boolean {
+        val provenance = tools.jackson.databind.json.JsonMapper.builder().build().readTree(asset.provenance)
+        if (provenance.path("preparedPoster").asBoolean() != true) return false
+        val prepared = catalog?.find(asset.uploadOperationId) ?: return false
+        val expectedAsset = java.util.UUID.nameUUIDFromBytes("poster:${asset.uploadOperationId}".toByteArray(Charsets.UTF_8))
+        return prepared.holdId == asset.uploadOperationId.toString() &&
+            prepared.titleId == asset.uploadOperationId.toString() &&
+            prepared.assetId == asset.id.toString() && asset.id == expectedAsset &&
+            prepared.hasActorId() && prepared.actorId == command.actor.toString() &&
+            prepared.state == "PREPARING"
     }
 
     fun transition(

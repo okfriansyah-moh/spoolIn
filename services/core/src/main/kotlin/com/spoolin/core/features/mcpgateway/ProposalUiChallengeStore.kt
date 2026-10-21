@@ -8,13 +8,13 @@ import java.time.Instant
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
-private const val PROPOSAL_TTL_MINUTES = 10L
+private const val PROPOSAL_TTL_HOURS = 24L
 private const val BINDING_TOKEN_BYTES = 32
 
 /** UI-only approval challenges keyed by proposal binding (never model-visible). */
 class ProposalUiChallengeStore(
     private val clock: Clock = Clock.systemUTC(),
-    private val ttl: Duration = Duration.ofMinutes(PROPOSAL_TTL_MINUTES),
+    private val ttl: Duration = Duration.ofHours(PROPOSAL_TTL_HOURS),
     private val random: SecureRandom = SecureRandom(),
 ) {
     private data class Entry(

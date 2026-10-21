@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / '.local'
 TOOL = 'spoolin-local-toolchain:21.0.12.1-24.21.0'
 OWNERS = ('core', 'catalog', 'media')
-SERVICES = ('postgres', *OWNERS, 'core-migrator', 'catalog-migrator', 'media-migrator', 'catalog-seed', 'media-seed')
+SERVICES = ('postgres', *OWNERS, 'mcp', 'core-migrator', 'catalog-migrator', 'media-migrator', 'catalog-seed', 'media-seed')
 BUILD_CACHES = {
     'spoolin-local-gradle': '/workspace/.local/gradle',
     'spoolin-local-node': '/workspace/node_modules',
@@ -123,8 +123,9 @@ def render_compose():
     environment = {key: value for key, value in os.environ.items()
                    if key in ('PATH', 'HOME', 'DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_CONFIG', 'DOCKER_CERT_PATH', 'DOCKER_TLS_VERIFY')}
     environment.update(json.loads((STATE / 'environment.json').read_text()))
-    # A local installation always uses its own loopback port, independent of deployment exports.
+    # A local installation always uses its own loopback ports, independent of deployment exports.
     environment['CORE_HTTPS_PORT'] = '8443'
+    environment['MCP_HTTP_PORT'] = '8787'
     rendered = run('docker', 'compose', '--env-file', '/dev/null', '-f', str(ROOT / 'ops/compose.yaml'), '--profile', 'migration', '--profile', 'seed', 'config',
                    '--format', 'json', capture=True, env=environment)
     document = local_configuration(json.loads(rendered.stdout))
@@ -199,6 +200,17 @@ def start():
     print('SpoolIn is ready at https://localhost:8443. Credentials: .local/accounts.txt')
 
 
+def start_mcp():
+    render_compose()
+    core = compose('ps', '--status', 'running', '--quiet', 'core', capture=True).stdout.strip()
+    if not core:
+        raise RuntimeError('Core is not running. Run make local-start before make local-mcp.')
+    tooling('npm', 'run', 'build', '--workspace', 'mcp')
+    compose('build', 'mcp')
+    compose('up', '-d', '--wait', '--wait-timeout', '120', 'mcp')
+    print('SpoolIn MCP is ready at http://localhost:8787/mcp.')
+
+
 def seed():
     compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'media-seed')
     compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'catalog-seed')
@@ -245,7 +257,7 @@ def reset():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('setup', 'start', 'status', 'logs', 'stop', 'test', 'reset', 'repair-maintainer', 'repair-accounts'))
+    parser.add_argument('action', choices=('setup', 'start', 'mcp', 'status', 'logs', 'stop', 'test', 'reset', 'repair-maintainer', 'repair-accounts'))
     action = parser.parse_args().action
     validate_state()
     check_tools()
@@ -269,12 +281,14 @@ def dispatch(action):
         raise RuntimeError('Run make local-setup first.')
     if action in ('repair-maintainer', 'repair-accounts'):
         repair_accounts('accounts' if action == 'repair-accounts' else 'maintainer')
+    elif action == 'mcp':
+        start_mcp()
     elif action == 'status':
         compose('ps', '--all')
         ready()
         codec_probe()
     elif action == 'logs':
-        compose('logs', '--tail', '200', *OWNERS, 'postgres')
+        compose('logs', '--tail', '200', *OWNERS, 'mcp', 'postgres')
     elif action == 'stop':
         compose('down', '--remove-orphans')
     elif action == 'test':

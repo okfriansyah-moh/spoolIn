@@ -473,6 +473,7 @@ class CatalogWriteConfiguration {
         receipts: OwnerReceipts,
         movieWrites: MovieWrites,
         proposalMetrics: com.spoolin.catalog.operations.metrics.ProposalMetrics?,
+        channels: org.springframework.grpc.client.GrpcChannelFactory,
         environment: Environment,
     ): com.spoolin.catalog.features.proposal.ProposalWrites =
         com.spoolin.catalog.features.proposal.ProposalWrites(
@@ -480,6 +481,7 @@ class CatalogWriteConfiguration {
             receipts,
             movieWrites,
             proposalMetrics,
+            posters = com.spoolin.catalog.features.proposal.PreparedMoviePosters(dataSource, spoolin.v1.MediaServiceGrpc.newBlockingStub(channels.createChannel("media")), { com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) } }),
             livePolicyRevision = {
                 com.spoolin.support.policy.PolicyEnvironment
                     .resolve { environment.getProperty(it) }
@@ -791,6 +793,10 @@ class ServiceIdentityInterceptor(
             put("spoolin.v1.CatalogService/GetOperation", setOf("core"))
             put("spoolin.v1.CatalogService/ResolveArtworkAccess", setOf("core"))
             put("spoolin.v1.CatalogService/ProposeMovie", setOf("core"))
+            put("spoolin.v1.CatalogService/PrepareMoviePoster", setOf("core"))
+            put("spoolin.v1.CatalogService/GetMovieProposal", setOf("core"))
+            put("spoolin.v1.CatalogService/ListMovieProposals", setOf("core"))
+            put("spoolin.v1.CatalogService/ReadMoviePoster", setOf("core"))
             put("spoolin.v1.CatalogService/ApproveAndCreate", setOf("core"))
             put("spoolin.v1.CatalogService/RejectProposal", setOf("core"))
             put("spoolin.v1.CatalogService/GetAttachment", setOf("media"))

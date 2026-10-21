@@ -5,6 +5,8 @@ import type {
   PartialDate,
   ProposalRevision,
 } from '../generated/spoolin/v1/spoolin.js';
+import { MAX_POSTER_INPUT_BYTES } from '../tools/poster-import.js';
+import { posterProjection, reviewUrl } from '../tools/poster-output.js';
 
 function dateParts(value: PartialDate | undefined) {
   return {
@@ -29,10 +31,18 @@ export function contextProjection(value: MovieContext) {
       title: title.values?.title ?? '',
       release: dateProjection(title.values?.release),
       genreIds: title.values?.genreIds ?? [],
+      poster: null as Record<string, unknown> | null,
     })),
     genres: value.genres?.nodes ?? [],
     roles: value.roles?.nodes ?? [],
     policyRevision: value.policy?.revision ?? '',
+    artworkPolicy: {
+      maxInputBytes: String(Math.min(Number(value.policy?.artwork?.maxInputBytes ?? 0), MAX_POSTER_INPUT_BYTES)),
+      formats: value.policy?.artwork?.formats ?? [],
+      maxDimensionPx: value.policy?.artwork?.maxDimensionPx ?? 0,
+      maxPixels: value.policy?.artwork?.maxPixels ?? '0',
+      maxImageResponseBytes: 4 * 1024 * 1024,
+    },
   };
 }
 function movieMetadata(value: Partial<MovieValues>) {
@@ -78,6 +88,18 @@ export function proposalProjection(
     normalizedMovie: movieProjection(value.values),
     policyRevision,
     status: 'REVIEW',
+    reviewUrl: value.reviewUrl || reviewUrl(value.proposalId, value.revision),
+    poster: value.poster ? posterProjection(value.poster) : null,
+    credits: value.credits.map((credit) => ({
+      ...(credit.personId ? { personId: credit.personId } : {}),
+      ...(credit.personName ? { personName: credit.personName } : {}),
+      roleId: credit.roleId,
+      ...(credit.personLabel ? { personLabel: credit.personLabel } : {}),
+      ...(credit.roleLabel ? { roleLabel: credit.roleLabel } : {}),
+      characterNames: credit.characterNames,
+      ...(credit.billingOrder !== undefined ? { billingOrder: credit.billingOrder } : {}),
+    })),
+    sources: value.sources.map((source) => ({ field: source.field, url: source.url, reuseBasis: source.reuseBasis })),
     reviewResourceUri: `spoolin://proposal/${value.proposalId}/${value.revision}`,
   };
 }

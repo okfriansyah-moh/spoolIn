@@ -73,6 +73,12 @@ internal class McpCatalogAccess(
         }
     }
 
+    fun actorToken(method: String, operation: UUID, correlation: UUID): Pair<UUID, String> {
+        val connector = managementConnector() ?: denied()
+        val signer = issuer ?: denied()
+        return connector.accountId to signer.issue(connector, role(connector), method, operation, correlation)
+    }
+
     private fun role(connector: ConnectorRecord): String = connectors.accountRole(connector.accountId) ?: "VIEWER"
 }
 

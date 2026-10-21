@@ -34,6 +34,7 @@ class AssetRpc(
             .setState(row.state.name)
             .also { builder ->
                 row.format?.let { builder.format = it }
+                row.contentHash?.let { builder.contentHash = java.util.Base64.getEncoder().encodeToString(it) }
                 row.width?.let { builder.width = it }
                 row.height?.let { builder.height = it }
                 row.outputBytes?.let { builder.outputBytes = it }
@@ -117,6 +118,22 @@ class AssetRpc(
         }
         AssetStream(opened, stream, io.grpc.Context.current()).start()
     }
+
+    fun readMoviePoster(request: spoolin.v1.Spoolin.MoviePosterReadRequest, response: StreamObserver<spoolin.v1.Spoolin.MoviePosterImage>) = respond(response) {
+        if (MediaPeer.current() != "catalog") throw Status.PERMISSION_DENIED.asRuntimeException()
+        val remote = access.current(parseId(request.refId))
+        if (remote.state !in setOf("PREPARING","ACTIVE")) throw Status.NOT_FOUND.asRuntimeException()
+        val row = readable(AssetSql.find(dataSource,parseId(remote.assetId)))
+        if (!remote.hasActorId() || remote.actorId != row.actorId.toString()) throw Status.PERMISSION_DENIED.asRuntimeException()
+        if (request.hasAssetId() && request.assetId != row.id.toString()) throw Status.NOT_FOUND.asRuntimeException()
+        if (remote.state == "ACTIVE") dataSource.committed { conn ->
+            access.checkRead(access.hold(conn,parseId(remote.holdId)),remote,row.id,parseId(remote.holdId),remote.catalogVersion)
+        }
+        AssetFile.open(store.outputDirectory(),row).use { file ->
+            PreparedPosterThumbnail.render(store.outputDirectory(),file.row)
+        }
+    }
+
 
     private fun openAsset(request: AssetReadRequest): AssetFile {
         val asset = parseId(request.assetId)

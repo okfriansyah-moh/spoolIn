@@ -45,11 +45,18 @@ class McpGatewayConfiguration {
     ): McpGatewaySecurity = McpGatewaySecurity(issuer, uiChallenges, uiAssertions)
 
     @Bean
+    fun preparedPosterUpload(channels: GrpcChannelFactory, policy: PolicyProvider) =
+        com.spoolin.core.features.artworkproxy.PreparedPosterUpload(
+            spoolin.v1.MediaServiceGrpc.newStub(channels.createChannel("media")), policy.policy.artwork.maxInputBytes,
+        )
+
+    @Bean
     fun mcpGatewayRpc(
         connectors: ConnectorStore,
         policy: PolicyProvider,
         channels: GrpcChannelFactory,
         security: McpGatewaySecurity,
+        uploads: com.spoolin.core.features.artworkproxy.PreparedPosterUpload,
     ): McpGatewayRpc =
         McpGatewayRpc(
             connectors,
@@ -58,6 +65,7 @@ class McpGatewayConfiguration {
             security.issuer,
             security.challenges,
             security.assertions,
+            uploads,
         )
 }
 

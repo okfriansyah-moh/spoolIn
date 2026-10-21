@@ -10,6 +10,9 @@ import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
 import com.spoolin.support.receipts.OperationIntent
+import com.spoolin.support.receipts.committed
+import com.spoolin.support.receipts.queryBound
+import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.SafeResult
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
@@ -33,6 +36,7 @@ class ProposalWrites(
     private val metrics: ProposalMetrics? = null,
     private val clock: Clock = Clock.systemUTC(),
     private val livePolicyRevision: () -> String = { "default" },
+    private val posters: PreparedMoviePosters? = null,
 ) {
     private val random = SecureRandom()
 
@@ -49,8 +53,11 @@ class ProposalWrites(
             val correlation = parseId(request.context.correlationId)
             val mutation: (java.sql.Connection) -> SafeResult = { conn ->
                 checkPolicy(normalized.context.policyRevision)
+                ProposalCredits.validate(conn, normalized.creditsList)
                 val challenge = randomChallenge().also { freshChallenge = it }
-                ProposalRevisions.insert(conn, normalized, claims, challenge, clock.instant())
+                val poster = if (normalized.hasPosterRef()) requireNotNull(posters).resolve(conn,normalized.posterRef,claims.clientKind == null) else null
+                if (poster != null && poster.state != "READY") throw Status.FAILED_PRECONDITION.withDescription("POSTER_NOT_READY").asRuntimeException()
+                ProposalRevisions.insert(conn, normalized, claims, challenge, clock.instant(),poster)
             }
             val outcome =
                 if (normalized.hasProposalId()) {
@@ -61,7 +68,7 @@ class ProposalWrites(
             val row = proposalRow(normalized, outcome)
             ProposalRevisions.assertOwner(row, claims)
             ProposalRevisions.requireReview(row, clock.instant())
-            response.onNext(ProposalResponse.fromRow(row, freshChallenge))
+            response.onNext(dataSource.connection.use { ProposalResponse.fromRow(row, freshChallenge,it) })
             response.onCompleted()
         } catch (e: io.grpc.StatusRuntimeException) {
             response.onError(e)
@@ -74,6 +81,69 @@ class ProposalWrites(
         } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
             response.onError(Status.PERMISSION_DENIED.asRuntimeException())
         }
+    }
+
+    fun preparePoster(request: Spoolin.PrepareMoviePosterRequest,response: StreamObserver<Spoolin.PreparedPoster>) = respond(response) {
+        proposalClaims()
+        checkPolicy(request.context.policyRevision)
+        requireNotNull(posters).prepare(request)
+    }
+
+    fun readPoster(request: Spoolin.MoviePosterReadRequest,response: StreamObserver<Spoolin.MoviePosterImage>) = respond(response) {
+        if (!request.hasAssetId()) proposalClaims()
+        requireNotNull(posters).read(request)
+    }
+
+    fun list(request: Spoolin.MovieProposalQueueRequest, response: StreamObserver<Spoolin.MovieProposalQueue>) = respond(response) {
+        val claims = proposalClaims()
+        require(request.proposalIdsCount <= 20)
+        val requested = request.proposalIdsList.map(::parseId).toSet()
+        val limit = if (request.limit == 0) 20 else request.limit.also { require(it in 1..20) }
+        dataSource.committed { conn ->
+            val connectorClause = if (claims.clientKind == null) "" else " AND connector_id=? AND client_kind=?"
+            val args = mutableListOf<Any?>(claims.accountId)
+            if (claims.clientKind != null) { args.add(claims.credentialId); args.add(claims.clientKind) }
+            val idClause = if (requested.isEmpty()) "" else " AND id IN (${requested.joinToString(",") { "?" }})"
+            args.addAll(requested)
+            args.add(limit)
+            val ids = conn.queryBound(
+                "SELECT p.id FROM movie_proposal p WHERE actor_id=? AND state='REVIEW' AND expires_at>CURRENT_TIMESTAMP" +
+                    connectorClause + idClause +
+                    " AND NOT EXISTS (SELECT 1 FROM movie_proposal newer WHERE newer.id=p.id AND newer.revision>p.revision)" +
+                    " ORDER BY created_at DESC,id LIMIT ? FOR UPDATE OF p", args,
+            ) { it.getObject(1,UUID::class.java) }
+            val proposals = ids.map { id ->
+                val row = requireNotNull(ProposalStore.latestForUpdate(conn,id))
+                ProposalRevisions.assertOwner(row,claims)
+                val challenge = randomChallenge()
+                conn.executeBound("UPDATE movie_proposal SET challenge_hash=? WHERE id=? AND revision=?",
+                    java.security.MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray()),id,row.revision)
+                ProposalResponse.fromRow(row,challenge,conn)
+            }
+            Spoolin.MovieProposalQueue.newBuilder().addAllProposals(proposals).build()
+        }
+    }
+
+    fun read(request: Spoolin.MovieProposalRequest,response: StreamObserver<Spoolin.ProposalRevision>) = respond(response) {
+        val claims = proposalClaims()
+        dataSource.committed { conn ->
+            val row = if (request.hasRevision()) ProposalStore.requireForUpdate(conn,parseId(request.proposalId),request.revision)
+                else ProposalStore.latestForUpdate(conn,parseId(request.proposalId)) ?: throw Status.NOT_FOUND.asRuntimeException()
+            ProposalRevisions.assertOwner(row,claims)
+            // Only the authenticated browser receives a new review challenge.
+            val challenge = if (claims.clientKind == null && row.state == "REVIEW" && clock.instant().isBefore(row.expiresAt)) randomChallenge() else null
+            if (challenge != null) conn.executeBound(
+                "UPDATE movie_proposal SET challenge_hash=? WHERE id=? AND revision=?",
+                java.security.MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray()),row.id,row.revision)
+            ProposalResponse.fromRow(row,challenge,conn)
+        }
+    }
+
+    private fun <T> respond(response: StreamObserver<T>, operation: () -> T) {
+        try { response.onNext(operation()); response.onCompleted() }
+        catch (e: io.grpc.StatusRuntimeException) { response.onError(e) }
+        catch (_: IllegalArgumentException) { response.onError(Status.INVALID_ARGUMENT.asRuntimeException()) }
+        catch (_: ActorRejected) { response.onError(Status.PERMISSION_DENIED.asRuntimeException()) }
     }
 
     private fun proposalRow(
@@ -117,8 +187,10 @@ class ProposalWrites(
             val proposalId = parseId(request.proposalId)
             val revision = request.revision
             decodeContentHash(request.contentHash)
-            val binding =
-                ExactApprovalBinding.fromInput(claims, request, livePolicyRevision(), clock.instant())
+            val owner = dataSource.connection.use { ProposalStore.requireForUpdate(it,proposalId,revision) }
+            ProposalRevisions.assertOwner(owner,claims)
+            val bindingClaims = if (claims.clientKind == null) claims.copy(credentialId=owner.connectorId,clientKind=owner.clientKind) else claims
+            val binding = ExactApprovalBinding.fromInput(bindingClaims, request, livePolicyRevision(), clock.instant())
             val operationId = approvalOperationId(proposalId, revision, approve)
             val correlationId = UUID.randomUUID()
             executeApprovalReceipt(
@@ -285,9 +357,23 @@ class ProposalWrites(
                 row.operationId,
                 correlationId,
             )
-        ProposalStore.markCreated(conn, row, movieOutcome.resultId, approvedAt, approvalExpires)
-        receipts.completePending(conn, row.operationId, movieOutcome)
-        return movieOutcome
+        val credits = ProposalContent.credits(content)
+        ProposalCredits.publish(conn,credits,movieOutcome.resultId,claims.accountId,row.operationId,correlationId)
+        val published = movieOutcome.copy(version = (movieOutcome.version ?: 0) + credits.size)
+        ProposalStore.markCreated(conn, row, published.resultId, approvedAt, approvalExpires)
+        val poster = ProposalContent.poster(content)
+        if (poster == null) receipts.completePending(conn, row.operationId, published)
+        else enqueuePosterAttachment(conn,claims,row,published,poster,correlationId)
+        return published
+    }
+
+    private fun enqueuePosterAttachment(conn: java.sql.Connection,claims: com.spoolin.support.identity.ActorClaims,row: ProposalRow,movie: SafeResult,poster: Spoolin.PreparedPoster,correlation: UUID) {
+        com.spoolin.catalog.features.artwork.ArtworkAttachmentSql.insertPreparing(conn,row.operationId,movie.resultId,row.actorId,
+            movie.version ?: 0,UUID.fromString(poster.assetId),ProposalContent.policyRevision(ProposalContent.parseJson(row.contentJson)),null)
+        val work = com.spoolin.support.receipts.WorkRequest("attach","ARTWORK_ATTACH",row.operationId,clock.instant().plusSeconds(300),baseDelayMs=10000,capDelayMs=60000)
+        com.spoolin.catalog.operations.receipts.ReceiptWork.enqueue(conn,row.operationId,correlation,work,clock.instant())
+        conn.executeBound("UPDATE durable_work SET payload=?::jsonb WHERE id=?",
+            "{\"subjectId\":\"${row.operationId}\",\"credentialId\":\"${claims.credentialId}\",\"authEpoch\":${claims.authEpoch}}",work.id(row.operationId))
     }
 
     private fun auditActorKind(claims: com.spoolin.support.identity.ActorClaims): String =
@@ -344,7 +430,7 @@ class ProposalWrites(
 
     private fun proposalClaims(): com.spoolin.support.identity.ActorClaims {
         val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role) || claims.clientKind !in setOf("CLAUDE", "CHATGPT")) {
+        if (!Permissions.management(claims.role) || (claims.clientKind != null && claims.clientKind !in setOf("CLAUDE", "CHATGPT"))) {
             throw ActorRejected()
         }
         return claims

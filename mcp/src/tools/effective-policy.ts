@@ -4,6 +4,7 @@ import type {
   PolicySnapshot,
   TextBound,
 } from '../generated/spoolin/v1/spoolin.js';
+import { MAX_POSTER_INPUT_BYTES } from './poster-import.js';
 import { GatewayFailure } from '../operations/gateway-failure.js';
 
 const fields = [
@@ -36,6 +37,7 @@ export type EffectivePolicy = Readonly<{
   bounds: Readonly<Record<Field, Readonly<TextBound>>>;
   maxPage: number;
   metadataBytes: number;
+  artwork: ReturnType<typeof artwork>;
   fingerprint: string;
 }>;
 
@@ -122,6 +124,7 @@ export function readEffectivePolicy(value: PolicySnapshot): EffectivePolicy {
     bounds,
     maxPage,
     metadataBytes,
+    artwork: Object.freeze(image),
     fingerprint: JSON.stringify([
       value.revision,
       bounds,
@@ -164,6 +167,17 @@ export function effectiveInputSchemas(
   const source = object(object(object(proposal.sources).items).properties);
   text(object(source.url), policy.bounds.sourceUrl);
   text(object(source.reuseBasis), policy.bounds.reuseBasis);
+  if (schemas.prepare_movie_poster) {
+    const prepare = object(object(schemas.prepare_movie_poster).properties);
+    const maximum = Math.min(Number(policy.artwork.maxInputBytes), MAX_POSTER_INPUT_BYTES);
+    object(prepare.content).maxLength = Math.ceil(maximum / 3) * 4;
+    text(object(prepare.url), policy.bounds.sourceUrl);
+    object(prepare.sourceUrl).maxLength = policy.bounds.sourceUrl.maxCodePoints;
+    text(object(prepare.reuseBasis), policy.bounds.reuseBasis);
+    object(prepare.mediaType).enum = policy.artwork.formats.map((format) =>
+      ({ JPEG: 'image/jpeg', PNG: 'image/png', WEBP: 'image/webp' } as Record<string, string>)[format],
+    );
+  }
   return schemas;
 }
 export async function validateEffectiveInput(
@@ -172,7 +186,7 @@ export async function validateEffectiveInput(
   policy: EffectivePolicy,
 ): Promise<void> {
   if (
-    Buffer.byteLength(JSON.stringify(args)) >
+    Buffer.byteLength(JSON.stringify({ ...args, ...(typeof args.content === 'string' ? { content: '' } : {}) })) >
     Math.min(MAX_RESPONSE_BYTES, policy.metadataBytes)
   ) {
     throw new GatewayFailure('RESOURCE_EXHAUSTED');

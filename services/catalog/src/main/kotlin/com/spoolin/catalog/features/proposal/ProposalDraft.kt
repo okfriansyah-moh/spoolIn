@@ -23,6 +23,6 @@ internal object ProposalDraft {
             valid.releaseDay?.let(date::setDay)
             values.release = date.build()
         }
-        return request.toBuilder().setValues(values).build()
+        return request.toBuilder().setValues(values).clearCredits().addAllCredits(ProposalCredits.normalize(request.creditsList)).build()
     }
 }

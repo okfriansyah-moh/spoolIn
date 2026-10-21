@@ -114,7 +114,7 @@ class ArtworkGraphql(
                 ArtworkUploadRequest(
                     media,
                     token,
-                    principal,
+                    principal.accountId,
                     upload,
                     context.correlation,
                     hold.context.policyRevision,

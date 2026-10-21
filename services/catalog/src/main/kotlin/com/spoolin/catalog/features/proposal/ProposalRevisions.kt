@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 private const val MAX_PENDING = 20
-private const val PROPOSAL_SECONDS = 600L
+private const val PROPOSAL_SECONDS = 86_400L
 
 internal object ProposalRevisions {
     fun insert(
@@ -23,13 +23,19 @@ internal object ProposalRevisions {
         claims: ActorClaims,
         challenge: String,
         now: Instant,
+        poster: Spoolin.PreparedPoster? = null,
     ): SafeResult {
         val previous = previous(conn, request, claims, now)
         val id = previous?.id ?: UUID.randomUUID()
         val revision = previous?.revision?.plus(1) ?: 1
-        previous?.let { supersede(conn, it) }
+        require(previous != null || claims.clientKind != null) { "Browser may only revise existing proposals" }
+        previous?.let {
+            supersede(conn,it)
+            val old = ProposalContent.poster(ProposalContent.parseJson(it.contentJson))
+            if (old != null && old.refId != request.posterRef) conn.executeBound("UPDATE prepared_movie_poster SET expires_at=CURRENT_TIMESTAMP WHERE id=?",UUID.fromString(old.refId))
+        }
         enforceQuota(conn, claims.accountId, now)
-        val content = ProposalContent.fromProposal(request)
+        val content = ProposalContent.fromProposal(request).toMutableMap().apply { if (poster != null) put("poster",posterMap(poster)) }
         conn.executeBound(
             "INSERT INTO movie_proposal " +
                 "(id,revision,actor_id,connector_id,client_kind,content,content_hash," +
@@ -38,8 +44,8 @@ internal object ProposalRevisions {
             id,
             revision,
             claims.accountId,
-            claims.credentialId,
-            claims.clientKind,
+            previous?.connectorId ?: claims.credentialId,
+            previous?.clientKind ?: claims.clientKind,
             DeterministicContentSerializer.json(content),
             DeterministicContentSerializer.digest(content),
             MessageDigest.getInstance("SHA-256").digest(challenge.toByteArray(Charsets.UTF_8)),
@@ -74,8 +80,8 @@ internal object ProposalRevisions {
         row: ProposalRow,
         claims: ActorClaims,
     ) {
-        if (row.actorId != claims.accountId || row.connectorId != claims.credentialId ||
-            row.clientKind != claims.clientKind
+        if (row.actorId != claims.accountId || (claims.clientKind != null && (row.connectorId != claims.credentialId ||
+            row.clientKind != claims.clientKind))
         ) {
             throw Status.PERMISSION_DENIED.withDescription("ACTOR_BINDING_MISMATCH").asRuntimeException()
         }

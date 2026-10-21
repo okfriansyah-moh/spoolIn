@@ -43,9 +43,6 @@ class CatalogActors(
     private fun permission(claims: ActorClaims) {
         val receipt = claims.method == "/spoolin.v1.CatalogService/GetOperation"
         if (!receipt && !Permissions.management(claims.role)) throw ActorRejected()
-        val method = claims.method.substringAfterLast('/')
-        val connector = method in setOf("ProposeMovie", "ApproveAndCreate", "RejectProposal")
-        if (connector && claims.clientKind == null) throw ActorRejected()
     }
 
     companion object {
@@ -108,6 +105,10 @@ class CatalogActors(
                 "CancelArtwork",
                 "GetOperation",
                 "ProposeMovie",
+                "PrepareMoviePoster",
+                "GetMovieProposal",
+                "ListMovieProposals",
+                "ReadMoviePoster",
                 "ApproveAndCreate",
                 "RejectProposal",
             ).map { "spoolin.v1.CatalogService/$it" }.toSet()
