@@ -10,4 +10,6 @@ Match actual approved visual references and complete user journeys, including co
 Explicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.
 
 Keep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.
+
+Use shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.
 <!-- agent-workflow:end -->
