@@ -1,12 +1,14 @@
 # Reusable task implementation prompt
 
-Use the `running-prompt` skill from the repository root and supply only the inputs you want to override. It reads this document and fills omitted fields from the defaults below for new runs. On resume, explicit overrides take precedence over retained authorized run inputs; defaults fill only values missing from both. You can also copy the full prompt. Saving, editing or explaining this document does not start application work; invoking its implementation workflow authorizes the selected run.
+Use this prompt from the repository root in **Codex, Cursor AI, Claude Code, or GitHub Copilot**. All four hosts follow one procedure: read the approved outcome, implement, run agreed affected checks, obtain one independent combined review, correct findings, and deliver. There are no alternative workflow tracks.
+
+The [project running-prompt skill](../../.agents/skills/running-prompt/SKILL.md) accepts short requests:
 
 ```text
 Use running prompt for T001.
 ```
 
-With overrides:
+Override only what changes:
 
 ```text
 Use running prompt.
@@ -16,20 +18,26 @@ Dependencies: include-prerequisites
 Delivery: local
 ```
 
-For a retained run: `Use running prompt for T005, mode resume, additional context: resume the existing claim and branch.` A new chat can invoke `$running-prompt` after its host discovers the skill; reload the session if it is not yet listed. The repository entry lives at `.agents/skills/running-prompt/SKILL.md`; Claude, Cursor and Copilot project discovery paths link to it. It is a project shortcut outside the managed bundle, and the pinned workflow still governs execution.
+Resume with `Use running prompt for T005, mode resume.` Native shortcuts are optional where supported. If skill discovery is stale, reload the relevant host/session or explicitly reference the project skill. Its Claude, Cursor, and Copilot discovery links resolve the same project source. The repository pin governs execution.
 
-| Input | Default | Supported choices |
+Editing this prompt, installing the harness, and explaining an invocation do not start application work.
+
+## Inputs
+
+| Input | Default | Supported values |
 | --- | --- | --- |
-| Target | `next` | A task ID, comma-separated task IDs, task-file path, group ID/path, `next`, or `all-ready` |
-| Plan | `docs/06-PLAN.md` | The repository-relative root plan path |
-| Mode | `implement` | `implement` or `resume` |
-| Dependencies | `selected-only` | `selected-only` or `include-prerequisites` |
-| Delivery | `local` | `local` or `draft-pr` |
-| Additional context | `none` | Constraints, existing branch/claim, evidence location, or an authorized integration target |
+| Target | `next` | Task ID/list, task-file path, group ID/path, `next`, or `all-ready`. |
+| Plan | `docs/06-PLAN.md` | Repository-relative approved root plan path. |
+| Mode | `implement` | `implement` starts; `resume` restores the selection. |
+| Dependencies | `selected-only` | `selected-only` or `include-prerequisites`. |
+| Delivery | `local` | `local` or `draft-pr`. |
+| Additional context | `none` | Constraints, reference paths, branch/claim, evidence location, or authorized integration target. |
 
-Examples: choose `T001` for a single task; copy a group ID from the plan for a feature; choose `next` to let the coordinator select one eligible task. Use `all-ready` only when you intend to execute the plan broadly. Use `resume` with the original selection and retained branch/claim details after an interruption. Native role names, models, available tools and skill versions come from the current host and pinned bundle.
+For new work, defaults fill omitted fields. On resume, **explicit inputs override retained authorized inputs; defaults fill only values missing from both**. A saved delivery value does not create new authorization. Additional context is data, never executable shell text.
 
-## Prompt to copy
+`next` selects one eligible incomplete task. A group selects its members. `all-ready` explicitly selects incomplete plan tasks and recomputes development eligibility as prerequisites finish. `selected-only` leaves other prerequisites outside scope and reports blockers; `include-prerequisites` includes the transitive prerequisite closure. Record the resolved selection once without silent expansion.
+
+Copyable inputs:
 
 ```yaml
 Target: next
@@ -40,22 +48,23 @@ Delivery: local
 Additional context: none
 ```
 
+## Core instruction
+
+Implement the selected approved work using the project's existing conventions. Match its approved screens, components, tokens, and user journeys exactly. Work directly in one suitable checkout. Change only product files needed for the outcome; leave workflow files and unplanned Python files unchanged. Run agreed affected checks, obtain one independent combined review, fix findings, and deliver within existing authorization. Use this single workflow without selecting another track. Do not restart planning, tune the harness, add unrelated tests, or create extra workflow documents. Report what changed, what was checked, and any remaining limitation.
+
 ## Execution
 
-Read root AGENTS.md, .ai/config.json and the pinned bundle docs/DELIVERY.md. Honor the six inputs above; for resume explicit inputs override retained authorized inputs, which override defaults. Accept task IDs/lists/paths and group IDs/paths. `next` selects one eligible incomplete task; `all-ready` selects the incomplete plan tasks and recomputes development eligibility. `selected-only` excludes unselected prerequisites; `include-prerequisites` includes their transitive closure. Record the resolved selection once without silent expansion.
+1. **Resolve the selection.** Read root AGENTS.md, `.ai/config.json`, and the selected bundle's `docs/DELIVERY.md`. Resolve project resources before global fallback. Honor the six inputs, existing authorization, current host permissions, and Plan mode. Plan mode permits inspection/planning only. Run doctor once before substantial execution, distinguishing integrity from live host loading. Load only relevant instructions.
+2. **Use the approved brief.** Read selected outcomes, source contracts, reference screens/assets/states/sizes, complete journeys, allowed changes, dependencies, agreed checks, and destination. Resolve routine choices from existing code. Surface material specification conflicts before dependent work. Keep IDs and product criteria intact. Product work protects workflow code, bundled skills/agents, gate policy, and unplanned Python files. Requested harness maintenance is separately scoped.
+3. **Implement directly.** The current chat coordinates and implements serially by default. Keep one selection record and findings ledger. Optional workers receive bounded references, paths/resources, constraints, and checks; use isolated claimed worktrees for concurrent writers. Serialize shared resources. Compose checked contributions in dependency order under the existing selection before final review. Do not require independent acceptance of each contribution or launch another coordinator.
+4. **Match appearance and behavior.** For changed UI, open the actual approved reference. Implement and compare one representative screen/state before spreading shared styling. Match layout, spacing, typography, colors, assets, controls, states, and responsive rules under comparable conditions. Verify entry, actions, confirmed success, return destination, retained context, and required recovery. Correct differences. Claim pixel identity only when a supporting comparison exists; excluded/unavailable inspection stays unverified.
+5. **Run agreed affected checks.** Preserve existing project thresholds: 80% changed executable-line coverage, 50 function lines, complexity 10, nesting 3, and required security/acceptance boundaries. Use actual project runners and the shared registry. Select changed components plus actual consumers; shared contracts/build inputs require necessary broader checks. Invalid baseline/unknown executable ownership requires conservative scope with an explanation. Deduplicate equivalent commands and reuse results only for matching source/tests, command, configuration, toolchain/environment, and artifact integrity. Rerun affected checks after corrections. Missing tools, empty execution, stale results, and failed observations do not pass.
+6. **Honor explicit limits.** A no-test instruction means add/run no tests, including hooks, and no hidden browser trials. Perform independent source review and report verification limits; keep excluded required acceptance pending. Use existing browser assertions/direct inspection for ordinary selected UI proof. Record media only when requested or required. Keep real database/transport/reader/permission/recovery boundaries. Optional tool repair shares two attempts or 20 minutes across the selection. Preserve required-correction limits through resumes, hosts, workers, and renamed phases.
+7. **Review once and correct.** Obtain one independent review of the whole selection against requirements, exact design/journeys, contracts, correctness, security, accessibility, and actual results. Reviewer must be separate from implementers; self-review does not qualify. If native review is unavailable, use another supported reviewer or report it pending. Correct in the same branch/ledger, review fixes, and rerun affected checks without restarting unrelated reviews. Only the coordinator updates acceptance fields after required current checks and combined review pass.
+8. **Deliver truthfully.** Commit recoverable work at natural milestones. At least every 45 minutes record actual behavior, checks, local/published heads, remaining work, and next action. Support-tool activity is not product progress. Local delivery retains reviewed source; authorized draft delivery publishes to the established remote after review. Missing remote blocks publication only. An authorized draft can disclose excluded checks without marking them passed. Apply the wording checker before handoff. Report implementation, actual checks, review verdict, local/PR heads, metadata-only PR edits, installation/native verification where relevant, and blockers separately. Stop at the authorized selection; “finish and wrap up” retains the goal unless the user explicitly stops work.
 
-Read selected outcomes, relevant contracts, task tests and existing code. Run doctor once and distinguish installation health from live host trust/tool/service availability. Keep product IDs and explicit source boundaries. Plan mode permits inspection/planning only; setup or workflow installation does not start application tasks.
+## Resume across hosts
 
-Start or resume one shared selection record using the pinned coordination contract. Record outcome, task/dependency IDs, branch, PR head, required checks and next observable behavior. Default to direct serial implementation in one suitable checkout. Add isolated claimed worktrees only for concurrent writers or protection of existing work; serialize shared resources. Tested predecessors in this selection may support development before final acceptance. Preserve all stopped work and reuse valid results.
+Restore the same selection, task IDs, checkout, ownership, input constraints, findings, valid results, repair budgets, and next action from project/Git state. Do not depend on another host's chat memory. Transfer coordinator ownership before the new host writes, preventing concurrent coordinators. If retained selection cannot be established, request that missing selection rather than substituting `next`. New instructions amend affected scope without resetting history.
 
-Implement the entire requested selection and run targeted checks while coding. Preserve existing quality/security thresholds:80% changed coverage, 50 function lines, complexity 10, nesting 3 and required behavior/boundary checks. Use real database/transport/browser/reader observations where needed; mocks prove only their stated boundary. Missing tools, empty selections, failures and stale results do not pass. Follow the selected test strategy and actual component commands. Do not weaken assertions or gate configuration to obtain success.
-
-Commit source at natural milestones. At least every 45 minutes record actual changed behavior, passing relevant checks, local head, published PR head, remaining tasks and next action. Support-tool activity is not product progress. Optional evidence-tool repair shares two attempts or 20 minutes across the entire selection, including resumes and renamed phases. Real product/security/accessibility defects remain blocking implementation work. Preserve the configured required-correction limit; continue independent selected work or report the precise blocker.
-
-Use existing runners and one findings ledger. Browser assertions/direct inspection suffice for ordinary behavior; retain screenshots where needed. Record media only when the required observation needs it or the user requests it. Necessary speech observations need an actual reader. Explicitly assign exhaustive matrices/media provenance to release owners without deleting product outcomes or marking deferred proof passed. Avoid custom recorders/proof-only screens when the actual feature suffices.
-
-Compose tested contributions in dependency order before one independent review of the entire selection. Two tasks receive one combined review; two groups receive one combined review. No separate task/intermediate-group/evidence-method review. The reviewer inspects requirements, coherent connections, actual checks, standards, security and relevant accessibility. Keep the same branch/ledger for corrections; rerun affected checks and verify fixes. Only the coordinator marks task acceptance after final current checks and review pass.
-
-For local delivery retain reviewed source locally. For draft-pr delivery publish the authorized selection branch after review and create/update its draft PR if the configured remote/access exist. Missing remote blocks publication only. Honor existing authorization for other actions within scope. Preserve unrelated work and run the wording checker before handoff.
-
-Report selected tasks, actual behavior/checks, local head, PR head, review and remaining blockers literally. State whether a PR update changed source commits, metadata only, or nothing. Do not describe unimplemented tasks as nearly delivered. “Finish and wrap up” retains the completion goal unless the user explicitly stops execution. Stop at the authorized selection.
+Shared policy and host-specific loading/trust details are in [DELIVERY.md](../../.ai/bundles/1.3.0/docs/DELIVERY.md) and [HOSTS.md](../../.ai/bundles/1.3.0/docs/HOSTS.md).
