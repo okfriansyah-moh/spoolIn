@@ -193,14 +193,6 @@ export async function fetchCreditRoles(
   return Object.freeze(roles.map(mapRole));
 }
 
-export async function fetchActivePeople(
-  request: GraphqlRequest,
-  csrf: string,
-  signal?: AbortSignal,
-): Promise<readonly PersonOption[]> {
-  return (await fetchActivePeoplePage(request, csrf, null, signal)).nodes;
-}
-
 export async function fetchActivePeoplePage(
   request: GraphqlRequest,
   csrf: string,

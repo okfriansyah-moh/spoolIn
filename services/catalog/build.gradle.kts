@@ -98,7 +98,6 @@ val catalogReadUnitTest by tasks.registering(Test::class) {
         includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.*RulesTest")
         includeTestsMatching("com.spoolin.catalog.features.person.read.*RulesTest")
         includeTestsMatching("com.spoolin.catalog.features.provenance.*RulesTest")
-        includeTestsMatching("com.spoolin.catalog.seed.persistence.*RulesTest")
     }
     useJUnitPlatform()
     maxHeapSize = "512m"

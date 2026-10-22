@@ -72,14 +72,6 @@ function toManaged(node: Record<string, unknown>): ManagedPerson {
   });
 }
 
-export async function fetchManagedPeople(
-  request: GraphqlRequest,
-  csrf: string,
-  signal?: AbortSignal,
-): Promise<readonly PersonListRow[]> {
-  return (await fetchManagedPeoplePage(request, csrf, null, signal)).nodes;
-}
-
 export async function fetchManagedPeoplePage(
   request: GraphqlRequest,
   csrf: string,

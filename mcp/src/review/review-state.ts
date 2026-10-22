@@ -9,30 +9,8 @@ export type ReviewModel = Readonly<{
   challenge?: string;
 }>;
 
-export type ReviewQuery = Readonly<{
-  proposalId: string;
-  revision: number;
-  contentHash: string;
-}>;
-
 function escapeText(value: string): Text {
   return document.createTextNode(value);
-}
-
-export function parseReviewQuery(search: string): ReviewQuery | null {
-  const params = new URLSearchParams(search);
-  const proposalId = params.get('proposalId') ?? '';
-  const revision = Number(params.get('revision') ?? '0');
-  const contentHash = params.get('contentHash') ?? '';
-  if (
-    !proposalId ||
-    !Number.isFinite(revision) ||
-    revision < 1 ||
-    !contentHash
-  ) {
-    return null;
-  }
-  return Object.freeze({ proposalId, revision, contentHash });
 }
 
 function sourceLabel(source: unknown): string {
@@ -129,19 +107,6 @@ function renderActions(root: HTMLElement): void {
   reject.dataset.action = 'reject';
   actions.append(approve, reject);
   root.append(actions);
-}
-
-export function isTrustedReviewOrigin(origin: string): boolean {
-  const allowlist =
-    globalThis.document?.documentElement?.dataset?.trustedOrigins;
-  if (allowlist) {
-    return allowlist
-      .split(',')
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .includes(origin);
-  }
-  return origin === globalThis.location.origin;
 }
 
 export function wireTrustedApproval(

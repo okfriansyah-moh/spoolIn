@@ -1,3 +1,14 @@
+
+## Reuse and repository cleanup
+
+Implementation is the priority. Before adding a file, function, dependency, or document, search for an existing owner and suitable implementation. Extend or reuse it when the behavior and responsibility match; avoid speculative shared layers and cross-service coupling. Update all consumers when moving or removing internal code.
+
+Keep reusable project prompts in `docs/prompts/`. Give each documented topic one owning source and link to it from other documents instead of copying rules. Preserve useful design references, provenance, and required acceptance evidence.
+
+Remove unused or unrelated material only after checking imports, framework discovery, configuration, generators, operational commands, tests, and current requirements. Treat generated outputs, dependency locks, client adapters, isolated fixtures, and design/runtime asset copies according to their actual consumers rather than byte similarity alone.
+
+Run the existing unused-variable and dependency checks for affected code. The existing lint entry point also checks prompt placement and local prompt links; keep prevention focused on demonstrated problems. Review new code for repeated business rules and opportunities to reuse existing modules.
+
 <!-- agent-workflow:begin -->
 ## Portable implementation workflow
 

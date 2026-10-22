@@ -86,3 +86,9 @@ Explicit lock maintenance archives the previous integrity manifest under
 resolution restores the previous manifest. Plugin classpath Jackson uses the same approved
 3.1.7 BOM; older BOM descriptors can still be read as upstream metadata, while selected
 Jackson core/databind artifacts and resolver locks use 3.1.7.
+
+## Repository hygiene
+
+The root `npm run lint` command also runs `node build-tools/verification-tests/repository-hygiene.mjs`. It rejects a second project prompt directory, active references to the retired prompt location, and missing local Markdown link targets in `docs/prompts/`. Frozen release evidence and bundled workflow sources are excluded from the retired-path check. Run its regression cases with `node --test build-tools/verification-tests/repository-hygiene.test.mjs`.
+
+For application cleanup, also run the affected workspace's existing lint and dependency checks. Detect reuse opportunities through actual callers and responsibilities; identical fixtures, locks, generated output, and client adapters are not automatically dead code. Preserve useful reference and acceptance material.

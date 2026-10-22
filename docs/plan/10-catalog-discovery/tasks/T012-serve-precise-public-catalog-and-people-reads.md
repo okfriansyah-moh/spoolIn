@@ -284,12 +284,10 @@ All listed implementation paths are proposed. Existing source documents remain r
 | app | create | services/catalog/src/test/kotlin/com/spoolin/catalog/features/search/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 | app | create | services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/persistence/search/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 | app | create | tests/integration/src/test/kotlin/com/spoolin/integration/catalog/reads/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
-| app | create | services/catalog/src/main/kotlin/com/spoolin/catalog/seed/persistence/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 | app | create | services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/read/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 | app | create | services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/read/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 | app | create | services/catalog/src/test/kotlin/com/spoolin/catalog/features/provenance/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 | app | create | services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
-| app | create | services/catalog/src/test/kotlin/com/spoolin/catalog/seed/persistence/ | T012 owns the task-specific code/configuration/tests within this target; preserve the declared feature boundary |
 
 Tests follow the owner paths above and the source test map. Frontend unit/component tests are colocated within the declared feature/component paths; JVM units use the declared src/test paths. The cross-service tests/integration project belongs only to the integration selector. If a source path has moved, record the actual producer/consumer mapping before continuing; do not silently broaden the task.
 

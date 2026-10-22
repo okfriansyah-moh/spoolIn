@@ -83,24 +83,8 @@ class QuarantineStore(
         }
     }
 
-    fun processingInput(assetId: UUID): Path {
-        val path = stagingPath(assetId)
-        require(Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS))
-        return path
-    }
-
     /** Delete a quarantine file idempotently (cleanup on rejection / cancellation). */
     fun deleteQuarantine(path: Path) = Files.deleteIfExists(path)
-
-    /** Move a committed quarantine file to the output area (atomic within the volume). */
-    fun promoteToOutput(
-        stagingPath: Path,
-        assetId: UUID,
-    ): Path {
-        val outputPath = output.resolve(assetId.toString())
-        Files.move(stagingPath, outputPath, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
-        return outputPath
-    }
 }
 
 private const val SCRATCH_RETENTION_SECONDS = 3600L
