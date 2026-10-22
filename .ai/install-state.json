@@ -4127,7 +4127,7 @@
     },
     ".ai/config.json": {
       "kind": "file",
-      "sha256": "9bb7f21ed8dbf4a53678bcf0294f70df1278325cb5a163535cb8d240a105ece2"
+      "sha256": "7fa51b9527cfde4ce6a8af80867688d301a2670a64937262ebbd869b2fbc8f4f"
     },
     ".claude/agents/aw-backend.md": {
       "kind": "file",

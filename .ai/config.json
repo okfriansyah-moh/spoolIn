@@ -5,5 +5,11 @@
   "max_correction_rounds": 2,
   "max_workers": 3,
   "profile": "movie-app",
+  "resources": {
+    "increase_authorized": true,
+    "memory_bytes": 1073741824,
+    "memory_reserve_bytes": 2147483648,
+    "workers": 1
+  },
   "schema_version": 1
 }
