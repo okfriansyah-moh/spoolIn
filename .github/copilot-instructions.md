@@ -1,13 +1,7 @@
 
 ## Reuse and repository cleanup
 
-Implementation is the priority. Before adding a file, function, dependency, or document, search for an existing owner and suitable implementation. Extend or reuse it when the behavior and responsibility match; avoid speculative shared layers and cross-service coupling. Update all consumers when moving or removing internal code.
-
-Keep reusable project prompts in `docs/prompts/`. Give each documented topic one owning source and link to it from other documents instead of copying rules. Preserve useful design references, provenance, and required acceptance evidence.
-
-Remove unused or unrelated material only after checking imports, framework discovery, configuration, generators, operational commands, tests, and current requirements. Treat generated outputs, dependency locks, client adapters, isolated fixtures, and design/runtime asset copies according to their actual consumers rather than byte similarity alone.
-
-Run the existing unused-variable and dependency checks for affected code. The existing lint entry point also checks prompt placement and local prompt links; keep prevention focused on demonstrated problems. Review new code for repeated business rules and opportunities to reuse existing modules.
+Follow the [shared reuse and cleanup policy](../.ai/bundles/1.3.0/docs/DELIVERY.md#reuse-and-evidence-based-cleanup) for implementation and review. Keep reusable project prompts in `docs/prompts/`. The root lint entry point checks prompt placement and local prompt links; use the existing unused-variable and dependency checks for affected code.
 
 <!-- agent-workflow:begin -->
 ## Portable implementation workflow
@@ -15,6 +9,8 @@ Run the existing unused-variable and dependency checks for affected code. The ex
 Use `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.
 
 The current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.
+
+Apply the selected delivery policy's reuse and cleanup rules before adding or removing code, files, dependencies or docs. Implementation stays within the approved scope; reuse checks belong in the existing implementation and combined review.
 
 Match actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.
 
