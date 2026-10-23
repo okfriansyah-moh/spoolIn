@@ -243,9 +243,3 @@ export class CatalogController {
     this.current = Object.freeze(state);
   }
 }
-
-export function createCatalogController(
-  request: GraphqlRequest,
-): CatalogController {
-  return new CatalogController(request);
-}

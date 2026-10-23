@@ -3597,7 +3597,7 @@ Table ownership follows the feature responsible for its invariants. Shared names
 | `person`, `credit` | Catalog `person/persistence` and `credit/persistence` | Public people are independent of accounts; contributions have their own uniqueness/version |
 | `genre`, `credit_role` | Catalog `taxonomy/persistence` | Reusable definitions with distinct genre versus contribution-role rules |
 | `provenance_record` | Catalog `provenance/persistence` | Source-scoped identity and reuse evidence survive record deletion |
-| `seed_member` | Catalog `seed/persistence` | Per-version record/relationship tombstones prevent resurrection; parent receipt stores seed-run evidence |
+| `seed_member` | Catalog `seed` (`SeedProvenance`) and `features/lifecycle` (`LifecycleStore`) | Per-version record/relationship tombstones prevent resurrection; parent receipt stores seed-run evidence |
 | `artwork_attachment_request` | Catalog `artwork/persistence` | Attachment/cancellation outcome survives cross-service interruption |
 | `movie_proposal` | Catalog `proposal/persistence` | Exact immutable revision owns its one-use approval evidence |
 | `catalog_audit_event` | Catalog `audit/persistence` | Permanent business history exposed only to authorized Maintainers |

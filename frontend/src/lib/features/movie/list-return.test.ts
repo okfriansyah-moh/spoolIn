@@ -66,3 +66,12 @@ describe.each([
     expect(read(token)).toBeNull();
   });
 });
+
+it('keeps movie and person return positions isolated for the same token', () => {
+  rememberMovieList(token, state);
+  expect(readPersonListReturn(token)).toBeNull();
+  const personState = { ...state, searchText: 'Person', scrollY: 20 };
+  rememberPersonList(token, personState);
+  expect(readMovieListReturn(token)).toEqual(state);
+  expect(readPersonListReturn(token)).toEqual(personState);
+});

@@ -174,15 +174,4 @@ object HoldSql {
             holdId,
             catalogVersion,
         )
-
-    fun countProtectiveHolds(
-        connection: Connection,
-        assetId: UUID,
-    ): Int =
-        connection
-            .queryBound(
-                "SELECT COUNT(*) FROM asset_reference WHERE asset_id=? AND state IN ('RESERVED','ACTIVE')",
-                listOf(assetId),
-            ) { it.getInt(1) }
-            .single()
 }

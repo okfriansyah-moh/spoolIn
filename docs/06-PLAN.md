@@ -14,10 +14,10 @@ sources:
   sha256: d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: 2a67202ff540d98b055000ddca7c22e63ceda4a47a164eb633d70a402a14ea28
+  sha256: 336d543aa14040ec4c0e0abf3cd2f0eb7b0f60ac2b6a1a3fb1c35f3b3b0bd4b2
 - id: ATDD
   path: 05-atdd.md
-  sha256: 4af828cf702d29d5cc3b924f949ac6f8a8ef6cd2f7a6986f829351acc38ce0a7
+  sha256: 1feee26f5a5a49d6a47f0566e4cc20473299c97c82cacb2d4d2d9ae07f63804b
 - id: S-DESIGN-SYSTEM-03-DESIGN-SYSTEM-MD
   path: 03-design-system.md
   sha256: 585b222d387bc113d8ee63ddda0f08729b970037252ad02eb076b39098411113

@@ -781,8 +781,7 @@
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/taxonomy/read/",
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/person/read/",
         "services/catalog/src/test/kotlin/com/spoolin/catalog/features/provenance/",
-        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/",
-        "services/catalog/src/test/kotlin/com/spoolin/catalog/seed/persistence/"
+        "services/core/src/test/kotlin/com/spoolin/core/features/catalogview/read/"
       ],
       "unit": [
         {

@@ -14227,7 +14227,7 @@ Exact current source fingerprints, including final coordinated techdoc 1.11. Sou
 | --- | --- | --- |
 | SRC-PRD | [02-PRD.md](02-PRD.md) | d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895 |
 | SRC-BRAIN | [01-brainstorming-result.md](01-brainstorming-result.md) | 2450ae03d7772787ffb5271d9eab3dac6d54aff67ac8d1e6ceb68d87b491f161 |
-| SRC-TECH | [04-spoolin-techdoc.md](04-spoolin-techdoc.md) | 2a67202ff540d98b055000ddca7c22e63ceda4a47a164eb633d70a402a14ea28 |
+| SRC-TECH | [04-spoolin-techdoc.md](04-spoolin-techdoc.md) | 336d543aa14040ec4c0e0abf3cd2f0eb7b0f60ac2b6a1a3fb1c35f3b3b0bd4b2 |
 | SRC-TECH-PROMPT | [prompts/techdoc-creation.md](prompts/techdoc-creation.md) | fc0a58563c9b9e735903e6430ec86ad77f7dc10ecdc28d5dc7ea68fe90cdc6e7 |
 | SRC-ATDD-PROMPT | [prompts/atdd-creation.md](prompts/atdd-creation.md) | 6f9027d220b163585f62befa50e913ed81dc97f164b84940d7116e339f762131 |
 | SRC-DS-01 | [design-system/brand-history.md](design-system/brand-history.md) | dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba |

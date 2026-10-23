@@ -1,17 +1,17 @@
-function record(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export function renderPoster(root: HTMLElement, proposal: Record<string, unknown>, metadata: Record<string, unknown>, onReady: () => void): void {
-  if (!record(proposal.poster)) return;
+  if (!isRecord(proposal.poster)) return;
   const figure = document.createElement('figure');
   const caption = document.createElement('figcaption');
   caption.textContent = 'Poster included in this exact revision';
   figure.append(caption);
-  const preview = record(metadata.posterPreview) ? metadata.posterPreview : {};
+  const preview = isRecord(metadata.posterPreview) ? metadata.posterPreview : {};
   if (typeof preview.data === 'string' && ['image/jpeg', 'image/png', 'image/webp'].includes(String(preview.mimeType))) {
     const image = document.createElement('img');
-    image.alt = `Proposed poster for ${record(proposal.normalizedMovie) ? String(proposal.normalizedMovie.title) : 'this movie'}`;
+    image.alt = `Proposed poster for ${isRecord(proposal.normalizedMovie) ? String(proposal.normalizedMovie.title) : 'this movie'}`;
     image.addEventListener('load', onReady, { once: true });
     image.addEventListener('error', () => { caption.textContent = 'Poster preview unavailable. Use signed-in browser review before approval.'; });
     image.src = `data:${String(preview.mimeType)};base64,${preview.data}`;

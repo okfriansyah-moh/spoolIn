@@ -12,7 +12,7 @@ Quick navigation: [hosts](#3-coding-hosts-and-native-adapters) · [roles](#4-age
 
 This is the only workflow for Codex, Cursor AI, Claude Code, and GitHub Copilot. There are no fast, complete, lightweight, strict, or other workflow tracks. Task scope and project requirements determine the checks inside this procedure. Starting, resuming, delegating, and selecting a delivery destination do not change its completion rules.
 
-The current chat coordinates and implements directly in one suitable checkout by default. Optional contributors receive bounded assignments; one independent reviewer inspects the combined change. The [delivery policy](../.ai/bundles/1.3.0/docs/DELIVERY.md) defines completion. The [task prompt](prompt/task-implementation.md) supplies portable invocation and inputs.
+The current chat coordinates and implements directly in one suitable checkout by default. Optional contributors receive bounded assignments; one independent reviewer inspects the combined change. The [delivery policy](../.ai/bundles/1.3.0/docs/DELIVERY.md) defines completion. The [task prompt](prompts/task-implementation.md) supplies portable invocation and inputs.
 
 ## 1. Purpose, coverage, and evidence
 
@@ -206,7 +206,7 @@ The same text works from a repository-root chat in each host:
 | Claude Code | `Use running prompt for T001.` | `Use running prompt for T001, mode resume.` |
 | GitHub Copilot | `Use running prompt for T001.` | `Use running prompt for T001, mode resume.` |
 
-The [project shortcut](../.agents/skills/running-prompt/SKILL.md) reads the [task prompt](prompt/task-implementation.md). Native `$` or slash shortcuts are optional where supported. If discovery is stale, reload the relevant host/session or explicitly reference the project shortcut. Do not change the procedure to imitate another host's syntax.
+The [project shortcut](../.agents/skills/running-prompt/SKILL.md) reads the [task prompt](prompts/task-implementation.md). Native `$` or slash shortcuts are optional where supported. If discovery is stale, reload the relevant host/session or explicitly reference the project shortcut. Do not change the procedure to imitate another host's syntax.
 
 The prompt retains six inputs: Target (`next`), Plan (`docs/06-PLAN.md`), Mode (`implement`), Dependencies (`selected-only`), Delivery (`local`), and Additional context (`none`). `next` selects one eligible incomplete task; broader selection requires explicit input. Resume uses explicit inputs, then retained authorized values, then defaults. Additional context is data, never shell input.
 

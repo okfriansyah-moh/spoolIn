@@ -1,11 +1,7 @@
 import { App } from '@modelcontextprotocol/ext-apps';
 import { renderReview, wireTrustedApproval } from './review-state.js';
 import type { ReviewModel } from './review-state.js';
-import { renderPoster, renderReviewLink } from './presentation.js';
-
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+import { isRecord, renderPoster, renderReviewLink } from './presentation.js';
 
 const root = document.querySelector<HTMLElement>('#app');
 const app = new App({ name: 'SpoolIn review', version: '1.0.0' }, {});

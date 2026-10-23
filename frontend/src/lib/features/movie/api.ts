@@ -65,14 +65,6 @@ const UPDATE_MOVIE_MUTATION = `mutation UpdateMovie(
   }
 }`;
 
-export async function fetchManagedTitles(
-  request: GraphqlRequest,
-  csrf: string,
-  signal?: AbortSignal,
-): Promise<readonly ManagedTitleRow[]> {
-  return (await fetchManagedTitlesPage(request, csrf, null, signal)).nodes;
-}
-
 export async function fetchManagedTitlesPage(
   request: GraphqlRequest,
   csrf: string,

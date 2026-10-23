@@ -2203,11 +2203,11 @@
     },
     ".ai/bundles/1.3.0/README.md": {
       "kind": "file",
-      "sha256": "83d0a027c27cb732887de8df672530f83b867ed08764a83198af3afb5185b5c1"
+      "sha256": "7e760260cbf01a23472ee324bddd5f69b05b36e281cb6c10b33fd83e14808096"
     },
     ".ai/bundles/1.3.0/adapters/AGENTS.md": {
       "kind": "file",
-      "sha256": "c934d11a3409f95a25aeecf851cbd9b68be70ceb7e67dfc74369478e8fb566cb"
+      "sha256": "05c1f5db185ecf555ed10488a26224a1166387f79e6b75ef3c6c537d5a5d716e"
     },
     ".ai/bundles/1.3.0/agent_workflow/__init__.py": {
       "kind": "file",
@@ -2311,7 +2311,7 @@
     },
     ".ai/bundles/1.3.0/docs/DELIVERY.md": {
       "kind": "file",
-      "sha256": "1919768c534c5c63c7c5e95b03aa1e616e00e33297eadd11dc04a21fe276ebd8"
+      "sha256": "18e8bbd69ca0ca07a7df76c9aa2d7b2ac8fd970d532a15d51ec9f19c7e092d86"
     },
     ".ai/bundles/1.3.0/docs/GATES.md": {
       "kind": "file",
@@ -2327,7 +2327,7 @@
     },
     ".ai/bundles/1.3.0/docs/PROVENANCE.md": {
       "kind": "file",
-      "sha256": "a9b6cdd831da90a3852695eb78333202fb1b11728e4a79382d14d7ceeafe1b2b"
+      "sha256": "57fdbad78e3c2430cf750d870a78ba609354c05757621df2f97763181b8c3423"
     },
     ".ai/bundles/1.3.0/docs/RELEASE-1.1.md": {
       "kind": "file",
@@ -2375,7 +2375,7 @@
     },
     ".ai/bundles/1.3.0/manifest.json": {
       "kind": "file",
-      "sha256": "a1c1d6a5ba81c9f57012a8cae1444cd01792ecc4647bf3609204d2059d099bd2"
+      "sha256": "c67f318e29dfbf380f8fc52ec79e5b7b6dcb8ebdcd26f460b0f95ba2a95cc2e8"
     },
     ".ai/bundles/1.3.0/profiles/general.json": {
       "kind": "file",
@@ -2723,7 +2723,7 @@
     },
     ".ai/bundles/1.3.0/skills/code-quality/SKILL.md": {
       "kind": "file",
-      "sha256": "b229c8a42b1c094e339b10569f3134d745ea2f81384c405ffba8760a861384dd"
+      "sha256": "7074a4cd051ad7e7a5507beaf47f7c46fbefade0ddeb1fdc1f5bf86c62858c57"
     },
     ".ai/bundles/1.3.0/skills/code-quality/agents/openai.yaml": {
       "kind": "file",
@@ -3615,7 +3615,7 @@
     },
     ".ai/bundles/1.3.0/skills/task-implement/SKILL.md": {
       "kind": "file",
-      "sha256": "5ea037a27d307cef2ef153db5163ca2fc35a13b176dfc007a6672aae92b39801"
+      "sha256": "b7fd3ddde0181a888934d0a5379ef1f5ea5cd30444186fbcca13e38ac9620e71"
     },
     ".ai/bundles/1.3.0/skills/task-observer/LICENSE.txt": {
       "kind": "file",
@@ -4127,7 +4127,7 @@
     },
     ".ai/config.json": {
       "kind": "file",
-      "sha256": "9bb7f21ed8dbf4a53678bcf0294f70df1278325cb5a163535cb8d240a105ece2"
+      "sha256": "7fa51b9527cfde4ce6a8af80867688d301a2670a64937262ebbd869b2fbc8f4f"
     },
     ".claude/agents/aw-backend.md": {
       "kind": "file",
@@ -4895,7 +4895,7 @@
     },
     ".github/copilot-instructions.md": {
       "kind": "block",
-      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.\n\nThe current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.\n\nMatch actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.\n\nExplicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.\n\nKeep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.\n\nUse shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.\n<!-- agent-workflow:end -->\n"
+      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.\n\nThe current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.\n\nApply the selected delivery policy's reuse and cleanup rules before adding or removing code, files, dependencies or docs. Implementation stays within the approved scope; reuse checks belong in the existing implementation and combined review.\n\nMatch actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.\n\nExplicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.\n\nKeep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.\n\nUse shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.\n<!-- agent-workflow:end -->\n"
     },
     ".github/hooks/agent-workflow.json": {
       "entry": {
@@ -5205,11 +5205,11 @@
     },
     "AGENTS.md": {
       "kind": "block",
-      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.\n\nThe current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.\n\nMatch actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.\n\nExplicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.\n\nKeep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.\n\nUse shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.\n<!-- agent-workflow:end -->\n"
+      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.\n\nThe current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.\n\nApply the selected delivery policy's reuse and cleanup rules before adding or removing code, files, dependencies or docs. Implementation stays within the approved scope; reuse checks belong in the existing implementation and combined review.\n\nMatch actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.\n\nExplicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.\n\nKeep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.\n\nUse shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.\n<!-- agent-workflow:end -->\n"
     },
     "CLAUDE.md": {
       "kind": "block",
-      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.\n\nThe current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.\n\nMatch actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.\n\nExplicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.\n\nKeep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.\n\nUse shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.\n<!-- agent-workflow:end -->\n"
+      "text": "<!-- agent-workflow:begin -->\n## Portable implementation workflow\n\nUse `.ai/config.json` to resolve the repository bundle before global fallback. Read `.ai/bundles/1.3.0/docs/DELIVERY.md`; it defines one workflow for Codex, Cursor AI, Claude Code and GitHub Copilot. Run doctor once before substantial execution and load only relevant guidance.\n\nThe current chat implements the approved outcome directly in one suitable checkout, runs agreed affected checks, obtains one independent combined review, corrects findings and delivers within existing authorization. Optional scoped workers use isolated resources for concurrent writing; no nested coordinator or per-task review ceremony. Host adapters change syntax, not completion rules.\n\nApply the selected delivery policy's reuse and cleanup rules before adding or removing code, files, dependencies or docs. Implementation stays within the approved scope; reuse checks belong in the existing implementation and combined review.\n\nMatch actual approved visual references and complete user journeys, including completion, return destination and retained context. Protect workflow files, bundled skills, agent definitions, gate policy and unplanned Python files during product work. Harness maintenance requires its own requested task. Preserve IDs, unrelated work, configured quality/security rules and actual proof boundaries.\n\nExplicit no-test instructions prohibit test execution through hooks and hidden browser trials as well as added tests. Report pending proof honestly; source review does not establish runtime acceptance. Independent review requires a separate reviewer.\n\nKeep one Git-shared selection and findings ledger across hosts/resumes. Preserve ownership, constraints, valid results and cumulative limits. Record actual product progress every 45 minutes; optional evidence-tool repair shares two attempts or 20 minutes. Report implementation, checks, review and local/published revisions separately. Installation does not resume application work. Run the bundled wording checker before delivery. Read coordination/gate contracts only when using their helpers.\n\nUse shared execution-device resource admission before substantial checks; retain stop/recovery state across hosts and leave unsafe checks pending.\n<!-- agent-workflow:end -->\n"
     }
   },
   "schema_version": 1,
