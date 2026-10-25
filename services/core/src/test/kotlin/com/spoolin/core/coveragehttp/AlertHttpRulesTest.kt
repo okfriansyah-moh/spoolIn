@@ -84,7 +84,7 @@ class AlertHttpRulesTest {
     private val bytes = """{"version":"4","status":"firing","alerts":[{"status":"firing","fingerprint":"0123456789abcdef","startsAt":"2026-01-01T12:00:00Z","endsAt":"2026-01-01T12:05:00Z","labels":{"service":"core","severity":"warning","alertname":"ServiceUnavailable"},"annotations":{"summary":"Selected service unavailable","description":"private caller detail"}}]}""".toByteArray()
     private val environment = StandardEnvironment().also { it.propertySources.addFirst(MapPropertySource("unit", mapOf("local.management.port" to "9001"))) }
     private fun request(body: ByteArray = bytes) = MockHttpServletRequest("POST", "/internal/alerts").also {
-        it.isSecure = true; it.localPort = 9001; it.content = body
+        it.isSecure = true; it.localPort = 9001; it.setContent(body)
         it.setAttribute("jakarta.servlet.request.X509Certificate", arrayOf(AlertCertificate()))
     }
 
