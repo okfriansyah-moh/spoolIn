@@ -173,6 +173,36 @@ class AssetBoundaryRulesTest {
         status(Status.Code.NOT_FOUND) { AssetFile.open(root, row()) }
     }
 
+    @Test fun `catalog hold receipts require matching persisted and current authority tuples`() {
+        val stored = assetRecord() + mapOf("receipt_hold" to holdId, "receipt_title" to titleId)
+        val db = JdbcBoundary().rows().rows(stored)
+        val rpc = AssetRpc(db.source, QuarantineStore(root), CatalogAttachments(CatalogBoundary(remote()).client))
+        MediaPeer.context("catalog").run { assertEquals("account:$actorId", rpc.receiptScope(operationId)) }
+        val unknown = AssetRpc(JdbcBoundary().rows().rows().source, QuarantineStore(root), CatalogAttachments(CatalogBoundary().client))
+        status(Status.Code.NOT_FOUND) { unknown.receiptScope(operationId) }
+        val denied = AssetRpc(JdbcBoundary().rows().rows(stored).source, QuarantineStore(root), CatalogAttachments(CatalogBoundary(remote("UNKNOWN")).client))
+        MediaPeer.context("catalog").run { status(Status.Code.NOT_FOUND) { denied.receiptScope(operationId) } }
+    }
+
+    @Test fun `byte reads verify live hold grant and close files when streaming transport is unavailable`() {
+        val store = QuarantineStore(root)
+        val bytes = byteArrayOf(1, 4, 9)
+        Files.write(store.outputDirectory().resolve("$assetId.png"), bytes)
+        val record = assetRecord() + mapOf("output_bytes" to bytes.size.toLong(), "content_hash" to MessageDigest.getInstance("SHA-256").digest(bytes))
+        val db = JdbcBoundary().rows(record).rows(mapOf("id" to holdId, "asset_id" to assetId, "title_id" to titleId, "state" to "ACTIVE"))
+        val rpc = AssetRpc(db.source, store, CatalogAttachments(CatalogBoundary(remote()).client))
+        val response = Response<AssetReadChunk>()
+        val request = AssetReadRequest.newBuilder().setAssetId(assetId.toString()).setHoldId(holdId.toString()).setCatalogVersion(4).build()
+        MediaPeer.context("core").run { rpc.readAsset(request, response) }
+        assertEquals(Status.Code.INTERNAL, response.code)
+        assertTrue(response.values.isEmpty())
+        assertEquals(1, db.commits)
+        val poster = Response<MoviePosterImage>()
+        val absent = AssetRpc(JdbcBoundary().source, store, CatalogAttachments(CatalogBoundary(remote("RELEASED")).client))
+        MediaPeer.context("catalog").run { absent.readMoviePoster(MoviePosterReadRequest.newBuilder().setRefId(holdId.toString()).build(), poster) }
+        assertEquals(Status.Code.NOT_FOUND, poster.code)
+    }
+
     @Test fun `symbolic links are not accepted as immutable asset files`() {
         val target = Files.write(root.resolve("target"), byteArrayOf(1))
         Files.createSymbolicLink(root.resolve("$assetId.png"), target)
