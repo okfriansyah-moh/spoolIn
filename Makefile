@@ -26,3 +26,15 @@ local-setup local-start local-mcp local-status local-logs local-stop local-test 
 .PHONY: local-trust
 local-trust:
 	@python3 ops/local/trust.py
+
+.PHONY: coverage coverage-report coverage-sonar-up coverage-sonar coverage-stop
+coverage:
+	@bash ops/bin/coverage.sh run
+coverage-report:
+	@bash ops/bin/coverage.sh report
+coverage-sonar-up:
+	@bash ops/bin/coverage.sh sonar-up
+coverage-sonar:
+	@bash ops/bin/coverage.sh sonar
+coverage-stop:
+	@bash ops/bin/coverage.sh stop

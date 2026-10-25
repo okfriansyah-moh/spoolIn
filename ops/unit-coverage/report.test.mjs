@@ -1,0 +1,136 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import {
+  componentResult,
+  junitResults,
+  koverMetrics,
+  vitestMetrics,
+} from './report.mjs';
+
+const counts = (covered, total) => ({ covered, total });
+const summary = (covered = 80, total = 100) => ({
+  total: Object.fromEntries(
+    ['lines', 'branches', 'functions', 'statements'].map((name) => [
+      name,
+      counts(covered, total),
+    ]),
+  ),
+});
+
+function fixture(options = {}) {
+  const directory = mkdtempSync(join(tmpdir(), 'spoolin-unit-report-'));
+  const coverage = options.coverage ?? summary();
+  writeFileSync(
+    join(directory, 'coverage-summary.json'),
+    JSON.stringify(coverage),
+  );
+  writeFileSync(
+    join(directory, 'test-results.json'),
+    JSON.stringify({
+      numTotalTests: 2,
+      numPassedTests: 2,
+      numFailedTests: 0,
+      success: true,
+      ...options.tests,
+    }),
+  );
+  writeFileSync(join(directory, 'index.html'), '<h1>Coverage</h1>');
+  writeFileSync(
+    join(directory, 'lcov.info'),
+    'SF:src/example.ts\nDA:1,1\nend_of_record\n',
+  );
+  return directory;
+}
+
+function result(directory, command = 0) {
+  return componentResult(
+    { id: 'frontend', kind: 'vitest' },
+    command,
+    directory,
+  );
+}
+
+test('80% passes, but a percentage that only rounds to 80% fails', () => {
+  for (const [covered, total, expected] of [
+    [80, 100, 'passed'],
+    [799999, 1000000, 'failed'],
+    [0, 0, 'failed'],
+  ]) {
+    const directory = fixture({ coverage: summary(covered, total) });
+    try {
+      assert.equal(result(directory).status, expected);
+    } finally {
+      rmSync(directory, { recursive: true });
+    }
+  }
+});
+
+test('missing reports, failed commands and failed or empty suites cannot pass', () => {
+  for (const options of [
+    { command: 1 },
+    { tests: { success: false, numFailedTests: 1 } },
+    { tests: { numTotalTests: 0, numPassedTests: 0 } },
+    { remove: 'coverage-summary.json' },
+    { remove: 'test-results.json' },
+    { remove: 'index.html' },
+    { remove: 'lcov.info' },
+  ]) {
+    const directory = fixture(options);
+    try {
+      if (options.remove) rmSync(join(directory, options.remove));
+      assert.equal(result(directory, options.command ?? 0).status, 'failed');
+    } finally {
+      rmSync(directory, { recursive: true });
+    }
+  }
+});
+
+test('Kover totals use report counters rather than adding nested class counters', () => {
+  const measured =
+    koverMetrics(`<report><package name="a"><counter type="LINE" missed="1" covered="1"/></package>
+    <counter type="LINE" missed="20" covered="80"/><counter type="BRANCH" missed="5" covered="5"/>
+    <counter type="METHOD" missed="2" covered="8"/></report>`);
+  assert.deepEqual(measured.lines, { covered: 80, total: 100, percent: 80 });
+  assert.equal(measured.branches.percent, 50);
+  assert.equal(measured.functions.percent, 80);
+  assert.throws(() => koverMetrics('<report>'), /Incomplete/);
+  assert.throws(() => koverMetrics('<report></report>'), /Missing/);
+  assert.throws(() => vitestMetrics(summary(-1)), /Invalid/);
+});
+
+test('JUnit skips and failures remain visible and skipped-only suites fail', () => {
+  const xml =
+    '<testsuite tests="3" failures="1" errors="0" skipped="1"></testsuite>';
+  assert.deepEqual(junitResults([xml]), {
+    total: 3,
+    executed: 2,
+    failures: 1,
+    errors: 0,
+    skipped: 1,
+  });
+  const directory = mkdtempSync(join(tmpdir(), 'spoolin-kover-report-'));
+  try {
+    mkdirSync(join(directory, 'tests'));
+    writeFileSync(
+      join(directory, 'tests/TEST-Skipped.xml'),
+      '<testsuite tests="1" skipped="1"></testsuite>',
+    );
+    writeFileSync(
+      join(directory, 'report.xml'),
+      '<report><counter type="LINE" missed="0" covered="100"/></report>',
+    );
+    writeFileSync(join(directory, 'index.html'), '<h1>Coverage</h1>');
+    const measured = componentResult(
+      { id: 'core', kind: 'kover' },
+      0,
+      directory,
+    );
+    assert.equal(measured.status, 'failed');
+    assert.ok(measured.reasons.includes('No tests executed'));
+  } finally {
+    rmSync(directory, { recursive: true });
+  }
+});

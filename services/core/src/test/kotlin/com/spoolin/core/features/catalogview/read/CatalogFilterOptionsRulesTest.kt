@@ -16,6 +16,8 @@ import graphql.GraphQL
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
+import io.grpc.ConnectivityState
+import io.grpc.ManagedChannel
 import io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.NettyServerBuilder
 import io.grpc.stub.StreamObserver
@@ -31,6 +33,8 @@ import spoolin.v1.Spoolin
 import java.lang.reflect.Proxy
 import java.net.InetSocketAddress
 import java.sql.Connection
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class CatalogFilterOptionsRulesTest {
     @Test
@@ -43,6 +47,7 @@ class CatalogFilterOptionsRulesTest {
                 .start()
         val channel = NettyChannelBuilder.forAddress("127.0.0.1", server.port).usePlaintext().build()
         try {
+            awaitReady(channel)
             val wiring = RuntimeWiring.newRuntimeWiring()
             val catalog = CatalogServiceGrpc.newBlockingStub(channel)
             CatalogViewGraphql(catalog, PolicyEnvironment.resolve { null }).bind(wiring)
@@ -110,6 +115,20 @@ class CatalogFilterOptionsRulesTest {
                 admission.context(request, parsed, identity, System.nanoTime() + 1_000_000_000)
             }
         assertSame(marker, error)
+    }
+
+    private fun awaitReady(channel: ManagedChannel) {
+        // Fixture startup must finish before the application RPC deadline begins.
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30)
+        while (true) {
+            val state = channel.getState(true)
+            if (state == ConnectivityState.READY) return
+            val remaining = deadline - System.nanoTime()
+            assertTrue(remaining > 0, "Local gRPC fixture did not become ready")
+            val changed = CountDownLatch(1)
+            channel.notifyWhenStateChanged(state, changed::countDown)
+            assertTrue(changed.await(remaining, TimeUnit.NANOSECONDS), "Local gRPC fixture startup timed out")
+        }
     }
 
     private fun unusedDatabase(): AbstractDataSource =

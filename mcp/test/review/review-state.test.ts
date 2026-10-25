@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { renderReview } from '../../src/review/review-state.js';
+import {
+  renderReview,
+  wireTrustedApproval,
+} from '../../src/review/review-state.js';
 
 describe('review-state', () => {
   it('renders publishable fields without challenge text', () => {
@@ -53,5 +56,40 @@ describe('review-state', () => {
     expect(root.textContent).toContain('<img src=x onerror=alert(1)>');
     expect(root.querySelector('img')).toBeNull();
     expect(root.textContent).not.toContain('[object Object]');
+  });
+  it('shows unknown fields and credit attribution as text while refusing synthetic decisions', () => {
+    const root = document.createElement('div');
+    const model = {
+      proposalId: 'proposal',
+      revision: 1,
+      contentHash: 'digest',
+      values: { title: '', release: undefined },
+      credits: [
+        null,
+        {
+          personName: '<script>person</script>',
+          roleLabel: 'Actor',
+          characterNames: ['Lead'],
+          billingOrder: 1,
+        },
+      ],
+      sources: [null, 'Plain reference', { field: 'title' }],
+      unknowns: ['runtime'],
+    };
+    renderReview(root, model);
+    expect(root.textContent).toContain('Not provided');
+    expect(root.textContent).toContain('runtime');
+    expect(root.textContent).toContain('<script>person</script>');
+    expect(root.querySelector('script')).toBeNull();
+    let submitted = false;
+    wireTrustedApproval(
+      root,
+      () => model,
+      async () => {
+        submitted = true;
+      },
+    );
+    root.querySelector<HTMLButtonElement>('button')!.click();
+    expect(submitted).toBe(false);
   });
 });

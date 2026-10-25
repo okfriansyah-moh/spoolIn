@@ -38,6 +38,17 @@ kover {
 
 tasks.named("koverXmlReport") { dependsOn("integrationTest", "architectureTest") }
 
+val catalogFilterOptionsIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    classpath = files(bootstrapTests.output, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
+    dependsOn("integrationTestClasses")
+    filter { includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.CatalogFilterOptionsRulesTest") }
+    useJUnitPlatform()
+    maxHeapSize = "256m"
+}
+tasks.named("integrationTest") { dependsOn(catalogFilterOptionsIntegrationTest) }
+tasks.named("koverXmlReport") { dependsOn(catalogFilterOptionsIntegrationTest) }
+
 springBoot { mainClass.set("com.spoolin.catalog.ApplicationKt") }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") { archiveClassifier.set("boot") }

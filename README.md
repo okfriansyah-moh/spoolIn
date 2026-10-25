@@ -689,6 +689,11 @@ Contract generation requires Java and Node; generated interfaces must match the 
 
 `make local-test` builds the app and runs the setup-helper regressions, npm type checks, frontend and MCP coverage tests, and Gradle `test` tasks. Its temporary backend test container receives access to the local Docker engine so Testcontainers can manage isolated PostgreSQL fixtures. Application containers do not receive this socket; remote Docker endpoints are unsupported.
 
+For unit-only coverage, run `make coverage`, then `make coverage-report` to read the
+HTML dashboard. Each frontend/backend component must independently reach 80% line
+coverage. Optional local SonarQube setup and the measurement boundaries are documented
+in [unit coverage in Docker](docs/operations/unit-coverage.md).
+
 The separately named `integrationTest` tasks and browser acceptance suites need their own runtime prerequisites and are not included in `make local-test`. See the [verification workflow](docs/07-harness-workflow.md) for those runners.
 
 Existing unit tests cover successful operations and failure boundaries. Examples include:

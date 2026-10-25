@@ -24,7 +24,7 @@ class SeedEffectivePolicyRulesTest {
 
     @Test
     fun `preparation validates every applicable configured text bound before returning a snapshot`() {
-        val file = repository().resolve("data/seed/manifest.json")
+        val file = repository().resolve("data/seed/baselines/wikidata-2026-10-v1.json")
         SeedManifest.prepare(file, configured())
         listOf("PERSON_NAME", "TITLE", "SYNOPSIS", "CREDIT_ROLE", "SOURCE_URL", "REUSE_BASIS").forEach { key ->
             val policy = configured(mapOf("${key}_MAX_CODE_POINTS" to "1"))
@@ -140,7 +140,8 @@ class SeedEffectivePolicyRulesTest {
         return PolicySettings.resolve(sources)
     }
 
-    private fun snapshot() = mapper.readTree(repository().resolve("data/seed/manifest.json").toFile()) as ObjectNode
+    private fun snapshot() =
+        mapper.readTree(repository().resolve("data/seed/baselines/wikidata-2026-10-v1.json").toFile()) as ObjectNode
 
     private fun write(root: ObjectNode): Path {
         root["people"].forEach { (it as ObjectNode).put("contentSHA256", SeedIdentities.hashHex(it)) }

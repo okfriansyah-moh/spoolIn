@@ -1,6 +1,6 @@
 import { policyFixture } from '../fixtures/policy.js';
 import { GatewayFailure } from '../../src/operations/gateway-failure.js';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -31,6 +31,7 @@ describe('real SDK streamable HTTP session lifecycle', () => {
   let proposedPolicy: string | undefined;
   let policyChangesOnWrite = false;
   beforeEach(async () => {
+    vi.stubEnv('SPOOLIN_PUBLIC_ORIGIN', 'https://spoolin.example');
     process.env.MCP_PORT = '0';
     closed = 0;
     proposals = 0;
@@ -76,6 +77,7 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     transport = undefined;
     client = undefined;
     delete process.env.MCP_PORT;
+    vi.unstubAllEnvs();
   });
   async function connect() {
     transport = new StreamableHTTPClientTransport(new URL(endpoint), {
@@ -89,7 +91,14 @@ describe('real SDK streamable HTTP session lifecycle', () => {
     const connected = await connect();
     expect(
       (await connected.listTools()).tools.map((tool) => tool.name),
-    ).toEqual(['movie_context', 'movie_operation', 'propose_movie']);
+    ).toEqual([
+      'movie_context',
+      'movie_operation',
+      'propose_movie',
+      'movie_review_queue',
+      'prepare_movie_poster',
+      'review_movie_proposal',
+    ]);
     const result = await connected.callTool({
       name: 'movie_context',
       arguments: { query: '', limit: 1 },
