@@ -130,14 +130,14 @@ class HoldWorkflowRulesTest {
     @Test fun `reserve confirm release return committed tuple and preserve rollback on conflict`() {
         for ((action, state, previous) in listOf(Triple(HoldAction.RESERVE, "PREPARING", null),
             Triple(HoldAction.CONFIRM, "ACTIVE", "RESERVED"), Triple(HoldAction.RELEASE, "RELEASED", "ACTIVE"))) {
-            val c = command(action).copy(expectedVersion = 4)
+            val c = command(action).copy(expectedVersion = 4).let { if (action == HoldAction.RESERVE) it.copy(asset = it.child("asset")) else it }
             val asset = assetRecord().toMutableMap().apply {
                 if (action == HoldAction.RESERVE) { put("id", c.child("asset")); put("upload_operation_id", c.child("media-upload")) }
             }
             val db = JdbcBoundary().rows(receipt(c)).rows(asset)
             if (previous == null) db.rows() else db.rows(record(previous))
             db.rows(record(if (action == HoldAction.RESERVE) "RESERVED" else state))
-            val rpc = HoldRpc(db.source, CatalogAttachments(CatalogBoundary(remote(state)).client), Clock.fixed(instant, ZoneOffset.UTC))
+            val rpc = HoldRpc(db.source, CatalogAttachments(CatalogBoundary(remote(state).toBuilder().setAssetId(c.asset.toString()).build()).client), Clock.fixed(instant, ZoneOffset.UTC))
             val response = Response<Attachment>()
             MediaPeer.context("catalog").run {
                 when (action) { HoldAction.RESERVE -> rpc.reserve(request(c), response); HoldAction.CONFIRM -> rpc.confirm(request(c), response); HoldAction.RELEASE -> rpc.release(request(c), response) }
