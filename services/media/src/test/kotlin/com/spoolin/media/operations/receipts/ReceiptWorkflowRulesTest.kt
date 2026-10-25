@@ -68,7 +68,7 @@ class ReceiptWorkflowRulesTest {
     }
 
     @Test fun `receipt RPC exposes result identity version and declared problems`() {
-        val outcome = ReceiptOutcome(operationId, ReceiptState.SUCCEEDED, SafeResult(assetId, 4), "FIELD_INVALID", operationId, instant)
+        val outcome = ReceiptOutcome(operationId, ReceiptState.SUCCEEDED, SafeResult(assetId, 4), "FIELD_INVALID", operationId, instant, false)
         val response = Response<Outcome>()
         ReceiptRpc(ReceiptAuthority { intent.actorScope }) { _, _ -> outcome }.getOperation(Id.newBuilder().setId(operationId.toString()).build(), response)
         assertTrue(response.completed)

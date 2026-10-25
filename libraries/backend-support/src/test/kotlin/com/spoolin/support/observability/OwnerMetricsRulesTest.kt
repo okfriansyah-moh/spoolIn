@@ -10,11 +10,15 @@ import java.sql.SQLException
 
 class OwnerMetricsRulesTest {
     @TempDir lateinit var root: Path
+    private fun <T> withRegistry(action: (SimpleMeterRegistry) -> T): T {
+        val registry = SimpleMeterRegistry()
+        return try { action(registry) } finally { registry.close() }
+    }
     private fun snapshot(db: JdbcBoundary): JdbcBoundary = db.rows(mapOf("1" to "READY", "2" to 5.0), mapOf("1" to "LEASED", "2" to 2.0))
         .rows(mapOf("1" to "smtp", "2" to "PENDING", "3" to 3.0)).rows(mapOf("1" to 12.5))
 
     @Test fun `scrape exposes one coherent owner snapshot including pool readiness and disk capacity`() {
-        SimpleMeterRegistry().use { registry ->
+        withRegistry { registry ->
             val db = snapshot(JdbcBoundary())
             val metrics = OwnerMetrics(registry, db.source, "media", OwnerMetricRuntime({ 2 }, { 8 }, { true }), mapOf("artwork" to root))
             assertTrue(metrics.prepareScrape())
@@ -33,7 +37,7 @@ class OwnerMetricsRulesTest {
     }
 
     @Test fun `a failed collection clears the prior measurement and a later successful scrape recovers`() {
-        SimpleMeterRegistry().use { registry ->
+        withRegistry { registry ->
             val db = snapshot(JdbcBoundary())
             val metrics = OwnerMetrics(registry, db.source, "core", OwnerMetricRuntime({ 0 }, { 4 }, { false }))
             assertTrue(metrics.prepareScrape())
@@ -50,12 +54,12 @@ class OwnerMetricsRulesTest {
 
     @Test fun `invalid pool measurements and unavailable volumes fail the scrape`() {
         for ((active, maximum) in listOf(-1 to 5, 6 to 5, 0 to 0)) {
-            SimpleMeterRegistry().use { registry ->
+            withRegistry { registry ->
                 val metrics = OwnerMetrics(registry, snapshot(JdbcBoundary()).source, "catalog", OwnerMetricRuntime({ active }, { maximum }, { true }))
                 assertFalse(metrics.prepareScrape())
             }
         }
-        SimpleMeterRegistry().use { registry ->
+        withRegistry { registry ->
             assertFalse(OwnerMetrics(registry, snapshot(JdbcBoundary()).source, "core", OwnerMetricRuntime({ 0 }, { 5 }, { true }),
                 mapOf("backup" to root.resolve("missing"))).prepareScrape())
         }
@@ -63,7 +67,7 @@ class OwnerMetricsRulesTest {
 
     @Test fun `metric dimensions accept only maintained owner and volume labels`() {
         val runtime = OwnerMetricRuntime({ 0 }, { 1 }, { true })
-        SimpleMeterRegistry().use { registry ->
+        withRegistry { registry ->
             assertThrows(IllegalArgumentException::class.java) { OwnerMetrics(registry, JdbcBoundary().source, "customer-input", runtime) }
             assertThrows(IllegalArgumentException::class.java) { OwnerMetrics(registry, JdbcBoundary().source, "core", runtime, mapOf("arbitrary" to root)) }
         }

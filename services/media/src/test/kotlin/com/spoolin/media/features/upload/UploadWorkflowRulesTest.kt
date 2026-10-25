@@ -38,7 +38,7 @@ class UploadWorkflowRulesTest {
     private fun authorized(rpc: UploadRpc, response: Response<Outcome>): ServerCall.Listener<UploadChunk> {
         val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
         val method = MediaServiceGrpc.getUploadMethod()
-        val claims = ActorClaims("media", "/${method.fullMethodName}", actorId, operationId, null, "ADMIN", 1,
+        val claims = ActorClaims("media", "/${method.fullMethodName}", actorId, operationId, null, "MAINTAINER", 1,
             instant.epochSecond, instant.epochSecond + 20, Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(16) { 3 }), operationId, operationId)
         val metadata = Metadata().apply { put(ActorRpc.metadata, ActorSigner("unit", keys.private).sign(claims)) }
         val call = object : ServerCall<UploadChunk, Outcome>() {
