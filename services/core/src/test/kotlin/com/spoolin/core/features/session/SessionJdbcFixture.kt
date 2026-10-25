@@ -48,7 +48,7 @@ internal class SessionJdbcFixture(results: List<List<Map<String, Any?>>>) : Abst
             return proxy(ResultSet::class.java) { name, args ->
                 when (name) {
                     "next" -> { index++; index < values.size }
-                    "getObject", "getString", "getBytes", "getTimestamp" -> values[index][args!![0]]
+                    "getObject", "getString", "getBytes", "getTimestamp" -> values[index][args!![0].toString()]
                     "getLong" -> (values[index][args!![0].toString()] as? Number)?.toLong() ?: 0L
                     "wasNull" -> true
                     "getBoolean" -> values[index][args!![0].toString()] as? Boolean ?: false
