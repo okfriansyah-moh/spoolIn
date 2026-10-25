@@ -123,10 +123,10 @@ class ManagementBoundaryRulesTest {
         val beans = StaticListableBeanFactory()
         val rates = beans.getBeanProvider(com.spoolin.core.features.ratelimit.RateMaintenance::class.java)
         val config = AdmissionReadinessConfiguration()
-        assertEquals("UP", config.rateReadiness(StandardEnvironment(), rates).health().status.code)
+        assertEquals("UP", requireNotNull(config.rateReadiness(StandardEnvironment(), rates).health()).status.code)
         for (name in listOf("spoolin.account-protection.enabled", "spoolin.rate-limit.enabled")) {
             val environment = StandardEnvironment().also { it.propertySources.addFirst(MapPropertySource("fixture", mapOf(name to true))) }
-            val health = config.rateReadiness(environment, rates).health()
+            val health = requireNotNull(config.rateReadiness(environment, rates).health())
             assertEquals("DOWN", health.status.code)
             assertEquals("ADMISSION_UNAVAILABLE", health.details["reason"])
         }
