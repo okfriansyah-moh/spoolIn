@@ -63,6 +63,21 @@ class TrustedAdmissionBehaviorTest {
         assertThrows(IllegalArgumentException::class.java) { RateDemand(RateProfile.READ, RateScope.SOURCE, "") }
     }
 
+    @Test
+    fun `configured admission health validates agreement and database and maintenance removes expired windows`() = fixture { db, trusted ->
+        val agreement = RateAgreement(root.resolve("agreement.json"), profiles.revision, key)
+        val config = RateConfiguration()
+        val maintenance = config.admissionHealth(db, agreement)
+        db.enqueue()
+        assertTrue(maintenance.ready())
+        assertEquals(1, maintenance.purge())
+        val admission = config.admission(trusted)
+        db.enqueue(mapOf("1" to 1800000000L)); db.enqueue(emptyMap())
+        admission.check(AuthenticationAction.REGISTER, null, AuthenticationRequest("127.0.0.1", null))
+        Files.writeString(root.resolve("agreement.json"), "{}")
+        assertFalse(maintenance.ready())
+    }
+
     private fun fixture(test: (SessionJdbcFixture, TrustedAdmission) -> Unit) {
         val path = root.resolve("agreement.json")
         val canary = Mac.getInstance("HmacSHA256").also { it.init(SecretKeySpec(key, "HmacSHA256")) }.doFinal("spoolin-rate-agreement-v1".toByteArray())
