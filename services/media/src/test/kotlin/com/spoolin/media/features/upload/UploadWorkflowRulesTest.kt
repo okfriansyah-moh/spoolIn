@@ -301,4 +301,41 @@ class UploadWorkflowRulesTest {
         assertFalse(failure.failure!!.message!!.contains("secret"))
         assertFalse(Files.exists(store.stagingPath(assetId)))
     }
+    @Test
+    fun `invalid upload bounds and checksum headers never reserve accepted input`() {
+        val valid = header()
+        val variants = listOf(
+            valid.header.toBuilder().setInputBytes(0).build(),
+            valid.header.toBuilder().setInputBytes(com.spoolin.media.features.processing.ProcessingBounds.MAX_INPUT_BYTES + 1).build(),
+            valid.header.toBuilder().setInputSha256(ByteString.copyFrom(byteArrayOf(1))).build(),
+        )
+        val store = QuarantineStore(root)
+        variants.forEach { value ->
+            val db = JdbcBoundary()
+            val response = Response<Outcome>()
+            val stream = authorized(UploadRpc(db.source, store, "p1", clock, CatalogAttachments(CatalogBoundary(attachment()).client)), response)
+            stream.onMessage(UploadChunk.newBuilder().setHeader(value).build())
+            stream.onHalfClose()
+            assertEquals(Status.Code.INVALID_ARGUMENT, response.code)
+            assertEquals(0, db.commits)
+            assertFalse(Files.exists(store.stagingPath(assetId)))
+        }
+    }
+
+    @Test
+    fun `authority changes after transferred bytes refuse processing and erase staging`() {
+        val bytes = png()
+        val boundary = CatalogBoundary(attachment())
+        val store = QuarantineStore(root)
+        val response = Response<Outcome>()
+        val stream = authorized(UploadRpc(JdbcBoundary().source, store, "p1", clock, CatalogAttachments(boundary.client)), response)
+        stream.onMessage(header(bytes))
+        stream.onMessage(data(bytes))
+        boundary.attachment = attachment().toBuilder().setHoldId(UUID.randomUUID().toString()).build()
+        stream.onHalfClose()
+        assertEquals(Status.Code.PERMISSION_DENIED, response.code)
+        assertFalse(Files.exists(store.stagingPath(assetId)))
+        assertTrue(response.values.isEmpty())
+    }
+
 }

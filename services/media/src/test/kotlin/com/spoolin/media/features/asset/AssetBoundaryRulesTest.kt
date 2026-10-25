@@ -348,4 +348,30 @@ class AssetBoundaryRulesTest {
         assertThrows(IllegalStateException::class.java) { AssetFile.open(root, valid.copy(outputBytes = 0)) }
     }
 
+    @Test
+    fun `movie poster reads verify ready asset actor request binding and active hold grant`() {
+        val request = MoviePosterReadRequest.newBuilder().setRefId(holdId.toString()).build()
+        data class Case(val grant: Attachment, val asset: Map<String, Any?>?, val requested: String?, val expected: Status.Code)
+        val cases = listOf(
+            Case(remote("PREPARING"), null, null, Status.Code.NOT_FOUND),
+            Case(remote("PREPARING"), assetRecord("PROCESSING"), null, Status.Code.NOT_FOUND),
+            Case(remote("PREPARING").toBuilder().clearActorId().build(), assetRecord(), null, Status.Code.PERMISSION_DENIED),
+            Case(remote("PREPARING").toBuilder().setActorId(UUID.randomUUID().toString()).build(), assetRecord(), null, Status.Code.PERMISSION_DENIED),
+            Case(remote("PREPARING"), assetRecord(), UUID.randomUUID().toString(), Status.Code.NOT_FOUND),
+            Case(remote("PREPARING"), assetRecord(), assetId.toString(), Status.Code.NOT_FOUND),
+            Case(remote("ACTIVE"), assetRecord(), null, Status.Code.NOT_FOUND),
+        )
+        cases.forEach { case ->
+            val db = JdbcBoundary()
+            if (case.asset == null) db.rows() else db.rows(case.asset)
+            db.rows()
+            val rpc = AssetRpc(db.source, QuarantineStore(root), CatalogAttachments(CatalogBoundary(case.grant).client))
+            val response = Response<MoviePosterImage>()
+            val query = request.toBuilder().also { builder -> case.requested?.let { builder.assetId = it } }.build()
+            MediaPeer.context("catalog").run { rpc.readMoviePoster(query, response) }
+            assertEquals(case.expected, response.code, case.toString())
+            assertTrue(response.values.isEmpty())
+        }
+    }
+
 }
