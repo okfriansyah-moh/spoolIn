@@ -39,24 +39,71 @@ class McpApprovalHttpRulesTest {
     fun `missing malformed empty bearer and incomplete body refuse approval without downstream access`() {
         val h = Harness()
         for (authorization in listOf(null, "", "Basic token", "Bearer", "Bearer   ")) {
-            assertEquals(401, h.http.approveMovie(authorization, body).statusCode.value())
-            assertEquals(401, h.http.rejectMovie(authorization, body).statusCode.value())
+            assertEquals(
+                401,
+                h.http
+                    .approveMovie(authorization, body)
+                    .statusCode
+                    .value(),
+            )
+            assertEquals(
+                401,
+                h.http
+                    .rejectMovie(authorization, body)
+                    .statusCode
+                    .value(),
+            )
         }
-        for (invalid in listOf(body.copy(proposalId = ""), body.copy(contentHash = ""), body.copy(challenge = ""), body.copy(revision = 0))) {
-            assertEquals(400, h.http.approveMovie("Bearer token", invalid).statusCode.value())
+        for (invalid in listOf(
+            body.copy(proposalId = ""),
+            body.copy(contentHash = ""),
+            body.copy(challenge = ""),
+            body.copy(revision = 0),
+        )) {
+            assertEquals(
+                400,
+                h.http
+                    .approveMovie("Bearer token", invalid)
+                    .statusCode
+                    .value(),
+            )
         }
-        assertEquals(401, h.http.approveMovie("Bearer token", body.copy(challenge = "other")).statusCode.value())
-        assertEquals(401, h.http.rejectMovie("Bearer token", body.copy(contentHash = "other")).statusCode.value())
+        assertEquals(
+            401,
+            h.http
+                .approveMovie("Bearer token", body.copy(challenge = "other"))
+                .statusCode
+                .value(),
+        )
+        assertEquals(
+            401,
+            h.http
+                .rejectMovie("Bearer token", body.copy(contentHash = "other"))
+                .statusCode
+                .value(),
+        )
         assertEquals(0, h.db.queries)
     }
 
     @Test
     fun `trusted approval and rejection preserve exact binding and safe optional result projection`() {
         for (approve in listOf(true, false)) {
-            val outcome = Spoolin.Outcome.newBuilder().setOperationId(id).setState("FAILED").setResultId(id).setVersion(7).setProblem(Spoolin.Problem.newBuilder().setCode("CONFLICT")).build()
+            val outcome =
+                Spoolin.Outcome
+                    .newBuilder()
+                    .setOperationId(
+                        id,
+                    ).setState("FAILED")
+                    .setResultId(id)
+                    .setVersion(7)
+                    .setProblem(Spoolin.Problem.newBuilder().setCode("CONFLICT"))
+                    .build()
             val h = Harness(outcome)
             h.authorize()
-            val result = h.trusted(approve) { if (approve) h.http.approveMovie("  bEaReR token ", body) else h.http.rejectMovie("Bearer token", body) }
+            val result =
+                h.trusted(
+                    approve,
+                ) { if (approve) h.http.approveMovie("  bEaReR token ", body) else h.http.rejectMovie("Bearer token", body) }
             assertEquals(200, result.statusCode.value())
             assertEquals(id, result.body!!["operationId"])
             assertEquals(7L, result.body!!["version"])
@@ -66,7 +113,14 @@ class McpApprovalHttpRulesTest {
             assertEquals(body.challenge, input.challenge)
             h.verifier.close()
         }
-        val h = Harness(Spoolin.Outcome.newBuilder().setOperationId(id).setState("SUCCEEDED").build())
+        val h =
+            Harness(
+                Spoolin.Outcome
+                    .newBuilder()
+                    .setOperationId(id)
+                    .setState("SUCCEEDED")
+                    .build(),
+            )
         h.authorize()
         val result = h.trusted(true) { h.http.approveMovie("Bearer token", body) }
         assertNull(result.body!!["version"])
@@ -88,30 +142,80 @@ class McpApprovalHttpRulesTest {
         }
         val denied = Harness()
         denied.db.enqueue()
-        assertEquals(403, denied.http.approveMovie("Bearer token", body).statusCode.value())
+        assertEquals(
+            403,
+            denied.http
+                .approveMovie("Bearer token", body)
+                .statusCode
+                .value(),
+        )
         assertTrue(denied.rpc.requests.isEmpty())
         denied.verifier.close()
     }
 
-    private inner class Harness(vararg replies: Any) {
+    private inner class Harness(
+        vararg replies: Any,
+    ) {
         val db = SessionJdbcFixture(emptyList())
         val rpc = HttpRpcReplies(*replies)
         val verifier = UiAssertionVerifier(true, "test", secret, ObjectMapper())
         private val challenges = ProposalUiChallengeStore()
         val http: McpReviewApprovalGateway
+
         init {
             challenges.put(id, 2, hash, body.challenge)
             val issuer = McpActorIssuer(ActorSigner("test", KeyPairGenerator.getInstance("Ed25519").generateKeyPair().private))
-            val gateway = McpGatewayRpc(ConnectorStore(db), PolicyProvider(PolicyEnvironment.resolve { null }), CatalogServiceGrpc.newBlockingStub(rpc), issuer, challenges, verifier)
+            val gateway =
+                McpGatewayRpc(
+                    ConnectorStore(db),
+                    PolicyProvider(
+                        PolicyEnvironment.resolve {
+                            null
+                        },
+                    ),
+                    CatalogServiceGrpc.newBlockingStub(rpc),
+                    issuer,
+                    challenges,
+                    verifier,
+                )
             http = McpReviewApprovalGateway(gateway, challenges)
         }
+
         fun authorize() {
-            repeat(2) { db.enqueue(mapOf("id" to connector, "account_id" to account, "client_kind" to "CHATGPT", "auth_epoch" to 1L, "scope" to "movie:propose movie:approve", "expires_at" to Timestamp.from(Instant.now().plusSeconds(600)), "revoked_at" to null)) }
+            repeat(2) {
+                db.enqueue(
+                    mapOf(
+                        "id" to connector,
+                        "account_id" to account,
+                        "client_kind" to "CHATGPT",
+                        "auth_epoch" to 1L,
+                        "scope" to "movie:propose movie:approve",
+                        "expires_at" to Timestamp.from(Instant.now().plusSeconds(600)),
+                        "revoked_at" to null,
+                    ),
+                )
+            }
             repeat(2) { db.enqueue(mapOf("role" to "MAINTAINER")) }
         }
-        fun <T> trusted(approve: Boolean, action: () -> T): T {
+
+        fun <T> trusted(
+            approve: Boolean,
+            action: () -> T,
+        ): T {
             // Simulates an authenticated host assertion at the private external boundary, not host UI trust proof.
-            val claims = sortedMapOf<String, Any>("audience" to "core", "connector" to connector.toString(), "client" to "CHATGPT", "session" to UUID.randomUUID().toString(), "proposal" to id, "revision" to 2, "hash" to hash, "method" to "/spoolin.v1.McpGatewayService/${if (approve) "ApproveMovie" else "RejectMovie"}", "invocation" to UUID.randomUUID().toString(), "expiry" to Instant.now().epochSecond + 30)
+            val claims =
+                sortedMapOf<String, Any>(
+                    "audience" to "core",
+                    "connector" to connector.toString(),
+                    "client" to "CHATGPT",
+                    "session" to UUID.randomUUID().toString(),
+                    "proposal" to id,
+                    "revision" to 2,
+                    "hash" to hash,
+                    "method" to "/spoolin.v1.McpGatewayService/${if (approve) "ApproveMovie" else "RejectMovie"}",
+                    "invocation" to UUID.randomUUID().toString(),
+                    "expiry" to Instant.now().epochSecond + 30,
+                )
             val payload = Base64.getUrlEncoder().withoutPadding().encodeToString(ObjectMapper().writeValueAsBytes(claims))
             val signed = "test.$payload"
             val mac = Mac.getInstance("HmacSHA256").also { it.init(SecretKeySpec(secret, "HmacSHA256")) }

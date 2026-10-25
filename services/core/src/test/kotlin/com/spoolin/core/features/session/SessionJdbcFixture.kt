@@ -52,7 +52,10 @@ internal class SessionJdbcFixture(
         val parameters = mutableMapOf<Int, Any?>()
         return proxy(PreparedStatement::class.java) { name, args ->
             when (name) {
-                "execute" -> { executions++; true }
+                "execute" -> {
+                    executions++
+                    true
+                }
                 "executeQuery" -> {
                     queries++
                     rows(responses.removeFirst())

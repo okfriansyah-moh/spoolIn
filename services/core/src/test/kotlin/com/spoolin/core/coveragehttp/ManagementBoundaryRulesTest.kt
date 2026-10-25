@@ -45,15 +45,16 @@ import javax.sql.DataSource
 class ManagementBoundaryRulesTest {
     @Test
     fun `management listener requires secure configured port and exact certificate purpose`() {
-        val cases = listOf(
-            Triple("/actuator/health", "operator", 200),
-            Triple("/actuator/health", "core", 200),
-            Triple("/actuator/health", "unknown", 403),
-            Triple("/actuator/prometheus", "prometheus", 503),
-            Triple("/actuator/prometheus", "operator", 403),
-            Triple("/internal/alerts", "alertmanager", 200),
-            Triple("/internal/alerts", "prometheus", 403),
-        )
+        val cases =
+            listOf(
+                Triple("/actuator/health", "operator", 200),
+                Triple("/actuator/health", "core", 200),
+                Triple("/actuator/health", "unknown", 403),
+                Triple("/actuator/prometheus", "prometheus", 503),
+                Triple("/actuator/prometheus", "operator", 403),
+                Triple("/internal/alerts", "alertmanager", 200),
+                Triple("/internal/alerts", "prometheus", 403),
+            )
         for ((path, identity, status) in cases) {
             val request = management(path, identity)
             val response = MockHttpServletResponse()
@@ -62,7 +63,16 @@ class ManagementBoundaryRulesTest {
             assertEquals(status, response.status)
             assertEquals(if (status == 200) 1 else 0, calls)
         }
-        for (request in listOf(management("/actuator/health", "operator").also { it.isSecure = false }, management("/actuator/health", "operator").also { it.localPort = 8080 }, management("/actuator/health", "operator").also { it.setAttribute("jakarta.servlet.request.X509Certificate", arrayOf(AlertCertificate(listOf("operator", "core")))) })) {
+        for (request in listOf(
+            management("/actuator/health", "operator").also { it.isSecure = false },
+            management("/actuator/health", "operator").also {
+                it.localPort =
+                    8080
+            },
+            management("/actuator/health", "operator").also {
+                it.setAttribute("jakarta.servlet.request.X509Certificate", arrayOf(AlertCertificate(listOf("operator", "core"))))
+            },
+        )) {
             val response = MockHttpServletResponse()
             ListenerBoundary(environment()).doFilter(request, response, FilterChain { _, _ -> error("Denied request dispatched") })
             assertEquals(403, response.status)
@@ -78,26 +88,61 @@ class ManagementBoundaryRulesTest {
         try {
             val metrics = OwnerMetrics(registry, unavailableDatabase(), "core", OwnerMetricRuntime({ 0 }, { 8 }, { true }))
             val response = MockHttpServletResponse()
-            ListenerBoundary(environment(), metrics).doFilter(management("/actuator/prometheus", "prometheus"), response, FilterChain { _, _ -> error("Failed scrape dispatched") })
+            ListenerBoundary(environment(), metrics).doFilter(
+                management("/actuator/prometheus", "prometheus"),
+                response,
+                FilterChain {
+                    _,
+                    _,
+                    ->
+                    error("Failed scrape dispatched")
+                },
+            )
             assertEquals(503, response.status)
             assertEquals("no-store", response.getHeader("Cache-Control"))
             assertEquals("nosniff", response.getHeader("X-Content-Type-Options"))
-        } finally { registry.close() }
+        } finally {
+            registry.close()
+        }
     }
 
     @Test
     fun `grpc method authorization uses presented peer identity and denies absent ambiguous or unverified peers`() {
-        for ((names, allowed) in listOf(listOf("catalog") to true, listOf("core") to false, listOf("catalog", "core") to false, emptyList<String>() to false)) {
+        for ((names, allowed) in listOf(
+            listOf("catalog") to true,
+            listOf("core") to false,
+            listOf("catalog", "core") to false,
+            emptyList<String>() to false,
+        )) {
             val interceptor = ServiceIdentityInterceptor()
             val call = PeerCall(IdentityServiceGrpc.getCheckActorMethod(), names)
             var dispatched = false
-            interceptor.interceptCall(call, Metadata(), ServerCallHandler { _, _ -> dispatched = true; object : ServerCall.Listener<SpoolinCheck>() {} })
+            interceptor.interceptCall(
+                call,
+                Metadata(),
+                ServerCallHandler {
+                    _,
+                    _,
+                    ->
+                    dispatched = true
+                    object : ServerCall.Listener<SpoolinCheck>() {}
+                },
+            )
             assertEquals(allowed, dispatched)
             assertEquals(if (allowed) null else Status.Code.PERMISSION_DENIED, call.failure?.code)
             assertEquals(if (allowed) 1L else 0L, interceptor.dispatched.get())
         }
         val invalidPeer = PeerCall(IdentityServiceGrpc.getCheckActorMethod(), null)
-        ServiceIdentityInterceptor().interceptCall(invalidPeer, Metadata(), ServerCallHandler { _, _ -> error("Unverified peer dispatched") })
+        ServiceIdentityInterceptor().interceptCall(
+            invalidPeer,
+            Metadata(),
+            ServerCallHandler {
+                _,
+                _,
+                ->
+                error("Unverified peer dispatched")
+            },
+        )
         assertEquals(Status.Code.PERMISSION_DENIED, invalidPeer.failure!!.code)
     }
 
@@ -110,12 +155,24 @@ class ManagementBoundaryRulesTest {
         assertThrows(IllegalArgumentException::class.java) { SchemaReadiness(unavailableDatabase(), "3", "2") }
         val manager = runtime.healthStatus()
         val lifecycle = ReadinessLifecycle(schema, manager)
-        for (service in listOf("", "spoolin.v1.IdentityService", "spoolin.v1.McpGatewayService")) assertEquals(HealthCheckResponse.ServingStatus.NOT_SERVING, status(manager, service))
+        for (service in listOf(
+            "",
+            "spoolin.v1.IdentityService",
+            "spoolin.v1.McpGatewayService",
+        )) {
+            assertEquals(HealthCheckResponse.ServingStatus.NOT_SERVING, status(manager, service))
+        }
         lifecycle.refresh()
         assertThrows(IllegalStateException::class.java) { lifecycle.run(DefaultApplicationArguments()) }
         lifecycle.stop()
         assertEquals(HealthCheckResponse.ServingStatus.NOT_SERVING, status(manager, ""))
-        assertEquals("grpc.health.v1.Health", runtime.standardHealth(manager).bindService().serviceDescriptor.name)
+        assertEquals(
+            "grpc.health.v1.Health",
+            runtime
+                .standardHealth(manager)
+                .bindService()
+                .serviceDescriptor.name,
+        )
     }
 
     @Test
@@ -136,37 +193,91 @@ class ManagementBoundaryRulesTest {
         assertNull(ObservabilityConfiguration().notificationDispatcher(unavailableDatabase(), StandardEnvironment()))
     }
 
-    private fun status(manager: HealthStatusManager, service: String): HealthCheckResponse.ServingStatus {
+    private fun status(
+        manager: HealthStatusManager,
+        service: String,
+    ): HealthCheckResponse.ServingStatus {
         var result: HealthCheckResponse? = null
-        (manager.healthService as HealthGrpc.HealthImplBase).check(HealthCheckRequest.newBuilder().setService(service).build(), object : StreamObserver<HealthCheckResponse> {
-            override fun onNext(value: HealthCheckResponse) { result = value }
-            override fun onError(error: Throwable) { throw error }
-            override fun onCompleted() = Unit
-        })
+        (manager.healthService as HealthGrpc.HealthImplBase).check(
+            HealthCheckRequest.newBuilder().setService(service).build(),
+            object : StreamObserver<HealthCheckResponse> {
+                override fun onNext(value: HealthCheckResponse) {
+                    result = value
+                }
+
+                override fun onError(error: Throwable): Unit = throw error
+
+                override fun onCompleted() = Unit
+            },
+        )
         return requireNotNull(result).status
     }
-    private fun environment() = StandardEnvironment().also { it.propertySources.addFirst(MapPropertySource("fixture", mapOf("local.management.port" to 9090))) }
-    private fun management(path: String, identity: String) = MockHttpServletRequest("GET", path).also {
-        it.isSecure = true; it.localPort = 9090; it.setAttribute("jakarta.servlet.request.X509Certificate", arrayOf(AlertCertificate(listOf(identity))))
+
+    private fun environment() =
+        StandardEnvironment().also {
+            it.propertySources.addFirst(
+                MapPropertySource(
+                    "fixture",
+                    mapOf("local.management.port" to 9090),
+                ),
+            )
+        }
+
+    private fun management(
+        path: String,
+        identity: String,
+    ) = MockHttpServletRequest("GET", path).also {
+        it.isSecure = true
+        it.localPort = 9090
+        it.setAttribute("jakarta.servlet.request.X509Certificate", arrayOf(AlertCertificate(listOf(identity))))
     }
-    private fun unavailableDatabase(): DataSource = httpProxy { method, _ -> if (method == "getConnection") throw SQLException("Unit database unavailable") else null }
-    private class PeerCall(method: MethodDescriptor<SpoolinCheck, spoolin.v1.Spoolin.Actor>, private val names: List<String>?) : ServerCall<SpoolinCheck, spoolin.v1.Spoolin.Actor>() {
+
+    private fun unavailableDatabase(): DataSource =
+        httpProxy { method, _ ->
+            if (method ==
+                "getConnection"
+            ) {
+                throw SQLException("Unit database unavailable")
+            } else {
+                null
+            }
+        }
+
+    private class PeerCall(
+        method: MethodDescriptor<SpoolinCheck, spoolin.v1.Spoolin.Actor>,
+        private val names: List<String>?,
+    ) : ServerCall<SpoolinCheck, spoolin.v1.Spoolin.Actor>() {
         private val descriptor = method
         var failure: Status? = null
+
         override fun getMethodDescriptor() = descriptor
+
         override fun getAttributes(): Attributes {
-            val session: SSLSession = httpProxy { method, _ ->
-                if (method == "getPeerCertificates") {
-                    if (names == null) throw SSLPeerUnverifiedException("Unit peer unavailable")
-                    arrayOf(AlertCertificate(names))
-                } else null
-            }
+            val session: SSLSession =
+                httpProxy { method, _ ->
+                    if (method == "getPeerCertificates") {
+                        if (names == null) throw SSLPeerUnverifiedException("Unit peer unavailable")
+                        arrayOf(AlertCertificate(names))
+                    } else {
+                        null
+                    }
+                }
             return Attributes.newBuilder().set(Grpc.TRANSPORT_ATTR_SSL_SESSION, session).build()
         }
+
         override fun request(count: Int) = Unit
+
         override fun sendHeaders(headers: Metadata) = Unit
+
         override fun sendMessage(message: spoolin.v1.Spoolin.Actor) = Unit
-        override fun close(status: Status, trailers: Metadata) { failure = status }
+
+        override fun close(
+            status: Status,
+            trailers: Metadata,
+        ) {
+            failure = status
+        }
+
         override fun isCancelled() = false
     }
 }

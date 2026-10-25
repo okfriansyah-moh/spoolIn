@@ -33,20 +33,27 @@ class MigrationAdmissionRulesTest {
         Thread.currentThread().interrupt()
         try {
             assertThrows(IllegalStateException::class.java) { MigrationRunner(db).migrate(Duration.ofSeconds(1)) }
-        } finally { Thread.interrupted() }
+        } finally {
+            Thread.interrupted()
+        }
         assertEquals(0, db.executions)
     }
 
     @Test
     fun `receipt work persists stable effect identity and retry budget and refuses expired intent`() {
-        val db = SessionJdbcFixture(emptyList()); val now = Instant.now(); val operation = UUID.randomUUID(); val correlation = UUID.randomUUID()
+        val db = SessionJdbcFixture(emptyList())
+        val now = Instant.now()
+        val operation = UUID.randomUUID()
+        val correlation = UUID.randomUUID()
         val work = WorkRequest("RECHECK", "TITLE", UUID.randomUUID(), now.plusSeconds(60))
         ReceiptWork.enqueue(db.jdbc, operation, correlation, work, now)
         assertEquals(work.id(operation), db.writes.single()[1])
         assertEquals(work.kind, db.writes.single()[3])
         assertEquals(work.maxAttempts, db.writes.single()[5])
         assertEquals(correlation, db.writes.single()[7])
-        assertThrows(IllegalArgumentException::class.java) { ReceiptWork.enqueue(db.jdbc, operation, correlation, work, now.plusSeconds(60)) }
+        assertThrows(
+            IllegalArgumentException::class.java,
+        ) { ReceiptWork.enqueue(db.jdbc, operation, correlation, work, now.plusSeconds(60)) }
         db.updateResult = 0
         assertThrows(IllegalStateException::class.java) { ReceiptWork.enqueue(db.jdbc, operation, correlation, work, now) }
     }

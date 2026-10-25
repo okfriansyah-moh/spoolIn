@@ -136,6 +136,8 @@ Verification and findings are recorded below; pending results are not acceptance
 The user approved running coverage-related checks despite high system load on
 25 October 2026. Workloads remain sequential and container resources stay bounded.
 
+### Accepted line-only baseline — 25 October
+
 | Check / finding | Status |
 |---|---|
 | Script syntax and Compose configuration | Passed before runtime checks |
@@ -146,7 +148,7 @@ The user approved running coverage-related checks despite high system load on
 | Threshold acceptance | Passed: all six native and Sonar overall line-coverage thresholds |
 
 At most two combined-review correction rounds are allowed. Source is published in
-[draft PR #17](https://github.com/okfriansyah-moh/spoolIn/pull/17). The measured source and final evidence are accepted; local dashboard services remain available.
+[draft PR #17](https://github.com/okfriansyah-moh/spoolIn/pull/17). The line-only evidence was accepted. The expanded combined-coverage requirement below supersedes its acceptance scope.
 
 Progress checkpoint, 25 October 2026: Docker reporting and CI configuration are implemented.
 The first complete frontend run measured 54.89%; MCP measured 69.30% before the additional

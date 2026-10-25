@@ -342,95 +342,204 @@ class ManagedGraphqlBehaviorTest {
         }
 
     @Test
-    fun `managed movie projections preserve full optional metadata and omit absent metadata`() = fixture { f ->
-        val values = Spoolin.MovieValues.newBuilder().setTitle("Complete").setOriginalTitle("Original").setSynopsis("Story")
-            .setSynopsisLanguage("en").setOriginalLanguage("ja").setRuntimeMinutes(120).addCountries("JP")
-            .setRelease(Spoolin.PartialDate.newBuilder().setYear(2024).setMonth(10).setDay(9))
-        val title = Spoolin.Title.newBuilder().setId(id).setValues(values).setTvStatus("ENDED")
-            .setTvEnd(Spoolin.PartialDate.newBuilder().setYear(2025)).setReleaseContext("FESTIVAL")
-            .addProvenance(Spoolin.Provenance.newBuilder().setSource("WIKIDATA").setExternalId("Q1")
-                .setRecordUrl("https://example.test/source").setReuseNote("permission").addLocallyChanged("title"))
-        f.service.titleReply = title.build()
-        val full = f.call("Query", "managedTitle", mapOf("id" to id)) as Map<*, *>
-        assertEquals("Original", full["originalTitle"])
-        assertEquals(120, full["runtimeMinutes"])
-        assertEquals("DAY", (full["release"] as Map<*, *>)["precision"])
-        assertEquals("YEAR", (full["tvEnd"] as Map<*, *>)["precision"])
-        assertEquals("ENDED", full["tvStatus"])
-        assertEquals("FESTIVAL", full["releaseContext"])
-        assertNull(full["_artworkAssetId"])
-        val provenance = (full["provenance"] as List<*>).single() as Map<*, *>
-        assertEquals("https://example.test/source", provenance["recordUrl"])
-        f.service.titleReply = title.clearTvStatus().clearReleaseContext().clearValues().clearProvenance().build()
-        val absent = f.call("Query", "managedTitle", mapOf("id" to id)) as Map<*, *>
-        assertNull(absent["runtimeMinutes"])
-        assertNull(absent["tvStatus"])
-        assertNull(absent["releaseContext"])
-        assertEquals("UNKNOWN", (absent["release"] as Map<*, *>)["precision"])
-    }
-
-    @Test
-    fun `movie patch distinguishes all explicitly cleared fields from omitted fields`() = fixture { f ->
-        val patch = mapOf("originalTitle" to null, "synopsis" to "Changed", "synopsisLanguage" to "ja", "originalLanguage" to null,
-            "countries" to null, "genreIds" to null, "release" to null, "runtimeMinutes" to null)
-        f.call("Mutation", "updateMovie", mapOf("id" to id, "expectedVersion" to "1", "patch" to patch))
-        val write = f.service.movieWrite!!
-        assertEquals(setOf("values.original_title", "values.synopsis", "values.synopsis_language", "values.original_language",
-            "values.countries", "values.genre_ids", "values.release", "values.runtime_minutes"), write.updateMask.pathsList.toSet())
-        assertEquals("Changed", write.values.synopsis)
-        assertEquals("ja", write.values.synopsisLanguage)
-        assertFalse(write.values.hasOriginalTitle())
-        assertFalse(write.values.hasRuntimeMinutes())
-        f.call("Mutation", "updateMovie", mapOf("id" to id, "expectedVersion" to "2", "patch" to mapOf("genreIds" to listOf("drama"), "runtimeMinutes" to 90, "release" to mapOf("year" to 2000, "month" to 1))))
-        assertEquals(listOf("drama"), f.service.movieWrite!!.values.genreIdsList)
-        assertEquals(90, f.service.movieWrite!!.values.runtimeMinutes)
-    }
-
-    @Test
-    fun `mutation projections preserve absent or expired results and structured field problems`() = fixture { f ->
-        f.service.responseOutcome = Spoolin.Outcome.newBuilder().setOperationId(operation.toString()).setState("EXPIRED").setResultExpired(true)
-            .setProblem(Spoolin.Problem.newBuilder().setCode("FIELD_INVALID").addFields(Spoolin.FieldIssue.newBuilder().setPath("name").setCode("REQUIRED").setMessage("A name is required."))).build()
-        for ((field, args) in listOf(
-            "createPerson" to mapOf("input" to emptyMap<String, Any?>()),
-            "createMovie" to mapOf("input" to emptyMap<String, Any?>()),
-            "createRole" to mapOf("category" to "CAST", "label" to "Actor"),
-            "addCredit" to mapOf("titleId" to id, "expectedVersion" to "1", "input" to mapOf("personId" to id, "roleId" to "actor")),
-            "updateCredit" to mapOf("id" to id, "expectedVersion" to "1", "patch" to emptyMap<String, Any?>()),
-        )) {
-            val result = f.call("Mutation", field, args) as Map<*, *>
-            val operation = result["operation"] as Map<*, *>
-            assertNull(operation["resultId"])
-            assertNull(operation["version"])
-            assertEquals(true, operation["resultExpired"])
-            val issue = (((result["problem"] as Map<*, *>)["fields"] as List<*>).single() as Map<*, *>)
-            assertEquals("name", issue["path"])
-            assertEquals("REQUIRED", issue["code"])
+    fun `managed movie projections preserve full optional metadata and omit absent metadata`() =
+        fixture { f ->
+            val values =
+                Spoolin.MovieValues
+                    .newBuilder()
+                    .setTitle("Complete")
+                    .setOriginalTitle("Original")
+                    .setSynopsis("Story")
+                    .setSynopsisLanguage("en")
+                    .setOriginalLanguage("ja")
+                    .setRuntimeMinutes(120)
+                    .addCountries("JP")
+                    .setRelease(
+                        Spoolin.PartialDate
+                            .newBuilder()
+                            .setYear(2024)
+                            .setMonth(10)
+                            .setDay(9),
+                    )
+            val title =
+                Spoolin.Title
+                    .newBuilder()
+                    .setId(id)
+                    .setValues(values)
+                    .setTvStatus("ENDED")
+                    .setTvEnd(Spoolin.PartialDate.newBuilder().setYear(2025))
+                    .setReleaseContext("FESTIVAL")
+                    .addProvenance(
+                        Spoolin.Provenance
+                            .newBuilder()
+                            .setSource("WIKIDATA")
+                            .setExternalId("Q1")
+                            .setRecordUrl("https://example.test/source")
+                            .setReuseNote("permission")
+                            .addLocallyChanged("title"),
+                    )
+            f.service.titleReply = title.build()
+            val full = f.call("Query", "managedTitle", mapOf("id" to id)) as Map<*, *>
+            assertEquals("Original", full["originalTitle"])
+            assertEquals(120, full["runtimeMinutes"])
+            assertEquals("DAY", (full["release"] as Map<*, *>)["precision"])
+            assertEquals("YEAR", (full["tvEnd"] as Map<*, *>)["precision"])
+            assertEquals("ENDED", full["tvStatus"])
+            assertEquals("FESTIVAL", full["releaseContext"])
+            assertNull(full["_artworkAssetId"])
+            val provenance = (full["provenance"] as List<*>).single() as Map<*, *>
+            assertEquals("https://example.test/source", provenance["recordUrl"])
+            f.service.titleReply =
+                title
+                    .clearTvStatus()
+                    .clearReleaseContext()
+                    .clearValues()
+                    .clearProvenance()
+                    .build()
+            val absent = f.call("Query", "managedTitle", mapOf("id" to id)) as Map<*, *>
+            assertNull(absent["runtimeMinutes"])
+            assertNull(absent["tvStatus"])
+            assertNull(absent["releaseContext"])
+            assertEquals("UNKNOWN", (absent["release"] as Map<*, *>)["precision"])
         }
-        f.call("Mutation", "updatePerson", mapOf("id" to id, "expectedVersion" to "1", "patch" to emptyMap<String, Any?>()))
-        assertTrue(f.service.personWrite!!.updateMask.pathsList.isEmpty())
-    }
 
     @Test
-    fun `nested credits without parent identity remain empty rather than fetching unrelated title`() = fixture { f ->
-        val result = f.call("Title", "credits", emptyMap()) as Map<*, *>
-        assertEquals(emptyList<Any>(), result["nodes"])
-        assertEquals(mapOf("endCursor" to null, "hasNextPage" to false), result["pageInfo"])
-        assertEquals(0, f.service.reads)
-    }
-
-    @Test
-    fun `every managed catalog resolver requires authentication before reading input or contacting catalog`() = fixture { f ->
-        val anonymous = BrowserContext(null, null, null, null)
-        val queries = listOf("managedTitle", "managedTitles", "audit", "managedPerson", "managedPeople", "managedCredits", "deletionImpact")
-        val mutations = listOf("createMovie", "updateMovie", "createPerson", "updatePerson", "createRole", "addCredit", "updateCredit", "removeCredit", "movieLifecycle", "personLifecycle")
-        for ((type, fields) in listOf("Query" to queries, "Mutation" to mutations)) {
-            for (field in fields) assertThrows(CredentialRejected::class.java) { f.call(type, field, emptyMap(), anonymous) }
+    fun `movie patch distinguishes all explicitly cleared fields from omitted fields`() =
+        fixture { f ->
+            val patch =
+                mapOf(
+                    "originalTitle" to null,
+                    "synopsis" to "Changed",
+                    "synopsisLanguage" to "ja",
+                    "originalLanguage" to null,
+                    "countries" to null,
+                    "genreIds" to null,
+                    "release" to null,
+                    "runtimeMinutes" to null,
+                )
+            f.call("Mutation", "updateMovie", mapOf("id" to id, "expectedVersion" to "1", "patch" to patch))
+            val write = f.service.movieWrite!!
+            assertEquals(
+                setOf(
+                    "values.original_title",
+                    "values.synopsis",
+                    "values.synopsis_language",
+                    "values.original_language",
+                    "values.countries",
+                    "values.genre_ids",
+                    "values.release",
+                    "values.runtime_minutes",
+                ),
+                write.updateMask.pathsList.toSet(),
+            )
+            assertEquals("Changed", write.values.synopsis)
+            assertEquals("ja", write.values.synopsisLanguage)
+            assertFalse(write.values.hasOriginalTitle())
+            assertFalse(write.values.hasRuntimeMinutes())
+            f.call(
+                "Mutation",
+                "updateMovie",
+                mapOf(
+                    "id" to id,
+                    "expectedVersion" to "2",
+                    "patch" to
+                        mapOf("genreIds" to listOf("drama"), "runtimeMinutes" to 90, "release" to mapOf("year" to 2000, "month" to 1)),
+                ),
+            )
+            assertEquals(
+                listOf("drama"),
+                f.service.movieWrite!!
+                    .values.genreIdsList,
+            )
+            assertEquals(
+                90,
+                f.service.movieWrite!!
+                    .values.runtimeMinutes,
+            )
         }
-        assertEquals(0, f.service.reads)
-        assertNull(f.service.movieWrite)
-        assertNull(f.service.personWrite)
-        assertNull(f.service.creditWrite)
-    }
+
+    @Test
+    fun `mutation projections preserve absent or expired results and structured field problems`() =
+        fixture { f ->
+            f.service.responseOutcome =
+                Spoolin.Outcome
+                    .newBuilder()
+                    .setOperationId(operation.toString())
+                    .setState("EXPIRED")
+                    .setResultExpired(true)
+                    .setProblem(
+                        Spoolin.Problem
+                            .newBuilder()
+                            .setCode(
+                                "FIELD_INVALID",
+                            ).addFields(
+                                Spoolin.FieldIssue
+                                    .newBuilder()
+                                    .setPath("name")
+                                    .setCode("REQUIRED")
+                                    .setMessage("A name is required."),
+                            ),
+                    ).build()
+            for ((field, args) in listOf(
+                "createPerson" to mapOf("input" to emptyMap<String, Any?>()),
+                "createMovie" to mapOf("input" to emptyMap<String, Any?>()),
+                "createRole" to mapOf("category" to "CAST", "label" to "Actor"),
+                "addCredit" to mapOf("titleId" to id, "expectedVersion" to "1", "input" to mapOf("personId" to id, "roleId" to "actor")),
+                "updateCredit" to mapOf("id" to id, "expectedVersion" to "1", "patch" to emptyMap<String, Any?>()),
+            )) {
+                val result = f.call("Mutation", field, args) as Map<*, *>
+                val operation = result["operation"] as Map<*, *>
+                assertNull(operation["resultId"])
+                assertNull(operation["version"])
+                assertEquals(true, operation["resultExpired"])
+                val issue = (((result["problem"] as Map<*, *>)["fields"] as List<*>).single() as Map<*, *>)
+                assertEquals("name", issue["path"])
+                assertEquals("REQUIRED", issue["code"])
+            }
+            f.call("Mutation", "updatePerson", mapOf("id" to id, "expectedVersion" to "1", "patch" to emptyMap<String, Any?>()))
+            assertTrue(
+                f.service.personWrite!!
+                    .updateMask.pathsList
+                    .isEmpty(),
+            )
+        }
+
+    @Test
+    fun `nested credits without parent identity remain empty rather than fetching unrelated title`() =
+        fixture { f ->
+            val result = f.call("Title", "credits", emptyMap()) as Map<*, *>
+            assertEquals(emptyList<Any>(), result["nodes"])
+            assertEquals(mapOf("endCursor" to null, "hasNextPage" to false), result["pageInfo"])
+            assertEquals(0, f.service.reads)
+        }
+
+    @Test
+    fun `every managed catalog resolver requires authentication before reading input or contacting catalog`() =
+        fixture { f ->
+            val anonymous = BrowserContext(null, null, null, null)
+            val queries =
+                listOf("managedTitle", "managedTitles", "audit", "managedPerson", "managedPeople", "managedCredits", "deletionImpact")
+            val mutations =
+                listOf(
+                    "createMovie",
+                    "updateMovie",
+                    "createPerson",
+                    "updatePerson",
+                    "createRole",
+                    "addCredit",
+                    "updateCredit",
+                    "removeCredit",
+                    "movieLifecycle",
+                    "personLifecycle",
+                )
+            for ((type, fields) in listOf("Query" to queries, "Mutation" to mutations)) {
+                for (field in fields) assertThrows(CredentialRejected::class.java) { f.call(type, field, emptyMap(), anonymous) }
+            }
+            assertEquals(0, f.service.reads)
+            assertNull(f.service.movieWrite)
+            assertNull(f.service.personWrite)
+            assertNull(f.service.creditWrite)
+        }
 
     private fun awaitReady(channel: io.grpc.ManagedChannel) {
         val deadline =
@@ -530,7 +639,7 @@ class ManagedGraphqlBehaviorTest {
         var reads = 0
 
         private fun outcome(): Spoolin.Outcome =
-            responseOutcome ?:             Spoolin.Outcome
+            responseOutcome ?: Spoolin.Outcome
                 .newBuilder()
                 .setOperationId(
                     operation.toString(),
@@ -562,7 +671,7 @@ class ManagedGraphqlBehaviorTest {
             }
 
         private fun title(): Spoolin.Title =
-            titleReply ?:             if (absent) {
+            titleReply ?: if (absent) {
                 Spoolin.Title.getDefaultInstance()
             } else {
                 Spoolin.Title
