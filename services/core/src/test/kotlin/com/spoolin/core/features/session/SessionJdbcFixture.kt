@@ -43,7 +43,7 @@ internal class SessionJdbcFixture(results: List<List<Map<String, Any?>>>) : Abst
                     "getObject", "getString", "getBytes", "getTimestamp" -> values[index][args!![0]]
                     "getLong" -> (values[index][args!![0].toString()] as? Number)?.toLong() ?: 0L
                     "wasNull" -> true
-                    "getBoolean" -> values[index][args!![0]] as? Boolean ?: false
+                    "getBoolean" -> values[index][args!![0].toString()] as? Boolean ?: false
                     "close" -> null
                     else -> null
                 }
