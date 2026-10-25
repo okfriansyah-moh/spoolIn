@@ -120,8 +120,8 @@ to `main`, and manual dispatch. It retains reports on failure and writes a cover
 table in the job summary. Local Sonar publication remains optional and uses local
 credentials; CI does not attempt to access a developer's localhost dashboard.
 
-Selection: `UNIT-COVERAGE-80`, owner `codex-unit-coverage`, branch
-`codex/spoolin-cleanup`, initial revision `83a9ec42b0f68dd6dde145b8b3666e3a52b98816`.
+Selection: `UNIT-COVERAGE-80`, owner `codex-unit-coverage`, implementation branch
+`codex/spoolin-cleanup`, publication branch `codex/unit-coverage-80`, initial revision `83a9ec42b0f68dd6dde145b8b3666e3a52b98816`.
 Scope includes the reporting workflow, unit coverage configurations, coverage behavior
 tests, and application tests needed to reach the threshold. Preserve unrelated source,
 workflow rules, and integration proof. No product API change is intended.
@@ -139,8 +139,8 @@ The user approved running coverage-related checks despite high system load on
 | Independent combined review | Accepted: source, import correction, current fingerprints, final unit/Sonar reports; no outstanding findings |
 | Threshold acceptance | Passed: all six native and Sonar overall line-coverage thresholds |
 
-At most two combined-review correction rounds are allowed. No source has been
-published for this selection. The measured source and final evidence are accepted; local dashboard services remain available.
+At most two combined-review correction rounds are allowed. Source is published in
+[draft PR #17](https://github.com/okfriansyah-moh/spoolIn/pull/17). The measured source and final evidence are accepted; local dashboard services remain available.
 
 Progress checkpoint, 25 October 2026: Docker reporting and CI configuration are implemented.
 The first complete frontend run measured 54.89%; MCP measured 69.30% before the additional
@@ -270,10 +270,18 @@ summary for complete frontend coverage, including Svelte.
 The final independent combined review accepted source and evidence at `bc193871`,
 including matching fingerprints, 4,141 successful unit tests, six native thresholds,
 six completed Sonar gates, and resolved backend mappings. Reports and dashboard data
-remain local; no source was pushed. Separate existing formatting and integration/security
+remain local; source was subsequently pushed to `codex/unit-coverage-80` for draft PR #17.
+Separate existing formatting and integration/security
 requirements are not claimed as passed by this coverage result.
 
 This run's local dashboard credentials are stored outside the repository in
 `~/.codex/unit-coverage/movie-app-sonar.json` with owner-only file permissions.
 They are not committed or mounted into unit-test containers. The browser session is
 signed in, and the HTML summary and Sonar Line Coverage view are left open.
+
+
+Publication, 26 October 2026 (Asia/Jakarta): the user requested commit, push, and PR
+creation. All implementation changes were already committed; branch
+`codex/unit-coverage-80` was pushed and draft PR #17 targets `main`. This final
+publication note changes documentation only; measured code remains `bc193871`.
+Remote CI results are pending and are not substituted for the retained local results.
