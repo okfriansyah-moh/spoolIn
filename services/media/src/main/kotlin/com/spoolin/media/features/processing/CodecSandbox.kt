@@ -7,8 +7,12 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 /** A missing namespace sandbox is a processing failure, never an unrestricted fallback. */
-class CodecSandbox {
-    fun execute(
+fun interface CodecExecution {
+    fun execute(input: Path, scratch: Path, codecArguments: List<String>, deadline: Long): String?
+}
+
+class CodecSandbox : CodecExecution {
+    override fun execute(
         input: Path,
         scratch: Path,
         codecArguments: List<String>,

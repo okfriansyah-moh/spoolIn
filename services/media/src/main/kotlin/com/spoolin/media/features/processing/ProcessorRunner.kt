@@ -10,7 +10,7 @@ import java.util.UUID
 
 class ProcessorRunner(
     private val libvipsExecutable: String = "/usr/local/bin/vips",
-    private val sandbox: CodecSandbox = CodecSandbox(),
+    private val sandbox: CodecExecution = CodecSandbox(),
 ) {
     sealed class Outcome {
         data class Success(
