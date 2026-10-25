@@ -16,7 +16,7 @@ internal class SessionJdbcFixture(results: List<List<Map<String, Any?>>>) : Abst
         private var autoCommit = true
         val jdbc: Connection = proxy(Connection::class.java) { name, args ->
             when (name) {
-                "prepareStatement" -> statement()
+                "prepareStatement", "createStatement" -> statement()
                 "getAutoCommit" -> autoCommit
                 "setAutoCommit" -> { autoCommit = args!![0] as Boolean; null }
                 "commit" -> { commits++; null }
