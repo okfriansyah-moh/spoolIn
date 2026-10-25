@@ -9,6 +9,7 @@ import java.sql.ResultSet
 internal class SessionJdbcFixture(results: List<List<Map<String, Any?>>>) : AbstractDataSource() {
         private val responses = ArrayDeque(results)
         fun enqueue(vararg rows: Map<String, Any?>) { responses.addLast(rows.toList()) }
+        val writes = mutableListOf<Map<Int, Any?>>()
         var updateResult = 1
         var updates = 0
         var queries = 0
@@ -27,12 +28,19 @@ internal class SessionJdbcFixture(results: List<List<Map<String, Any?>>>) : Abst
         }
         override fun getConnection(): Connection = jdbc
         override fun getConnection(username: String, password: String): Connection = jdbc
-        private fun statement(): PreparedStatement = proxy(PreparedStatement::class.java) { name, _ ->
-            when (name) {
-                "executeQuery" -> { queries++; rows(responses.removeFirst()) }
-                "executeUpdate" -> { updates++; updateResult }
-                "close", "setObject", "setBytes", "setString", "setLong", "setInt", "setTimestamp", "setNull" -> null
-                else -> null
+        private fun statement(): PreparedStatement {
+            val parameters = mutableMapOf<Int, Any?>()
+            return proxy(PreparedStatement::class.java) { name, args ->
+                when (name) {
+                    "executeQuery" -> { queries++; rows(responses.removeFirst()) }
+                    "executeUpdate" -> { updates++; writes.add(parameters.toMap()); updateResult }
+                    "setObject", "setBytes", "setString", "setLong", "setInt", "setTimestamp" -> {
+                        parameters[args!![0] as Int] = args[1]; null
+                    }
+                    "setNull" -> { parameters[args!![0] as Int] = null; null }
+                    "close" -> null
+                    else -> null
+                }
             }
         }
         private fun rows(values: List<Map<String, Any?>>): ResultSet {
