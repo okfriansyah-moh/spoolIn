@@ -72,6 +72,46 @@ function metric(covered, total) {
   return { covered, total, percent: total ? (covered * 100) / total : null };
 }
 
+export function sonarCoverageResult(metrics, gate, expected) {
+  const lines = metric(
+    metrics.lines_to_cover - metrics.uncovered_lines,
+    metrics.lines_to_cover,
+  );
+  const conditions = metric(
+    metrics.conditions_to_cover - metrics.uncovered_conditions,
+    metrics.conditions_to_cover,
+  );
+  const combined = metric(
+    lines.covered + conditions.covered,
+    lines.total + conditions.total,
+  );
+  for (const name of ['coverage', 'line_coverage']) {
+    if (
+      !Number.isFinite(metrics[name]) ||
+      metrics[name] < 0 ||
+      metrics[name] > 100
+    )
+      throw new Error(`Missing or invalid Sonar ${name}`);
+  }
+  return {
+    coverage: metrics.coverage,
+    lines: metrics.line_coverage,
+    total: lines.total,
+    covered: lines.covered,
+    conditions,
+    combined,
+    status:
+      gate === 'OK' &&
+      metrics.coverage >= 80 &&
+      metrics.line_coverage >= 80 &&
+      combined.percent >= 80 &&
+      lines.percent >= 80 &&
+      expected.percent >= 80
+        ? 'passed'
+        : 'failed',
+  };
+}
+
 export function xmlAttributes(text) {
   return Object.fromEntries(
     [...text.matchAll(/([\w.-]+)="([^"]*)"/g)].map((match) => [
@@ -223,7 +263,26 @@ const escape = (value) =>
 const percent = (value) =>
   value == null ? 'Unavailable' : `${value.toFixed(2)}%`;
 
-export function writeSummary(summary) {
+function sonarSection(publication) {
+  if (!publication) return '';
+  const rows = publication.components
+    .map(
+      (item) => `<tr>
+    <th>${escape(item.component)}</th><td>${escape(item.status)}</td>
+    <td>${percent(item.coverage)}</td><td>${percent(item.lines)}</td>
+    <td>${item.covered ?? '—'} / ${item.total ?? '—'}</td>
+    <td>${item.conditions?.covered ?? '—'} / ${item.conditions?.total ?? '—'}</td>
+    <td>${escape(item.gate ?? item.reason ?? 'Unavailable')}</td></tr>`,
+    )
+    .join('');
+  return `<h2>Published Sonar analysis</h2><p>Published: ${escape(publication.publishedAt)}.
+    Both Coverage and Lines must reach 80% for every component.</p>
+    <div class="scroll"><table><thead><tr><th>Component</th><th>Status</th>
+    <th>Coverage</th><th>Lines</th><th>Covered / total lines</th>
+    <th>Covered / total conditions</th><th>Gate</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+export function writeSummary(summary, publication) {
   writeFileSync(
     join(output, 'summary.json'),
     `${JSON.stringify(summary, null, 2)}\n`,
@@ -235,7 +294,7 @@ export function writeSummary(summary) {
     <td>${item.metrics?.lines.covered ?? '—'} / ${item.metrics?.lines.total ?? '—'}</td>
     <td>${percent(item.metrics?.branches?.percent)}</td><td>${percent(item.metrics?.functions?.percent)}</td>
     <td>${item.tests?.executed ?? '—'} executed; ${(item.tests?.failures ?? 0) + (item.tests?.errors ?? 0)} failed</td>
-    <td><a href="${item.html}">HTML</a> · <a href="${escape(summary.sonarUrl)}/dashboard?id=spoolin-unit-${item.component}">Sonar</a></td>
+    <td><a href="${item.html}">HTML</a> · <a href="${escape(summary.sonarUrl)}/component_measures?id=spoolin-unit-${item.component}&amp;metric=coverage&amp;view=list">Sonar</a></td>
     <td>${escape((item.reasons ?? []).join('; '))}</td></tr>`,
     )
     .join('');
@@ -249,7 +308,8 @@ export function writeSummary(summary) {
     Started: ${escape(summary.startedAt)}<br>Finished: ${escape(summary.finishedAt)}</p>
     <p>${escape(summary.reason ?? '')}</p><div class="scroll"><table><thead><tr><th>Component</th><th>Status</th><th>Lines</th>
     <th>Covered / total</th><th>Branches</th><th>Functions / methods</th><th>Tests</th><th>Reports</th><th>Failure</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${sonarSection(publication)}
     <p>Frontend HTML and the enforced threshold include TypeScript and Svelte. Sonar's frontend view covers TypeScript; its Svelte analysis is unavailable.
-    Sonar links show the last published analysis, which may predate this run. See <a href="sonar-results.json">Sonar publication results</a>.</p></html>`,
+    Sonar publication requires both combined line/condition coverage and line coverage to reach 80%. Sonar links show the last published analysis, which may predate this run. See <a href="sonar-results.json">Sonar publication results</a>.</p></html>`,
   );
 }

@@ -110,3 +110,109 @@ it('a prior movie projection cannot satisfy a newer committed attachment version
   expect(await result).toBe(true);
   expect(request).toHaveBeenCalledTimes(4);
 });
+
+it('waits through missing and pending receipts before confirming attachment', async () => {
+  vi.useFakeTimers();
+  const request = vi.fn<GraphqlRequest>();
+  request
+    .mockResolvedValueOnce({ operation: null })
+    .mockResolvedValueOnce(receipt('PENDING'))
+    .mockResolvedValueOnce(receipt())
+    .mockResolvedValueOnce(movie());
+  const update = vi.fn();
+  const result = poll(request, update);
+  await vi.advanceTimersByTimeAsync(5000);
+  expect(await result).toBe(true);
+  expect(update).toHaveBeenCalledWith(
+    expect.objectContaining({ stage: 'processing' }),
+  );
+  expect(request).toHaveBeenCalledTimes(4);
+});
+
+it('does not confirm an absent, archived or different movie', async () => {
+  const archived = movie();
+  archived.managedTitle.state = 'ARCHIVED';
+  const different = movie();
+  different.managedTitle.id = upload;
+  for (const projection of [{ managedTitle: null }, archived, different]) {
+    const request = vi.fn<GraphqlRequest>();
+    request.mockResolvedValueOnce(receipt()).mockResolvedValueOnce(projection);
+    const update = vi.fn();
+    expect(await poll(request, update)).toBe(false);
+    expect(update).toHaveBeenLastCalledWith(
+      expect.objectContaining({ stage: 'failed' }),
+    );
+  }
+});
+
+it('discards results when the current upload changes at either request boundary', async () => {
+  for (const changesAfter of [1, 2]) {
+    const request = vi.fn<GraphqlRequest>();
+    request.mockResolvedValueOnce(receipt()).mockResolvedValueOnce(movie());
+    let checks = 0;
+    const update = vi.fn();
+    expect(
+      await pollUntilArtworkAttached(
+        request,
+        'csrf',
+        upload,
+        title,
+        new AbortController().signal,
+        () => ++checks < changesAfter,
+        update,
+      ),
+    ).toBe(false);
+    expect(request).toHaveBeenCalledTimes(changesAfter);
+    expect(update).not.toHaveBeenCalled();
+  }
+});
+
+it('stops waiting when cancelled before or during the delay', async () => {
+  vi.useFakeTimers();
+  for (const alreadyAborted of [true, false]) {
+    const controller = new AbortController();
+    const reason = new Error('Upload replaced');
+    if (alreadyAborted) controller.abort(reason);
+    const request = vi.fn<GraphqlRequest>(async () => ({ operation: null }));
+    const result = pollUntilArtworkAttached(
+      request,
+      'csrf',
+      upload,
+      title,
+      controller.signal,
+      () => true,
+      vi.fn(),
+    );
+    const rejected = expect(result).rejects.toBe(reason);
+    await vi.advanceTimersByTimeAsync(0);
+    if (!alreadyAborted) controller.abort(reason);
+    await rejected;
+    expect(request).toHaveBeenCalledTimes(1);
+  }
+});
+
+it('offers a resumable check after the foreground polling deadline', async () => {
+  vi.useFakeTimers();
+  const request = vi.fn<GraphqlRequest>(async () => ({ operation: null }));
+  const update = vi.fn();
+  const result = poll(request, update);
+  await vi.advanceTimersByTimeAsync(310000);
+  expect(await result).toBe(false);
+  expect(update).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      stage: 'uncertain',
+      canResumeCheck: true,
+      canCancel: false,
+    }),
+  );
+});
+
+it('recognizes an explicitly expired receipt without looking up artwork', async () => {
+  const request = vi.fn<GraphqlRequest>(async () => receipt('EXPIRED'));
+  const update = vi.fn();
+  expect(await poll(request, update)).toBe(false);
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(update).toHaveBeenLastCalledWith(
+    expect.objectContaining({ stage: 'uncertain' }),
+  );
+});

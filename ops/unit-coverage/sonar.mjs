@@ -5,11 +5,18 @@ import {
   writeFileSync,
   rmSync,
 } from 'node:fs';
-import { components, fingerprint, output, xmlAttributes } from './report.mjs';
+import {
+  components,
+  fingerprint,
+  output,
+  xmlAttributes,
+  sonarCoverageResult,
+  writeSummary,
+} from './report.mjs';
 
 const host = process.env.SONAR_HOST_URL ?? 'http://sonarqube:9000';
 const token = process.env.SONAR_TOKEN;
-const gateName = 'SpoolIn unit lines 80';
+const gateName = 'SpoolIn unit coverage 80';
 const projectKey = (id) => `spoolin-unit-${id}`;
 
 async function api(path, parameters = {}, method = 'GET') {
@@ -63,24 +70,26 @@ async function ensureGate() {
   let gate = gates.qualitygates.find((item) => item.name === gateName);
   if (!gate) {
     gate = await api('qualitygates/create', { name: gateName }, 'POST');
-    await api(
-      'qualitygates/create_condition',
-      { gateName, metric: 'line_coverage', op: 'LT', error: '80' },
-      'POST',
-    );
+    for (const metric of ['coverage', 'line_coverage']) {
+      await api(
+        'qualitygates/create_condition',
+        { gateName, metric, op: 'LT', error: '80' },
+        'POST',
+      );
+    }
   }
   const details = await api('qualitygates/show', { name: gateName });
-  if (
-    !details.conditions.some(
-      (item) =>
-        item.metric === 'line_coverage' &&
-        item.op === 'LT' &&
-        Number(item.error) === 80,
-    )
-  ) {
-    throw new Error(
-      `The ${gateName} gate has been changed; restore its overall line_coverage < 80 condition.`,
-    );
+  for (const metric of ['coverage', 'line_coverage']) {
+    if (
+      !details.conditions.some(
+        (item) =>
+          item.metric === metric &&
+          item.op === 'LT' &&
+          Number(item.error) === 80,
+      )
+    ) {
+      throw new Error(`The ${gateName} gate requires overall ${metric} < 80.`);
+    }
   }
 }
 
@@ -235,7 +244,8 @@ async function verifyComponent(component, summary) {
   });
   const measures = await api('measures/component', {
     component: projectKey(component.id),
-    metricKeys: 'line_coverage,lines_to_cover,uncovered_lines',
+    metricKeys:
+      'coverage,line_coverage,lines_to_cover,uncovered_lines,conditions_to_cover,uncovered_conditions',
   });
   const metrics = Object.fromEntries(
     measures.component.measures.map((item) => [
@@ -250,20 +260,14 @@ async function verifyComponent(component, summary) {
     component: component.id,
     analysisId: execution.task.analysisId,
     gate: gate.projectStatus.status,
-    lines: metrics.line_coverage,
-    total: metrics.lines_to_cover,
-    covered: metrics.lines_to_cover - metrics.uncovered_lines,
     expected,
-    status: 'failed',
+    ...sonarCoverageResult(metrics, gate.projectStatus.status, expected),
   };
   if (!(result.covered > 0))
     throw new Error('Sonar has no covered lines; check report source mappings');
   if (component.kind === 'kover')
     result.sourceMappings = await verifyKoverMappings(component);
-  // Sonar and Kover identify executable Kotlin lines differently. Verify source
-  // mappings and imported hits, and require both independently measured thresholds.
-  if (result.gate === 'OK' && result.lines >= 80 && expected.percent >= 80)
-    result.status = 'passed';
+
   return result;
 }
 
@@ -280,22 +284,21 @@ async function verify(summary) {
       });
     }
   }
+  const publication = {
+    revision: summary.revision,
+    fingerprint: summary.fingerprint,
+    publishedAt: new Date().toISOString(),
+    components: results,
+  };
   writeFileSync(
     `${output}/sonar-results.json`,
-    JSON.stringify(
-      {
-        revision: summary.revision,
-        fingerprint: summary.fingerprint,
-        publishedAt: new Date().toISOString(),
-        components: results,
-      },
-      null,
-      2,
-    ) + '\n',
+    JSON.stringify(publication, null, 2) + '\n',
   );
+  writeSummary(summary, publication);
+
   for (const result of results)
     console.log(
-      `${result.component}: Sonar ${result.status}${result.reason ? ` — ${result.reason}` : ''}`,
+      `${result.component}: Sonar ${result.status} — coverage ${result.coverage ?? '?'}%, lines ${result.lines ?? '?'}%${result.reason ? ` — ${result.reason}` : ''}`,
     );
   process.exitCode = results.every((item) => item.status === 'passed') ? 0 : 1;
 }

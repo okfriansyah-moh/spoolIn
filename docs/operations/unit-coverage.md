@@ -66,6 +66,12 @@ written; `verifyUnitTests` and the full Docker command enforce test failures aft
 
 ## Local SonarQube
 
+The standard Sonar project-card **Coverage** combines covered lines and conditions.
+Publication now requires both this combined metric and overall line coverage to reach
+80% independently for every project. The native full-source line threshold remains 80%;
+branch and function percentages remain visible without separate thresholds.
+
+
 The optional dashboard has a separate PostgreSQL database and persistent named volumes.
 It is not the application's database. SonarQube needs additional memory beyond the unit
 runner (its container limit is 3 GiB), and its Docker host must satisfy the
@@ -285,3 +291,11 @@ creation. All implementation changes were already committed; branch
 `codex/unit-coverage-80` was pushed and draft PR #17 targets `main`. This final
 publication note changes documentation only; measured code remains `bc193871`.
 Remote CI results are pending and are not substituted for the retained local results.
+
+### Expanded Sonar coverage requirement — 26 October
+
+The earlier accepted evidence above proves line coverage only. The standard Sonar
+project cards showed frontend 79.6%, Core 73.6%, Catalog 77.4%, Media 77.7%, backend
+support 77.3%, and MCP 81.4% combined coverage. Additional behavior tests and dual
+Sonar conditions are in progress; fresh full-suite reports, publication, and independent
+review are pending. PR17 remains draft during this correction.

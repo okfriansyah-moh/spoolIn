@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import {
   componentResult,
+  sonarCoverageResult,
   junitResults,
   koverMetrics,
   vitestMetrics,
@@ -133,4 +134,35 @@ test('JUnit skips and failures remain visible and skipped-only suites fail', () 
   } finally {
     rmSync(directory, { recursive: true });
   }
+});
+
+test('Sonar requires both combined coverage and line coverage without rounding up', () => {
+  const metrics = {
+    coverage: 80,
+    line_coverage: 90,
+    lines_to_cover: 100,
+    uncovered_lines: 10,
+    conditions_to_cover: 100,
+    uncovered_conditions: 30,
+  };
+  const measure = (changes = {}, gate = 'OK', native = 90) =>
+    sonarCoverageResult({ ...metrics, ...changes }, gate, { percent: native });
+  assert.equal(measure().status, 'passed');
+  assert.equal(
+    measure({ coverage: 79.6, uncovered_conditions: 31 }).status,
+    'failed',
+  );
+  assert.equal(
+    measure({ coverage: 80, uncovered_conditions: 31 }).status,
+    'failed',
+  );
+  assert.equal(
+    measure({ line_coverage: 79.9, uncovered_lines: 21 }).status,
+    'failed',
+  );
+  assert.equal(measure({}, 'ERROR').status, 'failed');
+  assert.equal(measure({}, 'OK', 79).status, 'failed');
+  assert.throws(() => measure({ conditions_to_cover: undefined }), /Invalid/);
+  assert.throws(() => measure({ uncovered_conditions: -1 }), /Invalid/);
+  assert.throws(() => measure({ coverage: undefined }), /invalid/);
 });
