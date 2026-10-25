@@ -30,7 +30,7 @@
     ['title', 'Title'], ['originalTitle', 'Original title'], ['synopsis', 'Synopsis'],
     ['genreIds', 'Genres'], ['release', 'Release date'], ['runtimeMinutes', 'Runtime in minutes'],
     ['originalLanguage', 'Original language'], ['synopsisLanguage', 'Synopsis language'], ['countries', 'Countries'],
-  ];
+  ] as const;
 
   function errorMessage(error: unknown): string {
     if (error instanceof TransportFailure) {
@@ -123,7 +123,7 @@
       processingPoster = false;
       const updated = parseProposal(result);
       if (updated.proposalId !== id || updated.revision <= proposal.revision) throw new TransportFailure('uncertain');
-      await goto(resolve(`/manage/proposals/${id}?revision=${updated.revision}`));
+      await goto(`${resolve('/manage/proposals/[id]', { id })}?revision=${updated.revision}`);
     } catch (error) {
       uncertain = true;
       message = errorMessage(error);

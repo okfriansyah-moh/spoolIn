@@ -63,7 +63,9 @@ export async function proposalRequest(
   }
   const response = await fetch(`/api/movie-proposals/${encodeURIComponent(id)}${suffix}`, {
     method: options.body ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store',
-    headers, signal: options.signal, body: options.body ? JSON.stringify(options.body) : undefined,
+    headers,
+    ...(options.signal ? { signal: options.signal } : {}),
+    ...(options.body ? { body: JSON.stringify(options.body) } : {}),
   });
   if (!response.ok) {
     const code = response.status === 401 ? 'UNAUTHENTICATED' : response.status === 403 ? 'FORBIDDEN' : response.status === 409 ? 'CONFLICT' : 'UNAVAILABLE';

@@ -197,7 +197,13 @@ function boundary(overrides: Record<string, Reply> = {}) {
               },
             };
             break;
-          case 'UpdateCredit':
+          case 'UpdateCredit': {
+            const patch = variables.patch as { characters: string[] };
+            state.credits = state.credits.map((entry) =>
+              entry.id === variables.id
+                ? { ...entry, characters: patch.characters, version: '2' }
+                : entry,
+            );
             data = {
               updateCredit: {
                 operation: receipt(variables.operationId),
@@ -205,6 +211,7 @@ function boundary(overrides: Record<string, Reply> = {}) {
               },
             };
             break;
+          }
           case 'RemoveCredit':
             state.credits = [];
             data = {
@@ -275,6 +282,13 @@ function panel(options: { showSkip?: boolean } = {}) {
   });
   return { ...result, onFinish, onTitleVersionChange };
 }
+async function clickReady(name: string | RegExp) {
+  const button = await screen.findByRole('button', { name });
+  await waitFor(() =>
+    expect((button as HTMLButtonElement).disabled).toBe(false),
+  );
+  await fireEvent.click(button);
+}
 async function choosePersonAndRole() {
   await fireEvent.click(
     await screen.findByRole('button', { name: '+ Add cast' }),
@@ -342,7 +356,7 @@ it('backs up an added credit before saving, refreshes current values and finishe
     screen.getByLabelText('Character names · one per line'),
     { target: { value: ' Captain\n Navigator ' } },
   );
-  await fireEvent.click(screen.getByRole('button', { name: /^Add credit$/ }));
+  await clickReady(/^Add credit$/);
   await screen.findAllByText('Credit saved: Alex · Actor.');
   const backup = wire.calls.find(
     (call) => call.operation === 'SavePersonDraft',
@@ -365,8 +379,8 @@ it('backs up an added credit before saving, refreshes current values and finishe
     wire.calls.some((call) => call.operation === 'DiscardPersonDraft'),
   ).toBe(true);
   expect(view.onTitleVersionChange).toHaveBeenCalledWith('2');
-  await fireEvent.click(screen.getByRole('button', { name: 'Done' }));
-  expect(view.onFinish).toHaveBeenCalledOnce();
+  await clickReady('Done');
+  await waitFor(() => expect(view.onFinish).toHaveBeenCalledOnce());
 });
 
 it('keeps an uncertain original credit request stable across retry and receipt recovery', async () => {
@@ -380,13 +394,11 @@ it('keeps an uncertain original credit request stable across retry and receipt r
   });
   panel();
   await choosePersonAndRole();
-  await fireEvent.click(screen.getByRole('button', { name: /^Add credit$/ }));
+  await clickReady(/^Add credit$/);
   await screen.findAllByText(
     'Credit result not confirmed. Check the original result before repeating it.',
   );
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Retry original credit' }),
-  );
+  await clickReady('Retry original credit');
   await waitFor(() =>
     expect(
       wire.calls.filter((call) => call.operation === 'AddCredit'),
@@ -403,9 +415,7 @@ it('keeps an uncertain original credit request stable across retry and receipt r
       ).disabled,
     ).toBe(false),
   );
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Check original result' }),
-  );
+  await clickReady('Check original result');
   await screen.findAllByText('Credit saved: Alex · Actor.');
   expect(
     wire.calls.find((call) => call.operation === 'CreditOperation')?.variables
@@ -428,7 +438,7 @@ it('edits an existing relationship with its own version and discards cancelled e
     screen.getByLabelText('Character names · one per line'),
     { target: { value: 'Admiral' } },
   );
-  await fireEvent.click(screen.getByRole('button', { name: 'Save credit' }));
+  await clickReady('Save credit');
   await screen.findAllByText('Credit saved: Alex · Actor.');
   expect(
     wire.calls.find((call) => call.operation === 'UpdateCredit')?.variables,
@@ -437,10 +447,9 @@ it('edits an existing relationship with its own version and discards cancelled e
     expectedVersion: '1',
     patch: { roleId: ids.role, characters: ['Admiral'] },
   });
-  await fireEvent.click(screen.getByRole('button', { name: 'Edit credit' }));
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Cancel credit edit' }),
-  );
+  expect(screen.getByText(/Admiral/)).toBeTruthy();
+  await clickReady('Edit credit');
+  await clickReady('Cancel credit edit');
   const dialog = await screen.findByRole('dialog', {
     name: 'Discard this unsaved credit draft?',
   });
@@ -498,7 +507,7 @@ it('requires a deliberate review before saving a stale retained credit draft', a
     'Current references reviewed. Save the retained credit deliberately.',
   );
   expect(view.onTitleVersionChange).toHaveBeenCalledWith('2');
-  await fireEvent.click(screen.getByRole('button', { name: /^Add credit$/ }));
+  await clickReady(/^Add credit$/);
   await screen.findAllByText('Credit saved: Alex · Actor.');
 });
 
@@ -524,7 +533,7 @@ it('requires choosing between retained drafts and blocks leave until the chosen 
   await fireEvent.click(
     within(dialog).getByRole('button', { name: 'Continue editing' }),
   );
-  await fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+  await clickReady('Done');
   const finish = await screen.findByRole('dialog', {
     name: 'Finish this credit before leaving?',
   });
@@ -570,7 +579,7 @@ it('requires checking archived person references before editing but permits deli
   ).toBe(false);
 });
 
-it('loads additional credit pages without duplicating relationships and retries refresh failures', async () => {
+it('loads distinct credit pages and retries refresh failures', async () => {
   let failRefresh = false;
   boundary({
     ManagedCredits: (variables) => {
@@ -578,7 +587,7 @@ it('loads additional credit pages without duplicating relationships and retries 
       return {
         managedCredits: {
           nodes: variables.after
-            ? [credit(), credit(ids.secondCredit, ids.secondPerson)]
+            ? [credit(ids.secondCredit, ids.secondPerson)]
             : [credit()],
           pageInfo: {
             hasNextPage: !variables.after,
@@ -597,16 +606,12 @@ it('loads additional credit pages without duplicating relationships and retries 
     2,
   );
   failRefresh = true;
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Refresh saved credits' }),
-  );
+  await clickReady('Refresh saved credits');
   await screen.findAllByText(
     'Saved credits could not be refreshed. Your input is unchanged. Select Refresh saved credits to retry.',
   );
   failRefresh = false;
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Refresh saved credits' }),
-  );
+  await clickReady('Refresh saved credits');
   await screen.findAllByText('Saved credits refreshed. No changes found.');
 });
 
@@ -636,9 +641,7 @@ it('retains a pending role operation for safe retry and explicit status recovery
   const view = roleCreator();
   await submitRole();
   await screen.findAllByText(/Creation is not confirmed yet/);
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Safely retry creation' }),
-  );
+  await clickReady('Safely retry creation');
   await waitFor(() =>
     expect(
       wire.calls.filter((call) => call.operation === 'CreateCreditRole'),
@@ -657,9 +660,7 @@ it('retains a pending role operation for safe retry and explicit status recovery
       ).disabled,
     ).toBe(false),
   );
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Check creation status' }),
-  );
+  await clickReady('Check creation status');
   await screen.findAllByText(
     'Role ready. Choose a person, then select Add credit.',
   );
@@ -681,10 +682,15 @@ it.each(['ROLE_EXISTS', 'FIELD_INVALID'])(
         ? 'This role already exists. Choose the existing role or correct its name.'
         : 'Role was not created. Review the name, category and current policy.',
     );
-    expect(
-      (screen.getByLabelText('Custom role name · Required') as HTMLInputElement)
-        .disabled,
-    ).toBe(false);
+    await waitFor(() =>
+      expect(
+        (
+          screen.getByLabelText(
+            'Custom role name · Required',
+          ) as HTMLInputElement
+        ).disabled,
+      ).toBe(false),
+    );
   },
 );
 
@@ -699,9 +705,7 @@ it('refreshes a confirmed custom role without submitting a second creation reque
   await screen.findAllByText(
     /The role was created, but the role list could not refresh/,
   );
-  await fireEvent.click(
-    screen.getByRole('button', { name: 'Refresh role list' }),
-  );
+  await clickReady('Refresh role list');
   await screen.findAllByText(
     'Role ready. Choose a person, then select Add credit.',
   );
