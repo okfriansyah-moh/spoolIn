@@ -68,8 +68,16 @@ class TrustedAdmissionBehaviorTest {
         val canary = Mac.getInstance("HmacSHA256").also { it.init(SecretKeySpec(key, "HmacSHA256")) }.doFinal("spoolin-rate-agreement-v1".toByteArray())
         Files.writeString(path, "{\"profileRevision\":\"${profiles.revision}\",\"keyCanary\":\"${java.util.HexFormat.of().formatHex(canary)}\"}")
         Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rw-------"))
-        val agreement = RateAgreement(path, profiles.revision, key)
+        val keyFile = root.resolve("rate-key"); Files.write(keyFile, key); Files.setPosixFilePermissions(keyFile, PosixFilePermissions.fromString("rw-------"))
+        val environment = org.springframework.core.env.StandardEnvironment().also {
+            it.propertySources.addFirst(org.springframework.core.env.MapPropertySource("fixture", mapOf("RATE_LIMIT_KEY_FILE" to keyFile.toString(), "spoolin.rate-limit.agreement-file" to path.toString())))
+        }
+        val config = RateConfiguration()
+        val configuredProfiles = config.rateProfiles(environment)
+        assertEquals(profiles.revision, configuredProfiles.revision)
+        val agreement = config.rateAgreement(environment, configuredProfiles)
         val db = SessionJdbcFixture(emptyList())
-        test(db, TrustedAdmission(RateAdmission(db, profiles, key, agreement::check)))
+        val limiter = config.rateAdmission(db, environment, configuredProfiles, agreement)
+        test(db, config.trustedAdmission(limiter))
     }
 }

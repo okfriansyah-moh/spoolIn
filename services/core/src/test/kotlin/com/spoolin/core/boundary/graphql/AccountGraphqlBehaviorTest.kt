@@ -117,13 +117,21 @@ class AccountGraphqlBehaviorTest {
         Files.writeString(agreement, "{\"profileRevision\":\"${profiles.revision}\",\"keyCanary\":\"${java.util.HexFormat.of().formatHex(canary)}\"}"); protect(agreement)
         val db = SessionJdbcFixture(emptyList()); val alert = ProtectionAlert { }; val csrf = SessionCsrf(ByteArray(32) { 3 })
         val admission = AuthenticationAdmission(TrustedAdmission(RateAdmission(db, profiles, rateKey, RateAgreement(agreement, profiles.revision, rateKey)::check))::check)
-        MountedKeys(mounts, null).use { keys -> PasswordHasher(Argon2Engine()).use { hasher ->
-            val registry = KeyRegistry(db); val accounts = ProtectedAccounts(db, registry, AccountCryptography(registry, keys, NonceAllocator(db), AeadCipher(), alert), AccountPayload(), alert)
-            val sessions = SessionStore(db, csrf); val receipts = OwnerReceipts(db, hashes); val rules = IdentityRules()
-            val registration = RegisterAccount(accounts, hasher, rules, receipts, admission)
-            val login = SignInAccount(CredentialVerifier(accounts, hasher, rules), sessions, receipts, admission)
-            val logout = SignOutAccount(sessions, receipts, admission)
-            val wiring = RuntimeWiring.newRuntimeWiring(); AccountGraphql(accounts, registration, login, logout).bind(wiring)
+        val protection = AccountProtectionConfiguration()
+        val authentication = AuthenticationConfiguration()
+        val provider = com.spoolin.core.features.policy.PolicyProvider(com.spoolin.support.policy.PolicyEnvironment.resolve { null })
+        protection.mountedKeys(AccountProtectionSettings(mounts)).use { keys -> protection.passwordHasher(provider).use { hasher ->
+            val registry = protection.keyRegistry(db)
+            val nonces = protection.nonceAllocator(db)
+            val crypto = protection.accountCryptography(registry, keys, nonces, alert)
+            val rules = protection.identityRules(provider)
+            val accounts = protection.protectedAccounts(db, registry, crypto, alert, rules)
+            val sessions = authentication.sessionStore(db, csrf); val receipts = OwnerReceipts(db, hashes)
+            val registration = authentication.registerAccount(accounts, hasher, rules, receipts, admission)
+            val verifier = authentication.credentialVerifier(accounts, hasher, rules)
+            val login = authentication.signInAccount(verifier, sessions, receipts, admission)
+            val logout = authentication.signOutAccount(sessions, receipts, admission)
+            val wiring = RuntimeWiring.newRuntimeWiring(); authentication.accountGraphql(accounts, registration, login, logout).bind(wiring)
             test(Harness(db, wiring.build(), csrf))
         } }
     }
