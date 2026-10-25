@@ -11,7 +11,9 @@ fun interface CodecExecution {
     fun execute(input: Path, scratch: Path, codecArguments: List<String>, deadline: Long): String?
 }
 
-class CodecSandbox : CodecExecution {
+class CodecSandbox(
+    private val startProcess: (List<String>) -> Process = { ProcessBuilder(it).redirectErrorStream(true).start() },
+) : CodecExecution {
     override fun execute(
         input: Path,
         scratch: Path,
@@ -48,7 +50,7 @@ class CodecSandbox : CodecExecution {
         deadline: Long,
         headerRead: Boolean,
     ): String? {
-        val process = ProcessBuilder(command).redirectErrorStream(true).start()
+        val process = startProcess(command)
         val captured = ByteArrayOutputStream()
         val reader = drainOutput(process, captured)
         return try {

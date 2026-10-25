@@ -27,7 +27,7 @@ class UploadWorkflowRulesTest {
     private val clock = Clock.fixed(instant, ZoneOffset.UTC)
     private fun png(): ByteArray = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(2, 3, BufferedImage.TYPE_INT_RGB), "png", it) }.toByteArray()
     private fun header(bytes: ByteArray = png()): UploadChunk = UploadChunk.newBuilder().setHeader(UploadHeader.newBuilder()
-        .setAssetId(assetId.toString()).setIntentId(holdId.toString()).setInputBytes(bytes.size.toLong())
+        .setAssetId(assetId.toString()).setActorId(actorId.toString()).setIntentId(holdId.toString()).setInputBytes(bytes.size.toLong())
         .setInputSha256(ByteString.copyFrom(MessageDigest.getInstance("SHA-256").digest(bytes)))
         .setContext(spoolin.v1.Spoolin.Context.newBuilder().setOperationId(operationId.toString()).setCorrelationId(operationId.toString()).setPolicyRevision("p1"))).build()
     private fun attachment() = Attachment.newBuilder().setHoldId(holdId.toString()).setAssetId(assetId.toString())
