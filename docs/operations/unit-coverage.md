@@ -299,5 +299,34 @@ Remote CI results are pending and are not substituted for the retained local res
 The earlier accepted evidence above proves line coverage only. The standard Sonar
 project cards showed frontend 79.6%, Core 73.6%, Catalog 77.4%, Media 77.7%, backend
 support 77.3%, and MCP 81.4% combined coverage. Additional behavior tests and dual
-Sonar conditions are in progress; fresh full-suite reports, publication, and independent
-review are pending. PR17 remains draft during this correction.
+Sonar conditions now pass. Fresh full Docker verification at clean source revision
+`ce27e25daa2d7359003fd643a0a5e3d417657fcf` completed **4,224 tests, zero failures or skips**
+from 2026-10-25T23:06:32.818Z to 23:10:21.423Z. All six native line percentages exceed
+80%: frontend 83.67%, Core 87.31%, Catalog 86.51%, Media 86.09%, backend support
+87.26%, and MCP 82.73%.
+
+The completed Sonar publication at `2026-10-25T23:19:05.771Z` has matching fingerprint
+`42754f705a0e88fc5e0fe4ae9f737751f1135a89651f13f9775bff163c215904` and these actual standard project-card results:
+
+| Component | Sonar Coverage | Sonar line coverage | Gate |
+|---|---:|---:|---|
+| frontend | 80.9% | 85.0% | OK |
+| core | 81.0% | 87.3% | OK |
+| catalog | 81.1% | 86.5% | OK |
+| media | 80.8% | 86.1% | OK |
+| backend-support | 80.9% | 87.3% | OK |
+| mcp | 81.4% | 82.9% | OK |
+
+Both displayed and exact unrounded counter ratios pass. Every backend source mapping
+and imported-hit check passed (160 Core, 86 Catalog, 48 Media, 77 support). The refreshed
+Sonar Projects page shows six projects at >=80% Coverage and six passing gates. The HTML
+report's published-analysis table was opened and observed with all six passing rows.
+Evidence is retained in `.local/unit-coverage/summary.json`, `sonar-results.json`, and
+`.local/unit-coverage-sonar80-final.png`.
+
+Five report-contract tests, all four Kotlin test-source style checks, and affected
+frontend lint/type/dependency checks passed; frontend type checking retains one existing
+Svelte warning. No OOM occurred. Independent combined source and evidence review accepted
+the expanded requirement with no outstanding findings. Documentation/PR metadata edits
+after the measured revision do not alter coverage inputs. PR17 remains a draft; remote
+CI results are separate from this verified local Docker outcome.
