@@ -59,5 +59,33 @@ class AuthenticationConfigurationBehaviorTest {
         } finally { registry.close() }
     }
 
+    @Test
+    fun `configured browser identity bootstraps anonymous cookies and requires verified csrf for mutation`() {
+        val file = root.resolve("csrf"); Files.write(file, ByteArray(32) { 127 }); protect(file)
+        val environment = StandardEnvironment().also { it.propertySources.addFirst(MapPropertySource("fixture", mapOf("CSRF_KEY_FILE" to file.toString()))) }
+        val config = AuthenticationConfiguration()
+        val csrf = config.sessionCsrf(environment)
+        val anonymous = config.anonymousCsrf(environment)
+        val db = com.spoolin.core.features.session.SessionJdbcFixture(emptyList())
+        val identity = config.browserIdentity(config.sessionStore(db, csrf), anonymous, csrf)
+        val request = org.springframework.mock.web.MockHttpServletRequest("POST", "/graphql")
+        val bootstrapped = identity.context(request, false, false)
+        assertNull(bootstrapped.principal)
+        assertEquals(2, bootstrapped.cookies().size)
+        assertNotNull(bootstrapped.anonymous)
+        assertTrue(identity.context(request, false, false, bootstrap = false).cookies().isEmpty())
+        val submission = anonymous.issue()
+        request.setCookies(jakarta.servlet.http.Cookie("__Host-spoolin_registration", submission.scopeCookieValue()), jakarta.servlet.http.Cookie("__Host-spoolin_csrf", submission.csrfToken))
+        request.addHeader("X-CSRF-Token", submission.csrfToken)
+        val verified = identity.context(request, true, false)
+        assertEquals(submission.scope, verified.anonymous!!.scope)
+        assertTrue(verified.cookies().isEmpty())
+        request.removeHeader("X-CSRF-Token")
+        assertThrows(com.spoolin.core.boundary.http.BrowserRejected::class.java) { identity.context(request, true, false) }
+        request.setCookies(jakarta.servlet.http.Cookie("duplicate", "one"), jakarta.servlet.http.Cookie("duplicate", "two"))
+        assertThrows(com.spoolin.core.boundary.http.BrowserRejected::class.java) { identity.context(request, false, false) }
+        assertEquals(0, db.queries)
+    }
+
     private fun protect(path: Path) { Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rw-------")) }
 }

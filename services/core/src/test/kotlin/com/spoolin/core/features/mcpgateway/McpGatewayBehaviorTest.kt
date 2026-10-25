@@ -24,6 +24,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class McpGatewayBehaviorTest {
+    @org.junit.jupiter.api.io.TempDir lateinit var root: java.nio.file.Path
     private val account = UUID.randomUUID()
     private val credential = UUID.randomUUID()
     private val proposal = UUID.randomUUID()
@@ -121,8 +122,28 @@ class McpGatewayBehaviorTest {
                 val changed = CountDownLatch(1); channel.notifyWhenStateChanged(state, changed::countDown); assertTrue(changed.await(remaining, TimeUnit.NANOSECONDS))
             }
             val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
-            harness.gateway = McpGatewayRpc(ConnectorStore(harness.db), PolicyProvider(PolicyEnvironment.resolve { null }), CatalogServiceGrpc.newBlockingStub(channel), McpActorIssuer(ActorSigner("test", keys.private)), harness.challenges)
-            test(harness)
+            val keyFile = root.resolve("actor-key")
+            java.nio.file.Files.write(keyFile, keys.private.encoded)
+            java.nio.file.Files.setPosixFilePermissions(keyFile, java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"))
+            val config = McpGatewayConfiguration()
+            val environment = org.springframework.core.env.StandardEnvironment()
+            assertNull(config.mcpActorIssuer(environment))
+            environment.propertySources.addFirst(org.springframework.core.env.MapPropertySource("fixture", mapOf("spoolin.actor.enabled" to true, "ACTOR_SIGNING_KEY_ID" to "test", "ACTOR_SIGNING_PRIVATE_KEY_FILE" to keyFile.toString())))
+            val issuer = config.mcpActorIssuer(environment)
+            assertNotNull(issuer)
+            val channels = object : org.springframework.grpc.client.GrpcChannelFactory {
+                override fun supports(target: String) = true
+                override fun createChannel(target: String, options: org.springframework.grpc.client.ChannelBuilderOptions): io.grpc.ManagedChannel = channel
+            }
+            val provider = PolicyProvider(PolicyEnvironment.resolve { null })
+            config.uiAssertionVerifier(environment, tools.jackson.databind.ObjectMapper()).use { assertions ->
+                val security = config.mcpGatewaySecurity(issuer, harness.challenges, assertions)
+                val upload = config.preparedPosterUpload(channels, provider)
+                harness.gateway = config.mcpGatewayRpc(ConnectorStore(harness.db), provider, channels, security, upload)
+                val challengeStore = config.proposalUiChallengeStore()
+                assertFalse(challengeStore.matchesBoundChallenge("unknown", 1, "hash", "challenge"))
+                test(harness)
+            }
         } finally { channel.shutdownNow(); server.shutdownNow() }
     }
     private fun <T> observe(call: (StreamObserver<T>) -> Unit): Result<T> {
