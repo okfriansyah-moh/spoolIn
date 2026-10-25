@@ -16,14 +16,15 @@ import java.util.Base64
 import java.util.UUID
 
 /** Real signed assertion admission, without a network server or a database. */
-internal fun withMaintainer(block: () -> Unit) {
+internal fun withMaintainer(methodName: String = "ManagedPerson", client: String? = null, block: () -> Unit) {
     val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
-    val descriptor = CatalogServiceGrpc.getManagedPersonMethod()
+    val descriptor = CatalogServiceGrpc.getManagedPersonMethod().toBuilder()
+        .setFullMethodName("spoolin.v1.CatalogService/$methodName").build()
     val method = descriptor.fullMethodName
     val issued = Instant.now().epochSecond
     val claims = ActorClaims(
         "catalog", "/$method", UUID.fromString("00000000-0000-4000-8000-000000000001"),
-        UUID.fromString("00000000-0000-4000-8000-000000000002"), null, "MAINTAINER", 1,
+        UUID.fromString("00000000-0000-4000-8000-000000000002"), client, "MAINTAINER", 1,
         issued, issued + 30, Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(16) { 1 }),
         UUID.fromString("00000000-0000-4000-8000-000000000003"), null,
     )
