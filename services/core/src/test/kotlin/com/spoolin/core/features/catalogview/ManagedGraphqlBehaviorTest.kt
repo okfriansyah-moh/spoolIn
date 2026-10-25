@@ -179,11 +179,59 @@ class ManagedGraphqlBehaviorTest {
         assertNull(f.call("Query", "person", mapOf("id" to id)))
     }
 
+    @Test
+    fun `lifecycle writes carry confirmation version policy and impact token with safe receipts`() = fixture { f ->
+        for (field in listOf("movieLifecycle", "personLifecycle")) {
+            val result = f.call("Mutation", field, mapOf("id" to id, "expectedVersion" to "9", "action" to "ARCHIVE", "confirmed" to true, "impactToken" to "impact")) as Map<*, *>
+            val request = f.service.lifecycle!!
+            assertEquals(id, request.target.id)
+            assertEquals(9L, request.target.expectedVersion)
+            assertEquals("current-revision", request.target.context.policyRevision)
+            assertEquals("ARCHIVE", request.action)
+            assertTrue(request.confirmed)
+            assertEquals(if (field == "personLifecycle") "impact" else "", request.impactToken)
+            assertNull(result["problem"])
+            assertEquals("SUCCEEDED", f.context.operation(operation, OperationOwner.CATALOG)!!["state"])
+        }
+        val impact = f.call("Query", "deletionImpact", mapOf("personId" to id)) as Map<*, *>
+        assertEquals(id, impact["targetId"])
+        assertEquals(2, impact["affectedCreditCount"])
+        assertEquals(listOf("Film"), impact["affectedTitles"])
+    }
+
+    @Test
+    fun `audit preserves typed before after values and protects omitted large values`() = fixture { f ->
+        val result = f.call("Query", "audit", mapOf("subjectId" to id, "first" to 2, "after" to "cursor")) as Map<*, *>
+        val event = (result["nodes"] as List<*>).single() as Map<*, *>
+        assertEquals(id, event["subjectId"])
+        assertEquals(operation.toString(), event["operationId"])
+        val changes = event["changes"] as Map<*, *>
+        assertEquals(mapOf("before" to "Old", "after" to "New"), changes["title"])
+        assertEquals(mapOf("before" to null, "after" to listOf("JP")), changes["countries"])
+        assertEquals("cursor", f.service.page!!.after)
+        f.service.invalidAudit = true
+        assertThrows(io.grpc.StatusRuntimeException::class.java) { f.call("Query", "audit", emptyMap()) }
+    }
+
+    private fun awaitReady(channel: io.grpc.ManagedChannel) {
+        val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(30)
+        while (true) {
+            val state = channel.getState(true)
+            if (state == io.grpc.ConnectivityState.READY) return
+            val remaining = deadline - System.nanoTime()
+            assertTrue(remaining > 0, "Local catalog fixture startup timed out")
+            val changed = java.util.concurrent.CountDownLatch(1)
+            channel.notifyWhenStateChanged(state, changed::countDown)
+            assertTrue(changed.await(remaining, java.util.concurrent.TimeUnit.NANOSECONDS))
+        }
+    }
+
     private fun fixture(test: (Harness) -> Unit) {
         val service = CatalogFixture(id, operation)
         val server = NettyServerBuilder.forAddress(InetSocketAddress("127.0.0.1", 0)).addService(service).build().start()
         val channel = NettyChannelBuilder.forAddress("127.0.0.1", server.port).usePlaintext().build()
         try {
+            awaitReady(channel)
             val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
             val issuer = ActorIssuer(ActorSigner("test", keys.private))
             val wiring = RuntimeWiring.newRuntimeWiring()
@@ -191,6 +239,7 @@ class ManagedGraphqlBehaviorTest {
             ManagedCatalogGraphql(stub, issuer) { policy }.bind(wiring)
             ManagedPersonGraphql(stub, issuer) { policy }.bind(wiring)
             ManagedCreditGraphql(stub, issuer) { policy }.bind(wiring)
+            com.spoolin.core.features.catalogview.lifecycle.LifecycleGraphql(stub, issuer) { "current-revision" }.bind(wiring)
             com.spoolin.core.features.catalogview.read.CatalogViewGraphql(stub, policy).bind(wiring)
             val principal = SessionPrincipal(UUID.randomUUID(), AccountAuthority(UUID.randomUUID(), AccountRole.MAINTAINER, 1), Instant.now().plusSeconds(3600), "csrf")
             test(Harness(service, wiring.build(), BrowserContext(principal, null, null, null)))
@@ -217,15 +266,27 @@ class ManagedGraphqlBehaviorTest {
         var removal: Spoolin.VersionedId? = null
         var page: Spoolin.PageRequest? = null
         var search: Spoolin.Search? = null
+        var lifecycle: Spoolin.Lifecycle? = null
+        var invalidAudit = false
         var absent = false
         var rejected = false
         var reads = 0
         private fun outcome(): Spoolin.Outcome = Spoolin.Outcome.newBuilder().setOperationId(operation.toString()).setState(if (rejected) "REJECTED" else "SUCCEEDED").setResultId(id).setVersion(7).also {
-            if (rejected) it.problem = Spoolin.Problem.newBuilder().setCode("CONFLICT").setMessage("private database detail").build()
+            if (rejected) it.problem = Spoolin.Problem.newBuilder().setCode("CONFLICT").build()
         }.build()
         private fun person(): Spoolin.Person = if (absent) Spoolin.Person.getDefaultInstance() else Spoolin.Person.newBuilder().setId(id).setState("ACTIVE").setVersion(7).setValues(Spoolin.PersonValues.newBuilder().setName("Person")).build()
         private fun title(): Spoolin.Title = if (absent) Spoolin.Title.getDefaultInstance() else Spoolin.Title.newBuilder().setId(id).setKind("MOVIE").setState("ACTIVE").setVersion(7).setAssetId("asset").setValues(Spoolin.MovieValues.newBuilder().setTitle("Film").addGenreIds("drama").setRelease(Spoolin.PartialDate.newBuilder().setYear(2024).setMonth(10))).build()
         private fun <T> reply(observer: StreamObserver<T>, result: T) { observer.onNext(result); observer.onCompleted() }
+        override fun movieLifecycle(request: Spoolin.Lifecycle, observer: StreamObserver<Spoolin.Outcome>) { lifecycle = request; reply(observer, outcome()) }
+        override fun personLifecycle(request: Spoolin.Lifecycle, observer: StreamObserver<Spoolin.Outcome>) { lifecycle = request; reply(observer, outcome()) }
+        override fun deletionImpact(request: Spoolin.Id, observer: StreamObserver<Spoolin.Impact>) { reply(observer, Spoolin.Impact.newBuilder().setTargetId(id).setToken("impact").setAffectedCreditCount(2).addAffectedTitles("Film").build()) }
+        override fun audit(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.AuditPage>) {
+            page = request
+            val event = Spoolin.AuditEvent.newBuilder().setId(id).setActorRef("maintainer").setAction("UPDATE").setOutcome("SUCCEEDED").setSubjectKind("TITLE").setSubjectId(id).setOperationId(operation.toString())
+                .addChanges(Spoolin.AuditChange.newBuilder().setPath("title").setBeforeJson("\"Old\"").setAfterJson(if (invalidAudit) "{" else "\"New\""))
+                .addChanges(Spoolin.AuditChange.newBuilder().setPath("countries").setAfterJson("[\"JP\"]"))
+            reply(observer, Spoolin.AuditPage.newBuilder().addNodes(event).build())
+        }
         override fun getPerson(request: Spoolin.Id, observer: StreamObserver<Spoolin.Person>) = managedPerson(request, observer)
         override fun getTitle(request: Spoolin.Id, observer: StreamObserver<Spoolin.Title>) = managedTitle(request, observer)
         override fun searchPeople(request: Spoolin.Search, observer: StreamObserver<Spoolin.PersonPage>) { search = request; reply(observer, Spoolin.PersonPage.newBuilder().addNodes(person()).build()) }
@@ -233,7 +294,7 @@ class ManagedGraphqlBehaviorTest {
         override fun titleCredits(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.CreditPage>) = managedCredits(request, observer)
         override fun personCredits(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.CreditPage>) = managedCredits(request, observer)
         override fun listGenres(request: com.google.protobuf.Empty, observer: StreamObserver<Spoolin.Genres>) { reply(observer, Spoolin.Genres.newBuilder().addNodes(Spoolin.Genre.newBuilder().setId("drama").setLabel("Drama")).build()) }
-        override fun listRoles(request: com.google.protobuf.Empty, observer: StreamObserver<Spoolin.Roles>) { reply(observer, Spoolin.Roles.newBuilder().addNodes(Spoolin.Role.newBuilder().setId("actor").setLabel("Actor").setCategory("CAST").setAllowsCharacters(true)).build()) }
+        override fun listRoles(request: com.google.protobuf.Empty, observer: StreamObserver<Spoolin.Roles>) { reply(observer, Spoolin.Roles.newBuilder().addNodes(Spoolin.CreditRole.newBuilder().setId("actor").setLabel("Actor").setCategory("CAST").setAllowsCharacters(true)).build()) }
         override fun writePerson(request: Spoolin.PersonWrite, observer: StreamObserver<Spoolin.Outcome>) { personWrite = request; reply(observer, outcome()) }
         override fun writeMovie(request: Spoolin.MovieWrite, observer: StreamObserver<Spoolin.Outcome>) { movieWrite = request; reply(observer, outcome()) }
         override fun writeCredit(request: Spoolin.CreditWrite, observer: StreamObserver<Spoolin.Outcome>) { creditWrite = request; reply(observer, outcome()) }
@@ -243,6 +304,6 @@ class ManagedGraphqlBehaviorTest {
         override fun managedTitle(request: Spoolin.Id, observer: StreamObserver<Spoolin.Title>) { reads++; reply(observer, title()) }
         override fun managedPeople(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.PersonPage>) { page = request; reply(observer, Spoolin.PersonPage.newBuilder().addNodes(person()).setEndCursor("next").setHasNextPage(true).build()) }
         override fun managedTitles(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.TitlePage>) { page = request; reply(observer, Spoolin.TitlePage.newBuilder().addNodes(title()).build()) }
-        override fun managedCredits(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.CreditPage>) { page = request; reply(observer, Spoolin.CreditPage.newBuilder().addNodes(Spoolin.Credit.newBuilder().setId(id).setPersonId(id).setPersonName("Person").setTitleId(id).setTitleName("Film").setVersion(7).addCharacters("Lead").setRole(Spoolin.Role.newBuilder().setId("actor").setLabel("Actor").setCategory("CAST").setAllowsCharacters(true))).build()) }
+        override fun managedCredits(request: Spoolin.PageRequest, observer: StreamObserver<Spoolin.CreditPage>) { page = request; reply(observer, Spoolin.CreditPage.newBuilder().addNodes(Spoolin.Credit.newBuilder().setId(id).setPersonId(id).setPersonName("Person").setTitleId(id).setTitleName("Film").setVersion(7).addCharacters("Lead").setRole(Spoolin.CreditRole.newBuilder().setId("actor").setLabel("Actor").setCategory("CAST").setAllowsCharacters(true))).build()) }
     }
 }
