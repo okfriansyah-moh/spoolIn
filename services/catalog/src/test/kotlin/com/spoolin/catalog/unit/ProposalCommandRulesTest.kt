@@ -130,4 +130,36 @@ class ProposalCommandRulesTest {
         assertEquals("REJECTED", result.value().problem.code)
         assertTrue(db.writes.any { "REJECTED" in it })
     }
+    @Test fun `connector proposal reserves pending review and returns fresh challenge`() = withMaintainer("ProposeMovie", "CLAUDE") {
+        val request = Spoolin.Proposal.newBuilder().setContext(Spoolin.Context.newBuilder().setOperationId(unitOperation.toString())
+            .setCorrelationId(unitCorrelation.toString()).setPolicyRevision(policy))
+            .setValues(Spoolin.MovieValues.newBuilder().setTitle(" River ").setSynopsis(" Journey ").setSynopsisLanguage("en")
+                .addGenreIds(unitAsset.toString()).setRelease(Spoolin.PartialDate.newBuilder().setYear(2024))).build()
+        val normalized = ProposalDraft.normalize(request)
+        val intent = OperationIntent(unitOperation, "account:$unitActor", "ProposeMovie", policy, listOf(
+            "proposalId" to "", "expectedRevision" to null, "connectorId" to unitCredential.toString(), "clientKind" to "CLAUDE",
+            "content" to DeterministicContentSerializer.json(ProposalContent.fromProposal(normalized)),
+        ))
+        val db = JdbcRows(listOf(mapOf("lock" to 1)), listOf(receiptRow(intent)), listOf(mapOf("count" to 0)),
+            listOf(receiptRow(intent)), row())
+        val result = RpcResult<Spoolin.ProposalRevision>()
+        service(db).propose(request, result)
+        assertEquals("River", result.value().values.title)
+        assertFalse(result.value().uiChallenge.isEmpty)
+        assertEquals("REVIEW", result.value().state)
+        assertTrue(db.writes.flatten().filterIsInstance<String>().any { it.contains("River") && it.contains("Journey") })
+    }
+
+    @Test fun `proposal input and live policy failures return meaningful transport statuses`() = withMaintainer("ProposeMovie", "CLAUDE") {
+        val request = Spoolin.Proposal.newBuilder().setContext(Spoolin.Context.newBuilder().setPolicyRevision("old"))
+            .setValues(Spoolin.MovieValues.newBuilder().setTitle("River").setSynopsis("Journey").addGenreIds(unitAsset.toString())
+                .setRelease(Spoolin.PartialDate.newBuilder().setYear(2024))).build()
+        val changed = RpcResult<Spoolin.ProposalRevision>()
+        service(JdbcRows()).propose(request, changed)
+        assertEquals("POLICY_CHANGED", Status.fromThrowable(changed.failure).description)
+        val invalid = RpcResult<Spoolin.ProposalRevision>()
+        service(JdbcRows()).propose(request.toBuilder().clearValues().build(), invalid)
+        assertEquals(Status.Code.INVALID_ARGUMENT, Status.fromThrowable(invalid.failure).code)
+    }
+
 }
