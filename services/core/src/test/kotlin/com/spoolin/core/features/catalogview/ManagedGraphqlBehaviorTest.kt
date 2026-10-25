@@ -418,6 +418,20 @@ class ManagedGraphqlBehaviorTest {
         assertEquals(0, f.service.reads)
     }
 
+    @Test
+    fun `every managed catalog resolver requires authentication before reading input or contacting catalog`() = fixture { f ->
+        val anonymous = BrowserContext(null, null, null, null)
+        val queries = listOf("managedTitle", "managedTitles", "audit", "managedPerson", "managedPeople", "managedCredits", "deletionImpact")
+        val mutations = listOf("createMovie", "updateMovie", "createPerson", "updatePerson", "createRole", "addCredit", "updateCredit", "removeCredit", "movieLifecycle", "personLifecycle")
+        for ((type, fields) in listOf("Query" to queries, "Mutation" to mutations)) {
+            for (field in fields) assertThrows(CredentialRejected::class.java) { f.call(type, field, emptyMap(), anonymous) }
+        }
+        assertEquals(0, f.service.reads)
+        assertNull(f.service.movieWrite)
+        assertNull(f.service.personWrite)
+        assertNull(f.service.creditWrite)
+    }
+
     private fun awaitReady(channel: io.grpc.ManagedChannel) {
         val deadline =
             System.nanoTime() +
