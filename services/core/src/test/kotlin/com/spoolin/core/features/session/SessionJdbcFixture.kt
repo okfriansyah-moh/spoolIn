@@ -16,6 +16,7 @@ internal class SessionJdbcFixture(
     }
 
     val writes = mutableListOf<Map<Int, Any?>>()
+    var executions = 0
     var updateResult = 1
     var updates = 0
     var queries = 0
@@ -51,6 +52,7 @@ internal class SessionJdbcFixture(
         val parameters = mutableMapOf<Int, Any?>()
         return proxy(PreparedStatement::class.java) { name, args ->
             when (name) {
+                "execute" -> { executions++; true }
                 "executeQuery" -> {
                     queries++
                     rows(responses.removeFirst())
