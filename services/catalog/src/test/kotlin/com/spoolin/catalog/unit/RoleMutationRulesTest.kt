@@ -13,7 +13,7 @@ class RoleMutationRulesTest {
     private val policy = CatalogWritePolicy.environment().revision
     private fun request() = Spoolin.RoleWrite.newBuilder().setContext(Spoolin.Context.newBuilder()
         .setOperationId(unitOperation.toString()).setCorrelationId(unitCorrelation.toString()).setPolicyRevision(policy))
-        .setCategory("CREW").setLabel(" Cinematographer ").build()
+        .setCategory("CREATOR").setLabel(" Cinematographer ").build()
     private fun intent(request: Spoolin.RoleWrite) = OperationIntent(unitOperation, "account:$unitActor", "CreateRole", policy, CatalogWriteIntent.role(request))
 
     @Test fun `custom role creation normalizes label defaults characters off and returns safe identity`() = withMaintainer {
@@ -26,7 +26,7 @@ class RoleMutationRulesTest {
         RoleWrites(ownerReceipts(db), unitClock).createRole(request, result)
         assertEquals("SUCCEEDED", result.value().state)
         assertEquals(unitTarget.toString(), result.value().resultId)
-        assertTrue(db.writes.any { "Cinematographer" in it && "CREW" in it })
+        assertTrue(db.writes.any { "Cinematographer" in it && "CREATOR" in it })
         assertTrue(db.writes.flatten().filterIsInstance<String>().any { it.contains("Cinematographer") && it.contains("changes") })
     }
 

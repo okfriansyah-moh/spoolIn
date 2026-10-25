@@ -26,7 +26,7 @@ class ArtworkWorkerRulesTest {
     @Test fun `confirmation and release use catalog version and stable hold identifiers`() {
         for (kind in listOf("ARTWORK_CONFIRM", "ARTWORK_RELEASE")) {
             val db = JdbcRows(artworkRow("ATTACHED"), one)
-            val channel = GrpcReplies(Spoolin.Outcome.getDefaultInstance())
+            val channel = GrpcReplies(Spoolin.Attachment.getDefaultInstance())
             handler(db, channel).handle(artworkClaim(kind))
             val sent = channel.requests.single() as Spoolin.Hold
             assertEquals(unitOperation.toString(), sent.holdId)
@@ -60,7 +60,7 @@ class ArtworkWorkerRulesTest {
     @Test fun `ready media requires live actor checks before and after reserve then selects catalog asset`() {
         val db = JdbcRows(artworkRow(), one, one, one, artworkRow(), listOf(mapOf("version" to 7L, "status" to "ACTIVE")),
             listOf(mapOf("correlation_id" to unitCorrelation)), one)
-        val channel = GrpcReplies(Spoolin.Asset.newBuilder().setState("READY").build(), Spoolin.Outcome.getDefaultInstance())
+        val channel = GrpcReplies(Spoolin.Asset.newBuilder().setState("READY").build(), Spoolin.Attachment.getDefaultInstance())
         val identity = GrpcReplies(actor(), actor())
         handler(db, channel, identity).handle(artworkClaim())
         val check = identity.requests.first() as Spoolin.CheckActorRequest

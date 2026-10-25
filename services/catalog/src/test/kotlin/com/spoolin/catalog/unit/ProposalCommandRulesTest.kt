@@ -140,7 +140,7 @@ class ProposalCommandRulesTest {
             "proposalId" to "", "expectedRevision" to null, "connectorId" to unitCredential.toString(), "clientKind" to "CLAUDE",
             "content" to DeterministicContentSerializer.json(ProposalContent.fromProposal(normalized)),
         ))
-        val db = JdbcRows(listOf(mapOf("lock" to 1)), listOf(receiptRow(intent)), listOf(mapOf("count" to 0)),
+        val db = JdbcRows(listOf(receiptRow(intent)), listOf(mapOf("count" to 0)),
             listOf(receiptRow(intent)), row())
         val result = RpcResult<Spoolin.ProposalRevision>()
         service(db).propose(request, result)

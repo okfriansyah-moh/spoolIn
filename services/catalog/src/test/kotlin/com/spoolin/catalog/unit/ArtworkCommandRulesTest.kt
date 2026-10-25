@@ -16,7 +16,7 @@ class ArtworkCommandRulesTest {
         "titleId" to unitTarget.toString(), "assetId" to unitAsset.toString(), "expectedVersion" to "7",
     ))
     private fun db(vararg domain: List<Map<String, Any?>>, final: Map<String, Any?> = receiptRow(intent())) =
-        JdbcRows(listOf(mapOf("lock" to 1)), listOf(mapOf("lock" to 1)), listOf(receiptRow(intent())), *domain, listOf(final))
+        JdbcRows(listOf(mapOf("lock" to 1)), listOf(receiptRow(intent())), *domain, listOf(final))
 
     @Test fun `begin artwork reserves pending intent and queues bounded attachment work`() = withMaintainer {
         val db = db(listOf(mapOf("version" to 7L, "status" to "ACTIVE", "attachment_id" to unitAsset)))
@@ -66,7 +66,7 @@ class ArtworkCommandRulesTest {
         val request = Spoolin.CancelArtworkRequest.newBuilder().setContext(context).setUploadOperationId(unitTarget.toString()).build()
         val intent = OperationIntent(unitOperation, "account:$unitActor", "CancelArtwork", "", listOf("uploadOperationId" to unitTarget.toString()))
         val finished = receiptRow(intent, "FAILED", error = "NOT_FOUND")
-        val db = JdbcRows(listOf(mapOf("lock" to 1)), listOf(mapOf("lock" to 1)), listOf(receiptRow(intent)),
+        val db = JdbcRows(listOf(mapOf("lock" to 1)), listOf(receiptRow(intent)),
             emptyList(), emptyList(), listOf(finished))
         val result = RpcResult<Spoolin.ArtworkCancelOutcome>()
         ArtworkRpc(db.source, ownerReceipts(db)).cancelArtwork(request, result)
