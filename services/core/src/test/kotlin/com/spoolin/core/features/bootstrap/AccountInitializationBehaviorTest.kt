@@ -20,7 +20,7 @@ class AccountInitializationBehaviorTest {
     fun `initialization prepares encrypted distinct viewer and maintainer identities and commits once`() = fixture { db, initializer, config ->
         db.enqueue(emptyMap()); db.enqueue()
         repeat(3) { db.enqueue() }
-        repeat(2) { db.enqueue(mapOf("id" to "pii")); db.enqueue(mapOf("allocated" to it.toLong())) }
+        repeat(2) { db.enqueue(mapOf("id" to "pii")); db.enqueue(mapOf("allocated" to (it + 1).toLong())) }
         repeat(2) { db.enqueue(mapOf("id" to "pii")); db.enqueue(mapOf("id" to "lookup", "state" to "WRITE")) }
         db.enqueue(emptyMap())
         assertTrue(initializer.initialize(config))
