@@ -19,12 +19,16 @@ internal class JdbcRows(vararg results: List<Map<String, Any?>>) {
         }
     }
 
-    private fun connection(): Connection = proxy { name, args ->
+    private fun connection(): Connection {
+        var autoCommit = true
+        return proxy { name, args ->
         when (name) {
             "prepareStatement" -> statement()
-            "getAutoCommit" -> true
+            "getAutoCommit" -> autoCommit
+            "setAutoCommit" -> { autoCommit = args[0] as Boolean; null }
             "createArrayOf" -> sqlArray(args[1])
             else -> null
+        }
         }
     }
 
