@@ -311,23 +311,30 @@ class AssetBoundaryRulesTest {
         Files.createSymbolicLink(root.resolve("$assetId.png"), target)
         status(Status.Code.NOT_FOUND) { AssetFile.open(root, row()) }
     }
+
     @Test
     fun `read grants reject every independently mismatching tuple member and version`() {
         val access = AssetAccess(JdbcBoundary().source, CatalogAttachments(CatalogBoundary().client))
         val other = UUID.randomUUID()
         val local = local()
-        val variants = listOf(
-            remote().toBuilder().setTitleId(other.toString()).build(),
-            remote().toBuilder().setCatalogVersion(0).build(),
-            remote().toBuilder().setCatalogVersion(5).build(),
-        )
+        val variants =
+            listOf(
+                remote().toBuilder().setTitleId(other.toString()).build(),
+                remote().toBuilder().setCatalogVersion(0).build(),
+                remote().toBuilder().setCatalogVersion(5).build(),
+            )
         variants.forEach { grant -> status(Status.Code.NOT_FOUND) { access.checkRead(local, grant, assetId, holdId, 4) } }
         status(Status.Code.NOT_FOUND) { access.checkRead(local.copy(id = other), remote(), assetId, holdId, 4) }
-        val holds = listOf(
-            mapOf("id" to holdId, "asset_id" to assetId, "title_id" to other, "state" to "ACTIVE"),
-            mapOf("id" to holdId, "asset_id" to assetId, "title_id" to titleId, "state" to "ACTIVE"),
-        )
-        for (grant in listOf(remote().toBuilder().setHoldId(other.toString()).build(), remote().toBuilder().setAssetId(other.toString()).build(), remote("UNKNOWN"))) {
+        val holds =
+            listOf(
+                mapOf("id" to holdId, "asset_id" to assetId, "title_id" to other, "state" to "ACTIVE"),
+                mapOf("id" to holdId, "asset_id" to assetId, "title_id" to titleId, "state" to "ACTIVE"),
+            )
+        for (grant in listOf(
+            remote().toBuilder().setHoldId(other.toString()).build(),
+            remote().toBuilder().setAssetId(other.toString()).build(),
+            remote("UNKNOWN"),
+        )) {
             val db = JdbcBoundary().rows().rows(*holds.toTypedArray())
             assertFalse(AssetAccess(db.source, CatalogAttachments(CatalogBoundary(grant).client)).catalogMetadata(row()))
         }
@@ -341,7 +348,10 @@ class AssetBoundaryRulesTest {
         for (bad in listOf(valid.copy(height = null), valid.copy(contentHash = null), valid.copy(outputBytes = null))) {
             assertThrows(IllegalStateException::class.java) { AssetFile.open(root, bad) }
         }
-        val context = io.grpc.Context.current().withCancellation()
+        val context =
+            io.grpc.Context
+                .current()
+                .withCancellation()
         context.cancel(null)
         context.run { status(Status.Code.CANCELLED) { AssetFile.open(root, valid) } }
         Files.write(root.resolve("$assetId.png"), byteArrayOf())
@@ -351,16 +361,28 @@ class AssetBoundaryRulesTest {
     @Test
     fun `movie poster reads verify ready asset actor request binding and active hold grant`() {
         val request = MoviePosterReadRequest.newBuilder().setRefId(holdId.toString()).build()
-        data class Case(val grant: Attachment, val asset: Map<String, Any?>?, val requested: String?, val expected: Status.Code)
-        val cases = listOf(
-            Case(remote("PREPARING"), null, null, Status.Code.NOT_FOUND),
-            Case(remote("PREPARING"), assetRecord("PROCESSING"), null, Status.Code.NOT_FOUND),
-            Case(remote("PREPARING").toBuilder().clearActorId().build(), assetRecord(), null, Status.Code.PERMISSION_DENIED),
-            Case(remote("PREPARING").toBuilder().setActorId(UUID.randomUUID().toString()).build(), assetRecord(), null, Status.Code.PERMISSION_DENIED),
-            Case(remote("PREPARING"), assetRecord(), UUID.randomUUID().toString(), Status.Code.NOT_FOUND),
-            Case(remote("PREPARING"), assetRecord(), assetId.toString(), Status.Code.NOT_FOUND),
-            Case(remote("ACTIVE"), assetRecord(), null, Status.Code.NOT_FOUND),
+
+        data class Case(
+            val grant: Attachment,
+            val asset: Map<String, Any?>?,
+            val requested: String?,
+            val expected: Status.Code,
         )
+        val cases =
+            listOf(
+                Case(remote("PREPARING"), null, null, Status.Code.NOT_FOUND),
+                Case(remote("PREPARING"), assetRecord("PROCESSING"), null, Status.Code.NOT_FOUND),
+                Case(remote("PREPARING").toBuilder().clearActorId().build(), assetRecord(), null, Status.Code.PERMISSION_DENIED),
+                Case(
+                    remote("PREPARING").toBuilder().setActorId(UUID.randomUUID().toString()).build(),
+                    assetRecord(),
+                    null,
+                    Status.Code.PERMISSION_DENIED,
+                ),
+                Case(remote("PREPARING"), assetRecord(), UUID.randomUUID().toString(), Status.Code.NOT_FOUND),
+                Case(remote("PREPARING"), assetRecord(), assetId.toString(), Status.Code.NOT_FOUND),
+                Case(remote("ACTIVE"), assetRecord(), null, Status.Code.NOT_FOUND),
+            )
         cases.forEach { case ->
             val db = JdbcBoundary()
             if (case.asset == null) db.rows() else db.rows(case.asset)
@@ -373,5 +395,4 @@ class AssetBoundaryRulesTest {
             assertTrue(response.values.isEmpty())
         }
     }
-
 }

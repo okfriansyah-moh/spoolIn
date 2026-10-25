@@ -3,13 +3,13 @@ package com.spoolin.catalog.unit
 import com.spoolin.catalog.ListenerBoundary
 import com.spoolin.catalog.certificateIdentity
 import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import java.math.BigInteger
 import java.security.Principal
 import java.security.PublicKey
@@ -78,9 +78,10 @@ private class CatalogPeerCertificate(
 }
 
 class ListenerPeerBranchesTest {
-    private val environment = StandardEnvironment().also {
-        it.propertySources.addFirst(MapPropertySource("unit", mapOf("local.management.port" to 9091)))
-    }
+    private val environment =
+        StandardEnvironment().also {
+            it.propertySources.addFirst(MapPropertySource("unit", mapOf("local.management.port" to 9091)))
+        }
 
     @Test
     fun `certificate identity requires exactly one recognized service DNS name`() {
@@ -101,26 +102,41 @@ class ListenerPeerBranchesTest {
             listOf("/actuator/health", "core", 9091, false, 403),
             listOf("/actuator/health", "unknown", 9091, true, 403),
         )) {
-            val request = proxy<HttpServletRequest> { name, args ->
-                when (name) {
-                    "getRequestURI", "getServletPath" -> path
-                    "isSecure" -> secure
-                    "getLocalPort" -> port
-                    "getDispatcherType" -> jakarta.servlet.DispatcherType.REQUEST
-                    "getAttribute" -> if (args[0] == "jakarta.servlet.request.X509Certificate") arrayOf(CatalogPeerCertificate(listOf(peer as String))) else null
-                    else -> null
+            val request =
+                proxy<HttpServletRequest> { name, args ->
+                    when (name) {
+                        "getRequestURI", "getServletPath" -> path
+                        "isSecure" -> secure
+                        "getLocalPort" -> port
+                        "getDispatcherType" -> jakarta.servlet.DispatcherType.REQUEST
+                        "getAttribute" ->
+                            if (args[0] ==
+                                "jakarta.servlet.request.X509Certificate"
+                            ) {
+                                arrayOf(CatalogPeerCertificate(listOf(peer as String)))
+                            } else {
+                                null
+                            }
+                        else -> null
+                    }
                 }
-            }
             var status = 200
             val headers = mutableMapOf<String, String>()
-            val response = proxy<HttpServletResponse> { name, args ->
-                when (name) {
-                    "sendError" -> { status = args[0] as Int; null }
-                    "setHeader" -> { headers[args[0] as String] = args[1] as String; null }
-                    "isCommitted" -> false
-                    else -> null
+            val response =
+                proxy<HttpServletResponse> { name, args ->
+                    when (name) {
+                        "sendError" -> {
+                            status = args[0] as Int
+                            null
+                        }
+                        "setHeader" -> {
+                            headers[args[0] as String] = args[1] as String
+                            null
+                        }
+                        "isCommitted" -> false
+                        else -> null
+                    }
                 }
-            }
             var reached = false
             ListenerBoundary(environment).doFilter(request, response, FilterChain { _, _ -> reached = true })
             assertEquals(expected, status)

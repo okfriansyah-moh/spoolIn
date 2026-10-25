@@ -266,21 +266,34 @@ class HoldWorkflowRulesTest {
             assertEquals(Status.Code.PERMISSION_DENIED, response.code)
         }
     }
+
     @Test
     fun `live hold mutations handle already applied states conflicts and absent destinations`() {
-        data class Case(val action: HoldAction, val prior: String?, val version: Long?, val expected: Status.Code?)
-        val cases = listOf(
-            Case(HoldAction.RESERVE, "RESERVED", null, null), Case(HoldAction.RESERVE, "ACTIVE", 4, Status.Code.FAILED_PRECONDITION),
-            Case(HoldAction.CONFIRM, "ACTIVE", 4, null), Case(HoldAction.CONFIRM, "ACTIVE", 3, Status.Code.FAILED_PRECONDITION),
-            Case(HoldAction.CONFIRM, null, null, Status.Code.FAILED_PRECONDITION), Case(HoldAction.CONFIRM, "RELEASED", 4, Status.Code.FAILED_PRECONDITION),
-            Case(HoldAction.RELEASE, "RELEASED", 4, null), Case(HoldAction.RELEASE, null, null, Status.Code.FAILED_PRECONDITION),
+        data class Case(
+            val action: HoldAction,
+            val prior: String?,
+            val version: Long?,
+            val expected: Status.Code?,
         )
+        val cases =
+            listOf(
+                Case(HoldAction.RESERVE, "RESERVED", null, null),
+                Case(HoldAction.RESERVE, "ACTIVE", 4, Status.Code.FAILED_PRECONDITION),
+                Case(HoldAction.CONFIRM, "ACTIVE", 4, null),
+                Case(HoldAction.CONFIRM, "ACTIVE", 3, Status.Code.FAILED_PRECONDITION),
+                Case(HoldAction.CONFIRM, null, null, Status.Code.FAILED_PRECONDITION),
+                Case(HoldAction.CONFIRM, "RELEASED", 4, Status.Code.FAILED_PRECONDITION),
+                Case(HoldAction.RELEASE, "RELEASED", 4, null),
+                Case(HoldAction.RELEASE, null, null, Status.Code.FAILED_PRECONDITION),
+            )
         cases.forEach { case ->
             val base = command(case.action).copy(expectedVersion = 4)
             val c = if (case.action == HoldAction.RESERVE) base.copy(asset = base.child("asset")) else base
             val asset = assetRecord() + mapOf("id" to c.asset, "upload_operation_id" to c.child("media-upload"))
             val prior = case.prior?.let { record(it) + mapOf("asset_id" to c.asset, "catalog_version" to case.version) }
-            val final = record(if (case.action == HoldAction.RESERVE) "RESERVED" else remoteState(case.action)) + mapOf("asset_id" to c.asset, "catalog_version" to case.version)
+            val final =
+                record(if (case.action == HoldAction.RESERVE) "RESERVED" else remoteState(case.action)) +
+                    mapOf("asset_id" to c.asset, "catalog_version" to case.version)
             val db = JdbcBoundary().rows(receipt(c)).rows(asset)
             if (prior == null) db.rows() else db.rows(prior)
             db.rows(final)
@@ -292,7 +305,9 @@ class HoldWorkflowRulesTest {
             if (case.expected == null) {
                 assertEquals(c.asset.toString(), response.values.single().assetId)
                 assertEquals(case.version != null, response.values.single().hasCatalogVersion())
-            } else assertTrue(response.values.isEmpty())
+            } else {
+                assertTrue(response.values.isEmpty())
+            }
         }
     }
 
@@ -325,18 +340,22 @@ class HoldWorkflowRulesTest {
         }
     }
 
-    private fun remoteState(action: HoldAction): String = when (action) {
-        HoldAction.RESERVE -> "PREPARING"
-        HoldAction.CONFIRM -> "ACTIVE"
-        HoldAction.RELEASE -> "RELEASED"
-    }
+    private fun remoteState(action: HoldAction): String =
+        when (action) {
+            HoldAction.RESERVE -> "PREPARING"
+            HoldAction.CONFIRM -> "ACTIVE"
+            HoldAction.RELEASE -> "RELEASED"
+        }
 
-    private fun invoke(rpc: HoldRpc, c: HoldCommand, response: Response<Attachment>) {
+    private fun invoke(
+        rpc: HoldRpc,
+        c: HoldCommand,
+        response: Response<Attachment>,
+    ) {
         when (c.action) {
             HoldAction.RESERVE -> rpc.reserve(request(c), response)
             HoldAction.CONFIRM -> rpc.confirm(request(c), response)
             HoldAction.RELEASE -> rpc.release(request(c), response)
         }
     }
-
 }

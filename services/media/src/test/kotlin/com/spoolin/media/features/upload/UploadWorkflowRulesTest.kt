@@ -301,19 +301,31 @@ class UploadWorkflowRulesTest {
         assertFalse(failure.failure!!.message!!.contains("secret"))
         assertFalse(Files.exists(store.stagingPath(assetId)))
     }
+
     @Test
     fun `invalid upload bounds and checksum headers never reserve accepted input`() {
         val valid = header()
-        val variants = listOf(
-            valid.header.toBuilder().setInputBytes(0).build(),
-            valid.header.toBuilder().setInputBytes(com.spoolin.media.features.processing.ProcessingBounds.MAX_INPUT_BYTES + 1).build(),
-            valid.header.toBuilder().setInputSha256(ByteString.copyFrom(byteArrayOf(1))).build(),
-        )
+        val variants =
+            listOf(
+                valid.header
+                    .toBuilder()
+                    .setInputBytes(0)
+                    .build(),
+                valid.header
+                    .toBuilder()
+                    .setInputBytes(com.spoolin.media.features.processing.ProcessingBounds.MAX_INPUT_BYTES + 1)
+                    .build(),
+                valid.header
+                    .toBuilder()
+                    .setInputSha256(ByteString.copyFrom(byteArrayOf(1)))
+                    .build(),
+            )
         val store = QuarantineStore(root)
         variants.forEach { value ->
             val db = JdbcBoundary()
             val response = Response<Outcome>()
-            val stream = authorized(UploadRpc(db.source, store, "p1", clock, CatalogAttachments(CatalogBoundary(attachment()).client)), response)
+            val stream =
+                authorized(UploadRpc(db.source, store, "p1", clock, CatalogAttachments(CatalogBoundary(attachment()).client)), response)
             stream.onMessage(UploadChunk.newBuilder().setHeader(value).build())
             stream.onHalfClose()
             assertEquals(Status.Code.INVALID_ARGUMENT, response.code)
@@ -337,5 +349,4 @@ class UploadWorkflowRulesTest {
         assertFalse(Files.exists(store.stagingPath(assetId)))
         assertTrue(response.values.isEmpty())
     }
-
 }

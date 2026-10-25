@@ -136,3 +136,157 @@ describe('artwork HTTP response classification', () => {
     },
   );
 });
+
+function responseBoundary(status: number, body: unknown, event = 'load') {
+  vi.stubGlobal(
+    'XMLHttpRequest',
+    class {
+      status = status;
+      responseText = JSON.stringify(body);
+      upload: {
+        onprogress:
+          | ((value: {
+              lengthComputable: boolean;
+              loaded: number;
+              total: number;
+            }) => void)
+          | null;
+      } = { onprogress: null };
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      onabort: (() => void) | null = null;
+      open() {}
+      setRequestHeader() {}
+      send() {
+        this.upload.onprogress?.({
+          lengthComputable: false,
+          loaded: 0,
+          total: 0,
+        });
+        this.upload.onprogress?.({
+          lengthComputable: true,
+          loaded: 2,
+          total: 4,
+        });
+        if (event === 'error') this.onerror?.();
+        else if (event === 'abort') this.onabort?.();
+        else this.onload?.();
+      }
+    },
+  );
+}
+const uploadInput = {
+  operationId: upload,
+  titleId: cancellation,
+  expectedVersion: '1',
+  policyRevision: 'revision',
+  contentBase64: 'AA==',
+};
+function uploadBody(
+  overrides: Record<string, unknown> = {},
+  problem: unknown = null,
+) {
+  return {
+    data: {
+      uploadArtwork: {
+        problem,
+        operation: {
+          id: upload,
+          state: 'PENDING',
+          resultExpired: false,
+          problem: null,
+          ...overrides,
+        },
+      },
+    },
+  };
+}
+
+it.each([
+  [null, null, null],
+  [{ code: 'FILE_INVALID' }, null, 'FILE_INVALID'],
+  [null, { code: 'CANCELLED' }, 'CANCELLED'],
+])(
+  'parses the upload receipt and preserves top-level or receipt problems',
+  async (problem, receiptProblem, code) => {
+    const { uploadArtworkWithProgress } = await import('./api');
+    responseBoundary(200, uploadBody({ problem: receiptProblem }, problem));
+    const progress = vi.fn();
+    const capture = vi.fn();
+    try {
+      expect(
+        await uploadArtworkWithProgress('csrf', uploadInput, progress, capture),
+      ).toEqual({ state: 'PENDING', operationId: upload, problemCode: code });
+      expect(progress).toHaveBeenCalledExactlyOnceWith(2, 4);
+      expect(capture).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  },
+);
+
+it.each([
+  uploadBody({ id: cancellation }),
+  uploadBody({ state: 'UNKNOWN' }),
+  uploadBody({ resultExpired: 'false' }),
+  uploadBody({ resultExpired: true }),
+  { data: null },
+  { errors: [] },
+  { errors: 'invalid' },
+])(
+  'refuses unbound, expired or malformed upload acknowledgements',
+  async (body) => {
+    const { uploadArtworkWithProgress } = await import('./api');
+    responseBoundary(200, body);
+    try {
+      await expect(
+        uploadArtworkWithProgress('csrf', uploadInput, vi.fn()),
+      ).rejects.toMatchObject({ kind: 'uncertain' });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  },
+);
+
+it.each(['error', 'abort'])('preserves upload transport %s', async (event) => {
+  const { uploadArtworkWithProgress } = await import('./api');
+  responseBoundary(200, uploadBody(), event);
+  try {
+    const promise = uploadArtworkWithProgress('csrf', uploadInput, vi.fn());
+    if (event === 'abort')
+      await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+    else await expect(promise).rejects.toMatchObject({ kind: 'uncertain' });
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+it('rejects a server failure even when its body looks successful', async () => {
+  const { uploadArtworkWithProgress } = await import('./api');
+  responseBoundary(503, uploadBody());
+  try {
+    await expect(
+      uploadArtworkWithProgress('csrf', uploadInput, vi.fn()),
+    ).rejects.toMatchObject({ kind: 'uncertain' });
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+it('the upload wrapper returns a receipt or propagates a known business rejection', async () => {
+  const { uploadArtwork } = await import('./api');
+  const request = vi.fn<GraphqlRequest>();
+  try {
+    responseBoundary(200, uploadBody());
+    expect(await uploadArtwork(request, 'csrf', uploadInput)).toEqual({
+      state: 'PENDING',
+      operationId: upload,
+    });
+    responseBoundary(200, uploadBody({}, { code: 'FILE_INVALID' }));
+    await expect(
+      uploadArtwork(request, 'csrf', uploadInput),
+    ).rejects.toMatchObject({ kind: 'rejected', code: 'FILE_INVALID' });
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});

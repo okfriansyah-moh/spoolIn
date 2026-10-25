@@ -34,8 +34,11 @@ class ReceiptReplayBranchesTest {
                 val replies = if (deferred) arrayOf(listOf(row)) else arrayOf(listOf(mapOf("lock" to 1)), listOf(row))
                 val db = JdbcRows(*replies)
                 assertThrows(type) {
-                    if (deferred) ownerReceipts(db).defer(intent, unitCorrelation, true) { error("Rejected intent") }
-                    else ownerReceipts(db).execute(intent, unitCorrelation, true) { SafeResult(unitTarget) }
+                    if (deferred) {
+                        ownerReceipts(db).defer(intent, unitCorrelation, true) { error("Rejected intent") }
+                    } else {
+                        ownerReceipts(db).execute(intent, unitCorrelation, true) { SafeResult(unitTarget) }
+                    }
                 }
             }
         }

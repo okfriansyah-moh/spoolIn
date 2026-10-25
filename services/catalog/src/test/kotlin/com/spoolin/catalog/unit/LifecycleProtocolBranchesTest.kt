@@ -16,11 +16,39 @@ import org.junit.jupiter.api.Test
 import spoolin.v1.Spoolin
 
 class LifecycleProtocolBranchesTest {
-    private fun claims() = ActorClaims("catalog", "/spoolin.v1.CatalogService/MovieLifecycle", unitActor, unitCredential,
-        null, "MAINTAINER", 1, 1, 31, "nonce", unitCorrelation, unitOperation)
-    private fun request() = Spoolin.Lifecycle.newBuilder().setAction("ARCHIVE").setTarget(Spoolin.VersionedId.newBuilder()
-        .setId(unitTarget.toString()).setExpectedVersion(7).setContext(Spoolin.Context.newBuilder()
-            .setOperationId(unitOperation.toString()).setCorrelationId(unitCorrelation.toString()).setPolicyRevision("policy"))).build()
+    private fun claims() =
+        ActorClaims(
+            "catalog",
+            "/spoolin.v1.CatalogService/MovieLifecycle",
+            unitActor,
+            unitCredential,
+            null,
+            "MAINTAINER",
+            1,
+            1,
+            31,
+            "nonce",
+            unitCorrelation,
+            unitOperation,
+        )
+
+    private fun request() =
+        Spoolin.Lifecycle
+            .newBuilder()
+            .setAction("ARCHIVE")
+            .setTarget(
+                Spoolin.VersionedId
+                    .newBuilder()
+                    .setId(unitTarget.toString())
+                    .setExpectedVersion(7)
+                    .setContext(
+                        Spoolin.Context
+                            .newBuilder()
+                            .setOperationId(unitOperation.toString())
+                            .setCorrelationId(unitCorrelation.toString())
+                            .setPolicyRevision("policy"),
+                    ),
+            ).build()
 
     @Test
     fun `lifecycle command binds full target intent and optional impact token`() {
@@ -33,17 +61,25 @@ class LifecycleProtocolBranchesTest {
             assertEquals("account:$unitActor", command.intent("MovieLifecycle").actorScope)
         }
         for (claims in listOf(claims().copy(operationId = unitAsset), claims().copy(correlationId = unitAsset))) {
-            assertEquals(Status.Code.PERMISSION_DENIED, assertThrows(io.grpc.StatusRuntimeException::class.java) {
-                LifecycleCommand.parse(request(), claims)
-            }.status.code)
+            assertEquals(
+                Status.Code.PERMISSION_DENIED,
+                assertThrows(io.grpc.StatusRuntimeException::class.java) {
+                    LifecycleCommand.parse(request(), claims)
+                }.status.code,
+            )
         }
-        for (invalid in listOf(request().toBuilder().setAction("UNKNOWN").build(),
+        for (invalid in listOf(
+            request().toBuilder().setAction("UNKNOWN").build(),
             request().toBuilder().setTarget(request().target.toBuilder().clearExpectedVersion()).build(),
             request().toBuilder().setTarget(request().target.toBuilder().setExpectedVersion(-1)).build(),
-            request().toBuilder().setTarget(request().target.toBuilder().setId("bad")).build())) {
-            assertEquals(Status.Code.INVALID_ARGUMENT, assertThrows(io.grpc.StatusRuntimeException::class.java) {
-                LifecycleCommand.parse(invalid, claims())
-            }.status.code)
+            request().toBuilder().setTarget(request().target.toBuilder().setId("bad")).build(),
+        )) {
+            assertEquals(
+                Status.Code.INVALID_ARGUMENT,
+                assertThrows(io.grpc.StatusRuntimeException::class.java) {
+                    LifecycleCommand.parse(invalid, claims())
+                }.status.code,
+            )
         }
     }
 
@@ -65,8 +101,13 @@ class LifecycleProtocolBranchesTest {
 
     @Test
     fun `lifecycle conflict responses preserve actionable failures and let unrelated transport failures propagate`() {
-        for ((description, code) in listOf("IMPACT_CHANGED" to "IMPACT_CHANGED", "STALE_VERSION" to "STALE_VERSION",
-            "POLICY_CHANGED" to "POLICY_CHANGED", "LIFECYCLE_STATE_CHANGED" to "FIELD_INVALID", "CONFIRMATION_REQUIRED" to "FIELD_INVALID")) {
+        for ((description, code) in listOf(
+            "IMPACT_CHANGED" to "IMPACT_CHANGED",
+            "STALE_VERSION" to "STALE_VERSION",
+            "POLICY_CHANGED" to "POLICY_CHANGED",
+            "LIFECYCLE_STATE_CHANGED" to "FIELD_INVALID",
+            "CONFIRMATION_REQUIRED" to "FIELD_INVALID",
+        )) {
             val result = lifecycleRejection(request(), Status.FAILED_PRECONDITION.withDescription(description).asRuntimeException())
             assertEquals("FAILED", result?.state)
             assertEquals(code, result?.problem?.code)
