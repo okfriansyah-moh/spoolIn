@@ -1,13 +1,17 @@
 package com.spoolin.core.boundary.grpc
 
-import com.spoolin.core.features.connector.ConnectorStore
 import com.spoolin.core.features.connector.ConnectorInsert
+import com.spoolin.core.features.connector.ConnectorStore
 import com.spoolin.core.features.session.SessionCsrf
 import com.spoolin.core.features.session.SessionJdbcFixture
 import com.spoolin.core.features.session.SessionStore
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import spoolin.v1.Spoolin
 import java.sql.Timestamp
@@ -20,11 +24,30 @@ class IdentityRpcBehaviorTest {
     private val account = UUID.randomUUID()
     private val credential = UUID.randomUUID()
     private val now = Instant.parse("2026-10-25T10:00:00Z")
-    private val request = Spoolin.CheckActorRequest.newBuilder().setAudience("catalog").setAccountId(account.toString()).setCredentialId(credential.toString()).setAuthEpoch(3).build()
+    private val request =
+        Spoolin.CheckActorRequest
+            .newBuilder()
+            .setAudience(
+                "catalog",
+            ).setAccountId(account.toString())
+            .setCredentialId(credential.toString())
+            .setAuthEpoch(3)
+            .build()
 
     @Test
     fun `session authority maps exact account credential role epoch and expiry`() {
-        val db = SessionJdbcFixture(listOf(listOf(mapOf("role" to "MAINTAINER", "auth_epoch" to 3L, "expires" to Timestamp.from(now.plusSeconds(30))))))
+        val db =
+            SessionJdbcFixture(
+                listOf(
+                    listOf(
+                        mapOf(
+                            "role" to "MAINTAINER",
+                            "auth_epoch" to 3L,
+                            "expires" to Timestamp.from(now.plusSeconds(30)),
+                        ),
+                    ),
+                ),
+            )
         val sessions = SessionStore(db, SessionCsrf(ByteArray(32) { 1 }), Clock.fixed(now, ZoneOffset.UTC))
         val result = observe(IdentityRpc({ sessions }, { null }), request)
         assertNull(result.failure)
@@ -55,7 +78,12 @@ class IdentityRpcBehaviorTest {
     @Test
     fun `malformed identity wrong audience negative epoch and unavailable stores fail safely`() {
         val rpc = IdentityRpc({ null }, { null })
-        for (invalid in listOf(request.toBuilder().setAudience("media").build(), request.toBuilder().setAuthEpoch(-1).build(), request.toBuilder().setAccountId("invalid").build(), request.toBuilder().setCredentialId("UPPERCASE").build())) {
+        for (invalid in listOf(
+            request.toBuilder().setAudience("media").build(),
+            request.toBuilder().setAuthEpoch(-1).build(),
+            request.toBuilder().setAccountId("invalid").build(),
+            request.toBuilder().setCredentialId("UPPERCASE").build(),
+        )) {
             val result = observe(rpc, invalid)
             assertEquals(Status.Code.PERMISSION_DENIED, result.failure)
             assertNull(result.value)
@@ -82,15 +110,44 @@ class IdentityRpcBehaviorTest {
         assertNull(store.accountRole(account))
     }
 
-    private fun row(): Map<String, Any?> = mapOf("id" to credential, "account_id" to account, "client_kind" to "CHATGPT", "auth_epoch" to 3L, "scope" to "movie:propose movie:approve", "expires_at" to Timestamp.from(now.plusSeconds(3600)), "revoked_at" to null)
-    private fun observe(rpc: IdentityRpc, input: Spoolin.CheckActorRequest): Result {
+    private fun row(): Map<String, Any?> =
+        mapOf(
+            "id" to credential,
+            "account_id" to account,
+            "client_kind" to "CHATGPT",
+            "auth_epoch" to 3L,
+            "scope" to "movie:propose movie:approve",
+            "expires_at" to Timestamp.from(now.plusSeconds(3600)),
+            "revoked_at" to null,
+        )
+
+    private fun observe(
+        rpc: IdentityRpc,
+        input: Spoolin.CheckActorRequest,
+    ): Result {
         val result = Result()
-        rpc.checkActor(input, object : StreamObserver<Spoolin.Actor> {
-            override fun onNext(value: Spoolin.Actor) { result.value = value }
-            override fun onError(failure: Throwable) { result.failure = Status.fromThrowable(failure).code }
-            override fun onCompleted() { result.completed = true }
-        })
+        rpc.checkActor(
+            input,
+            object : StreamObserver<Spoolin.Actor> {
+                override fun onNext(value: Spoolin.Actor) {
+                    result.value = value
+                }
+
+                override fun onError(failure: Throwable) {
+                    result.failure = Status.fromThrowable(failure).code
+                }
+
+                override fun onCompleted() {
+                    result.completed = true
+                }
+            },
+        )
         return result
     }
-    private class Result(var value: Spoolin.Actor? = null, var failure: Status.Code? = null, var completed: Boolean = false)
+
+    private class Result(
+        var value: Spoolin.Actor? = null,
+        var failure: Status.Code? = null,
+        var completed: Boolean = false,
+    )
 }

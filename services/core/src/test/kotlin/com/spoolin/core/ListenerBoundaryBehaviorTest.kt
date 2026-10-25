@@ -1,12 +1,14 @@
 package com.spoolin.core
 
-import org.junit.jupiter.api.Assertions.*
+import jakarta.servlet.FilterChain
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
-import jakarta.servlet.FilterChain
 
 class ListenerBoundaryBehaviorTest {
     @Test
@@ -24,9 +26,22 @@ class ListenerBoundaryBehaviorTest {
     fun `private monitoring and alert paths reject anonymous access even on secure management port`() {
         for (path in listOf("/actuator/health", "/actuator/prometheus", "/internal/alerts")) {
             for (secure in listOf(false, true)) {
-                val request = MockHttpServletRequest("POST", path).also { it.isSecure = secure; it.localPort = 9090 }
+                val request =
+                    MockHttpServletRequest("POST", path).also {
+                        it.isSecure = secure
+                        it.localPort = 9090
+                    }
                 val response = MockHttpServletResponse()
-                ListenerBoundary(environment()).doFilter(request, response, FilterChain { _, _ -> fail<Unit>("Private endpoint was dispatched") })
+                ListenerBoundary(environment()).doFilter(
+                    request,
+                    response,
+                    FilterChain {
+                        _,
+                        _,
+                        ->
+                        fail<Unit>("Private endpoint was dispatched")
+                    },
+                )
                 assertEquals(403, response.status)
             }
         }
@@ -42,12 +57,26 @@ class ListenerBoundaryBehaviorTest {
         val identities = listOf("core", "catalog", "media", "mcp", "operator", "prometheus", "alertmanager", "unknown", null)
         for (identity in identities) {
             assertEquals(identity == "catalog", interceptor.allowed("spoolin.v1.IdentityService/CheckActor", identity))
-            for (method in listOf("GetPolicy", "GetMovieContext", "ProposeMovie", "PrepareMoviePoster", "ReadMoviePoster", "ListMovieProposals", "GetReviewIdentity", "ApproveMovie", "RejectMovie", "GetMovieOperation")) {
+            for (method in listOf(
+                "GetPolicy",
+                "GetMovieContext",
+                "ProposeMovie",
+                "PrepareMoviePoster",
+                "ReadMoviePoster",
+                "ListMovieProposals",
+                "GetReviewIdentity",
+                "ApproveMovie",
+                "RejectMovie",
+                "GetMovieOperation",
+            )) {
                 assertEquals(identity == "mcp", interceptor.allowed("spoolin.v1.McpGatewayService/$method", identity))
             }
             assertFalse(interceptor.allowed("spoolin.v1.McpGatewayService/Unknown", identity))
             assertFalse(interceptor.allowed("spoolin.v1.IdentityService/CheckActor/extra", identity))
-            assertEquals(identity in listOf("core", "catalog", "media", "mcp", "operator"), interceptor.allowed("grpc.health.v1.Health/Check", identity))
+            assertEquals(
+                identity in listOf("core", "catalog", "media", "mcp", "operator"),
+                interceptor.allowed("grpc.health.v1.Health/Check", identity),
+            )
         }
     }
 
@@ -64,7 +93,8 @@ class ListenerBoundaryBehaviorTest {
         }
     }
 
-    private fun environment() = StandardEnvironment().also {
-        it.propertySources.addFirst(MapPropertySource("fixture", mapOf("local.management.port" to 9090)))
-    }
+    private fun environment() =
+        StandardEnvironment().also {
+            it.propertySources.addFirst(MapPropertySource("fixture", mapOf("local.management.port" to 9090)))
+        }
 }

@@ -3,12 +3,28 @@ package com.spoolin.media.features.hold
 import com.spoolin.media.boundary.grpc.MediaPeer
 import com.spoolin.media.features.asset.AssetSql
 import com.spoolin.media.features.asset.CatalogAttachments
-import com.spoolin.media.fixtures.*
+import com.spoolin.media.fixtures.CatalogBoundary
+import com.spoolin.media.fixtures.JdbcBoundary
+import com.spoolin.media.fixtures.Response
+import com.spoolin.media.fixtures.actorId
+import com.spoolin.media.fixtures.assetId
+import com.spoolin.media.fixtures.assetRecord
+import com.spoolin.media.fixtures.holdId
+import com.spoolin.media.fixtures.instant
+import com.spoolin.media.fixtures.operationId
+import com.spoolin.media.fixtures.titleId
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import spoolin.v1.Spoolin.*
+import spoolin.v1.Spoolin.Attachment
+import spoolin.v1.Spoolin.Context
+import spoolin.v1.Spoolin.Hold
 import java.time.Clock
 import java.time.ZoneOffset
 import java.util.UUID
@@ -18,18 +34,60 @@ class HoldWorkflowRulesTest {
         val provisional = HoldCommand(holdId, assetId, titleId, actorId, operationId, operationId, 4, 3, "p1", action)
         return provisional.copy(operation = provisional.child(action.step))
     }
-    private fun request(command: HoldCommand): Hold = Hold.newBuilder().setHoldId(command.hold.toString())
-        .setAssetId(command.asset.toString()).setTitleId(command.title.toString()).setActorId(command.actor.toString())
-        .setCatalogVersion(command.version ?: 0).setExpectedVersion(command.expectedVersion ?: 0)
-        .setContext(Context.newBuilder().setOperationId(command.operation.toString()).setCorrelationId(command.correlation.toString()).setPolicyRevision(command.policy))
-        .build()
-    private fun remote(state: String = "PREPARING"): Attachment = Attachment.newBuilder().setHoldId(holdId.toString())
-        .setAssetId(assetId.toString()).setTitleId(titleId.toString()).setActorId(actorId.toString()).setCatalogVersion(4).setState(state).build()
-    private fun record(state: String = "RESERVED") = mapOf<String, Any?>("id" to holdId, "asset_id" to assetId,
-        "title_id" to titleId, "state" to state, "catalog_version" to 4L)
-    private fun receipt(command: HoldCommand, state: String = "PENDING") = mapOf<String, Any?>(
-        "actor_scope" to command.scope, "kind" to command.action.kind, "request_hash" to command.hash(), "state" to state)
-    private fun denied(code: Status.Code, action: () -> Unit) {
+
+    private fun request(command: HoldCommand): Hold =
+        Hold
+            .newBuilder()
+            .setHoldId(command.hold.toString())
+            .setAssetId(command.asset.toString())
+            .setTitleId(command.title.toString())
+            .setActorId(command.actor.toString())
+            .setCatalogVersion(command.version ?: 0)
+            .setExpectedVersion(command.expectedVersion ?: 0)
+            .setContext(
+                Context
+                    .newBuilder()
+                    .setOperationId(
+                        command.operation.toString(),
+                    ).setCorrelationId(command.correlation.toString())
+                    .setPolicyRevision(command.policy),
+            ).build()
+
+    private fun remote(state: String = "PREPARING"): Attachment =
+        Attachment
+            .newBuilder()
+            .setHoldId(holdId.toString())
+            .setAssetId(
+                assetId.toString(),
+            ).setTitleId(titleId.toString())
+            .setActorId(actorId.toString())
+            .setCatalogVersion(4)
+            .setState(state)
+            .build()
+
+    private fun record(state: String = "RESERVED") =
+        mapOf<String, Any?>(
+            "id" to holdId,
+            "asset_id" to assetId,
+            "title_id" to titleId,
+            "state" to state,
+            "catalog_version" to 4L,
+        )
+
+    private fun receipt(
+        command: HoldCommand,
+        state: String = "PENDING",
+    ) = mapOf<String, Any?>(
+        "actor_scope" to command.scope,
+        "kind" to command.action.kind,
+        "request_hash" to command.hash(),
+        "state" to state,
+    )
+
+    private fun denied(
+        code: Status.Code,
+        action: () -> Unit,
+    ) {
         assertEquals(code, Status.fromThrowable(assertThrows(StatusRuntimeException::class.java, action)).code)
     }
 
@@ -42,11 +100,14 @@ class HoldWorkflowRulesTest {
             assertFalse(expected.hash().contentEquals(expected.copy(policy = "p2").hash()))
         }
         val valid = request(command())
-        for (invalid in listOf(valid.toBuilder().setHoldId("invalid").build(),
-            valid.toBuilder().setActorId("").build(), valid.toBuilder().setCatalogVersion(-1).build(),
+        for (invalid in listOf(
+            valid.toBuilder().setHoldId("invalid").build(),
+            valid.toBuilder().setActorId("").build(),
+            valid.toBuilder().setCatalogVersion(-1).build(),
             valid.toBuilder().setExpectedVersion(-1).build(),
             valid.toBuilder().setContext(valid.context.toBuilder().setPolicyRevision("x".repeat(65))).build(),
-            valid.toBuilder().setContext(valid.context.toBuilder().setOperationId(UUID.randomUUID().toString())).build())) {
+            valid.toBuilder().setContext(valid.context.toBuilder().setOperationId(UUID.randomUUID().toString())).build(),
+        )) {
             denied(Status.Code.INVALID_ARGUMENT) { HoldCommand.parse(invalid, HoldAction.RESERVE) }
         }
     }
@@ -58,15 +119,20 @@ class HoldWorkflowRulesTest {
         MediaPeer.context("catalog").run {
             assertEquals(remote(), authority.verify(command()))
             denied(Status.Code.UNAVAILABLE) { HoldAuthority(null).verify(command()) }
-            for (invalid in listOf(remote().toBuilder().clearActorId().build(),
+            for (invalid in listOf(
+                remote().toBuilder().clearActorId().build(),
                 remote().toBuilder().setTitleId(UUID.randomUUID().toString()).build(),
                 remote().toBuilder().setAssetId(UUID.randomUUID().toString()).build(),
-                remote().toBuilder().setActorId(UUID.randomUUID().toString()).build())) {
+                remote().toBuilder().setActorId(UUID.randomUUID().toString()).build(),
+            )) {
                 boundary.attachment = invalid
                 denied(Status.Code.PERMISSION_DENIED) { authority.verify(command()) }
             }
-            for (invalid in listOf(remote("UNKNOWN"), remote().toBuilder().clearCatalogVersion().build(),
-                remote().toBuilder().setCatalogVersion(-1).build())) {
+            for (invalid in listOf(
+                remote("UNKNOWN"),
+                remote().toBuilder().clearCatalogVersion().build(),
+                remote().toBuilder().setCatalogVersion(-1).build(),
+            )) {
                 boundary.attachment = invalid
                 denied(Status.Code.UNAVAILABLE) { authority.verify(command()) }
             }
@@ -87,10 +153,18 @@ class HoldWorkflowRulesTest {
     @Test fun `prepared poster reserves require the original intent and derived asset identity`() {
         val c = command()
         val posterAsset = UUID.nameUUIDFromBytes("poster:$operationId".toByteArray())
-        val prepared = remote().toBuilder().setHoldId(operationId.toString()).setTitleId(operationId.toString()).setAssetId(posterAsset.toString()).build()
+        val prepared =
+            remote()
+                .toBuilder()
+                .setHoldId(
+                    operationId.toString(),
+                ).setTitleId(operationId.toString())
+                .setAssetId(posterAsset.toString())
+                .build()
         val authority = HoldAuthority(CatalogAttachments(CatalogBoundary(prepared).client))
-        val row = requireNotNull(AssetSql.find(JdbcBoundary().rows(assetRecord()).source, assetId))
-            .copy(id = posterAsset, provenance = "{\"preparedPoster\":true}")
+        val row =
+            requireNotNull(AssetSql.find(JdbcBoundary().rows(assetRecord()).source, assetId))
+                .copy(id = posterAsset, provenance = "{\"preparedPoster\":true}")
         authority.ownedUpload(row, c)
         denied(Status.Code.PERMISSION_DENIED) { authority.ownedUpload(row.copy(id = UUID.randomUUID()), c) }
     }
@@ -104,7 +178,9 @@ class HoldWorkflowRulesTest {
         for ((action, state) in listOf(HoldAction.CONFIRM to "ACTIVE", HoldAction.RELEASE to "RELEASED")) {
             authority.transition(command(action), remote(state), local)
             for (version in listOf<Long?>(null, 0, 2, 5)) {
-                denied(Status.Code.FAILED_PRECONDITION) { authority.transition(command(action).copy(version = version), remote(state), local) }
+                denied(
+                    Status.Code.FAILED_PRECONDITION,
+                ) { authority.transition(command(action).copy(version = version), remote(state), local) }
             }
             denied(Status.Code.FAILED_PRECONDITION) { authority.transition(command(action), remote("PREPARING"), local) }
         }
@@ -112,9 +188,11 @@ class HoldWorkflowRulesTest {
 
     @Test fun `receipt reservation rejects actor replay hash conflict and unfinished retries`() {
         val c = command()
-        for ((row, code) in listOf(receipt(c) + ("actor_scope" to "account:other") to Status.Code.NOT_FOUND,
+        for ((row, code) in listOf(
+            receipt(c) + ("actor_scope" to "account:other") to Status.Code.NOT_FOUND,
             receipt(c) + ("request_hash" to byteArrayOf(0)) to Status.Code.ALREADY_EXISTS,
-            receipt(c) + ("kind" to "OTHER") to Status.Code.ALREADY_EXISTS)) {
+            receipt(c) + ("kind" to "OTHER") to Status.Code.ALREADY_EXISTS,
+        )) {
             val db = JdbcBoundary().rows(row)
             denied(code) { HoldSql.reserveReceipt(db.connection, c, instant) }
         }
@@ -128,19 +206,44 @@ class HoldWorkflowRulesTest {
     }
 
     @Test fun `reserve confirm release return committed tuple and preserve rollback on conflict`() {
-        for ((action, state, previous) in listOf(Triple(HoldAction.RESERVE, "PREPARING", null),
-            Triple(HoldAction.CONFIRM, "ACTIVE", "RESERVED"), Triple(HoldAction.RELEASE, "RELEASED", "ACTIVE"))) {
-            val c = command(action).copy(expectedVersion = 4).let { if (action == HoldAction.RESERVE) it.copy(asset = it.child("asset")) else it }
-            val asset = assetRecord().toMutableMap().apply {
-                if (action == HoldAction.RESERVE) { put("id", c.child("asset")); put("upload_operation_id", c.child("media-upload")) }
-            }
+        for ((action, state, previous) in listOf(
+            Triple(HoldAction.RESERVE, "PREPARING", null),
+            Triple(HoldAction.CONFIRM, "ACTIVE", "RESERVED"),
+            Triple(HoldAction.RELEASE, "RELEASED", "ACTIVE"),
+        )) {
+            val c =
+                command(action).copy(expectedVersion = 4).let {
+                    if (action ==
+                        HoldAction.RESERVE
+                    ) {
+                        it.copy(asset = it.child("asset"))
+                    } else {
+                        it
+                    }
+                }
+            val asset =
+                assetRecord().toMutableMap().apply {
+                    if (action == HoldAction.RESERVE) {
+                        put("id", c.child("asset"))
+                        put("upload_operation_id", c.child("media-upload"))
+                    }
+                }
             val db = JdbcBoundary().rows(receipt(c)).rows(asset)
             if (previous == null) db.rows() else db.rows(record(previous))
             db.rows(record(if (action == HoldAction.RESERVE) "RESERVED" else state) + ("asset_id" to c.asset))
-            val rpc = HoldRpc(db.source, CatalogAttachments(CatalogBoundary(remote(state).toBuilder().setAssetId(c.asset.toString()).build()).client), Clock.fixed(instant, ZoneOffset.UTC))
+            val rpc =
+                HoldRpc(
+                    db.source,
+                    CatalogAttachments(CatalogBoundary(remote(state).toBuilder().setAssetId(c.asset.toString()).build()).client),
+                    Clock.fixed(instant, ZoneOffset.UTC),
+                )
             val response = Response<Attachment>()
             MediaPeer.context("catalog").run {
-                when (action) { HoldAction.RESERVE -> rpc.reserve(request(c), response); HoldAction.CONFIRM -> rpc.confirm(request(c), response); HoldAction.RELEASE -> rpc.release(request(c), response) }
+                when (action) {
+                    HoldAction.RESERVE -> rpc.reserve(request(c), response)
+                    HoldAction.CONFIRM -> rpc.confirm(request(c), response)
+                    HoldAction.RELEASE -> rpc.release(request(c), response)
+                }
             }
             assertNull(response.failure, "$action: ${response.failure}")
             assertTrue(response.completed)
@@ -153,8 +256,11 @@ class HoldWorkflowRulesTest {
     }
 
     @Test fun `untrusted requests do not expose holds`() {
-        for (call in listOf<(HoldRpc, Hold, Response<Attachment>) -> Unit>({ rpc, req, res -> rpc.reserve(req, res) },
-            { rpc, req, res -> rpc.confirm(req, res) }, { rpc, req, res -> rpc.release(req, res) })) {
+        for (call in listOf<(HoldRpc, Hold, Response<Attachment>) -> Unit>(
+            { rpc, req, res -> rpc.reserve(req, res) },
+            { rpc, req, res -> rpc.confirm(req, res) },
+            { rpc, req, res -> rpc.release(req, res) },
+        )) {
             val response = Response<Attachment>()
             call(HoldRpc(JdbcBoundary().source), request(command()), response)
             assertEquals(Status.Code.PERMISSION_DENIED, response.code)

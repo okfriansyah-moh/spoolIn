@@ -3,7 +3,10 @@ package com.spoolin.core.operations.crypto
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.crypto.KeyRegistry
 import com.spoolin.core.features.session.SessionJdbcFixture
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp
 import java.time.Instant
@@ -21,7 +24,12 @@ class RotationRetirementBehaviorTest {
 
     @Test
     fun `missing active or not yet reviewed keys cannot retire`() {
-        for (keys in listOf(emptyList(), listOf(key("WRITE", Instant.EPOCH)), listOf(key("READ", null)), listOf(key("READ", Instant.now().plusSeconds(3600))))) {
+        for (keys in listOf(
+            emptyList(),
+            listOf(key("WRITE", Instant.EPOCH)),
+            listOf(key("READ", null)),
+            listOf(key("READ", Instant.now().plusSeconds(3600))),
+        )) {
             val db = SessionJdbcFixture(listOf(keys))
             val result = RotationRetirement(db, BackupKeyCustody { _, _ -> true }).retire("old", KeyPurpose.PII)
             assertFalse(result.ok)
@@ -45,7 +53,16 @@ class RotationRetirementBehaviorTest {
     @Test
     fun `unreferenced reviewed key retires only after custody checks`() {
         val db = SessionJdbcFixture(listOf(listOf(key("READ", Instant.EPOCH)), listOf(mapOf("total" to 0L)), listOf(mapOf("total" to 0L))))
-        val result = RotationRetirement(db, BackupKeyCustody { id, purpose -> id == "old" && purpose == KeyPurpose.PII }).retire("old", KeyPurpose.PII)
+        val result =
+            RotationRetirement(
+                db,
+                BackupKeyCustody {
+                    id,
+                    purpose,
+                    ->
+                    id == "old" && purpose == KeyPurpose.PII
+                },
+            ).retire("old", KeyPurpose.PII)
         assertTrue(result.ok)
         assertEquals(1, db.updates)
         assertEquals(1, db.commits)
@@ -73,5 +90,8 @@ class RotationRetirementBehaviorTest {
         assertThrows(IllegalArgumentException::class.java) { plan.rotate(db, KeyRegistry(db), true, maxBatches = 10001) }
     }
 
-    private fun key(state: String, review: Instant?) = mapOf("id" to "old", "state" to state, "retire_after" to review?.let(Timestamp::from))
+    private fun key(
+        state: String,
+        review: Instant?,
+    ) = mapOf("id" to "old", "state" to state, "retire_after" to review?.let(Timestamp::from))
 }

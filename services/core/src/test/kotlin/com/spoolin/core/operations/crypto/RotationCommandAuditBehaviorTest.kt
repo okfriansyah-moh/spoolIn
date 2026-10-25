@@ -2,10 +2,11 @@ package com.spoolin.core.operations.crypto
 
 import com.spoolin.core.features.crypto.KeyPurpose
 import com.spoolin.core.features.session.SessionJdbcFixture
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
-import java.nio.file.Path
 import tools.jackson.databind.ObjectMapper
+import java.nio.file.Path
 
 class RotationCommandAuditBehaviorTest {
     @Test
@@ -20,7 +21,13 @@ class RotationCommandAuditBehaviorTest {
         val changes = db.writes.map { ObjectMapper().readValue(it[3] as String, Map::class.java) }
         assertEquals(listOf("STARTED", "COMPLETED", "INCOMPLETE"), changes.map { it["phase"] })
         assertEquals(listOf("PENDING", "SUCCEEDED", "FAILED"), db.writes.map { it[2] })
-        assertEquals(1, db.writes.map { it[4] }.distinct().size)
+        assertEquals(
+            1,
+            db.writes
+                .map { it[4] }
+                .distinct()
+                .size,
+        )
         assertEquals(3, changes[1]["backfilled"])
         assertFalse(db.writes.toString().contains("private diagnostic"))
         assertFalse(db.writes.toString().contains("private failure"))

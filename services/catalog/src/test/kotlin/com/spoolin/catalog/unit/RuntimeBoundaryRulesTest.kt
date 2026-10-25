@@ -11,7 +11,11 @@ import com.spoolin.catalog.requireProtectedFile
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.springframework.core.env.MapPropertySource
@@ -23,37 +27,62 @@ import java.time.Duration
 
 class RuntimeBoundaryRulesTest {
     @TempDir lateinit var directory: Path
-    private fun environment(values: Map<String, Any>) = StandardEnvironment().also {
-        it.propertySources.addFirst(MapPropertySource("unit", values))
-    }
-    private fun secret(value: String): Path = directory.resolve("secret").also {
-        Files.writeString(it, value)
-        Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
-    }
+
+    private fun environment(values: Map<String, Any>) =
+        StandardEnvironment().also {
+            it.propertySources.addFirst(MapPropertySource("unit", values))
+        }
+
+    private fun secret(value: String): Path =
+        directory.resolve("secret").also {
+            Files.writeString(it, value)
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
 
     @Test fun `database settings require owner database role and verified TLS`() {
         val password = secret("password")
         for (migrating in listOf(false, true)) {
             val role = if (migrating) "migrator" else "runtime"
-            val settings = DatabaseSettings.load(environment(mapOf(
-                "CATALOG_DB_URL" to "jdbc:postgresql://catalog-db:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/tls/ca.crt&connectTimeout=2",
-                "CATALOG_DB_USER" to "spoolin_catalog_$role", "CATALOG_DB_PASSWORD_FILE" to password.toString(),
-            )), "catalog", migrating)
+            val settings =
+                DatabaseSettings.load(
+                    environment(
+                        mapOf(
+                            "CATALOG_DB_URL" to
+                                "jdbc:postgresql://catalog-db:5432/spoolin_catalog?sslmode=verify-full&sslrootcert=/tls/ca.crt&connectTimeout=2",
+                            "CATALOG_DB_USER" to "spoolin_catalog_$role",
+                            "CATALOG_DB_PASSWORD_FILE" to password.toString(),
+                        ),
+                    ),
+                    "catalog",
+                    migrating,
+                )
             assertEquals("spoolin_catalog_$role", settings.username)
             assertEquals(password, settings.passwordFile)
             assertEquals(migrating, settings.migrating)
         }
         for (url in listOf(
-            "jdbc:h2:mem:test", "jdbc:postgresql://host/spoolin_core?sslmode=verify-full",
+            "jdbc:h2:mem:test",
+            "jdbc:postgresql://host/spoolin_core?sslmode=verify-full",
             "jdbc:postgresql://user@host/spoolin_catalog?sslmode=verify-full",
             "jdbc:postgresql://host/spoolin_catalog?sslmode=require",
             "jdbc:postgresql://host/spoolin_catalog?sslmode=verify-full&sslmode=verify-full",
             "jdbc:postgresql://host/spoolin_catalog?sslmode=verify-full&password=secret",
             "jdbc:postgresql://host/spoolin_catalog",
-        )) assertThrows(IllegalArgumentException::class.java) { DatabaseSettings.validateUrl(url, "catalog") }
+        )) {
+            assertThrows(IllegalArgumentException::class.java) { DatabaseSettings.validateUrl(url, "catalog") }
+        }
         assertThrows(IllegalArgumentException::class.java) {
-            DatabaseSettings.load(environment(mapOf("CATALOG_DB_URL" to "jdbc:postgresql://host/spoolin_catalog?sslmode=verify-full",
-                "CATALOG_DB_USER" to "postgres", "CATALOG_DB_PASSWORD_FILE" to password.toString())), "catalog", false)
+            DatabaseSettings.load(
+                environment(
+                    mapOf(
+                        "CATALOG_DB_URL" to "jdbc:postgresql://host/spoolin_catalog?sslmode=verify-full",
+                        "CATALOG_DB_USER" to "postgres",
+                        "CATALOG_DB_PASSWORD_FILE" to password.toString(),
+                    ),
+                ),
+                "catalog",
+                false,
+            )
         }
     }
 
@@ -75,11 +104,43 @@ class RuntimeBoundaryRulesTest {
 
     @Test fun `service identity matrix distinguishes media attachment reads and core catalog calls`() {
         val interceptor = ServiceIdentityInterceptor()
-        val coreMethods = listOf("SearchTitles", "GetTitle", "SearchPeople", "GetPerson", "PersonCredits", "TitleCredits",
-            "ListGenres", "GetCatalogFilterOptions", "ListRoles", "CreateRole", "ManagedTitles", "ManagedPeople", "ManagedTitle",
-            "ManagedPerson", "ManagedCredits", "Audit", "WriteMovie", "WritePerson", "WriteCredit", "RemoveCredit", "MovieLifecycle",
-            "PersonLifecycle", "DeletionImpact", "BeginArtwork", "CancelArtwork", "GetOperation", "ResolveArtworkAccess", "ProposeMovie",
-            "PrepareMoviePoster", "GetMovieProposal", "ListMovieProposals", "ReadMoviePoster", "ApproveAndCreate", "RejectProposal")
+        val coreMethods =
+            listOf(
+                "SearchTitles",
+                "GetTitle",
+                "SearchPeople",
+                "GetPerson",
+                "PersonCredits",
+                "TitleCredits",
+                "ListGenres",
+                "GetCatalogFilterOptions",
+                "ListRoles",
+                "CreateRole",
+                "ManagedTitles",
+                "ManagedPeople",
+                "ManagedTitle",
+                "ManagedPerson",
+                "ManagedCredits",
+                "Audit",
+                "WriteMovie",
+                "WritePerson",
+                "WriteCredit",
+                "RemoveCredit",
+                "MovieLifecycle",
+                "PersonLifecycle",
+                "DeletionImpact",
+                "BeginArtwork",
+                "CancelArtwork",
+                "GetOperation",
+                "ResolveArtworkAccess",
+                "ProposeMovie",
+                "PrepareMoviePoster",
+                "GetMovieProposal",
+                "ListMovieProposals",
+                "ReadMoviePoster",
+                "ApproveAndCreate",
+                "RejectProposal",
+            )
         for (method in coreMethods) {
             assertTrue(interceptor.allowed("spoolin.v1.CatalogService/$method", "core"), method)
             assertFalse(interceptor.allowed("spoolin.v1.CatalogService/$method", "media"), method)
@@ -99,24 +160,43 @@ class RuntimeBoundaryRulesTest {
             val headers = mutableMapOf<String, String>()
             var status: Int? = null
             var dispatched = false
-            val request = proxy<HttpServletRequest> { name, _ -> when (name) {
-                "getRequestURI", "getServletPath" -> path
-                "getAttribute" -> null
-                "isSecure" -> false
-                "getLocalPort" -> 8080
-                "getDispatcherType" -> jakarta.servlet.DispatcherType.REQUEST
-                else -> null
-            } }
-            val response = proxy<HttpServletResponse> { name, args -> when (name) {
-                "setHeader" -> { headers[args[0].toString()] = args[1].toString(); null }
-                "sendError" -> { status = args[0] as Int; null }
-                "isCommitted" -> false
-                else -> null
-            } }
+            val request =
+                proxy<HttpServletRequest> { name, _ ->
+                    when (name) {
+                        "getRequestURI", "getServletPath" -> path
+                        "getAttribute" -> null
+                        "isSecure" -> false
+                        "getLocalPort" -> 8080
+                        "getDispatcherType" -> jakarta.servlet.DispatcherType.REQUEST
+                        else -> null
+                    }
+                }
+            val response =
+                proxy<HttpServletResponse> { name, args ->
+                    when (name) {
+                        "setHeader" -> {
+                            headers[args[0].toString()] = args[1].toString()
+                            null
+                        }
+                        "sendError" -> {
+                            status = args[0] as Int
+                            null
+                        }
+                        "isCommitted" -> false
+                        else -> null
+                    }
+                }
             ListenerBoundary(environment(mapOf("local.management.port" to 8081)))
                 .doFilter(request, response, FilterChain { _, _ -> dispatched = true })
-            if (path.startsWith("/actuator")) { assertEquals(403, status); assertFalse(dispatched) }
-            else { assertNull(status); assertTrue(dispatched); assertEquals("no-store", headers["Cache-Control"]); assertEquals("nosniff", headers["X-Content-Type-Options"]) }
+            if (path.startsWith("/actuator")) {
+                assertEquals(403, status)
+                assertFalse(dispatched)
+            } else {
+                assertNull(status)
+                assertTrue(dispatched)
+                assertEquals("no-store", headers["Cache-Control"])
+                assertEquals("nosniff", headers["X-Content-Type-Options"])
+            }
         }
     }
 

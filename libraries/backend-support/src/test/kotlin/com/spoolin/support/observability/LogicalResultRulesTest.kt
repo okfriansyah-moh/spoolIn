@@ -47,11 +47,26 @@ class LogicalResultRulesTest {
 
     @Test
     fun `GraphQL HTTP failures cannot be mistaken for successful data`() {
-        val expected = mapOf(400 to MetricCode.INVALID_ARGUMENT, 401 to MetricCode.UNAUTHENTICATED,
-            403 to MetricCode.PERMISSION_DENIED, 413 to MetricCode.RESOURCE_EXHAUSTED,
-            429 to MetricCode.RESOURCE_EXHAUSTED, 503 to MetricCode.UNAVAILABLE, 500 to MetricCode.INTERNAL)
+        val expected =
+            mapOf(
+                400 to MetricCode.INVALID_ARGUMENT,
+                401 to MetricCode.UNAUTHENTICATED,
+                403 to MetricCode.PERMISSION_DENIED,
+                413 to MetricCode.RESOURCE_EXHAUSTED,
+                429 to MetricCode.RESOURCE_EXHAUSTED,
+                503 to MetricCode.UNAVAILABLE,
+                500 to MetricCode.INTERNAL,
+            )
         expected.forEach { (status, code) ->
-            assertEquals(code, LogicalResult.fromGraphql(mapOf("data" to mapOf("titles" to emptyList<Any>())), status, setOf("titles")).code)
+            assertEquals(
+                code,
+                LogicalResult
+                    .fromGraphql(
+                        mapOf("data" to mapOf("titles" to emptyList<Any>())),
+                        status,
+                        setOf("titles"),
+                    ).code,
+            )
         }
         assertEquals(LogicalResult.unknown(), LogicalResult.fromGraphql(null, 200, setOf("titles")))
         assertEquals(LogicalResult.unknown(), LogicalResult.fromGraphql(emptyMap<String, Any>(), 200, emptySet()))
@@ -61,15 +76,29 @@ class LogicalResultRulesTest {
     fun `GraphQL considers selected roots and their persisted mutation outcomes`() {
         assertEquals(LogicalResult.success(), classify(mapOf("data" to mapOf("titles" to emptyList<Any>()))))
         val unrelated = mapOf("path" to listOf("person"), "extensions" to mapOf("code" to "INTERNAL"))
-        assertEquals(LogicalResult.success(), classify(mapOf("data" to mapOf("titles" to emptyList<Any>()), "errors" to listOf(unrelated))))
+        assertEquals(
+            LogicalResult.success(),
+            classify(
+                mapOf(
+                    "data" to mapOf("titles" to emptyList<Any>()),
+                    "errors" to listOf(unrelated),
+                ),
+            ),
+        )
         val invalid = mapOf("extensions" to mapOf("classification" to "ValidationError"))
         assertEquals(MetricCode.INVALID_ARGUMENT, classify(mapOf("errors" to listOf(invalid))).code)
         assertEquals(LogicalResult.unknown(), classify(mapOf("errors" to "not a list")))
         assertEquals(LogicalResult.unknown(), classify(mapOf("data" to emptyMap<String, Any>())))
         val receipt = mapOf("operation" to mapOf("state" to "SUCCEEDED"))
-        assertEquals(LogicalResult.success(), LogicalResult.fromGraphql(mapOf("data" to mapOf("createMovie" to receipt)), 200, setOf("createMovie")))
+        assertEquals(
+            LogicalResult.success(),
+            LogicalResult.fromGraphql(mapOf("data" to mapOf("createMovie" to receipt)), 200, setOf("createMovie")),
+        )
         val failure = mapOf("problem" to mapOf("code" to "CONFLICT"))
-        assertEquals(MetricCode.CONFLICT, LogicalResult.fromGraphql(mapOf("data" to mapOf("createMovie" to failure)), 200, setOf("createMovie")).code)
+        assertEquals(
+            MetricCode.CONFLICT,
+            LogicalResult.fromGraphql(mapOf("data" to mapOf("createMovie" to failure)), 200, setOf("createMovie")).code,
+        )
     }
 
     private fun classify(body: Map<String, Any?>): LogicalResult = LogicalResult.fromGraphql(body, 200, setOf("titles"))

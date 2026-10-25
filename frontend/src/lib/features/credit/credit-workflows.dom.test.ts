@@ -115,6 +115,94 @@ function boundary(overrides: Record<string, Reply> = {}) {
   };
   const calls: { operation: string; variables: Variables }[] = [];
   const counts = new Map<string, number>();
+  const currentPerson: Reply = (variables) => ({
+    managedPerson: { ...person, id: variables.id },
+  });
+  const handlers: Record<string, Reply> = {
+    ManagedCredits: () => ({
+      managedCredits: { nodes: state.credits, pageInfo },
+    }),
+    CreditRoles: () => ({ creditRoles: state.roles }),
+    ManagedPeople: () => ({ managedPeople: { nodes: state.people, pageInfo } }),
+    ManagedCreditPerson: currentPerson,
+    ManagedPerson: currentPerson,
+    ManagedTitle: () => ({
+      managedTitle: {
+        id: ids.title,
+        kind: 'MOVIE',
+        state: 'ACTIVE',
+        title: 'The voyage',
+        version: '2',
+      },
+    }),
+    DraftList: () => ({ drafts: state.drafts }),
+    SavePersonDraft: (variables) => ({
+      saveDraft: {
+        operation: receipt(variables.operationId, 'SUCCEEDED', variables.id),
+        problem: null,
+      },
+    }),
+    DiscardPersonDraft: (variables) => ({
+      discardDraft: {
+        discarded: true,
+        operation: receipt(variables.operationId, 'SUCCEEDED', variables.id),
+        problem: null,
+      },
+    }),
+    RecoverDraftOperation: (variables) => ({
+      operation: receipt(variables.id, 'SUCCEEDED', ids.draft),
+    }),
+    AddCredit: (variables) => {
+      state.credits = [credit()];
+      return {
+        addCredit: { operation: receipt(variables.operationId), problem: null },
+      };
+    },
+    UpdateCredit: (variables) => {
+      const patch = variables.patch as { characters: string[] };
+      state.credits = state.credits.map((entry) =>
+        entry.id === variables.id
+          ? { ...entry, characters: patch.characters, version: '2' }
+          : entry,
+      );
+      return {
+        updateCredit: {
+          operation: receipt(variables.operationId),
+          problem: null,
+        },
+      };
+    },
+    RemoveCredit: (variables) => {
+      state.credits = [];
+      return {
+        removeCredit: {
+          operation: receipt(variables.operationId),
+          problem: null,
+        },
+      };
+    },
+    CreditOperation: (variables) => ({ operation: receipt(variables.id) }),
+    CreateCreditRole: (variables) => {
+      state.roles = [
+        ...state.roles,
+        {
+          id: ids.custom,
+          label: String(variables.label),
+          category: String(variables.category),
+          allowsCharacters: false,
+        },
+      ];
+      return {
+        createRole: {
+          operation: receipt(variables.operationId, 'SUCCEEDED', ids.custom),
+          problem: null,
+        },
+      };
+    },
+    CreditRoleOperation: (variables) => ({
+      operation: receipt(variables.id, 'SUCCEEDED', ids.custom),
+    }),
+  };
   vi.stubGlobal(
     'fetch',
     vi.fn<typeof fetch>(async (_url, init) => {
@@ -128,131 +216,9 @@ function boundary(overrides: Record<string, Reply> = {}) {
       calls.push({ operation, variables });
       const count = (counts.get(operation) ?? 0) + 1;
       counts.set(operation, count);
-      let data: unknown;
-      if (overrides[operation])
-        data = await overrides[operation](variables, count);
-      else
-        switch (operation) {
-          case 'ManagedCredits':
-            data = { managedCredits: { nodes: state.credits, pageInfo } };
-            break;
-          case 'CreditRoles':
-            data = { creditRoles: state.roles };
-            break;
-          case 'ManagedPeople':
-            data = { managedPeople: { nodes: state.people, pageInfo } };
-            break;
-          case 'ManagedCreditPerson':
-          case 'ManagedPerson':
-            data = { managedPerson: { ...person, id: variables.id } };
-            break;
-          case 'ManagedTitle':
-            data = {
-              managedTitle: {
-                id: ids.title,
-                kind: 'MOVIE',
-                state: 'ACTIVE',
-                title: 'The voyage',
-                version: '2',
-              },
-            };
-            break;
-          case 'DraftList':
-            data = { drafts: state.drafts };
-            break;
-          case 'SavePersonDraft':
-            data = {
-              saveDraft: {
-                operation: receipt(
-                  variables.operationId,
-                  'SUCCEEDED',
-                  variables.id,
-                ),
-                problem: null,
-              },
-            };
-            break;
-          case 'DiscardPersonDraft':
-            data = {
-              discardDraft: {
-                discarded: true,
-                operation: receipt(
-                  variables.operationId,
-                  'SUCCEEDED',
-                  variables.id,
-                ),
-                problem: null,
-              },
-            };
-            break;
-          case 'RecoverDraftOperation':
-            data = { operation: receipt(variables.id, 'SUCCEEDED', ids.draft) };
-            break;
-          case 'AddCredit':
-            state.credits = [credit()];
-            data = {
-              addCredit: {
-                operation: receipt(variables.operationId),
-                problem: null,
-              },
-            };
-            break;
-          case 'UpdateCredit': {
-            const patch = variables.patch as { characters: string[] };
-            state.credits = state.credits.map((entry) =>
-              entry.id === variables.id
-                ? { ...entry, characters: patch.characters, version: '2' }
-                : entry,
-            );
-            data = {
-              updateCredit: {
-                operation: receipt(variables.operationId),
-                problem: null,
-              },
-            };
-            break;
-          }
-          case 'RemoveCredit':
-            state.credits = [];
-            data = {
-              removeCredit: {
-                operation: receipt(variables.operationId),
-                problem: null,
-              },
-            };
-            break;
-          case 'CreditOperation':
-            data = { operation: receipt(variables.id) };
-            break;
-          case 'CreateCreditRole':
-            state.roles = [
-              ...state.roles,
-              {
-                id: ids.custom,
-                label: String(variables.label),
-                category: String(variables.category),
-                allowsCharacters: false,
-              },
-            ];
-            data = {
-              createRole: {
-                operation: receipt(
-                  variables.operationId,
-                  'SUCCEEDED',
-                  ids.custom,
-                ),
-                problem: null,
-              },
-            };
-            break;
-          case 'CreditRoleOperation':
-            data = {
-              operation: receipt(variables.id, 'SUCCEEDED', ids.custom),
-            };
-            break;
-          default:
-            throw new Error(`Unconfigured HTTP operation ${operation}`);
-        }
+      const handler = overrides[operation] ?? handlers[operation];
+      if (!handler) throw new Error(`Unconfigured HTTP operation ${operation}`);
+      const data = await handler(variables, count);
       return data instanceof Response
         ? data
         : new Response(JSON.stringify({ data }));

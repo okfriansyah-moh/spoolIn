@@ -1,7 +1,12 @@
 package com.spoolin.core.features.crypto
 
 import com.spoolin.core.features.session.SessionJdbcFixture
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
@@ -33,7 +38,15 @@ class ProtectedMaterialBehaviorTest {
     fun `mounted material rejects unsafe permissions lengths identifiers and reused key bytes`() {
         val file = key("valid", material)
         assertThrows(IllegalArgumentException::class.java) { MountedKeys(mapOf("../key" to KeyMount(KeyPurpose.PII, file)), null) }
-        assertThrows(IllegalArgumentException::class.java) { MountedKeys(mapOf("one" to KeyMount(KeyPurpose.PII, file), "two" to KeyMount(KeyPurpose.DRAFT, file)), null) }
+        assertThrows(IllegalArgumentException::class.java) {
+            MountedKeys(
+                mapOf(
+                    "one" to KeyMount(KeyPurpose.PII, file),
+                    "two" to KeyMount(KeyPurpose.DRAFT, file),
+                ),
+                null,
+            )
+        }
         Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-r--r--"))
         assertThrows(IllegalArgumentException::class.java) { MountedKeys(mapOf("one" to KeyMount(KeyPurpose.PII, file)), null) }
         val short = key("short", ByteArray(31))
@@ -65,8 +78,12 @@ class ProtectedMaterialBehaviorTest {
         assertArrayEquals(NonceCounter.encode("42"), NonceAllocator(db).reserve("pii", KeyPurpose.PII).bytes())
         assertEquals(1, db.commits)
         for ((exhausted, expected) in listOf(true to ProtectionFailure.NONCE_EXHAUSTION, false to ProtectionFailure.UNAVAILABLE)) {
-            db.enqueue(); db.enqueue(mapOf("1" to exhausted))
-            assertEquals(expected, assertThrows(ProtectionUnavailable::class.java) { NonceAllocator(db).reserve("pii", KeyPurpose.PII) }.reason)
+            db.enqueue()
+            db.enqueue(mapOf("1" to exhausted))
+            assertEquals(
+                expected,
+                assertThrows(ProtectionUnavailable::class.java) { NonceAllocator(db).reserve("pii", KeyPurpose.PII) }.reason,
+            )
         }
     }
 
@@ -77,9 +94,15 @@ class ProtectedMaterialBehaviorTest {
         val lookupBytes = ByteArray(32) { 9 }
         val lookup = key("lookup", lookupBytes)
         val alerts = mutableListOf<UUID>()
-        MountedKeys(mapOf("pii" to KeyMount(KeyPurpose.PII, pii), "lookup" to KeyMount(KeyPurpose.EMAIL_LOOKUP, lookup)), null).use { keys ->
+        val mounts =
+            mapOf(
+                "pii" to KeyMount(KeyPurpose.PII, pii),
+                "lookup" to KeyMount(KeyPurpose.EMAIL_LOOKUP, lookup),
+            )
+        MountedKeys(mounts, null).use { keys ->
             val crypto = AccountCryptography(KeyRegistry(db), keys, NonceAllocator(db), AeadCipher(), ProtectionAlert { alerts.add(it) })
-            db.enqueue(mapOf("id" to "pii")); db.enqueue(mapOf("allocated" to 7L))
+            db.enqueue(mapOf("id" to "pii"))
+            db.enqueue(mapOf("allocated" to 7L))
             val envelope = crypto.encrypt(row, "private value".toByteArray())
             db.enqueue(mapOf("id" to "pii"))
             assertArrayEquals("private value".toByteArray(), (crypto.decrypt(row, envelope) as ProtectedRead.Value).value)
@@ -87,14 +110,24 @@ class ProtectedMaterialBehaviorTest {
             assertEquals(ProtectedRead.Unavailable, crypto.decrypt(UUID.randomUUID(), envelope))
             assertEquals(1, alerts.size)
             val email = "person@example.test"
-            val expected = Mac.getInstance("HmacSHA256").also { it.init(SecretKeySpec(lookupBytes, "HmacSHA256")) }.doFinal(("email-lookup-v1\u0000" + email).toByteArray())
+            val expected =
+                Mac.getInstance("HmacSHA256").also { it.init(SecretKeySpec(lookupBytes, "HmacSHA256")) }.doFinal(
+                    (
+                        "email-lookup-v1\u0000" +
+                            email
+                    ).toByteArray(),
+                )
             assertArrayEquals(expected, crypto.lookupDigest(RegisteredKey("lookup", KeyPurpose.EMAIL_LOOKUP), email))
             assertThrows(IllegalArgumentException::class.java) { crypto.lookupDigest(RegisteredKey("pii", KeyPurpose.PII), email) }
         }
     }
 
-    private fun key(name: String, bytes: ByteArray): Path = root.resolve(name).also {
-        Files.write(it, bytes)
-        Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
-    }
+    private fun key(
+        name: String,
+        bytes: ByteArray,
+    ): Path =
+        root.resolve(name).also {
+            Files.write(it, bytes)
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
 }

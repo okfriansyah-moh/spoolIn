@@ -41,6 +41,66 @@ const bootstrap = () => ({
     csrfToken: 'A'.repeat(43),
   },
 });
+function reply(data: unknown) {
+  return new Response(JSON.stringify({ data }));
+}
+function mutationResponse(query: string, operationId: string) {
+  if (writeFailure) return new Response('{}', { status: 503 });
+  const field = query.includes('MovieLifecycle')
+    ? 'movieLifecycle'
+    : 'personLifecycle';
+  return reply({
+    [field]: {
+      operation: {
+        id: operationId,
+        state: resultState,
+        resultExpired: expired,
+        problem: resultProblem ? { code: resultProblem } : null,
+      },
+      problem: null,
+    },
+  });
+}
+function auditRow(after: unknown) {
+  return {
+    id: after ? other : id,
+    actorRef: null,
+    action: 'UPDATE',
+    subjectKind: 'MOVIE',
+    subjectId: id,
+    outcome: 'SUCCEEDED',
+    at: '2026-10-25T12:00:00Z',
+    changes: {
+      originalTitle: { before: 'Old', after: 'New' },
+      biography: { before: { valueOmitted: true, length: 99 }, after: null },
+      note: 'Reviewed',
+    },
+  };
+}
+function listResponse(query: string, after: unknown) {
+  if (listFailure) return new Response('{}', { status: 503 });
+  const hasNextPage = more && !after;
+  const pageInfo = { hasNextPage, endCursor: hasNextPage ? 'next-page' : null };
+  if (query.includes('query Audit'))
+    return reply({
+      audit: { nodes: empty ? [] : [auditRow(after)], pageInfo },
+    });
+  const field = query.includes('ArchivedPeople')
+    ? 'managedPeople'
+    : 'managedTitles';
+  const nodes = empty
+    ? []
+    : [
+        {
+          id: after ? other : id,
+          title: after ? 'Second film' : 'Archived film',
+          name: 'Archived artist',
+          state: 'ARCHIVED',
+          version: '3',
+        },
+      ];
+  return reply({ [field]: { nodes, pageInfo } });
+}
 beforeEach(async () => {
   for (const name of dialogMethods)
     Object.defineProperty(HTMLDialogElement.prototype, name, {
@@ -60,115 +120,31 @@ beforeEach(async () => {
   empty = false;
   fetcher = vi.fn<typeof fetch>(async (_url, init) => {
     const { query, variables } = JSON.parse(String(init?.body));
-    if (query.includes('AccountBootstrap'))
-      return new Response(JSON.stringify({ data: bootstrap() }));
-    if (query.includes('mutation ')) {
-      if (writeFailure) return new Response('{}', { status: 503 });
-      const field = query.includes('MovieLifecycle')
-        ? 'movieLifecycle'
-        : 'personLifecycle';
-      return new Response(
-        JSON.stringify({
-          data: {
-            [field]: {
-              operation: {
-                id: variables.operationId,
-                state: resultState,
-                resultExpired: expired,
-                problem: resultProblem ? { code: resultProblem } : null,
-              },
-              problem: null,
-            },
-          },
-        }),
-      );
-    }
+    if (query.includes('AccountBootstrap')) return reply(bootstrap());
+    if (query.includes('mutation '))
+      return mutationResponse(query, variables.operationId);
     if (query.includes('DeletionImpact'))
-      return new Response(
-        JSON.stringify({
-          data: {
-            deletionImpact: impactFailure
-              ? null
-              : {
-                  token: 'impact-proof',
-                  affectedCreditCount: 2,
-                  affectedTitles: ['Related film'],
-                },
-          },
-        }),
-      );
+      return reply({
+        deletionImpact: impactFailure
+          ? null
+          : {
+              token: 'impact-proof',
+              affectedCreditCount: 2,
+              affectedTitles: ['Related film'],
+            },
+      });
     if (query.includes('CatalogOperation'))
-      return new Response(
-        JSON.stringify({
-          data: {
-            operation: {
-              id: variables.id,
-              state: resultState,
-              resultExpired: expired,
-              resultId: id,
-              version: '4',
-              problem: null,
-            },
-          },
-        }),
-      );
-    if (listFailure) return new Response('{}', { status: 503 });
-    const pageInfo = {
-      hasNextPage: more && !variables.after,
-      endCursor: more && !variables.after ? 'next-page' : null,
-    };
-    if (query.includes('query Audit'))
-      return new Response(
-        JSON.stringify({
-          data: {
-            audit: {
-              nodes: empty
-                ? []
-                : [
-                    {
-                      id: variables.after ? other : id,
-                      actorRef: null,
-                      action: 'UPDATE',
-                      subjectKind: 'MOVIE',
-                      subjectId: id,
-                      outcome: 'SUCCEEDED',
-                      at: '2026-10-25T12:00:00Z',
-                      changes: {
-                        originalTitle: { before: 'Old', after: 'New' },
-                        biography: {
-                          before: { valueOmitted: true, length: 99 },
-                          after: null,
-                        },
-                        note: 'Reviewed',
-                      },
-                    },
-                  ],
-              pageInfo,
-            },
-          },
-        }),
-      );
-    const people = query.includes('ArchivedPeople');
-    return new Response(
-      JSON.stringify({
-        data: {
-          [people ? 'managedPeople' : 'managedTitles']: {
-            nodes: empty
-              ? []
-              : [
-                  {
-                    id: variables.after ? other : id,
-                    title: variables.after ? 'Second film' : 'Archived film',
-                    name: 'Archived artist',
-                    state: 'ARCHIVED',
-                    version: '3',
-                  },
-                ],
-            pageInfo,
-          },
+      return reply({
+        operation: {
+          id: variables.id,
+          state: resultState,
+          resultExpired: expired,
+          resultId: id,
+          version: '4',
+          problem: null,
         },
-      }),
-    );
+      });
+    return listResponse(query, variables.after);
   });
   vi.stubGlobal('fetch', fetcher);
   session = new SessionController({ bootstrap: async () => bootstrap() });

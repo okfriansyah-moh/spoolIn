@@ -5,7 +5,9 @@ import com.spoolin.catalog.features.artwork.ArtworkWorkStore
 import com.spoolin.catalog.operations.work.WorkLeaseGuard
 import com.spoolin.support.work.AttemptOutcome
 import io.grpc.Status
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import spoolin.v1.IdentityServiceGrpc
 import spoolin.v1.MediaServiceGrpc
@@ -16,12 +18,32 @@ import java.time.ZoneOffset
 
 class ArtworkWorkerRulesTest {
     private val one = listOf(mapOf("one" to 1))
-    private fun handler(db: JdbcRows, media: GrpcReplies, identity: GrpcReplies = GrpcReplies()) = ArtworkWorkHandler(
-        ArtworkWorkStore(db.source, ownerReceipts(db)) { "policy" }, MediaServiceGrpc.newBlockingStub(media),
-        IdentityServiceGrpc.newBlockingStub(identity), db.source,
+
+    private fun handler(
+        db: JdbcRows,
+        media: GrpcReplies,
+        identity: GrpcReplies = GrpcReplies(),
+    ) = ArtworkWorkHandler(
+        ArtworkWorkStore(db.source, ownerReceipts(db)) { "policy" },
+        MediaServiceGrpc.newBlockingStub(media),
+        IdentityServiceGrpc.newBlockingStub(identity),
+        db.source,
     )
-    private fun actor() = Spoolin.Actor.newBuilder().setAccountId(unitActor.toString()).setCredentialId(unitCredential.toString())
-        .setAuthEpoch(1).setRole("MAINTAINER").setExpiresAt(com.google.protobuf.Timestamp.newBuilder().setSeconds(Instant.now().plusSeconds(60).epochSecond)).build()
+
+    private fun actor() =
+        Spoolin.Actor
+            .newBuilder()
+            .setAccountId(unitActor.toString())
+            .setCredentialId(unitCredential.toString())
+            .setAuthEpoch(
+                1,
+            ).setRole(
+                "MAINTAINER",
+            ).setExpiresAt(
+                com.google.protobuf.Timestamp
+                    .newBuilder()
+                    .setSeconds(Instant.now().plusSeconds(60).epochSecond),
+            ).build()
 
     @Test fun `confirmation and release use catalog version and stable hold identifiers`() {
         for (kind in listOf("ARTWORK_CONFIRM", "ARTWORK_RELEASE")) {
@@ -58,9 +80,25 @@ class ArtworkWorkerRulesTest {
     }
 
     @Test fun `ready media requires live actor checks before and after reserve then selects catalog asset`() {
-        val db = JdbcRows(artworkRow(), one, one, one, artworkRow(), listOf(mapOf("version" to 7L, "status" to "ACTIVE")),
-            listOf(mapOf("correlation_id" to unitCorrelation)), one)
-        val channel = GrpcReplies(Spoolin.Asset.newBuilder().setState("READY").build(), Spoolin.Attachment.getDefaultInstance())
+        val db =
+            JdbcRows(
+                artworkRow(),
+                one,
+                one,
+                one,
+                artworkRow(),
+                listOf(mapOf("version" to 7L, "status" to "ACTIVE")),
+                listOf(mapOf("correlation_id" to unitCorrelation)),
+                one,
+            )
+        val channel =
+            GrpcReplies(
+                Spoolin.Asset
+                    .newBuilder()
+                    .setState("READY")
+                    .build(),
+                Spoolin.Attachment.getDefaultInstance(),
+            )
         val identity = GrpcReplies(actor(), actor())
         handler(db, channel, identity).handle(artworkClaim())
         val check = identity.requests.first() as Spoolin.CheckActorRequest
@@ -76,7 +114,13 @@ class ArtworkWorkerRulesTest {
     @Test fun `invalid media or revoked actor aborts preparation and releases reserved hold`() {
         for (revoked in listOf(false, true)) {
             val db = JdbcRows(artworkRow(), one, one, one, artworkRow(), listOf(mapOf("version" to 8L)), one)
-            val media = GrpcReplies(Spoolin.Asset.newBuilder().setState(if (revoked) "READY" else "REJECTED").build())
+            val media =
+                GrpcReplies(
+                    Spoolin.Asset
+                        .newBuilder()
+                        .setState(if (revoked) "READY" else "REJECTED")
+                        .build(),
+                )
             val identity = if (revoked) GrpcReplies(actor().toBuilder().setRole("VIEWER").build()) else GrpcReplies()
             handler(db, media, identity).handle(artworkClaim())
             assertTrue(db.writes.any { (if (revoked) "ARTWORK_UNAVAILABLE" else "FILE_INVALID") in it })
@@ -86,14 +130,27 @@ class ArtworkWorkerRulesTest {
 
     @Test fun `processing asset remains retryable while bounded attempts remain`() {
         val db = JdbcRows(artworkRow(), one)
-        handler(db, GrpcReplies(Spoolin.Asset.newBuilder().setState("PROCESSING").build())).handle(artworkClaim())
+        handler(
+            db,
+            GrpcReplies(
+                Spoolin.Asset
+                    .newBuilder()
+                    .setState("PROCESSING")
+                    .build(),
+            ),
+        ).handle(artworkClaim())
         assertTrue(db.writes.any { "READY" in it })
     }
 
     @Test fun `lease completion maps each logical outcome and honors exhausted attempts`() {
         val now = Instant.now()
-        for ((outcome, expected) in listOf(AttemptOutcome.SUCCEEDED to "DONE", AttemptOutcome.CANCELLED to "CANCELLED",
-            AttemptOutcome.PERMANENT to "EXHAUSTED", AttemptOutcome.UNCERTAIN to "EXHAUSTED", AttemptOutcome.TRANSIENT to "READY")) {
+        for ((outcome, expected) in listOf(
+            AttemptOutcome.SUCCEEDED to "DONE",
+            AttemptOutcome.CANCELLED to "CANCELLED",
+            AttemptOutcome.PERMANENT to "EXHAUSTED",
+            AttemptOutcome.UNCERTAIN to "EXHAUSTED",
+            AttemptOutcome.TRANSIENT to "READY",
+        )) {
             val db = JdbcRows(one)
             assertTrue(WorkLeaseGuard(db.source, Clock.fixed(now, ZoneOffset.UTC)).complete(artworkClaim(), outcome))
             assertTrue(db.writes.any { expected in it })

@@ -254,32 +254,42 @@ if (providers.gradleProperty("unitCoverage").orNull == "true") {
         val sources = extensions.getByType<SourceSetContainer>()
         var executedTests = 0L
         var failedTests = 0L
-        val unitTest = tasks.register<Test>("unitTest") {
-            description = "Run the complete src/test suite without integration source sets or filters."
-            group = "verification"
-            testClassesDirs = sources["test"].output.classesDirs
-            classpath = sources["test"].runtimeClasspath
-            dependsOn("testClasses")
-            useJUnitPlatform()
-            maxParallelForks = 1
-            maxHeapSize = "768m"
-            systemProperty("spoolin.repository-root", rootProject.projectDir.absolutePath)
-            ignoreFailures = true
-            outputs.upToDateWhen { false }
-            addTestListener(
-                object : TestListener {
-                    override fun beforeSuite(suite: TestDescriptor) = Unit
-                    override fun beforeTest(testDescriptor: TestDescriptor) = Unit
-                    override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) = Unit
-                    override fun afterSuite(suite: TestDescriptor, result: TestResult) {
-                        if (suite.parent == null) {
-                            executedTests = result.testCount - result.skippedTestCount
-                            failedTests = result.failedTestCount
+        val unitTest =
+            tasks.register<Test>("unitTest") {
+                description = "Run the complete src/test suite without integration source sets or filters."
+                group = "verification"
+                testClassesDirs = sources["test"].output.classesDirs
+                classpath = sources["test"].runtimeClasspath
+                dependsOn("testClasses")
+                useJUnitPlatform()
+                maxParallelForks = 1
+                maxHeapSize = "768m"
+                systemProperty("spoolin.repository-root", rootProject.projectDir.absolutePath)
+                ignoreFailures = true
+                outputs.upToDateWhen { false }
+                addTestListener(
+                    object : TestListener {
+                        override fun beforeSuite(suite: TestDescriptor) = Unit
+
+                        override fun beforeTest(testDescriptor: TestDescriptor) = Unit
+
+                        override fun afterTest(
+                            testDescriptor: TestDescriptor,
+                            result: TestResult,
+                        ) = Unit
+
+                        override fun afterSuite(
+                            suite: TestDescriptor,
+                            result: TestResult,
+                        ) {
+                            if (suite.parent == null) {
+                                executedTests = result.testCount - result.skippedTestCount
+                                failedTests = result.failedTestCount
+                            }
                         }
-                    }
-                },
-            )
-        }
+                    },
+                )
+            }
         tasks.register("verifyUnitTests") {
             group = "verification"
             description = "Fail on empty or failed unit suites after their coverage reports are generated."

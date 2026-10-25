@@ -8,7 +8,12 @@ import java.util.concurrent.TimeUnit
 
 /** A missing namespace sandbox is a processing failure, never an unrestricted fallback. */
 fun interface CodecExecution {
-    fun execute(input: Path, scratch: Path, codecArguments: List<String>, deadline: Long): String?
+    fun execute(
+        input: Path,
+        scratch: Path,
+        codecArguments: List<String>,
+        deadline: Long,
+    ): String?
 }
 
 class CodecSandbox(

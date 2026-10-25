@@ -1,7 +1,10 @@
 package com.spoolin.core.features.connector
 
 import com.spoolin.core.features.session.SessionJdbcFixture
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
@@ -22,7 +25,12 @@ class ConnectorOperatorBehaviorTest {
         protectDirectory()
         val output = root.resolve("connector-token")
         val db = SessionJdbcFixture(listOf(listOf(authority()), listOf(mapOf("1" to Timestamp.from(now)))))
-        val result = ConnectorOperatorCli.execute(db.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output, ttl = 60), operator())
+        val result =
+            ConnectorOperatorCli.execute(
+                db.jdbc,
+                ConnectorOperatorCommand("issue", account, "CHATGPT", output, ttl = 60),
+                operator(),
+            )
         assertEquals(true, result["issued"])
         assertEquals("CHATGPT", result["client"])
         assertEquals(now.plusSeconds(60).toString(), result["expiresAt"])
@@ -40,7 +48,9 @@ class ConnectorOperatorBehaviorTest {
         val output = root.resolve("connector-token")
         val db = SessionJdbcFixture(listOf(listOf(authority()), listOf(mapOf("1" to Timestamp.from(now)))))
         db.updateResult = 0
-        assertThrows(IllegalStateException::class.java) { ConnectorOperatorCli.execute(db.jdbc, ConnectorOperatorCommand("issue", account, "CLAUDE", output), operator()) }
+        assertThrows(IllegalStateException::class.java) {
+            ConnectorOperatorCli.execute(db.jdbc, ConnectorOperatorCommand("issue", account, "CLAUDE", output), operator())
+        }
         assertFalse(Files.exists(output))
         assertEquals(0, db.commits)
     }
@@ -50,24 +60,48 @@ class ConnectorOperatorBehaviorTest {
         protectDirectory()
         val output = root.resolve("connector-token")
         val viewer = SessionJdbcFixture(listOf(listOf(authority() + ("role" to "VIEWER"))))
-        assertThrows(IllegalArgumentException::class.java) { ConnectorOperatorCli.execute(viewer.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output), operator()) }
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectorOperatorCli.execute(viewer.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output), operator())
+        }
         Files.writeString(output, "preserved")
         val existing = SessionJdbcFixture(listOf(listOf(authority())))
-        assertThrows(java.nio.file.FileAlreadyExistsException::class.java) { ConnectorOperatorCli.execute(existing.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output), operator()) }
+        assertThrows(java.nio.file.FileAlreadyExistsException::class.java) {
+            ConnectorOperatorCli.execute(existing.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output), operator())
+        }
         assertEquals("preserved", Files.readString(output))
-        Files.delete(output); Files.setPosixFilePermissions(root, PosixFilePermissions.fromString("rwxr-xr-x"))
+        Files.delete(output)
+        Files.setPosixFilePermissions(root, PosixFilePermissions.fromString("rwxr-xr-x"))
         val unsafe = SessionJdbcFixture(listOf(listOf(authority())))
-        assertThrows(IllegalArgumentException::class.java) { ConnectorOperatorCli.execute(unsafe.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output), operator()) }
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectorOperatorCli.execute(unsafe.jdbc, ConnectorOperatorCommand("issue", account, "CHATGPT", output), operator())
+        }
     }
 
     @Test
     fun `list omits token material and represents current revocation while revoke writes safe activity`() {
-        val db = SessionJdbcFixture(listOf(listOf(authority()), listOf(mapOf("id" to credential, "expires_at" to Timestamp.from(now), "revoked_at" to Timestamp.from(now)))))
+        val db =
+            SessionJdbcFixture(
+                listOf(
+                    listOf(authority()),
+                    listOf(
+                        mapOf(
+                            "id" to credential,
+                            "expires_at" to Timestamp.from(now),
+                            "revoked_at" to Timestamp.from(now),
+                        ),
+                    ),
+                ),
+            )
         val listing = ConnectorOperatorCli.execute(db.jdbc, ConnectorOperatorCommand("list", account, "CLAUDE"), operator())
         val row = (listing["credentials"] as List<*>).single() as Map<*, *>
         assertEquals(mapOf("id" to credential.toString(), "expiresAt" to now.toString(), "revoked" to true), row)
         db.enqueue(authority())
-        val revoked = ConnectorOperatorCli.execute(db.jdbc, ConnectorOperatorCommand("revoke", account, "CLAUDE", credential = credential), operator())
+        val revoked =
+            ConnectorOperatorCli.execute(
+                db.jdbc,
+                ConnectorOperatorCommand("revoke", account, "CLAUDE", credential = credential),
+                operator(),
+            )
         assertEquals(mapOf("id" to credential.toString(), "revoked" to true), revoked)
         assertFalse(db.writes.toString().contains("token"))
         assertEquals(2, db.commits)
@@ -75,14 +109,41 @@ class ConnectorOperatorBehaviorTest {
 
     @Test
     fun `oversized listing missing revocation target and malformed operator fail explicitly`() {
-        val oversized = SessionJdbcFixture(listOf(listOf(authority()), List(101) { mapOf("id" to UUID.randomUUID(), "expires_at" to Timestamp.from(now), "revoked_at" to null) }))
-        assertThrows(IllegalArgumentException::class.java) { ConnectorOperatorCli.execute(oversized.jdbc, ConnectorOperatorCommand("list", account, "CHATGPT"), operator()) }
-        val missing = SessionJdbcFixture(listOf(listOf(authority()))); missing.updateResult = 0
-        assertThrows(IllegalArgumentException::class.java) { ConnectorOperatorCli.execute(missing.jdbc, ConnectorOperatorCommand("revoke", account, "CHATGPT", credential = credential), operator()) }
-        assertThrows(IllegalArgumentException::class.java) { ConnectorOperatorCli.execute(missing.jdbc, ConnectorOperatorCommand("list", account, "CHATGPT"), "remote-admin") }
+        val oversized =
+            SessionJdbcFixture(
+                listOf(
+                    listOf(authority()),
+                    List(101) {
+                        mapOf(
+                            "id" to UUID.randomUUID(),
+                            "expires_at" to Timestamp.from(now),
+                            "revoked_at" to null,
+                        )
+                    },
+                ),
+            )
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectorOperatorCli.execute(oversized.jdbc, ConnectorOperatorCommand("list", account, "CHATGPT"), operator())
+        }
+        val missing = SessionJdbcFixture(listOf(listOf(authority())))
+        missing.updateResult = 0
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectorOperatorCli.execute(
+                missing.jdbc,
+                ConnectorOperatorCommand("revoke", account, "CHATGPT", credential = credential),
+                operator(),
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectorOperatorCli.execute(missing.jdbc, ConnectorOperatorCommand("list", account, "CHATGPT"), "remote-admin")
+        }
     }
 
     private fun authority(): Map<String, Any?> = mapOf("role" to "MAINTAINER", "auth_epoch" to 3L)
-    private fun protectDirectory() { Files.setPosixFilePermissions(root, PosixFilePermissions.fromString("rwx------")) }
+
+    private fun protectDirectory() {
+        Files.setPosixFilePermissions(root, PosixFilePermissions.fromString("rwx------"))
+    }
+
     private fun operator() = "local-uid:${Files.getAttribute(root, "unix:uid")}"
 }

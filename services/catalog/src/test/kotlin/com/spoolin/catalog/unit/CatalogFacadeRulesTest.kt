@@ -12,14 +12,28 @@ import com.spoolin.catalog.operations.receipts.OwnerReceiptReads
 import com.spoolin.support.receipts.ReceiptAuthority
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import spoolin.v1.Spoolin
 
 class CatalogFacadeRulesTest {
-    private fun rpc(db: JdbcRows, scope: String? = null) = CatalogServiceRpc(TitleSearchSql(db.source), PersonSearch(db.source),
-        TaxonomyReads(db.source), ProvenanceReads(db.source), OwnerReceiptReads(db.source, unitClock), ReceiptAuthority { scope },
-        CatalogCursor(ByteArray(32) { 1 }), PeopleCursor(ByteArray(32) { 2 }), unitClock)
+    private fun rpc(
+        db: JdbcRows,
+        scope: String? = null,
+    ) = CatalogServiceRpc(
+        TitleSearchSql(db.source),
+        PersonSearch(db.source),
+        TaxonomyReads(db.source),
+        ProvenanceReads(db.source),
+        OwnerReceiptReads(db.source, unitClock),
+        ReceiptAuthority { scope },
+        CatalogCursor(ByteArray(32) { 1 }),
+        PeopleCursor(ByteArray(32) { 2 }),
+        unitClock,
+    )
+
     private fun <T> unavailable(call: (StreamObserver<T>) -> Unit) {
         val result = RpcResult<T>()
         call(result)
@@ -58,14 +72,20 @@ class CatalogFacadeRulesTest {
     }
 
     @Test fun `receipt lookup requires scope returns missing status and projects safe completed receipt`() {
-        val request = Spoolin.Id.newBuilder().setId(unitOperation.toString()).build()
+        val request =
+            Spoolin.Id
+                .newBuilder()
+                .setId(unitOperation.toString())
+                .build()
         val denied = RpcResult<Spoolin.Outcome>()
         rpc(JdbcRows()).getOperation(request, denied)
         assertEquals(Status.Code.PERMISSION_DENIED, Status.fromThrowable(denied.failure).code)
         val absent = RpcResult<Spoolin.Outcome>()
         rpc(JdbcRows(emptyList()), "account:$unitActor").getOperation(request, absent)
         assertEquals(Status.Code.NOT_FOUND, Status.fromThrowable(absent.failure).code)
-        val intent = com.spoolin.support.receipts.OperationIntent(unitOperation, "account:$unitActor", "WriteMovie", "policy", emptyList())
+        val intent =
+            com.spoolin.support.receipts
+                .OperationIntent(unitOperation, "account:$unitActor", "WriteMovie", "policy", emptyList())
         val row = receiptRow(intent, "SUCCEEDED", """{"resultId":"$unitTarget","version":"4"}""")
         val result = RpcResult<Spoolin.Outcome>()
         rpc(JdbcRows(listOf(row)), "account:$unitActor").getOperation(request, result)
@@ -73,7 +93,13 @@ class CatalogFacadeRulesTest {
         assertEquals(4L, result.value().version)
         assertEquals(unitTarget.toString(), result.value().resultId)
         val invalid = RpcResult<Spoolin.Outcome>()
-        rpc(JdbcRows(), "account:$unitActor").getOperation(Spoolin.Id.newBuilder().setId("bad").build(), invalid)
+        rpc(JdbcRows(), "account:$unitActor").getOperation(
+            Spoolin.Id
+                .newBuilder()
+                .setId("bad")
+                .build(),
+            invalid,
+        )
         assertEquals(Status.Code.INVALID_ARGUMENT, Status.fromThrowable(invalid.failure).code)
     }
 
@@ -81,18 +107,42 @@ class CatalogFacadeRulesTest {
         val person = mapOf("id" to unitTarget, "name" to "Ada", "biography" to "Biography", "status" to "ACTIVE", "version" to 2L)
         val rpc = rpc(JdbcRows(listOf(person, person), listOf(person), listOf(person), emptyList()))
         val first = RpcResult<Spoolin.PersonPage>()
-        val request = Spoolin.Search.newBuilder().setFirst(1).setText("Ada").build()
+        val request =
+            Spoolin.Search
+                .newBuilder()
+                .setFirst(1)
+                .setText("Ada")
+                .build()
         rpc.searchPeople(request, first)
         assertTrue(first.value().hasNextPage)
-        assertEquals("Ada", first.value().nodesList.single().values.name)
+        assertEquals(
+            "Ada",
+            first
+                .value()
+                .nodesList
+                .single()
+                .values.name,
+        )
         val next = RpcResult<Spoolin.PersonPage>()
         rpc.searchPeople(request.toBuilder().setAfter(first.value().endCursor).build(), next)
         assertFalse(next.value().hasNextPage)
         val detail = RpcResult<Spoolin.Person>()
-        rpc.getPerson(Spoolin.Id.newBuilder().setId(unitTarget.toString()).build(), detail)
+        rpc.getPerson(
+            Spoolin.Id
+                .newBuilder()
+                .setId(unitTarget.toString())
+                .build(),
+            detail,
+        )
         assertEquals("Biography", detail.value().values.biography)
         val missing = RpcResult<Spoolin.Person>()
-        rpc.getPerson(Spoolin.Id.newBuilder().setId(unitAsset.toString()).build(), missing)
+        rpc.getPerson(
+            Spoolin.Id
+                .newBuilder()
+                .setId(unitAsset.toString())
+                .build(),
+            missing,
+        )
         assertEquals("", missing.value().id)
         for (invalid in listOf(request.toBuilder().setKind("MOVIE").build(), request.toBuilder().setAfter("bad").build())) {
             val result = RpcResult<Spoolin.PersonPage>()
@@ -102,15 +152,38 @@ class CatalogFacadeRulesTest {
     }
 
     @Test fun `public credit routes project full role metadata and bind cursors to target`() {
-        val credit = mapOf("id" to unitTarget, "title_id" to unitTarget, "person_id" to unitActor, "role_id" to unitAsset,
-            "characters" to arrayOf("Alice"), "version" to 2L, "person_name" to "Ada", "title_name" to "River",
-            "role_category" to "CAST", "role_label" to "Actor", "role_allows_characters" to true)
+        val credit =
+            mapOf(
+                "id" to unitTarget,
+                "title_id" to unitTarget,
+                "person_id" to unitActor,
+                "role_id" to unitAsset,
+                "characters" to arrayOf("Alice"),
+                "version" to 2L,
+                "person_name" to "Ada",
+                "title_name" to "River",
+                "role_category" to "CAST",
+                "role_label" to "Actor",
+                "role_allows_characters" to true,
+            )
         val rpc = rpc(JdbcRows(listOf(credit, credit), listOf(credit), emptyList()))
-        val request = Spoolin.PageRequest.newBuilder().setTargetId(unitTarget.toString()).setFirst(1).build()
+        val request =
+            Spoolin.PageRequest
+                .newBuilder()
+                .setTargetId(unitTarget.toString())
+                .setFirst(1)
+                .build()
         val first = RpcResult<Spoolin.CreditPage>()
         rpc.titleCredits(request, first)
         assertTrue(first.value().hasNextPage)
-        assertEquals("Actor", first.value().nodesList.single().role.label)
+        assertEquals(
+            "Actor",
+            first
+                .value()
+                .nodesList
+                .single()
+                .role.label,
+        )
         val next = RpcResult<Spoolin.CreditPage>()
         rpc.titleCredits(request.toBuilder().setAfter(first.value().endCursor).build(), next)
         assertFalse(next.value().hasNextPage)
@@ -126,12 +199,43 @@ class CatalogFacadeRulesTest {
         val genre = listOf(mapOf("id" to unitTarget, "label" to "Drama"))
         val role = listOf(mapOf("id" to unitAsset, "label" to "Actor", "category" to "CAST", "allows_characters" to true))
         val rpc = rpc(JdbcRows(genre, role, genre, listOf(mapOf("release_year" to 2024, "release_month" to 2))))
-        val genres = RpcResult<Spoolin.Genres>(); rpc.listGenres(Empty.getDefaultInstance(), genres)
-        assertEquals("Drama", genres.value().nodesList.single().label)
-        val roles = RpcResult<Spoolin.Roles>(); rpc.listRoles(Empty.getDefaultInstance(), roles)
-        assertEquals("CAST", roles.value().nodesList.single().category)
-        val filters = RpcResult<Spoolin.CatalogFilterOptions>(); rpc.getCatalogFilterOptions(Empty.getDefaultInstance(), filters)
-        assertEquals(2024, filters.value().releaseYearsList.single().year)
-        assertEquals(listOf(2), filters.value().releaseYearsList.single().monthsList)
+        val genres = RpcResult<Spoolin.Genres>()
+        rpc.listGenres(Empty.getDefaultInstance(), genres)
+        assertEquals(
+            "Drama",
+            genres
+                .value()
+                .nodesList
+                .single()
+                .label,
+        )
+        val roles = RpcResult<Spoolin.Roles>()
+        rpc.listRoles(Empty.getDefaultInstance(), roles)
+        assertEquals(
+            "CAST",
+            roles
+                .value()
+                .nodesList
+                .single()
+                .category,
+        )
+        val filters = RpcResult<Spoolin.CatalogFilterOptions>()
+        rpc.getCatalogFilterOptions(Empty.getDefaultInstance(), filters)
+        assertEquals(
+            2024,
+            filters
+                .value()
+                .releaseYearsList
+                .single()
+                .year,
+        )
+        assertEquals(
+            listOf(2),
+            filters
+                .value()
+                .releaseYearsList
+                .single()
+                .monthsList,
+        )
     }
 }

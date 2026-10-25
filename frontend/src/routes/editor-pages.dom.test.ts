@@ -71,6 +71,11 @@ const originalScroll = Object.getOwnPropertyDescriptor(
   'scrollIntoView',
 );
 
+function mutationField(query: string, operation: string) {
+  if (query.includes('saveDraft(')) return 'saveDraft';
+  if (query.includes('discardDraft(')) return 'discardDraft';
+  return operation.charAt(0).toLowerCase() + operation.slice(1);
+}
 function bootstrap() {
   return {
     policy,
@@ -118,11 +123,7 @@ beforeEach(async () => {
     if (match) {
       if (match[1] === 'CreateMovie' || match[1] === 'UpdateMovie')
         reads.managedTitle = { ...movie, version: '4' };
-      const field = body.query.includes('saveDraft(')
-        ? 'saveDraft'
-        : body.query.includes('discardDraft(')
-          ? 'discardDraft'
-          : match[1].charAt(0).toLowerCase() + match[1].slice(1);
+      const field = mutationField(body.query, match[1]);
       const operation = {
         id: body.variables.operationId,
         state: 'SUCCEEDED',

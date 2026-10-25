@@ -1,10 +1,16 @@
 package com.spoolin.media.features.asset
 
-import com.spoolin.media.fixtures.*
+import com.spoolin.media.fixtures.JdbcBoundary
+import com.spoolin.media.fixtures.assetId
+import com.spoolin.media.fixtures.assetRecord
 import io.grpc.Context
 import io.grpc.Status
 import io.grpc.stub.ServerCallStreamObserver
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import spoolin.v1.Spoolin.AssetReadChunk
@@ -14,12 +20,15 @@ import java.security.MessageDigest
 
 class AssetStreamRulesTest {
     @TempDir lateinit var root: Path
+
     private fun file(bytes: ByteArray): AssetFile {
-        val row = requireNotNull(AssetSql.find(JdbcBoundary().rows(assetRecord()).source, assetId))
-            .copy(outputBytes = bytes.size.toLong(), contentHash = MessageDigest.getInstance("SHA-256").digest(bytes))
+        val row =
+            requireNotNull(AssetSql.find(JdbcBoundary().rows(assetRecord()).source, assetId))
+                .copy(outputBytes = bytes.size.toLong(), contentHash = MessageDigest.getInstance("SHA-256").digest(bytes))
         Files.write(root.resolve("$assetId.png"), bytes)
         return AssetFile.open(root, row)
     }
+
     private class Observer : ServerCallStreamObserver<AssetReadChunk>() {
         val values = mutableListOf<AssetReadChunk>()
         var ready = true
@@ -29,16 +38,38 @@ class AssetStreamRulesTest {
         var cancelHandler: Runnable? = null
         var readyHandler: Runnable? = null
         var failWrite = false
-        override fun onNext(value: AssetReadChunk) { if (failWrite) throw IllegalStateException("transport closed"); values.add(value) }
-        override fun onError(value: Throwable) { error = value }
-        override fun onCompleted() { complete = true }
+
+        override fun onNext(value: AssetReadChunk) {
+            if (failWrite) throw IllegalStateException("transport closed")
+            values.add(value)
+        }
+
+        override fun onError(value: Throwable) {
+            error = value
+        }
+
+        override fun onCompleted() {
+            complete = true
+        }
+
         override fun isReady() = ready
+
         override fun isCancelled() = cancelled
-        override fun setOnCancelHandler(handler: Runnable) { cancelHandler = handler }
-        override fun setOnReadyHandler(handler: Runnable) { readyHandler = handler }
+
+        override fun setOnCancelHandler(handler: Runnable) {
+            cancelHandler = handler
+        }
+
+        override fun setOnReadyHandler(handler: Runnable) {
+            readyHandler = handler
+        }
+
         override fun setCompression(value: String) {}
+
         override fun disableAutoInboundFlowControl() {}
+
         override fun request(count: Int) {}
+
         override fun setMessageCompression(value: Boolean) {}
     }
 
@@ -49,9 +80,25 @@ class AssetStreamRulesTest {
         AssetStream(file, observer, Context.current()).start()
         assertTrue(observer.complete)
         assertNull(observer.error)
-        assertEquals("PNG", observer.values.first().header.format)
-        assertEquals(bytes.size.toLong(), observer.values.first().header.outputBytes)
-        assertArrayEquals(bytes, observer.values.drop(1).flatMap { it.data.toByteArray().asIterable() }.toByteArray())
+        assertEquals(
+            "PNG",
+            observer.values
+                .first()
+                .header.format,
+        )
+        assertEquals(
+            bytes.size.toLong(),
+            observer.values
+                .first()
+                .header.outputBytes,
+        )
+        assertArrayEquals(
+            bytes,
+            observer.values
+                .drop(1)
+                .flatMap { it.data.toByteArray().asIterable() }
+                .toByteArray(),
+        )
         assertTrue(observer.values.drop(1).all { it.data.size() <= 65536 })
         assertFalse(file.channel.isOpen)
         observer.readyHandler!!.run()

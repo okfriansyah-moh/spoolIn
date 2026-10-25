@@ -5,30 +5,36 @@ import java.lang.reflect.Proxy
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
-import java.sql.Array as SqlArray
 import javax.sql.DataSource
+import java.sql.Array as SqlArray
 
 /** Scripted JDBC boundary; rows describe driver responses, not a replacement SQL engine. */
-internal class JdbcRows(vararg results: List<Map<String, Any?>>) {
+internal class JdbcRows(
+    vararg results: List<Map<String, Any?>>,
+) {
     private val results = ArrayDeque(results.toList())
     val writes = mutableListOf<List<Any?>>()
-    val source: DataSource = proxy { name, _ ->
-        when (name) {
-            "getConnection" -> connection()
-            else -> null
+    val source: DataSource =
+        proxy { name, _ ->
+            when (name) {
+                "getConnection" -> connection()
+                else -> null
+            }
         }
-    }
 
     private fun connection(): Connection {
         var autoCommit = true
         return proxy { name, args ->
-        when (name) {
-            "prepareStatement" -> statement()
-            "getAutoCommit" -> autoCommit
-            "setAutoCommit" -> { autoCommit = args[0] as Boolean; null }
-            "createArrayOf" -> sqlArray(args[1])
-            else -> null
-        }
+            when (name) {
+                "prepareStatement" -> statement()
+                "getAutoCommit" -> autoCommit
+                "setAutoCommit" -> {
+                    autoCommit = args[0] as Boolean
+                    null
+                }
+                "createArrayOf" -> sqlArray(args[1])
+                else -> null
+            }
         }
     }
 
@@ -37,7 +43,10 @@ internal class JdbcRows(vararg results: List<Map<String, Any?>>) {
         return proxy { name, args ->
             when {
                 name == "executeQuery" -> rows(results.removeFirstOrNull() ?: error("No scripted JDBC response remains"))
-                name == "executeUpdate" -> { writes.add(parameters.values.toList()); 1 }
+                name == "executeUpdate" -> {
+                    writes.add(parameters.values.toList())
+                    1
+                }
                 name.startsWith("set") && args.firstOrNull() is Int -> {
                     parameters[args[0] as Int] = if (name == "setNull") null else args.getOrNull(1)
                     null
@@ -87,9 +96,19 @@ internal class RpcResult<T> : StreamObserver<T> {
     val values = mutableListOf<T>()
     var failure: Throwable? = null
     var completed = false
-    override fun onNext(value: T) { values.add(value) }
-    override fun onError(value: Throwable) { failure = value }
-    override fun onCompleted() { completed = true }
+
+    override fun onNext(value: T) {
+        values.add(value)
+    }
+
+    override fun onError(value: Throwable) {
+        failure = value
+    }
+
+    override fun onCompleted() {
+        completed = true
+    }
+
     fun value(): T {
         check(failure == null) { "RPC failed: $failure" }
         check(completed) { "RPC did not complete" }

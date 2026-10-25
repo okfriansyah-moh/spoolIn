@@ -1,6 +1,9 @@
 package com.spoolin.media.features.upload
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
@@ -11,15 +14,21 @@ import java.util.UUID
 
 class QuarantineLifecycleRulesTest {
     @TempDir lateinit var root: Path
+
     @Test fun `private staged writes preserve offsets flush durable bytes and refuse overwrites`() {
         val store = QuarantineStore(root)
         val file = store.stagingPath(UUID.randomUUID())
-        store.openForWrite(file).use { out -> out.write(1); out.write(byteArrayOf(0, 2, 3, 0), 1, 2); out.flush() }
+        store.openForWrite(file).use { out ->
+            out.write(1)
+            out.write(byteArrayOf(0, 2, 3, 0), 1, 2)
+            out.flush()
+        }
         assertArrayEquals(byteArrayOf(1, 2, 3), Files.readAllBytes(file))
         assertThrows(java.nio.file.FileAlreadyExistsException::class.java) { store.openForWrite(file) }
         assertTrue(store.deleteQuarantine(file))
         assertFalse(store.deleteQuarantine(file))
     }
+
     @Test fun `sweep deletes only old private UUID attempts and preserves current outputs and unrelated directories`() {
         val store = QuarantineStore(root)
         val output = store.outputDirectory()

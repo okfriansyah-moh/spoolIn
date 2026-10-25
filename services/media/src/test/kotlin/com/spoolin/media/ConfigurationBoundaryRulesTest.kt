@@ -1,7 +1,12 @@
 package com.spoolin.media
 
 import com.spoolin.media.fixtures.JdbcBoundary
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.springframework.core.env.MapPropertySource
@@ -13,22 +18,40 @@ import java.time.Duration
 
 class ConfigurationBoundaryRulesTest {
     @TempDir lateinit var root: Path
-    private fun environment(values: Map<String, Any>) = StandardEnvironment().apply { propertySources.addFirst(MapPropertySource("unit", values)) }
+
+    private fun environment(values: Map<String, Any>) =
+        StandardEnvironment().apply {
+            propertySources.addFirst(MapPropertySource("unit", values))
+        }
 
     @Test fun `database settings enforce owner identity verified TLS and supported options`() {
         val url = "jdbc:postgresql://database:5432/spoolin_media?sslmode=verify-full&sslrootcert=/cert/ca.pem&connectTimeout=2"
-        val properties = mapOf<String, Any>("MEDIA_DB_URL" to url, "MEDIA_DB_USER" to "spoolin_media_runtime", "MEDIA_DB_PASSWORD_FILE" to root.resolve("password").toString())
+        val properties =
+            mapOf<String, Any>(
+                "MEDIA_DB_URL" to url,
+                "MEDIA_DB_USER" to "spoolin_media_runtime",
+                "MEDIA_DB_PASSWORD_FILE" to root.resolve("password").toString(),
+            )
         val settings = DatabaseSettings.load(environment(properties), "media", false)
         assertEquals(url, settings.url)
         assertEquals("spoolin_media_runtime", settings.username)
         assertFalse(settings.migrating)
         assertTrue(DatabaseSettings.load(environment(properties + ("MEDIA_DB_USER" to "spoolin_media_migrator")), "media", true).migrating)
-        assertThrows(IllegalArgumentException::class.java) { DatabaseSettings.load(environment(properties + ("MEDIA_DB_USER" to "spoolin_core_runtime")), "media", false) }
-        for (invalid in listOf("jdbc:h2:mem:test", "jdbc:postgresql://database/spoolin_core?sslmode=verify-full",
+        assertThrows(IllegalArgumentException::class.java) {
+            DatabaseSettings.load(
+                environment(properties + ("MEDIA_DB_USER" to "spoolin_core_runtime")),
+                "media",
+                false,
+            )
+        }
+        for (invalid in listOf(
+            "jdbc:h2:mem:test",
+            "jdbc:postgresql://database/spoolin_core?sslmode=verify-full",
             "jdbc:postgresql://user:pass@database/spoolin_media?sslmode=verify-full",
             "jdbc:postgresql://database/spoolin_media?sslmode=disable",
             "jdbc:postgresql://database/spoolin_media?sslmode=verify-full&sslmode=verify-full",
-            "jdbc:postgresql://database/spoolin_media?sslmode=verify-full&password=secret")) {
+            "jdbc:postgresql://database/spoolin_media?sslmode=verify-full&password=secret",
+        )) {
             assertThrows(IllegalArgumentException::class.java) { DatabaseSettings.validateUrl(invalid, "media") }
         }
     }
@@ -62,10 +85,20 @@ class ConfigurationBoundaryRulesTest {
             assertTrue(interceptor.allowed("spoolin.v1.MediaService/$method", "catalog"))
             assertFalse(interceptor.allowed("spoolin.v1.MediaService/$method", "core"))
         }
-        for (method in listOf("GetAsset", "GetOperation")) for (peer in listOf("core", "catalog")) {
-            assertTrue(interceptor.allowed("spoolin.v1.MediaService/$method", peer))
+        for (method in listOf("GetAsset", "GetOperation")) {
+            for (peer in listOf("core", "catalog")) {
+                assertTrue(interceptor.allowed("spoolin.v1.MediaService/$method", peer))
+            }
         }
-        for (peer in listOf("core", "catalog", "media", "mcp", "operator")) assertTrue(interceptor.allowed("grpc.health.v1.Health/Check", peer))
+        for (peer in listOf(
+            "core",
+            "catalog",
+            "media",
+            "mcp",
+            "operator",
+        )) {
+            assertTrue(interceptor.allowed("grpc.health.v1.Health/Check", peer))
+        }
         for (peer in listOf(null, "prometheus", "unknown")) assertFalse(interceptor.allowed("grpc.health.v1.Health/Watch", peer))
         assertFalse(interceptor.allowed("spoolin.v1.MediaService/Unknown", "core"))
         assertFalse(interceptor.allowed("malformed", "catalog"))

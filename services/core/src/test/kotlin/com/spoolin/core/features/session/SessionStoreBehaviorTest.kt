@@ -1,6 +1,9 @@
 package com.spoolin.core.features.session
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.jdbc.datasource.AbstractDataSource
 import java.lang.reflect.Proxy
@@ -53,13 +56,14 @@ class SessionStoreBehaviorTest {
     fun `missing expired revoked epoch mismatch and corrupted csrf never authenticate`() {
         val missing = SessionJdbcFixture(listOf(emptyList()))
         assertNull(store(missing).find(credential))
-        val invalid = listOf(
-            row() + ("expires_at" to Timestamp.from(now)),
-            row() + ("revoked_at" to Timestamp.from(now.minusSeconds(1))),
-            row() + ("auth_epoch" to 2L),
-            row() + ("csrf_hash" to ByteArray(32)),
-            row() + ("last_seen_at" to Timestamp.from(now.minusSeconds(1801))),
-        )
+        val invalid =
+            listOf(
+                row() + ("expires_at" to Timestamp.from(now)),
+                row() + ("revoked_at" to Timestamp.from(now.minusSeconds(1))),
+                row() + ("auth_epoch" to 2L),
+                row() + ("csrf_hash" to ByteArray(32)),
+                row() + ("last_seen_at" to Timestamp.from(now.minusSeconds(1801))),
+            )
         for (record in invalid) {
             val db = SessionJdbcFixture(listOf(listOf(mapOf("account_id" to account)), listOf(authority()), listOf(record)))
             assertNull(store(db).find(credential))
@@ -96,12 +100,17 @@ class SessionStoreBehaviorTest {
     }
 
     private fun store(db: SessionJdbcFixture) = SessionStore(db, csrf, Clock.fixed(now, ZoneOffset.UTC))
-    private fun authority() = mapOf("role" to "MAINTAINER", "auth_epoch" to 3L)
-    private fun row(): Map<String, Any?> = mapOf(
-        "id" to session, "auth_epoch" to 3L, "csrf_hash" to csrf.digest(csrf.derive(credential)),
-        "created_at" to Timestamp.from(now.minusSeconds(300)),
-        "last_seen_at" to Timestamp.from(now.minusSeconds(120)),
-        "expires_at" to Timestamp.from(now.plusSeconds(3600)), "revoked_at" to null,
-    )
 
+    private fun authority() = mapOf("role" to "MAINTAINER", "auth_epoch" to 3L)
+
+    private fun row(): Map<String, Any?> =
+        mapOf(
+            "id" to session,
+            "auth_epoch" to 3L,
+            "csrf_hash" to csrf.digest(csrf.derive(credential)),
+            "created_at" to Timestamp.from(now.minusSeconds(300)),
+            "last_seen_at" to Timestamp.from(now.minusSeconds(120)),
+            "expires_at" to Timestamp.from(now.plusSeconds(3600)),
+            "revoked_at" to null,
+        )
 }

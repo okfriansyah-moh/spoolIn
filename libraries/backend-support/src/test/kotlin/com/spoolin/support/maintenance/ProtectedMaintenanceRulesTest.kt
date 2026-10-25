@@ -1,7 +1,12 @@
 package com.spoolin.support.maintenance
 
 import com.spoolin.support.fixtures.JdbcBoundary
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
@@ -18,26 +23,50 @@ import java.util.logging.Logger
 class ProtectedMaintenanceRulesTest {
     @TempDir lateinit var root: Path
     private val url = "jdbc:postgresql://unit-maintenance/spoolin_media?sslmode=verify-full"
-    private fun secret(): Path = root.resolve("password").also { Files.writeString(it, "unit-secret\n"); Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------")) }
-    private fun <T> driver(db: JdbcBoundary, action: (Properties) -> T): T {
+
+    private fun secret(): Path =
+        root.resolve("password").also {
+            Files.writeString(it, "unit-secret\n")
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
+
+    private fun <T> driver(
+        db: JdbcBoundary,
+        action: (Properties) -> T,
+    ): T {
         val previous = DriverManager.drivers().toList()
         previous.forEach(DriverManager::deregisterDriver)
         val observed = Properties()
-        val fake = object : Driver {
-            override fun acceptsURL(value: String?) = value == url
-            override fun connect(value: String?, info: Properties?): Connection? {
-                if (!acceptsURL(value)) return null
-                observed.putAll(info!!)
-                return db.connection
+        val fake =
+            object : Driver {
+                override fun acceptsURL(value: String?) = value == url
+
+                override fun connect(
+                    value: String?,
+                    info: Properties?,
+                ): Connection? {
+                    if (!acceptsURL(value)) return null
+                    observed.putAll(info!!)
+                    return db.connection
+                }
+
+                override fun getPropertyInfo(
+                    value: String?,
+                    info: Properties?,
+                ) = emptyArray<DriverPropertyInfo>()
+
+                override fun getMajorVersion() = 1
+
+                override fun getMinorVersion() = 0
+
+                override fun jdbcCompliant() = false
+
+                override fun getParentLogger(): Logger = Logger.getAnonymousLogger()
             }
-            override fun getPropertyInfo(value: String?, info: Properties?) = emptyArray<DriverPropertyInfo>()
-            override fun getMajorVersion() = 1
-            override fun getMinorVersion() = 0
-            override fun jdbcCompliant() = false
-            override fun getParentLogger(): Logger = Logger.getAnonymousLogger()
-        }
         DriverManager.registerDriver(fake)
-        return try { action(observed) } finally {
+        return try {
+            action(observed)
+        } finally {
             DriverManager.deregisterDriver(fake)
             previous.forEach(DriverManager::registerDriver)
         }
@@ -75,9 +104,12 @@ class ProtectedMaintenanceRulesTest {
 
     @Test fun `maintenance configuration rejects wrong owner URL options file modes and symlinks`() {
         val password = secret()
-        for (bad in listOf("jdbc:postgresql://unit-maintenance/spoolin_core?sslmode=verify-full",
-            "jdbc:postgresql://unit-maintenance/spoolin_media?sslmode=disable", "$url&user=wrong",
-            "jdbc:postgresql://user@unit-maintenance/spoolin_media?sslmode=verify-full")) {
+        for (bad in listOf(
+            "jdbc:postgresql://unit-maintenance/spoolin_core?sslmode=verify-full",
+            "jdbc:postgresql://unit-maintenance/spoolin_media?sslmode=disable",
+            "$url&user=wrong",
+            "jdbc:postgresql://user@unit-maintenance/spoolin_media?sslmode=verify-full",
+        )) {
             assertThrows(IllegalArgumentException::class.java) { MaintenanceDataSources.open("media", bad, password) }
         }
         assertThrows(IllegalArgumentException::class.java) { MaintenanceDataSources.open("other", url, password) }
@@ -90,11 +122,20 @@ class ProtectedMaintenanceRulesTest {
     }
 
     @Test fun `maintenance CLI validates complete options before requesting protected credentials`() {
-        val invalid = listOf(emptyArray(), arrayOf("owner=media"), arrayOf("--owner=media", "--schedule=hourly"),
-            arrayOf("--owner=media", "--owner=media", "--schedule=hourly", "--mode=inspect"),
-            arrayOf("--owner=other", "--schedule=hourly", "--mode=inspect"),
-            arrayOf("--owner=media", "--schedule=always", "--mode=inspect"),
-            arrayOf("--owner=media", "--schedule=hourly", "--mode=unknown"))
-        for (args in invalid) assertThrows(IllegalArgumentException::class.java) { RetentionMaintenanceCli.run(args) { error("must not read credentials") } }
+        val invalid =
+            listOf(
+                emptyArray(),
+                arrayOf("owner=media"),
+                arrayOf("--owner=media", "--schedule=hourly"),
+                arrayOf("--owner=media", "--owner=media", "--schedule=hourly", "--mode=inspect"),
+                arrayOf("--owner=other", "--schedule=hourly", "--mode=inspect"),
+                arrayOf("--owner=media", "--schedule=always", "--mode=inspect"),
+                arrayOf("--owner=media", "--schedule=hourly", "--mode=unknown"),
+            )
+        for (args in invalid) {
+            assertThrows(IllegalArgumentException::class.java) {
+                RetentionMaintenanceCli.run(args) { error("must not read credentials") }
+            }
+        }
     }
 }

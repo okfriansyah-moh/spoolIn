@@ -140,8 +140,7 @@ class SeedEffectivePolicyRulesTest {
         return PolicySettings.resolve(sources)
     }
 
-    private fun snapshot() =
-        mapper.readTree(repository().resolve("data/seed/baselines/wikidata-2026-10-v1.json").toFile()) as ObjectNode
+    private fun snapshot() = mapper.readTree(repository().resolve("data/seed/baselines/wikidata-2026-10-v1.json").toFile()) as ObjectNode
 
     private fun write(root: ObjectNode): Path {
         root["people"].forEach { (it as ObjectNode).put("contentSHA256", SeedIdentities.hashHex(it)) }

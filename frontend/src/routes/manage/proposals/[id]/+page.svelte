@@ -19,7 +19,7 @@
   let busy = $state(false);
   let message = $state('');
   let uncertain = $state(false);
-  let selectedFile = $state<File | null>(null);
+  let selectedFile = $state<globalThis.File | null>(null);
   let sourceUrl = $state('');
   let reuseBasis = $state('');
   let posterOperationId = $state<string | null>(null);
@@ -57,13 +57,13 @@
     processingPoster = false;
     void (async () => {
       try {
-        if (!isRecordId(selectedId) || (revision !== null && !/^[1-9][0-9]*$/.test(revision))) throw new Error('Invalid link');
+        validateLink(selectedId, revision);
         const context = await loadWriteContext(abort.signal);
         if (!context) throw new TransportFailure('rejected', 'FORBIDDEN');
         const data = await proposalRequest(selectedId, revision ? `?revision=${encodeURIComponent(revision)}` : '', { signal: abort.signal });
         if (abort.signal.aborted) return;
         const loaded = parseProposal(data);
-        if (loaded.proposalId !== selectedId || (revision && loaded.revision !== Number(revision))) throw new TransportFailure('rejected', 'CONFLICT');
+        if (!matchesRevision(loaded, selectedId, revision)) throw new TransportFailure('rejected', 'CONFLICT');
         proposal = loaded;
         csrf = context.csrf;
       } catch (error) {
@@ -98,10 +98,28 @@
     } finally { busy = false; }
   }
 
-  async function replacePoster() {
-    if (!proposal || !selectedFile || !reviewable || busy) return;
+  function validateLink(selectedId: string, revision: string | null) {
+    if (!isRecordId(selectedId) || (revision !== null && !/^[1-9][0-9]*$/.test(revision))) throw new Error('Invalid link');
+  }
+
+  function matchesRevision(loaded: ProposalReview, selectedId: string, revision: string | null) {
+    return loaded.proposalId === selectedId && (!revision || loaded.revision === Number(revision));
+  }
+
+  function canReplacePoster() { return reviewable && !busy; }
+
+  function posterWithinLimit(file: globalThis.File) {
     const maximum = Number(session.snapshot.policy?.artwork.maxInputBytes);
-    if (!Number.isFinite(maximum) || selectedFile.size > maximum) {
+    return Number.isFinite(maximum) && file.size <= maximum;
+  }
+
+  function isNewRevision(updated: ProposalReview, previous: ProposalReview) {
+    return updated.proposalId === id && updated.revision > previous.revision;
+  }
+
+  async function replacePoster() {
+    if (!proposal || !selectedFile || !canReplacePoster()) return;
+    if (!posterWithinLimit(selectedFile)) {
       message = 'This image exceeds the current upload limit, or the artwork policy is unavailable.';
       return;
     }
@@ -122,8 +140,8 @@
       }
       processingPoster = false;
       const updated = parseProposal(result);
-      if (updated.proposalId !== id || updated.revision <= proposal.revision) throw new TransportFailure('uncertain');
-      await goto(`${resolve('/manage/proposals/[id]', { id })}?revision=${updated.revision}`);
+      if (!isNewRevision(updated, proposal)) throw new TransportFailure('uncertain');
+      await goto(resolve(`/manage/proposals/[id]?revision=${updated.revision}`, { id }));
     } catch (error) {
       uncertain = true;
       message = errorMessage(error);
@@ -140,9 +158,9 @@
     <div class="proposal-summary"><p>Revision {proposal.revision} · {proposal.state}</p><p>Expires: {proposal.expiresAt}</p></div>
     <div class="review-grid">
       <section class="panel"><h2>Movie details</h2><dl class="metadata">
-        {#each fields as [key, label]}<div><dt>{label}</dt><dd>{proposalValue(proposal.values[key])}</dd></div>{/each}
+        {#each fields as [key, label] (key)}<div><dt>{label}</dt><dd>{proposalValue(proposal.values[key])}</dd></div>{/each}
       </dl><h2>Sources</h2>
-      {#if proposal.sources.length}<ul>{#each proposal.sources as source}<li><strong>{source.field}</strong>: <SafeLink url={source.url} text={source.url} />{#if source.note}<p>{source.note}</p>{/if}</li>{/each}</ul>{:else}<p>No source evidence was provided.</p>{/if}
+      {#if proposal.sources.length}<ul>{#each proposal.sources as source, index (`${source.field}:${index}`)}<li><strong>{source.field}</strong>: <SafeLink url={source.url} text={source.url} />{#if source.note}<p>{source.note}</p>{/if}</li>{/each}</ul>{:else}<p>No source evidence was provided.</p>{/if}
       </section>
       <section class="panel"><h2>Poster</h2>
         {#if proposal.poster}<img class="poster" src={proposal.poster.url} alt={`Proposed poster for ${proposalValue(proposal.values.title)}`} width={proposal.poster.width} height={proposal.poster.height} /><p>{proposal.poster.width} × {proposal.poster.height} · {proposal.poster.mediaType}</p>{:else}<p>No poster is included.</p>{/if}
@@ -156,7 +174,7 @@
     </div>
     <section class="panel"><h2>Cast and crew</h2>
       {#if proposal.credits.length}
-        <ul>{#each proposal.credits as credit}<li>
+        <ul>{#each proposal.credits as credit, index (`${credit.personId}:${index}`)}<li>
           {proposalValue(credit.personLabel ?? credit.personName ?? credit.personId)} — {proposalValue(credit.roleLabel ?? credit.roleId)}
           {#if Array.isArray(credit.characterNames) && credit.characterNames.length} as {proposalValue(credit.characterNames)}{/if}
           {#if credit.billingOrder != null} · Billing order: {proposalValue(credit.billingOrder)}{/if}

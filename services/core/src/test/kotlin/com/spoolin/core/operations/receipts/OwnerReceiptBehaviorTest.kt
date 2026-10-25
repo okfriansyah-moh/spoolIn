@@ -1,8 +1,18 @@
 package com.spoolin.core.operations.receipts
 
 import com.spoolin.core.features.session.SessionJdbcFixture
-import com.spoolin.support.receipts.*
-import org.junit.jupiter.api.Assertions.*
+import com.spoolin.support.receipts.IntentHashes
+import com.spoolin.support.receipts.OperationIntent
+import com.spoolin.support.receipts.ReceiptConflict
+import com.spoolin.support.receipts.ReceiptHidden
+import com.spoolin.support.receipts.ReceiptState
+import com.spoolin.support.receipts.SafeResult
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.sql.Timestamp
 import java.time.Clock
@@ -21,7 +31,11 @@ class OwnerReceiptBehaviorTest {
     fun `new operation commits mutation and returns durable safe result`() {
         val db = SessionJdbcFixture(listOf(listOf(row("PENDING")), listOf(row("SUCCEEDED"))))
         var mutations = 0
-        val receipt = owner(db).execute(intent, correlation, false) { mutations++; result }
+        val receipt =
+            owner(db).execute(intent, correlation, false) {
+                mutations++
+                result
+            }
         assertEquals(1, mutations)
         assertEquals(result, receipt.result)
         assertEquals(ReceiptState.SUCCEEDED, receipt.state)
@@ -40,22 +54,32 @@ class OwnerReceiptBehaviorTest {
 
     @Test
     fun `hidden actor conflicting payload and nonrequest receipt reject mutation`() {
-        val invalid = listOf(
-            row("PENDING") + ("actor_scope" to "account:other"),
-            row("PENDING") + ("request_hash" to ByteArray(32)),
-            row("PENDING") + ("receipt_type" to "ACCOUNT_INITIALIZATION"),
-        )
+        val invalid =
+            listOf(
+                row("PENDING") + ("actor_scope" to "account:other"),
+                row("PENDING") + ("request_hash" to ByteArray(32)),
+                row("PENDING") + ("receipt_type" to "ACCOUNT_INITIALIZATION"),
+            )
         for ((index, record) in invalid.withIndex()) {
             val db = SessionJdbcFixture(listOf(listOf(record)))
             val expected = if (index == 1) ReceiptConflict::class.java else ReceiptHidden::class.java
-            assertThrows(expected) { owner(db).execute(intent, correlation, false) { fail<SafeResult>("Rejected operation invoked mutation") } }
+            assertThrows(
+                expected,
+            ) { owner(db).execute(intent, correlation, false) { fail<SafeResult>("Rejected operation invoked mutation") } }
             assertEquals(0, db.commits)
         }
     }
 
     @Test
     fun `resolve distinguishes missing replay conflict hidden and expired results`() {
-        val db = SessionJdbcFixture(listOf(emptyList(), listOf(row("SUCCEEDED")), listOf(row("SUCCEEDED") + ("expires_at" to Timestamp.from(now)))))
+        val db =
+            SessionJdbcFixture(
+                listOf(
+                    emptyList(),
+                    listOf(row("SUCCEEDED")),
+                    listOf(row("SUCCEEDED") + ("expires_at" to Timestamp.from(now))),
+                ),
+            )
         val owner = owner(db)
         assertNull(owner.resolve(intent))
         assertEquals(result, owner.resolve(intent)!!.result)
@@ -87,10 +111,23 @@ class OwnerReceiptBehaviorTest {
     }
 
     private fun owner(db: SessionJdbcFixture) = OwnerReceipts(db, hashes, Clock.fixed(now, ZoneOffset.UTC))
-    private fun row(state: String, key: String? = null): Map<String, Any?> = mapOf(
-        "id" to intent.id, "state" to state, "expires_at" to Timestamp.from(now.plusSeconds(3600)),
-        "created_at" to Timestamp.from(now.minusSeconds(10)), "result" to if (state == "SUCCEEDED") result.json() else null,
-        "error_code" to null, "correlation_id" to correlation, "actor_scope" to intent.actorScope,
-        "kind" to intent.kind, "request_hash" to hashes.hash(intent, key), "hash_key_id" to key, "receipt_type" to "REQUEST",
-    )
+
+    private fun row(
+        state: String,
+        key: String? = null,
+    ): Map<String, Any?> =
+        mapOf(
+            "id" to intent.id,
+            "state" to state,
+            "expires_at" to Timestamp.from(now.plusSeconds(3600)),
+            "created_at" to Timestamp.from(now.minusSeconds(10)),
+            "result" to if (state == "SUCCEEDED") result.json() else null,
+            "error_code" to null,
+            "correlation_id" to correlation,
+            "actor_scope" to intent.actorScope,
+            "kind" to intent.kind,
+            "request_hash" to hashes.hash(intent, key),
+            "hash_key_id" to key,
+            "receipt_type" to "REQUEST",
+        )
 }
