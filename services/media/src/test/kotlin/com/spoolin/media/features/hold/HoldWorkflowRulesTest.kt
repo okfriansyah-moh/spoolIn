@@ -136,7 +136,7 @@ class HoldWorkflowRulesTest {
             }
             val db = JdbcBoundary().rows(receipt(c)).rows(asset)
             if (previous == null) db.rows() else db.rows(record(previous))
-            db.rows(record(if (action == HoldAction.RESERVE) "RESERVED" else state))
+            db.rows(record(if (action == HoldAction.RESERVE) "RESERVED" else state) + ("asset_id" to c.asset))
             val rpc = HoldRpc(db.source, CatalogAttachments(CatalogBoundary(remote(state).toBuilder().setAssetId(c.asset.toString()).build()).client), Clock.fixed(instant, ZoneOffset.UTC))
             val response = Response<Attachment>()
             MediaPeer.context("catalog").run {
@@ -145,6 +145,7 @@ class HoldWorkflowRulesTest {
             assertNull(response.failure, "$action: ${response.failure}")
             assertTrue(response.completed)
             assertEquals(holdId.toString(), response.values.single().holdId)
+            assertEquals(c.asset.toString(), response.values.single().assetId)
             assertEquals(actorId.toString(), response.values.single().actorId)
             assertEquals(1, db.commits)
             assertEquals(0, db.rollbacks)
