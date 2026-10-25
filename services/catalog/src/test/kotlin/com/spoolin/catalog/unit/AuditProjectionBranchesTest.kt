@@ -27,8 +27,8 @@ class AuditProjectionBranchesTest {
 
     @Test
     fun `legacy audit values retain only known typed domain fields`() {
-        val result = read("""{"title":{"before":null,"after":"New"},"countries":{"before":["US"],"after":[]},"version":{"before":1,"after":2},"secret":{"before":"private","after":"private"}}""").value()
-        assertEquals(listOf("countries", "title", "version"), result.nodesList.single().changesList.map { it.path })
+        val result = read("""{"displayTitle":{"before":null,"after":"New"},"countries":{"before":["US"],"after":[]},"version":{"before":1,"after":2},"secret":{"before":"private","after":"private"}}""").value()
+        assertEquals(listOf("countries", "displayTitle", "version"), result.nodesList.single().changesList.map { it.path })
         assertEquals("null", result.nodesList.single().changesList[1].beforeJson)
         assertFalse(result.nodesList.single().hasSubjectId())
         assertFalse(result.nodesList.single().hasOperationId())
@@ -60,7 +60,7 @@ class AuditProjectionBranchesTest {
     @Test
     fun `malformed private or wrongly typed audit representation fails with data loss`() {
         val invalid = listOf("[]", "{bad", """{"changes":{}}""", """{"changes":[],"truncated":true}""",
-            """{"title":3}""", """{"version":{"after":"string"}}""", """{"countries":{"after":[1]}}""",
+            """{"displayTitle":3}""", """{"version":{"after":"string"}}""", """{"countries":{"after":[1]}}""",
             """{"changes":[{"path":"synopsis","valueOmitted":true,"byteLength":-1,"beforeDigest":null,"afterDigest":null}]}""",
             """{"changes":[{"path":"synopsis","valueOmitted":true,"byteLength":1,"beforeDigest":"wrong","afterDigest":null}]}""",
             """{"changes":[{"path":"synopsis","valueOmitted":true,"byteLength":"one","beforeDigest":null,"afterDigest":null}]}""",
