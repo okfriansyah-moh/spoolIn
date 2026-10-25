@@ -5,7 +5,6 @@ import com.spoolin.core.features.policy.PolicyProvider
 import com.spoolin.support.policy.PolicyEnvironment
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertResponse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.support.StaticListableBeanFactory

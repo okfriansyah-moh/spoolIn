@@ -21,6 +21,7 @@ import com.spoolin.core.features.ratelimit.TrustedAdmission
 import com.spoolin.core.features.session.AnonymousCsrf
 import com.spoolin.core.features.session.SessionCredential
 import com.spoolin.core.features.session.SessionCsrf
+import com.spoolin.core.features.session.SessionJdbcFixture
 import com.spoolin.core.features.session.SessionPrincipal
 import com.spoolin.core.operations.receipts.OwnerReceipts
 import com.spoolin.support.identity.RateProfiles
