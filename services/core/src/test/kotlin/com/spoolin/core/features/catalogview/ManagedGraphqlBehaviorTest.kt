@@ -410,6 +410,14 @@ class ManagedGraphqlBehaviorTest {
         assertTrue(f.service.personWrite!!.updateMask.pathsList.isEmpty())
     }
 
+    @Test
+    fun `nested credits without parent identity remain empty rather than fetching unrelated title`() = fixture { f ->
+        val result = f.call("Title", "credits", emptyMap()) as Map<*, *>
+        assertEquals(emptyList<Any>(), result["nodes"])
+        assertEquals(mapOf("endCursor" to null, "hasNextPage" to false), result["pageInfo"])
+        assertEquals(0, f.service.reads)
+    }
+
     private fun awaitReady(channel: io.grpc.ManagedChannel) {
         val deadline =
             System.nanoTime() +
