@@ -133,15 +133,14 @@ The user approved running coverage-related checks despite high system load on
 | Check / finding | Status |
 |---|---|
 | Script syntax and Compose configuration | Passed before runtime checks |
-| Fresh six-component unit coverage | Stable-input rerun in progress; preceding run passed all 3,662 tests |
+| Fresh six-component unit coverage | Passed: 4,141 tests, zero failures, every component above 80%; measured code `bc193871` |
 | Report false-pass regression checks | Four checks passed, including missing LCOV, empty/failed suites, invalid reports, and rounding |
-| Sonar processing and HTML reader observation | Frontend HTML observed; local Sonar startup and native scanner verified; imports pending |
-| Independent combined review | No outstanding source findings after corrections; runtime acceptance remains pending |
-| Threshold acceptance | Pending; requires every component at least 80% |
+| Sonar processing and HTML reader observation | Passed: all six completed analyses/gates; 371 backend source mappings; fresh summary, frontend, and Core HTML opened |
+| Independent combined review | Accepted: source, import correction, current fingerprints, final unit/Sonar reports; no outstanding findings |
+| Threshold acceptance | Passed: all six native and Sonar overall line-coverage thresholds |
 
 At most two combined-review correction rounds are allowed. No source has been
-published for this selection. Next action: obtain fresh measurements, repair uncovered
-behavior with meaningful unit tests, verify report imports, and complete independent review.
+published for this selection. The measured source and final evidence are accepted; local dashboard services remain available.
 
 Progress checkpoint, 25 October 2026: Docker reporting and CI configuration are implemented.
 The first complete frontend run measured 54.89%; MCP measured 69.30% before the additional
@@ -188,3 +187,93 @@ completed with all Kover source files resolved; native and Sonar executable-line
 differ slightly, so verification checks mappings, imported hits, and both independent
 thresholds instead of assuming identical analyzer counters. A final rerun is required
 after these reporting corrections; threshold acceptance remains unmet.
+
+
+Test expansion ownership, 25 October 2026: the reporting milestone is saved locally in
+commit `9d9a01ca`; it is not published and does not satisfy the coverage target.
+The user explicitly reiterated continued work until every component reaches 80%.
+Scoped contributors write tests in isolated checkouts from that milestone; the parent
+coordinates all substantial Docker checks sequentially, integrates tested changes, and
+retains the same selection, reviewer, and findings ledger.
+
+| Owner | Isolated checkout | Write scope | Execution resource |
+|---|---|---|---|
+| core_unit_tests | `~/.codex/worktrees/unit-core/movie-app` | Core unit tests | Parent-controlled Docker queue |
+| catalog_unit_tests | `~/.codex/worktrees/unit-catalog/movie-app` | Catalog unit tests | Parent-controlled Docker queue |
+| media_support_unit_tests | `~/.codex/worktrees/unit-media-support/movie-app` | Media and support unit tests | Parent-controlled Docker queue |
+| codex-unit-coverage | Current checkout | Frontend unit tests, reporting and composition | One bounded workload at a time |
+
+
+Progress checkpoint, 25 October 2026, 15:25 UTC: isolated contributors have authored
+Core resolver/session batches, Catalog read/write/artwork batches, and Media asset/hold/
+processor batches. Only Media's existing external codec process boundary has a small
+approved injection seam; default production behavior is retained. Parent-controlled
+Docker validation has begun. Core's first batch did not compile because three fixture
+references differ from generated protobuf APIs; correction is underway. No new coverage
+percentage is accepted yet. MCP's corrected native scanner completed and passed its
+Sonar line gate; full six-component publication awaits fresh final inputs.
+
+Progress checkpoint, 25 October 2026, 16:00 UTC: isolated complete unit suites now
+pass for Catalog (5,024/6,032 lines, 83.29%), Media (1,826/2,179, 83.80%), and
+backend support (2,864/3,422, 83.69%). Their tested contributions are integrated
+locally. Core's combined suite passes at 5,216/6,685 (78.03%); maintenance-command
+behavior tests are next. The expanded frontend run measured 76.39% but found two
+new DOM fixtures missing native dialog support; that result is diagnostic, not
+accepted. Corrected fixtures and additional credit/browse journeys are under
+verification. MCP's last full suite remains 82.73%. Final stable-input six-component
+coverage, Sonar import, affected checks, and the same independent combined review
+remain pending. No threshold or production-source exclusion was relaxed.
+
+
+Verified unit run, 25 October 2026, 16:28:29–16:35:43 UTC: `make coverage`
+completed successfully against code revision `bc19387184e77bb0cfb64392512bb24b5be185a9`.
+All 4,141 unit tests executed with zero failures or skips. The report's working-change
+marker includes this delivery ledger; measured source inputs are bound by its fingerprint.
+
+| Component | Executable lines covered / total | Line coverage | Unit tests |
+|---|---:|---:|---:|
+| Frontend | 5,101 / 6,129 | 83.23% | 587 |
+| Core | 5,383 / 6,685 | 80.52% | 370 |
+| Catalog | 5,024 / 6,032 | 83.29% | 301 |
+| Media | 1,826 / 2,179 | 83.80% | 207 |
+| Backend support | 2,864 / 3,422 | 83.69% | 2,521 |
+| MCP | 1,121 / 1,355 | 82.73% | 155 |
+
+The four report-contract regression checks passed in the same Docker run. The first
+integrated run after import cleanup correctly failed closed on missing Core test fixture
+imports and a missing Core report; the correction restored two explicit fixture imports
+and removed an invalid assertion import. No assertion, production exclusion, or threshold
+changed. The corrected Core test style check and the subsequent full run passed.
+
+Affected frontend lint, type checking (zero errors, one existing RoleCreator warning),
+and dependency checks passed. All four Kotlin unit-test source style checks and Gradle
+script formatting checks passed. A broader production-source style scan still failed in
+unchanged Core and Catalog files; these are existing findings outside this coverage
+change. Unrelated Media formatter edits were reverted. Existing security checks and
+integration acceptance remain separate; this unit run does not establish those results.
+The same independent reviewer accepted the integrated source and confirmed the final
+three import corrections. The reviewer subsequently accepted the final unit/Sonar evidence and matching source fingerprints with no outstanding findings.
+
+
+Sonar publication completed at 17:04:11 UTC on 25 October 2026 for the same measured
+revision and fingerprint. All six analyses completed and returned gate `OK`. Sonar's
+Line coverage measurements were frontend TypeScript 84.1%, Core 80.6%, Catalog 83.3%,
+Media 83.9%, backend support 83.8%, and MCP 82.9%. All 371 backend source mappings
+were resolved and imported coverage hits verified (Core 160, Catalog 86, Media 48,
+backend support 77). Native tools and Sonar count executable lines differently.
+
+Sonar's general **Coverage** tile differs from **Line coverage**. The gate uses the
+latter; inspect [Core's Line coverage view](http://localhost:9000/component_measures?id=spoolin-unit-core&metric=line_coverage&view=list)
+or choose Line coverage within any component's Measures page. Use the native HTML/JSON
+summary for complete frontend coverage, including Svelte.
+
+The final independent combined review accepted source and evidence at `bc193871`,
+including matching fingerprints, 4,141 successful unit tests, six native thresholds,
+six completed Sonar gates, and resolved backend mappings. Reports and dashboard data
+remain local; no source was pushed. Separate existing formatting and integration/security
+requirements are not claimed as passed by this coverage result.
+
+This run's local dashboard credentials are stored outside the repository in
+`~/.codex/unit-coverage/movie-app-sonar.json` with owner-only file permissions.
+They are not committed or mounted into unit-test containers. The browser session is
+signed in, and the HTML summary and Sonar Line Coverage view are left open.
