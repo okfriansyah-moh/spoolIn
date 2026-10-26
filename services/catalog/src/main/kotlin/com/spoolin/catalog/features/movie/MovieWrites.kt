@@ -10,7 +10,9 @@
 package com.spoolin.catalog.features.movie
 
 import com.spoolin.catalog.boundary.grpc.CatalogWriteContext
+import com.spoolin.catalog.boundary.grpc.CatalogWriteExecution
 import com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
+import com.spoolin.catalog.boundary.grpc.CatalogWriteVersion
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
@@ -74,15 +76,13 @@ class MovieWrites(
         val context = CatalogWriteContext.management(request.context)
         val isCreate = !request.hasId()
         val intent = context.intent(WRITE_KIND, CatalogWriteIntent.movie(request))
-        return receipts.execute(intent, context.correlation, true) { conn ->
-            val command = policy.bind(request, request.context.policyRevision)
-            CatalogWriteRpc.requireVersion(isCreate, request.hasExpectedVersion(), request.expectedVersion)
-            if (isCreate) {
-                create(conn, command, context.actor, context.operation, context.correlation)
-            } else {
-                update(conn, command, context.actor, context.operation, context.correlation)
-            }
-        }
+        return CatalogWriteExecution(receipts, context).execute(
+            intent,
+            CatalogWriteVersion(isCreate, request.hasExpectedVersion(), request.expectedVersion),
+            bind = { policy.bind(request, request.context.policyRevision) },
+            create = ::create,
+            update = ::update,
+        )
     }
 
     private fun create(
