@@ -11,6 +11,7 @@ import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
+import com.spoolin.catalog.operations.audit.auditPatchedValue
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.policy.PatchValue
 import com.spoolin.support.receipts.SafeResult
@@ -229,8 +230,8 @@ class PersonWrites(
         patch: ValidatedPersonPatch,
     ): Map<String, Any?> =
         mapOf(
-            "name" to AuditDiff.patchedValue(patch.name, row.name),
-            "biography" to AuditDiff.patchedValue(patch.biography, row.biography),
+            "name" to auditPatchedValue(patch.name, row.name),
+            "biography" to auditPatchedValue(patch.biography, row.biography),
             "status" to row.status,
             "version" to row.version + 1,
         )

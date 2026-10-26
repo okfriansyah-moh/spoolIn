@@ -19,16 +19,6 @@ private const val CHANGES_BYTE_LIMIT = 65536
  * Private/unlisted fields are filtered before any processing.
  */
 object AuditDiff {
-    internal fun <T> patchedValue(
-        patch: PatchValue<T>,
-        current: T,
-    ): Any? =
-        when (patch) {
-            is PatchValue.Value -> patch.value
-            is PatchValue.Clear -> null
-            else -> current
-        }
-
     private val json = JsonMapper.builder().build()
 
     // Safe domain fields for movie change records (no credentials, tokens or private state).
@@ -156,3 +146,13 @@ object AuditDiff {
 
     internal fun jsonStr(value: String): String = json.writeValueAsString(value)
 }
+
+internal fun <T> auditPatchedValue(
+    patch: PatchValue<T>,
+    current: T,
+): Any? =
+    when (patch) {
+        is PatchValue.Value -> patch.value
+        is PatchValue.Clear -> null
+        else -> current
+    }

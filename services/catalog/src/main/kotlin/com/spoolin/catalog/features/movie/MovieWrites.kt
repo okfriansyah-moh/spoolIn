@@ -20,6 +20,7 @@ import com.spoolin.catalog.features.search.TitleContent
 import com.spoolin.catalog.features.taxonomy.write.GenreTagging
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
+import com.spoolin.catalog.operations.audit.auditPatchedValue
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
 import com.spoolin.support.policy.PatchValue
 import com.spoolin.support.receipts.SafeResult
@@ -338,16 +339,16 @@ class MovieWrites(
         genres: Set<UUID>,
     ): Map<String, Any?> =
         mapOf(
-            "displayTitle" to AuditDiff.patchedValue(patch.displayTitle, row.displayTitle),
-            "originalTitle" to AuditDiff.patchedValue(patch.originalTitle, row.originalTitle),
-            "synopsis" to AuditDiff.patchedValue(patch.synopsis, row.synopsis),
-            "synopsisLanguage" to AuditDiff.patchedValue(patch.synopsisLanguage, row.synopsisLanguage),
-            "originalLanguage" to AuditDiff.patchedValue(patch.originalLanguage, row.originalLanguage),
-            "countries" to AuditDiff.patchedValue(patch.countries, row.countries),
-            "releaseYear" to AuditDiff.patchedValue(patch.releaseYear, row.releaseYear),
-            "releaseMonth" to AuditDiff.patchedValue(patch.releaseMonth, row.releaseMonth),
-            "releaseDay" to AuditDiff.patchedValue(patch.releaseDay, row.releaseDay),
-            "runtimeMinutes" to AuditDiff.patchedValue(patch.runtimeMinutes, row.runtimeMinutes),
+            "displayTitle" to auditPatchedValue(patch.displayTitle, row.displayTitle),
+            "originalTitle" to auditPatchedValue(patch.originalTitle, row.originalTitle),
+            "synopsis" to auditPatchedValue(patch.synopsis, row.synopsis),
+            "synopsisLanguage" to auditPatchedValue(patch.synopsisLanguage, row.synopsisLanguage),
+            "originalLanguage" to auditPatchedValue(patch.originalLanguage, row.originalLanguage),
+            "countries" to auditPatchedValue(patch.countries, row.countries),
+            "releaseYear" to auditPatchedValue(patch.releaseYear, row.releaseYear),
+            "releaseMonth" to auditPatchedValue(patch.releaseMonth, row.releaseMonth),
+            "releaseDay" to auditPatchedValue(patch.releaseDay, row.releaseDay),
+            "runtimeMinutes" to auditPatchedValue(patch.runtimeMinutes, row.runtimeMinutes),
             "genreIds" to genres.sortedBy { it.toString() },
             "version" to row.version + 1,
         )

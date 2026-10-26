@@ -72,9 +72,16 @@ class TitleProjectionBoundaryTest {
         fixture.membership("catalog", "grant")
         fixture.pool("catalog", "migrator").use { source ->
             // Bootstrap tests package disposable V1 resources; select the maintained owner migrations explicitly.
-            Flyway.configure().dataSource(source).schemas("appdata").defaultSchema("appdata")
+            Flyway
+                .configure()
+                .dataSource(source)
+                .schemas("appdata")
+                .defaultSchema("appdata")
                 .locations("filesystem:${fixture.repository}/services/catalog/src/main/resources/db/migration")
-                .createSchemas(false).cleanDisabled(true).load().migrate()
+                .createSchemas(false)
+                .cleanDisabled(true)
+                .load()
+                .migrate()
         }
         fixture.grants("catalog")
         fixture.membership("catalog", "revoke")
@@ -83,33 +90,66 @@ class TitleProjectionBoundaryTest {
         search = TitleSearchSql(pool)
         val provenance = ProvenanceReads(pool)
         val managed = ManagedMovieReads(pool, provenance, search, AuditReads(pool))
-        val public = PublicCatalogReads(
-            search, PersonSearch(pool), TaxonomyReads(pool), provenance,
-            PublicReadContext(CatalogCursor(ByteArray(32) { 11 }), PeopleCursor(ByteArray(32) { 12 }), Clock.systemUTC()) {
-                PolicyEnvironment.resolve(System::getenv)
-            },
-        )
-        val rpc = object : CatalogServiceGrpc.CatalogServiceImplBase() {
-            override fun managedTitle(request: Spoolin.Id, response: StreamObserver<Spoolin.Title>) =
-                managed.managedTitle(request, response)
+        val public =
+            PublicCatalogReads(
+                search,
+                PersonSearch(pool),
+                TaxonomyReads(pool),
+                provenance,
+                PublicReadContext(
+                    CatalogCursor(ByteArray(32) { 11 }),
+                    PeopleCursor(ByteArray(32) { 12 }),
+                    Clock.systemUTC(),
+                ) {
+                    PolicyEnvironment.resolve(System::getenv)
+                },
+            )
+        val rpc =
+            object : CatalogServiceGrpc.CatalogServiceImplBase() {
+                override fun managedTitle(
+                    request: Spoolin.Id,
+                    response: StreamObserver<Spoolin.Title>,
+                ) = managed.managedTitle(request, response)
 
-            override fun getTitle(request: Spoolin.Id, response: StreamObserver<Spoolin.Title>) =
-                public.getTitle(request, response)
-        }
+                override fun getTitle(
+                    request: Spoolin.Id,
+                    response: StreamObserver<Spoolin.Title>,
+                ) = public.getTitle(request, response)
+            }
         val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
         signer = ActorSigner("test", keys.private)
         val methods = setOf("spoolin.v1.CatalogService/ManagedTitle")
-        val actors = ActorInterceptor("catalog", methods, ActorVerifier(mapOf("test" to keys.public)), { claims ->
-            require(claims.accountId == actor && claims.credentialId == credential && claims.authEpoch == 1L)
-        })
-        server = NettyServerBuilder.forAddress(InetSocketAddress("127.0.0.1", 0))
-            .sslContext(GrpcSslContexts.forServer(fixture.root.resolve("catalog.crt").toFile(), fixture.root.resolve("catalog.key").toFile())
-                .trustManager(fixture.root.resolve("ca.crt").toFile()).clientAuth(ClientAuth.REQUIRE).build())
-            .addService(ServerInterceptors.intercept(rpc, ServiceIdentityInterceptor(actors))).build().start()
-        channel = NettyChannelBuilder.forAddress("127.0.0.1", server.port).overrideAuthority("catalog")
-            .sslContext(GrpcSslContexts.forClient().trustManager(fixture.root.resolve("ca.crt").toFile())
-                .keyManager(fixture.root.resolve("core.crt").toFile(), fixture.root.resolve("core.key").toFile()).build())
-            .build()
+        val actors =
+            ActorInterceptor("catalog", methods, ActorVerifier(mapOf("test" to keys.public)), { claims ->
+                require(claims.accountId == actor && claims.credentialId == credential && claims.authEpoch == 1L)
+            })
+        server =
+            NettyServerBuilder
+                .forAddress(InetSocketAddress("127.0.0.1", 0))
+                .sslContext(
+                    GrpcSslContexts
+                        .forServer(
+                            fixture.root.resolve("catalog.crt").toFile(),
+                            fixture.root.resolve("catalog.key").toFile(),
+                        ).trustManager(fixture.root.resolve("ca.crt").toFile())
+                        .clientAuth(ClientAuth.REQUIRE)
+                        .build(),
+                ).addService(ServerInterceptors.intercept(rpc, ServiceIdentityInterceptor(actors)))
+                .build()
+                .start()
+        channel =
+            NettyChannelBuilder
+                .forAddress("127.0.0.1", server.port)
+                .overrideAuthority("catalog")
+                .sslContext(
+                    GrpcSslContexts
+                        .forClient()
+                        .trustManager(fixture.root.resolve("ca.crt").toFile())
+                        .keyManager(
+                            fixture.root.resolve("core.crt").toFile(),
+                            fixture.root.resolve("core.key").toFile(),
+                        ).build(),
+                ).build()
     }
 
     private fun seedRows() {
@@ -119,8 +159,15 @@ class TitleProjectionBoundaryTest {
                     "original_language,countries,release_year,release_month,release_day,release_context,runtime_minutes," +
                     "tv_status,end_year,end_month,end_day,asset_id,version) " +
                     "VALUES (?,'TV','ACTIVE',?,?,?,?,?,?::text[],2024,2,29,?,95,'ENDED',2025,3,4,?,7)",
-                full, "River", "Rivière", "A journey", "en", "fr",
-                connection.createArrayOf("text", arrayOf("FR", "US")), "Premiere", asset,
+                full,
+                "River",
+                "Rivière",
+                "A journey",
+                "en",
+                "fr",
+                connection.createArrayOf("text", arrayOf("FR", "US")),
+                "Premiere",
+                asset,
             )
             connection.executeBound(
                 "INSERT INTO title(id,kind,status,display_title,synopsis,synopsis_language,countries,release_year,version) " +
@@ -147,14 +194,30 @@ class TitleProjectionBoundaryTest {
         val base = CatalogServiceGrpc.newBlockingStub(channel).withDeadlineAfter(10, TimeUnit.SECONDS)
         if (!managed) return base
         val now = Instant.now().epochSecond
-        val claims = ActorClaims("catalog", "/spoolin.v1.CatalogService/ManagedTitle", actor, credential, null,
-            "MAINTAINER", 1, now, now + 30,
-            Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(16) { 21 }), UUID.randomUUID(), null)
+        val claims =
+            ActorClaims(
+                "catalog",
+                "/spoolin.v1.CatalogService/ManagedTitle",
+                actor,
+                credential,
+                null,
+                "MAINTAINER",
+                1,
+                now,
+                now + 30,
+                Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(16) { 21 }),
+                UUID.randomUUID(),
+                null,
+            )
         val headers = Metadata().apply { put(ActorRpc.metadata, signer.sign(claims)) }
         return base.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(headers))
     }
 
-    private fun id(value: UUID) = Spoolin.Id.newBuilder().setId(value.toString()).build()
+    private fun id(value: UUID) =
+        Spoolin.Id
+            .newBuilder()
+            .setId(value.toString())
+            .build()
 
     @Test
     fun `active full title maps every field consistently through SQL and public and managed TLS projections`() {
@@ -192,19 +255,32 @@ class TitleProjectionBoundaryTest {
     @Test
     fun `archived sparse title preserves SQL nulls and empty arrays and stays hidden from public reads`() {
         assertNull(search.findById(sparse))
-        val row = pool.connection.use { connection ->
-            connection.queryBound("SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id=?", listOf(sparse)) {
-                TitleSearchSql.readRow(it)
-            }.single()
-        }
+        val row =
+            pool.connection.use { connection ->
+                connection
+                    .queryBound("SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id=?", listOf(sparse)) {
+                        TitleSearchSql.readRow(it)
+                    }.single()
+            }
         assertEquals("MOVIE", row.kind)
         assertEquals("ARCHIVED", row.status)
         assertEquals("Hidden river", row.displayTitle)
         assertEquals(emptyList<String>(), row.countries)
         assertEquals(0L, row.version)
-        listOf(row.originalTitle, row.originalLanguage, row.releaseYear, row.releaseMonth, row.releaseDay,
-            row.releaseContext, row.runtimeMinutes, row.tvStatus, row.endYear, row.endMonth, row.endDay, row.assetId)
-            .forEach { assertNull(it) }
+        listOf(
+            row.originalTitle,
+            row.originalLanguage,
+            row.releaseYear,
+            row.releaseMonth,
+            row.releaseDay,
+            row.releaseContext,
+            row.runtimeMinutes,
+            row.tvStatus,
+            row.endYear,
+            row.endMonth,
+            row.endDay,
+            row.assetId,
+        ).forEach { assertNull(it) }
         assertEquals(Spoolin.Title.getDefaultInstance(), stub(false).getTitle(id(sparse)))
         val managed = stub(true).managedTitle(id(sparse))
         assertEquals(sparse.toString(), managed.id)
@@ -244,11 +320,15 @@ class TitleProjectionBoundaryTest {
         pool.connection.use { connection ->
             connection.autoCommit = false
             try {
-                val row = connection.queryBound(
-                    "SELECT kind,status,display_title,original_title,synopsis,synopsis_language," +
-                        "original_language,countries,release_year,release_month,release_day," +
-                        "runtime_minutes,version FROM title WHERE id = ? FOR UPDATE", listOf(full),
-                ) { TitleContent.read(it) }.single()
+                val row =
+                    connection
+                        .queryBound(
+                            "SELECT kind,status,display_title,original_title,synopsis,synopsis_language," +
+                                "original_language,countries,release_year,release_month,release_day," +
+                                "runtime_minutes,version FROM title WHERE id = ? FOR UPDATE",
+                            listOf(full),
+                        ) { TitleContent.read(it) }
+                        .single()
                 assertEquals("TV", row.kind)
                 assertEquals("ACTIVE", row.status)
                 assertEquals("River", row.displayTitle)
@@ -263,9 +343,13 @@ class TitleProjectionBoundaryTest {
                 assertEquals(95, row.runtimeMinutes)
                 assertEquals(7L, row.version)
                 pool.connection.use { competing ->
-                    val failure = assertThrows(SQLException::class.java) {
-                        competing.queryBound("SELECT id FROM title WHERE id=? FOR UPDATE NOWAIT", listOf(full)) { it.getObject(1) }
-                    }
+                    val failure =
+                        assertThrows(SQLException::class.java) {
+                            competing.queryBound(
+                                "SELECT id FROM title WHERE id=? FOR UPDATE NOWAIT",
+                                listOf(full),
+                            ) { it.getObject(1) }
+                        }
                     assertEquals("55P03", failure.sqlState)
                 }
             } finally {
@@ -273,13 +357,23 @@ class TitleProjectionBoundaryTest {
             }
         }
         pool.connection.use { connection ->
-            val sparseEdit = connection.queryBound(
-                "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id=? FOR UPDATE", listOf(sparse),
-            ) { TitleContent.read(it) }.single()
+            val sparseEdit =
+                connection
+                    .queryBound(
+                        "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id=? FOR UPDATE",
+                        listOf(sparse),
+                    ) { TitleContent.read(it) }
+                    .single()
             assertEquals("ARCHIVED", sparseEdit.status)
             assertEquals(emptyList<String>(), sparseEdit.countries)
-            listOf(sparseEdit.originalTitle, sparseEdit.originalLanguage, sparseEdit.releaseYear,
-                sparseEdit.releaseMonth, sparseEdit.releaseDay, sparseEdit.runtimeMinutes).forEach { assertNull(it) }
+            listOf(
+                sparseEdit.originalTitle,
+                sparseEdit.originalLanguage,
+                sparseEdit.releaseYear,
+                sparseEdit.releaseMonth,
+                sparseEdit.releaseDay,
+                sparseEdit.runtimeMinutes,
+            ).forEach { assertNull(it) }
         }
     }
 }

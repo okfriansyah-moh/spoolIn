@@ -2,7 +2,7 @@ package com.spoolin.catalog.unit
 
 import com.spoolin.catalog.boundary.grpc.CatalogWriteContext
 import com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
-import com.spoolin.catalog.operations.audit.AuditDiff
+import com.spoolin.catalog.operations.audit.auditPatchedValue
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
@@ -103,11 +103,11 @@ class CatalogWriteRpcRulesTest {
 
     @Test
     fun `patch snapshots preserve omitted values and distinguish explicit clear and replacement`() {
-        assertEquals("Existing", AuditDiff.patchedValue(PatchValue.Omitted, "Existing"))
-        assertNull(AuditDiff.patchedValue(PatchValue.Clear, "Existing"))
-        assertEquals("New", AuditDiff.patchedValue(PatchValue.Value("New"), "Existing"))
-        assertNull(AuditDiff.patchedValue(PatchValue.Value<String?>(null), "Existing"))
-        assertNull(AuditDiff.patchedValue(PatchValue.Omitted, null))
+        assertEquals("Existing", auditPatchedValue(PatchValue.Omitted, "Existing"))
+        assertNull(auditPatchedValue(PatchValue.Clear, "Existing"))
+        assertEquals("New", auditPatchedValue(PatchValue.Value("New"), "Existing"))
+        assertNull(auditPatchedValue(PatchValue.Value<String?>(null), "Existing"))
+        assertNull(auditPatchedValue(PatchValue.Omitted, null))
     }
 
     @Test
