@@ -2,18 +2,15 @@
 
 package com.spoolin.catalog.features.person.write
 
+import com.spoolin.catalog.boundary.grpc.CatalogWriteContext
+import com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
-import com.spoolin.support.identity.ActorRejected
-import com.spoolin.support.identity.ActorRpc
-import com.spoolin.support.identity.Permissions
-import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
-import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -21,13 +18,11 @@ import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.Spoolin.Outcome
 import spoolin.v1.Spoolin.PersonWrite
-import spoolin.v1.Spoolin.Problem
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Clock
 import java.util.UUID
-import javax.sql.DataSource
 
 private const val STATUS_ACTIVE = "ACTIVE"
 private const val STATUS_ARCHIVED = "ARCHIVED"
@@ -51,51 +46,20 @@ class PersonWrites(
         request: PersonWrite,
         response: StreamObserver<Outcome>,
     ) {
-        try {
-            val outcome = executePerson(request)
-            response.onNext(outcomeProto(outcome))
-            response.onCompleted()
-        } catch (e: io.grpc.StatusRuntimeException) {
-            response.onError(e)
-        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
-            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
-        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
-            response.onError(Status.NOT_FOUND.asRuntimeException())
-        } catch (e: ActorRejected) {
-            response.onError(
-                Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException(),
-            )
-        } catch (e: InputViolation) {
-            response.onNext(invalidOutcome(request.context.operationId, e))
-            response.onCompleted()
-        }
+        CatalogWriteRpc.fields(request.context.operationId, response) { executePerson(request) }
     }
 
     private fun executePerson(request: PersonWrite): com.spoolin.support.receipts.ReceiptOutcome {
-        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role)) throw ActorRejected()
-        val operationId = parseId(request.context.operationId)
-        val correlationId = parseId(request.context.correlationId)
-        val actorScope = "account:${claims.accountId}"
+        val context = CatalogWriteContext.management(request.context)
         val isCreate = !request.hasId()
-        val intentFields = CatalogWriteIntent.person(request)
-        val intent =
-            OperationIntent(
-                operationId,
-                actorScope,
-                WRITE_KIND,
-                request.context.policyRevision,
-                intentFields,
-            )
-        return receipts.execute(intent, correlationId, true) { conn ->
+        val intent = context.intent(WRITE_KIND, CatalogWriteIntent.person(request))
+        return receipts.execute(intent, context.correlation, true) { conn ->
             val command = policy.bind(request, request.context.policyRevision)
-            if (!isCreate && (!request.hasExpectedVersion() || request.expectedVersion < 0)) {
-                throw InputViolation("expectedVersion", "Supply the current version.")
-            }
+            CatalogWriteRpc.requireVersion(isCreate, request.hasExpectedVersion(), request.expectedVersion)
             if (isCreate) {
-                create(conn, command, claims.accountId, operationId, correlationId)
+                create(conn, command, context.actor, context.operation, context.correlation)
             } else {
-                update(conn, command, claims.accountId, operationId, correlationId)
+                update(conn, command, context.actor, context.operation, context.correlation)
             }
         }
     }
@@ -145,7 +109,7 @@ class PersonWrites(
         correlationId: UUID,
     ): SafeResult {
         val request = command.input
-        val personId = parseId(request.id)
+        val personId = CatalogWriteRpc.id(request.id)
         val expectedVersion = request.expectedVersion
         val current =
             lockPerson(conn, personId)
@@ -265,61 +229,9 @@ class PersonWrites(
         patch: ValidatedPersonPatch,
     ): Map<String, Any?> =
         mapOf(
-            "name" to patchValue(patch.name, row.name),
-            "biography" to patchValue(patch.biography, row.biography),
+            "name" to AuditDiff.patchedValue(patch.name, row.name),
+            "biography" to AuditDiff.patchedValue(patch.biography, row.biography),
             "status" to row.status,
             "version" to row.version + 1,
         )
-
-    private fun <T> patchValue(
-        patch: PatchValue<T>,
-        current: T,
-    ): Any? =
-        when (patch) {
-            is PatchValue.Value -> patch.value
-            is PatchValue.Clear -> null
-            else -> current
-        }
-
-    // ── helpers ───────────────────────────────────────────────────────────────
-
-    private fun parseId(value: String): UUID =
-        runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
-            .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
-
-    private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b =
-            Outcome
-                .newBuilder()
-                .setOperationId(outcome.id.toString())
-                .setState(outcome.state.name)
-                .setResultExpired(outcome.resultExpired)
-        outcome.result?.let { r ->
-            b.resultId = r.resultId.toString()
-            r.version?.let { b.version = it }
-        }
-        outcome.errorCode?.let { b.problem = Problem.newBuilder().setCode(it).build() }
-        return b.build()
-    }
 }
-
-private fun invalidOutcome(
-    operation: String,
-    violation: InputViolation,
-): Outcome =
-    Outcome
-        .newBuilder()
-        .setOperationId(operation)
-        .setState("FAILED")
-        .setProblem(
-            spoolin.v1.Spoolin.Problem
-                .newBuilder()
-                .setCode("FIELD_INVALID")
-                .addFields(
-                    spoolin.v1.Spoolin.FieldIssue
-                        .newBuilder()
-                        .setPath(violation.path)
-                        .setCode("INVALID")
-                        .setMessage(violation.correction),
-                ),
-        ).build()

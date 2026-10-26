@@ -79,24 +79,7 @@ internal data class LifecycleCommand(
 }
 
 internal fun lifecycleOutcome(receipt: com.spoolin.support.receipts.ReceiptOutcome): spoolin.v1.Spoolin.Outcome =
-    spoolin.v1.Spoolin.Outcome
-        .newBuilder()
-        .setOperationId(receipt.id.toString())
-        .setState(receipt.state.name)
-        .setResultExpired(receipt.resultExpired)
-        .also { builder ->
-            receipt.result?.let { result ->
-                builder.resultId = result.resultId.toString()
-                result.version?.let { builder.version = it }
-            }
-            receipt.errorCode?.let {
-                builder.problem =
-                    spoolin.v1.Spoolin.Problem
-                        .newBuilder()
-                        .setCode(it)
-                        .build()
-            }
-        }.build()
+    com.spoolin.catalog.boundary.grpc.CatalogWriteRpc.outcome(receipt)
 
 internal fun lifecycleRejection(
     request: spoolin.v1.Spoolin.Lifecycle,
