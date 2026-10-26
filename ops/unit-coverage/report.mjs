@@ -19,6 +19,30 @@ export const components = [
   { id: "mcp", path: "mcp", kind: "vitest" },
 ];
 
+export function dockerExecution(read = readFileSync, exists = existsSync) {
+  if (!exists("/.dockerenv"))
+    throw new Error("Unit measurements require Docker");
+  const memory = Number(read("/sys/fs/cgroup/memory.max", "utf8").trim());
+  if (!Number.isSafeInteger(memory) || memory <= 0 || memory > 3221225472)
+    throw new Error("Docker memory must be bounded to at most 3 GiB");
+  const images = read("ops/local/toolchain.Dockerfile", "utf8")
+    .split("\n")
+    .filter((line) => line.startsWith("FROM "))
+    .map((line) => line.split(" ")[1]);
+  if (
+    !images.length ||
+    images.some((image) => !/^[^\s]+@sha256:[0-9a-f]{64}$/.test(image))
+  )
+    throw new Error("Docker toolchain images require exact digests");
+  return {
+    runtime: "docker",
+    images,
+    memory_bytes: memory,
+    workers: 1,
+    tests_separate_from_analysis: true,
+  };
+}
+
 export function fingerprint() {
   const paths = execFileSync(
     "git",
@@ -73,38 +97,47 @@ function metric(covered, total) {
   return { covered, total, percent: total ? (covered * 100) / total : null };
 }
 
+function matchingClassification(issue, audit) {
+  const record = audit.find((item) => item.issue === issue.key);
+  const source = issue.component.slice(issue.project.length + 1);
+  if (
+    !record ||
+    record.rule !== issue.rule ||
+    record.source !== source ||
+    record.status !== "FALSE_POSITIVE"
+  )
+    throw new Error(`Missing exact independent classification: ${issue.key}`);
+  return record;
+}
+
+function classificationEvidence(record, readSource) {
+  for (const [path, expected] of [
+    [record.source, record.source_sha256],
+    [record.evidence, record.evidence_sha256],
+  ]) {
+    if (
+      createHash("sha256").update(readSource(path)).digest("hex") !== expected
+    )
+      throw new Error("Classification source or evidence changed");
+  }
+  if (
+    !record.author ||
+    !record.reviewer ||
+    record.author === record.reviewer ||
+    !record.rationale ||
+    !Number.isFinite(Date.parse(record.reviewed_at))
+  )
+    throw new Error("Classification lacks independent review");
+}
+
 export function reviewedClassifications(issues, audit, readSource) {
   const seen = new Set();
   return issues.map((issue) => {
     if (issue.issueStatus !== "FALSE_POSITIVE" || seen.has(issue.key))
       throw new Error("Unreviewed or duplicate analyzer disposition");
     seen.add(issue.key);
-    const record = audit.find((item) => item.issue === issue.key);
-    const source = issue.component.slice(issue.project.length + 1);
-    if (
-      !record ||
-      record.rule !== issue.rule ||
-      record.source !== source ||
-      record.status !== "FALSE_POSITIVE"
-    )
-      throw new Error(`Missing exact independent classification: ${issue.key}`);
-    for (const [path, expected] of [
-      [record.source, record.source_sha256],
-      [record.evidence, record.evidence_sha256],
-    ]) {
-      if (
-        createHash("sha256").update(readSource(path)).digest("hex") !== expected
-      )
-        throw new Error("Classification source or evidence changed");
-    }
-    if (
-      !record.author ||
-      !record.reviewer ||
-      record.author === record.reviewer ||
-      !record.rationale ||
-      !Number.isFinite(Date.parse(record.reviewed_at))
-    )
-      throw new Error("Classification lacks independent review");
+    const record = matchingClassification(issue, audit);
+    classificationEvidence(record, readSource);
     return record;
   });
 }

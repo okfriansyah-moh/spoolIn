@@ -1,3 +1,4 @@
+import { URL } from "node:url";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -25,7 +26,7 @@ async function api(path, parameters = {}, method = "GET") {
   const values = new URLSearchParams(parameters);
   const url = new URL(`/api/${path}`, host);
   if (method === "GET") url.search = values.toString();
-  const response = await fetch(url, {
+  const response = await globalThis.fetch(url, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -71,7 +72,7 @@ async function ensureGate() {
   const gates = await api("qualitygates/list");
   let gate = gates.qualitygates.find((item) => item.name === gateName);
   if (!gate) {
-    gate = await api("qualitygates/create", { name: gateName }, "POST");
+    await api("qualitygates/create", { name: gateName }, "POST");
     for (const metric of ["coverage", "line_coverage"]) {
       await api(
         "qualitygates/create_condition",
@@ -242,6 +243,38 @@ async function verifyKoverMappings(component) {
   return mapped;
 }
 
+async function analysisInputs(component) {
+  const dispositions = await api("issues/search", {
+    componentKeys: projectKey(component.id),
+    issueStatuses: "FALSE_POSITIVE,ACCEPTED",
+    ps: "500",
+  });
+  if (dispositions.paging.total > dispositions.issues.length)
+    throw new Error("Classification verification requires all result pages");
+  const classifications = reviewedClassifications(
+    dispositions.issues,
+    JSON.parse(readFileSync("ops/unit-coverage/classifications.json", "utf8")),
+    (path) => readFileSync(path),
+  );
+  const measuredInputs = JSON.parse(
+    readFileSync(`${output}/sonar/${component.id}-inputs.json`, "utf8"),
+  );
+  if (
+    measuredInputs.producer_sha256 !==
+    createHash("sha256")
+      .update(readFileSync(`${output}/${component.id}/producer.json`))
+      .digest("hex")
+  )
+    throw new Error("Unit producer changed during analysis");
+  return {
+    ...measuredInputs,
+    classifications,
+    classified_issue_ids: dispositions.issues
+      .map((item) => item.key)
+      .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0)),
+  };
+}
+
 async function verifyComponent(component, summary) {
   const task = Object.fromEntries(
     readFileSync(`${output}/sonar/work-${component.id}/report-task.txt`, "utf8")
@@ -271,32 +304,9 @@ async function verifyComponent(component, summary) {
   const expected = summary.components.find(
     (item) => item.component === component.id,
   ).metrics.lines;
-  const dispositions = await api("issues/search", {
-    componentKeys: projectKey(component.id),
-    issueStatuses: "FALSE_POSITIVE,ACCEPTED",
-    ps: "500",
-  });
-  if (dispositions.paging.total > dispositions.issues.length)
-    throw new Error("Classification verification requires all result pages");
-  const classifications = reviewedClassifications(
-    dispositions.issues,
-    JSON.parse(readFileSync("ops/unit-coverage/classifications.json", "utf8")),
-    (path) => readFileSync(path),
-  );
-  const measuredInputs = JSON.parse(
-    readFileSync(`${output}/sonar/${component.id}-inputs.json`, "utf8"),
-  );
-  if (
-    measuredInputs.producer_sha256 !==
-    createHash("sha256")
-      .update(readFileSync(`${output}/${component.id}/producer.json`))
-      .digest("hex")
-  )
-    throw new Error("Unit producer changed during analysis");
+  const inputs = await analysisInputs(component);
   const result = {
-    ...measuredInputs,
-    classifications,
-    classified_issue_ids: dispositions.issues.map((item) => item.key).sort(),
+    ...inputs,
     component: component.id,
     analysisId: execution.task.analysisId,
     executionStatus: execution.task.status,

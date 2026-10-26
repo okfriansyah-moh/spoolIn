@@ -4,7 +4,7 @@ Recorded 26 October 2026. This is workflow enforcement adoption, separate from t
 
 ## Installation
 
-The global defaults and movie-app now select agent-workflow **1.4.0**, built from workflow source revision `eae807a`. The installer upgraded managed instructions, native roles, skills, prompts and adapters. Both doctor receipts report healthy with no conflicts. Personal instruction content was preserved in five inspected files, including the existing Cursor rules. Movie-app retains its custom resource limits and all 80 existing checks, with one focused adapter check added. Other repository pins were not upgraded.
+The global defaults and movie-app now select agent-workflow **1.4.0**, built from workflow source revision `eae807a`. The installer upgraded managed instructions, native roles, skills, prompts and adapters. Both doctor receipts report healthy with no conflicts. Personal instruction content was preserved in five inspected files, including the existing Cursor rules. Movie-app retains its custom resource limits and all 80 existing checks, with focused adapter and report-static checks added. Other repository pins were not upgraded.
 
 The owning [permanent quality contract](../../.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract) requires independent component coverage, exact zero issue/duplication counters and all required checks. New projects remain blocked until their component/report/command/toolchain configuration is complete. No passing debt baseline was added.
 
@@ -13,7 +13,7 @@ Global Copilot CLI guidance is managed in `~/.copilot/copilot-instructions.md`; 
 ## Verification
 
 - Workflow runtime/schema/installer suite: **375 tests passed** in temporary repositories/homes. **12 focused acceptance-boundary tests also passed** after capture, artifact-retention and nested-lock checks. Temporary installation cases cover repeat installation, conflict handling, rollback and preserved personal content.
-- Movie report contracts: **7 tests passed** inside the pinned Docker toolchain under the shared execution lease.
+- Movie report contracts: **8 tests passed** inside the pinned Docker toolchain under the shared execution lease.
 - Movie proof adapter: **6 tests passed**, including current configuration invalidation, failed/unfinished execution, missing producer receipts and modified raw reports.
 - Shell syntax, Node syntax, Compose configuration and authored wording checks passed.
 - One independent combined review inspected source, corrections, installer receipts and native limitations.
@@ -45,3 +45,5 @@ The full new-bundle whitespace check flags inherited trailing spaces and blank l
 The first remote adoption run stopped before testing with unavailable process measurements. The Linux parser had rejected valid kernel-process rows with process-group zero; source `eae807a` corrects that case while preserving rejection of invalid/unknown measurements. Nineteen focused resource-adapter tests and the final 375-test suite passed. Global/project installations were refreshed and both doctors remain healthy. Remote CI must rerun this correction; it is not claimed green.
 
 The corrected remote run then reported valid owned-process measurements and built the Docker toolchain. Its next blocker was Git checkout ownership inside the container. Runner Git configuration now trusts only the intentionally mounted `/workspace`, through container environment variables; personal/global host Git settings remain unchanged. A bounded 128 MiB Docker fixture passed all three cases: default ownership rejection, explicit workspace acceptance and continued rejection of an unrelated repository. Compose validation passed. Remote CI must rerun this configuration correction.
+
+The next remote run passed resource observation and checkout trust, then exposed an undefined reporting-memory variable introduced during adoption. Docker execution metadata now comes from a tested preflight helper that reads the actual container bound and pinned image inputs. Eight Docker report tests and the real 3 GiB preflight passed. The focused report lint check also found eight inherited complexity/depth/length failures; AST comparisons to the pre-adoption revision confirmed that the flagged functions are unchanged. Those failures are now enforced by the required `quality-report-static` gate, alongside the original 80 checks and the adapter check (82 total). They remain blockers without a baseline waiver.

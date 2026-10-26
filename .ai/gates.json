@@ -16,8 +16,16 @@
       "id": "contracts-python-syntax",
       "component": "contracts",
       "stage": "fast",
-      "when": ["tests/contracts/*.py"],
-      "argv": ["python3", "-m", "compileall", "-q", "tests/contracts"],
+      "when": [
+        "tests/contracts/*.py"
+      ],
+      "argv": [
+        "python3",
+        "-m",
+        "compileall",
+        "-q",
+        "tests/contracts"
+      ],
       "required": true,
       "timeout_seconds": 300,
       "reuse": {
@@ -63,7 +71,10 @@
         "contracts/**",
         "tests/contracts/**"
       ],
-      "argv": ["python3", "tests/contracts/run.py"],
+      "argv": [
+        "python3",
+        "tests/contracts/run.py"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
@@ -75,32 +86,53 @@
       "id": "core-ktlint",
       "component": "core",
       "stage": "fast",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:ktlintCheck"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:ktlintCheck"
+      ],
       "required": true
     },
     {
       "id": "core-detekt",
       "component": "core",
       "stage": "fast",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:detekt"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:detekt"
+      ],
       "required": true
     },
     {
       "id": "core-compile",
       "component": "core",
       "stage": "fast",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:compileKotlin"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:compileKotlin"
+      ],
       "required": true
     },
     {
       "id": "core-tests",
       "component": "core",
       "stage": "integration",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:test", "--rerun-tasks"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:test",
+        "--rerun-tasks"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -111,8 +143,14 @@
       "id": "core-boundaries",
       "component": "core",
       "stage": "integration",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:architectureTest", "--rerun-tasks"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:architectureTest",
+        "--rerun-tasks"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -123,8 +161,14 @@
       "id": "core-database",
       "component": "core",
       "stage": "integration",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:integrationTest", "--rerun-tasks"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:integrationTest",
+        "--rerun-tasks"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -135,8 +179,14 @@
       "id": "core-coverage",
       "component": "core",
       "stage": "integration",
-      "when": ["services/core/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:core:koverXmlReport", "--rerun-tasks"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:core:koverXmlReport",
+        "--rerun-tasks"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -144,32 +194,53 @@
       "id": "catalog-ktlint",
       "component": "catalog",
       "stage": "fast",
-      "when": ["services/catalog/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:catalog:ktlintCheck"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:ktlintCheck"
+      ],
       "required": true
     },
     {
       "id": "catalog-detekt",
       "component": "catalog",
       "stage": "fast",
-      "when": ["services/catalog/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:catalog:detekt"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:detekt"
+      ],
       "required": true
     },
     {
       "id": "catalog-compile",
       "component": "catalog",
       "stage": "fast",
-      "when": ["services/catalog/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:catalog:compileKotlin"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:compileKotlin"
+      ],
       "required": true
     },
     {
       "id": "catalog-tests",
       "component": "catalog",
       "stage": "integration",
-      "when": ["services/catalog/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:catalog:test", "--rerun-tasks"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:test",
+        "--rerun-tasks"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -180,7 +251,9 @@
       "id": "catalog-boundaries",
       "component": "catalog",
       "stage": "integration",
-      "when": ["services/catalog/src/**/*.kt"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
       "argv": [
         "./gradlew",
         ":services:catalog:architectureTest",
@@ -196,7 +269,9 @@
       "id": "catalog-database",
       "component": "catalog",
       "stage": "integration",
-      "when": ["services/catalog/src/**/*.kt"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
       "argv": [
         "./gradlew",
         ":services:catalog:integrationTest",
@@ -212,7 +287,9 @@
       "id": "catalog-coverage",
       "component": "catalog",
       "stage": "integration",
-      "when": ["services/catalog/src/**/*.kt"],
+      "when": [
+        "services/catalog/src/**/*.kt"
+      ],
       "argv": [
         "./gradlew",
         ":services:catalog:koverXmlReport",
@@ -224,32 +301,53 @@
       "id": "media-ktlint",
       "component": "media",
       "stage": "fast",
-      "when": ["services/media/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:media:ktlintCheck"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:ktlintCheck"
+      ],
       "required": true
     },
     {
       "id": "media-detekt",
       "component": "media",
       "stage": "fast",
-      "when": ["services/media/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:media:detekt"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:detekt"
+      ],
       "required": true
     },
     {
       "id": "media-compile",
       "component": "media",
       "stage": "fast",
-      "when": ["services/media/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:media:compileKotlin"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:compileKotlin"
+      ],
       "required": true
     },
     {
       "id": "media-tests",
       "component": "media",
       "stage": "integration",
-      "when": ["services/media/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:media:test", "--rerun-tasks"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:test",
+        "--rerun-tasks"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -260,7 +358,9 @@
       "id": "media-boundaries",
       "component": "media",
       "stage": "integration",
-      "when": ["services/media/src/**/*.kt"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
       "argv": [
         "./gradlew",
         ":services:media:architectureTest",
@@ -276,8 +376,14 @@
       "id": "media-database",
       "component": "media",
       "stage": "integration",
-      "when": ["services/media/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:media:integrationTest", "--rerun-tasks"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:integrationTest",
+        "--rerun-tasks"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -288,8 +394,14 @@
       "id": "media-coverage",
       "component": "media",
       "stage": "integration",
-      "when": ["services/media/src/**/*.kt"],
-      "argv": ["./gradlew", ":services:media:koverXmlReport", "--rerun-tasks"],
+      "when": [
+        "services/media/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":services:media:koverXmlReport",
+        "--rerun-tasks"
+      ],
       "required": true
     },
     {
@@ -302,7 +414,13 @@
         "frontend/src/**/*.js",
         "frontend/vitest.config.ts"
       ],
-      "argv": ["npm", "run", "lint", "--workspace", "frontend"],
+      "argv": [
+        "npm",
+        "run",
+        "lint",
+        "--workspace",
+        "frontend"
+      ],
       "required": true
     },
     {
@@ -315,7 +433,13 @@
         "frontend/src/**/*.js",
         "frontend/vitest.config.ts"
       ],
-      "argv": ["npm", "run", "check", "--workspace", "frontend"],
+      "argv": [
+        "npm",
+        "run",
+        "check",
+        "--workspace",
+        "frontend"
+      ],
       "required": true
     },
     {
@@ -327,7 +451,13 @@
         "frontend/src/**/*.svelte",
         "frontend/src/**/*.js"
       ],
-      "argv": ["npm", "run", "check:dependencies", "--workspace", "frontend"],
+      "argv": [
+        "npm",
+        "run",
+        "check:dependencies",
+        "--workspace",
+        "frontend"
+      ],
       "required": true
     },
     {
@@ -340,7 +470,13 @@
         "frontend/src/**/*.js",
         "frontend/vitest.config.ts"
       ],
-      "argv": ["npm", "run", "test:coverage", "--workspace", "frontend"],
+      "argv": [
+        "npm",
+        "run",
+        "test:coverage",
+        "--workspace",
+        "frontend"
+      ],
       "required": true,
       "test_report": {
         "format": "vitest",
@@ -356,7 +492,13 @@
         "frontend/src/**/*.svelte",
         "frontend/src/**/*.js"
       ],
-      "argv": ["npm", "run", "build", "--workspace", "frontend"],
+      "argv": [
+        "npm",
+        "run",
+        "build",
+        "--workspace",
+        "frontend"
+      ],
       "required": true
     },
     {
@@ -370,23 +512,49 @@
         "mcp/test/**/*.ts",
         "mcp/vitest.config.ts"
       ],
-      "argv": ["npm", "run", "lint", "--workspace", "mcp"],
+      "argv": [
+        "npm",
+        "run",
+        "lint",
+        "--workspace",
+        "mcp"
+      ],
       "required": true
     },
     {
       "id": "mcp-types",
       "component": "mcp",
       "stage": "fast",
-      "when": ["mcp/src/**/*.ts", "mcp/src/**/*.svelte", "mcp/src/**/*.js"],
-      "argv": ["npm", "run", "check", "--workspace", "mcp"],
+      "when": [
+        "mcp/src/**/*.ts",
+        "mcp/src/**/*.svelte",
+        "mcp/src/**/*.js"
+      ],
+      "argv": [
+        "npm",
+        "run",
+        "check",
+        "--workspace",
+        "mcp"
+      ],
       "required": true
     },
     {
       "id": "mcp-dependencies",
       "component": "mcp",
       "stage": "fast",
-      "when": ["mcp/src/**/*.ts", "mcp/src/**/*.svelte", "mcp/src/**/*.js"],
-      "argv": ["npm", "run", "check:dependencies", "--workspace", "mcp"],
+      "when": [
+        "mcp/src/**/*.ts",
+        "mcp/src/**/*.svelte",
+        "mcp/src/**/*.js"
+      ],
+      "argv": [
+        "npm",
+        "run",
+        "check:dependencies",
+        "--workspace",
+        "mcp"
+      ],
       "required": true
     },
     {
@@ -400,7 +568,13 @@
         "mcp/test/**/*.ts",
         "mcp/vitest.config.ts"
       ],
-      "argv": ["npm", "run", "test:coverage", "--workspace", "mcp"],
+      "argv": [
+        "npm",
+        "run",
+        "test:coverage",
+        "--workspace",
+        "mcp"
+      ],
       "required": true,
       "test_report": {
         "format": "vitest",
@@ -411,16 +585,33 @@
       "id": "mcp-build",
       "component": "mcp",
       "stage": "integration",
-      "when": ["mcp/src/**/*.ts", "mcp/src/**/*.svelte", "mcp/src/**/*.js"],
-      "argv": ["npm", "run", "build", "--workspace", "mcp"],
+      "when": [
+        "mcp/src/**/*.ts",
+        "mcp/src/**/*.svelte",
+        "mcp/src/**/*.js"
+      ],
+      "argv": [
+        "npm",
+        "run",
+        "build",
+        "--workspace",
+        "mcp"
+      ],
       "required": true
     },
     {
       "id": "browser-acceptance",
       "component": "frontend",
       "stage": "delivery",
-      "when": ["frontend/src/**/*.svelte", "tests/browser/flows/shell/**/*.ts"],
-      "argv": ["npm", "run", "test:e2e"],
+      "when": [
+        "frontend/src/**/*.svelte",
+        "tests/browser/flows/shell/**/*.ts"
+      ],
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
       "required": true,
       "test_report": {
         "format": "junit",
@@ -523,7 +714,10 @@
       "id": "osv",
       "component": "shared",
       "stage": "integration",
-      "when": ["package-lock.json", "**/gradle.lockfile"],
+      "when": [
+        "package-lock.json",
+        "**/gradle.lockfile"
+      ],
       "argv": [
         "osv-scanner",
         "scan",
@@ -543,7 +737,9 @@
       "id": "foundation-python-syntax",
       "component": "foundation",
       "stage": "fast",
-      "when": ["build-tools/verification-tests/*.py"],
+      "when": [
+        "build-tools/verification-tests/*.py"
+      ],
       "argv": [
         "python3",
         "-m",
@@ -569,7 +765,10 @@
         ".ai/bundles/1.3.0/profiles/security/gitleaks.toml",
         ".ai/bundles/1.3.0/docs/verification-tools.json"
       ],
-      "argv": ["python3", "build-tools/verification-tests/test_harness.py"],
+      "argv": [
+        "python3",
+        "build-tools/verification-tests/test_harness.py"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
@@ -617,7 +816,11 @@
         "tests/browser/playwright.policy.config.ts",
         "tests/browser/flows/policy/**/*.ts"
       ],
-      "argv": ["npm", "run", "lint"],
+      "argv": [
+        "npm",
+        "run",
+        "lint"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -630,7 +833,11 @@
         "build-tools/verification-tests/frontend/src/**/*.svelte",
         "build-tools/verification-tests/mcp/**/*.ts"
       ],
-      "argv": ["npm", "run", "check"],
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -693,7 +900,11 @@
         "tests/browser/playwright.policy.config.ts",
         "tests/browser/flows/policy/**/*.ts"
       ],
-      "argv": ["npm", "run", "format:check"],
+      "argv": [
+        "npm",
+        "run",
+        "format:check"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -706,7 +917,11 @@
         "build-tools/verification-tests/frontend/src/**/*.svelte",
         "build-tools/verification-tests/mcp/**/*.ts"
       ],
-      "argv": ["npm", "run", "build"],
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -714,7 +929,9 @@
       "id": "core-account-boundaries",
       "component": "core",
       "stage": "integration",
-      "when": ["services/core/src/**/*.kt"],
+      "when": [
+        "services/core/src/**/*.kt"
+      ],
       "argv": [
         "./gradlew",
         ":services:core:cryptoIntegrationTest",
@@ -731,8 +948,13 @@
       "id": "backend-support-ktlint",
       "component": "backend-support",
       "stage": "fast",
-      "when": ["libraries/backend-support/src/**/*.kt"],
-      "argv": ["./gradlew", ":libraries:backend-support:ktlintCheck"],
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:ktlintCheck"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -740,8 +962,13 @@
       "id": "backend-support-detekt",
       "component": "backend-support",
       "stage": "fast",
-      "when": ["libraries/backend-support/src/**/*.kt"],
-      "argv": ["./gradlew", ":libraries:backend-support:detekt"],
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:detekt"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -749,8 +976,13 @@
       "id": "backend-support-compile",
       "component": "backend-support",
       "stage": "fast",
-      "when": ["libraries/backend-support/src/**/*.kt"],
-      "argv": ["./gradlew", ":libraries:backend-support:compileKotlin"],
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:compileKotlin"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -758,8 +990,14 @@
       "id": "backend-support-tests",
       "component": "backend-support",
       "stage": "integration",
-      "when": ["libraries/backend-support/src/**/*.kt"],
-      "argv": ["./gradlew", ":libraries:backend-support:test", "--rerun-tasks"],
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":libraries:backend-support:test",
+        "--rerun-tasks"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
@@ -771,7 +1009,9 @@
       "id": "backend-support-coverage",
       "component": "backend-support",
       "stage": "integration",
-      "when": ["libraries/backend-support/src/**/*.kt"],
+      "when": [
+        "libraries/backend-support/src/**/*.kt"
+      ],
       "argv": [
         "./gradlew",
         ":libraries:backend-support:koverXmlReport",
@@ -788,7 +1028,10 @@
         "tests/browser/flows/discovery/**",
         "tests/browser/run-discovery.mjs"
       ],
-      "argv": ["node", "tests/browser/run-discovery.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-discovery.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -800,7 +1043,10 @@
         "tests/browser/flows/archives/**",
         "tests/browser/run-archives.mjs"
       ],
-      "argv": ["node", "tests/browser/run-archives.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-archives.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -812,7 +1058,10 @@
         "tests/browser/flows/artwork/**",
         "tests/browser/run-artwork.mjs"
       ],
-      "argv": ["node", "tests/browser/run-artwork.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-artwork.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -820,8 +1069,14 @@
       "id": "movies-browser-acceptance",
       "component": "frontend",
       "stage": "delivery",
-      "when": ["tests/browser/flows/movies/**", "tests/browser/run-movies.mjs"],
-      "argv": ["node", "tests/browser/run-movies.mjs"],
+      "when": [
+        "tests/browser/flows/movies/**",
+        "tests/browser/run-movies.mjs"
+      ],
+      "argv": [
+        "node",
+        "tests/browser/run-movies.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -829,8 +1084,14 @@
       "id": "people-browser-acceptance",
       "component": "frontend",
       "stage": "delivery",
-      "when": ["tests/browser/flows/people/**", "tests/browser/run-people.mjs"],
-      "argv": ["node", "tests/browser/run-people.mjs"],
+      "when": [
+        "tests/browser/flows/people/**",
+        "tests/browser/run-people.mjs"
+      ],
+      "argv": [
+        "node",
+        "tests/browser/run-people.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -842,7 +1103,10 @@
         "tests/browser/flows/credits/**",
         "tests/browser/run-credits.mjs"
       ],
-      "argv": ["node", "tests/browser/run-credits.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-credits.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -854,7 +1118,10 @@
         "tests/browser/flows/draft-component/**",
         "tests/browser/run-draft-component.mjs"
       ],
-      "argv": ["node", "tests/browser/run-draft-component.mjs"],
+      "argv": [
+        "node",
+        "tests/browser/run-draft-component.mjs"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
@@ -916,7 +1183,9 @@
       "id": "policy-browser-format",
       "component": "foundation",
       "stage": "fast",
-      "when": ["tests/browser/flows/policy/**/*.ts"],
+      "when": [
+        "tests/browser/flows/policy/**/*.ts"
+      ],
       "argv": [
         "npm",
         "exec",
@@ -939,7 +1208,10 @@
         "libraries/backend-support/build.gradle.kts",
         "tests/contracts/policy/boundaries.py"
       ],
-      "argv": ["python3", "tests/contracts/policy/boundaries.py"],
+      "argv": [
+        "python3",
+        "tests/contracts/policy/boundaries.py"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1063,7 +1335,11 @@
         "contracts/grpc/**",
         "tests/integration/**"
       ],
-      "argv": ["./gradlew", ":tests:integration:test", "--rerun-tasks"],
+      "argv": [
+        "./gradlew",
+        ":tests:integration:test",
+        "--rerun-tasks"
+      ],
       "required": true,
       "timeout_seconds": 1800,
       "test_report": {
@@ -1075,8 +1351,13 @@
       "id": "service-actor-style",
       "component": "core",
       "stage": "fast",
-      "when": ["tests/integration/**/*.kt"],
-      "argv": ["./gradlew", ":tests:integration:detekt"],
+      "when": [
+        "tests/integration/**/*.kt"
+      ],
+      "argv": [
+        "./gradlew",
+        ":tests:integration:detekt"
+      ],
       "required": true
     },
     {
@@ -1091,7 +1372,10 @@
         "tests/browser/playwright.account.config.ts",
         "tests/browser/run-account.mjs"
       ],
-      "argv": ["bash", "ops/bin/account-browser-gate.sh"],
+      "argv": [
+        "bash",
+        "ops/bin/account-browser-gate.sh"
+      ],
       "required": true,
       "timeout_seconds": 3600,
       "test_report": {
@@ -1159,7 +1443,10 @@
         "services/core/src/integrationTest/kotlin/com/spoolin/core/browser/**",
         "services/core/src/integrationTest/kotlin/com/spoolin/core/recovery/crypto/NonceTlsFixture.kt"
       ],
-      "argv": ["./gradlew", ":services:core:accountIntegrationThresholds"],
+      "argv": [
+        "./gradlew",
+        ":services:core:accountIntegrationThresholds"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1170,7 +1457,10 @@
       "when": [
         "services/catalog/src/integrationTest/kotlin/com/spoolin/catalog/operations/receipts/**"
       ],
-      "argv": ["./gradlew", ":services:catalog:receiptIntegrationThresholds"],
+      "argv": [
+        "./gradlew",
+        ":services:catalog:receiptIntegrationThresholds"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1181,7 +1471,10 @@
       "when": [
         "services/media/src/integrationTest/kotlin/com/spoolin/media/operations/receipts/**"
       ],
-      "argv": ["./gradlew", ":services:media:receiptIntegrationThresholds"],
+      "argv": [
+        "./gradlew",
+        ":services:media:receiptIntegrationThresholds"
+      ],
       "required": true,
       "timeout_seconds": 1800
     },
@@ -1189,8 +1482,14 @@
       "id": "plan-numbering-regressions",
       "component": "plan-numbering",
       "stage": "fast",
-      "when": ["build-tools/plan-numbering/**", "docs/plan-numbering-v1.json"],
-      "argv": ["python3", "build-tools/plan-numbering/run_tests.py"],
+      "when": [
+        "build-tools/plan-numbering/**",
+        "docs/plan-numbering-v1.json"
+      ],
+      "argv": [
+        "python3",
+        "build-tools/plan-numbering/run_tests.py"
+      ],
       "required": true,
       "timeout_seconds": 120,
       "test_report": {
@@ -1202,8 +1501,13 @@
       "id": "local-setup-regressions",
       "component": "foundation",
       "stage": "fast",
-      "when": ["ops/local/**/*.py"],
-      "argv": ["python3", "ops/local/test_runner.py"],
+      "when": [
+        "ops/local/**/*.py"
+      ],
+      "argv": [
+        "python3",
+        "ops/local/test_runner.py"
+      ],
       "required": true,
       "timeout_seconds": 120,
       "test_report": {
@@ -1238,7 +1542,10 @@
       "id": "browser-client-types",
       "component": "foundation",
       "stage": "fast",
-      "when": ["tests/browser/**/*.ts", "tests/clients/**/*.ts"],
+      "when": [
+        "tests/browser/**/*.ts",
+        "tests/clients/**/*.ts"
+      ],
       "argv": [
         "node",
         "node_modules/typescript/bin/tsc",
@@ -1303,8 +1610,36 @@
       "id": "quality-adapter-contracts",
       "component": "foundation",
       "stage": "fast",
-      "when": ["ops/unit-coverage/**", "ops/bin/coverage*.sh"],
-      "argv": ["python3", "ops/unit-coverage/quality-proof.test.py"],
+      "when": [
+        "ops/unit-coverage/**",
+        "ops/bin/coverage*.sh"
+      ],
+      "argv": [
+        "python3",
+        "ops/unit-coverage/quality-proof.test.py"
+      ],
+      "required": true,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "quality-report-static",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/unit-coverage/**"
+      ],
+      "argv": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--config",
+        "build-tools/verification-tests/eslint.config.mjs",
+        "ops/unit-coverage/report.mjs",
+        "ops/unit-coverage/run.mjs",
+        "ops/unit-coverage/sonar.mjs",
+        "ops/unit-coverage/report.test.mjs",
+        "--max-warnings",
+        "0"
+      ],
       "required": true,
       "timeout_seconds": 120
     }
@@ -1312,57 +1647,109 @@
   "coverage": [
     {
       "component": "core",
-      "when": ["services/core/src/main/**/*.kt"],
-      "roots": ["services/core/src/main"],
-      "reports": ["services/core/build/reports/kover/report.xml"],
+      "when": [
+        "services/core/src/main/**/*.kt"
+      ],
+      "roots": [
+        "services/core/src/main"
+      ],
+      "reports": [
+        "services/core/build/reports/kover/report.xml"
+      ],
       "format": "jacoco",
       "source_prefix": "services/core/src/main/kotlin",
-      "exclude": ["**/generated/**"]
+      "exclude": [
+        "**/generated/**"
+      ]
     },
     {
       "component": "catalog",
-      "when": ["services/catalog/src/main/**/*.kt"],
-      "roots": ["services/catalog/src/main"],
-      "reports": ["services/catalog/build/reports/kover/report.xml"],
+      "when": [
+        "services/catalog/src/main/**/*.kt"
+      ],
+      "roots": [
+        "services/catalog/src/main"
+      ],
+      "reports": [
+        "services/catalog/build/reports/kover/report.xml"
+      ],
       "format": "jacoco",
       "source_prefix": "services/catalog/src/main/kotlin",
-      "exclude": ["**/generated/**"]
+      "exclude": [
+        "**/generated/**"
+      ]
     },
     {
       "component": "media",
-      "when": ["services/media/src/main/**/*.kt"],
-      "roots": ["services/media/src/main"],
-      "reports": ["services/media/build/reports/kover/report.xml"],
+      "when": [
+        "services/media/src/main/**/*.kt"
+      ],
+      "roots": [
+        "services/media/src/main"
+      ],
+      "reports": [
+        "services/media/build/reports/kover/report.xml"
+      ],
       "format": "jacoco",
       "source_prefix": "services/media/src/main/kotlin",
-      "exclude": ["**/generated/**"]
+      "exclude": [
+        "**/generated/**"
+      ]
     },
     {
       "component": "frontend",
-      "when": ["frontend/src/**"],
-      "roots": ["frontend/src"],
-      "reports": ["frontend/coverage/lcov.info"],
+      "when": [
+        "frontend/src/**"
+      ],
+      "roots": [
+        "frontend/src"
+      ],
+      "reports": [
+        "frontend/coverage/lcov.info"
+      ],
       "format": "lcov",
       "source_prefix": "frontend",
-      "exclude": ["**/generated/**", "**/*.test.*", "**/*.spec.*"]
+      "exclude": [
+        "**/generated/**",
+        "**/*.test.*",
+        "**/*.spec.*"
+      ]
     },
     {
       "component": "mcp",
-      "when": ["mcp/src/**"],
-      "roots": ["mcp/src"],
-      "reports": ["mcp/coverage/lcov.info"],
+      "when": [
+        "mcp/src/**"
+      ],
+      "roots": [
+        "mcp/src"
+      ],
+      "reports": [
+        "mcp/coverage/lcov.info"
+      ],
       "format": "lcov",
       "source_prefix": "mcp",
-      "exclude": ["**/generated/**", "**/*.test.*", "**/*.spec.*"]
+      "exclude": [
+        "**/generated/**",
+        "**/*.test.*",
+        "**/*.spec.*"
+      ]
     },
     {
       "component": "backend-support",
-      "when": ["libraries/backend-support/src/main/**/*.kt"],
-      "roots": ["libraries/backend-support/src/main"],
-      "reports": ["libraries/backend-support/build/reports/kover/report.xml"],
+      "when": [
+        "libraries/backend-support/src/main/**/*.kt"
+      ],
+      "roots": [
+        "libraries/backend-support/src/main"
+      ],
+      "reports": [
+        "libraries/backend-support/build/reports/kover/report.xml"
+      ],
       "format": "jacoco",
       "source_prefix": "libraries/backend-support/src/main/kotlin",
-      "exclude": ["**/generated/**"]
+      "exclude": [
+        "**/generated/**"
+      ]
     }
   ],
   "limits": {
@@ -1381,9 +1768,14 @@
     "Documentation mockup scripts are source requirements, not application components; their content remains fingerprinted.",
     "Ordinary component changes select affected components and downstream consumers; unknown executable inputs and shared build or policy changes broaden conservatively."
   ],
-  "source_exclude": ["docs/**"],
+  "source_exclude": [
+    "docs/**"
+  ],
   "component_inputs": {
-    "catalog": ["services/catalog/**", "tests/catalog/**"],
+    "catalog": [
+      "services/catalog/**",
+      "tests/catalog/**"
+    ],
     "contracts": [
       "contracts/**",
       "tests/contracts/**",
@@ -1403,22 +1795,47 @@
       "ops/ci/**",
       "ops/monitoring/**"
     ],
-    "frontend": ["frontend/**", "tests/browser/**"],
-    "mcp": ["mcp/**", "tests/mcp/**"],
-    "media": ["services/media/**", "tests/media/**"],
+    "frontend": [
+      "frontend/**",
+      "tests/browser/**"
+    ],
+    "mcp": [
+      "mcp/**",
+      "tests/mcp/**"
+    ],
+    "media": [
+      "services/media/**",
+      "tests/media/**"
+    ],
     "plan-numbering": [
       "build-tools/plan-numbering/**",
       "docs/plan-numbering-v1.json"
     ]
   },
   "component_dependencies": {
-    "catalog": ["contracts", "media"],
+    "catalog": [
+      "contracts",
+      "media"
+    ],
     "contracts": [],
-    "core": ["contracts", "catalog", "media"],
+    "core": [
+      "contracts",
+      "catalog",
+      "media"
+    ],
     "foundation": [],
-    "frontend": ["contracts", "core"],
-    "mcp": ["contracts", "core", "catalog"],
-    "media": ["contracts"],
+    "frontend": [
+      "contracts",
+      "core"
+    ],
+    "mcp": [
+      "contracts",
+      "core",
+      "catalog"
+    ],
+    "media": [
+      "contracts"
+    ],
     "plan-numbering": []
   },
   "shared_input_patterns": [
@@ -1452,14 +1869,19 @@
     "components": [
       {
         "id": "frontend",
-        "production": ["frontend/src/**/*.ts", "frontend/src/**/*.svelte"],
+        "production": [
+          "frontend/src/**/*.ts",
+          "frontend/src/**/*.svelte"
+        ],
         "exclude": [
           "frontend/src/generated/**",
           "frontend/src/lib/generated/**",
           "frontend/src/**/*.test.ts",
           "frontend/src/**/*.fixture.ts"
         ],
-        "roots": ["frontend/src"],
+        "roots": [
+          "frontend/src"
+        ],
         "inputs": [
           "frontend/src/**/*",
           "mcp/src/**/*",
@@ -1497,8 +1919,14 @@
           "docs/operations/network-range-review.md"
         ],
         "commands": [
-          ["make", "coverage"],
-          ["make", "coverage-sonar"]
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
         ],
         "toolchain_files": [
           "ops/local/toolchain.Dockerfile",
@@ -1509,7 +1937,9 @@
         ],
         "unit_report": {
           "format": "lcov",
-          "reports": [".local/unit-coverage/frontend/lcov.info"],
+          "reports": [
+            ".local/unit-coverage/frontend/lcov.info"
+          ],
           "source_prefix": "frontend"
         },
         "test_report": {
@@ -1519,9 +1949,13 @@
       },
       {
         "id": "core",
-        "production": ["services/core/src/main/kotlin/**/*.kt"],
+        "production": [
+          "services/core/src/main/kotlin/**/*.kt"
+        ],
         "exclude": [],
-        "roots": ["services/core/src/main/kotlin"],
+        "roots": [
+          "services/core/src/main/kotlin"
+        ],
         "inputs": [
           "frontend/src/**/*",
           "mcp/src/**/*",
@@ -1559,8 +1993,14 @@
           "docs/operations/network-range-review.md"
         ],
         "commands": [
-          ["make", "coverage"],
-          ["make", "coverage-sonar"]
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
         ],
         "toolchain_files": [
           "ops/local/toolchain.Dockerfile",
@@ -1571,7 +2011,9 @@
         ],
         "unit_report": {
           "format": "jacoco",
-          "reports": [".local/unit-coverage/core/report.xml"],
+          "reports": [
+            ".local/unit-coverage/core/report.xml"
+          ],
           "source_prefix": "services/core/src/main/kotlin"
         },
         "test_report": {
@@ -1581,9 +2023,13 @@
       },
       {
         "id": "catalog",
-        "production": ["services/catalog/src/main/kotlin/**/*.kt"],
+        "production": [
+          "services/catalog/src/main/kotlin/**/*.kt"
+        ],
         "exclude": [],
-        "roots": ["services/catalog/src/main/kotlin"],
+        "roots": [
+          "services/catalog/src/main/kotlin"
+        ],
         "inputs": [
           "frontend/src/**/*",
           "mcp/src/**/*",
@@ -1621,8 +2067,14 @@
           "docs/operations/network-range-review.md"
         ],
         "commands": [
-          ["make", "coverage"],
-          ["make", "coverage-sonar"]
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
         ],
         "toolchain_files": [
           "ops/local/toolchain.Dockerfile",
@@ -1633,7 +2085,9 @@
         ],
         "unit_report": {
           "format": "jacoco",
-          "reports": [".local/unit-coverage/catalog/report.xml"],
+          "reports": [
+            ".local/unit-coverage/catalog/report.xml"
+          ],
           "source_prefix": "services/catalog/src/main/kotlin"
         },
         "test_report": {
@@ -1643,9 +2097,13 @@
       },
       {
         "id": "media",
-        "production": ["services/media/src/main/kotlin/**/*.kt"],
+        "production": [
+          "services/media/src/main/kotlin/**/*.kt"
+        ],
         "exclude": [],
-        "roots": ["services/media/src/main/kotlin"],
+        "roots": [
+          "services/media/src/main/kotlin"
+        ],
         "inputs": [
           "frontend/src/**/*",
           "mcp/src/**/*",
@@ -1683,8 +2141,14 @@
           "docs/operations/network-range-review.md"
         ],
         "commands": [
-          ["make", "coverage"],
-          ["make", "coverage-sonar"]
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
         ],
         "toolchain_files": [
           "ops/local/toolchain.Dockerfile",
@@ -1695,7 +2159,9 @@
         ],
         "unit_report": {
           "format": "jacoco",
-          "reports": [".local/unit-coverage/media/report.xml"],
+          "reports": [
+            ".local/unit-coverage/media/report.xml"
+          ],
           "source_prefix": "services/media/src/main/kotlin"
         },
         "test_report": {
@@ -1705,9 +2171,13 @@
       },
       {
         "id": "backend-support",
-        "production": ["libraries/backend-support/src/main/kotlin/**/*.kt"],
+        "production": [
+          "libraries/backend-support/src/main/kotlin/**/*.kt"
+        ],
         "exclude": [],
-        "roots": ["libraries/backend-support/src/main/kotlin"],
+        "roots": [
+          "libraries/backend-support/src/main/kotlin"
+        ],
         "inputs": [
           "frontend/src/**/*",
           "mcp/src/**/*",
@@ -1745,8 +2215,14 @@
           "docs/operations/network-range-review.md"
         ],
         "commands": [
-          ["make", "coverage"],
-          ["make", "coverage-sonar"]
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
         ],
         "toolchain_files": [
           "ops/local/toolchain.Dockerfile",
@@ -1757,7 +2233,9 @@
         ],
         "unit_report": {
           "format": "jacoco",
-          "reports": [".local/unit-coverage/backend-support/report.xml"],
+          "reports": [
+            ".local/unit-coverage/backend-support/report.xml"
+          ],
           "source_prefix": "libraries/backend-support/src/main/kotlin"
         },
         "test_report": {
@@ -1767,14 +2245,18 @@
       },
       {
         "id": "mcp",
-        "production": ["mcp/src/**/*.ts"],
+        "production": [
+          "mcp/src/**/*.ts"
+        ],
         "exclude": [
           "mcp/src/generated/**",
           "mcp/src/lib/generated/**",
           "mcp/src/**/*.test.ts",
           "mcp/src/**/*.fixture.ts"
         ],
-        "roots": ["mcp/src"],
+        "roots": [
+          "mcp/src"
+        ],
         "inputs": [
           "frontend/src/**/*",
           "mcp/src/**/*",
@@ -1812,8 +2294,14 @@
           "docs/operations/network-range-review.md"
         ],
         "commands": [
-          ["make", "coverage"],
-          ["make", "coverage-sonar"]
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
         ],
         "toolchain_files": [
           "ops/local/toolchain.Dockerfile",
@@ -1824,7 +2312,9 @@
         ],
         "unit_report": {
           "format": "lcov",
-          "reports": [".local/unit-coverage/mcp/lcov.info"],
+          "reports": [
+            ".local/unit-coverage/mcp/lcov.info"
+          ],
           "source_prefix": "mcp"
         },
         "test_report": {

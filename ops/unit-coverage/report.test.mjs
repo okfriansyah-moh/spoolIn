@@ -241,3 +241,22 @@ test("classifications require exact reviewed issue, source and evidence", async 
     reviewedClassifications([issue], [{ ...record, reviewer: "writer" }], read),
   );
 });
+
+test("Docker measurement preflight requires pinned images and bounded actual memory", async () => {
+  const { dockerExecution } = await import("./report.mjs");
+  const image = "FROM image@sha256:" + "a".repeat(64);
+  const read =
+    (memory, toolchain = image) =>
+    (path) =>
+      path.endsWith("memory.max") ? memory : toolchain;
+  const result = dockerExecution(read("3221225472"), () => true);
+  assert.equal(result.memory_bytes, 3221225472);
+  assert.equal(result.workers, 1);
+  assert.equal(result.runtime, "docker");
+  assert.throws(() => dockerExecution(read("1"), () => false));
+  for (const memory of ["max", "0", "-1", "1.5", "4294967296"])
+    assert.throws(() => dockerExecution(read(memory), () => true));
+  assert.throws(() =>
+    dockerExecution(read("1", "FROM image:latest"), () => true),
+  );
+});

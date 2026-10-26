@@ -1,18 +1,17 @@
 import { spawnSync, execFileSync } from "node:child_process";
 import {
   closeSync,
-  existsSync,
   cpSync,
   mkdirSync,
   openSync,
   readdirSync,
-  readFileSync,
   rmSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
 import {
   components,
   componentResult,
+  dockerExecution,
   fingerprint,
   output,
   writeSummary,
@@ -90,6 +89,11 @@ function runComponent(component) {
     force: true,
   });
   const status = execute(component.id, gradleArguments(component));
+  copyUnitReports(component, directory);
+  return status;
+}
+
+function copyUnitReports(component, directory) {
   for (const [from, to] of [
     ["reports/unit-coverage/html", ""],
     ["reports/unit-coverage/report.xml", "report.xml"],
@@ -103,7 +107,6 @@ function runComponent(component) {
       /* Missing outputs are reported as failed by componentResult. */
     }
   }
-  return status;
 }
 
 const summary = {
@@ -126,22 +129,13 @@ for (const entry of readdirSync(output))
   rmSync(join(output, entry), { recursive: true, force: true });
 mkdirSync(`${output}/logs`, { recursive: true });
 try {
+  summary.execution = dockerExecution();
   const capture = execute("quality-inputs", [
     "python3",
     "ops/unit-coverage/quality-proof.py",
     "capture",
   ]);
   if (capture !== 0) throw new Error("Quality input capture failed");
-  summary.execution = {
-    runtime: "docker",
-    images: readFileSync("ops/local/toolchain.Dockerfile", "utf8")
-      .split("\n")
-      .filter((line) => line.startsWith("FROM "))
-      .map((line) => line.split(" ")[1]),
-    memory_bytes: memory,
-    workers: 1,
-    tests_separate_from_analysis: true,
-  };
   const setup = execute("dependencies", ["npm", "ci"]);
   const reportChecks = execute("report-contracts", [
     "node",
