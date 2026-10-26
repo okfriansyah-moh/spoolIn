@@ -28,6 +28,7 @@ tasks.named<Test>("integrationTest") {
     classpath = foundationTestRuntime
     doFirst {
         classpath = classpath.filter { it != sourceSets["main"].output.resourcesDir }
+        systemProperty("identity.fixture.classpath", classpath.asPath)
     }
     dependsOn("integrationTestClasses")
     filter { includeTestsMatching("com.spoolin.catalog.boundary.bootstrap.*BoundaryTest") }
