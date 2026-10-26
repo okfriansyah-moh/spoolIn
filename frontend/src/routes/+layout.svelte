@@ -42,6 +42,8 @@
   });
 </script>
 
+<svelte:head><title>SpoolIn</title></svelte:head>
+
 <AppShell currentPath={page.url.pathname} {capabilities}>
   {#snippet account()}<SessionMenu {controller} {session} />{/snippet}
   {@render children()}

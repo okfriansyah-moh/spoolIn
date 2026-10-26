@@ -1,3 +1,4 @@
+import { compareUtf16 } from '../../state/ordering';
 /**
  * T013 – Catalog filter URL serialisation and validation.
  *
@@ -21,7 +22,7 @@ export function parseCriteria(params: QueryParams): Criteria {
   const year = params.get('year') ?? '';
   // Clearing year must also clear month – enforce on read so Back restores correctly.
   const month = year ? (params.get('month') ?? '') : '';
-  const deduped = [...new Set(params.getAll('genre').map(String))].sort();
+  const deduped = [...new Set(params.getAll('genre').map(String))].sort(compareUtf16);
   return Object.freeze({
     text,
     kind,
@@ -36,7 +37,7 @@ export function criteriaToParams(criteria: Criteria): URLSearchParams {
   const params = new URLSearchParams();
   if (criteria.text) params.set('q', criteria.text);
   if (criteria.kind) params.set('kind', criteria.kind);
-  const deduped = [...new Set(criteria.genres)].sort();
+  const deduped = [...new Set(criteria.genres)].sort(compareUtf16);
   for (const g of deduped) params.append('genre', g);
   if (criteria.year) {
     params.set('year', criteria.year);

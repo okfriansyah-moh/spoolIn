@@ -6,16 +6,11 @@ import { fetchGenres } from '../catalog/api';
 import type { GenreOption, ManagedMovie, ManagedTitleRow } from './types';
 import {
   movieMutationOutcome,
-  recoverMovieOperation,
   type MovieMutationOutcome,
 } from './outcome';
 import { toManagedMovie, toManagedRow } from './projection';
 import type { MovieInputPayload, MoviePatchPayload } from './patch';
-const CATALOG_OPERATION_QUERY = `query CatalogOperation($id: UUID!) {
-  operation(id: $id, owner: CATALOG) {
-    id state resultId version resultExpired problem { code retryAfterMs }
-  }
-}`;
+
 
 const MANAGED_TITLES_QUERY = `query ManagedTitles($state: RecordState!, $first: Int, $after: Cursor) {
   managedTitles(state: $state, first: $first, after: $after) {
@@ -159,41 +154,4 @@ export async function updateMovie(
   return movieMutationOutcome(data.updateMovie, operationId);
 }
 
-export type RecoveredCatalogOperation = Readonly<{
-  operationId: string;
-  state: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED';
-  resultId: string | null;
-  version: string | null;
-  problemCode: string | null;
-  resultExpired: boolean;
-}>;
-
-export async function recoverCatalogOperation(
-  request: GraphqlRequest,
-  operationId: string,
-  csrf: string,
-  signal: AbortSignal,
-): Promise<RecoveredCatalogOperation | null> {
-  const data = record(
-    await request(
-      CATALOG_OPERATION_QUERY,
-      { id: operationId },
-      { csrf, signal },
-    ),
-  );
-  const node = data.operation;
-  if (node === null) return null;
-  const receipt = recoverMovieOperation(node, operationId);
-  if (!receipt) return null;
-  const input = record(node);
-  const resultId = typeof input.resultId === 'string' ? input.resultId : null;
-  const version = typeof input.version === 'string' ? input.version : null;
-  return Object.freeze({
-    operationId: receipt.operationId,
-    state: receipt.state,
-    resultId,
-    version,
-    problemCode: receipt.problem?.code ?? null,
-    resultExpired: receipt.resultExpired,
-  });
-}
+export { recoverCatalogOperation, type RecoveredCatalogOperation } from '../editing/operation-result';

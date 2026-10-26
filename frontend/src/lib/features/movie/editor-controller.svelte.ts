@@ -1,3 +1,5 @@
+import { selectRetainedDraft, reconcileRetainedDraft, newDraftState, submissionBlocked } from '../editing/retained-drafts';
+import { compareUtf16 } from '../../state/ordering';
 import type { GraphqlRequest } from '../../transport/graphql';
 import { TransportFailure } from '../../transport/graphql';
 import type { MovieDraft } from '../../generated/json-types';
@@ -61,8 +63,8 @@ function receiptExpired(
 function sameMetadata(left: ManagedMovie, right: ManagedMovie): boolean {
   const comparable = (movie: ManagedMovie) => ({
     ...movieToDraft(movie),
-    genreIds: [...movie.genreIds].sort(),
-    countries: [...(movie.countries ?? [])].sort(),
+    genreIds: [...movie.genreIds].sort(compareUtf16),
+    countries: [...(movie.countries ?? [])].sort(compareUtf16),
   });
   return JSON.stringify(comparable(left)) === JSON.stringify(comparable(right));
 }
@@ -292,18 +294,11 @@ export class MovieEditorController {
     signal: AbortSignal,
   ): Promise<void> {
     this.publish({ ...this.current, draftChoices: Object.freeze([]) });
-    this.draftSync.adopt(draft);
-    if (draft.operationId) {
-      this.publish({
-        ...this.current,
-        phase: 'uncertain',
-        pendingOperationId: draft.operationId,
-        message:
-          'Check the original save before continuing this retained draft.',
-      });
-      await this.checkOriginalResult();
-      if (signal.aborted || this.current.phase !== 'failed') return;
-    }
+    const ready = await reconcileRetainedDraft(draft, signal, this.draftSync,
+      (id) => this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: id,
+        message: 'Check the original save before continuing this retained draft.' }),
+      () => this.checkOriginalResult(), () => this.current.phase);
+    if (!ready) return;
     const stale =
       this.current.saved && draft.baseVersion !== this.current.saved.version;
     this.originalTitleTouched = Object.prototype.hasOwnProperty.call(
@@ -324,49 +319,16 @@ export class MovieEditorController {
   }
 
   async selectRetainedDraft(id: string): Promise<void> {
-    if (
-      !this.writeContext ||
-      this.current.phase === 'uncertain' ||
-      this.current.phase === 'submitting'
-    )
-      return;
-    const signal = this.active?.signal ?? new AbortController().signal;
-    try {
-      const drafts = await this.draftSync.load(this.writeContext, signal);
-      const selected = drafts.find((draft) => draft.id === id);
-      if (!selected || signal.aborted) {
-        this.publish({
-          ...this.current,
-          message:
-            'That retained draft is no longer available. Choose another draft or start again.',
-        });
-        return;
-      }
-      await this.applyBackedDraft(selected, signal);
-    } catch {
-      this.publish({
-        ...this.current,
-        message:
-          'The retained draft could not be checked. Retry before continuing.',
-      });
-    }
+    await selectRetainedDraft(id, this.writeContext, this.current.phase, this.active?.signal, this.draftSync,
+      (draft, signal) => this.applyBackedDraft(draft, signal),
+      (message) => this.publish({ ...this.current, message }));
   }
 
   startNewDraft(): void {
     if (!this.current.draftChoices.length || this.current.phase === 'uncertain')
       return;
     this.draftSync.reset();
-    this.publish({
-      ...this.current,
-      draftChoices: Object.freeze([]),
-      draftBaseKnown: true,
-      phase: 'idle',
-      draft: this.current.saved
-        ? movieToDraft(this.current.saved)
-        : EMPTY_MOVIE_DRAFT,
-      message:
-        'Started a new draft. Other retained drafts remain available after reload.',
-    });
+    this.publish({ ...this.current, ...newDraftState(this.current.saved, movieToDraft, EMPTY_MOVIE_DRAFT) });
   }
 
   private reviewedStale(reviewed: boolean): boolean {
@@ -449,12 +411,12 @@ export class MovieEditorController {
     latest: NonNullable<EditorState['saved']>,
   ): readonly string[] {
     const baseGenres = [...(this.current.saved?.genreIds ?? [])]
-      .sort()
+      .sort(compareUtf16)
       .join(',');
     const draftGenres = [
       ...(this.current.draft.genreIds ?? this.current.saved?.genreIds ?? []),
     ]
-      .sort()
+      .sort(compareUtf16)
       .join(',');
     return draftGenres !== baseGenres
       ? (this.current.draft.genreIds ?? [])
@@ -503,14 +465,7 @@ export class MovieEditorController {
   }
 
   private submissionBlocked(): boolean {
-    return (
-      !!this.pendingWriteId ||
-      this.current.draftChoices.length > 0 ||
-      ['submitting', 'uncertain', 'stale', 'target-changed'].includes(
-        this.current.phase,
-      ) ||
-      (this.mode === 'create' && this.current.saved !== null)
-    );
+    return submissionBlocked(this.pendingWriteId, this.current.draftChoices.length, this.current.phase, this.mode, this.current.saved);
   }
 
   private beginSubmit(): {

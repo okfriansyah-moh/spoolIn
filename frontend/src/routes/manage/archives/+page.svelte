@@ -318,6 +318,8 @@
   }
 </script>
 
+<svelte:head><title>Archives · SpoolIn</title></svelte:head>
+
 <section class="stack" aria-label="Archived records">
   <header class="archive-heading">
     <h1>Archives</h1>
