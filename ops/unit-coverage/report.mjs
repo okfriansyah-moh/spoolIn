@@ -23,8 +23,8 @@ export function dockerExecution(read = readFileSync, exists = existsSync) {
   if (!exists("/.dockerenv"))
     throw new Error("Unit measurements require Docker");
   const memory = Number(read("/sys/fs/cgroup/memory.max", "utf8").trim());
-  if (!Number.isSafeInteger(memory) || memory <= 0 || memory > 3221225472)
-    throw new Error("Docker memory must be bounded to at most 3 GiB");
+  if (!Number.isSafeInteger(memory) || memory <= 0 || memory > 4294967296)
+    throw new Error("Docker memory must be bounded to at most 4 GiB");
   const images = read("ops/local/toolchain.Dockerfile", "utf8")
     .split("\n")
     .filter((line) => line.startsWith("FROM "))

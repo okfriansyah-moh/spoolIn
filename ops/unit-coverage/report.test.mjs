@@ -251,10 +251,11 @@ test("Docker measurement preflight requires pinned images and bounded actual mem
       path.endsWith("memory.max") ? memory : toolchain;
   const result = dockerExecution(read("3221225472"), () => true);
   assert.equal(result.memory_bytes, 3221225472);
+  assert.equal(dockerExecution(read("4294967296"), () => true).memory_bytes, 4294967296);
   assert.equal(result.workers, 1);
   assert.equal(result.runtime, "docker");
   assert.throws(() => dockerExecution(read("1"), () => false));
-  for (const memory of ["max", "0", "-1", "1.5", "4294967296"])
+  for (const memory of ["max", "0", "-1", "1.5", "4294967297"])
     assert.throws(() => dockerExecution(read(memory), () => true));
   assert.throws(() =>
     dockerExecution(read("1", "FROM image:latest"), () => true),

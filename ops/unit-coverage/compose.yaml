@@ -22,7 +22,7 @@ services:
       - mcp-node:/workspace/mcp/node_modules
       - browser-node:/workspace/tests/browser/node_modules
       - gradle:/workspace/.local/gradle
-    mem_limit: 3g
+    mem_limit: ${COVERAGE_RUNNER_MEMORY:-3g}
     cpus: 2
     init: true
     command: [node, ops/unit-coverage/run.mjs]
