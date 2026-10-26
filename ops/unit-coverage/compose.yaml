@@ -8,6 +8,9 @@ services:
     working_dir: /workspace
     environment:
       CI: 'true'
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /workspace
       NODE_OPTIONS: --max-old-space-size=640
       GRADLE_USER_HOME: /workspace/.local/gradle
       SONAR_HOST_URL: http://sonarqube:9000
