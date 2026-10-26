@@ -9,11 +9,9 @@ internal object CatalogReadProjection {
         management: Boolean,
     ): Map<String, Any?> = page(proto.nodesList.map { title(it, management) }, proto.endCursor, proto.hasNextPage)
 
-    fun personPage(proto: Spoolin.PersonPage): Map<String, Any?> =
-        page(proto.nodesList.map(::person), proto.endCursor, proto.hasNextPage)
+    fun personPage(proto: Spoolin.PersonPage): Map<String, Any?> = page(proto.nodesList.map(::person), proto.endCursor, proto.hasNextPage)
 
-    fun creditPage(proto: Spoolin.CreditPage): Map<String, Any?> =
-        page(proto.nodesList.map(::credit), proto.endCursor, proto.hasNextPage)
+    fun creditPage(proto: Spoolin.CreditPage): Map<String, Any?> = page(proto.nodesList.map(::credit), proto.endCursor, proto.hasNextPage)
 
     fun page(
         nodes: List<Map<String, Any?>>,
