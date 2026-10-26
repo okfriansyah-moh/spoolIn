@@ -4203,7 +4203,7 @@
     },
     ".ai/bundles/1.4.0/agent_workflow/resource_system.py": {
       "kind": "file",
-      "sha256": "a1cc5abf5c26fead3a194f6490ea3a74ac2ecd0202a7668a4796b1cdf0b979fa"
+      "sha256": "897a6f5ec84df9e1133c281a6c61df64877545ccdce782f11eebc948e51c2a3b"
     },
     ".ai/bundles/1.4.0/agent_workflow/resources.py": {
       "kind": "file",
@@ -6039,7 +6039,7 @@
     },
     ".ai/bundles/1.4.0/tests/test_resource_system.py": {
       "kind": "file",
-      "sha256": "4f1fd3fb102685933ca2e6f05a600ae452cd4e372718630cc38c62f163f38363"
+      "sha256": "3ef5d15f540f59f29dec2736e8f14d1e83610b871953b1839a57b8258637d612"
     },
     ".ai/bundles/1.4.0/tests/test_resources.py": {
       "kind": "file",

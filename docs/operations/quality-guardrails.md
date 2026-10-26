@@ -4,7 +4,7 @@ Recorded 26 October 2026. This is workflow enforcement adoption, separate from t
 
 ## Installation
 
-The global defaults and movie-app now select agent-workflow **1.4.0**, built from workflow source revision `fa8aadc`. The installer upgraded managed instructions, native roles, skills, prompts and adapters. Both doctor receipts report healthy with no conflicts. Personal instruction content was preserved in five inspected files, including the existing Cursor rules. Movie-app retains its custom resource limits and all 80 existing checks, with one focused adapter check added. Other repository pins were not upgraded.
+The global defaults and movie-app now select agent-workflow **1.4.0**, built from workflow source revision `eae807a`. The installer upgraded managed instructions, native roles, skills, prompts and adapters. Both doctor receipts report healthy with no conflicts. Personal instruction content was preserved in five inspected files, including the existing Cursor rules. Movie-app retains its custom resource limits and all 80 existing checks, with one focused adapter check added. Other repository pins were not upgraded.
 
 The owning [permanent quality contract](../../.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract) requires independent component coverage, exact zero issue/duplication counters and all required checks. New projects remain blocked until their component/report/command/toolchain configuration is complete. No passing debt baseline was added.
 
@@ -12,13 +12,13 @@ Global Copilot CLI guidance is managed in `~/.copilot/copilot-instructions.md`; 
 
 ## Verification
 
-- Workflow runtime/schema/installer suite: **373 tests passed** in temporary repositories/homes. **12 focused acceptance-boundary tests also passed** after capture, artifact-retention and nested-lock checks. Temporary installation cases cover repeat installation, conflict handling, rollback and preserved personal content.
+- Workflow runtime/schema/installer suite: **375 tests passed** in temporary repositories/homes. **12 focused acceptance-boundary tests also passed** after capture, artifact-retention and nested-lock checks. Temporary installation cases cover repeat installation, conflict handling, rollback and preserved personal content.
 - Movie report contracts: **7 tests passed** inside the pinned Docker toolchain under the shared execution lease.
 - Movie proof adapter: **6 tests passed**, including current configuration invalidation, failed/unfinished execution, missing producer receipts and modified raw reports.
 - Shell syntax, Node syntax, Compose configuration and authored wording checks passed.
 - One independent combined review inspected source, corrections, installer receipts and native limitations.
 
-Raw local receipts are retained under `.ai/state/quality-guardrails/`; they are not committed because native records include machine configuration and local paths. Global backup: `.local/share/agent-workflow/install-backups/20261026-183335-0b2cc4de`. Movie-app backup: `.ai/install-backups/20261026-183335-c8a6a8e0`. Use the installer rollback command with the matching scope and backup if recovery is needed.
+Raw local receipts are retained under `.ai/state/quality-guardrails/`; they are not committed because native records include machine configuration and local paths. Global backup: `.local/share/agent-workflow/install-backups/20261026-184641-7eb6d933`. Movie-app backup: `.ai/install-backups/20261026-184641-7bb8c7d1`. Use the installer rollback command with the matching scope and backup if recovery is needed.
 
 ## Native host observations
 
@@ -41,3 +41,5 @@ Remote CI and a fresh complete product-quality pass have not been established by
 The reviewed workflow source is published in [agentic-workflow PR #2](https://github.com/okfriansyah-moh/agentic-workflow/pull/2). The installation was refreshed after the final acceptance correction; native loading remains unverified and no release tag was published.
 
 The full new-bundle whitespace check flags inherited trailing spaces and blank lines in copied skill/reference/license files. The installer preserved the reviewed source bytes and managed hashes; these formatting findings were not waived or silently rewritten. The authored changes outside the copied bundle pass the whitespace check. The wording scan inspected the complete copied bundle; its only matches are the personal policy’s expressly permitted definitions, negative test inputs and immutable upstream evidence.
+
+The first remote adoption run stopped before testing with unavailable process measurements. The Linux parser had rejected valid kernel-process rows with process-group zero; source `eae807a` corrects that case while preserving rejection of invalid/unknown measurements. Nineteen focused resource-adapter tests and the final 375-test suite passed. Global/project installations were refreshed and both doctors remain healthy. Remote CI must rerun this correction; it is not claimed green.
