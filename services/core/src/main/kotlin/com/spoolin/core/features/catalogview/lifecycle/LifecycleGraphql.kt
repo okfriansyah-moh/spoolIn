@@ -41,7 +41,13 @@ class LifecycleGraphql(
         val principal = context.principal ?: throw CredentialRejected()
         val operationId = CatalogGraphqlArguments.operationId(env)
         val request = lifecycleRequest(env, operationId, context, impactToken = null)
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/MovieLifecycle", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/MovieLifecycle",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).movieLifecycle(request)
         context.rememberOperation(operationId, OperationOwner.CATALOG, GraphqlOutcomeProjection.operation(outcome))
         return GraphqlOutcomeProjection.mutation(outcome)

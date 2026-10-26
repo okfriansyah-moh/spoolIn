@@ -489,7 +489,18 @@ class CatalogWriteConfiguration {
             receipts,
             movieWrites,
             proposalMetrics,
-            posters = com.spoolin.catalog.features.proposal.PreparedMoviePosters(dataSource, spoolin.v1.MediaServiceGrpc.newBlockingStub(channels.createChannel("media")), { com.spoolin.support.policy.PolicyEnvironment.resolve { environment.getProperty(it) } }),
+            posters =
+                com.spoolin.catalog.features.proposal
+                    .PreparedMoviePosters(
+                        dataSource,
+                        spoolin.v1.MediaServiceGrpc.newBlockingStub(
+                            channels.createChannel("media"),
+                        ),
+                        {
+                            com.spoolin.support.policy.PolicyEnvironment
+                                .resolve { environment.getProperty(it) }
+                        },
+                    ),
             livePolicyRevision = {
                 com.spoolin.support.policy.PolicyEnvironment
                     .resolve { environment.getProperty(it) }

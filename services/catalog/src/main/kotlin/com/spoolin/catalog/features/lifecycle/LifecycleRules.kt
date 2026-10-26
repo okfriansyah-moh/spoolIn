@@ -79,7 +79,8 @@ internal data class LifecycleCommand(
 }
 
 internal fun lifecycleOutcome(receipt: com.spoolin.support.receipts.ReceiptOutcome): spoolin.v1.Spoolin.Outcome =
-    com.spoolin.catalog.boundary.grpc.CatalogWriteRpc.outcome(receipt)
+    com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
+        .outcome(receipt)
 
 internal fun lifecycleRejection(
     request: spoolin.v1.Spoolin.Lifecycle,

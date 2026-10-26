@@ -22,8 +22,12 @@ import org.junit.jupiter.api.Test
 import spoolin.v1.Spoolin
 
 class CatalogWriteRpcRulesTest {
-    private fun receipt(state: ReceiptState, result: SafeResult? = null, error: String? = null, expired: Boolean = false) =
-        ReceiptOutcome(unitOperation, state, result, error, unitCorrelation, unitNow, expired)
+    private fun receipt(
+        state: ReceiptState,
+        result: SafeResult? = null,
+        error: String? = null,
+        expired: Boolean = false,
+    ) = ReceiptOutcome(unitOperation, state, result, error, unitCorrelation, unitNow, expired)
 
     @Test
     fun `receipt responses retain optional version and expired failure without inventing result fields`() {
@@ -46,12 +50,13 @@ class CatalogWriteRpcRulesTest {
     @Test
     fun `receipt failures retain transport distinctions and never complete an errored stream`() {
         val original = Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
-        val failures = listOf(
-            Triple(original, Status.Code.ABORTED, "VERSION_CONFLICT"),
-            Triple(ReceiptConflict(), Status.Code.ALREADY_EXISTS, "IDEMPOTENCY_CONFLICT"),
-            Triple(ReceiptHidden(), Status.Code.NOT_FOUND, null),
-            Triple(ActorRejected(), Status.Code.PERMISSION_DENIED, "UNAUTHORISED"),
-        )
+        val failures =
+            listOf(
+                Triple(original, Status.Code.ABORTED, "VERSION_CONFLICT"),
+                Triple(ReceiptConflict(), Status.Code.ALREADY_EXISTS, "IDEMPOTENCY_CONFLICT"),
+                Triple(ReceiptHidden(), Status.Code.NOT_FOUND, null),
+                Triple(ActorRejected(), Status.Code.PERMISSION_DENIED, "UNAUTHORISED"),
+            )
         for ((failure, code, description) in failures) {
             val response = RpcResult<Spoolin.Outcome>()
             CatalogWriteRpc.receipt(response) { throw failure }
@@ -71,12 +76,29 @@ class CatalogWriteRpcRulesTest {
         assertEquals(unitOperation.toString(), response.value().operationId)
         assertEquals("FAILED", response.value().state)
         assertEquals("FIELD_INVALID", response.value().problem.code)
-        assertEquals("originalTitle", response.value().problem.fieldsList.single().path)
-        assertEquals("Supply a shorter title.", response.value().problem.fieldsList.single().message)
+        assertEquals(
+            "originalTitle",
+            response
+                .value()
+                .problem.fieldsList
+                .single()
+                .path,
+        )
+        assertEquals(
+            "Supply a shorter title.",
+            response
+                .value()
+                .problem.fieldsList
+                .single()
+                .message,
+        )
         assertNull(response.failure)
-        assertSame(violation, assertThrows(InputViolation::class.java) {
-            CatalogWriteRpc.receipt(RpcResult()) { throw violation }
-        })
+        assertSame(
+            violation,
+            assertThrows(InputViolation::class.java) {
+                CatalogWriteRpc.receipt(RpcResult()) { throw violation }
+            },
+        )
     }
 
     @Test
@@ -93,7 +115,8 @@ class CatalogWriteRpcRulesTest {
         CatalogWriteRpc.requireVersion(true, false, -1)
         CatalogWriteRpc.requireVersion(false, true, 0)
         for ((supplied, version) in listOf(false to 0L, true to -1L)) {
-            val violation = assertThrows(InputViolation::class.java) { CatalogWriteRpc.requireVersion(false, supplied, version) }
+            val violation =
+                assertThrows(InputViolation::class.java) { CatalogWriteRpc.requireVersion(false, supplied, version) }
             assertEquals("expectedVersion", violation.path)
         }
     }
@@ -101,10 +124,15 @@ class CatalogWriteRpcRulesTest {
     @Test
     fun `management context preserves actor scope operation correlation policy and intent fields`() =
         withMaintainer {
-            val command = CatalogWriteContext.management(
-                Spoolin.Context.newBuilder().setOperationId(unitOperation.toString())
-                    .setCorrelationId(unitCorrelation.toString()).setPolicyRevision("p7").build(),
-            )
+            val command =
+                CatalogWriteContext.management(
+                    Spoolin.Context
+                        .newBuilder()
+                        .setOperationId(unitOperation.toString())
+                        .setCorrelationId(unitCorrelation.toString())
+                        .setPolicyRevision("p7")
+                        .build(),
+                )
             assertEquals(unitActor, command.actor)
             assertEquals(unitCorrelation, command.correlation)
             val fields = listOf("title" to "River", "originalTitle" to null)

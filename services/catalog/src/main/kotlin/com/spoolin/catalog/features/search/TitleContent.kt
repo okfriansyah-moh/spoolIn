@@ -37,6 +37,5 @@ internal data class TitleContent(
                 version = rs.getLong("version"),
             )
         }
-
     }
 }

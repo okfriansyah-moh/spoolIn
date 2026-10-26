@@ -76,7 +76,13 @@ class ManagedCreditGraphql(
                 .setCategory(category)
                 .setLabel(label)
                 .build()
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/CreateRole", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/CreateRole",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).createRole(request)
         context.rememberOperation(operationId, OperationOwner.CATALOG, GraphqlOutcomeProjection.operation(outcome))
         return GraphqlOutcomeProjection.mutation(outcome)
@@ -101,7 +107,13 @@ class ManagedCreditGraphql(
                 .setRoleId(requireNotNull(input["roleId"] as? String))
                 .addAllCharacters((input["characters"] as? List<*>)?.map { it.toString() } ?: emptyList())
                 .build()
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/WriteCredit", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/WriteCredit",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).writeCredit(request)
         context.rememberOperation(operationId, OperationOwner.CATALOG, GraphqlOutcomeProjection.operation(outcome))
         return GraphqlOutcomeProjection.mutation(outcome)
@@ -136,7 +148,13 @@ class ManagedCreditGraphql(
                 .newBuilder()
                 .addAllPaths(paths)
                 .build()
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/WriteCredit", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/WriteCredit",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).writeCredit(builder.build())
         context.rememberOperation(operationId, OperationOwner.CATALOG, GraphqlOutcomeProjection.operation(outcome))
         return GraphqlOutcomeProjection.mutation(outcome)
@@ -162,7 +180,13 @@ class ManagedCreditGraphql(
                 ).setId(creditId)
                 .setExpectedVersion(expectedVersion)
                 .build()
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/RemoveCredit", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/RemoveCredit",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).removeCredit(request)
         context.rememberOperation(operationId, OperationOwner.CATALOG, GraphqlOutcomeProjection.operation(outcome))
         return GraphqlOutcomeProjection.mutation(outcome)

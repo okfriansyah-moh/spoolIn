@@ -66,7 +66,13 @@ class ManagedCatalogGraphql(
                 .setContext(CatalogGraphqlArguments.writeContext(operationId, context.correlation, policyRevision))
                 .setValues(values)
                 .build()
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/WriteMovie", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/WriteMovie",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).writeMovie(request)
         val result = GraphqlOutcomeProjection.operation(outcome)
         context.rememberOperation(operationId, OperationOwner.CATALOG, result)
@@ -94,7 +100,13 @@ class ManagedCatalogGraphql(
                 .setValues(values)
                 .setUpdateMask(mask)
                 .build()
-        val token = catalogRpc.issue(principal, "/spoolin.v1.CatalogService/WriteMovie", operationId, context.correlation)
+        val token =
+            catalogRpc.issue(
+                principal,
+                "/spoolin.v1.CatalogService/WriteMovie",
+                operationId,
+                context.correlation,
+            )
         val outcome = catalogRpc.stub(token).writeMovie(request)
         val result = GraphqlOutcomeProjection.operation(outcome)
         context.rememberOperation(operationId, OperationOwner.CATALOG, result)

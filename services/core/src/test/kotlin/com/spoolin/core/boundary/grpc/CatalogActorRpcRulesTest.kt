@@ -25,9 +25,13 @@ class CatalogActorRpcRulesTest {
     private val now = Instant.ofEpochSecond(1800000000)
     private val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
     private val issuer = ActorIssuer(ActorSigner("test", keys.private), Clock.fixed(now, ZoneOffset.UTC))
-    private val principal = SessionPrincipal(
-        UUID.randomUUID(), AccountAuthority(UUID.randomUUID(), AccountRole.MAINTAINER, 5), now.plusSeconds(600), "csrf",
-    )
+    private val principal =
+        SessionPrincipal(
+            UUID.randomUUID(),
+            AccountAuthority(UUID.randomUUID(), AccountRole.MAINTAINER, 5),
+            now.plusSeconds(600),
+            "csrf",
+        )
 
     @Test fun `catalog transport attaches the scoped signed actor and preserves default and artwork deadlines`() {
         val replies = HttpRpcReplies(Spoolin.Title.getDefaultInstance(), Spoolin.Title.getDefaultInstance())
@@ -42,8 +46,18 @@ class CatalogActorRpcRulesTest {
         assertEquals("MAINTAINER", claims.role)
         assertEquals(operation, claims.operationId)
         assertEquals(correlation, claims.correlationId)
-        rpc.stub(token).managedTitle(Spoolin.Id.newBuilder().setId("title").build())
-        rpc.stub(token, 30L).managedTitle(Spoolin.Id.newBuilder().setId("title").build())
+        rpc.stub(token).managedTitle(
+            Spoolin.Id
+                .newBuilder()
+                .setId("title")
+                .build(),
+        )
+        rpc.stub(token, 30L).managedTitle(
+            Spoolin.Id
+                .newBuilder()
+                .setId("title")
+                .build(),
+        )
         assertEquals(listOf(token, token), replies.requestHeaders.map { it.get(ActorRpc.metadata) })
         for ((options, ceiling) in replies.callOptions.zip(listOf(5L, 30L))) {
             val remaining = requireNotNull(options.deadline).timeRemaining(TimeUnit.MILLISECONDS)

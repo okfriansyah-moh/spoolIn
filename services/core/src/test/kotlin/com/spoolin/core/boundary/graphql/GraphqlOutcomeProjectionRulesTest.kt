@@ -8,11 +8,13 @@ import spoolin.v1.Spoolin
 class GraphqlOutcomeProjectionRulesTest {
     @Test fun `pending and expired operations preserve absent results without invented values`() {
         for (expired in listOf(false, true)) {
-            val outcome = Spoolin.Outcome.newBuilder()
-                .setOperationId("operation")
-                .setState(if (expired) "EXPIRED" else "PENDING")
-                .setResultExpired(expired)
-                .build()
+            val outcome =
+                Spoolin.Outcome
+                    .newBuilder()
+                    .setOperationId("operation")
+                    .setState(if (expired) "EXPIRED" else "PENDING")
+                    .setResultExpired(expired)
+                    .build()
             val mapped = GraphqlOutcomeProjection.operation(outcome)
             assertEquals("operation", mapped["id"])
             assertEquals(outcome.state, mapped["state"])
@@ -26,12 +28,14 @@ class GraphqlOutcomeProjectionRulesTest {
 
     @Test fun `successful results preserve zero and large versions as decimal strings`() {
         for (version in listOf(0L, 9007199254740993L)) {
-            val outcome = Spoolin.Outcome.newBuilder()
-                .setOperationId("operation")
-                .setState("SUCCEEDED")
-                .setResultId("result")
-                .setVersion(version)
-                .build()
+            val outcome =
+                Spoolin.Outcome
+                    .newBuilder()
+                    .setOperationId("operation")
+                    .setState("SUCCEEDED")
+                    .setResultId("result")
+                    .setVersion(version)
+                    .build()
             val mutation = GraphqlOutcomeProjection.mutation(outcome)
             val operation = mutation["operation"] as Map<*, *>
             assertEquals("result", operation["resultId"])
@@ -42,13 +46,31 @@ class GraphqlOutcomeProjectionRulesTest {
     }
 
     @Test fun `mutation and remembered operation expose the same safe problem and ordered field issues`() {
-        val problem = Spoolin.Problem.newBuilder()
-            .setCode("INPUT_INVALID")
-            .addFields(Spoolin.FieldIssue.newBuilder().setPath("title").setCode("REQUIRED").setMessage("Supply a title."))
-            .addFields(Spoolin.FieldIssue.newBuilder().setPath("release").setCode("INVALID").setMessage("Check the release date."))
-            .setRetryAfterMs(17)
-            .build()
-        val outcome = Spoolin.Outcome.newBuilder().setState("FAILED").setProblem(problem).build()
+        val problem =
+            Spoolin.Problem
+                .newBuilder()
+                .setCode("INPUT_INVALID")
+                .addFields(
+                    Spoolin.FieldIssue
+                        .newBuilder()
+                        .setPath("title")
+                        .setCode("REQUIRED")
+                        .setMessage("Supply a title."),
+                ).addFields(
+                    Spoolin.FieldIssue
+                        .newBuilder()
+                        .setPath(
+                            "release",
+                        ).setCode("INVALID")
+                        .setMessage("Check the release date."),
+                ).setRetryAfterMs(17)
+                .build()
+        val outcome =
+            Spoolin.Outcome
+                .newBuilder()
+                .setState("FAILED")
+                .setProblem(problem)
+                .build()
         val mutation = GraphqlOutcomeProjection.mutation(outcome)
         val mapped = mutation["problem"] as Map<*, *>
         assertEquals("INPUT_INVALID", mapped["code"])

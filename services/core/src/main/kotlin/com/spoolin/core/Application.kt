@@ -323,7 +323,8 @@ fun main(args: Array<String>) {
             ),
         )
     } else if (args.size == 1 && args[0].startsWith("--reset-local-maintainer-password=")) {
-        com.spoolin.core.features.bootstrap.runLocalDemoPasswordCli(args[0])
+        com.spoolin.core.features.bootstrap
+            .runLocalDemoPasswordCli(args[0])
     } else if (args.size == 1 && args[0].startsWith("--initialize-accounts=")) {
         com.spoolin.core.features.bootstrap
             .runInitializationCli(args[0])

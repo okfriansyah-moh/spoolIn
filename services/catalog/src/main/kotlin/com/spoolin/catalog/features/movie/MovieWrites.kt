@@ -1,4 +1,11 @@
-@file:Suppress("TooManyFunctions", "ThrowsCount", "SwallowedException", "SpreadOperator", "MaxLineLength", "LongParameterList")
+@file:Suppress(
+    "TooManyFunctions",
+    "ThrowsCount",
+    "SwallowedException",
+    "SpreadOperator",
+    "MaxLineLength",
+    "LongParameterList",
+)
 
 package com.spoolin.catalog.features.movie
 
@@ -139,10 +146,19 @@ class MovieWrites(
         val request = command.input
         val titleId = CatalogWriteRpc.id(request.id)
         val expectedVersion = request.expectedVersion
-        val current = lockTitle(conn, titleId) ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
-        if (current.kind != KIND_MOVIE) throw Status.PERMISSION_DENIED.withDescription("TV_WRITE_DENIED").asRuntimeException()
+        val current =
+            lockTitle(conn, titleId) ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        if (current.kind !=
+            KIND_MOVIE
+        ) {
+            throw Status.PERMISSION_DENIED.withDescription("TV_WRITE_DENIED").asRuntimeException()
+        }
         if (current.status != STATUS_ACTIVE) throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
-        if (current.version != expectedVersion) throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
+        if (current.version !=
+            expectedVersion
+        ) {
+            throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
+        }
         val patch = MovieValidation.validatePatch(request, command.policy)
         val currentGenres = GenreTagging.current(conn, titleId)
         val newVersion = expectedVersion + 1

@@ -22,7 +22,10 @@ class PersonLifecycle(
         request: Lifecycle,
         response: StreamObserver<Outcome>,
     ) {
-        LifecycleExecution(receipts, policyRevision).apply(request, response, "PersonLifecycle") { connection, command ->
+        LifecycleExecution(
+            receipts,
+            policyRevision,
+        ).apply(request, response, "PersonLifecycle") { connection, command ->
             LifecycleStore().person(connection, command, impacts)
         }
     }

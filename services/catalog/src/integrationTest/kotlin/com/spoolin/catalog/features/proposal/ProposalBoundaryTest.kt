@@ -11,7 +11,6 @@ import spoolin.v1.Spoolin
 import java.security.MessageDigest
 import java.util.UUID
 
-private const val PROPOSAL_EXPIRY_SECONDS = 600L
 private const val PENDING_QUOTA = 20
 
 class ProposalBoundaryTest {
@@ -118,7 +117,7 @@ class ProposalBoundaryTest {
             val first = propose(f, request)
             repeat(PENDING_QUOTA - 1) { propose(f, proposal()) }
             assertEquals(Status.Code.RESOURCE_EXHAUSTED, failure { propose(f, proposal()) })
-            f.now = f.now.plusSeconds(PROPOSAL_EXPIRY_SECONDS)
+            f.now = java.time.Instant.ofEpochSecond(first.expiresAt.seconds, first.expiresAt.nanos.toLong())
             assertTrue(propose(f, proposal()).hasUiChallenge())
             assertEquals(Status.Code.FAILED_PRECONDITION, failure { propose(f, request) })
             assertEquals(Status.Code.FAILED_PRECONDITION, failure { propose(f, proposal(first.proposalId, 1)) })

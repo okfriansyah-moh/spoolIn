@@ -99,5 +99,4 @@ class RoleWrites(
                 listOf(label),
             ) { rs -> rs.next() }
             .isNotEmpty()
-
 }

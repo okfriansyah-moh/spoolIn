@@ -19,7 +19,10 @@ import java.util.UUID
 
 /** Shared wire projection and receipt failures; domain validation stays in its owning mutation. */
 internal object CatalogWriteRpc {
-    fun receipt(response: StreamObserver<Outcome>, execute: () -> ReceiptOutcome) {
+    fun receipt(
+        response: StreamObserver<Outcome>,
+        execute: () -> ReceiptOutcome,
+    ) {
         try {
             response.onNext(outcome(execute()))
             response.onCompleted()
@@ -34,24 +37,41 @@ internal object CatalogWriteRpc {
         }
     }
 
-    fun fields(operation: String, response: StreamObserver<Outcome>, execute: () -> ReceiptOutcome) {
+    fun fields(
+        operation: String,
+        response: StreamObserver<Outcome>,
+        execute: () -> ReceiptOutcome,
+    ) {
         try {
             receipt(response, execute)
         } catch (violation: InputViolation) {
             response.onNext(
-                Outcome.newBuilder().setOperationId(operation).setState("FAILED").setProblem(
-                    Problem.newBuilder().setCode("FIELD_INVALID").addFields(
-                        FieldIssue.newBuilder().setPath(violation.path).setCode("INVALID").setMessage(violation.correction),
-                    ),
-                ).build(),
+                Outcome
+                    .newBuilder()
+                    .setOperationId(operation)
+                    .setState("FAILED")
+                    .setProblem(
+                        Problem.newBuilder().setCode("FIELD_INVALID").addFields(
+                            FieldIssue
+                                .newBuilder()
+                                .setPath(
+                                    violation.path,
+                                ).setCode("INVALID")
+                                .setMessage(violation.correction),
+                        ),
+                    ).build(),
             )
             response.onCompleted()
         }
     }
 
     fun outcome(receipt: ReceiptOutcome): Outcome {
-        val builder = Outcome.newBuilder().setOperationId(receipt.id.toString())
-            .setState(receipt.state.name).setResultExpired(receipt.resultExpired)
+        val builder =
+            Outcome
+                .newBuilder()
+                .setOperationId(receipt.id.toString())
+                .setState(receipt.state.name)
+                .setResultExpired(receipt.resultExpired)
         receipt.result?.let { result ->
             builder.resultId = result.resultId.toString()
             result.version?.let { builder.version = it }
@@ -64,7 +84,11 @@ internal object CatalogWriteRpc {
         runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
             .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
 
-    fun requireVersion(create: Boolean, supplied: Boolean, version: Long) {
+    fun requireVersion(
+        create: Boolean,
+        supplied: Boolean,
+        version: Long,
+    ) {
         if (!create && (!supplied || version < 0)) {
             throw InputViolation("expectedVersion", "Supply the current version.")
         }
@@ -77,15 +101,21 @@ internal data class CatalogWriteContext(
     val correlation: UUID,
     val policy: String,
 ) {
-    fun intent(kind: String, fields: List<Pair<String, String?>>): OperationIntent =
-        OperationIntent(operation, "account:$actor", kind, policy, fields)
+    fun intent(
+        kind: String,
+        fields: List<Pair<String, String?>>,
+    ): OperationIntent = OperationIntent(operation, "account:$actor", kind, policy, fields)
 
     companion object {
         fun management(context: Context): CatalogWriteContext {
             val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
             if (!Permissions.management(claims.role)) throw ActorRejected()
-            return CatalogWriteContext(claims.accountId, CatalogWriteRpc.id(context.operationId),
-                CatalogWriteRpc.id(context.correlationId), context.policyRevision)
+            return CatalogWriteContext(
+                claims.accountId,
+                CatalogWriteRpc.id(context.operationId),
+                CatalogWriteRpc.id(context.correlationId),
+                context.policyRevision,
+            )
         }
     }
 }

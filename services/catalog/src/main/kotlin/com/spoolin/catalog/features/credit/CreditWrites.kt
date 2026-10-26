@@ -301,8 +301,16 @@ class CreditWrites(
     )
 
     private fun requireActiveMovie(title: TitleRow) {
-        if (title.status != STATUS_ACTIVE) throw Status.FAILED_PRECONDITION.withDescription("TITLE_ARCHIVED").asRuntimeException()
-        if (title.kind != KIND_MOVIE) throw Status.FAILED_PRECONDITION.withDescription("TV_CREDIT_DENIED").asRuntimeException()
+        if (title.status !=
+            STATUS_ACTIVE
+        ) {
+            throw Status.FAILED_PRECONDITION.withDescription("TITLE_ARCHIVED").asRuntimeException()
+        }
+        if (title.kind !=
+            KIND_MOVIE
+        ) {
+            throw Status.FAILED_PRECONDITION.withDescription("TV_CREDIT_DENIED").asRuntimeException()
+        }
     }
 
     private fun lockTitle(
@@ -377,5 +385,4 @@ class CreditWrites(
         conn: Connection,
         values: List<String>,
     ): java.sql.Array = conn.createArrayOf("text", values.toTypedArray())
-
 }

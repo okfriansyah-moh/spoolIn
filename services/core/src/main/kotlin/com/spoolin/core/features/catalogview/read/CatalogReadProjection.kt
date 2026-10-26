@@ -4,8 +4,10 @@ import spoolin.v1.Spoolin
 import java.time.Instant
 
 internal object CatalogReadProjection {
-    fun titlePage(proto: Spoolin.TitlePage, management: Boolean): Map<String, Any?> =
-        page(proto.nodesList.map { title(it, management) }, proto.endCursor, proto.hasNextPage)
+    fun titlePage(
+        proto: Spoolin.TitlePage,
+        management: Boolean,
+    ): Map<String, Any?> = page(proto.nodesList.map { title(it, management) }, proto.endCursor, proto.hasNextPage)
 
     fun personPage(proto: Spoolin.PersonPage): Map<String, Any?> =
         page(proto.nodesList.map(::person), proto.endCursor, proto.hasNextPage)
@@ -13,13 +15,20 @@ internal object CatalogReadProjection {
     fun creditPage(proto: Spoolin.CreditPage): Map<String, Any?> =
         page(proto.nodesList.map(::credit), proto.endCursor, proto.hasNextPage)
 
-    fun page(nodes: List<Map<String, Any?>>, endCursor: String, hasNextPage: Boolean): Map<String, Any?> =
+    fun page(
+        nodes: List<Map<String, Any?>>,
+        endCursor: String,
+        hasNextPage: Boolean,
+    ): Map<String, Any?> =
         mapOf(
             "nodes" to nodes,
             "pageInfo" to mapOf("endCursor" to endCursor.takeIf { it.isNotEmpty() }, "hasNextPage" to hasNextPage),
         )
 
-    fun title(t: Spoolin.Title, management: Boolean): Map<String, Any?> =
+    fun title(
+        t: Spoolin.Title,
+        management: Boolean,
+    ): Map<String, Any?> =
         mapOf(
             "id" to t.id,
             "kind" to t.kind,

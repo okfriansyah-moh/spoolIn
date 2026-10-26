@@ -19,7 +19,10 @@ private const val CHANGES_BYTE_LIMIT = 65536
  * Private/unlisted fields are filtered before any processing.
  */
 object AuditDiff {
-    internal fun <T> patchedValue(patch: PatchValue<T>, current: T): Any? =
+    internal fun <T> patchedValue(
+        patch: PatchValue<T>,
+        current: T,
+    ): Any? =
         when (patch) {
             is PatchValue.Value -> patch.value
             is PatchValue.Clear -> null

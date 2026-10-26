@@ -21,18 +21,27 @@ internal object CatalogGraphqlArguments {
             .onFailure { throw InputViolation("id", "Supply a lowercase, hyphenated UUID.") }
     }
 
-    fun writeContext(operationId: UUID, correlationId: UUID, policyRevision: String): Spoolin.Context =
-        Spoolin.Context.newBuilder()
+    fun writeContext(
+        operationId: UUID,
+        correlationId: UUID,
+        policyRevision: String,
+    ): Spoolin.Context =
+        Spoolin.Context
+            .newBuilder()
             .setOperationId(operationId.toString())
             .setCorrelationId(correlationId.toString())
             .setPolicyRevision(policyRevision)
             .build()
 
-    fun managedPage(env: DataFetchingEnvironment, policy: () -> PublicPolicy): Spoolin.PageRequest {
+    fun managedPage(
+        env: DataFetchingEnvironment,
+        policy: () -> PublicPolicy,
+    ): Spoolin.PageRequest {
         val state = requireNotNull(env.getArgument<String>("state"))
         val first = ReadPolicy(policy()).pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
-        return Spoolin.PageRequest.newBuilder()
+        return Spoolin.PageRequest
+            .newBuilder()
             .setState(state)
             .setFirst(first)
             .also { builder -> after?.let { builder.after = it } }

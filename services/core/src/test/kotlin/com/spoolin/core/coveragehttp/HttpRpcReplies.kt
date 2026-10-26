@@ -46,7 +46,8 @@ internal class HttpRpcReplies(
             }
 
             override fun halfClose() {
-                val result = replies.removeFirstOrNull() ?: error("No scripted downstream response for ${method.fullMethodName}")
+                val result =
+                    replies.removeFirstOrNull() ?: error("No scripted downstream response for ${method.fullMethodName}")
                 if (result is Status) {
                     listener.onClose(result, Metadata())
                 } else {
