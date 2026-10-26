@@ -4,6 +4,7 @@ import { specimenPolicy } from '../../../build-tools/verification-tests/frontend
 import { SessionController } from '../lib/features/session/controller.svelte';
 import { sessionContext } from '../lib/features/session/context';
 import type { SessionBootstrap } from '../lib/features/session/types';
+import appTemplate from '../app.html?raw';
 import People from './people/+page.svelte';
 import Person from './people/[id]/+page.svelte';
 import Movies from './manage/movies/+page.svelte';
@@ -238,4 +239,34 @@ it('denies archive access before fetching private records', async () => {
       JSON.parse(String(init?.body)).query.includes('AccountBootstrap'),
     ),
   ).toBe(true);
+});
+
+
+it('reuses the initial shell title when moving between public and archive pages', async () => {
+  const shell = new DOMParser().parseFromString(appTemplate, 'text/html');
+  expect(shell.head.querySelectorAll('title')).toHaveLength(1);
+  expect(shell.title).toBe('SpoolIn');
+  const previousTitle = document.title;
+  document.title = shell.title;
+  const titleElement = document.head.querySelector('title');
+  responses({
+    people: { nodes: [], pageInfo },
+    managedTitles: { nodes: [], pageInfo },
+    managedPeople: { nodes: [], pageInfo },
+  });
+  try {
+    const peoplePage = render(People);
+    expect(await screen.findByRole('heading', { name: 'People', level: 1 })).toBeTruthy();
+    expect(document.title).toBe('People · SpoolIn');
+    peoplePage.unmount();
+    controller = new SessionController({ bootstrap: async () => bootstrap() });
+    await controller.check();
+    render(Archives, { context: new Map([[sessionContext, controller]]) });
+    expect(await screen.findByText('No archived records in this view.')).toBeTruthy();
+    expect(document.title).toBe('Archives · SpoolIn');
+    expect(document.head.querySelectorAll('title')).toHaveLength(1);
+    expect(document.head.querySelector('title')).toBe(titleElement);
+  } finally {
+    document.title = previousTitle;
+  }
 });
