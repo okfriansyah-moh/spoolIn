@@ -71,6 +71,24 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'changed after measurement'):
             self.build()
 
+    def test_mutation_during_tests_names_changed_input(self):
+        (self.root / 'config.json').write_text('{"changed":true}')
+        with self.assertRaisesRegex(ValueError, 'config.json'):
+            ADAPTER.finish(self.registry)
+
+    def test_contract_inputs_include_maintained_contracts_without_build_outputs(self):
+        registry = json.loads((REPO / '.ai/gates.json').read_text())
+        tracked = ADAPTER.subprocess.check_output(
+            ['git', 'ls-files', 'contracts'], cwd=REPO, text=True).splitlines()
+        for component in registry['quality']['components']:
+            inputs = agent_workflow.quality.snapshot(REPO, component['inputs'])
+            self.assertTrue(set(tracked) <= set(inputs))
+            self.assertFalse(any('/build/' in path for path in inputs if path.startswith('contracts/')))
+        runner = (REPO / 'ops/unit-coverage/run.mjs').read_text()
+        self.assertLess(runner.index('execute("production-inputs"'), runner.index('summary.fingerprint = fingerprint()'))
+        self.assertLess(runner.index('summary.fingerprint = fingerprint()'), runner.index('execute("quality-inputs"'))
+        self.assertLess(runner.index('execute("quality-inputs"'), runner.index('runComponent(component) : setup'))
+
     def test_failed_suite_and_unfinished_analysis_block(self):
         self.summary['components'][0]['command'] = 1
         with self.assertRaises(ValueError):

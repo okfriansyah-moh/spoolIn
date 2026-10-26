@@ -44,8 +44,10 @@ def finish(registry):
     for contract in registry['quality']['components']:
         item = dict(captured['components'][contract['id']])
         for field in ('inputs', 'toolchain_files'):
-            if item[field] != quality.snapshot(ROOT, contract[field]):
-                raise ValueError('Measurement inputs changed during unit execution')
+            current = quality.snapshot(ROOT, contract[field])
+            if item[field] != current:
+                changed = sorted(path for path in set(item[field]) | set(current) if item[field].get(path) != current.get(path))
+                raise ValueError(f"Measurement inputs changed during unit execution: {contract['id']} {field}: {changed}")
         paths = quality.report_paths(ROOT, contract['unit_report']['reports'])
         paths += quality.report_paths(ROOT, [contract['test_report']['glob']])
         item.update(input_sha256=gate_selection.digest(item['inputs']), revision=captured['revision'], measured_at=captured['measured_at'],

@@ -117,7 +117,7 @@ const summary = {
   dirty: Boolean(
     execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim(),
   ),
-  fingerprint: fingerprint(),
+  fingerprint: null,
   threshold: 80,
   status: "failed",
   sonarUrl: process.env.SONAR_PUBLIC_URL ?? "http://localhost:9000",
@@ -130,13 +130,17 @@ for (const entry of readdirSync(output))
 mkdirSync(`${output}/logs`, { recursive: true });
 try {
   summary.execution = dockerExecution();
+  const setup = execute("dependencies", ["npm", "ci"]);
+  if (setup !== 0) throw new Error("Dependency setup failed");
+  const generation = execute("production-inputs", ["npm", "run", "generate"]);
+  if (generation !== 0) throw new Error("Production input generation failed");
+  summary.fingerprint = fingerprint();
   const capture = execute("quality-inputs", [
     "python3",
     "ops/unit-coverage/quality-proof.py",
     "capture",
   ]);
   if (capture !== 0) throw new Error("Quality input capture failed");
-  const setup = execute("dependencies", ["npm", "ci"]);
   const reportChecks = execute("report-contracts", [
     "node",
     "--test",
