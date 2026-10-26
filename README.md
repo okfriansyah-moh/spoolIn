@@ -55,6 +55,8 @@ SpoolIn also has account registration, retained editing drafts, conflict review 
 
 ## Quality you can verify
 
+Future features and products follow the [shared quality guardrail](.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract): per-component coverage, exact zero security/reliability/duplication counts, and required checks that block completion when they fail. See [workflow adoption and current blockers](docs/operations/quality-guardrails.md).
+
 **4,328 passing unit tests. Six passing Sonar gates. An independent 80% coverage floor for every component.**
 
 The verified Docker run on **26 October 2026** completed with no failed or skipped unit tests. All six Sonar projects reported **zero security issues, zero reliability issues, and exactly zero duplicated lines and blocks**. Publication checks the raw counts, so a rounded `0.0%` duplication score alone cannot pass.
@@ -759,7 +761,7 @@ I used a [Notion Kanban board](https://cord-bluebell-457.notion.site/8a450667b9c
 
 The same development harness supports **Codex, Cursor AI, Claude Code, and GitHub Copilot**. Each follows one procedure: read the approved outcome, implement, run agreed affected checks, obtain one independent combined review, correct findings, and deliver. The current chat implements directly by default; optional contributors use the same completion rules. Start with `Use running prompt for T001.` or resume with `Use running prompt for T001, mode resume.` See the [portable task prompt](docs/prompts/task-implementation.md) for six inputs, defaults, and constraints. Application setup does not require any AI client.
 
-The project pin in [.ai/config.json](.ai/config.json) selects the shared bundle before global fallback. Native adapters and installed files do not prove live loading in every CLI, desktop, or IDE; the [harness guide](docs/07-harness-workflow.md) separates current instructions from historical observations. Product tasks preserve workflow files and unplanned Python files, match approved visuals and complete journeys, and use affected checks while retaining project requirements. Shared resource admission adapts substantial checks to the execution device and keeps unsafe work pending; it does not add another workflow tier. See [resource budgets and recovery](.ai/bundles/1.3.0/docs/GATES.md#execution-device-budgets-and-recovery).
+The project pin in [.ai/config.json](.ai/config.json) selects the shared bundle before global fallback. Native adapters and installed files do not prove live loading in every CLI, desktop, or IDE; the [harness guide](docs/07-harness-workflow.md) separates current instructions from historical observations. Product tasks preserve workflow files and unplanned Python files, match approved visuals and complete journeys, and use affected checks while retaining project requirements. Shared resource admission adapts substantial checks to the execution device and keeps unsafe work pending; it does not add another workflow tier. See [resource budgets and recovery](.ai/bundles/1.4.0/docs/GATES.md#execution-device-budgets-and-recovery).
 
 The repository retains the resulting instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits. A board status records progress; the linked implementation and verification records provide the evidence for what was delivered.
 

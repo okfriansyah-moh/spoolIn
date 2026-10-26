@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      quality_base:
+        description: Reviewed comparison revision for changed-line verification
+        required: true
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -15,14 +20,30 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
       - name: Run complete unit suites and enforce every component's 80% line threshold
         run: make coverage
+      - name: Publish isolated Docker Sonar analyses
+        run: make coverage-sonar-up
+      - name: Bootstrap credentials for this fresh CI database
+        run: python3 ops/unit-coverage/sonar-ci-bootstrap.py
+      - name: Import unit reports and wait for completed analyses
+        run: make coverage-sonar
+      - name: Verify shared component proof and all required checks
+        env:
+          QUALITY_BASE: ${{ github.event.pull_request.base.sha || inputs.quality_base || github.event.before }}
+        run: |
+          make coverage-quality
+          .ai/bin/agent-workflow gate --repo . --stage delivery --base "$QUALITY_BASE" --reuse
       - name: Retain coverage and test reports, including failures
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: unit-coverage-${{ github.sha }}
-          path: .local/unit-coverage/
+          path: |
+            .local/unit-coverage/
+            .ai/reports/
           include-hidden-files: true
           if-no-files-found: error
       - name: Add measured coverage to the job summary

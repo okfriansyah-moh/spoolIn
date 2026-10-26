@@ -38,3 +38,7 @@ coverage-sonar:
 	@bash ops/bin/coverage.sh sonar
 coverage-stop:
 	@bash ops/bin/coverage.sh stop
+
+.PHONY: coverage-quality
+coverage-quality:
+	@python3 ops/unit-coverage/quality-proof.py verify --base "$${QUALITY_BASE:?Set QUALITY_BASE to the reviewed comparison revision}"

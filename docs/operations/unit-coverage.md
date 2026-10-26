@@ -376,3 +376,13 @@ installation. Subsequent documentation and PR metadata edits do not change measu
 
 Independent combined source and evidence review accepted measured revision `52a18565`,
 including Sonar finding closure and report observation, with no outstanding findings.
+
+## Permanent feature acceptance guardrail
+
+The pinned workflow 1.4.0 policy in [GATES.md](../../.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract) owns the minimum standard for future products, features and iterations. `.ai/gates.json` registers the six maintained runtime components and their existing unit-only report producers. `QUALITY_BASE=<reviewed-base> make coverage-quality` normalizes retained Docker unit and completed Sonar reports into the versioned shared proof. The delivery gate also requires all configured checks; passing coverage alone does not establish feature completion.
+
+Producer receipts capture source, tests, configuration, commands and pinned toolchain inputs before execution, retain raw report hashes after execution, and bind analysis to that measurement. Reports predating these receipts remain historical evidence. The adapter fails closed rather than attaching current input hashes to old measurements. Test and analysis phases run separately with bounded Docker memory and one test worker, subject to shared resource admission. CI retains reports on failure. Missing local Sonar credentials block publication; a token must belong to the isolated dashboard it targets.
+
+This workflow adoption does not repair the existing Core/Catalog static-check failures, MCP lint failures or broad local secret-scan findings recorded in [the dated quality record](sonar-quality.md). Those checks remain feature-completion blockers. Existing approved network-range classifications remain in the local Sonar database; a new finding requires its own evidence and independent review. No classifications are automatically replayed or dismissed by the adapter. The root README snapshot retains its original date and measured revision.
+
+The CI delivery command retains configured native checks alongside Docker coverage; those checks require their configured toolchains and services. Missing prerequisites remain blocked. Global installation structure, actual instruction loading in each native host, and repository quality acceptance are separate results.

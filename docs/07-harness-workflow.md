@@ -12,7 +12,7 @@ Quick navigation: [hosts](#3-coding-hosts-and-native-adapters) · [roles](#4-age
 
 This is the only workflow for Codex, Cursor AI, Claude Code, and GitHub Copilot. There are no fast, complete, lightweight, strict, or other workflow tracks. Task scope and project requirements determine the checks inside this procedure. Starting, resuming, delegating, and selecting a delivery destination do not change its completion rules.
 
-The current chat coordinates and implements directly in one suitable checkout by default. Optional contributors receive bounded assignments; one independent reviewer inspects the combined change. The [delivery policy](../.ai/bundles/1.3.0/docs/DELIVERY.md) defines completion. The [task prompt](prompts/task-implementation.md) supplies portable invocation and inputs.
+The current chat coordinates and implements directly in one suitable checkout by default. Optional contributors receive bounded assignments; one independent reviewer inspects the combined change. The [delivery policy](../.ai/bundles/1.4.0/docs/DELIVERY.md) defines completion. The [task prompt](prompts/task-implementation.md) supplies portable invocation and inputs.
 
 ## 1. Purpose, coverage, and evidence
 
@@ -34,9 +34,9 @@ A CLI, desktop engine, IDE, disposable fixture, and actual application journey a
 
 ### 1.2 Sources and current snapshot
 
-Read [root instructions](../AGENTS.md), [bundle selection](../.ai/config.json), [manifest](../.ai/bundles/1.3.0/manifest.json), [role catalog](../.ai/bundles/1.3.0/agents/catalog.json), and the [project registry](../.ai/gates.json). The registry takes precedence over the bundled movie-app profile when present.
+Read [root instructions](../AGENTS.md), [bundle selection](../.ai/config.json), [manifest](../.ai/bundles/1.4.0/manifest.json), [role catalog](../.ai/bundles/1.4.0/agents/catalog.json), and the [project registry](../.ai/gates.json). The registry takes precedence over the bundled movie-app profile when present.
 
-The [retained 1.1 report](../.ai/bundles/1.3.0/docs/VERIFICATION-1.1.md) and appendices below describe dated evidence. They are not a new four-host verification campaign. Read the release handoff and current doctor/native results for actual installation status; do not infer them from this guide's target version.
+The [retained 1.1 report](../.ai/bundles/1.4.0/docs/VERIFICATION-1.1.md) and appendices below describe dated evidence. They are not a new four-host verification campaign. Read the release handoff and current doctor/native results for actual installation status; do not infer them from this guide's target version.
 
 ## 2. Architecture and instruction selection
 
@@ -61,7 +61,7 @@ Load only instructions needed for the selected work. A role catalog lists availa
 
 | Location | Purpose |
 | --- | --- |
-| `.ai/config.json`, `.ai/bin/agent-workflow`, `.ai/bundles/1.3.0/` | Project pin, launcher, runtime, prompts, skills, schemas, and policy. |
+| `.ai/config.json`, `.ai/bin/agent-workflow`, `.ai/bundles/1.4.0/` | Project pin, launcher, runtime, prompts, skills, schemas, and policy. |
 | `.ai/gates.json` | Project check commands and applicability; preserve its requirements. |
 | `.ai/install-state.json` | Managed-file ownership/integrity, separate from task progress. |
 | `.ai/state/`, `.ai/reports/`, `.ai/evidence/` | Local state, runner output, and observations. Ignored outputs need deliberate transfer. |
@@ -84,7 +84,7 @@ Clone tracked dot directories and relative discovery links together. Separate cl
 
 All adapters derive from shared policy/roles. Preserve unrelated User Rules, permissions, authentication, model settings, MCP configuration, and hooks. Role instructions constrain responsibility; they do not create a permission sandbox.
 
-Global discovery uses supported host locations documented in [HOSTS.md](../.ai/bundles/1.3.0/docs/HOSTS.md). Check the loaded definition's origin as well as its name: a personal profile can shadow a project profile, particularly in Copilot CLI. Project instructions must resolve the repository bundle before fallback resources.
+Global discovery uses supported host locations documented in [HOSTS.md](../.ai/bundles/1.4.0/docs/HOSTS.md). Check the loaded definition's origin as well as its name: a personal profile can shadow a project profile, particularly in Copilot CLI. Project instructions must resolve the repository bundle before fallback resources.
 
 ### 3.2 Hooks and their limits
 
@@ -118,7 +118,7 @@ Respect native trust prompts and permissions. Static adapter validation proves f
 | `aw-review-verify` | One independent reviewer of the complete result; returns actionable findings without implementing fixes. |
 | `aw-integrator` | Concurrent composition only, under the existing selection. |
 
-Delegation changes ownership, not completion rules. Reuse one checkout for serial work. Concurrent writers claim isolated paths, worktrees, and shared resources using the existing [coordination contract](../.ai/bundles/1.3.0/docs/COORDINATION.md). Preserve host capacity and worker limits.
+Delegation changes ownership, not completion rules. Reuse one checkout for serial work. Concurrent writers claim isolated paths, worktrees, and shared resources using the existing [coordination contract](../.ai/bundles/1.4.0/docs/COORDINATION.md). Preserve host capacity and worker limits.
 
 Provide contributors with the approved outcome, references, allowed paths/resources, constraints, and agreed checks. Compose checked contributions in dependency order before the single combined review. Worker-level independent acceptance is not required. Integration requires an existing valid selection and ownership before mutation; composition remains pending final acceptance.
 
@@ -126,7 +126,7 @@ Use one Git-shared selection record and findings ledger. Transfer coordinator ow
 
 ## 5. Skills and planning handoff
 
-The 74-entry [skill inventory](#appendix-a-complete-pinned-skill-inventory) lists capabilities, not compulsory steps. Read the [activation catalog](../.ai/bundles/1.3.0/docs/SKILLS.md) for conditions and provenance.
+The 74-entry [skill inventory](#appendix-a-complete-pinned-skill-inventory) lists capabilities, not compulsory steps. Read the [activation catalog](../.ai/bundles/1.4.0/docs/SKILLS.md) for conditions and provenance.
 
 Execution entry points route to this procedure. Planning/design generation applies to unresolved decisions; implementation follows the approved design. Specialist stack, security, accessibility, and verification guidance activates only for relevant changed concerns. TDD follows an explicit strategy or user request. Findings join the existing combined review.
 
@@ -134,13 +134,13 @@ Use chat or the existing task document for one compact brief: outcome and bounda
 
 During product implementation, protect workflow code, bundled skills, agents, gate policy, and unplanned Python files. Do not regenerate plans, renumber tasks, tune the harness, or restart design exploration. New user instructions amend affected scope inside the same selection. Harness maintenance is a separately requested task using this same procedure.
 
-Personal observation captures proposals during active work without scheduling or blocking product work. Apply the [wording policy](../.ai/bundles/1.3.0/resources/wording/output-wording.md) and checker before delivering authored output.
+Personal observation captures proposals during active work without scheduling or blocking product work. Apply the [wording policy](../.ai/bundles/1.4.0/resources/wording/output-wording.md) and checker before delivering authored output.
 
 ## 6. Supporting tools
 
 Use existing project runners and available host tools. Version-relevant library documentation may use Context7; actual OAuth and connectivity need their own observation. Browser assertions/direct inspection serve ordinary UI verification. Use recordings only when requested or required for a selected observation. An actual reader observation cannot be replaced by DOM assertions or audio energy.
 
-Strix remains inactive until a scoped assessment is requested. Tool installation, a configured MCP endpoint, and scanner preflight are not application acceptance. Historical tool versions and observations are retained in [Appendix C](#appendix-c-historical-supporting-tool-observations-15-october-2026); current procedures are in [TOOLS.md](../.ai/bundles/1.3.0/docs/TOOLS.md).
+Strix remains inactive until a scoped assessment is requested. Tool installation, a configured MCP endpoint, and scanner preflight are not application acceptance. Historical tool versions and observations are retained in [Appendix C](#appendix-c-historical-supporting-tool-observations-15-october-2026); current procedures are in [TOOLS.md](../.ai/bundles/1.4.0/docs/TOOLS.md).
 
 ## 7. Development lifecycle and source traceability
 
@@ -156,7 +156,7 @@ Preserve 80% changed executable-line coverage, at most 50 function lines, comple
 
 Use the agreed selection/PR baseline, including committed changes since it, staged/unstaged changes, additions/deletions, and relevant untracked source. Ordinary component edits select that component and actual consumers. Shared contracts/build/locks/policy require broader checks where necessary. Documentation-only changes select document checks. Unknown executable inputs or invalid baseline/ownership require conservative selection with an explanation.
 
-Technical gate stage/component filters are check selectors within this procedure. They are not workflow tiers. Read [GATES.md](../.ai/bundles/1.3.0/docs/GATES.md) for current command options rather than copying a full test campaign from this guide.
+Technical gate stage/component filters are check selectors within this procedure. They are not workflow tiers. Read [GATES.md](../.ai/bundles/1.4.0/docs/GATES.md) for current command options rather than copying a full test campaign from this guide.
 
 Run each required command once for valid inputs; reuse only results matching source/tests, command, configuration, toolchain/environment, and artifact integrity. Rerun affected checks after corrections. Required whole-component commands remain required where supported selectors cannot satisfy the same obligation.
 
@@ -177,11 +177,11 @@ python3 .ai/bin/agent-workflow --version
 python3 .ai/bin/agent-workflow doctor --repo .
 ```
 
-Doctor reports managed integrity and saved results, not a fresh live host run. Use `--help` and [HOSTS.md](../.ai/bundles/1.3.0/docs/HOSTS.md) for host-specific preview/live commands. A live probe uses the selected runtime/account; report the actual surface and results.
+Doctor reports managed integrity and saved results, not a fresh live host run. Use `--help` and [HOSTS.md](../.ai/bundles/1.4.0/docs/HOSTS.md) for host-specific preview/live commands. A live probe uses the selected runtime/account; report the actual surface and results.
 
 ### 9.2 Implement the selection
 
-Record scope once. Implement directly in one suitable checkout. Use claimed worktrees only for concurrent contributions or to protect unrelated work. Preserve unrelated changes and serialize shared ports, databases, build outputs, and lockfiles. Follow exact command shapes in [COORDINATION.md](../.ai/bundles/1.3.0/docs/COORDINATION.md) only when those helpers are needed.
+Record scope once. Implement directly in one suitable checkout. Use claimed worktrees only for concurrent contributions or to protect unrelated work. Preserve unrelated changes and serialize shared ports, databases, build outputs, and lockfiles. Follow exact command shapes in [COORDINATION.md](../.ai/bundles/1.4.0/docs/COORDINATION.md) only when those helpers are needed.
 
 ### 9.3 Check, review, and deliver
 
@@ -228,138 +228,138 @@ After maintenance, update current prompts, host adapters, catalogs, linked docs,
 
 ## Appendix A. Complete pinned skill inventory
 
-All entries below are available in the selected bundle. Each name links to its actual instructions; purpose summaries describe activation, not usage claims. Owner values come from the manifest and identify workflow responsibility. Related native roles can load the same skill under their assignment. The [full catalog](../.ai/bundles/1.3.0/docs/SKILLS.md) and [manifest](../.ai/bundles/1.3.0/manifest.json) retain dependencies, provenance, hashes, and activation details.
+All entries below are available in the selected bundle. Each name links to its actual instructions; purpose summaries describe activation, not usage claims. Owner values come from the manifest and identify workflow responsibility. Related native roles can load the same skill under their assignment. The [full catalog](../.ai/bundles/1.4.0/docs/SKILLS.md) and [manifest](../.ai/bundles/1.4.0/manifest.json) retain dependencies, provenance, hashes, and activation details.
 
 ### A.1 Requirements and design authoring
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [brainstorming](../.ai/bundles/1.3.0/skills/brainstorming/SKILL.md) | `forge` | Explore substantial choices and establish accepted direction. |
-| [deliver-prd](../.ai/bundles/1.3.0/skills/deliver-prd/SKILL.md) | `forge` | Author product requirements, stories, and acceptance criteria. |
-| [techdoc-creation](../.ai/bundles/1.3.0/skills/techdoc-creation/SKILL.md) | `forge` | Author engineering contracts, boundaries, data behavior, and traceability. |
-| [design-system](../.ai/bundles/1.3.0/skills/design-system/SKILL.md) | `forge` | Coordinate requirements-based tokens, components, flows, and visual examples. |
-| [atdd-creation](../.ai/bundles/1.3.0/skills/atdd-creation/SKILL.md) | `forge` | Author traceable acceptance cases and proof requirements. |
-| [plan-creation](../.ai/bundles/1.3.0/skills/plan-creation/SKILL.md) | `forge` | Create dependency-ordered groups, tasks, and acceptance mappings. |
+| [brainstorming](../.ai/bundles/1.4.0/skills/brainstorming/SKILL.md) | `forge` | Explore substantial choices and establish accepted direction. |
+| [deliver-prd](../.ai/bundles/1.4.0/skills/deliver-prd/SKILL.md) | `forge` | Author product requirements, stories, and acceptance criteria. |
+| [techdoc-creation](../.ai/bundles/1.4.0/skills/techdoc-creation/SKILL.md) | `forge` | Author engineering contracts, boundaries, data behavior, and traceability. |
+| [design-system](../.ai/bundles/1.4.0/skills/design-system/SKILL.md) | `forge` | Coordinate requirements-based tokens, components, flows, and visual examples. |
+| [atdd-creation](../.ai/bundles/1.4.0/skills/atdd-creation/SKILL.md) | `forge` | Author traceable acceptance cases and proof requirements. |
+| [plan-creation](../.ai/bundles/1.4.0/skills/plan-creation/SKILL.md) | `forge` | Create dependency-ordered groups, tasks, and acceptance mappings. |
 
 ### A.2 Visual design and accessibility
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [design-system-foundations](../.ai/bundles/1.3.0/skills/design-system-foundations/SKILL.md) | `forge` | Define layered tokens, component specifications, and states. |
-| [frontend-design](../.ai/bundles/1.3.0/skills/frontend-design/SKILL.md) | `forge` | Establish intentional visual direction for new or reshaped UI. |
-| [impeccable](../.ai/bundles/1.3.0/skills/impeccable/SKILL.md) | `forge` | Refine visual hierarchy, responsive states, and design craft. |
-| [fixing-accessibility](../.ai/bundles/1.3.0/skills/fixing-accessibility/SKILL.md) | `forge` | Audit and fix semantics, keyboard behavior, focus, contrast, and errors. |
-| [ui-ux-pro-max](../.ai/bundles/1.3.0/skills/ui-ux-pro-max/SKILL.md) | `forge` | Search bundled UI references within the adopted design and framework. |
+| [design-system-foundations](../.ai/bundles/1.4.0/skills/design-system-foundations/SKILL.md) | `forge` | Define layered tokens, component specifications, and states. |
+| [frontend-design](../.ai/bundles/1.4.0/skills/frontend-design/SKILL.md) | `forge` | Establish intentional visual direction for new or reshaped UI. |
+| [impeccable](../.ai/bundles/1.4.0/skills/impeccable/SKILL.md) | `forge` | Refine visual hierarchy, responsive states, and design craft. |
+| [fixing-accessibility](../.ai/bundles/1.4.0/skills/fixing-accessibility/SKILL.md) | `forge` | Audit and fix semantics, keyboard behavior, focus, contrast, and errors. |
+| [ui-ux-pro-max](../.ai/bundles/1.4.0/skills/ui-ux-pro-max/SKILL.md) | `forge` | Search bundled UI references within the adopted design and framework. |
 
 ### A.3 Architecture and contracts
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [architecture-designer](../.ai/bundles/1.3.0/skills/architecture-designer/SKILL.md) | `forge` | Define system boundaries, interactions, and quality tradeoffs. |
-| [architecture-decision-records](../.ai/bundles/1.3.0/skills/architecture-decision-records/SKILL.md) | `forge` | Record significant decisions, alternatives, and consequences. |
-| [domain-modeling](../.ai/bundles/1.3.0/skills/domain-modeling/SKILL.md) | `forge` | Clarify domain concepts, terminology, and vocabulary. |
-| [codebase-design](../.ai/bundles/1.3.0/skills/codebase-design/SKILL.md) | `forge` | Design deep modules with small, useful interfaces. |
-| [modularity](../.ai/bundles/1.3.0/skills/modularity/SKILL.md) | `forge` | Define module ownership, public surfaces, and dependency boundaries. |
-| [dependency-analysis](../.ai/bundles/1.3.0/skills/dependency-analysis/SKILL.md) | `forge` | Map coupling, cycles, and safe dependency order. |
-| [vertical-slice](../.ai/bundles/1.3.0/skills/vertical-slice/SKILL.md) | `forge` | Organize a feature around end-to-end behavior. |
-| [api-design](../.ai/bundles/1.3.0/skills/api-design/SKILL.md) | `forge` | Design compatible endpoint, RPC, event, or library contracts. |
-| [dto](../.ai/bundles/1.3.0/skills/dto/SKILL.md) | `forge` | Define data contracts and producer-consumer compatibility. |
-| [config-validation](../.ai/bundles/1.3.0/skills/config-validation/SKILL.md) | `forge` | Validate configuration sources, precedence, defaults, and startup. |
+| [architecture-designer](../.ai/bundles/1.4.0/skills/architecture-designer/SKILL.md) | `forge` | Define system boundaries, interactions, and quality tradeoffs. |
+| [architecture-decision-records](../.ai/bundles/1.4.0/skills/architecture-decision-records/SKILL.md) | `forge` | Record significant decisions, alternatives, and consequences. |
+| [domain-modeling](../.ai/bundles/1.4.0/skills/domain-modeling/SKILL.md) | `forge` | Clarify domain concepts, terminology, and vocabulary. |
+| [codebase-design](../.ai/bundles/1.4.0/skills/codebase-design/SKILL.md) | `forge` | Design deep modules with small, useful interfaces. |
+| [modularity](../.ai/bundles/1.4.0/skills/modularity/SKILL.md) | `forge` | Define module ownership, public surfaces, and dependency boundaries. |
+| [dependency-analysis](../.ai/bundles/1.4.0/skills/dependency-analysis/SKILL.md) | `forge` | Map coupling, cycles, and safe dependency order. |
+| [vertical-slice](../.ai/bundles/1.4.0/skills/vertical-slice/SKILL.md) | `forge` | Organize a feature around end-to-end behavior. |
+| [api-design](../.ai/bundles/1.4.0/skills/api-design/SKILL.md) | `forge` | Design compatible endpoint, RPC, event, or library contracts. |
+| [dto](../.ai/bundles/1.4.0/skills/dto/SKILL.md) | `forge` | Define data contracts and producer-consumer compatibility. |
+| [config-validation](../.ai/bundles/1.4.0/skills/config-validation/SKILL.md) | `forge` | Validate configuration sources, precedence, defaults, and startup. |
 
 ### A.4 Reliability and persistence design
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [determinism](../.ai/bundles/1.3.0/skills/determinism/SKILL.md) | `forge` | Make ordering and computation reproducible within a defined boundary. |
-| [idempotency](../.ai/bundles/1.3.0/skills/idempotency/SKILL.md) | `forge` | Prevent duplicate effects during retries and concurrent operations. |
-| [failure](../.ai/bundles/1.3.0/skills/failure/SKILL.md) | `forge` | Define failure classes, bounded retries, partial outcomes, and recovery. |
-| [pipeline](../.ai/bundles/1.3.0/skills/pipeline/SKILL.md) | `forge` | Design staged processing, handoffs, ordering, and checkpoints. |
-| [migration-management](../.ai/bundles/1.3.0/skills/migration-management/SKILL.md) | `forge` | Manage schema/data changes, backfills, and recovery. |
-| [database-portability](../.ai/bundles/1.3.0/skills/database-portability/SKILL.md) | `forge` | Support multiple database engines only when explicitly required. |
+| [determinism](../.ai/bundles/1.4.0/skills/determinism/SKILL.md) | `forge` | Make ordering and computation reproducible within a defined boundary. |
+| [idempotency](../.ai/bundles/1.4.0/skills/idempotency/SKILL.md) | `forge` | Prevent duplicate effects during retries and concurrent operations. |
+| [failure](../.ai/bundles/1.4.0/skills/failure/SKILL.md) | `forge` | Define failure classes, bounded retries, partial outcomes, and recovery. |
+| [pipeline](../.ai/bundles/1.4.0/skills/pipeline/SKILL.md) | `forge` | Design staged processing, handoffs, ordering, and checkpoints. |
+| [migration-management](../.ai/bundles/1.4.0/skills/migration-management/SKILL.md) | `forge` | Manage schema/data changes, backfills, and recovery. |
+| [database-portability](../.ai/bundles/1.4.0/skills/database-portability/SKILL.md) | `forge` | Support multiple database engines only when explicitly required. |
 
 ### A.5 Code quality, tests, and diagnosis
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [coding-standards](../.ai/bundles/1.3.0/skills/coding-standards/SKILL.md) | `review-verify` | Apply conventions for the affected language and component. |
-| [code-quality](../.ai/bundles/1.3.0/skills/code-quality/SKILL.md) | `review-verify` | Assess scoped correctness and maintainability. |
-| [code-review](../.ai/bundles/1.3.0/skills/code-review/SKILL.md) | `review-verify` | Review a fixed diff against requirements and repository standards. |
-| [tdd](../.ai/bundles/1.3.0/skills/tdd/SKILL.md) | `forge` | Develop behavior through a test-first red/green/refactor loop. |
-| [test-driven-development](../.ai/bundles/1.3.0/skills/test-driven-development/SKILL.md) | `forge` | Route explicitly requested test-first work through tdd. |
-| [test-generation](../.ai/bundles/1.3.0/skills/test-generation/SKILL.md) | `forge` | Add meaningful behavior, boundary, and regression coverage. |
-| [diagnosing-bugs](../.ai/bundles/1.3.0/skills/diagnosing-bugs/SKILL.md) | `forge` | Investigate failures and regressions with evidence. |
+| [coding-standards](../.ai/bundles/1.4.0/skills/coding-standards/SKILL.md) | `review-verify` | Apply conventions for the affected language and component. |
+| [code-quality](../.ai/bundles/1.4.0/skills/code-quality/SKILL.md) | `review-verify` | Assess scoped correctness and maintainability. |
+| [code-review](../.ai/bundles/1.4.0/skills/code-review/SKILL.md) | `review-verify` | Review a fixed diff against requirements and repository standards. |
+| [tdd](../.ai/bundles/1.4.0/skills/tdd/SKILL.md) | `forge` | Develop behavior through a test-first red/green/refactor loop. |
+| [test-driven-development](../.ai/bundles/1.4.0/skills/test-driven-development/SKILL.md) | `forge` | Route explicitly requested test-first work through tdd. |
+| [test-generation](../.ai/bundles/1.4.0/skills/test-generation/SKILL.md) | `forge` | Add meaningful behavior, boundary, and regression coverage. |
+| [diagnosing-bugs](../.ai/bundles/1.4.0/skills/diagnosing-bugs/SKILL.md) | `forge` | Investigate failures and regressions with evidence. |
 
 ### A.6 Security and acceptance
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [security-audit](../.ai/bundles/1.3.0/skills/security-audit/SKILL.md) | `review-verify` | Review scoped security risks and evidence-backed remediation. |
-| [security-requirement-extraction](../.ai/bundles/1.3.0/skills/security-requirement-extraction/SKILL.md) | `review-verify` | Turn concrete threats into enforceable requirements and checks. |
-| [stride-analysis-patterns](../.ai/bundles/1.3.0/skills/stride-analysis-patterns/SKILL.md) | `review-verify` | Analyze threats across trust boundaries using STRIDE. |
-| [acceptance-verification](../.ai/bundles/1.3.0/skills/acceptance-verification/SKILL.md) | `qa-evidence` | Evaluate assigned ATDD cases at their required proof boundaries. |
-| [verify-test-evidence](../.ai/bundles/1.3.0/skills/verify-test-evidence/SKILL.md) | `review-verify` | Independently inspect evidence mapping, freshness, and readability. |
-| [strix-security](../.ai/bundles/1.3.0/skills/strix-security/SKILL.md) | `security` | Prepare or review an explicitly authorized scoped Strix assessment. |
+| [security-audit](../.ai/bundles/1.4.0/skills/security-audit/SKILL.md) | `review-verify` | Review scoped security risks and evidence-backed remediation. |
+| [security-requirement-extraction](../.ai/bundles/1.4.0/skills/security-requirement-extraction/SKILL.md) | `review-verify` | Turn concrete threats into enforceable requirements and checks. |
+| [stride-analysis-patterns](../.ai/bundles/1.4.0/skills/stride-analysis-patterns/SKILL.md) | `review-verify` | Analyze threats across trust boundaries using STRIDE. |
+| [acceptance-verification](../.ai/bundles/1.4.0/skills/acceptance-verification/SKILL.md) | `qa-evidence` | Evaluate assigned ATDD cases at their required proof boundaries. |
+| [verify-test-evidence](../.ai/bundles/1.4.0/skills/verify-test-evidence/SKILL.md) | `review-verify` | Independently inspect evidence mapping, freshness, and readability. |
+| [strix-security](../.ai/bundles/1.4.0/skills/strix-security/SKILL.md) | `security` | Prepare or review an explicitly authorized scoped Strix assessment. |
 
 ### A.7 Implementation and operations
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [project-scaffold](../.ai/bundles/1.3.0/skills/project-scaffold/SKILL.md) | `forge` | Initialize an explicitly requested project or component. |
-| [kotlin-spring](../.ai/bundles/1.3.0/skills/kotlin-spring/SKILL.md) | `backend` | Implement validated Kotlin/Spring service and transport behavior. |
-| [spring-dependency-injection](../.ai/bundles/1.3.0/skills/spring-dependency-injection/SKILL.md) | `backend` | Implement constructor wiring, qualifiers, and safe bean lifecycles. |
-| [jpa-hibernate](../.ai/bundles/1.3.0/skills/jpa-hibernate/SKILL.md) | `backend` | Implement persistence, transactions, locking, and PostgreSQL-backed checks. |
-| [svelte-typescript](../.ai/bundles/1.3.0/skills/svelte-typescript/SKILL.md) | `frontend` | Implement typed Svelte screens, states, responsiveness, and accessibility. |
-| [node-backend](../.ai/bundles/1.3.0/skills/node-backend/SKILL.md) | `backend` | Implement validated Node/TypeScript services or MCP adapters. |
-| [devops-ci](../.ai/bundles/1.3.0/skills/devops-ci/SKILL.md) | `operations` | Implement reproducible builds, Compose, CI, and recovery checks. |
-| [observability](../.ai/bundles/1.3.0/skills/observability/SKILL.md) | `operations` | Implement useful redacted logs, metrics, traces, and alerts. |
-| [performance-optimization](../.ai/bundles/1.3.0/skills/performance-optimization/SKILL.md) | `forge` | Measure and improve a specific performance bottleneck. |
-| [analyze-alert](../.ai/bundles/1.3.0/skills/analyze-alert/SKILL.md) | `operations` | Investigate a supplied alert against telemetry and a bounded timeline. |
+| [project-scaffold](../.ai/bundles/1.4.0/skills/project-scaffold/SKILL.md) | `forge` | Initialize an explicitly requested project or component. |
+| [kotlin-spring](../.ai/bundles/1.4.0/skills/kotlin-spring/SKILL.md) | `backend` | Implement validated Kotlin/Spring service and transport behavior. |
+| [spring-dependency-injection](../.ai/bundles/1.4.0/skills/spring-dependency-injection/SKILL.md) | `backend` | Implement constructor wiring, qualifiers, and safe bean lifecycles. |
+| [jpa-hibernate](../.ai/bundles/1.4.0/skills/jpa-hibernate/SKILL.md) | `backend` | Implement persistence, transactions, locking, and PostgreSQL-backed checks. |
+| [svelte-typescript](../.ai/bundles/1.4.0/skills/svelte-typescript/SKILL.md) | `frontend` | Implement typed Svelte screens, states, responsiveness, and accessibility. |
+| [node-backend](../.ai/bundles/1.4.0/skills/node-backend/SKILL.md) | `backend` | Implement validated Node/TypeScript services or MCP adapters. |
+| [devops-ci](../.ai/bundles/1.4.0/skills/devops-ci/SKILL.md) | `operations` | Implement reproducible builds, Compose, CI, and recovery checks. |
+| [observability](../.ai/bundles/1.4.0/skills/observability/SKILL.md) | `operations` | Implement useful redacted logs, metrics, traces, and alerts. |
+| [performance-optimization](../.ai/bundles/1.4.0/skills/performance-optimization/SKILL.md) | `forge` | Measure and improve a specific performance bottleneck. |
+| [analyze-alert](../.ai/bundles/1.4.0/skills/analyze-alert/SKILL.md) | `operations` | Investigate a supplied alert against telemetry and a bounded timeline. |
 
 ### A.8 Execution, integration, and delivery
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [forge](../.ai/bundles/1.3.0/skills/forge/SKILL.md) | `forge` | Coordinate and directly implement approved work; use one independent combined review. |
-| [task-full-workflow](../.ai/bundles/1.3.0/skills/task-full-workflow/SKILL.md) | `forge` | Route authorized work through one shared execution state. |
-| [task-implement](../.ai/bundles/1.3.0/skills/task-implement/SKILL.md) | `forge` | Execute one bounded approved task and return a verifiable receipt. |
-| [task-delivery](../.ai/bundles/1.3.0/skills/task-delivery/SKILL.md) | `forge` | Deliver checked changes through commits and an authorized draft PR. |
-| [worktree-integration](../.ai/bundles/1.3.0/skills/worktree-integration/SKILL.md) | `integrator` | Coordinate claims, isolated worktrees, and semantic integration. |
-| [conflict-resolution](../.ai/bundles/1.3.0/skills/conflict-resolution/SKILL.md) | `forge` | Resolve merge or concurrent-edit conflicts against intended behavior. |
-| [quality-gates](../.ai/bundles/1.3.0/skills/quality-gates/SKILL.md) | `review-verify` | Run configured checks and report revision-bound outcomes. |
-| [workflow-install](../.ai/bundles/1.3.0/skills/workflow-install/SKILL.md) | `operations` | Maintain workflow installation, conflicts, upgrades, and removal. |
-| [docs-sync](../.ai/bundles/1.3.0/skills/docs-sync/SKILL.md) | `forge` | Reconcile documentation, implementation, and accepted requirements. |
-| [pr](../.ai/bundles/1.3.0/skills/pr/SKILL.md) | `forge` | Write a reviewable pull request description. |
+| [forge](../.ai/bundles/1.4.0/skills/forge/SKILL.md) | `forge` | Coordinate and directly implement approved work; use one independent combined review. |
+| [task-full-workflow](../.ai/bundles/1.4.0/skills/task-full-workflow/SKILL.md) | `forge` | Route authorized work through one shared execution state. |
+| [task-implement](../.ai/bundles/1.4.0/skills/task-implement/SKILL.md) | `forge` | Execute one bounded approved task and return a verifiable receipt. |
+| [task-delivery](../.ai/bundles/1.4.0/skills/task-delivery/SKILL.md) | `forge` | Deliver checked changes through commits and an authorized draft PR. |
+| [worktree-integration](../.ai/bundles/1.4.0/skills/worktree-integration/SKILL.md) | `integrator` | Coordinate claims, isolated worktrees, and semantic integration. |
+| [conflict-resolution](../.ai/bundles/1.4.0/skills/conflict-resolution/SKILL.md) | `forge` | Resolve merge or concurrent-edit conflicts against intended behavior. |
+| [quality-gates](../.ai/bundles/1.4.0/skills/quality-gates/SKILL.md) | `review-verify` | Run configured checks and report revision-bound outcomes. |
+| [workflow-install](../.ai/bundles/1.4.0/skills/workflow-install/SKILL.md) | `operations` | Maintain workflow installation, conflicts, upgrades, and removal. |
+| [docs-sync](../.ai/bundles/1.4.0/skills/docs-sync/SKILL.md) | `forge` | Reconcile documentation, implementation, and accepted requirements. |
+| [pr](../.ai/bundles/1.4.0/skills/pr/SKILL.md) | `forge` | Write a reviewable pull request description. |
 
 ### A.9 Writing, upkeep, and tool use
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [humanizer](../.ai/bundles/1.3.0/skills/humanizer/SKILL.md) | `forge` | Write in the requested personal voice without altering facts. |
-| [writing-for-agents](../.ai/bundles/1.3.0/skills/writing-for-agents/SKILL.md) | `forge` | Write or edit agent instructions and skill documentation. |
-| [task-observer](../.ai/bundles/1.3.0/skills/task-observer/SKILL.md) | `forge` | Capture useful corrections as proposals during active work. |
-| [rtk](../.ai/bundles/1.3.0/skills/rtk/SKILL.md) | `forge` | Reduce verbose CLI output when RTK is available and suitable. |
-| [token-optimization](../.ai/bundles/1.3.0/skills/token-optimization/SKILL.md) | `forge` | Reduce context/output overhead while preserving necessary evidence. |
-| [playwright-cli](../.ai/bundles/1.3.0/skills/playwright-cli/SKILL.md) | `qa-evidence` | Drive managed browser journeys, screenshots, traces, and video. |
-| [record-test-video](../.ai/bundles/1.3.0/skills/record-test-video/SKILL.md) | `qa-evidence` | Capture readable real UI journeys with case timestamps and assertions. |
-| [context7](../.ai/bundles/1.3.0/skills/context7/SKILL.md) | `forge` | Retrieve version-relevant library documentation through Context7 MCP. |
+| [humanizer](../.ai/bundles/1.4.0/skills/humanizer/SKILL.md) | `forge` | Write in the requested personal voice without altering facts. |
+| [writing-for-agents](../.ai/bundles/1.4.0/skills/writing-for-agents/SKILL.md) | `forge` | Write or edit agent instructions and skill documentation. |
+| [task-observer](../.ai/bundles/1.4.0/skills/task-observer/SKILL.md) | `forge` | Capture useful corrections as proposals during active work. |
+| [rtk](../.ai/bundles/1.4.0/skills/rtk/SKILL.md) | `forge` | Reduce verbose CLI output when RTK is available and suitable. |
+| [token-optimization](../.ai/bundles/1.4.0/skills/token-optimization/SKILL.md) | `forge` | Reduce context/output overhead while preserving necessary evidence. |
+| [playwright-cli](../.ai/bundles/1.4.0/skills/playwright-cli/SKILL.md) | `qa-evidence` | Drive managed browser journeys, screenshots, traces, and video. |
+| [record-test-video](../.ai/bundles/1.4.0/skills/record-test-video/SKILL.md) | `qa-evidence` | Capture readable real UI journeys with case timestamps and assertions. |
+| [context7](../.ai/bundles/1.4.0/skills/context7/SKILL.md) | `forge` | Retrieve version-relevant library documentation through Context7 MCP. |
 
 ### A.10 Focused anti-slop review
 
 | Skill / source | Owner | Purpose |
 | --- | --- | --- |
-| [antislop](../.ai/bundles/1.3.0/skills/antislop/SKILL.md) | `review-verify` | Apply focused UI/copy/interaction review in the existing review process. |
-| [antislop-ui](../.ai/bundles/1.3.0/skills/antislop-ui/SKILL.md) | `review-verify` | Review composition and remove generic decorative filler. |
-| [antislop-copywriting](../.ai/bundles/1.3.0/skills/antislop-copywriting/SKILL.md) | `review-verify` | Keep product copy specific and factual without invented claims. |
-| [antislop-human](../.ai/bundles/1.3.0/skills/antislop-human/SKILL.md) | `review-verify` | Check usability across input, vision, and motion needs. |
-| [antislop-layoutmobile](../.ai/bundles/1.3.0/skills/antislop-layoutmobile/SKILL.md) | `review-verify` | Check reflow, touch behavior, sizing, and mobile navigation. |
-| [antislop-code](../.ai/bundles/1.3.0/skills/antislop-code/SKILL.md) | `review-verify` | Review comment hygiene while preserving necessary explanation. |
+| [antislop](../.ai/bundles/1.4.0/skills/antislop/SKILL.md) | `review-verify` | Apply focused UI/copy/interaction review in the existing review process. |
+| [antislop-ui](../.ai/bundles/1.4.0/skills/antislop-ui/SKILL.md) | `review-verify` | Review composition and remove generic decorative filler. |
+| [antislop-copywriting](../.ai/bundles/1.4.0/skills/antislop-copywriting/SKILL.md) | `review-verify` | Keep product copy specific and factual without invented claims. |
+| [antislop-human](../.ai/bundles/1.4.0/skills/antislop-human/SKILL.md) | `review-verify` | Check usability across input, vision, and motion needs. |
+| [antislop-layoutmobile](../.ai/bundles/1.4.0/skills/antislop-layoutmobile/SKILL.md) | `review-verify` | Check reflow, touch behavior, sizing, and mobile navigation. |
+| [antislop-code](../.ai/bundles/1.4.0/skills/antislop-code/SKILL.md) | `review-verify` | Review comment hygiene while preserving necessary explanation. |
 
 
 ## Appendix B. Harness coverage matrix
 
 | Surface | Current source / required observation |
 | --- | --- |
-| Policy, prompts, roles, 74 skills | [Delivery](../.ai/bundles/1.3.0/docs/DELIVERY.md), [catalog](../.ai/bundles/1.3.0/docs/SKILLS.md), and reviewed release inputs. |
+| Policy, prompts, roles, 74 skills | [Delivery](../.ai/bundles/1.4.0/docs/DELIVERY.md), [catalog](../.ai/bundles/1.4.0/docs/SKILLS.md), and reviewed release inputs. |
 | Global/project installation | Actual installer transaction, matching digests, doctor output, and backup/rollback result. |
 | Four native hosts | Each actual CLI/desktop/IDE needs discovery, bundle origin, direct implementation, separate review, hooks, and trust observations. |
 | Product behavior/design | Selected application checks and direct reference/journey observations; historical fixtures are insufficient. |
@@ -367,7 +367,7 @@ All entries below are available in the selected bundle. Each name links to its a
 
 ### Historical native results — 15 October 2026
 
-The table below preserves the earlier rollout. It does not verify release 1.3.0 or current project sessions. Original details remain in the [dated release report](../.ai/bundles/1.3.0/docs/VERIFICATION-1.1.md#native-host-results).
+The table below preserves the earlier rollout. It does not verify release 1.3.0 or current project sessions. Original details remain in the [dated release report](../.ai/bundles/1.4.0/docs/VERIFICATION-1.1.md#native-host-results).
 
 | Host | Historical observations | Remaining limits |
 | --- | --- | --- |
@@ -380,7 +380,7 @@ The table below preserves the earlier rollout. It does not verify release 1.3.0 
 
 ### C.1 Browser automation and readable evidence
 
-The release records managed `@playwright/cli` 0.1.22, its exact Playwright dependency `1.64.0-alpha-1790635538000`, and Chromium revision 1247. The prerelease driver is an explicit dependency of the pinned CLI. A successful full Chromium launch proves browser availability at that recorded time, not an application journey. Runtime locks and integrity records live under `~/.local/share/agent-workflow/tools`; [tool locks](../.ai/bundles/1.3.0/profiles/tools-lock.json) retain the package inputs.
+The release records managed `@playwright/cli` 0.1.22, its exact Playwright dependency `1.64.0-alpha-1790635538000`, and Chromium revision 1247. The prerelease driver is an explicit dependency of the pinned CLI. A successful full Chromium launch proves browser availability at that recorded time, not an application journey. Runtime locks and integrity records live under `~/.local/share/agent-workflow/tools`; [tool locks](../.ai/bundles/1.4.0/profiles/tools-lock.json) retain the package inputs.
 
 For current browser work, use one session per concurrent contributor. The CLI's `video-start`, `video-stop`, `video-chapter`, and `video-show-actions` support recordings; `recording-start` and `recording-stop` generate test code. Inspect installed help before using annotation options. Keep assertions, screenshots, traces, videos, case intervals, and artifact hashes together.
 
@@ -394,13 +394,13 @@ All four repository MCP configurations select the hosted OAuth endpoint `https:/
 
 Global configuration uses `~/.codex/config.toml`, `~/.claude.json`, `~/.cursor/mcp.json`, and `~/.copilot/mcp-config.json`. The repository map is in section 3. Credentials remain host-managed. A configured endpoint does not prove a connection or successful native OAuth.
 
-The release records successful anonymous public tool discovery and Svelte/TypeScript documentation retrieval. Native authentication remained unverified; Cursor's OAuth attempt timed out. To complete a future connection, use the selected host's native action: `codex mcp login context7`, Claude `/mcp`, Cursor's Context7 connection action, or Copilot `/mcp auth context7`. These are user/account actions, not actions performed for this guide. See [Context7 configuration](../.ai/bundles/1.3.0/docs/TOOLS.md#context7-configuration-and-authentication).
+The release records successful anonymous public tool discovery and Svelte/TypeScript documentation retrieval. Native authentication remained unverified; Cursor's OAuth attempt timed out. To complete a future connection, use the selected host's native action: `codex mcp login context7`, Claude `/mcp`, Cursor's Context7 connection action, or Copilot `/mcp auth context7`. These are user/account actions, not actions performed for this guide. See [Context7 configuration](../.ai/bundles/1.4.0/docs/TOOLS.md#context7-configuration-and-authentication).
 
 ### C.3 Strix and security tooling
 
 Strix `strix-agent` 1.7.0 is recorded as installed in an isolated Python 3.13 environment with hashed dependencies, but inactive. It requires Docker and a configured LLM provider for an assessment. The historical preflight reached Docker; provider environment values were absent, authentication was unverified, and stored credentials were not inspected. No SpoolIn security assessment was authorized or executed in that rollout.
 
-Activate `strix-security` only for an explicitly requested assessment with an authorized target and scope. Preflight does not authorize a scan. Report ingestion checks the target, completed run metadata, findings format, and hashes; it does not execute proof scripts or mark security acceptance. There is no automatic Strix scan hook, cloud upload, or scheduled assessment. [Strix procedures](../.ai/bundles/1.3.0/docs/TOOLS.md#strix-stays-inactive-until-requested) remain separate from ordinary gates.
+Activate `strix-security` only for an explicitly requested assessment with an authorized target and scope. Preflight does not authorize a scan. Report ingestion checks the target, completed run metadata, findings format, and hashes; it does not execute proof scripts or mark security acceptance. There is no automatic Strix scan hook, cloud upload, or scheduled assessment. [Strix procedures](../.ai/bundles/1.4.0/docs/TOOLS.md#strix-stays-inactive-until-requested) remain separate from ordinary gates.
 
 | Tool family | Purpose in the harness | Evidence and limit |
 | --- | --- | --- |
@@ -413,7 +413,7 @@ Activate `strix-security` only for an explicitly requested assessment with an au
 | OSV-Scanner | Dependency vulnerability checks | Retained fixtures used 2.7.0. Supported lockfiles/SBOMs and network/database availability determine coverage. |
 | Sonar | Optional external analysis gate | Profile is `not-configured` and not required. No project analysis is claimed. |
 
-These versions describe retained evidence, not a new machine inventory or a recommendation to upgrade. See [gate rules](../.ai/bundles/1.3.0/docs/GATES.md) and [retained tool verification](../.ai/bundles/1.3.0/docs/verification-tools.json).
+These versions describe retained evidence, not a new machine inventory or a recommendation to upgrade. See [gate rules](../.ai/bundles/1.4.0/docs/GATES.md) and [retained tool verification](../.ai/bundles/1.4.0/docs/verification-tools.json).
 
 ### C.4 Research, design generation, and product integration
 
@@ -425,7 +425,7 @@ SpoolIn's specified in-chat movie proposal and approval flow for ChatGPT and Cla
 
 ## Ownership transfer between coding hosts
 
-After the old coordinator stops and releases its active claims, use the selected bundle's `selection --action transfer` with the existing selection ID, recorded owner, next owner and expected full Git revision. The new host resumes that same record; inputs, constraints, findings and budgets are retained. Stale revisions and mutations by the former owner are rejected. See the [transfer contract](../.ai/bundles/1.3.0/docs/COORDINATION.md#transfer-a-selection-between-hosts).
+After the old coordinator stops and releases its active claims, use the selected bundle's `selection --action transfer` with the existing selection ID, recorded owner, next owner and expected full Git revision. The new host resumes that same record; inputs, constraints, findings and budgets are retained. Stale revisions and mutations by the former owner are rejected. See the [transfer contract](../.ai/bundles/1.4.0/docs/COORDINATION.md#transfer-a-selection-between-hosts).
 
 ## Release 1.3.0 verification on 21 October 2026
 
@@ -452,7 +452,7 @@ A Mac freeze and automatic restart were reported during live-host verification. 
 
 The shared runner now derives budgets from the execution device, including effective CPU/memory and supported container limits. It admits one substantial workload at a time across hosts, reserves memory/disk headroom, caps supported workers and command output, samples active resource use, and stops unsafe batches. Stable device state survives client temporary-directory changes and ordinary restarts. Observed descendant identities are retained for cleanup and recovery; POSIX sampling cannot establish complete containment of a never-observed child that detaches between samples. Native Windows execution is blocked because its process containment is unavailable. Linux/container and Windows readings have mocked coverage, not live platform certification.
 
-The optional `resources` object remains in existing installation configuration. Increasing automatic ceilings requires explicit user authorization; installer updates preserve those preferences. `resources --repo .` inspects capacity without starting a workload. After addressing a stopped condition, `resources --repo . --resume` requires healthy readings and no surviving recorded owner/descendants. It does not rerun checks. See [budgets and recovery](../.ai/bundles/1.3.0/docs/GATES.md#execution-device-budgets-and-recovery) for fields, supported worker contracts, retention limits and enforcement boundaries. Arbitrary commands and manual IDE actions outside the runner have an instruction boundary rather than mechanical enforcement.
+The optional `resources` object remains in existing installation configuration. Increasing automatic ceilings requires explicit user authorization; installer updates preserve those preferences. `resources --repo .` inspects capacity without starting a workload. After addressing a stopped condition, `resources --repo . --resume` requires healthy readings and no surviving recorded owner/descendants. It does not rerun checks. See [budgets and recovery](../.ai/bundles/1.4.0/docs/GATES.md#execution-device-budgets-and-recovery) for fields, supported worker contracts, retention limits and enforcement boundaries. Arbitrary commands and manual IDE actions outside the runner have an instruction boundary rather than mechanical enforcement.
 
 Focused amendment verification passed 153 tests, run serially: 19 resource-controller/process cases, 17 mocked OS cases, 24 gate cases, 65 host-parser cases and 28 affected-selection/reuse cases. The only process cleanup exercise used one tiny parent and one detached sleeping child; no resource-exhaustion experiment was performed. One independent combined review covers these changes and reporting. The prior 296-test result remains evidence for its earlier source revision and is not presented as verification of this amendment.
 

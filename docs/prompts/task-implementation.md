@@ -54,4 +54,6 @@ Implement the selected approved work using the project's existing conventions. M
 
 ## Execution
 
-Read `AGENTS.md` and `.ai/config.json`, then follow the selected bundle's [delivery policy](../../.ai/bundles/1.3.0/docs/DELIVERY.md). That policy owns implementation, resource admission, checks, independent review, correction limits, progress, recovery, and delivery. Preserve the inputs and selection rules above; load supporting gate or coordination guidance only when needed.
+Read `AGENTS.md` and `.ai/config.json`, then follow the selected bundle's [delivery policy](../../.ai/bundles/1.4.0/docs/DELIVERY.md). That policy owns implementation, resource admission, checks, independent review, correction limits, progress, recovery, and delivery. Preserve the inputs and selection rules above; load supporting gate or coordination guidance only when needed.
+
+For planning, implementation and acceptance, apply the [permanent quality contract](../../.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract). Register every maintained runtime component and keep required failing checks blocking.
