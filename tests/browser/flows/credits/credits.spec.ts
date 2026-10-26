@@ -13,11 +13,13 @@ test('T021-credits: movie edit route exposes credits section heading', async ({ 
   await seedMaintainerSession(page, 'movies-active');
   await goToMovieList(page);
   await expect(page.getByRole('heading', { level: 1, name: 'Movies' })).toBeVisible();
-  const editLink = page.getByRole('link', { name: /Edit/i }).first();
-  if (await editLink.isVisible()) {
-    await editLink.click();
-    await expect(
-      page.getByRole('heading', { name: /Cast and creators/i }),
-    ).toBeVisible();
-  }
+  const creditsLink = page.getByRole('link', { name: 'Cast and creators', exact: true }).first();
+  await expect(creditsLink).toBeVisible();
+  await creditsLink.click();
+  await expect(page).toHaveURL(/\/manage\/movies\/[^?]+\?.*step=credits/);
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Cast and creators', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('No credits yet for this movie.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Credits could not be loaded. Reload before making changes.', { exact: true })).toHaveCount(0);
 });
