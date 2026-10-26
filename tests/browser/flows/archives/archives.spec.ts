@@ -49,6 +49,8 @@ test('T025-archives: permanent delete dialog shows irreversible copy from fixtur
     page.getByText(irreversibleConfirmCopy(FIXTURE_ARCHIVED_MOVIE.label)),
   ).toBeVisible();
 
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeHidden();
   await page.getByRole('tab', { name: 'People' }).click();
   await expectArchiveTabSelected(page, 'People');
   await page
