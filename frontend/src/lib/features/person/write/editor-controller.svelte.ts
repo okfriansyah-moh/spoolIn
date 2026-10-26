@@ -294,10 +294,8 @@ export class PersonEditorController {
   }
 
   startNewDraft(): void {
-    if (!this.current.draftChoices.length || this.current.phase === 'uncertain')
-      return;
-    this.draftSync.reset();
-    this.publish({ ...this.current, ...newDraftState(this.current.saved, personToDraft, EMPTY_PERSON_DRAFT) });
+    const next = newDraftState(this.current, this.draftSync, personToDraft, EMPTY_PERSON_DRAFT);
+    if (next) this.publish({ ...this.current, ...next });
   }
 
   private reviewedStale(reviewed: boolean): boolean {

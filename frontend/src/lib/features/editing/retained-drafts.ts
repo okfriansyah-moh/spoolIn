@@ -30,7 +30,15 @@ export async function reconcileRetainedDraft(
   return !signal.aborted && phase() === 'failed';
 }
 
-export function newDraftState<Saved, Draft>(saved: Saved | null, project: (saved: Saved) => Draft, empty: Draft) {
+export function newDraftState<Saved, Draft>(
+  state: Readonly<{ saved: Saved | null; draftChoices: readonly unknown[]; phase: string }>,
+  sync: { reset(): void },
+  project: (saved: Saved) => Draft,
+  empty: Draft,
+) {
+  if (!state.draftChoices.length || state.phase === 'uncertain') return null;
+  sync.reset();
+  const saved = state.saved;
   return { draftChoices: Object.freeze([]), draftBaseKnown: true, phase: 'idle' as const,
     draft: saved ? project(saved) : empty,
     message: 'Started a new draft. Other retained drafts remain available after reload.' };

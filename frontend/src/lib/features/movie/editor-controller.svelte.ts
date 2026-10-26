@@ -318,10 +318,8 @@ export class MovieEditorController {
   }
 
   startNewDraft(): void {
-    if (!this.current.draftChoices.length || this.current.phase === 'uncertain')
-      return;
-    this.draftSync.reset();
-    this.publish({ ...this.current, ...newDraftState(this.current.saved, movieToDraft, EMPTY_MOVIE_DRAFT) });
+    const next = newDraftState(this.current, this.draftSync, movieToDraft, EMPTY_MOVIE_DRAFT);
+    if (next) this.publish({ ...this.current, ...next });
   }
 
   private reviewedStale(reviewed: boolean): boolean {
