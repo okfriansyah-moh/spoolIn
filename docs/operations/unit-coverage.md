@@ -123,6 +123,9 @@ bind only to localhost. The report server does not expose test logs or scanner s
 
 ## CI and delivery record
 
+The latest verified run is recorded in [Sonar quality verification](sonar-quality.md#verified-results--26-october-2026).
+The dated records below retain earlier coverage and identity-migration evidence.
+
 The `Unit coverage` workflow runs the same Docker entry point on pull requests, pushes
 to `main`, and manual dispatch. It retains reports on failure and writes a coverage
 table in the job summary. Local Sonar publication remains optional and uses local
