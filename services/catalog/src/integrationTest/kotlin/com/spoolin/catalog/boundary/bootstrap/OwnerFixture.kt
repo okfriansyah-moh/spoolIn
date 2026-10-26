@@ -83,6 +83,7 @@ class OwnerFixture(
             .withEnv("POSTGRES_INITDB_ARGS", "--auth-host=scram-sha-256 --auth-local=scram-sha-256")
             .withExposedPorts(5432)
             .withCreateContainerCmdModifier { command ->
+                command.hostConfig?.withMemory(268435456L)?.withNanoCPUs(1000000000L)
                 command.hostConfig?.withPortBindings(
                     com.github.dockerjava.api.model.PortBinding(
                         com.github.dockerjava.api.model.Ports.Binding

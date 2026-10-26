@@ -20,6 +20,7 @@ fun runSeedArtworkCli(args: Array<String>) {
     val environment = StandardEnvironment()
     ConfigDataEnvironmentPostProcessor.applyTo(environment)
     DatabaseSettings.load(environment, "media", false).pool().use { database ->
+        database.connection.use(com.spoolin.support.identity.NamedIdentities::verify)
         val store = QuarantineStore(Path.of(environment.getProperty("SPOOLIN_MEDIA_ROOT", "/var/spoolin/media")))
         val importer = SeedArtworkImporter(database, store)
         val report =

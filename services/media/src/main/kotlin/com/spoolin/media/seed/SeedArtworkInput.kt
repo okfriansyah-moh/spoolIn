@@ -2,7 +2,6 @@ package com.spoolin.media.seed
 
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
-import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -72,15 +71,7 @@ internal object SeedJson {
         namespace: UUID,
         name: String,
     ): UUID {
-        val prefix =
-            ByteBuffer
-                .allocate(UUID_BYTES)
-                .putLong(namespace.mostSignificantBits)
-                .putLong(namespace.leastSignificantBits)
-        val bytes = MessageDigest.getInstance("SHA-1").digest(prefix.array() + name.toByteArray(Charsets.UTF_8))
-        bytes[VERSION_INDEX] = ((bytes[VERSION_INDEX].toInt() and VERSION_MASK) or VERSION_BITS).toByte()
-        bytes[VARIANT_INDEX] = ((bytes[VARIANT_INDEX].toInt() and VARIANT_MASK) or VARIANT_BITS).toByte()
-        return ByteBuffer.wrap(bytes).let { UUID(it.long, it.long) }
+        return com.spoolin.support.identity.NamedIdentities.id(namespace, name.toByteArray(Charsets.UTF_8))
     }
 
     private fun stable(node: JsonNode): Any? =
@@ -103,10 +94,3 @@ internal object SeedJson {
 
 private const val TITLE_COUNT = 200
 private const val TYPE_COUNT = 100
-private const val UUID_BYTES = 16
-private const val VERSION_INDEX = 6
-private const val VARIANT_INDEX = 8
-private const val VERSION_MASK = 15
-private const val VERSION_BITS = 80
-private const val VARIANT_MASK = 63
-private const val VARIANT_BITS = 128

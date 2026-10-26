@@ -40,6 +40,7 @@ object RetentionMaintenanceCli {
             if (!execute) {
                 emptyMap()
             } else {
+                source.connection.use(com.spoolin.support.identity.NamedIdentities::verify)
                 val retention = RetentionMaintenance(source, owner)
                 if (options.getValue("--schedule") == "hourly") retention.hourly() else retention.daily()
             }

@@ -50,6 +50,7 @@ private fun initializeFromFile(path: Path) {
     val config = InitializationConfiguration.load(path, rules)
     val passwords = policy.textBounds.getValue("password")
     DatabaseSettings.load(environment, "core", false).pool().use { source ->
+        source.connection.use(com.spoolin.support.identity.NamedIdentities::verify)
         val readKeys =
             System.getenv("ACCOUNT_READ_KEYS_FILE")?.let { value ->
                 require(value.isNotBlank()) { "Initialization read key configuration is empty" }

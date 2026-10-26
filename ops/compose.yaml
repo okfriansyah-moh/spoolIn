@@ -1,5 +1,6 @@
 name: ${SPOOLIN_INSTALLATION:?Set installation identifier}
 x-owner-settings: &owner-settings
+  SPOOLIN_IDENTITY_REGISTRY:
   # Unresolved keys stay absent; explicit empty/zero values reach strict validation.
   REGISTRATION_NAME_MIN_CODE_POINTS:
   REGISTRATION_NAME_MAX_CODE_POINTS:

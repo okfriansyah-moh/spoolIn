@@ -8,7 +8,6 @@ import com.spoolin.core.features.crypto.ProtectedRead
 import com.spoolin.core.features.crypto.executeBound
 import com.spoolin.core.features.crypto.queryBound
 import com.spoolin.core.requireProtectedFile
-import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.security.MessageDigest
 import java.sql.Connection
@@ -16,13 +15,6 @@ import java.util.UUID
 import javax.sql.DataSource
 
 private const val PASSWORD_FILE_LIMIT = 4096L
-private const val UUID_BYTES = 16
-private const val UUID_VERSION_OFFSET = 6
-private const val UUID_VARIANT_OFFSET = 8
-private const val UUID_VERSION_MASK = 15
-private const val UUID_VERSION_FIVE = 80
-private const val UUID_VARIANT_MASK = 63
-private const val UUID_VARIANT_RFC = 128
 
 class AccountInitialization(
     private val dataSource: DataSource,
@@ -210,19 +202,8 @@ class AccountInitialization(
 
 private fun receiptId(config: InitializationConfiguration): UUID {
     val namespace = UUID.fromString("9da61864-80f5-5c70-bc79-3914da94079e")
-    val prefix =
-        ByteBuffer
-            .allocate(UUID_BYTES)
-            .putLong(namespace.mostSignificantBits)
-            .putLong(namespace.leastSignificantBits)
-            .array()
     val name = "initialization/core/ACCOUNT_INITIALIZATION/${config.version}".toByteArray(Charsets.UTF_8)
-    val hash = MessageDigest.getInstance("SHA-1").digest(prefix + name)
-    hash[UUID_VERSION_OFFSET] =
-        ((hash[UUID_VERSION_OFFSET].toInt() and UUID_VERSION_MASK) or UUID_VERSION_FIVE).toByte()
-    hash[UUID_VARIANT_OFFSET] = ((hash[UUID_VARIANT_OFFSET].toInt() and UUID_VARIANT_MASK) or UUID_VARIANT_RFC).toByte()
-    val bytes = ByteBuffer.wrap(hash)
-    return UUID(bytes.long, bytes.long)
+    return com.spoolin.support.identity.NamedIdentities.id(namespace, name)
 }
 
 private fun initializeKey(

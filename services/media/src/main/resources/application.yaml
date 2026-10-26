@@ -77,8 +77,8 @@ management:
           include: readinessState,schema
 spoolin:
   schema:
-    minimum: '3'
-    maximum: '3'
+    minimum: '4'
+    maximum: '4'
   policy:
     revision: ${SPOOLIN_POLICY_REVISION:v1}
   media:

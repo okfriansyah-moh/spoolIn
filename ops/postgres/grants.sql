@@ -32,6 +32,10 @@ BEGIN
     EXECUTE format('GRANT SELECT,INSERT ON appdata.hold_operation_binding TO %I',runtime_role);
     EXECUTE format('GRANT SELECT ON appdata.hold_operation_binding TO %I',maintenance_role);
   END IF;
+  IF to_regclass('appdata.identity_hash_migration') IS NOT NULL THEN
+    EXECUTE format('GRANT SELECT ON appdata.identity_hash_migration TO %I',runtime_role);
+    EXECUTE format('GRANT SELECT ON appdata.identity_hash_migration TO %I',maintenance_role);
+  END IF;
   IF to_regclass('appdata.operation_receipt') IS NOT NULL THEN
     EXECUTE format('REVOKE DELETE ON appdata.operation_receipt FROM %I',runtime_role);
     EXECUTE format('GRANT SELECT ON appdata.operation_receipt TO %I',maintenance_role);

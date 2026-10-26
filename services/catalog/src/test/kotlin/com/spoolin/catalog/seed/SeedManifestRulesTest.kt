@@ -25,14 +25,22 @@ class SeedManifestRulesTest {
                 .putLong(namespace.mostSignificantBits)
                 .putLong(namespace.leastSignificantBits)
                 .array()
-        val digest = MessageDigest.getInstance("SHA-1").digest(bytes + name)
-        digest[6] = ((digest[6].toInt() and 15) or 80).toByte()
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes + name)
+        digest[6] = ((digest[6].toInt() and 15) or 128).toByte()
         digest[8] = ((digest[8].toInt() and 63) or 128).toByte()
         val expected = ByteBuffer.wrap(digest).let { UUID(it.long, it.long) }
         val actual = SeedIdentities.record(namespace, "wikidata", "MOVIE", "Q42")
         assertEquals(expected, actual)
-        assertEquals(5, actual.version())
+        assertEquals(8, actual.version())
         assertEquals(2, actual.variant())
+    }
+
+    @Test
+    fun `frozen seed UUID remains unchanged after switching new identities to SHA256`() {
+        assertEquals(
+            UUID.fromString("07b0fb38-32f0-5478-92cc-57e1315430cf"),
+            SeedIdentities.record(namespace, "wikidata", "MOVIE", "Q372"),
+        )
     }
 
     @Test

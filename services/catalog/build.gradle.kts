@@ -248,3 +248,13 @@ val catalogProposalIntegrationTest by tasks.registering(Test::class) {
     maxHeapSize = "768m"
 }
 tasks.named("koverXmlReport") { dependsOn(catalogProposalIntegrationTest) }
+
+
+val identityMigrationIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath = foundationTestRuntime
+    filter { includeTestsMatching("com.spoolin.catalog.boundary.bootstrap.IdentityMigrationBoundaryTest") }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}

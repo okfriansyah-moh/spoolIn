@@ -85,7 +85,14 @@ class Application {
     fun dataSource(environment: Environment): HikariDataSource {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
-        return DatabaseSettings.load(environment, OWNER, false).pool()
+        val pool = DatabaseSettings.load(environment, OWNER, false).pool()
+        try {
+            pool.connection.use(com.spoolin.support.identity.NamedIdentities::verify)
+            return pool
+        } catch (failure: Exception) {
+            pool.close()
+            throw failure
+        }
     }
 }
 
