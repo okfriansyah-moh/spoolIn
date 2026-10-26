@@ -5,11 +5,16 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.sql.Connection
+import java.sql.ResultSet
 import java.util.UUID
 
 private const val UUID_BYTES = 16
 private const val UUID_VERSION_INDEX = 6
 private const val UUID_VARIANT_INDEX = 8
+private const val UUID_VERSION_MASK = 15
+private const val UUID_VARIANT_MASK = 63
+private const val UUID_CUSTOM_VERSION = 128
+private const val UUID_RFC_VARIANT = 128
 
 /** Configured once per process; compatibility records preserve existing persisted identities. */
 object NamedIdentities {
@@ -35,50 +40,58 @@ class NamedIdentityResolver(
     builtin: () -> InputStream?,
 ) : AutoCloseable {
     private val external = externalPath?.let(LegacyIdentityIndex::external)
-    private val frozen =
+    private val frozen = loadFrozen(builtin)
+
+    private fun loadFrozen(builtin: () -> InputStream?): LegacyIdentityIndex {
+        var loaded = false
         try {
-            LegacyIdentityIndex.builtin(checkNotNull(builtin()) { "Built-in identity compatibility index is missing" })
-        } catch (failure: Throwable) {
-            external?.close()
-            throw failure
+            return LegacyIdentityIndex
+                .builtin(
+                    checkNotNull(builtin()) { "Built-in identity compatibility index is missing" },
+                ).also { loaded = true }
+        } finally {
+            if (!loaded) external?.close()
         }
+    }
 
     @Volatile private var closed = false
 
     fun id(
         namespace: UUID,
         name: ByteArray,
-    ): UUID {
-        check(!closed) { "Identity resolver is closed" }
-        return try {
+    ): UUID =
+        failClosed {
             val digest = digest(namespace, name)
             external?.find(digest) ?: frozen.find(digest) ?: strongIdentity(digest)
-        } catch (failure: Throwable) {
-            close()
-            throw failure
         }
-    }
 
-    fun verify(connection: Connection) {
-        check(!closed) { "Identity resolver is closed" }
-        try {
+    fun verify(connection: Connection) =
+        failClosed {
             external?.requireUnchanged()
             connection
                 .prepareStatement(
                     "SELECT legacy_required,registry_sha256 FROM appdata.identity_hash_migration WHERE singleton=true",
                 ).use { query ->
-                    query.executeQuery().use { rows ->
-                        check(rows.next()) { "Identity migration guard is missing" }
-                        val required = rows.getBoolean("legacy_required")
-                        check(!rows.wasNull()) { "Identity migration requirement is missing" }
-                        val expected = rows.getString("registry_sha256")
-                        check(!rows.next()) { "Identity migration guard has duplicate rows" }
-                        verifyRegistry(required, expected)
-                    }
+                    query.executeQuery().use(::verifyGuard)
                 }
-        } catch (failure: Throwable) {
-            close()
-            throw failure
+        }
+
+    private fun verifyGuard(rows: ResultSet) {
+        check(rows.next()) { "Identity migration guard is missing" }
+        val required = rows.getBoolean("legacy_required")
+        check(!rows.wasNull()) { "Identity migration requirement is missing" }
+        val expected = rows.getString("registry_sha256")
+        check(!rows.next()) { "Identity migration guard has duplicate rows" }
+        verifyRegistry(required, expected)
+    }
+
+    private inline fun <T> failClosed(action: () -> T): T {
+        check(!closed) { "Identity resolver is closed" }
+        var succeeded = false
+        try {
+            return action().also { succeeded = true }
+        } finally {
+            if (!succeeded) close()
         }
     }
 
@@ -125,8 +138,10 @@ class NamedIdentityResolver(
     }
 
     private fun strongIdentity(digest: ByteArray): UUID {
-        digest[UUID_VERSION_INDEX] = ((digest[UUID_VERSION_INDEX].toInt() and 15) or 128).toByte()
-        digest[UUID_VARIANT_INDEX] = ((digest[UUID_VARIANT_INDEX].toInt() and 63) or 128).toByte()
+        digest[UUID_VERSION_INDEX] =
+            ((digest[UUID_VERSION_INDEX].toInt() and UUID_VERSION_MASK) or UUID_CUSTOM_VERSION).toByte()
+        digest[UUID_VARIANT_INDEX] =
+            ((digest[UUID_VARIANT_INDEX].toInt() and UUID_VARIANT_MASK) or UUID_RFC_VARIANT).toByte()
         return ByteBuffer.wrap(digest).let { UUID(it.long, it.long) }
     }
 }

@@ -13,6 +13,8 @@ import java.security.MessageDigest
 import java.util.HexFormat
 import java.util.UUID
 
+private const val UNSIGNED_BYTE_MASK = 255
+private const val SHA256_HEX_BYTES = 64
 private const val HEADER_BYTES = 16
 private const val KEY_BYTES = 32
 private const val RECORD_BYTES = 48
@@ -64,7 +66,10 @@ private fun compareKey(
     rightOffset: Int = 0,
 ): Int {
     for (index in 0 until KEY_BYTES) {
-        val compared = (left[index].toInt() and 255).compareTo(right[rightOffset + index].toInt() and 255)
+        val compared =
+            (left[index].toInt() and UNSIGNED_BYTE_MASK).compareTo(
+                right[rightOffset + index].toInt() and UNSIGNED_BYTE_MASK,
+            )
         if (compared != 0) return compared
     }
     return 0
@@ -210,16 +215,16 @@ private class FileIdentityIndex private constructor(
         fun open(path: Path): LegacyIdentityIndex {
             val before = attributes(path)
             val channel = FileChannel.open(path, READ, NOFOLLOW_LINKS)
-            return try {
+            var opened = false
+            try {
                 val after = attributes(path)
                 check(
                     before.fileKey() == after.fileKey() && before.size() == after.size() &&
                         before.lastModifiedTime() == after.lastModifiedTime(),
                 ) { "Identity index changed while opening" }
-                FileIdentityIndex(path, channel, before)
-            } catch (failure: Throwable) {
-                channel.close()
-                throw failure
+                return FileIdentityIndex(path, channel, before).also { opened = true }
+            } finally {
+                if (!opened) channel.close()
             }
         }
 
@@ -228,7 +233,9 @@ private class FileIdentityIndex private constructor(
             expected: String,
         ) {
             val original = attributes(path)
-            check(original.size() in 64..65) { "Identity migration readiness marker size is invalid" }
+            check(original.size() in SHA256_HEX_BYTES..(SHA256_HEX_BYTES + 1)) {
+                "Identity migration readiness marker size is invalid"
+            }
             val bytes =
                 FileChannel.open(path, READ, NOFOLLOW_LINKS).use { channel ->
                     val buffer = ByteBuffer.allocate(original.size().toInt())

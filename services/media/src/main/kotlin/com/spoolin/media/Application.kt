@@ -78,12 +78,13 @@ class Application {
         val key = Path.of(environment.getRequiredProperty("SERVICE_KEY_FILE"))
         requireProtectedFile(key, TLS_KEY_SIZE_LIMIT)
         val pool = DatabaseSettings.load(environment, OWNER, false).pool()
+        var verified = false
         try {
             pool.connection.use(com.spoolin.support.identity.NamedIdentities::verify)
+            verified = true
             return pool
-        } catch (failure: Exception) {
-            pool.close()
-            throw failure
+        } finally {
+            if (!verified) pool.close()
         }
     }
 }
@@ -267,16 +268,12 @@ class OwnerServiceConfiguration {
         registry: MeterRegistry,
         channels: org.springframework.grpc.client.GrpcChannelFactory,
     ): com.spoolin.media.operations.work.MediaWorkDispatcher {
-        val catalog =
-            com.spoolin.media.features.asset.CatalogAttachments(
-                spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
-            )
-        val preparedPosterCleanup =
-            com.spoolin.media.features.cleanup.PreparedPosterCleanup(
-                dataSource,
-                catalog,
-                quarantineStore,
-            )
+        val catalog = com.spoolin.media.features.asset.CatalogAttachments(
+            spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
+        )
+        val preparedPosterCleanup = com.spoolin.media.features.cleanup.PreparedPosterCleanup(
+            dataSource, catalog, quarantineStore,
+        )
         return com.spoolin.media.operations.work.MediaWorkDispatcher(
             dataSource,
             schema,
