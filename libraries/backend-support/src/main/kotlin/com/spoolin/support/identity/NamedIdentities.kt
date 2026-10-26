@@ -21,7 +21,10 @@ object NamedIdentities {
         }
     }
 
-    fun id(namespace: UUID, name: ByteArray): UUID = resolver.id(namespace, name)
+    fun id(
+        namespace: UUID,
+        name: ByteArray,
+    ): UUID = resolver.id(namespace, name)
 
     fun verify(connection: Connection) = resolver.verify(connection)
 }
@@ -32,15 +35,20 @@ class NamedIdentityResolver(
     builtin: () -> InputStream?,
 ) : AutoCloseable {
     private val external = externalPath?.let(LegacyIdentityIndex::external)
-    private val frozen = try {
-        LegacyIdentityIndex.builtin(checkNotNull(builtin()) { "Built-in identity compatibility index is missing" })
-    } catch (failure: Throwable) {
-        external?.close()
-        throw failure
-    }
+    private val frozen =
+        try {
+            LegacyIdentityIndex.builtin(checkNotNull(builtin()) { "Built-in identity compatibility index is missing" })
+        } catch (failure: Throwable) {
+            external?.close()
+            throw failure
+        }
+
     @Volatile private var closed = false
 
-    fun id(namespace: UUID, name: ByteArray): UUID {
+    fun id(
+        namespace: UUID,
+        name: ByteArray,
+    ): UUID {
         check(!closed) { "Identity resolver is closed" }
         return try {
             val digest = digest(namespace, name)
@@ -55,30 +63,39 @@ class NamedIdentityResolver(
         check(!closed) { "Identity resolver is closed" }
         try {
             external?.requireUnchanged()
-            connection.prepareStatement(
-                "SELECT legacy_required,registry_sha256 FROM appdata.identity_hash_migration WHERE singleton=true",
-            ).use { query ->
-                query.executeQuery().use { rows ->
-                    check(rows.next()) { "Identity migration guard is missing" }
-                    val required = rows.getBoolean("legacy_required")
-                    check(!rows.wasNull()) { "Identity migration requirement is missing" }
-                    val expected = rows.getString("registry_sha256")
-                    check(!rows.next()) { "Identity migration guard has duplicate rows" }
-                    verifyRegistry(required, expected)
+            connection
+                .prepareStatement(
+                    "SELECT legacy_required,registry_sha256 FROM appdata.identity_hash_migration WHERE singleton=true",
+                ).use { query ->
+                    query.executeQuery().use { rows ->
+                        check(rows.next()) { "Identity migration guard is missing" }
+                        val required = rows.getBoolean("legacy_required")
+                        check(!rows.wasNull()) { "Identity migration requirement is missing" }
+                        val expected = rows.getString("registry_sha256")
+                        check(!rows.next()) { "Identity migration guard has duplicate rows" }
+                        verifyRegistry(required, expected)
+                    }
                 }
-            }
         } catch (failure: Throwable) {
             close()
             throw failure
         }
     }
 
-    private fun verifyRegistry(required: Boolean, expected: String?) {
+    private fun verifyRegistry(
+        required: Boolean,
+        expected: String?,
+    ) {
         check(!required || expected != null) { "Required identity registry digest is missing" }
         if (expected == null) return
         check(expected.matches(Regex("[0-9a-f]{64}"))) { "Identity registry digest is invalid" }
         val registry = checkNotNull(external) { "Required identity registry is not configured" }
-        check(MessageDigest.isEqual(expected.toByteArray(Charsets.US_ASCII), registry.sha256.toByteArray(Charsets.US_ASCII))) {
+        check(
+            MessageDigest.isEqual(
+                expected.toByteArray(Charsets.US_ASCII),
+                registry.sha256.toByteArray(Charsets.US_ASCII),
+            ),
+        ) {
             "Identity registry digest differs from the database guard"
         }
         registry.requireUnchanged()
@@ -92,12 +109,17 @@ class NamedIdentityResolver(
         frozen.close()
     }
 
-    private fun digest(namespace: UUID, name: ByteArray): ByteArray {
+    private fun digest(
+        namespace: UUID,
+        name: ByteArray,
+    ): ByteArray {
         val digest = MessageDigest.getInstance("SHA-256")
-        val prefix = ByteBuffer.allocate(UUID_BYTES)
-            .putLong(namespace.mostSignificantBits)
-            .putLong(namespace.leastSignificantBits)
-            .array()
+        val prefix =
+            ByteBuffer
+                .allocate(UUID_BYTES)
+                .putLong(namespace.mostSignificantBits)
+                .putLong(namespace.leastSignificantBits)
+                .array()
         digest.update(prefix)
         return digest.digest(name)
     }

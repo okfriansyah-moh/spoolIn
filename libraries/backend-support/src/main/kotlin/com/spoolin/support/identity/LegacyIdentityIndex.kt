@@ -38,11 +38,17 @@ internal interface LegacyIdentityIndex : AutoCloseable {
 
         fun external(path: Path): LegacyIdentityIndex = FileIdentityIndex.open(path)
 
-        fun requireReady(path: Path, expected: String) = FileIdentityIndex.requireReady(path, expected)
+        fun requireReady(
+            path: Path,
+            expected: String,
+        ) = FileIdentityIndex.requireReady(path, expected)
     }
 }
 
-private fun recordCount(header: ByteArray, size: Long): Long {
+private fun recordCount(
+    header: ByteArray,
+    size: Long,
+): Long {
     check(header.size == HEADER_BYTES && header.copyOfRange(0, MAGIC.size).contentEquals(MAGIC)) {
         "Identity index header is invalid"
     }
@@ -52,7 +58,11 @@ private fun recordCount(header: ByteArray, size: Long): Long {
     return count
 }
 
-private fun compareKey(left: ByteArray, right: ByteArray, rightOffset: Int = 0): Int {
+private fun compareKey(
+    left: ByteArray,
+    right: ByteArray,
+    rightOffset: Int = 0,
+): Int {
     for (index in 0 until KEY_BYTES) {
         val compared = (left[index].toInt() and 255).compareTo(right[rightOffset + index].toInt() and 255)
         if (compared != 0) return compared
@@ -60,12 +70,17 @@ private fun compareKey(left: ByteArray, right: ByteArray, rightOffset: Int = 0):
     return 0
 }
 
-private fun identity(record: ByteArray, offset: Int = KEY_BYTES): UUID {
+private fun identity(
+    record: ByteArray,
+    offset: Int = KEY_BYTES,
+): UUID {
     val values = ByteBuffer.wrap(record)
     return UUID(values.getLong(offset), values.getLong(offset + Long.SIZE_BYTES))
 }
 
-private class MemoryIdentityIndex(private val bytes: ByteArray) : LegacyIdentityIndex {
+private class MemoryIdentityIndex(
+    private val bytes: ByteArray,
+) : LegacyIdentityIndex {
     private val count = recordCount(bytes.take(HEADER_BYTES).toByteArray(), bytes.size.toLong())
     override val sha256: String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
 
@@ -74,7 +89,9 @@ private class MemoryIdentityIndex(private val bytes: ByteArray) : LegacyIdentity
         repeat(count.toInt()) { index ->
             val offset = HEADER_BYTES + index * RECORD_BYTES
             val key = bytes.copyOfRange(offset, offset + KEY_BYTES)
-            check(previous == null || compareKey(requireNotNull(previous), key) < 0) { "Identity index keys are not strictly ordered" }
+            check(previous == null || compareKey(requireNotNull(previous), key) < 0) {
+                "Identity index keys are not strictly ordered"
+            }
             previous = key
         }
     }
@@ -116,8 +133,9 @@ private class FileIdentityIndex private constructor(
 
     override fun requireUnchanged() {
         val current = attributes(path)
-        check(channel.isOpen && current.fileKey() == original.fileKey() &&
-            current.size() == original.size() && current.lastModifiedTime() == original.lastModifiedTime()
+        check(
+            channel.isOpen && current.fileKey() == original.fileKey() &&
+                current.size() == original.size() && current.lastModifiedTime() == original.lastModifiedTime(),
         ) { "Identity index changed after validation" }
     }
 
@@ -149,7 +167,9 @@ private class FileIdentityIndex private constructor(
         var index = 0L
         while (index < count) {
             val key = read(HEADER_BYTES + index * RECORD_BYTES, KEY_BYTES)
-            check(previous == null || compareKey(requireNotNull(previous), key) < 0) { "Identity index keys are not strictly ordered" }
+            check(previous == null || compareKey(requireNotNull(previous), key) < 0) {
+                "Identity index keys are not strictly ordered"
+            }
             previous = key
             index++
         }
@@ -170,7 +190,10 @@ private class FileIdentityIndex private constructor(
         return HexFormat.of().formatHex(digest.digest())
     }
 
-    private fun read(position: Long, size: Int): ByteArray {
+    private fun read(
+        position: Long,
+        size: Int,
+    ): ByteArray {
         val buffer = ByteBuffer.allocate(size)
         while (buffer.hasRemaining()) {
             val count = channel.read(buffer, position + buffer.position())
@@ -189,8 +212,9 @@ private class FileIdentityIndex private constructor(
             val channel = FileChannel.open(path, READ, NOFOLLOW_LINKS)
             return try {
                 val after = attributes(path)
-                check(before.fileKey() == after.fileKey() && before.size() == after.size() &&
-                    before.lastModifiedTime() == after.lastModifiedTime()
+                check(
+                    before.fileKey() == after.fileKey() && before.size() == after.size() &&
+                        before.lastModifiedTime() == after.lastModifiedTime(),
                 ) { "Identity index changed while opening" }
                 FileIdentityIndex(path, channel, before)
             } catch (failure: Throwable) {
@@ -199,32 +223,42 @@ private class FileIdentityIndex private constructor(
             }
         }
 
-        fun requireReady(path: Path, expected: String) {
+        fun requireReady(
+            path: Path,
+            expected: String,
+        ) {
             val original = attributes(path)
             check(original.size() in 64..65) { "Identity migration readiness marker size is invalid" }
-            val bytes = FileChannel.open(path, READ, NOFOLLOW_LINKS).use { channel ->
-                val buffer = ByteBuffer.allocate(original.size().toInt())
-                while (buffer.hasRemaining()) {
-                    check(channel.read(buffer) > 0) { "Identity migration readiness marker is truncated" }
+            val bytes =
+                FileChannel.open(path, READ, NOFOLLOW_LINKS).use { channel ->
+                    val buffer = ByteBuffer.allocate(original.size().toInt())
+                    while (buffer.hasRemaining()) {
+                        check(channel.read(buffer) > 0) { "Identity migration readiness marker is truncated" }
+                    }
+                    buffer.array()
                 }
-                buffer.array()
-            }
             val current = attributes(path)
-            check(original.fileKey() == current.fileKey() && original.size() == current.size() &&
-                original.lastModifiedTime() == current.lastModifiedTime()
+            check(
+                original.fileKey() == current.fileKey() && original.size() == current.size() &&
+                    original.lastModifiedTime() == current.lastModifiedTime(),
             ) { "Identity migration readiness marker changed while reading" }
             val text = bytes.toString(Charsets.US_ASCII)
-            check(text == expected || text == expected + "\n") { "Identity migration readiness marker differs from registry" }
+            check(
+                text == expected || text == expected + "\n",
+            ) { "Identity migration readiness marker differs from registry" }
         }
 
         private fun attributes(path: Path): BasicFileAttributes {
             val attributes = Files.readAttributes(path, BasicFileAttributes::class.java, NOFOLLOW_LINKS)
-            check(attributes.isRegularFile && attributes.fileKey() != null) { "Identity index must be a regular immutable file" }
-            val permissions = try {
-                Files.getPosixFilePermissions(path, NOFOLLOW_LINKS)
-            } catch (_: UnsupportedOperationException) {
-                emptySet()
-            }
+            check(
+                attributes.isRegularFile && attributes.fileKey() != null,
+            ) { "Identity index must be a regular immutable file" }
+            val permissions =
+                try {
+                    Files.getPosixFilePermissions(path, NOFOLLOW_LINKS)
+                } catch (_: UnsupportedOperationException) {
+                    emptySet()
+                }
             check(PosixFilePermission.GROUP_WRITE !in permissions && PosixFilePermission.OTHERS_WRITE !in permissions) {
                 "Identity index must not be writable by group or others"
             }

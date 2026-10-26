@@ -267,12 +267,16 @@ class OwnerServiceConfiguration {
         registry: MeterRegistry,
         channels: org.springframework.grpc.client.GrpcChannelFactory,
     ): com.spoolin.media.operations.work.MediaWorkDispatcher {
-        val catalog = com.spoolin.media.features.asset.CatalogAttachments(
-            spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
-        )
-        val preparedPosterCleanup = com.spoolin.media.features.cleanup.PreparedPosterCleanup(
-            dataSource, catalog, quarantineStore,
-        )
+        val catalog =
+            com.spoolin.media.features.asset.CatalogAttachments(
+                spoolin.v1.CatalogServiceGrpc.newBlockingStub(channels.createChannel("catalog")),
+            )
+        val preparedPosterCleanup =
+            com.spoolin.media.features.cleanup.PreparedPosterCleanup(
+                dataSource,
+                catalog,
+                quarantineStore,
+            )
         return com.spoolin.media.operations.work.MediaWorkDispatcher(
             dataSource,
             schema,

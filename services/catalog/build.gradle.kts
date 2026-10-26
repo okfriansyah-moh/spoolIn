@@ -19,7 +19,8 @@ val foundationTestRuntime =
 
 tasks.named<Test>("test") {
     testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
-    classpath = files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
+    classpath =
+        files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
     filter { includeTestsMatching("*RulesTest") }
 }
 
@@ -40,7 +41,8 @@ tasks.named("koverXmlReport") { dependsOn("integrationTest", "architectureTest")
 
 val catalogFilterOptionsIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
-    classpath = files(bootstrapTests.output, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
+    classpath =
+        files(bootstrapTests.output, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
     dependsOn("integrationTestClasses")
     filter { includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.CatalogFilterOptionsRulesTest") }
     useJUnitPlatform()
@@ -249,12 +251,12 @@ val catalogProposalIntegrationTest by tasks.registering(Test::class) {
 }
 tasks.named("koverXmlReport") { dependsOn(catalogProposalIntegrationTest) }
 
-
 val identityMigrationIntegrationTest by tasks.registering(Test::class) {
     testClassesDirs = bootstrapTests.output.classesDirs
     dependsOn("integrationTestClasses")
     classpath = foundationTestRuntime
     filter { includeTestsMatching("com.spoolin.catalog.boundary.bootstrap.IdentityMigrationBoundaryTest") }
+    doFirst { systemProperty("identity.fixture.classpath", classpath.asPath) }
     useJUnitPlatform()
     maxHeapSize = "768m"
 }

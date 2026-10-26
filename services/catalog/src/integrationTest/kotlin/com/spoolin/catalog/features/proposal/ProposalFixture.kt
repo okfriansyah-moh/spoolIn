@@ -78,7 +78,8 @@ internal class ProposalFixture : AutoCloseable {
         fixture.membership("catalog", "revoke")
         pool = fixture.pool("catalog")
         val receipts = OwnerReceipts(pool, IntentHashes(mapOf("test" to ByteArray(KEY_BYTES) { 1 }), "test"), clock)
-        val writes = ProposalWrites(pool, receipts, MovieWrites(receipts, clock), clock = clock) { policy }
+        val writes =
+            ProposalWrites(pool, receipts, MovieWrites(receipts, clock), clock = clock, livePolicyRevision = { policy })
         val methods =
             setOf("ProposeMovie", "ApproveAndCreate", "RejectProposal")
                 .map { "spoolin.v1.CatalogService/$it" }

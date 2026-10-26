@@ -28,7 +28,8 @@ object SeedIdentities {
     fun initialization(
         namespace: UUID,
         version: String,
-    ): UUID = namedIdentity(namespace, "initialization/catalog/CATALOG_INITIALIZATION/$version".toByteArray(Charsets.UTF_8))
+    ): UUID =
+        namedIdentity(namespace, "initialization/catalog/CATALOG_INITIALIZATION/$version".toByteArray(Charsets.UTF_8))
 
     fun named(
         namespace: UUID,
@@ -38,7 +39,9 @@ object SeedIdentities {
     private fun namedIdentity(
         namespace: UUID,
         name: ByteArray,
-    ): UUID = com.spoolin.support.identity.NamedIdentities.id(namespace, name)
+    ): UUID =
+        com.spoolin.support.identity.NamedIdentities
+            .id(namespace, name)
 
     fun hash(node: JsonNode): ByteArray {
         val encoded = mapper.writeValueAsBytes(stableValue(node))

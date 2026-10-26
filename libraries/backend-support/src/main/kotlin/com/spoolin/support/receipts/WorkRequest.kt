@@ -28,5 +28,6 @@ data class WorkRequest(
     }
 
     fun id(parent: UUID): UUID =
-        com.spoolin.support.identity.NamedIdentities.id(parent, step.toByteArray(Charsets.UTF_8))
+        com.spoolin.support.identity.NamedIdentities
+            .id(parent, step.toByteArray(Charsets.UTF_8))
 }

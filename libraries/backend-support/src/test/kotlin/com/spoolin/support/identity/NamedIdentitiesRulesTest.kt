@@ -61,14 +61,18 @@ class NamedIdentitiesRulesTest {
 
     @Test
     fun `external binary search locates first middle last and absent keys across unsigned ordering`() {
-        val entries = (0 until 257).map { index ->
-            val name = "record-$index".toByteArray()
-            key(namespace, name) to UUID(0x5000, Long.MIN_VALUE + index)
-        }
+        val entries =
+            (0 until 257).map { index ->
+                val name = "record-$index".toByteArray()
+                key(namespace, name) to UUID(0x5000, Long.MIN_VALUE + index)
+            }
         val external = file(index(entries))
         resolver(external).use { identities ->
             for (index in listOf(0, 1, 128, 255, 256)) {
-                assertEquals(UUID(0x5000, Long.MIN_VALUE + index), identities.id(namespace, "record-$index".toByteArray()))
+                assertEquals(
+                    UUID(0x5000, Long.MIN_VALUE + index),
+                    identities.id(namespace, "record-$index".toByteArray()),
+                )
             }
             assertEquals(8, identities.id(namespace, "not-recorded".toByteArray()).version())
         }
@@ -79,9 +83,11 @@ class NamedIdentitiesRulesTest {
         val external = file(index(emptyList()))
         val digest = digest(Files.readAllBytes(external))
         ready(external, digest + "\n")
-        for (required in listOf(true, false)) resolver(external).use { identities ->
-            identities.verify(guard(required, digest).connection)
-            assertEquals(8, identities.id(namespace, "fresh".toByteArray()).version())
+        for (required in listOf(true, false)) {
+            resolver(external).use { identities ->
+                identities.verify(guard(required, digest).connection)
+                assertEquals(8, identities.id(namespace, "fresh".toByteArray()).version())
+            }
         }
         resolver().use { it.verify(guard(false, null).connection) }
         val cases = listOf(true to null, true to "0".repeat(64), false to "0".repeat(64), false to "invalid")
@@ -92,14 +98,23 @@ class NamedIdentitiesRulesTest {
         }
         for (required in listOf(true, false)) {
             resolver().use { identities ->
-                assertThrows(IllegalStateException::class.java) { identities.verify(guard(required, digest).connection) }
+                assertThrows(
+                    IllegalStateException::class.java,
+                ) { identities.verify(guard(required, digest).connection) }
             }
         }
     }
 
     @Test
     fun `startup refuses absent duplicate or null requirement guard and closes resolver`() {
-        val rows = listOf(emptyList(), listOf(mapOf("legacy_required" to null, "registry_sha256" to null)), List(2) { mapOf("legacy_required" to false, "registry_sha256" to null) })
+        val rows =
+            listOf(
+                emptyList(),
+                listOf(mapOf("legacy_required" to null, "registry_sha256" to null)),
+                List(2) {
+                    mapOf("legacy_required" to false, "registry_sha256" to null)
+                },
+            )
         for (records in rows) {
             val db = JdbcBoundary().apply { queries.add(records) }
             val identities = resolver()
@@ -112,17 +127,18 @@ class NamedIdentitiesRulesTest {
     fun `missing truncated or invalid header count ordering and duplicate indexes fail rather than fallback`() {
         val low = ByteArray(32)
         val high = ByteArray(32) { 255.toByte() }
-        val malformed = listOf(
-            byteArrayOf(),
-            index(emptyList()).copyOf(15),
-            index(emptyList()).also { it[0] = 0 },
-            header(-1),
-            header(Long.MAX_VALUE),
-            header(1),
-            index(emptyList()) + byteArrayOf(0),
-            rawIndex(listOf(high to legacy, low to legacy)),
-            rawIndex(listOf(low to legacy, low to legacy)),
-        )
+        val malformed =
+            listOf(
+                byteArrayOf(),
+                index(emptyList()).copyOf(15),
+                index(emptyList()).also { it[0] = 0 },
+                header(-1),
+                header(Long.MAX_VALUE),
+                header(1),
+                index(emptyList()) + byteArrayOf(0),
+                rawIndex(listOf(high to legacy, low to legacy)),
+                rawIndex(listOf(low to legacy, low to legacy)),
+            )
         for (bytes in malformed) {
             assertThrows(IllegalStateException::class.java) { resolver(builtin = bytes) }
             assertThrows(IllegalStateException::class.java) { resolver(file(bytes), index(emptyList())) }
@@ -159,7 +175,9 @@ class NamedIdentitiesRulesTest {
         val external = file(index(emptyList()))
         val hash = digest(Files.readAllBytes(external))
         resolver(external).use { identities ->
-            assertThrows(java.nio.file.NoSuchFileException::class.java) { identities.verify(guard(true, hash).connection) }
+            assertThrows(
+                java.nio.file.NoSuchFileException::class.java,
+            ) { identities.verify(guard(true, hash).connection) }
         }
         for (text in listOf("0".repeat(64), hash.uppercase(), hash + "\r\n", hash + "\n\n")) {
             ready(external, text)
@@ -182,24 +200,74 @@ class NamedIdentitiesRulesTest {
         }
     }
 
-    private fun ready(index: Path, text: String) {
+    private fun ready(
+        index: Path,
+        text: String,
+    ) {
         val marker = index.resolveSibling(index.fileName.toString() + ".ready")
         Files.writeString(marker, text)
         Files.setPosixFilePermissions(marker, PosixFilePermissions.fromString("rw-------"))
     }
 
-    private fun resolver(path: Path? = null, builtin: ByteArray = index(emptyList())) = NamedIdentityResolver(path) { ByteArrayInputStream(builtin) }
-    private fun guard(required: Boolean, hash: String?) = JdbcBoundary().rows(mapOf("legacy_required" to required, "registry_sha256" to hash))
-    private fun file(bytes: ByteArray): Path = Files.createTempFile(root, "index", ".bin").also {
-        Files.write(it, bytes)
-        Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+    private fun resolver(
+        path: Path? = null,
+        builtin: ByteArray = index(emptyList()),
+    ) = NamedIdentityResolver(path) {
+        ByteArrayInputStream(builtin)
     }
-    private fun header(count: Long): ByteArray = ByteBuffer.allocate(16).put("SPIDIDX1".toByteArray(Charsets.US_ASCII)).putLong(count).array()
-    private fun index(entries: List<Pair<ByteArray, UUID>>) = rawIndex(entries.sortedWith { left, right -> Arrays.compareUnsigned(left.first, right.first) })
-    private fun rawIndex(entries: List<Pair<ByteArray, UUID>>): ByteArray = ByteBuffer.allocate(16 + entries.size * 48).apply {
-        put(header(entries.size.toLong()))
-        entries.forEach { (key, uuid) -> put(key); putLong(uuid.mostSignificantBits); putLong(uuid.leastSignificantBits) }
-    }.array()
-    private fun key(namespace: UUID, name: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(ByteBuffer.allocate(16).putLong(namespace.mostSignificantBits).putLong(namespace.leastSignificantBits).array() + name)
-    private fun digest(bytes: ByteArray): String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
+
+    private fun guard(
+        required: Boolean,
+        hash: String?,
+    ) = JdbcBoundary().rows(
+        mapOf(
+            "legacy_required" to required,
+            "registry_sha256" to hash,
+        ),
+    )
+
+    private fun file(bytes: ByteArray): Path =
+        Files.createTempFile(root, "index", ".bin").also {
+            Files.write(it, bytes)
+            Files.setPosixFilePermissions(it, PosixFilePermissions.fromString("rw-------"))
+        }
+
+    private fun header(count: Long): ByteArray =
+        ByteBuffer
+            .allocate(16)
+            .put("SPIDIDX1".toByteArray(Charsets.US_ASCII))
+            .putLong(count)
+            .array()
+
+    private fun index(entries: List<Pair<ByteArray, UUID>>) =
+        rawIndex(entries.sortedWith { left, right -> Arrays.compareUnsigned(left.first, right.first) })
+
+    private fun rawIndex(entries: List<Pair<ByteArray, UUID>>): ByteArray =
+        ByteBuffer
+            .allocate(16 + entries.size * 48)
+            .apply {
+                put(header(entries.size.toLong()))
+                entries.forEach { (key, uuid) ->
+                    put(key)
+                    putLong(uuid.mostSignificantBits)
+                    putLong(uuid.leastSignificantBits)
+                }
+            }.array()
+
+    private fun key(
+        namespace: UUID,
+        name: ByteArray,
+    ): ByteArray =
+        MessageDigest.getInstance("SHA-256").digest(
+            ByteBuffer
+                .allocate(
+                    16,
+                ).putLong(namespace.mostSignificantBits)
+                .putLong(namespace.leastSignificantBits)
+                .array() +
+                name,
+        )
+
+    private fun digest(bytes: ByteArray): String =
+        HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
 }

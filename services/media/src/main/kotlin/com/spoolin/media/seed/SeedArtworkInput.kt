@@ -70,9 +70,9 @@ internal object SeedJson {
     fun uuid(
         namespace: UUID,
         name: String,
-    ): UUID {
-        return com.spoolin.support.identity.NamedIdentities.id(namespace, name.toByteArray(Charsets.UTF_8))
-    }
+    ): UUID =
+        com.spoolin.support.identity.NamedIdentities
+            .id(namespace, name.toByteArray(Charsets.UTF_8))
 
     private fun stable(node: JsonNode): Any? =
         when {

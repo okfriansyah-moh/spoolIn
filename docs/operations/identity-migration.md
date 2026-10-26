@@ -30,12 +30,55 @@ IDs for legacy work. Old and new service binaries must not run concurrently duri
 cutover. After new UUIDv8 operations are admitted, recover forward; reverting to the
 old binaries requires restoring a coordinated pre-cutover backup.
 
+## Existing installation cutover
+
+Back up all three owner databases together. Stop owner services, scheduled workers,
+MCP callers and administrative writers. Keep them stopped until preparation completes.
+Build the upgraded images, including the PostgreSQL image that reconciles role grants,
+and run the existing owner migration commands for Core, Catalog and Media. The new
+schema versions are Core 8, Catalog 26 and Media 4. Do not start owner applications yet.
+
+For the existing Compose installation, the transport wrapper uses the PostgreSQL
+container's protected credential and socket. Set `SPOOLIN_INSTALLATION` to the existing
+Compose project name and `SPOOLIN_RUNTIME_CONFIG_DIR` to its protected host configuration
+directory, then run from the repository root:
+
+```sh
+python3 ops/identity/migrate.py \
+  --psql ops/identity/compose-psql.sh \
+  --connection 'core=dbname=spoolin_core user=postgres' \
+  --connection 'catalog=dbname=spoolin_catalog user=postgres' \
+  --connection 'media=dbname=spoolin_media user=postgres' \
+  --output "$SPOOLIN_RUNTIME_CONFIG_DIR/legacy-identities.bin" --apply
+```
+
+Supply every historical seed manifest with repeated `--manifest` options when it differs
+from the repository's frozen inputs. Unknown or inconsistent legacy bindings fail the
+export. See [the exporter instructions](../../ops/identity/README.md) for inspect-only
+exports, protected connection alternatives, input limits and interruption recovery.
+
+After a successful apply, the same registry digest is recorded in all three databases
+and `legacy-identities.bin.ready` exists alongside the immutable index. Export
+`SPOOLIN_IDENTITY_REGISTRY=/run/spoolin-config/legacy-identities.bin` before restarting
+all upgraded owners. Their existing read-only configuration mounts expose both files.
+Keep the index and ready file with database backups; never clear the database guard or
+replace the index with a different export to bypass an error. A missing, modified or
+unprepared index blocks startup. Resume an interrupted apply using identical inputs
+and the same output path while writers remain stopped.
+
+A fresh empty installation needs no external index: packaged frozen seed IDs retain
+their values and new identities use UUIDv8. Once an installation has recorded a registry
+digest, that registry remains required even after receipts expire.
+
 ## Verification and delivery record
 
 Task `SHA256-IDENTITIES`, base `bbf91bdc`, branch `codex/unit-coverage-80`, existing
 [draft PR17](https://github.com/okfriansyah-moh/spoolIn/pull/17). The user explicitly
 selected full SHA-256 migration with existing databases and pending work preserved.
 
-Implementation, real PostgreSQL upgrade/replay checks, six-component unit coverage,
-Sonar SHA-1 finding closure and one independent combined review are pending. The
-previous coverage evidence remains a baseline and does not verify this migration.
+Implementation and a real PostgreSQL 18.6 upgrade check now pass, including prior
+schemas, retained rows and retry budgets, an interrupted cross-owner apply, resumed
+preparation, runtime read-only privileges, receipt replay and the environment-configured
+identity resolver. Focused shared identity tests and 17 offline exporter tests pass.
+Fresh six-component unit coverage, Sonar SHA-1 finding closure and one independent
+combined review remain pending. Previous coverage is a baseline for this migration.

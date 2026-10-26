@@ -203,7 +203,8 @@ class AccountInitialization(
 private fun receiptId(config: InitializationConfiguration): UUID {
     val namespace = UUID.fromString("9da61864-80f5-5c70-bc79-3914da94079e")
     val name = "initialization/core/ACCOUNT_INITIALIZATION/${config.version}".toByteArray(Charsets.UTF_8)
-    return com.spoolin.support.identity.NamedIdentities.id(namespace, name)
+    return com.spoolin.support.identity.NamedIdentities
+        .id(namespace, name)
 }
 
 private fun initializeKey(
