@@ -10,6 +10,7 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
 
 - [Why SpoolIn?](#why-spoolin)
 - [What you can do](#what-you-can-do)
+- [Quality you can verify](#quality-you-can-verify)
 - [Run SpoolIn on your computer](#run-spoolin-on-your-computer)
   - [Before you start](#before-you-start)
   - [Windows](#windows)
@@ -51,6 +52,34 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
 Visitors can browse movies and people without an account. Movie pages bring together the synopsis, artwork, release information, cast, and creators. Maintainers can create and edit movies and people, manage credits, upload poster artwork, and archive records. Archives retain a recovery path instead of making a mistaken removal immediately permanent.
 
 SpoolIn also has account registration, retained editing drafts, conflict review when another edit changes a record, and an audit view for catalog changes. Forms show validation errors and save outcomes. Artwork uploads distinguish transfer progress from server processing.
+
+## Quality you can verify
+
+**4,328 passing unit tests. Six passing Sonar gates. An independent 80% coverage floor for every component.**
+
+The verified Docker run on **26 October 2026** completed with no failed or skipped unit tests. All six Sonar projects reported **zero security issues, zero reliability issues, and exactly zero duplicated lines and blocks**. Publication checks the raw counts, so a rounded `0.0%` duplication score alone cannot pass.
+
+| Component | Native line coverage | Sonar Coverage | Sonar line coverage |
+| --- | ---: | ---: | ---: |
+| Frontend | 84.19% | 82.2% | 86.3% |
+| Core | 87.44% | 81.4% | 87.5% |
+| Catalog | 86.96% | 81.4% | 87.0% |
+| Media | 86.87% | 81.3% | 86.9% |
+| Backend support | 87.75% | 81.6% | 87.8% |
+| MCP | 82.87% | 81.6% | 83.1% |
+
+Every component must clear 80% native line coverage and both Sonar coverage measures independently. Sonar's **Coverage** combines lines and conditions; frontend native coverage includes TypeScript and Svelte, while Sonar measures the supported TypeScript sources. Changed executable-line coverage also passed the existing 80% requirement for each affected component.
+
+The same verification included **166 PostgreSQL/mTLS checks**, **eight browser checks**, and independent review. Fourteen safe network-range findings were classified as false positives after review, with the network protections retained. See the [verified quality record](docs/operations/sonar-quality.md) for the tested revision, evidence, classifications, and separately disclosed broader lint and secret-scan failures. These figures are a verified snapshot, not a claim that every repository check is green.
+
+Reproduce the unit reports without starting the application stack:
+
+```bash
+make coverage
+make coverage-report
+```
+
+Open the [local HTML reports](http://localhost:8090/). The [Docker coverage guide](docs/operations/unit-coverage.md#local-sonarqube) explains how to publish the reports to a local Sonar dashboard. Reports retain covered/total lines, test results, revision, and run time, including when a check fails.
 
 ## Run SpoolIn on your computer
 
