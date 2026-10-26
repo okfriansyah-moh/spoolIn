@@ -245,12 +245,12 @@ async function verifyComponent(component, summary) {
   const measures = await api('measures/component', {
     component: projectKey(component.id),
     metricKeys:
-      'coverage,line_coverage,lines_to_cover,uncovered_lines,conditions_to_cover,uncovered_conditions',
+      'coverage,line_coverage,lines_to_cover,uncovered_lines,conditions_to_cover,uncovered_conditions,security_issues,reliability_issues,duplicated_lines,duplicated_blocks',
   });
   const metrics = Object.fromEntries(
     measures.component.measures.map((item) => [
       item.metric,
-      Number(item.value),
+      item.metric.endsWith('_issues') ? JSON.parse(item.value).total : Number(item.value),
     ]),
   );
   const expected = summary.components.find(

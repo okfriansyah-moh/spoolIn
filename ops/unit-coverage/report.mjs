@@ -72,7 +72,26 @@ function metric(covered, total) {
   return { covered, total, percent: total ? (covered * 100) / total : null };
 }
 
+export function sonarQualityResult(metrics) {
+  const fields = {
+    securityIssues: 'security_issues',
+    reliabilityIssues: 'reliability_issues',
+    duplicatedLines: 'duplicated_lines',
+    duplicatedBlocks: 'duplicated_blocks',
+  };
+  const result = Object.fromEntries(
+    Object.entries(fields).map(([field, metric]) => {
+      const value = metrics[metric];
+      if (!Number.isSafeInteger(value) || value < 0)
+        throw new Error(`Missing or invalid Sonar ${metric}`);
+      return [field, value];
+    }),
+  );
+  return { ...result, clean: Object.values(result).every((value) => value === 0) };
+}
+
 export function sonarCoverageResult(metrics, gate, expected) {
+  const quality = sonarQualityResult(metrics);
   const lines = metric(
     metrics.lines_to_cover - metrics.uncovered_lines,
     metrics.lines_to_cover,
@@ -100,8 +119,9 @@ export function sonarCoverageResult(metrics, gate, expected) {
     covered: lines.covered,
     conditions,
     combined,
+    quality,
     status:
-      gate === 'OK' &&
+      gate === 'OK' && quality.clean &&
       metrics.coverage >= 80 &&
       metrics.line_coverage >= 80 &&
       combined.percent >= 80 &&
@@ -272,14 +292,16 @@ function sonarSection(publication) {
     <td>${percent(item.coverage)}</td><td>${percent(item.lines)}</td>
     <td>${item.covered ?? '—'} / ${item.total ?? '—'}</td>
     <td>${item.conditions?.covered ?? '—'} / ${item.conditions?.total ?? '—'}</td>
+    <td>${item.quality?.securityIssues ?? '—'}</td><td>${item.quality?.reliabilityIssues ?? '—'}</td>
+    <td>${item.quality?.duplicatedLines ?? '—'} / ${item.quality?.duplicatedBlocks ?? '—'}</td>
     <td>${escape(item.gate ?? item.reason ?? 'Unavailable')}</td></tr>`,
     )
     .join('');
   return `<h2>Published Sonar analysis</h2><p>Published: ${escape(publication.publishedAt)}.
-    Both Coverage and Lines must reach 80% for every component.</p>
+    Both Coverage and Lines must reach 80%; security, reliability and duplicated lines/blocks must be zero for every component.</p>
     <div class="scroll"><table><thead><tr><th>Component</th><th>Status</th>
     <th>Coverage</th><th>Lines</th><th>Covered / total lines</th>
-    <th>Covered / total conditions</th><th>Gate</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <th>Covered / total conditions</th><th>Security</th><th>Reliability</th><th>Duplicate lines / blocks</th><th>Gate</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 export function writeSummary(summary, publication) {

@@ -1,3 +1,4 @@
+import { compareText } from '../operations/order.js';
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import {
   closeSync,
@@ -60,7 +61,7 @@ function protectedKey(path: string): Buffer {
 }
 
 function validate(binding: UiBinding): void {
-  if (!binding || Object.keys(binding).sort().join(',') !== FIELDS.join(','))
+  if (!binding || Object.keys(binding).sort(compareText).join(',') !== FIELDS.join(','))
     throw new Error('Invalid private UI binding');
   validateIdentity(binding);
   validateContent(binding);
@@ -147,7 +148,7 @@ export class UiAssertionSigner {
       expiry: nowSeconds + 30,
     };
     const payload = Buffer.from(
-      JSON.stringify(claims, Object.keys(claims).sort()),
+      JSON.stringify(claims, Object.keys(claims).sort(compareText)),
     ).toString('base64url');
     const input = `${this.keyId}.${payload}`;
     const result = `${input}.${createHmac('sha256', this.key).update(input).digest('base64url')}`;

@@ -1,3 +1,4 @@
+import { compareText } from './order.js';
 import type { Writable } from 'node:stream';
 import type { Level } from './diagnostic-encoder.js';
 export type DropReason = 'queue_full' | 'sink_failed' | 'contract_invalid';
@@ -23,7 +24,7 @@ export class DiagnosticSink {
     return [
       '# TYPE spoolin_log_dropped_total counter',
       ...[...this.drops]
-        .sort()
+        .sort(([left], [right]) => compareText(left, right))
         .map(
           ([labels, count]) => `spoolin_log_dropped_total{${labels}} ${count}`,
         ),

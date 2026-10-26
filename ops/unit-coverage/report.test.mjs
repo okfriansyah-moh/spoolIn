@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import {
   componentResult,
   sonarCoverageResult,
+  sonarQualityResult,
   junitResults,
   koverMetrics,
   vitestMetrics,
@@ -138,6 +139,10 @@ test('JUnit skips and failures remain visible and skipped-only suites fail', () 
 
 test('Sonar requires both combined coverage and line coverage without rounding up', () => {
   const metrics = {
+    security_issues: 0,
+    reliability_issues: 0,
+    duplicated_lines: 0,
+    duplicated_blocks: 0,
     coverage: 80,
     line_coverage: 90,
     lines_to_cover: 100,
@@ -148,6 +153,8 @@ test('Sonar requires both combined coverage and line coverage without rounding u
   const measure = (changes = {}, gate = 'OK', native = 90) =>
     sonarCoverageResult({ ...metrics, ...changes }, gate, { percent: native });
   assert.equal(measure().status, 'passed');
+  for (const name of ['security_issues', 'reliability_issues', 'duplicated_lines', 'duplicated_blocks'])
+    assert.equal(measure({ [name]: 1 }).status, 'failed');
   assert.equal(
     measure({ coverage: 79.6, uncovered_conditions: 31 }).status,
     'failed',
@@ -165,4 +172,15 @@ test('Sonar requires both combined coverage and line coverage without rounding u
   assert.throws(() => measure({ conditions_to_cover: undefined }), /Invalid/);
   assert.throws(() => measure({ uncovered_conditions: -1 }), /Invalid/);
   assert.throws(() => measure({ coverage: undefined }), /invalid/);
+});
+
+
+test('Sonar requires exact zero issue and duplication counters', () => {
+  const clean = { security_issues: 0, reliability_issues: 0, duplicated_lines: 0, duplicated_blocks: 0 };
+  assert.equal(sonarQualityResult(clean).clean, true);
+  for (const name of Object.keys(clean)) {
+    assert.equal(sonarQualityResult({ ...clean, [name]: 1 }).clean, false);
+    for (const value of [undefined, -1, 0.1, NaN, '0'])
+      assert.throws(() => sonarQualityResult({ ...clean, [name]: value }), /invalid/);
+  }
 });
