@@ -2,15 +2,13 @@
 
 package com.spoolin.core.features.catalogview.read
 
-import com.spoolin.support.policy.InputViolation
+import com.spoolin.core.features.catalogview.CatalogGraphqlArguments
 import com.spoolin.support.policy.PublicPolicy
 import com.spoolin.support.policy.ReadPolicy
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.Spoolin
-import java.time.Instant
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private const val CATALOG_DEADLINE_SECONDS = 3L
@@ -64,14 +62,14 @@ class CatalogViewGraphql(
         val after = env.getArgument<String>("after")
         val request = buildTitleSearchRequest(filter, first, after, ::validateSearchText, reads::search)
         val result = stub().searchTitles(request)
-        return titlePageMap(result)
+        return CatalogReadProjection.titlePage(result, management = false)
     }
 
     // ── title ─────────────────────────────────────────────────────────────────
 
     private fun title(env: DataFetchingEnvironment): Map<String, Any?>? {
         val id = requireNotNull(env.getArgument<String>("id"))
-        validateUuid(id)
+        CatalogGraphqlArguments.validateId(id)
         val result =
             stub().getTitle(
                 Spoolin.Id
@@ -81,7 +79,7 @@ class CatalogViewGraphql(
             )
         // Empty title (no id) = archived/deleted — return null
         if (result.id.isEmpty()) return null
-        return titleMap(result)
+        return CatalogReadProjection.title(result, management = false)
     }
 
     // ── people ────────────────────────────────────────────────────────────────
@@ -101,14 +99,14 @@ class CatalogViewGraphql(
                 }.build()
 
         val result = stub().searchPeople(request)
-        return personPageMap(result)
+        return CatalogReadProjection.personPage(result)
     }
 
     // ── person ────────────────────────────────────────────────────────────────
 
     private fun person(env: DataFetchingEnvironment): Map<String, Any?>? {
         val id = requireNotNull(env.getArgument<String>("id"))
-        validateUuid(id)
+        CatalogGraphqlArguments.validateId(id)
         val result =
             stub().getPerson(
                 Spoolin.Id
@@ -117,14 +115,14 @@ class CatalogViewGraphql(
                     .build(),
             )
         if (result.id.isEmpty()) return null
-        return personMap(result)
+        return CatalogReadProjection.person(result)
     }
 
     // ── titleCredits ─────────────────────────────────────────────────────────
 
     private fun titleCredits(env: DataFetchingEnvironment): Map<String, Any?> {
         val id = requireNotNull(env.getArgument<String>("id"))
-        validateUuid(id)
+        CatalogGraphqlArguments.validateId(id)
         val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
 
@@ -136,14 +134,14 @@ class CatalogViewGraphql(
                 .also { b -> after?.let { b.after = it } }
                 .build()
 
-        return creditPageMap(stub().titleCredits(request))
+        return CatalogReadProjection.creditPage(stub().titleCredits(request))
     }
 
     // ── personCredits ─────────────────────────────────────────────────────────
 
     private fun personCredits(env: DataFetchingEnvironment): Map<String, Any?> {
         val id = requireNotNull(env.getArgument<String>("id"))
-        validateUuid(id)
+        CatalogGraphqlArguments.validateId(id)
         val first = reads.pageSize(env.getArgument<Int>("first"))
         val after = env.getArgument<String>("after")
 
@@ -155,7 +153,7 @@ class CatalogViewGraphql(
                 .also { b -> after?.let { b.after = it } }
                 .build()
 
-        return creditPageMap(stub().personCredits(request))
+        return CatalogReadProjection.creditPage(stub().personCredits(request))
     }
 
     // ── title.credits (inline field resolver) ─────────────────────────────────
@@ -174,7 +172,7 @@ class CatalogViewGraphql(
                 .also { b -> after?.let { b.after = it } }
                 .build()
 
-        return creditPageMap(stub().titleCredits(request))
+        return CatalogReadProjection.creditPage(stub().titleCredits(request))
     }
 
     // ── genres ────────────────────────────────────────────────────────────────
@@ -220,112 +218,6 @@ class CatalogViewGraphql(
 
     // ── proto → GraphQL projection maps ──────────────────────────────────────
 
-    private fun titlePageMap(proto: Spoolin.TitlePage): Map<String, Any?> =
-        mapOf(
-            "nodes" to proto.nodesList.map { titleMap(it) },
-            "pageInfo" to
-                mapOf(
-                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-                    "hasNextPage" to proto.hasNextPage,
-                ),
-        )
-
-    private fun titleMap(t: Spoolin.Title): Map<String, Any?> =
-        mapOf(
-            "id" to t.id,
-            "kind" to t.kind,
-            "state" to t.state,
-            "title" to t.values.title,
-            "originalTitle" to t.values.originalTitle.takeIf { it.isNotEmpty() },
-            "synopsis" to t.values.synopsis,
-            "synopsisLanguage" to t.values.synopsisLanguage,
-            "originalLanguage" to t.values.originalLanguage.takeIf { it.isNotEmpty() },
-            "countries" to t.values.countriesList,
-            "genres" to t.values.genreIdsList.map { mapOf("id" to it) },
-            "release" to partialDateMap(t.values.release),
-            "runtimeMinutes" to t.values.runtimeMinutes.takeIf { it > 0 },
-            "tvStatus" to t.tvStatus.takeIf { it.isNotEmpty() },
-            "tvEnd" to partialDateMap(t.tvEnd),
-            "releaseContext" to t.releaseContext.takeIf { it.isNotEmpty() },
-            "provenance" to t.provenanceList.map { provenanceMap(it) },
-            "_artworkAssetId" to t.assetId.takeIf { it.isNotBlank() },
-            "_artworkManagement" to false,
-            "version" to t.version.toString(),
-            // credits is a lazy field resolved by titleCreditsField
-        )
-
-    private fun personPageMap(proto: Spoolin.PersonPage): Map<String, Any?> =
-        mapOf(
-            "nodes" to proto.nodesList.map { personMap(it) },
-            "pageInfo" to
-                mapOf(
-                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-                    "hasNextPage" to proto.hasNextPage,
-                ),
-        )
-
-    private fun personMap(p: Spoolin.Person): Map<String, Any?> =
-        mapOf(
-            "id" to p.id,
-            "name" to p.values.name,
-            "biography" to p.values.biography.takeIf { it.isNotEmpty() },
-            "state" to p.state,
-            "version" to p.version.toString(),
-        )
-
-    private fun creditPageMap(proto: Spoolin.CreditPage): Map<String, Any?> =
-        mapOf(
-            "nodes" to proto.nodesList.map { creditMap(it) },
-            "pageInfo" to
-                mapOf(
-                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-                    "hasNextPage" to proto.hasNextPage,
-                ),
-        )
-
-    private fun creditMap(c: Spoolin.Credit): Map<String, Any?> =
-        mapOf(
-            "id" to c.id,
-            "personId" to c.personId,
-            "personName" to c.personName,
-            "titleId" to c.titleId,
-            "titleName" to c.titleName,
-            "role" to
-                mapOf(
-                    "id" to c.role.id,
-                    "label" to c.role.label,
-                    "category" to c.role.category,
-                    "allowsCharacters" to c.role.allowsCharacters,
-                ),
-            "characters" to c.charactersList,
-            "version" to c.version.toString(),
-        )
-
-    private fun partialDateMap(pd: Spoolin.PartialDate): Map<String, Any?> =
-        mapOf(
-            "year" to pd.year.takeIf { pd.hasYear() },
-            "month" to pd.month.takeIf { pd.hasMonth() },
-            "day" to pd.day.takeIf { pd.hasDay() },
-            "precision" to
-                when {
-                    pd.hasDay() -> "DAY"
-                    pd.hasMonth() -> "MONTH"
-                    pd.hasYear() -> "YEAR"
-                    else -> "UNKNOWN"
-                },
-        )
-
-    private fun provenanceMap(p: Spoolin.Provenance): Map<String, Any?> =
-        mapOf(
-            "source" to p.source,
-            "externalId" to p.externalId,
-            "recordUrl" to p.recordUrl.takeIf { it.isNotEmpty() },
-            "retrievedAt" to Instant.ofEpochSecond(p.retrievedAt.seconds, p.retrievedAt.nanos.toLong()).toString(),
-            "reuseNote" to p.reuseNote,
-            "fieldSources" to CatalogMetadataProjection.fieldSources(p),
-            "locallyChanged" to p.locallyChangedList,
-        )
-
     private fun emptyCreditPage(): Map<String, Any?> =
         mapOf(
             "nodes" to emptyList<Any>(),
@@ -336,11 +228,6 @@ class CatalogViewGraphql(
 
     private fun validateSearchText(text: String) {
         reads.search(text)
-    }
-
-    private fun validateUuid(id: String) {
-        runCatching { UUID.fromString(id).also { require(it.toString() == id) } }
-            .onFailure { throw InputViolation("id", "Supply a lowercase, hyphenated UUID.") }
     }
 
     private fun stub() = catalog.withDeadlineAfter(CATALOG_DEADLINE_SECONDS, TimeUnit.SECONDS)

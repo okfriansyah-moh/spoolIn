@@ -1,10 +1,11 @@
 package com.spoolin.core.features.catalogview.movie
 
+import com.spoolin.core.features.catalogview.read.CatalogReadProjection
+
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import spoolin.v1.Spoolin.AuditEvent
 import spoolin.v1.Spoolin.MovieValues
 import spoolin.v1.Spoolin.PartialDate
 import spoolin.v1.Spoolin.Title
@@ -23,7 +24,7 @@ class ManagedCatalogProjectionRulesTest {
 
     @Test
     fun `title map exposes id kind state version`() {
-        val map = titleMap(basicTitle())
+        val map = CatalogReadProjection.title(basicTitle(), management = true)
         assertEquals("test-id", map["id"])
         assertEquals("MOVIE", map["kind"])
         assertEquals("ACTIVE", map["state"])
@@ -32,7 +33,7 @@ class ManagedCatalogProjectionRulesTest {
 
     @Test
     fun `absent optional title fields project as null`() {
-        val map = titleMap(basicTitle())
+        val map = CatalogReadProjection.title(basicTitle(), management = true)
         assertNull(map["originalTitle"], "originalTitle must be null when absent")
         assertNull(map["runtimeMinutes"], "runtimeMinutes must be null when 0")
         assertNull(map["tvStatus"], "tvStatus must be null when absent")
@@ -42,7 +43,7 @@ class ManagedCatalogProjectionRulesTest {
     @Test
     fun `release partial date maps year precision without inventing month or day`() {
         val title = basicTitle(year = 2024)
-        val map = titleMap(title)
+        val map = CatalogReadProjection.title(title, management = true)
 
         @Suppress("UNCHECKED_CAST")
         val release = map["release"] as Map<String, Any?>
@@ -55,7 +56,7 @@ class ManagedCatalogProjectionRulesTest {
     @Test
     fun `full partial date maps all three components`() {
         val title = basicTitle(year = 2024, month = 10, day = 9)
-        val map = titleMap(title)
+        val map = CatalogReadProjection.title(title, management = true)
 
         @Suppress("UNCHECKED_CAST")
         val release = map["release"] as Map<String, Any?>
@@ -68,7 +69,7 @@ class ManagedCatalogProjectionRulesTest {
     @Test
     fun `unknown release date maps precision to UNKNOWN`() {
         val title = basicTitle()
-        val map = titleMap(title)
+        val map = CatalogReadProjection.title(title, management = true)
 
         @Suppress("UNCHECKED_CAST")
         val release = map["release"] as Map<String, Any?>
@@ -97,7 +98,7 @@ class ManagedCatalogProjectionRulesTest {
                         .build(),
                 ).setTvEnd(PartialDate.getDefaultInstance())
                 .build()
-        val map = titleMap(title)
+        val map = CatalogReadProjection.title(title, management = true)
 
         @Suppress("UNCHECKED_CAST")
         val genres = map["genres"] as List<Map<String, Any?>>
@@ -108,7 +109,7 @@ class ManagedCatalogProjectionRulesTest {
 
     @Test
     fun `no private account data appears in title projection`() {
-        val map = titleMap(basicTitle())
+        val map = CatalogReadProjection.title(basicTitle(), management = true)
         val keys = map.keys
         assertTrue(keys.none { it.lowercase().contains("password") })
         assertTrue(keys.none { it.lowercase().contains("email") })
@@ -117,46 +118,6 @@ class ManagedCatalogProjectionRulesTest {
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * Replicates the titleMap logic from ManagedCatalogGraphql for isolated testing.
-     * Keeps the test independent of Spring context.
-     */
-    private fun titleMap(t: Title): Map<String, Any?> =
-        mapOf(
-            "id" to t.id,
-            "kind" to t.kind,
-            "state" to t.state,
-            "title" to t.values.title,
-            "originalTitle" to t.values.originalTitle.takeIf { it.isNotEmpty() },
-            "synopsis" to t.values.synopsis,
-            "synopsisLanguage" to t.values.synopsisLanguage,
-            "originalLanguage" to t.values.originalLanguage.takeIf { it.isNotEmpty() },
-            "countries" to t.values.countriesList,
-            "genres" to t.values.genreIdsList.map { mapOf("id" to it) },
-            "release" to partialDateMap(t.values.release),
-            "runtimeMinutes" to t.values.runtimeMinutes.takeIf { it > 0 },
-            "tvStatus" to t.tvStatus.takeIf { it.isNotEmpty() },
-            "tvEnd" to partialDateMap(t.tvEnd),
-            "releaseContext" to t.releaseContext.takeIf { it.isNotEmpty() },
-            "provenance" to emptyList<Any>(),
-            "artwork" to null,
-            "version" to t.version.toString(),
-        )
-
-    private fun partialDateMap(pd: PartialDate): Map<String, Any?> =
-        mapOf(
-            "year" to pd.year.takeIf { pd.hasYear() },
-            "month" to pd.month.takeIf { pd.hasMonth() },
-            "day" to pd.day.takeIf { pd.hasDay() },
-            "precision" to
-                when {
-                    pd.hasDay() -> "DAY"
-                    pd.hasMonth() -> "MONTH"
-                    pd.hasYear() -> "YEAR"
-                    else -> "UNKNOWN"
-                },
-        )
 
     private fun basicTitle(
         year: Int? = null,

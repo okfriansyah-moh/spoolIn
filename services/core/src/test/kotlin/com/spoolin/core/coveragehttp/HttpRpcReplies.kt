@@ -13,6 +13,8 @@ internal class HttpRpcReplies(
 ) : Channel() {
     private val replies = ArrayDeque(replies.toList())
     val requests = mutableListOf<Any?>()
+    val callOptions = mutableListOf<CallOptions>()
+    val requestHeaders = mutableListOf<Metadata>()
 
     override fun authority(): String = "unit-downstream"
 
@@ -28,6 +30,8 @@ internal class HttpRpcReplies(
                 headers: Metadata,
             ) {
                 this.listener = listener
+                callOptions.add(options)
+                requestHeaders.add(headers)
             }
 
             override fun request(count: Int) = Unit
