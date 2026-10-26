@@ -22,9 +22,20 @@ row locks, lifecycle operations, proposal expiry and concurrent receipt replay p
 An outdated proposal test now advances to the service-returned expiry rather than
 assuming the superseded ten-minute duration; production expiry did not change.
 
-Final source convergence, full fresh reports, Sonar verification and independent
-combined review are still pending. Existing unrelated MCP broad lint findings remain
-separate from changed-source checks.
+Independent source review accepted revision `c11c9bf3`. A fresh clean Docker run
+passed all 4,324 unit tests with no failures, errors or skips. Changed executable-line
+coverage passed: frontend 94.068%, Core 99.293%, Catalog 91.228%, MCP 100%.
+Final PostgreSQL projection, lifecycle, proposal and receipt suites passed after the
+refactors. Frontend lint, type and dependency checks passed. Final browser replay,
+refreshed coverage after the Core layout correction, Sonar publication and review of
+that evidence remain pending.
+Existing broad Core/Catalog lint and complexity/depth findings remain separate from
+affected-source results; the newly introduced audit-object and projection-layout
+findings were corrected. MCP broad lint retains eighteen existing findings. The
+configured Semgrep scan passed with no findings or errors. The broad directory secret
+scan returned 635 findings in ignored runtime credentials and historical evidence,
+including issue-ID metadata; none refer to changed source. No scanner suppressions
+or rule changes were introduced. Dependency inventories did not change.
 
 ## MCP network-range findings
 
@@ -39,4 +50,8 @@ mixed DNS answers, redirects, connection pinning, unsafe URL shapes, cancellatio
 concurrency and size limits. See `mcp/test/tools/poster-download.test.ts`.
 The review also considers [OWASP SSRF prevention guidance](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html).
 Only independently verified safe findings may be classified as false positives in
-Sonar, as explicitly selected by the user. Classification has not yet occurred.
+Sonar, as explicitly selected by the user. On 26 October 2026, the independent reviewer approved all fourteen reported constants.
+Each finding now has an evidence comment and `FALSE_POSITIVE` status in the local
+Sonar dashboard. These are reviewed classifications, not removed protections or rule
+suppressions. They persist in the dashboard database; a new dashboard requires review
+and classification of its own findings.

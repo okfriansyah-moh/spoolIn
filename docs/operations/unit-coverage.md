@@ -4,6 +4,8 @@ The minimum is **80% overall executable-line coverage in each component**: front
 Catalog, Media, backend support, and MCP. A stronger component cannot offset a weaker one.
 Branch and function/method percentages are displayed without additional thresholds.
 Existing changed-line checks, security checks, and integration acceptance remain required.
+The [Sonar quality verification record](sonar-quality.md) owns reliability, security and
+exact-zero duplication enforcement and its reviewed finding classifications.
 
 ## Run and read the results
 
