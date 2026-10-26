@@ -39,3 +39,45 @@ export function newDraftState<Saved, Draft>(saved: Saved | null, project: (saved
 export function submissionBlocked(pending: string | null, choices: number, phase: string, mode: string, saved: unknown): boolean {
   return !!pending || choices > 0 || ['submitting', 'uncertain', 'stale', 'target-changed'].includes(phase) || (mode === 'create' && saved !== null);
 }
+
+
+type RecoveryNotice = Readonly<{
+  draftChoices?: readonly never[];
+  phase?: 'uncertain';
+  pendingOperationId?: string;
+  message?: string;
+}>;
+
+type RecoveryPort = Readonly<{
+  sync: { adopt(draft: DraftRecord): void };
+  update: (notice: RecoveryNotice) => void;
+  check: () => Promise<void>;
+  state: () => Readonly<{ phase: string; saved: Readonly<{ version: string }> | null }>;
+}>;
+
+export async function recoverRetainedDraft(
+  draft: DraftRecord,
+  signal: AbortSignal,
+  staleMessage: string,
+  port: RecoveryPort,
+) {
+  port.update({ draftChoices: Object.freeze([]) });
+  const ready = await reconcileRetainedDraft(
+    draft, signal, port.sync,
+    (id) => port.update({
+      phase: 'uncertain', pendingOperationId: id,
+      message: 'Check the original save before continuing this retained draft.',
+    }),
+    port.check, () => port.state().phase,
+  );
+  if (!ready) return null;
+  const version = port.state().saved?.version;
+  const stale = version !== undefined && draft.baseVersion !== version;
+  return {
+    phase: stale ? 'stale' as const : 'idle' as const,
+    pendingOperationId: null,
+    draftBaseKnown: !stale,
+    message: stale ? staleMessage : 'Saved draft recovered.',
+    staleReviewOpen: stale,
+  };
+}

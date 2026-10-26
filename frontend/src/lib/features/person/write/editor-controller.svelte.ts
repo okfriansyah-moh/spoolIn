@@ -1,4 +1,4 @@
-import { selectRetainedDraft, reconcileRetainedDraft, newDraftState, submissionBlocked } from '../../editing/retained-drafts';
+import { selectRetainedDraft, recoverRetainedDraft, newDraftState, submissionBlocked } from '../../editing/retained-drafts';
 import type { GraphqlRequest } from '../../../transport/graphql';
 import { TransportFailure } from '../../../transport/graphql';
 import type { Policy } from '../../../policy/types';
@@ -273,25 +273,18 @@ export class PersonEditorController {
     draft: DraftRecord,
     signal: AbortSignal,
   ): Promise<void> {
-    this.publish({ ...this.current, draftChoices: Object.freeze([]) });
-    const ready = await reconcileRetainedDraft(draft, signal, this.draftSync,
-      (id) => this.publish({ ...this.current, phase: 'uncertain', pendingOperationId: id,
-        message: 'Check the original save before continuing this retained draft.' }),
-      () => this.checkOriginalResult(), () => this.current.phase);
-    if (!ready) return;
-    const stale =
-      this.current.saved && draft.baseVersion !== this.current.saved.version;
-    this.publish({
-      ...this.current,
-      draft: draft.values as PersonDraft,
-      phase: stale ? 'stale' : 'idle',
-      pendingOperationId: null,
-      draftBaseKnown: !stale,
-      message: stale
-        ? 'The saved person changed. Compare its current values with the retained draft.'
-        : 'Saved draft recovered.',
-      staleReviewOpen: !!stale,
-    });
+    const recovered = await recoverRetainedDraft(
+      draft, signal,
+      'The saved person changed. Compare its current values with the retained draft.',
+      {
+        sync: this.draftSync,
+        update: (notice) => this.publish({ ...this.current, ...notice }),
+        check: () => this.checkOriginalResult(),
+        state: () => this.current,
+      },
+    );
+    if (!recovered) return;
+    this.publish({ ...this.current, ...recovered, draft: draft.values as PersonDraft });
   }
 
   async selectRetainedDraft(id: string): Promise<void> {
