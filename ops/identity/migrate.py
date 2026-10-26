@@ -12,16 +12,21 @@ import json
 import os
 from pathlib import Path
 import re
+import selectors
+import stat
 import struct
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 
 MAGIC = b"SPIDIDX1"
 MAX_INPUT_BYTES = 16 * 1024 * 1024
 MAX_ENTRIES = 500_000
 MAX_MANIFESTS = 16
+MAX_ERROR_BYTES = 65536
+PSQL_SECONDS = 60
 OWNERS = ("core", "catalog", "media")
 SEED_NAMESPACE = uuid.UUID("9da61864-80f5-5c70-bc79-3914da94079e")
 FIXED_STEPS = ("asset", "media-upload", "upload-process", "attach", "confirm", "media-reserve", "media-confirm", "media-release")
@@ -217,16 +222,33 @@ def build(exports, manifests):
     return registry.binary()
 
 
+def verify_existing(path, content):
+    """Bound existing-file reads and fsync identical bytes before any marker commit."""
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_mode & 0o022 or metadata.st_size != len(content):
+            raise ValueError("Existing artifact must be a protected regular file with identical bytes")
+        with os.fdopen(descriptor, "rb", closefd=False) as source:
+            if source.read(len(content) + 1) != content:
+                raise ValueError("Refusing to replace an index with different bytes; choose a new immutable path")
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    directory = os.open(Path(path).parent, os.O_RDONLY)
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+
+
 def immutable_write(path, content, mode=0o444):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_symlink():
         raise ValueError("Immutable artifact must not be a symbolic link")
     if path.exists():
-        if not path.is_file() or path.stat().st_mode & 0o022:
-            raise ValueError("Existing artifact must be a protected regular file")
-        if path.read_bytes() != content:
-            raise ValueError("Refusing to replace an index with different bytes; choose a new immutable path")
+        verify_existing(path, content)
         return
     descriptor, temporary = tempfile.mkstemp(prefix=".identity-", dir=path.parent)
     try:
@@ -250,7 +272,9 @@ def inventory_sql(owner):
         raise ValueError("Unknown database owner")
     fields = ["'schema_version',1", f"'owner','{owner}'",
               "'active_runtime_sessions',(SELECT count(*) FROM pg_stat_activity WHERE usename IN "
-              "('spoolin_core_runtime','spoolin_catalog_runtime','spoolin_media_runtime') AND pid<>pg_backend_pid())",
+              "('spoolin_core_runtime','spoolin_catalog_runtime','spoolin_media_runtime',"
+              "'spoolin_core_maintenance','spoolin_catalog_maintenance','spoolin_media_maintenance',"
+              "'spoolin_core_migrator','spoolin_catalog_migrator','spoolin_media_migrator') AND pid<>pg_backend_pid())",
               "'active_leases',(SELECT count(*) FROM appdata.durable_work WHERE state='LEASED' AND lease_until>clock_timestamp())"]
     columns = {
         "operation_receipt": "id,receipt_type" + (",setup_version" if owner == "core" else ",seed_version,encode(seed_snapshot_hash,'hex') AS seed_snapshot_hash" if owner == "catalog" else ""),
@@ -268,23 +292,51 @@ def inventory_sql(owner):
 
 def psql(connection, sql, executable="psql", extra=()):
     command = [executable, *extra, "--no-psqlrc", "--quiet", "--no-align", "--tuples-only", "--set=ON_ERROR_STOP=1", "--dbname", connection]
-    with tempfile.TemporaryFile() as errors:
-        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors, env={**os.environ, "PGCONNECT_TIMEOUT": "10", "PGOPTIONS": os.environ.get("PGOPTIONS", "") + " -c statement_timeout=30000 -c lock_timeout=5000"})
+    with tempfile.TemporaryFile() as commands:
+        commands.write(sql.encode("utf-8"))
+        commands.seek(0)
+        process = subprocess.Popen(command, stdin=commands, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env={**os.environ, "PGCONNECT_TIMEOUT": "10", "PGOPTIONS": os.environ.get("PGOPTIONS", "") + " -c statement_timeout=30000 -c lock_timeout=5000"})
+        poller = selectors.DefaultSelector()
+        result = bytearray()
+        error_bytes = 0
+        deadline = time.monotonic() + PSQL_SECONDS
         try:
-            process.stdin.write(sql.encode("utf-8"))
-            process.stdin.close()
-            result = process.stdout.read(MAX_INPUT_BYTES + 1)
-            if len(result) > MAX_INPUT_BYTES:
-                raise ValueError("Database export exceeds 16 MiB; bounded batch migration is required")
-            if process.wait(timeout=60):
+            poller.register(process.stdout, selectors.EVENT_READ, "output")
+            poller.register(process.stderr, selectors.EVENT_READ, "error")
+            while poller.get_map():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise ValueError("Database command exceeded the bounded wall-clock deadline")
+                for event, _ in poller.select(timeout=remaining):
+                    chunk = os.read(event.fd, 65536)
+                    if not chunk:
+                        poller.unregister(event.fileobj)
+                    elif event.data == "output":
+                        result.extend(chunk)
+                        if len(result) > MAX_INPUT_BYTES:
+                            raise ValueError("Database export exceeds 16 MiB; bounded batch migration is required")
+                    else:
+                        error_bytes += len(chunk)
+                        if error_bytes > MAX_ERROR_BYTES:
+                            raise ValueError("Database diagnostics exceeded the bounded representation")
+            try:
+                status = process.wait(timeout=max(0.001, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                raise ValueError("Database command exceeded the bounded wall-clock deadline") from None
+            if status:
                 raise ValueError("Database command failed; inspect locally without exposing connection secrets")
             return result.decode("utf-8").strip()
         finally:
+            poller.close()
             if process.poll() is None:
                 process.kill()
-                process.wait()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    pass
             process.stdout.close()
-
+            process.stderr.close()
 
 
 def collect(connections, executable="psql", extra=()):
@@ -346,8 +398,7 @@ def apply_markers(connections, exports, output, content, executable="psql", extr
             raise ValueError("Owner marker verification failed; keep all owners stopped")
     if validate_exports(collect(connections, executable, extra)) != expected:
         raise ValueError("Sources changed during cutover; keep all owners stopped")
-    if Path(output).read_bytes() != content:
-        raise ValueError("Index changed during cutover; ready marker was not written")
+    verify_existing(output, content)
     immutable_write(str(output) + ".ready", (digest + "\n").encode("ascii"), mode=0o644)
 
 
@@ -410,6 +461,8 @@ def main(argv=None):
     parser.add_argument("--apply", action="store_true", help="Explicit coordinated marker cutover; all owners must stay stopped")
     args = parser.parse_args(argv)
     manifests = args.manifest or [Path(__file__).resolve().parents[2] / "data/seed/manifest.json"]
+    if len(args.exports) > len(OWNERS):
+        parser.error("At most three owner export files may be loaded")
     exports = [read_json(path) for path in args.exports]
     connections = {}
     for binding in args.connection:
@@ -424,6 +477,9 @@ def main(argv=None):
     if args.apply and (not args.output or set(connections) != set(OWNERS)):
         parser.error("--apply requires --output and all three live owner connections")
     if args.export_dir:
+        validate_exports(exports)
+        if not exports:
+            parser.error("--export-dir requires complete database exports")
         for export in exports:
             private_export(args.export_dir / (export["owner"] + ".json"), export)
     if args.frozen_only and exports:

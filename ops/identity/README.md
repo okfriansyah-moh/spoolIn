@@ -2,7 +2,7 @@
 
 `migrate.py` builds the shared compatibility index used during the SHA-256 identity upgrade. It preserves persisted IDs; it does not rewrite application data, receipt hashes, assets, or work. Historical UUIDv5 calculation exists only in this offline exporter. The upgraded application uses the shared SHA-256 lookup and new UUIDv8 derivation, without a weak-hash fallback.
 
-Stop **all three owners and administrative writers** before exporting. Leave them stopped until the tool finishes, all three marker hashes match, and the index's `.ready` sibling exists. Unexpired work leases and runtime database sessions reject the export. An interrupted apply can leave some database hashes committed; without the final ready file, legacy startup stays blocked.
+Stop **all three owners and administrative writers** before exporting. Leave them stopped until the tool finishes, all three marker hashes match, and the index's `.ready` sibling exists. Unexpired work leases and runtime, maintenance, or migrator database sessions reject the export; only the current export connection is excluded. An interrupted apply can leave some database hashes committed; without the final ready file, legacy startup stays blocked.
 
 ## Build a frozen seed resource
 
@@ -52,7 +52,7 @@ Receipt results, request hashes, notification summaries, credentials, and arbitr
 
 The marker table is `appdata.identity_hash_migration(singleton boolean primary key check(singleton), legacy_required boolean not null, registry_sha256 varchar(64))`, with exactly one `singleton=true` row. New empty databases have `legacy_required=false`. Existing receipts or durable work set it true. Runtime and maintenance roles receive SELECT only; the migration role receives SELECT and column-restricted UPDATE for the hash. Normal grant reconciliation must preserve those read permissions.
 
-Input JSON and `psql` output are capped at 16 MiB each, historical manifests at 16, and registry entries at 500,000. Larger installations require a separately reviewed bounded batch migration; this tool fails rather than accumulating unbounded memory. Generated exports use mode 0600, index files 0444, and ready files 0644. Existing symlinks, writable group/other artifacts, or different bytes are rejected. The readiness marker is not created for frozen-only resources.
+Each database command has a 60-second wall-clock deadline, including wrappers that never close their output. Diagnostics are discarded and capped at 64 KiB; SQL input uses a temporary file. Input JSON and `psql` output are capped at 16 MiB each, historical manifests at 16, and registry entries at 500,000. Larger installations require a separately reviewed bounded batch migration; this tool fails rather than accumulating unbounded memory. Generated exports use mode 0600, index files 0444, and ready files 0644. Existing symlinks, writable group/other artifacts, or different bytes are rejected. Identical existing files and their containing directories are fsynced before reuse. The readiness marker is not created for frozen-only resources.
 
 Run the small standard-library checks through the coordinating verification queue:
 

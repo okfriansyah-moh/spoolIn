@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import struct
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -131,11 +132,13 @@ class MigrationTests(unittest.TestCase):
         digest = hashlib.sha256(content).hexdigest()
         markers = {}
         attempts = []
+        interrupted = False
         def database(connection, sql, *unused):
+            nonlocal interrupted
             if sql.startswith("BEGIN"):
                 attempts.append(connection)
-                if connection == "catalog" and "catalog" not in markers:
-                    markers["catalog"] = "interrupted"
+                if connection == "catalog" and not interrupted:
+                    interrupted = True
                     raise ValueError("Interrupted fixture")
                 markers[connection] = digest
                 return ""
@@ -164,6 +167,46 @@ class MigrationTests(unittest.TestCase):
             self.assertNotIn("notification_summary", sql)
             self.assertNotIn("request_hash", sql)
             self.assertIn("jsonb_strip_nulls", sql)
+            for component in migration.OWNERS:
+                for role in ("runtime", "maintenance", "migrator"):
+                    self.assertIn(f"spoolin_{component}_{role}", sql)
+
+    def test_database_wrapper_has_a_deadline_even_when_output_never_closes(self):
+        with patch.object(migration, "PSQL_SECONDS", 0.1), self.assertRaisesRegex(ValueError, "deadline"):
+            migration.psql("unused", "SELECT 1", sys.executable, ("-c", "import time; time.sleep(30)"))
+
+    def test_database_output_and_discarded_diagnostics_are_bounded(self):
+        for stream, limit in (("stdout", "MAX_INPUT_BYTES"), ("stderr", "MAX_ERROR_BYTES")):
+            with self.subTest(stream=stream), patch.object(migration, limit, 10), self.assertRaises(ValueError):
+                migration.psql("unused", "SELECT 1", sys.executable,
+                               ("-c", f"import sys; sys.{stream}.write('x' * 100); sys.{stream}.flush()"))
+
+    def test_database_command_receives_sql_without_a_writable_input_pipe(self):
+        result = migration.psql("unused", "SELECT 1", sys.executable,
+                                ("-c", "import sys; print(sys.stdin.read())"))
+        self.assertEqual("SELECT 1", result)
+
+    def test_export_validation_precedes_any_export_file_writes(self):
+        inputs = exports()
+        inputs[0]["owner"] = "../escape"
+        with patch.object(migration, "read_json", side_effect=inputs), patch.object(migration, "private_export") as write:
+            with self.assertRaises(ValueError):
+                migration.main(["--exports", "a", "--exports", "b", "--exports", "c", "--export-dir", "private"])
+            write.assert_not_called()
+
+    def test_excess_export_arguments_are_rejected_before_reading(self):
+        with patch.object(migration, "read_json") as read, patch.object(sys, "stderr"):
+            with self.assertRaises(SystemExit):
+                migration.main(["--exports", "a", "--exports", "b", "--exports", "c", "--exports", "d"])
+            read.assert_not_called()
+
+    def test_identical_existing_artifact_is_flushed_before_reuse(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "index.bin"
+            migration.immutable_write(output, b"index")
+            with patch.object(migration.os, "fsync", wraps=migration.os.fsync) as flush:
+                migration.immutable_write(output, b"index")
+                self.assertEqual(2, flush.call_count)
 
 
 if __name__ == "__main__":
