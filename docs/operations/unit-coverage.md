@@ -330,3 +330,44 @@ Svelte warning. No OOM occurred. Independent combined source and evidence review
 the expanded requirement with no outstanding findings. Documentation/PR metadata edits
 after the measured revision do not alter coverage inputs. PR17 remains a draft; remote
 CI results are separate from this verified local Docker outcome.
+
+
+### SHA-256 identity migration verification — 26 October
+
+Fresh Docker unit suites at clean source `52a18565983342cc16358fe811094c3e74554e78` completed **4,240 tests,
+zero failures or skips**, from `2026-10-26T03:14:55.929Z` to `2026-10-26T03:17:18.402Z`.
+Sonar publication completed at `2026-10-26T03:25:33.886Z` with the same source fingerprint
+`036c7a0a49b780cb7b17d51f8dd85a75e0a45d89403c3cbffd647237a62633e3`. Both exact counter ratios and displayed percentages pass.
+
+| Component | Native covered / total | Native lines | Sonar Coverage | Sonar lines | Gate |
+|---|---:|---:|---:|---:|---|
+| frontend | 5,128 / 6,129 | 83.67% | 80.9% | 85.0% | OK |
+| core | 5,851 / 6,682 | 87.56% | 81.2% | 87.6% | OK |
+| catalog | 5,231 / 6,028 | 86.78% | 81.3% | 86.8% | OK |
+| media | 1,893 / 2,179 | 86.87% | 81.3% | 86.9% | OK |
+| backend-support | 3,180 / 3,624 | 87.75% | 81.6% | 87.8% | OK |
+| mcp | 1,121 / 1,355 | 82.73% | 81.4% | 82.9% | OK |
+
+All backend source mappings and imported-hit checks passed, including the two new shared
+identity files. Changed executable-line coverage against `bbf91bdc` is Core 8/9 (88.89%),
+Catalog 10/12 (83.33%), Media 8/9 (88.89%), and backend support 209/217 (96.31%), with no
+missing files. The migration's 17 offline exporter tests, six startup cases, shared identity
+rules and real PostgreSQL 18.6 predecessor-upgrade/interrupted-apply/replay proof passed.
+The real database proof also passed through the regular Catalog integration task with
+only the migration case selected; unrelated integration suites were not run.
+
+Sonar reports all four Kotlin weak-hash findings as `CLOSED` / `FIXED`, including
+`d4346149-9326-43c9-b6b8-4092eac68a3e`. No finding was suppressed or reclassified.
+The live Projects page shows six passing gates and six Coverage values above 80%; all
+four Kotlin projects show zero security issues. Native HTML and its published Sonar table
+were opened and observed. Screenshot: `.local/sha256-coverage-final.png`; raw reports:
+`.local/unit-coverage/summary.json` and `sonar-results.json`.
+
+The new shared identity production code passes the configured static rules. Existing
+unrelated broad static findings in Catalog/Media and remote CI remain separate; this
+record does not claim those checks passed. No OOM occurred. See the
+[identity migration instructions](identity-migration.md) before deploying to an existing
+installation. Subsequent documentation and PR metadata edits do not change measured inputs.
+
+Independent combined source and evidence review accepted measured revision `52a18565`,
+including Sonar finding closure and report observation, with no outstanding findings.

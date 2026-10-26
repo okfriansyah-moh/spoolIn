@@ -76,9 +76,19 @@ Task `SHA256-IDENTITIES`, base `bbf91bdc`, branch `codex/unit-coverage-80`, exis
 [draft PR17](https://github.com/okfriansyah-moh/spoolIn/pull/17). The user explicitly
 selected full SHA-256 migration with existing databases and pending work preserved.
 
-Implementation and a real PostgreSQL 18.6 upgrade check now pass, including prior
-schemas, retained rows and retry budgets, an interrupted cross-owner apply, resumed
-preparation, runtime read-only privileges, receipt replay and the environment-configured
-identity resolver. Focused shared identity tests and 17 offline exporter tests pass.
-Fresh six-component unit coverage, Sonar SHA-1 finding closure and one independent
-combined review remain pending. Previous coverage is a baseline for this migration.
+Verified source `52a18565983342cc16358fe811094c3e74554e78` passes a real PostgreSQL
+18.6 upgrade through both the dedicated and regular integration entry points. Checks
+cover prior schemas, retained rows and retry budgets, interrupted cross-owner apply,
+resumed preparation, runtime read-only privileges, receipt replay and the environment-
+configured resolver. The offline exporter has 17 passing tests; six startup cases and
+shared identity rules pass within the full 4,240-test unit run.
+
+All six native line thresholds, all six Sonar combined/line thresholds and all affected
+changed-line thresholds exceed 80%. Sonar automatically closed all four SHA-1 findings
+as fixed, with none unresolved. See [the coverage evidence](unit-coverage.md#sha-256-identity-migration-verification--26-october)
+for percentages, counters, revisions and analysis time. This implementation was tested
+against disposable upgrade databases; existing installation cutover follows the steps
+above and has not been applied to a production database during this work.
+
+Independent combined source and evidence review accepted measured revision `52a18565`,
+including Sonar finding closure and report observation, with no outstanding findings.
