@@ -23,7 +23,8 @@ def post(endpoint, values, password):
 def main():
     if os.environ.get('GITHUB_ACTIONS') != 'true' or not os.environ.get('GITHUB_ENV'):
         raise ValueError('Bootstrap is limited to the fresh GitHub Actions dashboard')
-    password = secrets.token_urlsafe(40)
+    password = 'Aa1!' + secrets.token_urlsafe(40)
+    print('::add-mask::' + password)
     post('users/change_password', {'login': 'admin', 'previousPassword': 'admin', 'password': password}, 'admin')
     result = post('user_tokens/generate', {'name': 'isolated-ci-analysis'}, password)
     token = result['token']

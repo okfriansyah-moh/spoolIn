@@ -123,6 +123,26 @@ class BootstrapTests(unittest.TestCase):
                 module.main()
             post.assert_not_called()
 
+    def test_generated_password_always_satisfies_server_policy(self):
+        module = self.load_bootstrap()
+        with tempfile.TemporaryDirectory() as directory:
+            env = Path(directory) / 'environment'
+            def server_policy(endpoint, values, password):
+                if endpoint == 'users/change_password':
+                    candidate = values['password']
+                    self.assertGreaterEqual(len(candidate), 12)
+                    self.assertTrue(any(c.islower() for c in candidate))
+                    self.assertTrue(any(c.isupper() for c in candidate))
+                    self.assertTrue(any(c.isdigit() for c in candidate))
+                    self.assertTrue(any(not c.isalnum() for c in candidate))
+                    return {}
+                return {'token': 'fixture-token'}
+            with patch.dict(module.os.environ, {'GITHUB_ACTIONS': 'true', 'GITHUB_ENV': str(env)}), \
+                    patch.object(module.secrets, 'token_urlsafe', return_value='a' * 54), \
+                    patch.object(module, 'post', side_effect=server_policy), \
+                    redirect_stdout(io.StringIO()):
+                module.main()
+
     def test_fresh_ci_credentials_are_database_local_and_masked(self):
         module = self.load_bootstrap()
         with tempfile.TemporaryDirectory() as directory:
@@ -133,7 +153,8 @@ class BootstrapTests(unittest.TestCase):
                     redirect_stdout(io.StringIO()) as output:
                 module.main()
             self.assertEqual(post.call_args_list[0].args[2], 'admin')
-            self.assertEqual(post.call_args_list[1].args[2], 'fixture-password')
+            self.assertEqual(post.call_args_list[1].args[2], 'Aa1!fixture-password')
+            self.assertIn('::add-mask::Aa1!fixture-password', output.getvalue())
             self.assertEqual(env.read_text(), 'SONAR_TOKEN=fixture-token\n')
             self.assertIn('::add-mask::fixture-token', output.getvalue())
 
