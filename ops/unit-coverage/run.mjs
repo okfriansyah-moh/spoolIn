@@ -144,7 +144,9 @@ try {
   const reportChecks = execute("report-contracts", [
     "node",
     "--test",
+    "--test-concurrency=1",
     "ops/unit-coverage/report.test.mjs",
+    "ops/unit-coverage/classification-review.test.mjs",
   ]);
   if (reportChecks !== 0)
     summary.reason = "Coverage report regression checks failed.";

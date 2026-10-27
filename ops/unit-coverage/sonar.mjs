@@ -1,5 +1,6 @@
 import { URL } from "node:url";
 import { createHash } from "node:crypto";
+import { applyReview, approvedRecords, exportReview } from "./sonar-review.mjs";
 import {
   existsSync,
   mkdirSync,
@@ -21,6 +22,7 @@ const host = process.env.SONAR_HOST_URL ?? "http://sonarqube:9000";
 const token = process.env.SONAR_TOKEN;
 const gateName = "SpoolIn unit coverage 80";
 const projectKey = (id) => `spoolin-unit-${id}`;
+let currentRunClassifications = [];
 
 async function api(path, parameters = {}, method = "GET") {
   const values = new URLSearchParams(parameters);
@@ -253,7 +255,7 @@ async function analysisInputs(component) {
     throw new Error("Classification verification requires all result pages");
   const classifications = reviewedClassifications(
     dispositions.issues,
-    JSON.parse(readFileSync("ops/unit-coverage/classifications.json", "utf8")),
+    [...JSON.parse(readFileSync("ops/unit-coverage/classifications.json", "utf8")), ...currentRunClassifications],
     (path) => readFileSync(path),
   );
   const measuredInputs = JSON.parse(
@@ -323,6 +325,7 @@ async function verifyComponent(component, summary) {
 }
 
 async function verify(summary) {
+  currentRunClassifications = await approvedRecords({ api, components, output, summary });
   const results = [];
   for (const component of components) {
     try {
@@ -359,7 +362,9 @@ try {
   const summary = currentSummary();
   if (process.argv[2] === "prepare") await prepare(summary);
   else if (process.argv[2] === "verify") await verify(summary);
-  else throw new Error("Usage: sonar.mjs {prepare|verify}");
+  else if (process.argv[2] === "export-review") await exportReview({ api, components, output, summary });
+  else if (process.argv[2] === "apply-review") await applyReview({ api, components, output, summary });
+  else throw new Error("Usage: sonar.mjs {prepare|verify|export-review|apply-review}");
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

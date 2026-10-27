@@ -1637,8 +1637,30 @@
         "ops/unit-coverage/run.mjs",
         "ops/unit-coverage/sonar.mjs",
         "ops/unit-coverage/report.test.mjs",
+        "ops/unit-coverage/review-contract.mjs",
+        "ops/unit-coverage/review-channel.mjs",
+        "ops/unit-coverage/sonar-review.mjs",
+        "ops/unit-coverage/classification-review.test.mjs",
         "--max-warnings",
         "0"
+      ],
+      "required": true,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "quality-classification-contracts",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/unit-coverage/**",
+        "ops/bin/coverage*.sh",
+        ".github/workflows/unit-coverage.yml"
+      ],
+      "argv": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "ops/unit-coverage/classification-review.test.mjs"
       ],
       "required": true,
       "timeout_seconds": 120

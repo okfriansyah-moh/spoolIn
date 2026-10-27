@@ -386,3 +386,40 @@ Producer receipts capture source, tests, configuration, commands and pinned tool
 This workflow adoption does not repair the existing Core/Catalog static-check failures, MCP lint failures or broad local secret-scan findings recorded in [the dated quality record](sonar-quality.md). Those checks remain feature-completion blockers. Existing approved network-range classifications remain in the local Sonar database; a new finding requires its own evidence and independent review. No classifications are automatically replayed or dismissed by the adapter. The root README snapshot retains its original date and measured revision.
 
 The CI delivery command retains configured native checks alongside Docker coverage; those checks require their configured toolchains and services. Missing prerequisites remain blocked. Global installation structure, actual instruction loading in each native host, and repository quality acceptance are separate results.
+
+
+## Per-analysis review in isolated CI Sonar
+
+The CI dashboard remains isolated. Historical classifications in another database do not approve new issue IDs. The job now separates analysis, evidence export, independent review, classification and strict verification. It preserves the same coverage, security, reliability and duplication requirements.
+
+After all six analyses finish, CI uploads `sonar-classification-review-RUN-ATTEMPT`. Its manifest contains each actual security/reliability finding, rule metadata, source hash, range, message, raw issue totals, completed analysis IDs, producer identity, published PR head and measured test-merge revision. Incomplete inventories or counters that disagree with the issue list fail before review. A finding with both security and reliability impacts contributes to both totals.
+
+The artifact includes instructions and an **unreviewed** receipt template. A separate reviewer must inspect the measured source and protective tests for each finding. They supply an explicit decision, specific rationale and current evidence-file hashes. A genuine weakness requires a code fix and a new analysis; `ACCEPTED`, blanket approvals and unreviewed template values cannot pass.
+
+Retain the actual independent review invocation: provider, agent path, request, response, timestamps and SHA-256 digests. The request identifies implementers and the response contains the exact decisions and review report. The reviewer must differ from the implementers. Copy actual invocation evidence; do not invent a reviewer identity or transcript. An authenticated repository owner/collaborator publishes the receipt and attests that this independent review occurred. GitHub proves the publisher identity; it does not cryptographically prove the separate agent identity. Both identities and the retained invocation remain visible in the audit.
+
+The receipt binds the exact manifest digest, repository, run, attempt, published head and measured revision. `digest()` in `ops/unit-coverage/review-contract.mjs` hashes the UTF-8 output of `JSON.stringify`; use that helper for request, response and manifest digests. Every decision must appear identically in the independent response and the receipt. Evidence files must be tracked repository files with matching bytes.
+
+For a pull request, publish a submitted `COMMENT` review on `receipt.head_revision`, with its body produced by `reviewBody(receipt)` from the same module. The body has the marker `<!-- spoolin-sonar-review:v1 -->` followed by one fenced JSON receipt. A generic GitHub approval does not authorize classification. The [GitHub review API](https://docs.github.com/en/rest/pulls/reviews) separates read access for CI from publishing access for the reviewer. For a run without a PR, publish the same structured receipt as a commit comment on the measured commit.
+
+Example publication from a maintainer session, after completing the independent review:
+
+```sh
+node --input-type=module -e '
+  import { readFileSync } from "node:fs";
+  import { reviewBody } from "./ops/unit-coverage/review-contract.mjs";
+  const receipt = JSON.parse(readFileSync(process.argv[1], "utf8"));
+  process.stdout.write(JSON.stringify({
+    commit_id: receipt.head_revision,
+    event: "COMMENT",
+    body: reviewBody(receipt)
+  }));
+' reviewed-receipt.json > review-publication.json
+gh api --method POST repos/OWNER/REPOSITORY/pulls/NUMBER/reviews --input review-publication.json
+```
+
+CI polls in the foreground for at most twenty minutes while its database remains alive. The CI token has only content/review read permissions and cannot publish its own approval. Missing credentials, an unavailable API, a changed PR head, duplicate/conflicting receipts, pending/dismissed reviews, invalid invocation evidence and timeout remain blocking. No scheduled monitor or background service is installed.
+
+Before mutation, CI checks the current findings, rules, source, producer files and six completed analyses against the exported manifest. Every decision is validated before any issue transition. Only those exact approved issues may receive `FALSE_POSITIVE`. The mutation audit records attempted and applied IDs; API failures remain failed and require a fresh analysis rather than silently resuming mixed state. Multiple transitions are not atomic. Applied classifications, the platform review, native invocation, evidence hashes and mutation audit are retained in the failure/success artifacts. A revoked or changed review cannot be reused.
+
+Finally, the existing strict Sonar verifier checks real counters again, followed by shared component proof and the required delivery checks. A successful classification step alone is not quality acceptance. Existing production-inventory and broader baseline failures remain blocking; this review protocol grants no waiver.

@@ -39,15 +39,26 @@ def capture(registry):
     write(OUTPUT / 'producer-inputs.json', value)
 
 
-def finish(registry):
-    captured = read(OUTPUT / 'producer-inputs.json')
-    for contract in registry['quality']['components']:
-        item = dict(captured['components'][contract['id']])
+def check_inputs(registry, captured):
+    contracts = registry['quality']['components']
+    if set(captured['components']) != {contract['id'] for contract in contracts}:
+        raise ValueError('Measurement component inventory changed')
+    for contract in contracts:
+        item = captured['components'][contract['id']]
+        if item['commands'] != contract['commands'] or item['contract_sha256'] != gate_selection.digest(contract):
+            raise ValueError('Measurement contract changed')
         for field in ('inputs', 'toolchain_files'):
             current = quality.snapshot(ROOT, contract[field])
             if item[field] != current:
                 changed = sorted(path for path in set(item[field]) | set(current) if item[field].get(path) != current.get(path))
                 raise ValueError(f"Measurement inputs changed during unit execution: {contract['id']} {field}: {changed}")
+
+
+def finish(registry):
+    captured = read(OUTPUT / 'producer-inputs.json')
+    check_inputs(registry, captured)
+    for contract in registry['quality']['components']:
+        item = dict(captured['components'][contract['id']])
         paths = quality.report_paths(ROOT, contract['unit_report']['reports'])
         paths += quality.report_paths(ROOT, [contract['test_report']['glob']])
         item.update(input_sha256=gate_selection.digest(item['inputs']), revision=captured['revision'], measured_at=captured['measured_at'],
@@ -107,13 +118,17 @@ def component_proof(contract, captured, summary, sonar, base):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=('capture', 'finish', 'verify'))
+    parser.add_argument('action', choices=('capture', 'finish', 'check-inputs', 'verify'))
     parser.add_argument('--base')
     args = parser.parse_args()
     registry = read(ROOT / '.ai/gates.json')
     OUTPUT.mkdir(parents=True, exist_ok=True)
     if args.action == 'capture':
         capture(registry)
+        return
+    if args.action == 'check-inputs':
+        check_inputs(registry, read(OUTPUT / 'producer-inputs.json'))
+        print('Measurement source, tests, configuration and toolchain inventories match.')
         return
     if args.action == 'finish':
         finish(registry)

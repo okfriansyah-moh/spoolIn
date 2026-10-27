@@ -89,6 +89,11 @@ class AdapterTests(unittest.TestCase):
         self.assertLess(runner.index('summary.fingerprint = fingerprint()'), runner.index('execute("quality-inputs"'))
         self.assertLess(runner.index('execute("quality-inputs"'), runner.index('runComponent(component) : setup'))
 
+    def test_added_source_invalidates_measurement_inventory_before_classification(self):
+        (self.root / 'src/new.ts').write_text('export const untested = 2;')
+        with self.assertRaisesRegex(ValueError, 'src/new.ts'):
+            ADAPTER.check_inputs(self.registry, self.captured)
+
     def test_failed_suite_and_unfinished_analysis_block(self):
         self.summary['components'][0]['command'] = 1
         with self.assertRaises(ValueError):
