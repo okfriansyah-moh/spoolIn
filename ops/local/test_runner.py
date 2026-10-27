@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / '.ai/evidence'
-MODULES = ('run.py', 'provision.py', 'readiness.py')
+MODULES = ('run.py', 'provision.py', 'readiness.py', 'monitoring.py', '../monitoring/docker_log_proxy.py')
 
 
 class RecordedResult(unittest.TextTestResult):
@@ -45,7 +45,7 @@ class RecordedResult(unittest.TextTestResult):
 def coverage_report(counts):
     modules = {}
     for name in MODULES:
-        path = ROOT / 'ops/local' / name
+        path = (ROOT / 'ops/local' / name).resolve()
         executable = {line for line in trace._find_executable_linenos(str(path))
                       if isinstance(line, int) and line > 0}
         covered = {line for (filename, line), hits in counts.items()

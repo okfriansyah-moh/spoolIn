@@ -1,6 +1,6 @@
 # Private monitoring integration
 
-These files implement the monitoring portion of the approved startup DAG. They require the real Core, Catalog, Media and MCP application; they supply no alternate application or mocked APIs. Execution and image builds belong on owned remote CI runners.
+These files implement the monitoring portion of the approved startup DAG. They require the real Core, Catalog, Media and MCP application; they supply no alternate application or mocked APIs. Deployment acceptance runs on owned remote CI runners. The optional local installation described below builds and runs its monitoring containers on the local Docker engine.
 
 Merge `compose-services.yaml` services, secrets and volumes into `ops/compose.yaml`; paths in the fragment are relative to that file. The fragment is an integration source, not a second launcher. Do not load it through Compose `include`, which would duplicate shared private-network resources. Start the merged stack through normal `make start`; status and stop must include these selected services.
 
@@ -62,3 +62,50 @@ The rule tests cover missing series, low traffic, domain failures, success-count
 Rendered dashboard screenshots/accessibility observations must come from the remote real browser. All required logical metric families need actual source instruments and runtime proof. No registered tunnel credential or assisted-client session is supplied by this stack; configured tunnel startup, connected-state observation and both actual host approval journeys remain outstanding until their real prerequisites are available.
 
 Primary configuration references: [Prometheus3.15 configuration](https://prometheus.io/docs/prometheus/3.15/configuration/configuration/), [Alertmanager configuration](https://prometheus.io/docs/alerting/latest/configuration/), [Grafana configuration](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/). Registry digests were read from Docker Hub's official authenticated manifest API without local image execution.
+
+## Optional local monitoring
+
+For the installation created by `make local-start`, run:
+
+```sh
+make local-monitoring
+```
+
+This starts Prometheus, Alertmanager, Grafana, Loki, Alloy, cAdvisor and a PostgreSQL exporter alongside the existing app. It does not rebuild or restart application containers, rerun migrations, replace existing identities, or reset data. MCP monitoring becomes available when `make local-mcp` is running. An absent optional MCP target stays visibly down.
+
+Open [Grafana](https://localhost:3000) and sign in as `operator`. The password is in the protected `.local/monitoring.txt` file. `make local-trust` installs this installation's CA for browser access. Keep credential files private. Set `GRAFANA_HTTPS_PORT=3300 make local-monitoring` to use another loopback port; the selected port is retained for subsequent starts. Existing Grafana data retains its password; changing a password file does not reset an existing Grafana account.
+
+Four provisioned dashboards appear in the **SpoolIn** folder: operations, Docker infrastructure, PostgreSQL, and logs. Use the service/database filters and common time picker. Logs also offer level and text filters; opening log details preserves the structured JSON fields, including safe correlation fields when emitted. No request ID, trace ID, email or arbitrary resource value becomes an indexed label. Missing metrics remain empty; a successful scrape does not imply every container metric is available.
+
+```sh
+make local-status
+make local-logs
+make local-monitoring-stop
+```
+
+The monitoring stop command leaves the app and all history volumes intact. `make local-monitoring` resumes it. `make local-stop` stops the complete local installation and preserves volumes. `make local-reset` retains its existing explicit confirmation and deletes the complete local installation, including monitoring history.
+
+### Collection and storage
+
+The local renderer extends the existing deployment monitoring services and derives local Prometheus/Alertmanager files from their source configurations. Extra local scrape jobs and infrastructure rules are separate; infrastructure alerts route to an empty local receiver and stay visible in Prometheus. Existing application alert routing to Core is retained. No external notification integration is installed. Rules identify the local operator, provide recovery actions, and use sustained windows to reduce startup noise; missing container metrics have a separate alert. No absent measurement is replaced with a healthy zero.
+
+Prometheus retains metrics for 15 days with the existing 1 GB size limit. Loki retains logs for 72 hours, with asynchronous deletion after the retention delay. This is a time limit, not a filesystem quota: inspect Docker's available disk space and stop collection before exhausting it. Loki limits ingestion to 1 MB/s with a 2 MB burst, caps line length at 16 KiB and limits query concurrency and returned entries. Alloy limits collection to 100 lines/s, drops excess entries, retries delivery five times with bounded backoff and retains collection offsets. Log collection is best effort and can have gaps or replay after outages; it is not an audit archive.
+
+Alloy discards lines containing credential indicators, connection URLs or email addresses before sending them to Loki. This intentionally sacrifices some diagnostics to reduce sensitive storage. Application log redaction remains necessary: filtering cannot identify every sensitive free-text value. The logs dashboard shows dropped-line counts. Docker logs rotate at 10 MB across three files for newly created containers; existing application containers adopt this setting during their next normal recreation, avoiding a monitoring-triggered app restart.
+
+Only the log proxy holds the collection socket, on an isolated internal network shared with Alloy. It allows GET container/network discovery, version/ping and project-owned container logs/TTY/lifecycle status, forces the installation filter, strips unnecessary metadata and strips environment, commands and mounts from inspection responses, and denies filesystem, exec and write APIs. Log streams have bounded backlog, bytes, idle timeout and concurrent connections. A read-only socket mount alone does not restrict Docker API operations; the proxy enforces the restriction. The proxy process itself is trusted because its socket access can control Docker if compromised.
+
+cAdvisor is a separate trusted infrastructure collector. It requires root and read-only Linux host/cgroup/Docker mounts to discover resource usage; these mounts and Docker socket access are powerful even with dropped capabilities. Alloy never receives those mounts. Prometheus retains only metrics labeled for `spoolin-local`. On Docker Desktop, these observations describe containers in its Linux VM, not native macOS resources. Filesystem observations vary by Docker storage driver; validate actual series before relying on them.
+
+The PostgreSQL exporter uses a separate read-only `spoolin_monitor` login with `pg_monitor`, a three-connection limit, a three-second statement timeout and verified TLS. It has no application table grants or role/database creation privileges. `pg_monitor` can read database statistics and settings; this is a trusted monitoring identity. Statement-text collection is explicitly disabled, and passwords are mounted files rather than environment values or command arguments.
+
+### Troubleshooting
+
+- **Port occupied:** choose `GRAFANA_HTTPS_PORT` and rerun the monitoring command.
+- **Certificate error:** install the local CA; inspect expiry instead of replacing the installation. The launcher creates missing monitoring identities but refuses incomplete key/certificate pairs.
+- **Empty logs:** inspect Alloy/proxy/Loki health and the selected time range. Only running project containers are discovered; sensitive lines are deliberately dropped.
+- **Empty Docker panels:** inspect cAdvisor health and mounts. Docker Desktop or a storage driver may expose only part of the Linux resource data. Collector reachability and actual container series are separate checks.
+- **Database panel down:** check exporter logs, PostgreSQL readiness, monitoring-role access and the CA mount. Rerunning the command reapplies the monitoring role without touching application schemas.
+- **Resource pressure:** do not add concurrent builds or collectors while the execution-device admission check is blocked. Container limits bound individual services; they do not establish host capacity.
+
+The tested Docker Desktop setup uses an explicit Docker socket mount and cAdvisor's `--containerd=/rootfs/run/containerd/containerd.sock` connection through the read-only VM root mount. Keep cAdvisor's default containerd namespace: selecting `moby` for the generic containerd collector takes precedence over its Docker collector and loses the Compose labels needed for installation filtering. The Docker collector uses its own `moby` connection. On another Docker host, inspect its runtime socket location before changing this argument.

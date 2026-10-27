@@ -1,7 +1,7 @@
 {
   "observedUtc": "2026-10-18",
   "registry": "registry-1.docker.io",
-  "source": "Docker Hub OCI manifest indexes retrieved through official authenticated pull API; no images executed locally",
+  "source": "OCI manifest indexes retrieved from the official Docker Hub and GHCR registries; image references pin immutable multi-platform indexes",
   "images": {
     "prometheus": {
       "image": "prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
@@ -23,6 +23,52 @@
         "linux/amd64",
         "linux/arm64"
       ]
+    },
+    "loki": {
+      "image": "grafana/loki:3.7.0@sha256:c316b7c7589a5eeca843b6926c7446149d18300b79ac8538dc4ae063bc478da2",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "alloy": {
+      "image": "grafana/alloy:v1.16.1@sha256:51aeb9d829239345070619dad3edd6873186f913c84f45b365b74574fcb38ec0",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "postgres-exporter": {
+      "image": "prometheuscommunity/postgres-exporter:v0.18.1@sha256:fb96c4413985d4b23ab02b19022b3d70a86c8e0a62f41ab15ebb6f4673781a5d",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "docker-log-proxy": {
+      "image": "python:3.14.0-slim-bookworm@sha256:d13fa0424035d290decef3d575cea23d1b7d5952cdf429df8f5542c71e961576",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "cadvisor": {
+      "image": "ghcr.io/google/cadvisor:0.55.1@sha256:e02855207ec07bb45ee41f720645945251f093f24c28f8c29cf718490f784922",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    "monitoring-tools": {
+      "image": "busybox:1.37.0-musl@sha256:5cec3fc171c87218698e85a52af7087de727372aae264a787b8112901a5b0092",
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
     }
-  }
+  },
+  "localObservedUtc": "2026-10-27",
+  "additionalRegistries": [
+    "ghcr.io"
+  ]
 }

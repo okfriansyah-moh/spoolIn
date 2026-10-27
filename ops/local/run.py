@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Run an isolated local installation without host Java or Node."""
 import argparse
+import copy
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -11,6 +13,9 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / '.local'
+MONITOR_SPEC = importlib.util.spec_from_file_location('local_monitoring', Path(__file__).with_name('monitoring.py'))
+MONITOR = importlib.util.module_from_spec(MONITOR_SPEC)
+MONITOR_SPEC.loader.exec_module(MONITOR)
 TOOL = 'spoolin-local-toolchain:21.0.12.1-24.21.0'
 OWNERS = ('core', 'catalog', 'media')
 SERVICES = ('postgres', *OWNERS, 'mcp', 'core-migrator', 'catalog-migrator', 'media-migrator', 'catalog-seed', 'media-seed')
@@ -98,7 +103,8 @@ def setup():
     print('Local configuration ready. Credentials: .local/accounts.txt (keep this file private).')
 
 
-def local_configuration(document):
+def local_configuration(document, monitoring=False, port=3000):
+    deployment = copy.deepcopy(document) if monitoring else None
     document['name'] = 'spoolin-local'
     document['services'] = {name: document['services'][name] for name in SERVICES}
     for name, service in document['services'].items():
@@ -116,10 +122,12 @@ def local_configuration(document):
         'secrets': ['service-ca', 'core-key', 'core-cert'],
         'volumes': [f'{ROOT / "ops/local/readiness.py"}:/probe.py:ro'],
         'entrypoint': ['python3', '/probe.py'], 'mem_limit': '128m', 'cpus': 0.25}
+    if monitoring:
+        MONITOR.configure(document, deployment, ROOT, STATE, port)
     return document
 
 
-def render_compose():
+def render_compose(monitoring=False):
     environment = {key: value for key, value in os.environ.items()
                    if key in ('PATH', 'HOME', 'DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_CONFIG', 'DOCKER_CERT_PATH', 'DOCKER_TLS_VERIFY')}
     environment.update(json.loads((STATE / 'environment.json').read_text()))
@@ -128,7 +136,8 @@ def render_compose():
     environment['MCP_HTTP_PORT'] = '8787'
     rendered = run('docker', 'compose', '--env-file', '/dev/null', '-f', str(ROOT / 'ops/compose.yaml'), '--profile', 'migration', '--profile', 'seed', 'config',
                    '--format', 'json', capture=True, env=environment)
-    document = local_configuration(json.loads(rendered.stdout))
+    enabled = monitoring or (STATE / 'monitoring-enabled').exists()
+    document = local_configuration(json.loads(rendered.stdout), monitoring=enabled, port=MONITOR.port_for(STATE))
     destination = STATE / 'compose.json'
     destination.write_text(json.dumps(document, indent=2) + '\n')
     destination.chmod(0o600)
@@ -211,6 +220,51 @@ def start_mcp():
     print('SpoolIn MCP is ready at http://localhost:8787/mcp.')
 
 
+def start_monitoring():
+    port = MONITOR.port_for(STATE)
+    running = compose('ps', '--status', 'running', '--services', capture=True).stdout.splitlines()
+    if any(name not in running for name in ('postgres', *OWNERS)):
+        raise RuntimeError('Application services must be running. Run make local-start first.')
+    tooling('python3', 'ops/local/provision.py', str(ROOT), str(os.getuid()), str(os.getgid()),
+            '--monitoring', root=True, cache=False)
+    render_compose(monitoring=True)
+    (STATE / 'monitoring-port').write_text(str(port) + '\n')
+    (STATE / 'monitoring-enabled').touch(mode=0o600)
+    provision_monitor_role()
+    compose('build', 'prometheus', 'alertmanager', 'grafana', 'loki', 'alloy')
+    compose('up', '-d', '--no-deps', '--wait', '--wait-timeout', '180', *MONITOR.SERVICES)
+    print(f'Monitoring ready at https://localhost:{port}. Login: operator; password: .local/monitoring.txt')
+    print('Existing application containers retain their current log rotation until their next normal recreation.')
+
+
+def provision_monitor_role():
+    script = r"""set -eu
+export PGPASSWORD="$(cat /run/secrets/postgres-password)"
+psql -X -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+\set monitor_password `cat /run/monitoring/password`
+SELECT 'CREATE ROLE spoolin_monitor LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION CONNECTION LIMIT 3'
+WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'spoolin_monitor') \gexec
+ALTER ROLE spoolin_monitor LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION CONNECTION LIMIT 3 PASSWORD :'monitor_password';
+ALTER ROLE spoolin_monitor SET statement_timeout = '3s';
+ALTER ROLE spoolin_monitor SET default_transaction_read_only = on;
+GRANT pg_monitor TO spoolin_monitor;
+GRANT CONNECT ON DATABASE postgres, spoolin_core, spoolin_catalog, spoolin_media TO spoolin_monitor;
+SQL
+"""
+    password = STATE / 'identities/postgres-monitor-password'
+    service = json.loads((STATE / 'compose.json').read_text())['services']['postgres']
+    # The one-shot client shares Postgres' network identity; no database restart is needed.
+    container = compose('ps', '--quiet', 'postgres', capture=True).stdout.strip()
+    admin = next(item['file'] for name, item in json.loads((STATE / 'compose.json').read_text())['secrets'].items()
+                 if name == 'postgres-password')
+    run('docker', 'run', '--rm', '--network', f'container:{container}', '--read-only', '--cap-drop', 'ALL',
+        '--security-opt', 'no-new-privileges:true', '--memory', '64m', '--cpus', '0.25',
+        '-e', 'PGSSLMODE=verify-full', '-e', 'PGSSLROOTCERT=/run/secrets/service-ca',
+        '-v', f'{STATE / "identities/service-ca"}:/run/secrets/service-ca:ro',
+        '-v', f'{password}:/run/monitoring/password:ro', '-v', f'{admin}:/run/secrets/postgres-password:ro',
+        '--entrypoint', '/bin/sh', service['image'], '-c', script)
+
+
 def seed():
     compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'media-seed')
     compose('--profile', 'seed', 'run', '--rm', '--no-deps', 'catalog-seed')
@@ -257,7 +311,7 @@ def reset():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('setup', 'start', 'mcp', 'status', 'logs', 'stop', 'test', 'reset', 'repair-maintainer', 'repair-accounts'))
+    parser.add_argument('action', choices=('setup', 'start', 'mcp', 'status', 'logs', 'stop', 'test', 'reset', 'repair-maintainer', 'repair-accounts', 'monitoring', 'monitoring-stop'))
     action = parser.parse_args().action
     validate_state()
     check_tools()
@@ -281,6 +335,14 @@ def dispatch(action):
         raise RuntimeError('Run make local-setup first.')
     if action in ('repair-maintainer', 'repair-accounts'):
         repair_accounts('accounts' if action == 'repair-accounts' else 'maintainer')
+    elif action == 'monitoring':
+        start_monitoring()
+    elif action == 'monitoring-stop':
+        selected = json.loads((STATE / 'compose.json').read_text()).get('services', {})
+        names = [name for name in MONITOR.SERVICES if name in selected]
+        if names:
+            compose('stop', *names)
+        print('Monitoring stopped; application data and monitoring history retained.')
     elif action == 'mcp':
         start_mcp()
     elif action == 'status':
@@ -288,7 +350,8 @@ def dispatch(action):
         ready()
         codec_probe()
     elif action == 'logs':
-        compose('logs', '--tail', '200', *OWNERS, 'mcp', 'postgres')
+        selected = MONITOR.SERVICES if (STATE / 'monitoring-enabled').exists() else ()
+        compose('logs', '--tail', '200', *OWNERS, 'mcp', 'postgres', *selected)
     elif action == 'stop':
         compose('down', '--remove-orphans')
     elif action == 'test':

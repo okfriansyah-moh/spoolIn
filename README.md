@@ -22,6 +22,9 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
   - [Everyday commands](#everyday-commands)
   - [Troubleshooting](#troubleshooting)
   - [Verification limits](#verification-limits)
+- [Local observability](#local-observability)
+  - [Start and manage monitoring](#start-and-manage-monitoring)
+  - [Dashboards and data](#dashboards-and-data)
 - [Use SpoolIn](#use-spoolin)
   - [Choose the right account](#choose-the-right-account)
   - [Viewer example: find a movie](#viewer-example-find-a-movie)
@@ -414,6 +417,68 @@ The local workflow and browser walkthrough were exercised on macOS with Docker D
 
 Platform instructions follow the linked vendor installation guides. Successful tool installation depends on your OS version, virtualization settings, and Docker security support. Historical results and outstanding browser, accessibility, external-client, and production verification are recorded in [the release handoff](docs/release/handoff.md) and [release verification record](docs/release/remote-acceptance-assessment.json).
 
+
+## Local observability
+
+Run Grafana, Prometheus, Alertmanager, Loki, Alloy, cAdvisor, and a PostgreSQL exporter alongside the local app. Metrics describe the application services, their Docker containers, and PostgreSQL. On Docker Desktop, infrastructure measurements come from its Linux VM.
+
+### Start and manage monitoring
+
+Start Docker and the local app first (`make local-setup` and `make local-start` for a new installation), then run:
+
+```bash
+make observability
+```
+
+Open [Grafana](https://localhost:3000) and sign in as `operator` with the password in `.local/monitoring.txt`. Run `make local-trust` if your browser does not yet trust this installation's certificate. The monitoring command preserves existing app data and credentials.
+
+| Command | What it does |
+| --- | --- |
+| `make observability` or `make observability-start` | Build and start the optional monitoring stack. |
+| `make observability-stop` | Stop monitoring and retain history; the app keeps running. |
+| `make observability-restart` | Stop and start monitoring in order, retaining history. |
+| `make observability-status` | Show the full local installation and run the existing app readiness and codec checks. |
+| `make observability-logs` | Show the latest 200 log lines per service from the app, database, MCP, and monitoring stack. |
+
+These targets reuse `make local-monitoring`, `make local-monitoring-stop`, `make local-status`, and `make local-logs`. The status and log commands cover the whole installation. To choose another loopback port:
+
+```bash
+GRAFANA_HTTPS_PORT=3300 make observability
+```
+
+Prometheus retains metrics for 15 days with a 1 GB size limit. Loki retains logs for 72 hours with delayed deletion. Monitoring history survives stop/restart; `make local-reset` deletes the installation and its history after confirmation. See the [monitoring guide](ops/monitoring/README.md#optional-local-monitoring) for collection permissions, storage limits, alert routing, and troubleshooting.
+
+### Dashboards and data
+
+The local verification on **27 October 2026** recorded **eight healthy monitoring containers**, **four dashboards**, and resource metrics for **13 SpoolIn containers**. The screenshots below show that run, including application and monitoring containers. Values change with activity; MCP metrics require `make local-mcp`.
+
+| Dashboard | Data shown |
+| --- | --- |
+| [Application operations](https://localhost:3000/d/spoolin-operations) | Exporter reachability, dependency readiness, request outcomes, p95 latency, work queues, database pool use, and JVM heap. |
+| [Docker infrastructure](https://localhost:3000/d/spoolin-docker) | Measured container count, CPU cores used, memory working set and limits, network bytes/s, and container filesystem use. |
+| [PostgreSQL](https://localhost:3000/d/spoolin-postgres) | Database/exporter health, connections, commits and rollbacks/s, locks by database and mode, deadlocks/s, and database sizes. |
+| [Logs](https://localhost:3000/d/spoolin-logs) | Searchable project logs, service/level/text filters, entry and error rates, and sensitive-line drop counts. |
+
+All dashboards share a one-hour default time range and browser timezone. Empty panels can indicate no matching events or an unavailable signal; inspect the filters and collector health. Log labels stay limited to service, environment, installation, and recognized level values.
+
+#### Application operations
+
+![Grafana operations dashboard showing service reachability, readiness, outcomes, latency, and HTTP results](docs/assets/spoolin/observability-operations.png)
+
+#### Docker infrastructure
+
+![Grafana Docker dashboard showing 13 measured containers, CPU, memory, and network resource data](docs/assets/spoolin/observability-docker.png)
+
+#### PostgreSQL
+
+![Grafana PostgreSQL dashboard showing healthy collection, connections, transactions, and labeled lock modes](docs/assets/spoolin/observability-postgres.png)
+
+#### Searchable logs
+
+This screenshot uses a disposable safe test entry from the log-filtering verification. Credential-bearing lines and an unrelated project's test entry were excluded from Loki.
+
+![Grafana logs dashboard showing service and text filters, collector health, sensitive-line drops, and a matching safe test entry](docs/assets/spoolin/observability-logs.png)
+
 ## Use SpoolIn
 
 The catalog screenshots and seeded movie/TV examples show the updated real catalog with packaged posters. The later editing walkthrough uses fictional records so you can try changes without altering a seeded title. Its lighthouse poster was uploaded through the application.
@@ -693,7 +758,7 @@ GraphQL carries browser queries and application mutations. Artwork uploads send 
 
 GitHub renders the Mermaid diagram above automatically. For a local preview, install [Visual Studio Code](https://code.visualstudio.com/download), open this folder, open `README.md`, and select **Open Preview** from the editor's context menu. Current VS Code includes Mermaid Markdown support; older versions can install **Markdown Preview Mermaid Support** from Extensions. See [VS Code's Markdown instructions](https://code.visualstudio.com/docs/languages/markdown). Neither VS Code nor Mermaid is needed to run SpoolIn.
 
-Local startup keeps browser access on your computer, disables external tunnel and in-chat publication, and omits deployment monitoring services. The [deployment and maintenance documents](docs/operations/maintenance.md) describe the separate operational environment.
+Local startup keeps browser access on your computer and disables external tunnel and in-chat publication. Monitoring is optional through `make observability`; it stays off during ordinary app startup. The [deployment and maintenance documents](docs/operations/maintenance.md) describe the separate operational environment.
 
 ## Develop and test
 

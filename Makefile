@@ -19,9 +19,19 @@ test-unit:
 test-integration:
 	@bash ops/bin/test-integration.sh
 
-.PHONY: local-setup local-start local-mcp local-status local-logs local-stop local-test local-reset local-repair-maintainer local-repair-accounts
-local-setup local-start local-mcp local-status local-logs local-stop local-test local-reset local-repair-maintainer local-repair-accounts:
+.PHONY: local-setup local-start local-mcp local-status local-logs local-stop local-test local-reset local-repair-maintainer local-repair-accounts local-monitoring local-monitoring-stop
+local-setup local-start local-mcp local-status local-logs local-stop local-test local-reset local-repair-maintainer local-repair-accounts local-monitoring local-monitoring-stop:
 	@python3 ops/local/run.py $(patsubst local-%,%,$@)
+
+
+# Optional local observability; reuse the existing launcher and lifecycle checks.
+.PHONY: observability observability-start observability-stop observability-restart observability-status observability-logs
+observability observability-start: local-monitoring
+observability-stop: local-monitoring-stop
+observability-restart: observability-stop
+	@$(MAKE) observability-start
+observability-status: local-status
+observability-logs: local-logs
 
 .PHONY: local-trust
 local-trust:

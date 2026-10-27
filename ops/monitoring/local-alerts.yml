@@ -1,0 +1,31 @@
+groups:
+  - name: local-infrastructure
+    rules:
+      - alert: LocalCollectorUnavailable
+        expr: up{job=~"cadvisor|postgres|monitoring"} == 0
+        for: 2m
+        labels: {severity: warning, class: infrastructure, owner: local-operator}
+        annotations:
+          summary: Local telemetry collector unavailable
+          description: 'Inspect make local-status and make local-logs; stopped collectors leave gaps in dashboards.'
+      - alert: LocalPostgresUnavailable
+        expr: pg_up == 0
+        for: 1m
+        labels: {severity: warning, class: infrastructure, owner: local-operator}
+        annotations:
+          summary: PostgreSQL monitoring connection unavailable
+          description: 'Inspect database readiness, the monitoring role and TLS certificates; do not reset local data.'
+      - alert: LocalContainerMemoryHigh
+        expr: container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9 and container_spec_memory_limit_bytes > 0
+        for: 5m
+        labels: {severity: warning, class: infrastructure, owner: local-operator}
+        annotations:
+          summary: Local container approaching memory limit
+          description: 'Inspect Docker infrastructure and application logs; persistent use above 90% risks allocation failures.'
+      - alert: LocalContainerMetricsMissing
+        expr: absent(container_memory_working_set_bytes{service="core"})
+        for: 2m
+        labels: {severity: warning, class: infrastructure, owner: local-operator}
+        annotations:
+          summary: Docker container resource measurements missing
+          description: 'Check cAdvisor mounts and Docker Desktop compatibility; collector reachability alone does not prove container metrics.'

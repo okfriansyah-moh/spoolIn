@@ -4,14 +4,14 @@
   "schemaVersion": 41,
   "version": 1,
   "editable": false,
-  "timezone": "utc",
+  "timezone": "browser",
   "refresh": "15s",
   "tags": [
     "spoolin",
     "operations"
   ],
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "panels": [
@@ -31,7 +31,7 @@
       },
       "targets": [
         {
-          "expr": "up{job=~\"spoolin-.*\"}",
+          "expr": "up{service=~\"$service\",job=~\"spoolin-.*\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -70,7 +70,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_service_ready",
+          "expr": "spoolin_service_ready{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -109,7 +109,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service,outcome,code)(rate(spoolin_operation_results_total{boundary=\"owner\"}[5m]))",
+          "expr": "sum by(service,outcome,code)(rate(spoolin_operation_results_total{service=~\"$service\",boundary=\"owner\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -148,7 +148,7 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95,sum by(le,service)(rate(spoolin_operation_duration_seconds_bucket{boundary=\"owner\"}[5m])))",
+          "expr": "histogram_quantile(0.95,sum by(le,service)(rate(spoolin_operation_duration_seconds_bucket{service=~\"$service\",boundary=\"owner\"}[5m])))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -187,7 +187,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service,status)(rate(http_server_requests_seconds_count[5m]))",
+          "expr": "sum by(service,status)(rate(http_server_requests_seconds_count{service=~\"$service\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -226,7 +226,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service,code)(rate(spoolin_operation_results_total{boundary=\"owner\"}[5m]))",
+          "expr": "sum by(service,code)(rate(spoolin_operation_results_total{service=~\"$service\",boundary=\"owner\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -265,7 +265,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_work_items",
+          "expr": "spoolin_work_items{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -304,7 +304,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_oldest_due_work_seconds",
+          "expr": "spoolin_oldest_due_work_seconds{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -343,7 +343,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_notification_events",
+          "expr": "spoolin_notification_events{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -382,7 +382,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_pool_active_connections / spoolin_pool_max_connections",
+          "expr": "spoolin_pool_active_connections{service=~\"$service\"} / spoolin_pool_max_connections{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -421,7 +421,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_disk_available_bytes / spoolin_disk_capacity_bytes",
+          "expr": "spoolin_disk_available_bytes{service=~\"$service\"} / spoolin_disk_capacity_bytes{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -460,7 +460,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service,code)(increase(spoolin_crypto_failures_total[5m]))",
+          "expr": "sum by(service,code)(increase(spoolin_crypto_failures_total{service=~\"$service\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -499,7 +499,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service,outcome)(rate(spoolin_media_processing_total[5m]))",
+          "expr": "sum by(service,outcome)(rate(spoolin_media_processing_total{service=~\"$service\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -538,7 +538,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_tunnel_connected",
+          "expr": "spoolin_tunnel_connected{service=~\"$service\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -577,7 +577,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service,level,reason)(increase(spoolin_log_dropped_total[5m]))",
+          "expr": "sum by(service,level,reason)(increase(spoolin_log_dropped_total{service=~\"$service\"}[5m]))",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -694,7 +694,7 @@
       },
       "targets": [
         {
-          "expr": "sum by(service)(jvm_memory_used_bytes{area=\"heap\"})",
+          "expr": "sum by(service)(jvm_memory_used_bytes{service=~\"$service\",area=\"heap\"})",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -718,5 +718,27 @@
       }
     }
   ],
-  "description": "Live owner and ingress measurements. An empty panel means no matching series; absent measurements are never replaced with zero. Logical metrics require their production boundary instrumenters."
+  "description": "Live owner and ingress measurements. An empty panel means no matching series; absent measurements are never replaced with zero. Logical metrics require their production boundary instrumenters.",
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "spoolin-prometheus"
+        },
+        "query": "label_values(up{job=~\"spoolin-.*\"}, service)",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 1,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  }
 }

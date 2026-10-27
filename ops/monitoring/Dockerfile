@@ -12,3 +12,17 @@ FROM grafana/grafana:13.2.3@sha256:b28bae15e219c998fb0e0424ed724930cc61b1f61fb40
 USER 0
 RUN chown -R 10001:10001 /var/lib/grafana
 USER 10001:10001
+
+FROM busybox:1.37.0-musl@sha256:5cec3fc171c87218698e85a52af7087de727372aae264a787b8112901a5b0092 AS monitoring-tools
+RUN mkdir -p /loki && chown 10001:10001 /loki
+
+FROM grafana/loki:3.7.0@sha256:c316b7c7589a5eeca843b6926c7446149d18300b79ac8538dc4ae063bc478da2 AS loki
+COPY --from=monitoring-tools --chown=10001:10001 /loki /loki
+COPY --from=monitoring-tools /bin/busybox /bin/busybox
+USER 10001:10001
+
+FROM grafana/alloy:v1.16.1@sha256:51aeb9d829239345070619dad3edd6873186f913c84f45b365b74574fcb38ec0 AS alloy
+COPY --from=monitoring-tools /bin/busybox /bin/busybox
+USER 0
+RUN mkdir -p /var/lib/alloy && chown -R 10001:10001 /var/lib/alloy
+USER 10001:10001

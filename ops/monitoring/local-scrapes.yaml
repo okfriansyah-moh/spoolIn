@@ -1,0 +1,30 @@
+scrape_configs:
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['cadvisor:8080']
+    sample_limit: 10000
+    body_size_limit: 4MB
+    metric_relabel_configs:
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: spoolin-local
+        action: keep
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service
+      - action: labelkeep
+        regex: '__name__|instance|job|service|id|name|image|cpu|interface|device|failure_type|scope'
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels: {service: postgres}
+    sample_limit: 5000
+    body_size_limit: 1MB
+  - job_name: monitoring
+    static_configs:
+      - targets: ['prometheus:9090']
+        labels: {service: prometheus}
+      - targets: ['loki:3100']
+        labels: {service: loki}
+      - targets: ['alloy:12345']
+        labels: {service: alloy}
+    sample_limit: 20000
+    body_size_limit: 4MB

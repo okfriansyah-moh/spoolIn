@@ -85,5 +85,36 @@ def save_host_files(host_root, uid, gid, runtime, exports):
     certificate.chmod(0o644)
 
 
+def provision_monitoring(host_root, uid, gid):
+    identities = BASE / 'identities'
+    environment = BASE / 'environment.json'
+    exports = json.loads(environment.read_text())
+    PREPARE.command = local_command
+    for name in ('prometheus', 'alertmanager', 'grafana'):
+        key, cert = identities / (name + '-key'), identities / (name + '-cert')
+        if key.exists() != cert.exists():
+            raise RuntimeError('Incomplete monitoring identity; refusing to replace existing material.')
+        if not key.exists():
+            names = f'DNS:{name}' if name != 'grafana' else 'DNS:grafana,DNS:localhost,IP:127.0.0.1'
+            PREPARE.certificate(identities, name, names)
+        for suffix, file in (('KEY', key), ('CERT', cert)):
+            file.chmod(0o600)
+            os.chown(file, 10001, 10001)
+            exports[f'{name.upper()}_SERVICE_{suffix}_FILE'] = str(file).replace('/workspace', host_root, 1)
+    for name, length in (('grafana-admin-password', 32), ('grafana-signing-key', 48), ('postgres-monitor-password', 32)):
+        file = identities / name
+        if not file.exists():
+            PREPARE.protected(file, secrets.token_urlsafe(length))
+        file.chmod(0o600)
+        os.chown(file, 10001, 10001)
+    exports['GRAFANA_ADMIN_PASSWORD_FILE'] = str(identities / 'grafana-admin-password').replace('/workspace', host_root, 1)
+    exports['GRAFANA_SIGNING_KEY_FILE'] = str(identities / 'grafana-signing-key').replace('/workspace', host_root, 1)
+    PREPARE.protected(environment, json.dumps(exports))
+    os.chown(environment, uid, gid)
+    credentials = PREPARE.protected(BASE / 'monitoring.txt', (identities / 'grafana-admin-password').read_bytes())
+    os.chown(credentials, uid, gid)
+
+
 if __name__ == '__main__':
-    provision(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    action = provision_monitoring if '--monitoring' in sys.argv[4:] else provision
+    action(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
