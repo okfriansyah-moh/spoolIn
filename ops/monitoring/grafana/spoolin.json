@@ -616,7 +616,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_work_pending{service=~\"$service\",service=\"core\"}",
+          "expr": "spoolin_work_pending{service=\"core\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
@@ -655,7 +655,7 @@
       },
       "targets": [
         {
-          "expr": "spoolin_work_pending{service=~\"$service\",service=\"catalog\"}",
+          "expr": "spoolin_work_pending{service=\"catalog\"}",
           "refId": "A",
           "legendFormat": "{{service}} {{state}} {{outcome}} {{code}} {{mode}}"
         }
