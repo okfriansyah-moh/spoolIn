@@ -4,14 +4,14 @@
   "schemaVersion": 41,
   "version": 1,
   "editable": false,
-  "timezone": "utc",
+  "timezone": "browser",
   "refresh": "15s",
   "tags": [
     "spoolin",
     "operations"
   ],
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "panels": [

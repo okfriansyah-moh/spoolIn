@@ -185,20 +185,15 @@
         "--housekeeping_interval=15s",
         "--store_container_labels=false",
         "--whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service",
-        "--disable_metrics=accelerator,advtcp,cpu_topology,cpuset,diskIO,hugetlb,memory_numa,percpu,perf_event,referenced_memory,resctrl,sched,tcp,udp",
-        "--max_procs=1"
+        "--disable_metrics=advtcp,cpu_topology,cpuset,diskIO,hugetlb,memory_numa,percpu,perf_event,referenced_memory,resctrl,sched,tcp,udp",
+        "--max_procs=1",
+        "--containerd=/rootfs/run/containerd/containerd.sock"
       ],
       "volumes": [
         {
           "type": "bind",
           "source": "/",
           "target": "/rootfs",
-          "read_only": true
-        },
-        {
-          "type": "bind",
-          "source": "/var/run",
-          "target": "/var/run",
           "read_only": true
         },
         {
@@ -211,6 +206,12 @@
           "type": "bind",
           "source": "/var/lib/docker",
           "target": "/var/lib/docker",
+          "read_only": true
+        },
+        {
+          "type": "bind",
+          "source": "/var/run/docker.sock",
+          "target": "/var/run/docker.sock",
           "read_only": true
         }
       ],

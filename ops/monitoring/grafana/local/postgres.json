@@ -218,7 +218,7 @@
         {
           "refId": "A",
           "expr": "sum by(datname,mode) (pg_locks_count{datname=~\"$database\"})",
-          "legendFormat": "{{service}} {{datname}} {{state}}"
+          "legendFormat": "{{datname}} {{mode}}"
         }
       ],
       "fieldConfig": {
