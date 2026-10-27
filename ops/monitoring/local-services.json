@@ -1,0 +1,287 @@
+{
+  "services": {
+    "loki": {
+      "image": "spoolin-loki:3.7.0",
+      "networks": [
+        "telemetry"
+      ],
+      "user": "10001:10001",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp"
+      ],
+      "mem_limit": "256m",
+      "cpus": 0.5,
+      "build": {
+        "context": ".",
+        "dockerfile": "ops/monitoring/Dockerfile",
+        "target": "loki"
+      },
+      "command": [
+        "-config.file=/etc/loki/config.yaml"
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "ops/monitoring/loki.yaml",
+          "target": "/etc/loki/config.yaml",
+          "read_only": true
+        },
+        "loki-data:/loki"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "/bin/busybox",
+          "wget",
+          "-q",
+          "-T",
+          "3",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:3100/ready"
+        ],
+        "interval": "10s",
+        "timeout": "4s",
+        "retries": 18,
+        "start_period": "20s"
+      }
+    },
+    "alloy": {
+      "image": "spoolin-alloy:1.16.1",
+      "networks": [
+        "telemetry",
+        "docker-logs"
+      ],
+      "user": "10001:10001",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp"
+      ],
+      "mem_limit": "192m",
+      "cpus": 0.5,
+      "build": {
+        "context": ".",
+        "dockerfile": "ops/monitoring/Dockerfile",
+        "target": "alloy"
+      },
+      "command": [
+        "run",
+        "--storage.path=/var/lib/alloy",
+        "--server.http.listen-addr=0.0.0.0:12345",
+        "--disable-reporting",
+        "/etc/alloy/config.alloy"
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "ops/monitoring/config.alloy",
+          "target": "/etc/alloy/config.alloy",
+          "read_only": true
+        },
+        "alloy-data:/var/lib/alloy"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "/bin/busybox",
+          "wget",
+          "-q",
+          "-T",
+          "3",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:12345/-/ready"
+        ],
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-log-proxy": {
+      "image": "python:3.14.0-slim-bookworm@sha256:d13fa0424035d290decef3d575cea23d1b7d5952cdf429df8f5542c71e961576",
+      "networks": [
+        "docker-logs"
+      ],
+      "user": "10001:10001",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp"
+      ],
+      "mem_limit": "64m",
+      "cpus": 0.25,
+      "command": [
+        "python3",
+        "-B",
+        "/proxy.py"
+      ],
+      "group_add": [
+        "0"
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "ops/monitoring/docker_log_proxy.py",
+          "target": "/proxy.py",
+          "read_only": true
+        },
+        {
+          "type": "bind",
+          "source": "/var/run/docker.sock",
+          "target": "/var/run/docker.sock",
+          "read_only": true
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; assert urllib.request.urlopen('http://localhost:2375/_ping', timeout=3).read() == b'OK'"
+        ],
+        "interval": "10s",
+        "timeout": "4s",
+        "retries": 3
+      }
+    },
+    "cadvisor": {
+      "image": "ghcr.io/google/cadvisor:0.55.1@sha256:e02855207ec07bb45ee41f720645945251f093f24c28f8c29cf718490f784922",
+      "networks": [
+        "telemetry"
+      ],
+      "user": "0:0",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp"
+      ],
+      "mem_limit": "192m",
+      "cpus": 0.5,
+      "command": [
+        "--docker_only=true",
+        "--housekeeping_interval=15s",
+        "--store_container_labels=false",
+        "--whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service",
+        "--disable_metrics=accelerator,advtcp,cpu_topology,cpuset,diskIO,hugetlb,memory_numa,percpu,perf_event,referenced_memory,resctrl,sched,tcp,udp",
+        "--max_procs=1"
+      ],
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/",
+          "target": "/rootfs",
+          "read_only": true
+        },
+        {
+          "type": "bind",
+          "source": "/var/run",
+          "target": "/var/run",
+          "read_only": true
+        },
+        {
+          "type": "bind",
+          "source": "/sys",
+          "target": "/sys",
+          "read_only": true
+        },
+        {
+          "type": "bind",
+          "source": "/var/lib/docker",
+          "target": "/var/lib/docker",
+          "read_only": true
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -T 3 -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "10s",
+        "timeout": "4s",
+        "retries": 18,
+        "start_period": "20s"
+      },
+      "cgroup": "host"
+    },
+    "postgres-exporter": {
+      "image": "prometheuscommunity/postgres-exporter:v0.18.1@sha256:fb96c4413985d4b23ab02b19022b3d70a86c8e0a62f41ab15ebb6f4673781a5d",
+      "networks": [
+        "private",
+        "telemetry"
+      ],
+      "user": "10001:10001",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp"
+      ],
+      "mem_limit": "64m",
+      "cpus": 0.25,
+      "environment": {
+        "DATA_SOURCE_URI": "postgres:5432/postgres?sslmode=verify-full&sslrootcert=/run/secrets/service-ca&connect_timeout=3",
+        "DATA_SOURCE_USER": "spoolin_monitor",
+        "DATA_SOURCE_PASS_FILE": "/run/secrets/postgres-monitor-password"
+      },
+      "secrets": [
+        "service-ca",
+        "postgres-monitor-password"
+      ],
+      "command": [
+        "--no-collector.stat_statements",
+        "--no-collector.stat_statements.include_query",
+        "--disable-settings-metrics",
+        "--log.format=json"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -T 3 -O /dev/null http://127.0.0.1:9187/metrics"
+        ],
+        "interval": "10s",
+        "timeout": "4s",
+        "retries": 18,
+        "start_period": "20s"
+      }
+    }
+  },
+  "volumes": {
+    "loki-data": {},
+    "alloy-data": {}
+  },
+  "networks": {
+    "telemetry": {
+      "internal": true
+    },
+    "docker-logs": {
+      "internal": true
+    }
+  }
+}

@@ -414,6 +414,9 @@ The local workflow and browser walkthrough were exercised on macOS with Docker D
 
 Platform instructions follow the linked vendor installation guides. Successful tool installation depends on your OS version, virtualization settings, and Docker security support. Historical results and outstanding browser, accessibility, external-client, and production verification are recorded in [the release handoff](docs/release/handoff.md) and [release verification record](docs/release/remote-acceptance-assessment.json).
 
+
+Optional dashboards and searchable logs: run `make local-monitoring`, then open [Grafana](https://localhost:3000). Sign in as `operator` with the password in `.local/monitoring.txt`. Use `make local-monitoring-stop` to stop monitoring while keeping the app running and retaining history. See the [local monitoring guide](ops/monitoring/README.md#optional-local-monitoring) for port configuration, retention, collection boundaries and troubleshooting.
+
 ## Use SpoolIn
 
 The catalog screenshots and seeded movie/TV examples show the updated real catalog with packaged posters. The later editing walkthrough uses fictional records so you can try changes without altering a seeded title. Its lighthouse poster was uploaded through the application.

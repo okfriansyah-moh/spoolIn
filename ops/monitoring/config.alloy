@@ -1,0 +1,74 @@
+logging {
+  level = "warn"
+  format = "json"
+}
+discovery.docker "local" {
+  host = "http://docker-log-proxy:2375"
+  refresh_interval = "15s"
+  filter {
+    name = "label"
+    values = ["com.docker.compose.project=spoolin-local"]
+  }
+}
+discovery.relabel "logs" {
+  targets = []
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex = "spoolin-local"
+    action = "keep"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service"
+  }
+  rule {
+    target_label = "environment"
+    replacement = "local"
+  }
+  rule {
+    target_label = "installation"
+    replacement = "spoolin-local"
+  }
+}
+loki.source.docker "local" {
+  host = "http://docker-log-proxy:2375"
+  targets = discovery.docker.local.targets
+  relabel_rules = discovery.relabel.logs.rules
+  forward_to = [loki.process.safe.receiver]
+}
+loki.process "safe" {
+  // Drop secret-bearing lines before storage, including free-text database diagnostics.
+  stage.drop {
+    expression = "(?i)(password|passwd|authorization|bearer|cookie|secret|token|private.key|-----BEGIN|postgres(ql)?://|[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,})"
+    drop_counter_reason = "sensitive_content"
+  }
+  stage.json {
+    expressions = { raw_level = "level" }
+  }
+  stage.regex {
+    source = "raw_level"
+    expression = "(?i)^(?P<level>trace|debug|info|warn|error|fatal)$"
+  }
+  stage.labels {
+    values = { level = "" }
+  }
+  stage.label_keep {
+    values = ["service", "environment", "installation", "level"]
+  }
+  stage.limit {
+    rate = 100
+    burst = 200
+    drop = true
+  }
+  forward_to = [loki.write.local.receiver]
+}
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+    batch_size = "256KiB"
+    remote_timeout = "5s"
+    min_backoff_period = "1s"
+    max_backoff_period = "30s"
+    max_backoff_retries = 5
+  }
+}

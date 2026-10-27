@@ -73,6 +73,57 @@ class ProvisionTest(unittest.TestCase):
             self.assertEqual('chown', command.call_args.args[0])
             self.assertEqual(0o700, (base / 'runtime').stat().st_mode & 0o777)
 
+class MonitoringProvisionTest(unittest.TestCase):
+    def fixture(self, base):
+        identities = base / 'identities'
+        identities.mkdir()
+        (base / 'environment.json').write_text('{"SERVICE_CA_FILE":"keep-ca"}')
+        for name in ('prometheus', 'alertmanager', 'grafana'):
+            for suffix in ('key', 'cert'):
+                (identities / (name + '-' + suffix)).write_text('existing-' + name + '-' + suffix)
+        for name in ('grafana-admin-password', 'grafana-signing-key', 'postgres-monitor-password'):
+            (identities / name).write_text('existing-' + name)
+        return identities
+
+    def test_repeat_provisioning_keeps_all_identities_and_secrets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            identities = self.fixture(base)
+            original = {file.name: file.read_bytes() for file in identities.iterdir()}
+            with patch.object(PROVISION, 'BASE', base), patch.object(PROVISION.os, 'chown'), patch.object(PROVISION.PREPARE, 'certificate') as certificate:
+                PROVISION.provision_monitoring('/host', 501, 20)
+            certificate.assert_not_called()
+            self.assertEqual(original, {file.name: file.read_bytes() for file in identities.iterdir()})
+            self.assertEqual('existing-grafana-admin-password', (base / 'monitoring.txt').read_text())
+            self.assertEqual(0o600, (base / 'monitoring.txt').stat().st_mode & 0o777)
+            self.assertEqual('keep-ca', json.loads((base / 'environment.json').read_text())['SERVICE_CA_FILE'])
+
+    def test_incomplete_identity_is_never_replaced(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            identities = self.fixture(base)
+            (identities / 'prometheus-key').unlink()
+            with patch.object(PROVISION, 'BASE', base), patch.object(PROVISION.PREPARE, 'certificate') as certificate:
+                with self.assertRaisesRegex(RuntimeError, 'Incomplete monitoring identity'):
+                    PROVISION.provision_monitoring('/host', 501, 20)
+            certificate.assert_not_called()
+            self.assertEqual('existing-prometheus-cert', (identities / 'prometheus-cert').read_text())
+
+    def test_missing_monitoring_material_is_created_without_changing_ca(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            identities = self.fixture(base)
+            for file in identities.iterdir():
+                file.unlink()
+            def issue(directory, name, names):
+                for suffix in ('key', 'cert'):
+                    (directory / (name + '-' + suffix)).write_text('new-' + name)
+            with patch.object(PROVISION, 'BASE', base), patch.object(PROVISION.os, 'chown'), patch.object(PROVISION.PREPARE, 'certificate', side_effect=issue) as certificate:
+                PROVISION.provision_monitoring('/host', 501, 20)
+            self.assertEqual(3, certificate.call_count)
+            self.assertTrue((identities / 'postgres-monitor-password').exists())
+            self.assertEqual('keep-ca', json.loads((base / 'environment.json').read_text())['SERVICE_CA_FILE'])
+
 
 if __name__ == '__main__':
     unittest.main()
