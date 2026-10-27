@@ -41,4 +41,4 @@ coverage-stop:
 
 .PHONY: coverage-quality
 coverage-quality:
-	@python3 ops/unit-coverage/quality-proof.py verify --base "$${QUALITY_BASE:?Set QUALITY_BASE to the reviewed comparison revision}"
+	@bash ops/bin/coverage.sh quality

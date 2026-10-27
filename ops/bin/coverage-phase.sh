@@ -9,6 +9,11 @@ case "${1:-run}" in
     "${compose[@]}" build runner
     exec "${compose[@]}" run --rm --no-deps runner
     ;;
+  quality)
+    : "${QUALITY_BASE:?Set QUALITY_BASE to the reviewed comparison revision}"
+    exec "${compose[@]}" run --rm --no-deps -e QUALITY_BASE runner \
+      python3 ops/unit-coverage/quality-proof.py verify --base "$QUALITY_BASE"
+    ;;
   report)
     test -f .local/unit-coverage/index.html || { echo 'Run make coverage first.' >&2; exit 1; }
     "${compose[@]}" --profile reports up -d --force-recreate reports
@@ -41,5 +46,5 @@ case "${1:-run}" in
       runner node ops/unit-coverage/sonar.mjs "$action"
     ;;
   stop) exec "${compose[@]}" --profile sonar --profile reports down ;;
-  *) echo 'Usage: coverage.sh {run|report|sonar-up|sonar|sonar-analyze|sonar-export-review|sonar-apply-review|sonar-verify|stop}' >&2; exit 2 ;;
+  *) echo 'Usage: coverage.sh {run|quality|report|sonar-up|sonar|sonar-analyze|sonar-export-review|sonar-apply-review|sonar-verify|stop}' >&2; exit 2 ;;
 esac
