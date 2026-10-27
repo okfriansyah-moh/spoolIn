@@ -17,6 +17,7 @@ import {
   hashBytes,
   issueRecord,
   reconcileIssues,
+  repositoryPath,
   reviewBody,
   selectPublication,
   validateReceipt,
@@ -613,4 +614,19 @@ test("GitHub second-resolution publication times permit only the same timestamp 
   receipt.reviewed_at = "2026-01-01T00:00:01.000Z";
   publication.body = reviewBody(receipt);
   assert.throws(() => selectPublication([publication], manifest), /postdates/);
+});
+
+test("valid Svelte route filenames remain eligible while traversal and absolute paths fail", () => {
+  const route = "frontend/src/routes/(shell)/titles/[id]/+page.svelte";
+  assert.equal(repositoryPath(route), route);
+  for (const path of [
+    "/etc/passwd",
+    "../secret",
+    "src/../secret",
+    "C:\\secret",
+    "src/\u0000secret",
+    ".git/config",
+    "https://example.test/file",
+  ])
+    assert.throws(() => repositoryPath(path));
 });

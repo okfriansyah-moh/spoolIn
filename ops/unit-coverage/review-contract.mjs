@@ -13,7 +13,14 @@ export function requireValue(condition, message) {
 
 export function repositoryPath(value) {
   requireValue(
-    typeof value === "string" && /^[\w./-]+$/.test(value),
+    typeof value === "string" && value.length > 0,
+    "Invalid evidence/source path",
+  );
+  const controls = [...value].some(
+    (char) => char.codePointAt(0) < 32 || char.codePointAt(0) === 127,
+  );
+  requireValue(
+    !controls && !value.includes("\\") && !value.includes(":"),
     "Invalid evidence/source path",
   );
   requireValue(
