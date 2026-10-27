@@ -3,23 +3,21 @@
 package com.spoolin.core.features.artworkproxy
 
 import com.spoolin.core.boundary.graphql.GraphqlLongArguments
+import com.spoolin.core.boundary.graphql.GraphqlOutcomeProjection
 import com.spoolin.core.boundary.grpc.ActorIssuer
 import com.spoolin.core.boundary.grpc.ActorTarget
+import com.spoolin.core.boundary.grpc.CatalogActorRpc
 import com.spoolin.core.boundary.http.BrowserContext
 import com.spoolin.core.features.account.application.CredentialRejected
 import com.spoolin.core.features.ratelimit.RateUnavailable
-import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.receipts.OperationOwner
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.RuntimeWiring
-import io.grpc.Metadata
-import io.grpc.stub.MetadataUtils
 import spoolin.v1.CatalogServiceGrpc
 import spoolin.v1.MediaServiceGrpc
 import spoolin.v1.Spoolin
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 private const val DEADLINE_SECONDS = 30L
 private const val CHILD_DEADLINE_SECONDS = 300L
@@ -27,12 +25,14 @@ private const val MAX_BYTES = 5_242_880L
 
 /** GraphQL uploadArtwork / cancelArtwork through Media upload and Catalog attachment (T023). */
 class ArtworkGraphql(
-    private val catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
+    catalog: CatalogServiceGrpc.CatalogServiceBlockingStub,
     private val media: MediaServiceGrpc.MediaServiceStub,
     private val issuer: ActorIssuer?,
     private val maximumBytes: Long = MAX_BYTES,
     private val reads: ArtworkReadProxy? = null,
 ) {
+    private val catalogRpc = CatalogActorRpc(catalog, issuer)
+
     fun bind(wiring: RuntimeWiring.Builder) {
         wiring.type("Title") { title -> title.dataFetcher("artwork") { env -> artwork(env) } }
         wiring.type("Mutation") { m ->
@@ -58,11 +58,11 @@ class ArtworkGraphql(
         return spool.use {
             val principal = requireNotNull(context.principal)
             val token = issueToken(principal, "/spoolin.v1.CatalogService/BeginArtwork", operation, context.correlation)
-            val pending = catalogStub(token).beginArtwork(hold)
+            val pending = catalogRpc.stub(token, DEADLINE_SECONDS).beginArtwork(hold)
             validateOutcome(pending, operation)
-            context.rememberOperation(operation, OperationOwner.CATALOG, outcomeMap(pending))
+            context.rememberOperation(operation, OperationOwner.CATALOG, GraphqlOutcomeProjection.operation(pending))
             if (pending.state == "PENDING") uploadSpool(context, hold, it)
-            mutationResult(pending)
+            GraphqlOutcomeProjection.mutation(pending)
         }
     }
 
@@ -124,7 +124,7 @@ class ArtworkGraphql(
                 ),
             )
         validateOutcome(accepted, upload)
-        context.rememberOperation(upload, OperationOwner.MEDIA, outcomeMap(accepted))
+        context.rememberOperation(upload, OperationOwner.MEDIA, GraphqlOutcomeProjection.operation(accepted))
     }
 
     private fun validateOutcome(
@@ -196,7 +196,7 @@ class ArtworkGraphql(
                 ).setUploadOperationId(uploadOperationId.toString())
                 .build()
         val token = issueToken(principal, "/spoolin.v1.CatalogService/CancelArtwork", operationId, context.correlation)
-        val outcome = catalogStub(token).cancelArtwork(request)
+        val outcome = catalogRpc.stub(token, DEADLINE_SECONDS).cancelArtwork(request)
         return cancellationResult(outcome, operationId, uploadOperationId)
     }
 
@@ -209,7 +209,7 @@ class ArtworkGraphql(
         val original =
             if (outcome.hasUploadOperation()) {
                 validateOutcome(outcome.uploadOperation, uploadOperationId)
-                outcomeMap(outcome.uploadOperation)
+                GraphqlOutcomeProjection.operation(outcome.uploadOperation)
             } else {
                 if (outcome.cancelled) {
                     throw io.grpc.Status.DATA_LOSS
@@ -218,7 +218,7 @@ class ArtworkGraphql(
                 null
             }
         return mapOf(
-            "operation" to outcomeMap(outcome.operation),
+            "operation" to GraphqlOutcomeProjection.operation(outcome.operation),
             "uploadOperation" to original,
             "cancelled" to outcome.cancelled,
         )
@@ -242,29 +242,6 @@ class ArtworkGraphql(
             "message" to "Artwork could not be accepted.",
         )
 
-    private fun mutationResult(outcome: Spoolin.Outcome): Map<String, Any?> =
-        mapOf(
-            "operation" to outcomeMap(outcome),
-            "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
-        )
-
-    private fun outcomeMap(outcome: Spoolin.Outcome): Map<String, Any?> =
-        mapOf(
-            "id" to outcome.operationId,
-            "state" to outcome.state,
-            "resultId" to if (outcome.hasResultId()) outcome.resultId else null,
-            "version" to if (outcome.hasVersion()) outcome.version.toString() else null,
-            "resultExpired" to outcome.resultExpired,
-            "problem" to if (outcome.hasProblem()) problemMap(outcome.problem) else null,
-        )
-
-    private fun problemMap(p: Spoolin.Problem): Map<String, Any?> =
-        mapOf(
-            "code" to p.code,
-            "message" to "The operation could not be completed.",
-            "fields" to p.fieldsList.map { mapOf("path" to it.path, "code" to it.code, "message" to it.message) },
-        )
-
     private fun issueToken(
         principal: com.spoolin.core.features.session.SessionPrincipal,
         method: String,
@@ -276,13 +253,6 @@ class ArtworkGraphql(
     }
 
     private fun channelFor(method: String): String = if (method.contains("MediaService")) "media" else "catalog"
-
-    private fun catalogStub(token: String): CatalogServiceGrpc.CatalogServiceBlockingStub {
-        val meta = Metadata().apply { put(ActorRpc.metadata, token) }
-        return catalog
-            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(meta))
-            .withDeadlineAfter(DEADLINE_SECONDS, TimeUnit.SECONDS)
-    }
 
     private fun browser(env: DataFetchingEnvironment): BrowserContext {
         val browser: BrowserContext? = env.graphQlContext.get("browser")

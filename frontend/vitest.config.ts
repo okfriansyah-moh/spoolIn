@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { svelteTesting } from '@testing-library/svelte/vite';
+const coverageDirectory = process.env.UNIT_COVERAGE_DIRECTORY ?? 'coverage';
 export default defineConfig({
   plugins: [svelte()],
   environments: {
@@ -39,12 +40,7 @@ export default defineConfig({
         test: {
           name: 'account-dom',
           environment: 'jsdom',
-          include: [
-            'src/lib/features/session/*.dom.test.ts',
-            'src/lib/features/draft/*.dom.test.ts',
-            'src/lib/features/credit/*.dom.test.ts',
-            'src/routes/**/*.dom.test.ts',
-          ],
+          include: ['src/**/*.dom.test.ts'],
           environmentOptions: { jsdom: { url: 'https://localhost/' } },
         },
       },
@@ -52,11 +48,18 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts', 'src/**/*.svelte'],
-      exclude: ['src/lib/generated/**', '**/*.test.ts'],
-      reporter: ['text', 'lcov', 'json'],
-      reportsDirectory: 'coverage',
+      exclude: ['src/lib/generated/**', '**/*.test.ts', '**/*.fixture.ts'],
+      reporter: ['text', 'lcov', 'json', 'json-summary', 'html'],
+      reportsDirectory: coverageDirectory,
+      reportOnFailure: true,
+      ...(process.env.UNIT_COVERAGE_DIRECTORY
+        ? { thresholds: { lines: 80 } }
+        : {}),
     },
-    reporters: ['default', 'json'],
-    outputFile: { json: 'coverage/test-results.json' },
+    reporters: ['default', 'json', 'junit'],
+    outputFile: {
+      json: `${coverageDirectory}/test-results.json`,
+      junit: `${coverageDirectory}/junit.xml`,
+    },
   },
 });

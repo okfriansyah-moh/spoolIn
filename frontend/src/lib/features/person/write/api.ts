@@ -5,7 +5,6 @@ import { record } from '../../session/parse';
 import type { ManagedPerson, PersonListRow } from './types';
 import {
   personMutationOutcome,
-  recoverPersonOperation,
   type PersonMutationOutcome,
 } from './outcome';
 
@@ -48,11 +47,7 @@ const UPDATE_PERSON = `mutation UpdatePerson(
   }
 }`;
 
-const CATALOG_OPERATION_QUERY = `query CatalogOperation($id: UUID!) {
-  operation(id: $id, owner: CATALOG) {
-    id state resultId version resultExpired problem { code }
-  }
-}`;
+
 
 function toRow(node: Record<string, unknown>): PersonListRow {
   return Object.freeze({
@@ -156,41 +151,4 @@ export async function updatePerson(
   return personMutationOutcome(data.updatePerson, operationId);
 }
 
-export type RecoveredCatalogOperation = Readonly<{
-  operationId: string;
-  state: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED';
-  resultId: string | null;
-  version: string | null;
-  problemCode: string | null;
-  resultExpired: boolean;
-}>;
-
-export async function recoverCatalogOperation(
-  request: GraphqlRequest,
-  operationId: string,
-  csrf: string,
-  signal: AbortSignal,
-): Promise<RecoveredCatalogOperation | null> {
-  const data = record(
-    await request(
-      CATALOG_OPERATION_QUERY,
-      { id: operationId },
-      { csrf, signal },
-    ),
-  );
-  const node = data.operation;
-  if (node === null) return null;
-  const receipt = recoverPersonOperation(node, operationId);
-  if (!receipt) return null;
-  const input = record(node);
-  const resultId = typeof input.resultId === 'string' ? input.resultId : null;
-  const version = typeof input.version === 'string' ? input.version : null;
-  return Object.freeze({
-    operationId: receipt.operationId,
-    state: receipt.state,
-    resultId,
-    version,
-    problemCode: receipt.problem?.code ?? null,
-    resultExpired: receipt.resultExpired,
-  });
-}
+export { recoverCatalogOperation, type RecoveredCatalogOperation } from '../../editing/operation-result';

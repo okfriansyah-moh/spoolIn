@@ -361,11 +361,13 @@ it('large genre collections retain every native choice and selection inside a la
   expect(body).toContain('role="region"');
   expect(body).toContain('aria-label="Genre choices"');
   expect(body).toContain(
-    'Every genre stays available. Scroll the list or search by name.',
+    'Genres with available titles are listed. Scroll or search by name.',
   );
   expect(body.match(/type="checkbox"/g)).toHaveLength(120);
   for (const genre of genres) expect(body).toContain(`value="${genre.id}"`);
-  expect(body.match(/ checked/g)).toHaveLength(1);
+  expect(
+    body.match(/<input\b[^>]*type="checkbox"[^>]* checked\b/g),
+  ).toHaveLength(1);
 });
 
 it('marks the catalog as current on a title detail route', () => {

@@ -89,6 +89,7 @@ function managedTitlesArchived() {
           version: FIXTURE_ARCHIVED_MOVIE.version,
         },
       ],
+      pageInfo: { endCursor: null, hasNextPage: false },
     },
   });
 }
@@ -104,6 +105,7 @@ function managedPeopleArchived() {
           version: FIXTURE_ARCHIVED_PERSON.version,
         },
       ],
+      pageInfo: { endCursor: null, hasNextPage: false },
     },
   });
 }
@@ -145,8 +147,8 @@ function deletionImpact() {
 
 function emptyArchived(tab: 'movies' | 'people') {
   return tab === 'movies'
-    ? graphqlOk({ managedTitles: { nodes: [] } })
-    : graphqlOk({ managedPeople: { nodes: [] } });
+    ? graphqlOk({ managedTitles: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } } })
+    : graphqlOk({ managedPeople: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } } });
 }
 
 export type MaintainerGraphqlMode =
@@ -168,6 +170,21 @@ export async function seedMaintainerSession(
     }
     if (query.includes('query Genres')) {
       await route.fulfill(genres());
+      return;
+    }
+    if (query.includes('query ManagedCredits')) {
+      await route.fulfill(graphqlOk({
+        managedCredits: { nodes: [], pageInfo: { endCursor: null, hasNextPage: false } },
+      }));
+      return;
+    }
+    if (query.includes('query CreditRoles')) {
+      await route.fulfill(graphqlOk({ creditRoles: [{
+        id: '40000000-0000-4000-8000-000000000001',
+        label: 'Actor',
+        category: 'CAST',
+        allowsCharacters: true,
+      }] }));
       return;
     }
     if (query.includes('managedTitles')) {

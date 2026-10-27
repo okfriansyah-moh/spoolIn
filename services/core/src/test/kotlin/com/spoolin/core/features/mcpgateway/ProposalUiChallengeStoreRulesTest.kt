@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -18,7 +19,7 @@ class ProposalUiChallengeStoreRulesTest {
     @Test
     fun `exact expiry denies both lookup paths and clock rewind cannot revive evicted challenge`() {
         val clock = MutableClock(Instant.ofEpochSecond(1000))
-        val store = ProposalUiChallengeStore(clock)
+        val store = ProposalUiChallengeStore(clock, Duration.ofMinutes(10))
         val binding = store.put(proposal, 1, hash, challenge)
         clock.current = Instant.ofEpochSecond(1599)
         assertEquals(challenge, store.getChallenge(proposal, 1, hash, binding))
@@ -34,7 +35,7 @@ class ProposalUiChallengeStoreRulesTest {
     @Test
     fun `challenge matching expires at equality before any binding lookup`() {
         val clock = MutableClock(Instant.ofEpochSecond(1000))
-        val store = ProposalUiChallengeStore(clock)
+        val store = ProposalUiChallengeStore(clock, Duration.ofMinutes(10))
         store.put(proposal, 1, hash, challenge)
         clock.current = Instant.ofEpochSecond(1600)
         assertFalse(store.matchesBoundChallenge(proposal, 1, hash, challenge))

@@ -2,6 +2,7 @@
 
 package com.spoolin.catalog.operations.audit
 
+import com.spoolin.support.policy.PatchValue
 import tools.jackson.databind.json.JsonMapper
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -145,3 +146,13 @@ object AuditDiff {
 
     internal fun jsonStr(value: String): String = json.writeValueAsString(value)
 }
+
+internal fun <T> auditPatchedValue(
+    patch: PatchValue<T>,
+    current: T,
+): Any? =
+    when (patch) {
+        is PatchValue.Value -> patch.value
+        is PatchValue.Clear -> null
+        else -> current
+    }

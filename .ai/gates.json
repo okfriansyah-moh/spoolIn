@@ -1605,6 +1605,65 @@
       ],
       "required": true,
       "timeout_seconds": 300
+    },
+    {
+      "id": "quality-adapter-contracts",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/unit-coverage/**",
+        "ops/bin/coverage*.sh"
+      ],
+      "argv": [
+        "python3",
+        "ops/unit-coverage/quality-proof.test.py"
+      ],
+      "required": true,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "quality-report-static",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/unit-coverage/**"
+      ],
+      "argv": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--config",
+        "build-tools/verification-tests/eslint.config.mjs",
+        "ops/unit-coverage/report.mjs",
+        "ops/unit-coverage/run.mjs",
+        "ops/unit-coverage/sonar.mjs",
+        "ops/unit-coverage/report.test.mjs",
+        "ops/unit-coverage/review-contract.mjs",
+        "ops/unit-coverage/review-channel.mjs",
+        "ops/unit-coverage/sonar-review.mjs",
+        "ops/unit-coverage/classification-review.test.mjs",
+        "--max-warnings",
+        "0"
+      ],
+      "required": true,
+      "timeout_seconds": 120
+    },
+    {
+      "id": "quality-classification-contracts",
+      "component": "foundation",
+      "stage": "fast",
+      "when": [
+        "ops/unit-coverage/**",
+        "ops/bin/coverage*.sh",
+        ".github/workflows/unit-coverage.yml"
+      ],
+      "argv": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "ops/unit-coverage/classification-review.test.mjs"
+      ],
+      "required": true,
+      "timeout_seconds": 120
     }
   ],
   "coverage": [
@@ -1815,5 +1874,500 @@
     "Makefile",
     "services/shared/**",
     "libraries/backend-support/**"
-  ]
+  ],
+  "runtime_components": [
+    "frontend",
+    "core",
+    "catalog",
+    "media",
+    "backend-support",
+    "mcp"
+  ],
+  "quality": {
+    "schema_version": 1,
+    "required": true,
+    "proof": ".local/unit-coverage/quality-proof.json",
+    "max_age_seconds": 86400,
+    "components": [
+      {
+        "id": "frontend",
+        "production": [
+          "frontend/src/**/*.ts",
+          "frontend/src/**/*.svelte"
+        ],
+        "exclude": [
+          "frontend/src/generated/**",
+          "frontend/src/lib/generated/**",
+          "frontend/src/**/*.test.ts",
+          "frontend/src/**/*.fixture.ts"
+        ],
+        "roots": [
+          "frontend/src"
+        ],
+        "inputs": [
+          "frontend/src/**/*",
+          "mcp/src/**/*",
+          "mcp/test/**/*",
+          "services/core/src/**/*",
+          "services/catalog/src/**/*",
+          "services/media/src/**/*",
+          "libraries/backend-support/src/**/*",
+          "contracts/graphql/**/*",
+          "contracts/json/**/*",
+          "contracts/grpc/src/**/*",
+          "contracts/grpc/build.gradle.kts",
+          "contracts/grpc/gradle.lockfile",
+          "build-tools/**/*",
+          "gradle/**/*",
+          "package.json",
+          "package-lock.json",
+          "settings.gradle.kts",
+          "gradle.properties",
+          "build.gradle.kts",
+          "ops/unit-coverage/*",
+          "ops/bin/coverage.sh",
+          "ops/local/toolchain.Dockerfile",
+          ".ai/gates.json",
+          "ops/bin/coverage-phase.sh",
+          "frontend/package.json",
+          "frontend/*config*",
+          "frontend/*.json",
+          "mcp/package.json",
+          "mcp/*config*",
+          "mcp/*.json",
+          "services/*/build.gradle.kts",
+          "libraries/*/build.gradle.kts",
+          "Makefile",
+          "gradlew",
+          "gradlew.bat",
+          "data/seed/**/*",
+          ".github/workflows/unit-coverage.yml",
+          "docs/operations/network-range-review.md"
+        ],
+        "commands": [
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
+        ],
+        "toolchain_files": [
+          "ops/local/toolchain.Dockerfile",
+          "ops/unit-coverage/compose.yaml",
+          "ops/unit-coverage/scanner.Dockerfile",
+          "package-lock.json",
+          "gradle/wrapper/gradle-wrapper.properties"
+        ],
+        "unit_report": {
+          "format": "lcov",
+          "reports": [
+            ".local/unit-coverage/frontend/lcov.info"
+          ],
+          "source_prefix": "frontend"
+        },
+        "test_report": {
+          "format": "vitest",
+          "glob": ".local/unit-coverage/frontend/test-results.json"
+        }
+      },
+      {
+        "id": "core",
+        "production": [
+          "services/core/src/main/kotlin/**/*.kt"
+        ],
+        "exclude": [],
+        "roots": [
+          "services/core/src/main/kotlin"
+        ],
+        "inputs": [
+          "frontend/src/**/*",
+          "mcp/src/**/*",
+          "mcp/test/**/*",
+          "services/core/src/**/*",
+          "services/catalog/src/**/*",
+          "services/media/src/**/*",
+          "libraries/backend-support/src/**/*",
+          "contracts/graphql/**/*",
+          "contracts/json/**/*",
+          "contracts/grpc/src/**/*",
+          "contracts/grpc/build.gradle.kts",
+          "contracts/grpc/gradle.lockfile",
+          "build-tools/**/*",
+          "gradle/**/*",
+          "package.json",
+          "package-lock.json",
+          "settings.gradle.kts",
+          "gradle.properties",
+          "build.gradle.kts",
+          "ops/unit-coverage/*",
+          "ops/bin/coverage.sh",
+          "ops/local/toolchain.Dockerfile",
+          ".ai/gates.json",
+          "ops/bin/coverage-phase.sh",
+          "frontend/package.json",
+          "frontend/*config*",
+          "frontend/*.json",
+          "mcp/package.json",
+          "mcp/*config*",
+          "mcp/*.json",
+          "services/*/build.gradle.kts",
+          "libraries/*/build.gradle.kts",
+          "Makefile",
+          "gradlew",
+          "gradlew.bat",
+          "data/seed/**/*",
+          ".github/workflows/unit-coverage.yml",
+          "docs/operations/network-range-review.md"
+        ],
+        "commands": [
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
+        ],
+        "toolchain_files": [
+          "ops/local/toolchain.Dockerfile",
+          "ops/unit-coverage/compose.yaml",
+          "ops/unit-coverage/scanner.Dockerfile",
+          "package-lock.json",
+          "gradle/wrapper/gradle-wrapper.properties"
+        ],
+        "unit_report": {
+          "format": "jacoco",
+          "reports": [
+            ".local/unit-coverage/core/report.xml"
+          ],
+          "source_prefix": "services/core/src/main/kotlin"
+        },
+        "test_report": {
+          "format": "junit",
+          "glob": ".local/unit-coverage/core/tests/TEST-*.xml"
+        }
+      },
+      {
+        "id": "catalog",
+        "production": [
+          "services/catalog/src/main/kotlin/**/*.kt"
+        ],
+        "exclude": [],
+        "roots": [
+          "services/catalog/src/main/kotlin"
+        ],
+        "inputs": [
+          "frontend/src/**/*",
+          "mcp/src/**/*",
+          "mcp/test/**/*",
+          "services/core/src/**/*",
+          "services/catalog/src/**/*",
+          "services/media/src/**/*",
+          "libraries/backend-support/src/**/*",
+          "contracts/graphql/**/*",
+          "contracts/json/**/*",
+          "contracts/grpc/src/**/*",
+          "contracts/grpc/build.gradle.kts",
+          "contracts/grpc/gradle.lockfile",
+          "build-tools/**/*",
+          "gradle/**/*",
+          "package.json",
+          "package-lock.json",
+          "settings.gradle.kts",
+          "gradle.properties",
+          "build.gradle.kts",
+          "ops/unit-coverage/*",
+          "ops/bin/coverage.sh",
+          "ops/local/toolchain.Dockerfile",
+          ".ai/gates.json",
+          "ops/bin/coverage-phase.sh",
+          "frontend/package.json",
+          "frontend/*config*",
+          "frontend/*.json",
+          "mcp/package.json",
+          "mcp/*config*",
+          "mcp/*.json",
+          "services/*/build.gradle.kts",
+          "libraries/*/build.gradle.kts",
+          "Makefile",
+          "gradlew",
+          "gradlew.bat",
+          "data/seed/**/*",
+          ".github/workflows/unit-coverage.yml",
+          "docs/operations/network-range-review.md"
+        ],
+        "commands": [
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
+        ],
+        "toolchain_files": [
+          "ops/local/toolchain.Dockerfile",
+          "ops/unit-coverage/compose.yaml",
+          "ops/unit-coverage/scanner.Dockerfile",
+          "package-lock.json",
+          "gradle/wrapper/gradle-wrapper.properties"
+        ],
+        "unit_report": {
+          "format": "jacoco",
+          "reports": [
+            ".local/unit-coverage/catalog/report.xml"
+          ],
+          "source_prefix": "services/catalog/src/main/kotlin"
+        },
+        "test_report": {
+          "format": "junit",
+          "glob": ".local/unit-coverage/catalog/tests/TEST-*.xml"
+        }
+      },
+      {
+        "id": "media",
+        "production": [
+          "services/media/src/main/kotlin/**/*.kt"
+        ],
+        "exclude": [],
+        "roots": [
+          "services/media/src/main/kotlin"
+        ],
+        "inputs": [
+          "frontend/src/**/*",
+          "mcp/src/**/*",
+          "mcp/test/**/*",
+          "services/core/src/**/*",
+          "services/catalog/src/**/*",
+          "services/media/src/**/*",
+          "libraries/backend-support/src/**/*",
+          "contracts/graphql/**/*",
+          "contracts/json/**/*",
+          "contracts/grpc/src/**/*",
+          "contracts/grpc/build.gradle.kts",
+          "contracts/grpc/gradle.lockfile",
+          "build-tools/**/*",
+          "gradle/**/*",
+          "package.json",
+          "package-lock.json",
+          "settings.gradle.kts",
+          "gradle.properties",
+          "build.gradle.kts",
+          "ops/unit-coverage/*",
+          "ops/bin/coverage.sh",
+          "ops/local/toolchain.Dockerfile",
+          ".ai/gates.json",
+          "ops/bin/coverage-phase.sh",
+          "frontend/package.json",
+          "frontend/*config*",
+          "frontend/*.json",
+          "mcp/package.json",
+          "mcp/*config*",
+          "mcp/*.json",
+          "services/*/build.gradle.kts",
+          "libraries/*/build.gradle.kts",
+          "Makefile",
+          "gradlew",
+          "gradlew.bat",
+          "data/seed/**/*",
+          ".github/workflows/unit-coverage.yml",
+          "docs/operations/network-range-review.md"
+        ],
+        "commands": [
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
+        ],
+        "toolchain_files": [
+          "ops/local/toolchain.Dockerfile",
+          "ops/unit-coverage/compose.yaml",
+          "ops/unit-coverage/scanner.Dockerfile",
+          "package-lock.json",
+          "gradle/wrapper/gradle-wrapper.properties"
+        ],
+        "unit_report": {
+          "format": "jacoco",
+          "reports": [
+            ".local/unit-coverage/media/report.xml"
+          ],
+          "source_prefix": "services/media/src/main/kotlin"
+        },
+        "test_report": {
+          "format": "junit",
+          "glob": ".local/unit-coverage/media/tests/TEST-*.xml"
+        }
+      },
+      {
+        "id": "backend-support",
+        "production": [
+          "libraries/backend-support/src/main/kotlin/**/*.kt"
+        ],
+        "exclude": [],
+        "roots": [
+          "libraries/backend-support/src/main/kotlin"
+        ],
+        "inputs": [
+          "frontend/src/**/*",
+          "mcp/src/**/*",
+          "mcp/test/**/*",
+          "services/core/src/**/*",
+          "services/catalog/src/**/*",
+          "services/media/src/**/*",
+          "libraries/backend-support/src/**/*",
+          "contracts/graphql/**/*",
+          "contracts/json/**/*",
+          "contracts/grpc/src/**/*",
+          "contracts/grpc/build.gradle.kts",
+          "contracts/grpc/gradle.lockfile",
+          "build-tools/**/*",
+          "gradle/**/*",
+          "package.json",
+          "package-lock.json",
+          "settings.gradle.kts",
+          "gradle.properties",
+          "build.gradle.kts",
+          "ops/unit-coverage/*",
+          "ops/bin/coverage.sh",
+          "ops/local/toolchain.Dockerfile",
+          ".ai/gates.json",
+          "ops/bin/coverage-phase.sh",
+          "frontend/package.json",
+          "frontend/*config*",
+          "frontend/*.json",
+          "mcp/package.json",
+          "mcp/*config*",
+          "mcp/*.json",
+          "services/*/build.gradle.kts",
+          "libraries/*/build.gradle.kts",
+          "Makefile",
+          "gradlew",
+          "gradlew.bat",
+          "data/seed/**/*",
+          ".github/workflows/unit-coverage.yml",
+          "docs/operations/network-range-review.md"
+        ],
+        "commands": [
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
+        ],
+        "toolchain_files": [
+          "ops/local/toolchain.Dockerfile",
+          "ops/unit-coverage/compose.yaml",
+          "ops/unit-coverage/scanner.Dockerfile",
+          "package-lock.json",
+          "gradle/wrapper/gradle-wrapper.properties"
+        ],
+        "unit_report": {
+          "format": "jacoco",
+          "reports": [
+            ".local/unit-coverage/backend-support/report.xml"
+          ],
+          "source_prefix": "libraries/backend-support/src/main/kotlin"
+        },
+        "test_report": {
+          "format": "junit",
+          "glob": ".local/unit-coverage/backend-support/tests/TEST-*.xml"
+        }
+      },
+      {
+        "id": "mcp",
+        "production": [
+          "mcp/src/**/*.ts"
+        ],
+        "exclude": [
+          "mcp/src/generated/**",
+          "mcp/src/lib/generated/**",
+          "mcp/src/**/*.test.ts",
+          "mcp/src/**/*.fixture.ts"
+        ],
+        "roots": [
+          "mcp/src"
+        ],
+        "inputs": [
+          "frontend/src/**/*",
+          "mcp/src/**/*",
+          "mcp/test/**/*",
+          "services/core/src/**/*",
+          "services/catalog/src/**/*",
+          "services/media/src/**/*",
+          "libraries/backend-support/src/**/*",
+          "contracts/graphql/**/*",
+          "contracts/json/**/*",
+          "contracts/grpc/src/**/*",
+          "contracts/grpc/build.gradle.kts",
+          "contracts/grpc/gradle.lockfile",
+          "build-tools/**/*",
+          "gradle/**/*",
+          "package.json",
+          "package-lock.json",
+          "settings.gradle.kts",
+          "gradle.properties",
+          "build.gradle.kts",
+          "ops/unit-coverage/*",
+          "ops/bin/coverage.sh",
+          "ops/local/toolchain.Dockerfile",
+          ".ai/gates.json",
+          "ops/bin/coverage-phase.sh",
+          "frontend/package.json",
+          "frontend/*config*",
+          "frontend/*.json",
+          "mcp/package.json",
+          "mcp/*config*",
+          "mcp/*.json",
+          "services/*/build.gradle.kts",
+          "libraries/*/build.gradle.kts",
+          "Makefile",
+          "gradlew",
+          "gradlew.bat",
+          "data/seed/**/*",
+          ".github/workflows/unit-coverage.yml",
+          "docs/operations/network-range-review.md"
+        ],
+        "commands": [
+          [
+            "make",
+            "coverage"
+          ],
+          [
+            "make",
+            "coverage-sonar"
+          ]
+        ],
+        "toolchain_files": [
+          "ops/local/toolchain.Dockerfile",
+          "ops/unit-coverage/compose.yaml",
+          "ops/unit-coverage/scanner.Dockerfile",
+          "package-lock.json",
+          "gradle/wrapper/gradle-wrapper.properties"
+        ],
+        "unit_report": {
+          "format": "lcov",
+          "reports": [
+            ".local/unit-coverage/mcp/lcov.info"
+          ],
+          "source_prefix": "mcp"
+        },
+        "test_report": {
+          "format": "vitest",
+          "glob": ".local/unit-coverage/mcp/test-results.json"
+        }
+      }
+    ]
+  }
 }

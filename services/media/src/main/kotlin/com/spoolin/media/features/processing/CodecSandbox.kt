@@ -7,8 +7,19 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 /** A missing namespace sandbox is a processing failure, never an unrestricted fallback. */
-class CodecSandbox {
+fun interface CodecExecution {
     fun execute(
+        input: Path,
+        scratch: Path,
+        codecArguments: List<String>,
+        deadline: Long,
+    ): String?
+}
+
+class CodecSandbox(
+    private val startProcess: (List<String>) -> Process = { ProcessBuilder(it).redirectErrorStream(true).start() },
+) : CodecExecution {
+    override fun execute(
         input: Path,
         scratch: Path,
         codecArguments: List<String>,
@@ -44,7 +55,7 @@ class CodecSandbox {
         deadline: Long,
         headerRead: Boolean,
     ): String? {
-        val process = ProcessBuilder(command).redirectErrorStream(true).start()
+        val process = startProcess(command)
         val captured = ByteArrayOutputStream()
         val reader = drainOutput(process, captured)
         return try {

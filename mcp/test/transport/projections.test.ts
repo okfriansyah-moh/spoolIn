@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   contextProjection,
   dateProjection,
@@ -7,6 +7,11 @@ import {
   proposalProjection,
 } from '../../src/gateway/projections.js';
 import { ProposalRevision } from '../../src/generated/spoolin/v1/spoolin.js';
+
+beforeEach(() =>
+  vi.stubEnv('SPOOLIN_PUBLIC_ORIGIN', 'https://spoolin.example'),
+);
+afterEach(() => vi.unstubAllEnvs());
 
 describe('approved model output projections', () => {
   it('preserves partial-date precision and explicit unknowns', () => {
@@ -57,6 +62,7 @@ describe('approved model output projections', () => {
       title: 'A movie',
       genreIds: ['genre'],
       release: dateProjection(undefined),
+      poster: null,
     });
     expect(JSON.stringify(projected)).not.toContain('Private to detail');
     expect(contextProjection({})).toEqual({
@@ -64,6 +70,13 @@ describe('approved model output projections', () => {
       genres: [],
       roles: [],
       policyRevision: '',
+      artworkPolicy: {
+        maxInputBytes: '0',
+        formats: [],
+        maxDimensionPx: 0,
+        maxPixels: '0',
+        maxImageResponseBytes: 4 * 1024 * 1024,
+      },
     });
   });
   it('keeps gateway challenges and binding tokens out of model-readable proposals', () => {

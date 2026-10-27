@@ -10,6 +10,7 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
 
 - [Why SpoolIn?](#why-spoolin)
 - [What you can do](#what-you-can-do)
+- [Quality you can verify](#quality-you-can-verify)
 - [Run SpoolIn on your computer](#run-spoolin-on-your-computer)
   - [Before you start](#before-you-start)
   - [Windows](#windows)
@@ -51,6 +52,36 @@ SpoolIn takes its name from the spool that holds a length of film. Unspooling re
 Visitors can browse movies and people without an account. Movie pages bring together the synopsis, artwork, release information, cast, and creators. Maintainers can create and edit movies and people, manage credits, upload poster artwork, and archive records. Archives retain a recovery path instead of making a mistaken removal immediately permanent.
 
 SpoolIn also has account registration, retained editing drafts, conflict review when another edit changes a record, and an audit view for catalog changes. Forms show validation errors and save outcomes. Artwork uploads distinguish transfer progress from server processing.
+
+## Quality you can verify
+
+Future features and products follow the [shared quality guardrail](.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract): per-component coverage, exact zero security/reliability/duplication counts, and required checks that block completion when they fail. See [workflow adoption and current blockers](docs/operations/quality-guardrails.md).
+
+**4,328 passing unit tests. Six passing Sonar gates. An independent 80% coverage floor for every component.**
+
+The verified Docker run on **26 October 2026** completed with no failed or skipped unit tests. All six Sonar projects reported **zero security issues, zero reliability issues, and exactly zero duplicated lines and blocks**. Publication checks the raw counts, so a rounded `0.0%` duplication score alone cannot pass.
+
+| Component | Native line coverage | Sonar Coverage | Sonar line coverage |
+| --- | ---: | ---: | ---: |
+| Frontend | 84.19% | 82.2% | 86.3% |
+| Core | 87.44% | 81.4% | 87.5% |
+| Catalog | 86.96% | 81.4% | 87.0% |
+| Media | 86.87% | 81.3% | 86.9% |
+| Backend support | 87.75% | 81.6% | 87.8% |
+| MCP | 82.87% | 81.6% | 83.1% |
+
+Every component must clear 80% native line coverage and both Sonar coverage measures independently. Sonar's **Coverage** combines lines and conditions; frontend native coverage includes TypeScript and Svelte, while Sonar measures the supported TypeScript sources. Changed executable-line coverage also passed the existing 80% requirement for each affected component.
+
+The same verification included **166 PostgreSQL/mTLS checks**, **eight browser checks**, and independent review. Fourteen safe network-range findings were classified as false positives after review, with the network protections retained. See the [verified quality record](docs/operations/sonar-quality.md) for the tested revision, evidence, classifications, and separately disclosed broader lint and secret-scan failures. These figures are a verified snapshot, not a claim that every repository check is green.
+
+Reproduce the unit reports without starting the application stack:
+
+```bash
+make coverage
+make coverage-report
+```
+
+Open the [local HTML reports](http://localhost:8090/). The [Docker coverage guide](docs/operations/unit-coverage.md#local-sonarqube) explains how to publish the reports to a local Sonar dashboard. Reports retain covered/total lines, test results, revision, and run time, including when a check fails.
 
 ## Run SpoolIn on your computer
 
@@ -689,6 +720,11 @@ Contract generation requires Java and Node; generated interfaces must match the 
 
 `make local-test` builds the app and runs the setup-helper regressions, npm type checks, frontend and MCP coverage tests, and Gradle `test` tasks. Its temporary backend test container receives access to the local Docker engine so Testcontainers can manage isolated PostgreSQL fixtures. Application containers do not receive this socket; remote Docker endpoints are unsupported.
 
+For unit-only coverage, run `make coverage`, then `make coverage-report` to read the
+HTML dashboard. Each frontend/backend component must independently reach 80% line
+coverage. Optional local SonarQube setup and the measurement boundaries are documented
+in [unit coverage in Docker](docs/operations/unit-coverage.md).
+
 The separately named `integrationTest` tasks and browser acceptance suites need their own runtime prerequisites and are not included in `make local-test`. See the [verification workflow](docs/07-harness-workflow.md) for those runners.
 
 Existing unit tests cover successful operations and failure boundaries. Examples include:
@@ -725,7 +761,7 @@ I used a [Notion Kanban board](https://cord-bluebell-457.notion.site/8a450667b9c
 
 The same development harness supports **Codex, Cursor AI, Claude Code, and GitHub Copilot**. Each follows one procedure: read the approved outcome, implement, run agreed affected checks, obtain one independent combined review, correct findings, and deliver. The current chat implements directly by default; optional contributors use the same completion rules. Start with `Use running prompt for T001.` or resume with `Use running prompt for T001, mode resume.` See the [portable task prompt](docs/prompts/task-implementation.md) for six inputs, defaults, and constraints. Application setup does not require any AI client.
 
-The project pin in [.ai/config.json](.ai/config.json) selects the shared bundle before global fallback. Native adapters and installed files do not prove live loading in every CLI, desktop, or IDE; the [harness guide](docs/07-harness-workflow.md) separates current instructions from historical observations. Product tasks preserve workflow files and unplanned Python files, match approved visuals and complete journeys, and use affected checks while retaining project requirements. Shared resource admission adapts substantial checks to the execution device and keeps unsafe work pending; it does not add another workflow tier. See [resource budgets and recovery](.ai/bundles/1.3.0/docs/GATES.md#execution-device-budgets-and-recovery).
+The project pin in [.ai/config.json](.ai/config.json) selects the shared bundle before global fallback. Native adapters and installed files do not prove live loading in every CLI, desktop, or IDE; the [harness guide](docs/07-harness-workflow.md) separates current instructions from historical observations. Product tasks preserve workflow files and unplanned Python files, match approved visuals and complete journeys, and use affected checks while retaining project requirements. Shared resource admission adapts substantial checks to the execution device and keeps unsafe work pending; it does not add another workflow tier. See [resource budgets and recovery](.ai/bundles/1.4.0/docs/GATES.md#execution-device-budgets-and-recovery).
 
 The repository retains the resulting instructions, task plans, role definitions, checks, and evidence so changes can be inspected and explained. [The development workflow guide](docs/07-harness-workflow.md) describes the recorded tool setup and its verification limits. A board status records progress; the linked implementation and verification records provide the evidence for what was delivered.
 

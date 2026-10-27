@@ -1,0 +1,90 @@
+name: Unit coverage
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      quality_base:
+        description: Reviewed comparison revision for changed-line verification
+        required: true
+        type: string
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: unit-coverage-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      COVERAGE_RUNNER_MEMORY: 4g
+      SONAR_REVIEW_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      SONAR_REVIEW_PR_NUMBER: ${{ github.event.pull_request.number || 0 }}
+      SONAR_REVIEW_WAIT_SECONDS: '1200'
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Run complete unit suites and enforce every component's 80% line threshold
+        run: make coverage
+      - name: Publish isolated Docker Sonar analyses
+        run: make coverage-sonar-up
+      - name: Bootstrap credentials for this fresh CI database
+        run: python3 ops/unit-coverage/sonar-ci-bootstrap.py
+      - name: Import unit reports and wait for completed analyses
+        run: bash ops/bin/coverage.sh sonar-analyze
+      - name: Export exact per-analysis findings for independent review
+        id: findings
+        run: |
+          bash ops/bin/coverage.sh sonar-export-review
+          cat .local/unit-coverage/sonar/review-instructions.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish findings before waiting for classification review
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sonar-classification-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .local/unit-coverage/
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Require independent issue-by-issue review and apply exact classifications
+        run: bash ops/bin/coverage.sh sonar-apply-review
+      - name: Enforce all Sonar coverage and exact-zero quality requirements
+        if: ${{ !cancelled() && steps.findings.outcome == 'success' }}
+        run: bash ops/bin/coverage.sh sonar-verify
+      - name: Verify shared component proof and all required checks
+        env:
+          QUALITY_BASE: ${{ github.event.pull_request.base.sha || inputs.quality_base || github.event.before }}
+        run: |
+          make coverage-quality
+          .ai/bin/agent-workflow gate --repo . --stage delivery --base "$QUALITY_BASE" --reuse
+      - name: Retain coverage and test reports, including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unit-coverage-${{ github.sha }}
+          path: |
+            .local/unit-coverage/
+            .ai/reports/
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Add measured coverage to the job summary
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path('.local/unit-coverage/summary.json')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              if not path.exists():
+                  out.write('Coverage did not finish; inspect the job logs.\n')
+              else:
+                  report = json.loads(path.read_text())
+                  out.write('| Component | Unit line coverage | Result |\n|---|---:|---|\n')
+                  for item in report['components']:
+                      value = item.get('metrics', {}).get('lines', {}).get('percent')
+                      label = 'Unavailable' if value is None else f'{value:.2f}%'
+                      out.write(f'| {item["component"]} | {label} | {item["status"]} |\n')
+          PY

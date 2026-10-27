@@ -1,3 +1,4 @@
+import { compareUtf16 } from '../../state/ordering';
 import type { MovieDraft } from '../../generated/json-types';
 import { trimOrdinary } from '../../policy/rules';
 import type { ManagedMovie } from './types';
@@ -75,8 +76,8 @@ function applyTextAndGenrePatch(
   if (title !== saved.title) patch.title = title;
   const synopsis = trimOrdinary(draft.synopsis ?? '');
   if (synopsis !== saved.synopsis) patch.synopsis = synopsis;
-  const draftGenres = [...(draft.genreIds ?? [])].sort().join(',');
-  const savedGenres = [...saved.genreIds].sort().join(',');
+  const draftGenres = [...(draft.genreIds ?? [])].sort(compareUtf16).join(',');
+  const savedGenres = [...saved.genreIds].sort(compareUtf16).join(',');
   if (draftGenres !== savedGenres) patch.genreIds = [...(draft.genreIds ?? [])];
 }
 
@@ -148,8 +149,8 @@ function applyMetadataPatch(
   applyLanguagePatch(patch, saved, draft);
   if (
     draft.countries !== undefined &&
-    [...draft.countries].sort().join(',') !==
-      [...(saved.countries ?? [])].sort().join(',')
+    [...draft.countries].sort(compareUtf16).join(',') !==
+      [...(saved.countries ?? [])].sort(compareUtf16).join(',')
   )
     patch.countries = [...draft.countries];
 }

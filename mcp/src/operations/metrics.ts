@@ -1,3 +1,4 @@
+import { compareText } from './order.js';
 import { context as traceContext } from '@opentelemetry/api';
 import { mcpDiagnostics } from './diagnostics.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
@@ -158,13 +159,13 @@ export class McpMetrics {
   render(sessions: number, initializing: number, ready: boolean): string {
     const lines = ['# TYPE spoolin_operation_results_total counter'];
     [...this.results]
-      .sort()
+      .sort(([left], [right]) => compareText(left, right))
       .forEach(([labels, value]) =>
         lines.push(`spoolin_operation_results_total{${labels}} ${value}`),
       );
     lines.push('# TYPE spoolin_operation_duration_seconds histogram');
     [...this.durations]
-      .sort()
+      .sort(([left], [right]) => compareText(left, right))
       .forEach(([labels, histogram]) =>
         lines.push(...renderHistogram(labels, histogram)),
       );

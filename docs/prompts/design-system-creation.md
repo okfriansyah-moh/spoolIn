@@ -176,3 +176,5 @@ The result should let me visually understand the approved SpoolIn application, i
 ## Output wording
 
 Use concrete wording for each concept: seed data, source schemas, shared contracts, normalized identities, and deterministic serialization where those meanings apply. Remove redundant adjectives. Apply the personal output wording policy and check the complete deliverable before handoff, including headings, snippets, diagram labels, names, and completion text. Preserve technical requirements and externally defined contracts.
+
+For planning, implementation and acceptance, apply the [permanent quality contract](../../.ai/bundles/1.4.0/docs/GATES.md#permanent-quality-contract). Register every maintained runtime component and keep required failing checks blocking.

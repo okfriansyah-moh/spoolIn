@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill installation manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "bundle",
+    "skills"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "bundle": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "source",
+          "targets",
+          "dependencies",
+          "activation",
+          "owner",
+          "checksum"
+        ]
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "total"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  }
+}

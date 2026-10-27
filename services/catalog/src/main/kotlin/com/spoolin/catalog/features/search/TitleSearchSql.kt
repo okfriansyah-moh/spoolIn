@@ -125,7 +125,7 @@ class TitleSearchSql(
         val sql = buildQuery(where, limit + 1)
         val rows =
             dataSource.connection.use { conn ->
-                conn.queryBound(sql, params) { rs -> mapRow(rs) }
+                conn.queryBound(sql, params) { rs -> readRow(rs) }
             }
 
         val hasNext = rows.size > limit
@@ -146,7 +146,7 @@ class TitleSearchSql(
     fun findById(id: UUID): TitleRow? {
         val sql = "SELECT $TITLE_COLUMNS FROM title t WHERE t.id = ? AND t.status = 'ACTIVE'"
         return dataSource.connection.use { conn ->
-            conn.queryBound(sql, listOf(id)) { rs -> mapRow(rs) }.firstOrNull()
+            conn.queryBound(sql, listOf(id)) { rs -> readRow(rs) }.firstOrNull()
         }
     }
 
@@ -253,34 +253,33 @@ class TitleSearchSql(
                     t.id ASC
            LIMIT $limit"""
 
-    private fun mapRow(rs: ResultSet): TitleRow {
-        val rawCountries = rs.getArray("countries")?.array
-        val countries = (rawCountries as? Array<*>)?.map { it.toString() } ?: emptyList()
-        return TitleRow(
-            id = rs.getObject("id", UUID::class.java),
-            kind = rs.getString("kind"),
-            status = rs.getString("status"),
-            displayTitle = rs.getString("display_title"),
-            originalTitle = rs.getString("original_title"),
-            synopsis = rs.getString("synopsis"),
-            synopsisLanguage = rs.getString("synopsis_language"),
-            originalLanguage = rs.getString("original_language"),
-            countries = countries,
-            releaseYear = rs.getObject("release_year") as? Int,
-            releaseMonth = rs.getObject("release_month") as? Int,
-            releaseDay = rs.getObject("release_day") as? Int,
-            releaseContext = rs.getString("release_context"),
-            runtimeMinutes = rs.getObject("runtime_minutes") as? Int,
-            tvStatus = rs.getString("tv_status"),
-            endYear = rs.getObject("end_year") as? Int,
-            endMonth = rs.getObject("end_month") as? Int,
-            endDay = rs.getObject("end_day") as? Int,
-            assetId = rs.getObject("asset_id")?.let { UUID.fromString(it.toString()) },
-            version = rs.getLong("version"),
-        )
-    }
-
     companion object {
+        internal fun readRow(rs: ResultSet): TitleRow {
+            val content = TitleContent.read(rs)
+            return TitleRow(
+                id = rs.getObject("id", UUID::class.java),
+                kind = content.kind,
+                status = content.status,
+                displayTitle = content.displayTitle,
+                originalTitle = content.originalTitle,
+                synopsis = content.synopsis,
+                synopsisLanguage = content.synopsisLanguage,
+                originalLanguage = content.originalLanguage,
+                countries = content.countries,
+                releaseYear = content.releaseYear,
+                releaseMonth = content.releaseMonth,
+                releaseDay = content.releaseDay,
+                releaseContext = rs.getString("release_context"),
+                runtimeMinutes = content.runtimeMinutes,
+                tvStatus = rs.getString("tv_status"),
+                endYear = rs.getObject("end_year") as? Int,
+                endMonth = rs.getObject("end_month") as? Int,
+                endDay = rs.getObject("end_day") as? Int,
+                assetId = rs.getObject("asset_id")?.let { UUID.fromString(it.toString()) },
+                version = content.version,
+            )
+        }
+
         const val TITLE_COLUMNS =
             "t.id, t.kind, t.status, t.display_title, t.original_title, t.synopsis, " +
                 "t.synopsis_language, t.original_language, t.countries, t.release_year, " +

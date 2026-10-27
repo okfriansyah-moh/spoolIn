@@ -1,20 +1,28 @@
-@file:Suppress("TooManyFunctions", "ThrowsCount", "SwallowedException", "SpreadOperator", "MaxLineLength", "LongParameterList")
+@file:Suppress(
+    "TooManyFunctions",
+    "ThrowsCount",
+    "SwallowedException",
+    "SpreadOperator",
+    "MaxLineLength",
+    "LongParameterList",
+)
 
 package com.spoolin.catalog.features.movie
 
+import com.spoolin.catalog.boundary.grpc.CatalogWriteContext
+import com.spoolin.catalog.boundary.grpc.CatalogWriteExecution
+import com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
+import com.spoolin.catalog.boundary.grpc.CatalogWriteVersion
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
+import com.spoolin.catalog.features.search.TitleContent
 import com.spoolin.catalog.features.taxonomy.write.GenreTagging
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
+import com.spoolin.catalog.operations.audit.auditPatchedValue
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
-import com.spoolin.support.identity.ActorRejected
-import com.spoolin.support.identity.ActorRpc
-import com.spoolin.support.identity.Permissions
-import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
-import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -24,11 +32,9 @@ import spoolin.v1.Spoolin.MovieValues
 import spoolin.v1.Spoolin.MovieWrite
 import spoolin.v1.Spoolin.Outcome
 import java.sql.Connection
-import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.Clock
 import java.util.UUID
-import javax.sql.DataSource
 
 private const val KIND_MOVIE = "MOVIE"
 private const val STATUS_ACTIVE = "ACTIVE"
@@ -64,44 +70,20 @@ class MovieWrites(
         request: MovieWrite,
         response: StreamObserver<Outcome>,
     ) {
-        try {
-            val outcome = executeMovie(request)
-            response.onNext(outcomeProto(outcome))
-            response.onCompleted()
-        } catch (e: io.grpc.StatusRuntimeException) {
-            response.onError(e)
-        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
-            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
-        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
-            response.onError(Status.NOT_FOUND.asRuntimeException())
-        } catch (e: ActorRejected) {
-            response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
-        } catch (e: InputViolation) {
-            response.onNext(invalidOutcome(request.context.operationId, e))
-            response.onCompleted()
-        }
+        CatalogWriteRpc.fields(request.context.operationId, response) { executeMovie(request) }
     }
 
     private fun executeMovie(request: MovieWrite): com.spoolin.support.receipts.ReceiptOutcome {
-        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role)) throw ActorRejected()
-        val operationId = parseId(request.context.operationId)
-        val correlationId = parseId(request.context.correlationId)
-        val actorScope = "account:${claims.accountId}"
+        val context = CatalogWriteContext.management(request.context)
         val isCreate = !request.hasId()
-        val intentFields = CatalogWriteIntent.movie(request)
-        val intent = OperationIntent(operationId, actorScope, WRITE_KIND, request.context.policyRevision, intentFields)
-        return receipts.execute(intent, correlationId, true) { conn ->
-            val command = policy.bind(request, request.context.policyRevision)
-            if (!isCreate && (!request.hasExpectedVersion() || request.expectedVersion < 0)) {
-                throw InputViolation("expectedVersion", "Supply the current version.")
-            }
-            if (isCreate) {
-                create(conn, command, claims.accountId, operationId, correlationId)
-            } else {
-                update(conn, command, claims.accountId, operationId, correlationId)
-            }
-        }
+        val intent = context.intent(WRITE_KIND, CatalogWriteIntent.movie(request))
+        return CatalogWriteExecution(receipts, context).execute(
+            intent,
+            CatalogWriteVersion(isCreate, request.hasExpectedVersion(), request.expectedVersion),
+            bind = { policy.bind(request, request.context.policyRevision) },
+            create = ::create,
+            update = ::update,
+        )
     }
 
     private fun create(
@@ -163,12 +145,21 @@ class MovieWrites(
         correlationId: UUID,
     ): SafeResult {
         val request = command.input
-        val titleId = parseId(request.id)
+        val titleId = CatalogWriteRpc.id(request.id)
         val expectedVersion = request.expectedVersion
-        val current = lockTitle(conn, titleId) ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
-        if (current.kind != KIND_MOVIE) throw Status.PERMISSION_DENIED.withDescription("TV_WRITE_DENIED").asRuntimeException()
+        val current =
+            lockTitle(conn, titleId) ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
+        if (current.kind !=
+            KIND_MOVIE
+        ) {
+            throw Status.PERMISSION_DENIED.withDescription("TV_WRITE_DENIED").asRuntimeException()
+        }
         if (current.status != STATUS_ACTIVE) throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
-        if (current.version != expectedVersion) throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
+        if (current.version !=
+            expectedVersion
+        ) {
+            throw Status.ABORTED.withDescription("VERSION_CONFLICT").asRuntimeException()
+        }
         val patch = MovieValidation.validatePatch(request, command.policy)
         val currentGenres = GenreTagging.current(conn, titleId)
         val newVersion = expectedVersion + 1
@@ -291,57 +282,21 @@ class MovieWrites(
 
     // ── snapshot helpers (ATDD-298) ─────────────────────────────────────────
 
-    private data class TitleRow(
-        val kind: String,
-        val status: String,
-        val displayTitle: String,
-        val originalTitle: String?,
-        val synopsis: String,
-        val synopsisLanguage: String,
-        val originalLanguage: String?,
-        val countries: List<String>,
-        val releaseYear: Int?,
-        val releaseMonth: Int?,
-        val releaseDay: Int?,
-        val runtimeMinutes: Int?,
-        val version: Long,
-    )
-
     private fun lockTitle(
         conn: Connection,
         titleId: UUID,
-    ): TitleRow? =
+    ): TitleContent? =
         conn
             .queryBound(
                 "SELECT kind,status,display_title,original_title,synopsis,synopsis_language," +
                     "original_language,countries,release_year,release_month,release_day," +
                     "runtime_minutes,version FROM title WHERE id = ? FOR UPDATE",
                 listOf(titleId),
-            ) { mapTitle(it) }
+            ) { TitleContent.read(it) }
             .firstOrNull()
 
-    private fun mapTitle(rs: ResultSet): TitleRow {
-        val rawCountries = rs.getArray("countries")?.array
-        val countries = (rawCountries as? Array<*>)?.map { it.toString() } ?: emptyList()
-        return TitleRow(
-            kind = rs.getString("kind"),
-            status = rs.getString("status"),
-            displayTitle = rs.getString("display_title"),
-            originalTitle = rs.getString("original_title"),
-            synopsis = rs.getString("synopsis"),
-            synopsisLanguage = rs.getString("synopsis_language"),
-            originalLanguage = rs.getString("original_language"),
-            countries = countries,
-            releaseYear = rs.getObject("release_year") as? Int,
-            releaseMonth = rs.getObject("release_month") as? Int,
-            releaseDay = rs.getObject("release_day") as? Int,
-            runtimeMinutes = rs.getObject("runtime_minutes") as? Int,
-            version = rs.getLong("version"),
-        )
-    }
-
     private fun currentSnapshot(
-        row: TitleRow,
+        row: TitleContent,
         genres: Set<UUID>,
     ): Map<String, Any?> =
         mapOf(
@@ -379,80 +334,22 @@ class MovieWrites(
         )
 
     private fun patchedSnapshot(
-        row: TitleRow,
+        row: TitleContent,
         patch: ValidatedMoviePatch,
         genres: Set<UUID>,
     ): Map<String, Any?> =
         mapOf(
-            "displayTitle" to patchValue(patch.displayTitle, row.displayTitle),
-            "originalTitle" to patchValue(patch.originalTitle, row.originalTitle),
-            "synopsis" to patchValue(patch.synopsis, row.synopsis),
-            "synopsisLanguage" to patchValue(patch.synopsisLanguage, row.synopsisLanguage),
-            "originalLanguage" to patchValue(patch.originalLanguage, row.originalLanguage),
-            "countries" to patchValue(patch.countries, row.countries),
-            "releaseYear" to patchValue(patch.releaseYear, row.releaseYear),
-            "releaseMonth" to patchValue(patch.releaseMonth, row.releaseMonth),
-            "releaseDay" to patchValue(patch.releaseDay, row.releaseDay),
-            "runtimeMinutes" to patchValue(patch.runtimeMinutes, row.runtimeMinutes),
+            "displayTitle" to auditPatchedValue(patch.displayTitle, row.displayTitle),
+            "originalTitle" to auditPatchedValue(patch.originalTitle, row.originalTitle),
+            "synopsis" to auditPatchedValue(patch.synopsis, row.synopsis),
+            "synopsisLanguage" to auditPatchedValue(patch.synopsisLanguage, row.synopsisLanguage),
+            "originalLanguage" to auditPatchedValue(patch.originalLanguage, row.originalLanguage),
+            "countries" to auditPatchedValue(patch.countries, row.countries),
+            "releaseYear" to auditPatchedValue(patch.releaseYear, row.releaseYear),
+            "releaseMonth" to auditPatchedValue(patch.releaseMonth, row.releaseMonth),
+            "releaseDay" to auditPatchedValue(patch.releaseDay, row.releaseDay),
+            "runtimeMinutes" to auditPatchedValue(patch.runtimeMinutes, row.runtimeMinutes),
             "genreIds" to genres.sortedBy { it.toString() },
             "version" to row.version + 1,
         )
-
-    private fun <T> patchValue(
-        patch: PatchValue<T>,
-        current: T,
-    ): Any? =
-        when (patch) {
-            is PatchValue.Value -> patch.value
-            is PatchValue.Clear -> null
-            else -> current
-        }
-
-    // ── helpers ──────────────────────────────────────────────────────────────
-
-    private fun parseId(value: String): UUID =
-        runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
-            .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
-
-    private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b =
-            Outcome
-                .newBuilder()
-                .setOperationId(outcome.id.toString())
-                .setState(outcome.state.name)
-                .setResultExpired(outcome.resultExpired)
-        outcome.result?.let { r ->
-            b.resultId = r.resultId.toString()
-            r.version?.let { b.version = it }
-        }
-        outcome.errorCode?.let {
-            b.problem =
-                spoolin.v1.Spoolin.Problem
-                    .newBuilder()
-                    .setCode(it)
-                    .build()
-        }
-        return b.build()
-    }
 }
-
-private fun invalidOutcome(
-    operation: String,
-    violation: InputViolation,
-): Outcome =
-    Outcome
-        .newBuilder()
-        .setOperationId(operation)
-        .setState("FAILED")
-        .setProblem(
-            spoolin.v1.Spoolin.Problem
-                .newBuilder()
-                .setCode("FIELD_INVALID")
-                .addFields(
-                    spoolin.v1.Spoolin.FieldIssue
-                        .newBuilder()
-                        .setPath(violation.path)
-                        .setCode("INVALID")
-                        .setMessage(violation.correction),
-                ),
-        ).build()

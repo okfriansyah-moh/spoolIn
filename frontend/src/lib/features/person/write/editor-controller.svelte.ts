@@ -1,3 +1,4 @@
+import { selectRetainedDraft, recoverRetainedDraft, newDraftState, submissionBlocked } from '../../editing/retained-drafts';
 import type { GraphqlRequest } from '../../../transport/graphql';
 import { TransportFailure } from '../../../transport/graphql';
 import type { Policy } from '../../../policy/types';
@@ -272,78 +273,29 @@ export class PersonEditorController {
     draft: DraftRecord,
     signal: AbortSignal,
   ): Promise<void> {
-    this.publish({ ...this.current, draftChoices: Object.freeze([]) });
-    this.draftSync.adopt(draft);
-    if (draft.operationId) {
-      this.publish({
-        ...this.current,
-        phase: 'uncertain',
-        pendingOperationId: draft.operationId,
-        message:
-          'Check the original save before continuing this retained draft.',
-      });
-      await this.checkOriginalResult();
-      if (signal.aborted || this.current.phase !== 'failed') return;
-    }
-    const stale =
-      this.current.saved && draft.baseVersion !== this.current.saved.version;
-    this.publish({
-      ...this.current,
-      draft: draft.values as PersonDraft,
-      phase: stale ? 'stale' : 'idle',
-      pendingOperationId: null,
-      draftBaseKnown: !stale,
-      message: stale
-        ? 'The saved person changed. Compare its current values with the retained draft.'
-        : 'Saved draft recovered.',
-      staleReviewOpen: !!stale,
-    });
+    const recovered = await recoverRetainedDraft(
+      draft, signal,
+      'The saved person changed. Compare its current values with the retained draft.',
+      {
+        sync: this.draftSync,
+        update: (notice) => this.publish({ ...this.current, ...notice }),
+        check: () => this.checkOriginalResult(),
+        state: () => this.current,
+      },
+    );
+    if (!recovered) return;
+    this.publish({ ...this.current, ...recovered, draft: draft.values as PersonDraft });
   }
 
   async selectRetainedDraft(id: string): Promise<void> {
-    if (
-      !this.writeContext ||
-      this.current.phase === 'uncertain' ||
-      this.current.phase === 'submitting'
-    )
-      return;
-    const signal = this.active?.signal ?? new AbortController().signal;
-    try {
-      const drafts = await this.draftSync.load(this.writeContext, signal);
-      const selected = drafts.find((draft) => draft.id === id);
-      if (!selected || signal.aborted) {
-        this.publish({
-          ...this.current,
-          message:
-            'That retained draft is no longer available. Choose another draft or start again.',
-        });
-        return;
-      }
-      await this.applyBackedDraft(selected, signal);
-    } catch {
-      this.publish({
-        ...this.current,
-        message:
-          'The retained draft could not be checked. Retry before continuing.',
-      });
-    }
+    await selectRetainedDraft(id, this.writeContext, this.current.phase, this.active?.signal, this.draftSync,
+      (draft, signal) => this.applyBackedDraft(draft, signal),
+      (message) => this.publish({ ...this.current, message }));
   }
 
   startNewDraft(): void {
-    if (!this.current.draftChoices.length || this.current.phase === 'uncertain')
-      return;
-    this.draftSync.reset();
-    this.publish({
-      ...this.current,
-      draftChoices: Object.freeze([]),
-      draftBaseKnown: true,
-      phase: 'idle',
-      draft: this.current.saved
-        ? personToDraft(this.current.saved)
-        : EMPTY_PERSON_DRAFT,
-      message:
-        'Started a new draft. Other retained drafts remain available after reload.',
-    });
+    const next = newDraftState(this.current, this.draftSync, personToDraft, EMPTY_PERSON_DRAFT);
+    if (next) this.publish({ ...this.current, ...next });
   }
 
   private reviewedStale(reviewed: boolean): boolean {
@@ -449,14 +401,7 @@ export class PersonEditorController {
   }
 
   private submissionBlocked(): boolean {
-    return (
-      !!this.pendingWriteId ||
-      this.current.draftChoices.length > 0 ||
-      ['submitting', 'uncertain', 'stale', 'target-changed'].includes(
-        this.current.phase,
-      ) ||
-      (this.mode === 'create' && this.current.saved !== null)
-    );
+    return submissionBlocked(this.pendingWriteId, this.current.draftChoices.length, this.current.phase, this.mode, this.current.saved);
   }
 
   private beginSubmit(): {

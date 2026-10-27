@@ -1,5 +1,6 @@
 package com.spoolin.core.features.catalogview.person
 
+import com.spoolin.core.features.catalogview.read.CatalogReadProjection
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -23,7 +24,7 @@ class ManagedPersonProjectionRulesTest {
 
     @Test
     fun `person map exposes id name state and version`() {
-        val map = personMap(activePerson(name = "Alice", biography = null))
+        val map = CatalogReadProjection.person(activePerson(name = "Alice", biography = null))
         assertEquals("test-person-id", map["id"])
         assertEquals("Alice", map["name"])
         assertEquals("ACTIVE", map["state"])
@@ -32,13 +33,13 @@ class ManagedPersonProjectionRulesTest {
 
     @Test
     fun `absent biography projects as null (TD-ROW-L4490 NULL allowed)`() {
-        val map = personMap(activePerson(name = "Alice", biography = null))
+        val map = CatalogReadProjection.person(activePerson(name = "Alice", biography = null))
         assertNull(map["biography"], "Absent biography must be null, not empty string")
     }
 
     @Test
     fun `present biography projects as supplied value`() {
-        val map = personMap(activePerson(name = "Alice", biography = "Award-winning actor."))
+        val map = CatalogReadProjection.person(activePerson(name = "Alice", biography = "Award-winning actor."))
         assertEquals("Award-winning actor.", map["biography"])
     }
 
@@ -53,13 +54,13 @@ class ManagedPersonProjectionRulesTest {
                 .setState("ACTIVE")
                 .setVersion(1L)
                 .build()
-        val map = personMap(p)
+        val map = CatalogReadProjection.person(p)
         assertNull(map["biography"], "Empty proto biography string must project as null")
     }
 
     @Test
     fun `version is serialised as string not raw Long (AC-127)`() {
-        val map = personMap(activePerson(name = "Alice", biography = null))
+        val map = CatalogReadProjection.person(activePerson(name = "Alice", biography = null))
         val version = map["version"]
         assertTrue(version is String, "version must be a String, not a Long")
         assertEquals("1", version)
@@ -75,13 +76,13 @@ class ManagedPersonProjectionRulesTest {
                 .setState("ARCHIVED")
                 .setVersion(5L)
                 .build()
-        val map = personMap(p)
+        val map = CatalogReadProjection.person(p)
         assertEquals("ARCHIVED", map["state"])
     }
 
     @Test
     fun `no private account data appears in person projection`() {
-        val map = personMap(activePerson(name = "Alice", biography = null))
+        val map = CatalogReadProjection.person(activePerson(name = "Alice", biography = null))
         val keys = map.keys
         assertTrue(keys.none { it.lowercase().contains("password") })
         assertTrue(keys.none { it.lowercase().contains("email") })
@@ -95,7 +96,7 @@ class ManagedPersonProjectionRulesTest {
     @Test
     fun `empty person page projects nodes as empty list`() {
         val proto = PersonPage.newBuilder().setHasNextPage(false).build()
-        val map = personPageMap(proto)
+        val map = CatalogReadProjection.personPage(proto)
 
         @Suppress("UNCHECKED_CAST")
         val nodes = map["nodes"] as List<*>
@@ -105,7 +106,7 @@ class ManagedPersonProjectionRulesTest {
     @Test
     fun `person page maps endCursor as null when absent`() {
         val proto = PersonPage.newBuilder().setHasNextPage(false).build()
-        val map = personPageMap(proto)
+        val map = CatalogReadProjection.personPage(proto)
 
         @Suppress("UNCHECKED_CAST")
         val pageInfo = map["pageInfo"] as Map<String, Any?>
@@ -120,7 +121,7 @@ class ManagedPersonProjectionRulesTest {
                 .setEndCursor("some-cursor-value")
                 .setHasNextPage(true)
                 .build()
-        val map = personPageMap(proto)
+        val map = CatalogReadProjection.personPage(proto)
 
         @Suppress("UNCHECKED_CAST")
         val pageInfo = map["pageInfo"] as Map<String, Any?>
@@ -137,7 +138,7 @@ class ManagedPersonProjectionRulesTest {
                 .addNodes(activePerson(name = "Bob", biography = "Bio"))
                 .setHasNextPage(false)
                 .build()
-        val map = personPageMap(proto)
+        val map = CatalogReadProjection.personPage(proto)
 
         @Suppress("UNCHECKED_CAST")
         val nodes = map["nodes"] as List<Map<String, Any?>>
@@ -156,29 +157,6 @@ class ManagedPersonProjectionRulesTest {
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * Replicates the personMap logic from ManagedPersonGraphql for isolated testing.
-     * Keeps the test independent of Spring context.
-     */
-    private fun personMap(p: Person): Map<String, Any?> =
-        mapOf(
-            "id" to p.id,
-            "name" to p.values.name,
-            "biography" to p.values.biography.takeIf { it.isNotEmpty() },
-            "state" to p.state,
-            "version" to p.version.toString(),
-        )
-
-    private fun personPageMap(proto: PersonPage): Map<String, Any?> =
-        mapOf(
-            "nodes" to proto.nodesList.map { personMap(it) },
-            "pageInfo" to
-                mapOf(
-                    "endCursor" to proto.endCursor.takeIf { it.isNotEmpty() },
-                    "hasNextPage" to proto.hasNextPage,
-                ),
-        )
 
     private fun activePerson(
         name: String,

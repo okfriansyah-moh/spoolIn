@@ -65,7 +65,10 @@ class OwnerFixture(
         try {
             postgres.start()
         } catch (failure: Exception) {
-            val log = passwords.values.fold(postgres.logs) { text, path -> text.replace(Files.readString(path), "[redacted]") }
+            val log =
+                passwords.values.fold(
+                    postgres.logs,
+                ) { text, path -> text.replace(Files.readString(path), "[redacted]") }
             throw IllegalStateException("Disposable database startup failed: " + log.takeLast(5000), failure)
         }
         val bindings =
@@ -83,6 +86,7 @@ class OwnerFixture(
             .withEnv("POSTGRES_INITDB_ARGS", "--auth-host=scram-sha-256 --auth-local=scram-sha-256")
             .withExposedPorts(5432)
             .withCreateContainerCmdModifier { command ->
+                command.hostConfig?.withMemory(268435456L)?.withNanoCPUs(1000000000L)
                 command.hostConfig?.withPortBindings(
                     com.github.dockerjava.api.model.PortBinding(
                         com.github.dockerjava.api.model.Ports.Binding
@@ -130,7 +134,12 @@ class OwnerFixture(
     fun pool(
         owner: String,
         role: String = "runtime",
-    ) = DatabaseSettings(url(owner), "spoolin_${owner}_$role", passwords.getValue("$owner-$role"), role == "migrator").pool()
+    ) = DatabaseSettings(
+        url(owner),
+        "spoolin_${owner}_$role",
+        passwords.getValue("$owner-$role"),
+        role == "migrator",
+    ).pool()
 
     fun sql(
         owner: String,
@@ -193,7 +202,10 @@ class OwnerFixture(
 
     private fun prepareParent() {
         Files.setPosixFilePermissions(parent, PosixFilePermissions.fromString("rwx------"))
-        Files.createDirectory(parent.resolve("private"), PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")))
+        Files.createDirectory(
+            parent.resolve("private"),
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")),
+        )
         Files.writeString(parent.resolve("fixture.json"), """{"namespace":"$namespace"}""")
     }
 
@@ -205,9 +217,15 @@ class OwnerFixture(
         require(Files.getPosixFilePermissions(config) == PosixFilePermissions.fromString("rw-------"))
         val parsed = mapper.readTree(Files.readString(config))
         require(parsed.get("namespace").asString() == namespace && parent.fileName.toString().startsWith("$namespace-"))
-        require(mapper.readTree(Files.readString(parent.resolve("fixture.json"))).get("namespace").asString() == namespace)
-        require(Path.of(parsed.get("synthetic_secrets").asString()).toRealPath() == parent.resolve("private").toRealPath())
-        require(Files.getPosixFilePermissions(parent.resolve("private")) == PosixFilePermissions.fromString("rwx------"))
+        require(
+            mapper.readTree(Files.readString(parent.resolve("fixture.json"))).get("namespace").asString() == namespace,
+        )
+        require(
+            Path.of(parsed.get("synthetic_secrets").asString()).toRealPath() == parent.resolve("private").toRealPath(),
+        )
+        require(
+            Files.getPosixFilePermissions(parent.resolve("private")) == PosixFilePermissions.fromString("rwx------"),
+        )
     }
 
     private val passwordPatterns = listOf("\\t", "\\n", "\\\\", "'", "\\t\\n\\\\'\$`; ")
@@ -223,7 +241,8 @@ class OwnerFixture(
             val path = root.resolve("$name-password")
             Files.writeString(
                 path,
-                Base64.getUrlEncoder().withoutPadding().encodeToString(bytes) + passwordPatterns[index % passwordPatterns.size],
+                Base64.getUrlEncoder().withoutPadding().encodeToString(bytes) +
+                    passwordPatterns[index % passwordPatterns.size],
             )
             Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rw-------"))
             passwords[name] = path
@@ -306,7 +325,11 @@ class OwnerFixture(
             "$name.ext",
         )
         command("openssl", "pkcs8", "-topk8", "-nocrypt", "-in", "$name.key", "-out", "$name.pk8")
-        Files.move(root.resolve("$name.pk8"), root.resolve("$name.key"), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        Files.move(
+            root.resolve("$name.pk8"),
+            root.resolve("$name.key"),
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+        )
     }
 
     private fun command(vararg arguments: String) {
@@ -330,9 +353,16 @@ class OwnerFixture(
         listOf("entrypoint.sh", "membership.sh").forEach {
             copy(repository.resolve("ops/containers/postgres/$it"), "/opt/spoolin/$it", 0b111101101)
         }
-        copy(repository.resolve("ops/containers/postgres/init.sh"), "/docker-entrypoint-initdb.d/10-owner-bootstrap.sh", 0b111101101)
+        copy(
+            repository.resolve("ops/containers/postgres/init.sh"),
+            "/docker-entrypoint-initdb.d/10-owner-bootstrap.sh",
+            0b111101101,
+        )
         copy(repository.resolve("ops/containers/postgres/pg_hba.conf"), "/etc/postgresql/pg_hba.conf")
-        listOf("bootstrap.sql", "grants.sql").forEach { copy(repository.resolve("ops/postgres/$it"), "/opt/spoolin/$it") }
+        listOf(
+            "bootstrap.sql",
+            "grants.sql",
+        ).forEach { copy(repository.resolve("ops/postgres/$it"), "/opt/spoolin/$it") }
     }
 
     private fun copy(

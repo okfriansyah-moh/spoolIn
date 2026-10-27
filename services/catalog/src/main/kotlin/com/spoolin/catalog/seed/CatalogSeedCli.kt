@@ -74,6 +74,7 @@ private fun seedCommand(args: Array<String>) {
             ?: "manifest-v1"
     val dataSource = DatabaseSettings.load(environment, "catalog", false).pool()
     dataSource.use { pool ->
+        pool.connection.use(com.spoolin.support.identity.NamedIdentities::verify)
         val loader = CatalogSeedLoader(pool, policy)
         val inserted =
             loader.loadFromManifest(

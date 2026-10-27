@@ -1,6 +1,7 @@
 package com.spoolin.catalog.features.person.read
 
 import com.spoolin.catalog.features.search.ManagedReadCursors
+import com.spoolin.catalog.features.search.ManagedReadRules
 import com.spoolin.support.identity.ActorRejected
 import com.spoolin.support.identity.ActorRpc
 import com.spoolin.support.identity.Permissions
@@ -65,12 +66,7 @@ class ManagedPersonReads(
     ) {
         try {
             requireMaintainer()
-            val state =
-                request.state.takeIf { it.isNotEmpty() }
-                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
-            if (state !in setOf("ACTIVE", "ARCHIVED")) {
-                throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
-            }
+            val state = ManagedReadRules.state(request.state)
             val first = ReadPolicy(policy()).rpcPageSize(request.first)
             val scope = cursors.scope(ReadPolicy(policy()), "managed-people", first, mapOf("state" to state))
             val after = cursors.person(request.after.takeIf { it.isNotEmpty() }, scope)

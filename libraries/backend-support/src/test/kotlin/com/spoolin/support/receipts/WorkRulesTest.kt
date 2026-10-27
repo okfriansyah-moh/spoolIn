@@ -14,8 +14,10 @@ class WorkRulesTest {
     private val work = WorkRequest("followup", "SYNC", parent, Instant.parse("2026-10-20T00:00:00Z"))
 
     @Test
-    fun `stable child UUID uses RFC version five namespace and exact step`() {
-        assertEquals(UUID.fromString("9c489390-3db8-5146-99e4-71c3c8712d66"), work.id(parent))
+    fun `new child UUID uses SHA256 version eight namespace and exact step`() {
+        assertEquals(UUID.fromString("4e75ca89-bd9d-83f7-9011-978879815e46"), work.id(parent))
+        assertEquals(8, work.id(parent).version())
+        assertEquals(2, work.id(parent).variant())
         assertEquals(work.id(parent), work.id(parent))
         assertNotEquals(work.id(parent), work.copy(step = "other").id(parent))
         assertNotEquals(work.id(parent), work.id(UUID.randomUUID()))

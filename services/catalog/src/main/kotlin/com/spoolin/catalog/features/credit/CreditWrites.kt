@@ -10,17 +10,15 @@
 
 package com.spoolin.catalog.features.credit
 
+import com.spoolin.catalog.boundary.grpc.CatalogWriteContext
+import com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.boundary.policy.PolicyWrite
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
-import com.spoolin.support.identity.ActorRejected
-import com.spoolin.support.identity.ActorRpc
-import com.spoolin.support.identity.Permissions
 import com.spoolin.support.policy.InputViolation
 import com.spoolin.support.policy.PatchValue
-import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -33,7 +31,6 @@ import java.sql.Connection
 import java.sql.Timestamp
 import java.time.Clock
 import java.util.UUID
-import javax.sql.DataSource
 
 private const val STATUS_ACTIVE = "ACTIVE"
 private const val KIND_MOVIE = "MOVIE"
@@ -49,94 +46,44 @@ class CreditWrites(
         request: CreditWrite,
         response: StreamObserver<Outcome>,
     ) {
-        try {
-            val outcome = executeCredit(request)
-            response.onNext(outcomeProto(outcome))
-            response.onCompleted()
-        } catch (e: io.grpc.StatusRuntimeException) {
-            response.onError(e)
-        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
-            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
-        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
-            response.onError(Status.NOT_FOUND.asRuntimeException())
-        } catch (e: ActorRejected) {
-            response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
-        } catch (e: InputViolation) {
-            response.onNext(invalidOutcome(request.context.operationId, e))
-            response.onCompleted()
-        }
+        CatalogWriteRpc.fields(request.context.operationId, response) { executeCredit(request) }
     }
 
     fun removeCredit(
         request: VersionedId,
         response: StreamObserver<Outcome>,
     ) {
-        try {
-            val outcome = executeRemoval(request)
-            response.onNext(outcomeProto(outcome))
-            response.onCompleted()
-        } catch (e: io.grpc.StatusRuntimeException) {
-            response.onError(e)
-        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
-            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
-        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
-            response.onError(Status.NOT_FOUND.asRuntimeException())
-        } catch (e: ActorRejected) {
-            response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
-        }
+        CatalogWriteRpc.receipt(response) { executeRemoval(request) }
     }
 
     private fun executeCredit(request: CreditWrite): com.spoolin.support.receipts.ReceiptOutcome {
-        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role)) throw ActorRejected()
-        val operationId = parseId(request.context.operationId)
-        val correlationId = parseId(request.context.correlationId)
-        val actorScope = "account:${claims.accountId}"
+        val context = CatalogWriteContext.management(request.context)
         val isCreate = !request.hasId()
-        val intentFields = CatalogWriteIntent.credit(request)
-        val intent =
-            OperationIntent(
-                operationId,
-                actorScope,
-                WRITE_KIND,
-                request.context.policyRevision,
-                intentFields,
-            )
-        return receipts.execute(intent, correlationId, true) { conn ->
+        val intent = context.intent(WRITE_KIND, CatalogWriteIntent.credit(request))
+        return receipts.execute(intent, context.correlation, true) { conn ->
             val command = policy.bind(request, request.context.policyRevision)
             if (!request.hasExpectedVersion() || request.expectedVersion < 0) {
                 throw InputViolation("expectedVersion", "Supply the current version.")
             }
             if (isCreate) {
-                create(conn, command, claims.accountId, operationId, correlationId)
+                create(conn, command, context.actor, context.operation, context.correlation)
             } else {
-                update(conn, command, claims.accountId, operationId, correlationId)
+                update(conn, command, context.actor, context.operation, context.correlation)
             }
         }
     }
 
     private fun executeRemoval(request: VersionedId): com.spoolin.support.receipts.ReceiptOutcome {
-        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role)) throw ActorRejected()
-        val operationId = parseId(request.context.operationId)
-        val correlationId = parseId(request.context.correlationId)
-        val actorScope = "account:${claims.accountId}"
-        val creditId = parseId(request.id)
+        val context = CatalogWriteContext.management(request.context)
+        val creditId = CatalogWriteRpc.id(request.id)
         val expectedVersion = request.expectedVersion
-        val intent =
-            OperationIntent(
-                operationId,
-                actorScope,
-                REMOVE_KIND,
-                request.context.policyRevision,
-                CatalogWriteIntent.remove(request),
-            )
-        return receipts.execute(intent, correlationId, true) { conn ->
+        val intent = context.intent(REMOVE_KIND, CatalogWriteIntent.remove(request))
+        return receipts.execute(intent, context.correlation, true) { conn ->
             policy.bind(request, request.context.policyRevision)
             if (!request.hasExpectedVersion() || request.expectedVersion < 0) {
                 throw Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException()
             }
-            remove(conn, creditId, expectedVersion, claims.accountId, operationId, correlationId)
+            remove(conn, creditId, expectedVersion, context.actor, context.operation, context.correlation)
         }
     }
 
@@ -149,9 +96,9 @@ class CreditWrites(
     ): SafeResult {
         val request = command.input
         val validated = CreditValidation.validateCreate(request, command.policy)
-        val titleId = parseId(request.titleId)
-        val personId = parseId(validated.personId)
-        val roleId = parseId(validated.roleId)
+        val titleId = CatalogWriteRpc.id(request.titleId)
+        val personId = CatalogWriteRpc.id(validated.personId)
+        val roleId = CatalogWriteRpc.id(validated.roleId)
         val title = lockTitle(conn, titleId) ?: throw Status.NOT_FOUND.withDescription("NOT_FOUND").asRuntimeException()
         requireActiveMovie(title)
         if (title.version != request.expectedVersion) {
@@ -206,7 +153,7 @@ class CreditWrites(
         correlationId: UUID,
     ): SafeResult {
         val request = command.input
-        val creditId = parseId(request.id)
+        val creditId = CatalogWriteRpc.id(request.id)
         val expectedVersion = request.expectedVersion
         val current =
             lockCredit(conn, creditId)
@@ -227,7 +174,7 @@ class CreditWrites(
         val patch = CreditValidation.validatePatch(request, command.policy)
         val roleId =
             when (patch.roleId) {
-                is PatchValue.Value -> parseId(patch.roleId.value)
+                is PatchValue.Value -> CatalogWriteRpc.id(patch.roleId.value)
                 else -> current.roleId
             }
         val characters =
@@ -354,8 +301,16 @@ class CreditWrites(
     )
 
     private fun requireActiveMovie(title: TitleRow) {
-        if (title.status != STATUS_ACTIVE) throw Status.FAILED_PRECONDITION.withDescription("TITLE_ARCHIVED").asRuntimeException()
-        if (title.kind != KIND_MOVIE) throw Status.FAILED_PRECONDITION.withDescription("TV_CREDIT_DENIED").asRuntimeException()
+        if (title.status !=
+            STATUS_ACTIVE
+        ) {
+            throw Status.FAILED_PRECONDITION.withDescription("TITLE_ARCHIVED").asRuntimeException()
+        }
+        if (title.kind !=
+            KIND_MOVIE
+        ) {
+            throw Status.FAILED_PRECONDITION.withDescription("TV_CREDIT_DENIED").asRuntimeException()
+        }
     }
 
     private fun lockTitle(
@@ -430,50 +385,4 @@ class CreditWrites(
         conn: Connection,
         values: List<String>,
     ): java.sql.Array = conn.createArrayOf("text", values.toTypedArray())
-
-    private fun parseId(value: String): UUID =
-        runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
-            .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
-
-    private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b =
-            Outcome
-                .newBuilder()
-                .setOperationId(outcome.id.toString())
-                .setState(outcome.state.name)
-                .setResultExpired(outcome.resultExpired)
-        outcome.result?.let { r ->
-            b.resultId = r.resultId.toString()
-            r.version?.let { b.version = it }
-        }
-        outcome.errorCode?.let {
-            b.problem =
-                spoolin.v1.Spoolin.Problem
-                    .newBuilder()
-                    .setCode(it)
-                    .build()
-        }
-        return b.build()
-    }
 }
-
-private fun invalidOutcome(
-    operation: String,
-    violation: InputViolation,
-): Outcome =
-    Outcome
-        .newBuilder()
-        .setOperationId(operation)
-        .setState("FAILED")
-        .setProblem(
-            spoolin.v1.Spoolin.Problem
-                .newBuilder()
-                .setCode("FIELD_INVALID")
-                .addFields(
-                    spoolin.v1.Spoolin.FieldIssue
-                        .newBuilder()
-                        .setPath(violation.path)
-                        .setCode("INVALID")
-                        .setMessage(violation.correction),
-                ),
-        ).build()

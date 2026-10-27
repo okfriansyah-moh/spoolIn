@@ -1,3 +1,5 @@
+import { selectRetainedDraft, recoverRetainedDraft, newDraftState, submissionBlocked } from '../editing/retained-drafts';
+import { compareUtf16 } from '../../state/ordering';
 import type { GraphqlRequest } from '../../transport/graphql';
 import { TransportFailure } from '../../transport/graphql';
 import type { MovieDraft } from '../../generated/json-types';
@@ -61,8 +63,8 @@ function receiptExpired(
 function sameMetadata(left: ManagedMovie, right: ManagedMovie): boolean {
   const comparable = (movie: ManagedMovie) => ({
     ...movieToDraft(movie),
-    genreIds: [...movie.genreIds].sort(),
-    countries: [...(movie.countries ?? [])].sort(),
+    genreIds: [...movie.genreIds].sort(compareUtf16),
+    countries: [...(movie.countries ?? [])].sort(compareUtf16),
   });
   return JSON.stringify(comparable(left)) === JSON.stringify(comparable(right));
 }
@@ -291,82 +293,33 @@ export class MovieEditorController {
     draft: DraftRecord,
     signal: AbortSignal,
   ): Promise<void> {
-    this.publish({ ...this.current, draftChoices: Object.freeze([]) });
-    this.draftSync.adopt(draft);
-    if (draft.operationId) {
-      this.publish({
-        ...this.current,
-        phase: 'uncertain',
-        pendingOperationId: draft.operationId,
-        message:
-          'Check the original save before continuing this retained draft.',
-      });
-      await this.checkOriginalResult();
-      if (signal.aborted || this.current.phase !== 'failed') return;
-    }
-    const stale =
-      this.current.saved && draft.baseVersion !== this.current.saved.version;
+    const recovered = await recoverRetainedDraft(
+      draft, signal,
+      'The saved movie changed. Compare its current values with the retained draft.',
+      {
+        sync: this.draftSync,
+        update: (notice) => this.publish({ ...this.current, ...notice }),
+        check: () => this.checkOriginalResult(),
+        state: () => this.current,
+      },
+    );
+    if (!recovered) return;
     this.originalTitleTouched = Object.prototype.hasOwnProperty.call(
       draft.values,
       'originalTitle',
     );
-    this.publish({
-      ...this.current,
-      draft: draft.values as MovieDraft,
-      phase: stale ? 'stale' : 'idle',
-      pendingOperationId: null,
-      draftBaseKnown: !stale,
-      message: stale
-        ? 'The saved movie changed. Compare its current values with the retained draft.'
-        : 'Saved draft recovered.',
-      staleReviewOpen: !!stale,
-    });
+    this.publish({ ...this.current, ...recovered, draft: draft.values as MovieDraft });
   }
 
   async selectRetainedDraft(id: string): Promise<void> {
-    if (
-      !this.writeContext ||
-      this.current.phase === 'uncertain' ||
-      this.current.phase === 'submitting'
-    )
-      return;
-    const signal = this.active?.signal ?? new AbortController().signal;
-    try {
-      const drafts = await this.draftSync.load(this.writeContext, signal);
-      const selected = drafts.find((draft) => draft.id === id);
-      if (!selected || signal.aborted) {
-        this.publish({
-          ...this.current,
-          message:
-            'That retained draft is no longer available. Choose another draft or start again.',
-        });
-        return;
-      }
-      await this.applyBackedDraft(selected, signal);
-    } catch {
-      this.publish({
-        ...this.current,
-        message:
-          'The retained draft could not be checked. Retry before continuing.',
-      });
-    }
+    await selectRetainedDraft(id, this.writeContext, this.current.phase, this.active?.signal, this.draftSync,
+      (draft, signal) => this.applyBackedDraft(draft, signal),
+      (message) => this.publish({ ...this.current, message }));
   }
 
   startNewDraft(): void {
-    if (!this.current.draftChoices.length || this.current.phase === 'uncertain')
-      return;
-    this.draftSync.reset();
-    this.publish({
-      ...this.current,
-      draftChoices: Object.freeze([]),
-      draftBaseKnown: true,
-      phase: 'idle',
-      draft: this.current.saved
-        ? movieToDraft(this.current.saved)
-        : EMPTY_MOVIE_DRAFT,
-      message:
-        'Started a new draft. Other retained drafts remain available after reload.',
-    });
+    const next = newDraftState(this.current, this.draftSync, movieToDraft, EMPTY_MOVIE_DRAFT);
+    if (next) this.publish({ ...this.current, ...next });
   }
 
   private reviewedStale(reviewed: boolean): boolean {
@@ -449,12 +402,12 @@ export class MovieEditorController {
     latest: NonNullable<EditorState['saved']>,
   ): readonly string[] {
     const baseGenres = [...(this.current.saved?.genreIds ?? [])]
-      .sort()
+      .sort(compareUtf16)
       .join(',');
     const draftGenres = [
       ...(this.current.draft.genreIds ?? this.current.saved?.genreIds ?? []),
     ]
-      .sort()
+      .sort(compareUtf16)
       .join(',');
     return draftGenres !== baseGenres
       ? (this.current.draft.genreIds ?? [])
@@ -503,14 +456,7 @@ export class MovieEditorController {
   }
 
   private submissionBlocked(): boolean {
-    return (
-      !!this.pendingWriteId ||
-      this.current.draftChoices.length > 0 ||
-      ['submitting', 'uncertain', 'stale', 'target-changed'].includes(
-        this.current.phase,
-      ) ||
-      (this.mode === 'create' && this.current.saved !== null)
-    );
+    return submissionBlocked(this.pendingWriteId, this.current.draftChoices.length, this.current.phase, this.mode, this.current.saved);
   }
 
   private beginSubmit(): {

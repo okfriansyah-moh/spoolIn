@@ -2,16 +2,14 @@
 
 package com.spoolin.catalog.features.taxonomy.roles
 
+import com.spoolin.catalog.boundary.grpc.CatalogWriteContext
+import com.spoolin.catalog.boundary.grpc.CatalogWriteRpc
 import com.spoolin.catalog.boundary.policy.CatalogWriteIntent
 import com.spoolin.catalog.boundary.policy.CatalogWritePolicy
 import com.spoolin.catalog.operations.audit.AuditDiff
 import com.spoolin.catalog.operations.audit.AuditInsert
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
-import com.spoolin.support.identity.ActorRejected
-import com.spoolin.support.identity.ActorRpc
-import com.spoolin.support.identity.Permissions
 import com.spoolin.support.policy.InputViolation
-import com.spoolin.support.receipts.OperationIntent
 import com.spoolin.support.receipts.SafeResult
 import com.spoolin.support.receipts.executeBound
 import com.spoolin.support.receipts.queryBound
@@ -22,7 +20,6 @@ import spoolin.v1.Spoolin.RoleWrite
 import java.sql.Connection
 import java.time.Clock
 import java.util.UUID
-import javax.sql.DataSource
 
 private const val WRITE_KIND = "CreateRole"
 
@@ -41,40 +38,19 @@ class RoleWrites(
         response: StreamObserver<Outcome>,
     ) {
         try {
-            val outcome = executeRole(request)
-            response.onNext(outcomeProto(outcome))
-            response.onCompleted()
-        } catch (e: io.grpc.StatusRuntimeException) {
-            response.onError(e)
-        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
-            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
-        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
-            response.onError(Status.NOT_FOUND.asRuntimeException())
-        } catch (e: ActorRejected) {
-            response.onError(Status.PERMISSION_DENIED.withDescription("UNAUTHORISED").asRuntimeException())
-        } catch (e: InputViolation) {
+            CatalogWriteRpc.receipt(response) { executeRole(request) }
+        } catch (_: InputViolation) {
             response.onError(Status.INVALID_ARGUMENT.withDescription("FIELD_INVALID").asRuntimeException())
         }
     }
 
     private fun executeRole(request: RoleWrite): com.spoolin.support.receipts.ReceiptOutcome {
-        val claims = ActorRpc.current() ?: throw Status.PERMISSION_DENIED.asRuntimeException()
-        if (!Permissions.management(claims.role)) throw ActorRejected()
-        val operationId = parseId(request.context.operationId)
-        val correlationId = parseId(request.context.correlationId)
-        val actorScope = "account:${claims.accountId}"
-        val intent =
-            OperationIntent(
-                operationId,
-                actorScope,
-                WRITE_KIND,
-                request.context.policyRevision,
-                CatalogWriteIntent.role(request),
-            )
-        return receipts.execute(intent, correlationId, true) { conn ->
+        val context = CatalogWriteContext.management(request.context)
+        val intent = context.intent(WRITE_KIND, CatalogWriteIntent.role(request))
+        return receipts.execute(intent, context.correlation, true) { conn ->
             val effective = policy.bind(request, request.context.policyRevision).policy
             val validated = RoleValidation.validateCreate(request.category, request.label, effective)
-            create(conn, validated, claims.accountId, operationId, correlationId)
+            create(conn, validated, context.actor, context.operation, context.correlation)
         }
     }
 
@@ -123,29 +99,4 @@ class RoleWrites(
                 listOf(label),
             ) { rs -> rs.next() }
             .isNotEmpty()
-
-    private fun parseId(value: String): UUID =
-        runCatching { UUID.fromString(value).also { require(it.toString() == value) } }
-            .getOrElse { throw Status.INVALID_ARGUMENT.withDescription("INVALID_ID").asRuntimeException() }
-
-    private fun outcomeProto(outcome: com.spoolin.support.receipts.ReceiptOutcome): Outcome {
-        val b =
-            Outcome
-                .newBuilder()
-                .setOperationId(outcome.id.toString())
-                .setState(outcome.state.name)
-                .setResultExpired(outcome.resultExpired)
-        outcome.result?.let { r ->
-            b.resultId = r.resultId.toString()
-            r.version?.let { b.version = it }
-        }
-        outcome.errorCode?.let {
-            b.problem =
-                spoolin.v1.Spoolin.Problem
-                    .newBuilder()
-                    .setCode(it)
-                    .build()
-        }
-        return b.build()
-    }
 }

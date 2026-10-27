@@ -62,6 +62,8 @@ object WorkRecoveryCli {
         operator: String,
         values: Map<String, String>,
     ) {
+        com.spoolin.support.identity.NamedIdentities
+            .verify(connection)
         val reasonPath = Path.of("/run/spoolin-operator-reason")
         OperatorAccess.protectedFile(reasonPath)
         require(

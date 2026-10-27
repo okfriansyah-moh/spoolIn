@@ -9,7 +9,12 @@ export function count(value: string): number {
   return Array.from(value).length;
 }
 export function trimOrdinary(value: string): string {
-  return value.replace(/^\p{White_Space}+|\p{White_Space}+$/gu, '');
+  let start = 0;
+  let end = value.length;
+  const whitespace = /\p{White_Space}/u;
+  while (start < end && whitespace.test(value[start]!)) start += 1;
+  while (end > start && whitespace.test(value[end - 1]!)) end -= 1;
+  return value.slice(start, end);
 }
 export function checkText(
   value: string,

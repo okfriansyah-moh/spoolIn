@@ -1,7 +1,6 @@
 package com.spoolin.catalog.features.lifecycle
 
 import com.spoolin.catalog.operations.receipts.OwnerReceipts
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import spoolin.v1.Spoolin.Lifecycle
 import spoolin.v1.Spoolin.Outcome
@@ -23,28 +22,11 @@ class PersonLifecycle(
         request: Lifecycle,
         response: StreamObserver<Outcome>,
     ) {
-        try {
-            val claims = LifecycleAuthorization.management()
-            val command = LifecycleCommand.parse(request, claims)
-            val result =
-                receipts.execute(command.intent("PersonLifecycle"), command.correlation, true) { connection ->
-                    LifecycleAuthorization.currentPolicy(command.policy, policyRevision())
-                    LifecycleStore().person(connection, command, impacts)
-                }
-            response.onNext(lifecycleOutcome(result))
-            response.onCompleted()
-        } catch (failure: io.grpc.StatusRuntimeException) {
-            val rejected = lifecycleRejection(request, failure)
-            if (rejected == null) {
-                response.onError(failure)
-            } else {
-                response.onNext(rejected)
-                response.onCompleted()
-            }
-        } catch (_: com.spoolin.support.receipts.ReceiptConflict) {
-            response.onError(Status.ALREADY_EXISTS.withDescription("IDEMPOTENCY_CONFLICT").asRuntimeException())
-        } catch (_: com.spoolin.support.receipts.ReceiptHidden) {
-            response.onError(Status.NOT_FOUND.asRuntimeException())
+        LifecycleExecution(
+            receipts,
+            policyRevision,
+        ).apply(request, response, "PersonLifecycle") { connection, command ->
+            LifecycleStore().person(connection, command, impacts)
         }
     }
 }

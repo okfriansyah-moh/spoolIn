@@ -3,6 +3,9 @@ import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 import org.gradle.api.artifacts.dsl.LockMode
+import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestListener
+import org.gradle.api.tasks.testing.TestResult
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
@@ -242,4 +245,75 @@ configure(
         }
     }
     tasks.named("koverXmlReport") { dependsOn(":tests:integration:test") }
+}
+
+// The opt-in variant measures only src/test, without changing the combined acceptance reports.
+if (providers.gradleProperty("unitCoverage").orNull == "true") {
+    val unitModules = setOf(":services:core", ":services:catalog", ":services:media", ":libraries:backend-support")
+    configure(subprojects.filter { it.path in unitModules }) {
+        val sources = extensions.getByType<SourceSetContainer>()
+        var executedTests = 0L
+        var failedTests = 0L
+        val unitTest =
+            tasks.register<Test>("unitTest") {
+                description = "Run the complete src/test suite without integration source sets or filters."
+                group = "verification"
+                testClassesDirs = sources["test"].output.classesDirs
+                classpath = sources["test"].runtimeClasspath
+                dependsOn("testClasses")
+                useJUnitPlatform()
+                maxParallelForks = 1
+                maxHeapSize = "768m"
+                systemProperty("spoolin.repository-root", rootProject.projectDir.absolutePath)
+                ignoreFailures = true
+                outputs.upToDateWhen { false }
+                addTestListener(
+                    object : TestListener {
+                        override fun beforeSuite(suite: TestDescriptor) = Unit
+
+                        override fun beforeTest(testDescriptor: TestDescriptor) = Unit
+
+                        override fun afterTest(
+                            testDescriptor: TestDescriptor,
+                            result: TestResult,
+                        ) = Unit
+
+                        override fun afterSuite(
+                            suite: TestDescriptor,
+                            result: TestResult,
+                        ) {
+                            if (suite.parent == null) {
+                                executedTests = result.testCount - result.skippedTestCount
+                                failedTests = result.failedTestCount
+                            }
+                        }
+                    },
+                )
+            }
+        tasks.register("verifyUnitTests") {
+            group = "verification"
+            description = "Fail on empty or failed unit suites after their coverage reports are generated."
+            dependsOn(unitTest, "koverXmlReportUnit", "koverHtmlReportUnit")
+            doLast {
+                require(executedTests > 0) { "No unit tests executed in $path" }
+                require(failedTests == 0L) { "$failedTests unit tests failed in $path" }
+            }
+        }
+        extensions.configure<KoverProjectExtension> {
+            currentProject {
+                instrumentation {
+                    disabledForTestTasks.set(provider { tasks.withType<Test>().names.filter { it != unitTest.name } })
+                }
+                createVariant("unit") { add("jvm") }
+            }
+            reports.variant("unit") {
+                filters { excludes { packages("com.spoolin.core.boundary.graphql.generated") } }
+                xml { xmlFile.set(layout.buildDirectory.file("reports/unit-coverage/report.xml")) }
+                html { htmlDir.set(layout.buildDirectory.dir("reports/unit-coverage/html")) }
+                verify {
+                    rule("At least 80 percent unit line coverage") { minBound(80) }
+                }
+            }
+        }
+    }
 }

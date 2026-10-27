@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { compareUtf16 } from '../lib/state/ordering';
   import heroArtwork from '../lib/design-system/artwork/hero.png';
   /**
    * T013 – Discovery page (root route).
@@ -179,7 +180,7 @@
       a.kind === b.kind &&
       a.year === b.year &&
       a.month === b.month &&
-      [...a.genres].sort().join(',') === [...b.genres].sort().join(',')
+      [...a.genres].sort(compareUtf16).join(',') === [...b.genres].sort(compareUtf16).join(',')
     );
   }
 

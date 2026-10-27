@@ -19,7 +19,8 @@ val foundationTestRuntime =
 
 tasks.named<Test>("test") {
     testClassesDirs = sourceSets["test"].output.classesDirs + bootstrapTests.output.classesDirs
-    classpath = files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
+    classpath =
+        files(sourceSets["test"].output.classesDirs, configurations["testRuntimeClasspath"], foundationTestRuntime)
     filter { includeTestsMatching("*RulesTest") }
 }
 
@@ -27,6 +28,7 @@ tasks.named<Test>("integrationTest") {
     classpath = foundationTestRuntime
     doFirst {
         classpath = classpath.filter { it != sourceSets["main"].output.resourcesDir }
+        systemProperty("identity.fixture.classpath", classpath.asPath)
     }
     dependsOn("integrationTestClasses")
     filter { includeTestsMatching("com.spoolin.catalog.boundary.bootstrap.*BoundaryTest") }
@@ -37,6 +39,18 @@ kover {
 }
 
 tasks.named("koverXmlReport") { dependsOn("integrationTest", "architectureTest") }
+
+val catalogFilterOptionsIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    classpath =
+        files(bootstrapTests.output, sourceSets["main"].output, configurations["integrationTestRuntimeClasspath"])
+    dependsOn("integrationTestClasses")
+    filter { includeTestsMatching("com.spoolin.catalog.features.taxonomy.read.CatalogFilterOptionsRulesTest") }
+    useJUnitPlatform()
+    maxHeapSize = "256m"
+}
+tasks.named("integrationTest") { dependsOn(catalogFilterOptionsIntegrationTest) }
+tasks.named("koverXmlReport") { dependsOn(catalogFilterOptionsIntegrationTest) }
 
 springBoot { mainClass.set("com.spoolin.catalog.ApplicationKt") }
 
@@ -237,3 +251,13 @@ val catalogProposalIntegrationTest by tasks.registering(Test::class) {
     maxHeapSize = "768m"
 }
 tasks.named("koverXmlReport") { dependsOn(catalogProposalIntegrationTest) }
+
+val identityMigrationIntegrationTest by tasks.registering(Test::class) {
+    testClassesDirs = bootstrapTests.output.classesDirs
+    dependsOn("integrationTestClasses")
+    classpath = foundationTestRuntime
+    filter { includeTestsMatching("com.spoolin.catalog.boundary.bootstrap.IdentityMigrationBoundaryTest") }
+    doFirst { systemProperty("identity.fixture.classpath", classpath.asPath) }
+    useJUnitPlatform()
+    maxHeapSize = "768m"
+}

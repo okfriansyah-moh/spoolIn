@@ -1,3 +1,4 @@
+import { compareText } from './order.js';
 import { context, isSpanContextValid, trace } from '@opentelemetry/api';
 
 export type Level = 'debug' | 'info' | 'warning' | 'error' | 'fatal';
@@ -97,7 +98,7 @@ function validResource(value: Resource): boolean {
     value['service.namespace'] === 'spoolin' &&
     ['local', 'test'].includes(value['service.env']) &&
     /^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$/.test(value['service.version']) &&
-    Object.keys(value).sort().join(',') ===
+    Object.keys(value).sort(compareText).join(',') ===
       'service.env,service.name,service.namespace,service.version'
   );
 }

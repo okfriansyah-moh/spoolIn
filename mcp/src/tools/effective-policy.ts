@@ -1,3 +1,4 @@
+import { compareText } from '../operations/order.js';
 import { fromJsonSchema } from '@modelcontextprotocol/server';
 import type { JsonSchemaType } from '@modelcontextprotocol/server';
 import type {
@@ -84,7 +85,7 @@ function artwork(value: PolicySnapshot['artwork']) {
   if (new Set(value.formats).size !== value.formats.length) unavailable();
   return {
     maxInputBytes: long(value.maxInputBytes),
-    formats: [...value.formats].sort(),
+    formats: [...value.formats].sort(compareText),
     maxDimensionPx: integer(value.maxDimensionPx),
     maxPixels: long(value.maxPixels),
   };

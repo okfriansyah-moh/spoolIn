@@ -5,6 +5,7 @@ package com.spoolin.catalog.features.movie
 import com.spoolin.catalog.boundary.grpc.ProtoHelpers
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.ManagedReadCursors
+import com.spoolin.catalog.features.search.ManagedReadRules
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.operations.audit.AuditReads
 import com.spoolin.support.identity.ActorRejected
@@ -23,7 +24,6 @@ import spoolin.v1.Spoolin.Id
 import spoolin.v1.Spoolin.PageRequest
 import spoolin.v1.Spoolin.Title
 import spoolin.v1.Spoolin.TitlePage
-import java.sql.ResultSet
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -75,12 +75,7 @@ class ManagedMovieReads(
     ) {
         try {
             requireMaintainer()
-            val state =
-                request.state.takeIf { it.isNotEmpty() }
-                    ?: throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
-            if (state !in setOf("ACTIVE", "ARCHIVED")) {
-                throw Status.INVALID_ARGUMENT.withDescription("INVALID_STATE").asRuntimeException()
-            }
+            val state = ManagedReadRules.state(request.state)
             val first = ReadPolicy(policy()).rpcPageSize(request.first)
             val scope = cursors.scope(ReadPolicy(policy()), "managed-titles", first, mapOf("state" to state))
             val after = cursors.title(request.after.takeIf { it.isNotEmpty() }, scope)
@@ -167,42 +162,19 @@ class ManagedMovieReads(
         if (!Permissions.management(claims.role)) throw ActorRejected()
     }
 
-    private data class ManagedTitleRow(
-        val id: UUID,
-        val kind: String,
-        val status: String,
-        val displayTitle: String,
-        val originalTitle: String?,
-        val synopsis: String,
-        val synopsisLanguage: String,
-        val originalLanguage: String?,
-        val countries: List<String>,
-        val releaseYear: Int?,
-        val releaseMonth: Int?,
-        val releaseDay: Int?,
-        val releaseContext: String?,
-        val runtimeMinutes: Int?,
-        val tvStatus: String?,
-        val endYear: Int?,
-        val endMonth: Int?,
-        val endDay: Int?,
-        val assetId: UUID?,
-        val version: Long,
-    )
-
     private data class ManagedPage(
-        val rows: List<ManagedTitleRow>,
+        val rows: List<TitleSearchSql.TitleRow>,
         val endCursor: String?,
         val hasNextPage: Boolean,
     )
 
-    private fun findManagedTitle(id: UUID): ManagedTitleRow? =
+    private fun findManagedTitle(id: UUID): TitleSearchSql.TitleRow? =
         dataSource.connection.use { conn ->
             conn
                 .queryBound(
                     "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.id = ?",
                     listOf(id),
-                ) { mapManagedRow(it) }
+                ) { TitleSearchSql.readRow(it) }
                 .firstOrNull()
         }
 
@@ -218,7 +190,7 @@ class ManagedMovieReads(
             "SELECT ${TitleSearchSql.TITLE_COLUMNS} FROM title t WHERE t.status = ? $keyset " +
                 "ORDER BY t.release_year DESC NULLS LAST, t.release_month DESC NULLS LAST, " +
                 "t.release_day DESC NULLS LAST, t.id ASC LIMIT ${first + 1}"
-        val rows = dataSource.connection.use { conn -> conn.queryBound(sql, params) { mapManagedRow(it) } }
+        val rows = dataSource.connection.use { conn -> conn.queryBound(sql, params) { TitleSearchSql.readRow(it) } }
         val hasNext = rows.size > first
         val page = if (hasNext) rows.dropLast(1) else rows
         val cursor =
@@ -237,35 +209,8 @@ class ManagedMovieReads(
         return ManagedPage(page, cursor, hasNext)
     }
 
-    private fun mapManagedRow(rs: ResultSet): ManagedTitleRow {
-        val rawCountries = rs.getArray("countries")?.array
-        val countries = (rawCountries as? Array<*>)?.map { it.toString() } ?: emptyList()
-        return ManagedTitleRow(
-            id = rs.getObject("id", UUID::class.java),
-            kind = rs.getString("kind"),
-            status = rs.getString("status"),
-            displayTitle = rs.getString("display_title"),
-            originalTitle = rs.getString("original_title"),
-            synopsis = rs.getString("synopsis"),
-            synopsisLanguage = rs.getString("synopsis_language"),
-            originalLanguage = rs.getString("original_language"),
-            countries = countries,
-            releaseYear = rs.getObject("release_year") as? Int,
-            releaseMonth = rs.getObject("release_month") as? Int,
-            releaseDay = rs.getObject("release_day") as? Int,
-            releaseContext = rs.getString("release_context"),
-            runtimeMinutes = rs.getObject("runtime_minutes") as? Int,
-            tvStatus = rs.getString("tv_status"),
-            endYear = rs.getObject("end_year") as? Int,
-            endMonth = rs.getObject("end_month") as? Int,
-            endDay = rs.getObject("end_day") as? Int,
-            assetId = rs.getObject("asset_id")?.let { UUID.fromString(it.toString()) },
-            version = rs.getLong("version"),
-        )
-    }
-
     private fun titleProto(
-        row: ManagedTitleRow,
+        row: TitleSearchSql.TitleRow,
         genreIds: List<UUID>,
         provenanceRows: List<ProvenanceReads.ProvenanceRow>,
     ): Title {

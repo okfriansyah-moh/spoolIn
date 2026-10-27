@@ -1,0 +1,115 @@
+name: spoolin-unit-coverage
+services:
+  runner:
+    build:
+      context: ../local
+      dockerfile: toolchain.Dockerfile
+    image: spoolin-local-toolchain:21.0.12.1-24.21.0
+    working_dir: /workspace
+    environment:
+      CI: 'true'
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /workspace
+      NODE_OPTIONS: --max-old-space-size=640
+      GRADLE_USER_HOME: /workspace/.local/gradle
+      SONAR_HOST_URL: http://sonarqube:9000
+      SONAR_PUBLIC_URL: http://localhost:${SONAR_HTTP_PORT:-9000}
+    volumes:
+      - ../..:/workspace
+      - node:/workspace/node_modules
+      - frontend-node:/workspace/frontend/node_modules
+      - mcp-node:/workspace/mcp/node_modules
+      - browser-node:/workspace/tests/browser/node_modules
+      - gradle:/workspace/.local/gradle
+    mem_limit: ${COVERAGE_RUNNER_MEMORY:-3g}
+    cpus: 2
+    init: true
+    command: [node, ops/unit-coverage/run.mjs]
+  reports:
+    image: nginx:1.29.7-alpine@sha256:e7257f1ef28ba17cf7c248cb8ccf6f0c6e0228ab9c315c152f9c203cd34cf6d1
+    profiles: [reports]
+    user: "101:101"
+    command: [nginx, -g, "daemon off; master_process off;"]
+    ports: ['127.0.0.1:${COVERAGE_HTTP_PORT:-8090}:8080']
+    volumes:
+      - ../../.local/unit-coverage:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101,mode=755,size=16m
+      - /var/run:uid=101,gid=101,mode=755,size=1m
+      - /tmp:mode=1777,size=16m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    cpus: 0.25
+  sonar-db:
+    image: postgres:18.6-bookworm@sha256:bbf83594798e144bff365a9c191c5d779f181fb3135902064ab8ff11918020fc
+    profiles: [sonar]
+    environment:
+      POSTGRES_DB: sonar
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:-local-coverage-only}
+    volumes: [sonar-db:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U sonar -d sonar]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 256m
+    cpus: 0.5
+  sonarqube:
+    image: sonarqube:26.10.0.133078-community@sha256:0b3408443fb6a311253de27941b10977c9b977fd53be2265947bfe14161308b8
+    profiles: [sonar]
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD:-local-coverage-only}
+      SONAR_WEB_JAVAOPTS: -Xms128m -Xmx384m
+      SONAR_CE_JAVAOPTS: -Xms128m -Xmx512m
+      SONAR_SEARCH_JAVAOPTS: -Xms512m -Xmx512m
+    depends_on:
+      sonar-db: { condition: service_healthy }
+    ports: ['127.0.0.1:${SONAR_HTTP_PORT:-9000}:9000']
+    volumes:
+      - sonar-data:/opt/sonarqube/data
+      - sonar-extensions:/opt/sonarqube/extensions
+      - sonar-logs:/opt/sonarqube/logs
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'curl -fsS http://localhost:9000/api/system/status | grep -q ''"status":"UP"''',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    ulimits:
+      nofile: { soft: 131072, hard: 131072 }
+      nproc: 8192
+    mem_limit: 3g
+    cpus: 2
+  scanner:
+    build:
+      context: .
+      dockerfile: scanner.Dockerfile
+    profiles: [sonar]
+    working_dir: /workspace
+    environment:
+      SONAR_TOKEN: ${SONAR_TOKEN:-}
+      SONAR_HOST_URL: http://sonarqube:9000
+      JAVA_TOOL_OPTIONS: -Xmx768m
+    volumes: ['../..:/workspace']
+    mem_limit: 3g
+    cpus: 1
+volumes:
+  node:
+  frontend-node:
+  mcp-node:
+  browser-node:
+  gradle:
+  sonar-db:
+  sonar-data:
+  sonar-extensions:
+  sonar-logs:

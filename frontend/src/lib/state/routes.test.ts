@@ -20,8 +20,12 @@ it('composes the production root layout with its public shell and route content'
 });
 it('renders the adopted discovery identity and document title', () => {
   const result = render(Home);
-  expect(result.body).toContain('Every reel holds a story.');
-  expect(result.body).toContain(
+  const visibleText = result.body
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&#x2019;/g, '’')
+    .replace(/\s+/g, ' ');
+  expect(visibleText).toContain('Every reel holds a story.');
+  expect(visibleText).toContain(
     'Unspooling stories and discovering what’s behind them.',
   );
   expect(result.head).toContain('SpoolIn · Every reel holds a story.');
