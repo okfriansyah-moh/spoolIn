@@ -164,14 +164,12 @@
 <svelte:head>
   <title>{documentTitle}</title>
 </svelte:head>
-<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- validated same-origin catalog return context -->
-<a href={catalogReturn?.url ?? resolve('/')} onclick={returnToCatalog}
-  >Return to catalog</a
->
-
 <div class="title-page">
   <nav class="detail-breadcrumb" aria-label="Breadcrumb">
-    <a href={resolve('/')}>← Catalog</a>
+    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- validated same-origin catalog return context -->
+    <a href={catalogReturn?.url ?? resolve('/')} onclick={returnToCatalog}
+      >Return to catalog</a
+    >
   </nav>
 
   {#if titleState.kind === 'loading'}
