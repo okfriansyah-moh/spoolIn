@@ -1,7 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { isRecordId } from './safe-url';
-  import ArtworkSlot from './ArtworkSlot.svelte';
+  import CatalogArtwork from './CatalogArtwork.svelte';
   let {
     id,
     title,
@@ -30,11 +30,11 @@
         aria-label={title}
         onclick={(event) => onopen?.(event, id)}
       >
-        <ArtworkSlot src={artwork ?? null} />
+        <CatalogArtwork src={artwork ?? null} />
         <span class="title-kind-badge">{kind}</span>
       </a>
     {:else}
-      <ArtworkSlot src={artwork ?? null} />
+      <CatalogArtwork src={artwork ?? null} />
       <span class="title-kind-badge">{kind}</span>
     {/if}
   </div>

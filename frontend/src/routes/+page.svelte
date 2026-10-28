@@ -15,6 +15,7 @@
   import { plainNavigation } from '../lib/features/catalog/return-context';
   import { catalogPageStarts } from '../lib/features/catalog/page-history';
   import { catalogSort } from '../lib/features/catalog/types';
+  import { subscribePublicReadPause } from '../lib/transport/read-recovery';
   import { historyCursor } from '../lib/state/pagination';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -37,6 +38,7 @@
 
   let controller = $state.raw<CatalogController | null>(null);
   let mounted = $state(false);
+  let readRetryAt = $state(0);
   let genres = $state<Array<{ id: string; name: string }>>([]);
   let genreError = $state('');
   let genresLoading = $state(false);
@@ -73,6 +75,9 @@
     mounted = true;
     const transport = createTransport();
     controller = new CatalogController(transport);
+    const unsubscribePause = subscribePublicReadPause((until) => {
+      readRetryAt = until;
+    });
 
     void loadFilterOptions();
 
@@ -88,6 +93,7 @@
     );
 
     return () => {
+      unsubscribePause();
       genreAbort?.abort();
       controller?.dispose();
     };
@@ -157,7 +163,9 @@
     // Skip if this criteria was already dispatched (e.g., set from URL sync below).
     if (sameCriteria(safe, lastDispatched)) return;
 
-    const textChanged = safe.text !== lastDispatched.text;
+    const textChanged =
+      safe.text !== lastDispatched.text ||
+      catalogSort(safe.sort) !== catalogSort(lastDispatched.sort);
     pushUrl(safe);
     dispatch(safe, textChanged);
   });
@@ -286,6 +294,14 @@
       />
     </section>
 
+    {#if readRetryAt}
+      <p role="status" aria-live="polite">
+        Requests are temporarily limited. Waiting up to {Math.max(
+          1,
+          Math.ceil((readRetryAt - Date.now()) / 1000),
+        )} seconds before retrying automatically.
+      </p>
+    {/if}
     <div class="catalog-results">
       {#if catalogState.kind === 'loading'}
         <div
@@ -366,45 +382,49 @@
           {#if catalogState.loadingMore}<p role="status" aria-live="polite">
               Loading {catalogState.pageDirection ?? 'next'} titles…
             </p>{/if}
-          <nav class="catalog-pagination" aria-label="Title pages">
-            <button
-              type="button"
-              disabled={(catalogState.pageNumber ?? 1) <= 1 ||
-                catalogState.loadingMore}
-              aria-busy={catalogState.loadingMore &&
-                catalogState.pageDirection === 'previous'}
-              onclick={() => void changeTitlesPage('previous')}
-              >Previous titles page</button
-            >
-            <span role="status" aria-live="polite"
-              >Page {catalogState.pageNumber ?? 1}</span
-            >
-            <button
-              type="button"
-              disabled={!catalogState.pageInfo?.hasNextPage ||
-                catalogState.loadingMore}
-              aria-busy={catalogState.loadingMore &&
-                catalogState.pageDirection === 'next'}
-              onclick={() => void changeTitlesPage('next')}
-              >Next titles page</button
-            >
-          </nav>
-          {#if catalogState.pageError}
-            <button
-              type="button"
-              disabled={catalogState.loadingMore}
-              onclick={() =>
-                void changeTitlesPage(catalogState.pageDirection ?? 'next')}
-              >Retry {catalogState.pageDirection ?? 'next'} titles page</button
-            >
-          {/if}
-          {#if catalogState.pageError || catalogState.titles.length === 0}
-            <button
-              type="button"
-              disabled={catalogState.loadingMore}
-              onclick={restartTitles}>Restart from page one</button
-            >
-          {/if}
+          <div class="catalog-page-actions">
+            <nav class="catalog-pagination" aria-label="Title pages">
+              <button
+                type="button"
+                disabled={(catalogState.pageNumber ?? 1) <= 1 ||
+                  catalogState.loadingMore}
+                aria-busy={catalogState.loadingMore &&
+                  catalogState.pageDirection === 'previous'}
+                onclick={() => void changeTitlesPage('previous')}
+                >Previous titles page</button
+              >
+              <span role="status" aria-live="polite"
+                >Page {catalogState.pageNumber ?? 1}</span
+              >
+              <button
+                type="button"
+                disabled={!catalogState.pageInfo?.hasNextPage ||
+                  catalogState.loadingMore}
+                aria-busy={catalogState.loadingMore &&
+                  catalogState.pageDirection === 'next'}
+                onclick={() => void changeTitlesPage('next')}
+                >Next titles page</button
+              >
+            </nav>
+            <div class="catalog-page-recovery">
+              {#if catalogState.pageError}
+                <button
+                  type="button"
+                  disabled={catalogState.loadingMore}
+                  onclick={() =>
+                    void changeTitlesPage(catalogState.pageDirection ?? 'next')}
+                  >Retry {catalogState.pageDirection ?? 'next'} titles page</button
+                >
+              {/if}
+              {#if catalogState.pageError || catalogState.titles.length === 0}
+                <button
+                  type="button"
+                  disabled={catalogState.loadingMore}
+                  onclick={restartTitles}>Restart from page one</button
+                >
+              {/if}
+            </div>
+          </div>
         </section>
       {/if}
     </div>
@@ -417,12 +437,21 @@
 </div>
 
 <style>
+  .catalog-page-actions {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .catalog-page-recovery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
   .catalog-pagination {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-top: 1.5rem;
   }
   .catalog-pagination span {
     color: var(--muted);

@@ -3,7 +3,8 @@
  * Wraps the typed document nodes so callers never see raw query strings.
  */
 import { readPageInfo } from '../../state/pagination';
-import { TransportFailure, type GraphqlRequest } from '../../transport/graphql';
+import { recoverPublicRead } from '../../transport/read-recovery';
+import { type GraphqlRequest } from '../../transport/graphql';
 import { withSignal } from '../../transport/request-options';
 import type {
   TitlesQuery,
@@ -81,20 +82,10 @@ async function readCatalog(
   variables: Record<string, unknown>,
   signal?: AbortSignal,
 ): Promise<unknown> {
-  try {
-    return await request(query, variables, withSignal(signal));
-  } catch (error) {
-    if (
-      signal?.aborted ||
-      !(error instanceof TransportFailure) ||
-      error.code !== 'UNAVAILABLE'
-    )
-      throw error;
-    // A cold service or interrupted read may recover; never retry rejected access or rate limits.
-    await new Promise((resolve) => globalThis.setTimeout(resolve, 150));
-    if (signal?.aborted) throw error;
-    return request(query, variables, withSignal(signal));
-  }
+  return recoverPublicRead(
+    () => request(query, variables, withSignal(signal)),
+    signal,
+  );
 }
 
 export async function fetchTitles(

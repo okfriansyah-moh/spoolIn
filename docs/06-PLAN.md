@@ -11,31 +11,31 @@ sources:
   sha256: 13b5808bbc52bfb590bba17f72f5ecb5c4bad40703b4dadd1583721960769c17
 - id: PRD
   path: 02-PRD.md
-  sha256: 55eb812ec2e51f09b88d1eacde1763b65833f55d6a9124feab906a03ed86be39
+  sha256: 745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: b858e4221945cb6c0e87e06012cf765a4da9dade6e54a528d9e748febee3acee
+  sha256: c63104c466cc49e6243fe6e56befb834693f75e4342a50e11575ee5e55b85239
 - id: ATDD
   path: 05-atdd.md
-  sha256: 610cfe0a7c62f3e3bb6f7789100dcd90d623be2b74cc306b8cce195f8712a05d
+  sha256: 1f04f489661200c8c98aa4d22043d4cbfd575afb5b52aa9f4f773cf3d6513377
 - id: S-DESIGN-SYSTEM-03-DESIGN-SYSTEM-MD
   path: 03-design-system.md
-  sha256: 9283730f2632a20b4080aa28553c978fb22d4fcecf3ef46e5a111526973766b2
+  sha256: 9bc0a72380c765cfe6e9f23089640fc98c2effd4206acf379468018ba51344ec
 - id: S-DESIGN-SYSTEM-BRAND-HISTORY-MD
   path: design-system/brand-history.md
   sha256: dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba
 - id: S-DESIGN-SYSTEM-COMPONENTS-MD
   path: design-system/components.md
-  sha256: 7b205b5bca64c20b210d345701161c2aae1e1ec1f6cbee65dd56853624b3992c
+  sha256: 863b897dd73de598a09fd22563551aa68ab2139cfe46b25aeae81c99337d1ba1
 - id: S-DESIGN-SYSTEM-CONTRAST-JSON
   path: design-system/contrast.json
   sha256: 906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f
 - id: S-DESIGN-SYSTEM-COVERAGE-JSON
   path: design-system/coverage.json
-  sha256: 43d9552c37495adc2535bb30f62c157155c4a3390a13af7239fe01ca6a6cd4f9
+  sha256: 0f153639a1fa6fd175d251ce97d7b33b2875ed1230745425d94ef12a4c9e898a
 - id: S-DESIGN-SYSTEM-COVERAGE-MD
   path: design-system/coverage.md
-  sha256: 73c6f72fa4f46510ce7de376843cb406e3264a27123953d280d53d7b5e983310
+  sha256: 964c891dbdb394ed658273d8a07b4d9a39447a75ac4c963190979f76da423158
 - id: S-DESIGN-SYSTEM-INDEX-MD
   path: design-system/index.md
   sha256: 448725ac9bcc8d83b6792202bf44270a89ed925a71ac01c15cd18129ab3ba05a
@@ -92,7 +92,7 @@ sources:
   sha256: 22eee407ac91c4a39e6108dbcd68f7c059ecaeca9a7ac0e10425a39c915feccb
 - id: S-DESIGN-SYSTEM-MOCKUP-DISCOVERY-HTML
   path: design-system/mockup/discovery.html
-  sha256: 26b6d773cdc88cda1f351b625b816b77e81ad0f3779bc7dd3bee95a317390263
+  sha256: e511ace7699cf709d57c4b023a42242777d05ef80b35c0e9578db904f883ffdc
 - id: S-DESIGN-SYSTEM-MOCKUP-DOCS-CSS
   path: design-system/mockup/docs.css
   sha256: 0b1beb805445306f76810ac05a1fa846b281ca00141e04af421683c5f952e698
@@ -125,7 +125,7 @@ sources:
   sha256: 459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029
 - id: S-DESIGN-SYSTEM-VERIFICATION-MD
   path: design-system/verification.md
-  sha256: 5dbc7980ed2c307ba60ebaee9b3adc7f50301ef3c401daa7051adcb0ba6586d2
+  sha256: 72fee51be36200ca4eb557d32eda45273940f97b2c3d0e414e44db55635b2f76
 - id: S-PROMPTS-ATDD-CREATION-MD
   path: prompts/atdd-creation.md
   sha256: da2f345dd2967cb2e89d1cb13b1ab8cbd5d9f22c69233a0073f00378978060d2
@@ -2937,3 +2937,8 @@ Local image rebuild, migration, service readiness and the live read smoke check 
 
 
 Local manual-test preparation completed: all five application/database images rebuilt, V027 applied, Core/Catalog/Media/MCP restarted, and readiness passed after aligning Catalog’s supported schema to 27. A read-only live smoke check passed all six sort modes over two pages, default 24-title size/order, year/type filters and cross-sort cursor rejection. Existing data was retained without reset or reseeding. The application is available at `https://localhost:8443`; manual browser acceptance remains with the owner.
+
+
+### Catalog read recovery · 28 October 2026
+
+Manual testing exposed shared public-read quota exhaustion from repeated poster loads. The scoped correction adds visible-only bounded poster downloads, cancelable server-delay recovery, rapid-sort coalescing and spaced recovery controls. Preserve existing limits and access rules. Focused checks and independent review are recorded in selection-ae07274cb6d84d3e; extended acceptance remains pending.

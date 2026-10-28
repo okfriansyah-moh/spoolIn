@@ -13,7 +13,7 @@ import { TransportFailure } from '../../transport/graphql';
 import { readPageInfo } from '../../state/pagination';
 import type { GraphqlRequest } from '../../transport/graphql';
 import type { Criteria, CatalogState, TitleSummary } from './types';
-import { EMPTY_CRITERIA, MAX_SEARCH_CODE_POINTS } from './types';
+import { EMPTY_CRITERIA, MAX_SEARCH_CODE_POINTS, catalogSort } from './types';
 import {
   buildSearchInput,
   validateText,
@@ -82,6 +82,8 @@ export class CatalogController {
     const safe: Criteria = next.year ? next : { ...next, month: '' };
 
     const textChanged = safe.text !== this.current.criteria.text;
+    const sortChanged =
+      catalogSort(safe.sort) !== catalogSort(this.current.criteria.sort);
     this.current = {
       ...this.current,
       criteria: safe,
@@ -92,12 +94,15 @@ export class CatalogController {
     globalThis.clearTimeout(this.debounceTimer);
     this.begin();
 
-    if (options.debounce !== false && textChanged) {
+    if (options.debounce !== false && (textChanged || sortChanged)) {
       // Show outdated/loading transition while debouncing
       this.publish({ ...this.current, kind: 'outdated' });
-      this.debounceTimer = globalThis.setTimeout(() => {
-        void this.search(safe);
-      }, DEBOUNCE_MS);
+      this.debounceTimer = globalThis.setTimeout(
+        () => {
+          void this.search(safe);
+        },
+        textChanged ? DEBOUNCE_MS : 150,
+      );
     } else {
       void this.search(safe);
     }

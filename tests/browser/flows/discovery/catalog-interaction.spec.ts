@@ -139,3 +139,70 @@ test('history and title return preserve page starts, filters and sort', async ({
     .click();
   await expect(page.getByText('Page 1', { exact: true })).toBeVisible();
 });
+
+test('Previous from page four recovers throttling without losing the current grid', async ({
+  page,
+}) => {
+  let thirdReads = 0;
+  await page.route('**/graphql', async (route) => {
+    const body = route.request().postDataJSON();
+    if (!body.query.includes('query Titles')) return route.fallback();
+    const number = body.variables.after
+      ? Number(String(body.variables.after).replace('page-', ''))
+      : 1;
+    if (number === 3 && ++thirdReads === 2) {
+      return route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          errors: [
+            {
+              message: 'Wait',
+              extensions: { code: 'RATE_LIMITED', retryAfterMs: 500 },
+            },
+          ],
+        }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          titles: {
+            nodes: [
+              {
+                id: `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+                kind: 'MOVIE',
+                title: `Page ${number} title`,
+                release: null,
+                artwork: null,
+                genres: [],
+              },
+            ],
+            pageInfo: { endCursor: `page-${number + 1}`, hasNextPage: true },
+          },
+        },
+      }),
+    });
+  });
+  await page.reload();
+  for (const number of [2, 3, 4]) {
+    await page
+      .getByRole('button', { name: 'Next titles page', exact: true })
+      .click();
+    await expect(
+      page.getByText(`Page ${number}`, { exact: true }),
+    ).toBeVisible();
+  }
+  await page
+    .getByRole('button', { name: 'Previous titles page', exact: true })
+    .click();
+  await expect(
+    page.getByText(/Requests are temporarily limited/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Page 4 title', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('Page 3', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});

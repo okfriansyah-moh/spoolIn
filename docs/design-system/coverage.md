@@ -1,6 +1,6 @@
 # PRD coverage reconciliation
 
-PRD v2.4 · SHA-256 `55eb812ec2e51f09b88d1eacde1763b65833f55d6a9124feab906a03ed86be39`. 17 FRs, 16 NFRs and 159 ACs are accounted for. Visual mapping describes an inspectable contract, not passing production acceptance.
+PRD v2.4 · SHA-256 `745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77`. 17 FRs, 16 NFRs and 159 ACs are accounted for. Visual mapping describes an inspectable contract, not passing production acceptance.
 
 ## Functional requirements
 

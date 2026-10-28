@@ -5223,6 +5223,8 @@ Signed title cursors bind the selected sort as well as existing criteria, page s
 
 Live edits retain keyset browsing rather than a snapshot: unchanged data traverses without duplicates or omissions; additions or ordering edits can change the visible sequence. No stronger cross-request snapshot guarantee is introduced.
 
+Public catalog reads share a cancelable cooldown honoring server retry delays. Each read has at most two attempts; only rate limits and unavailable reads qualify. Sort changes coalesce for 150 ms. Poster reads start near the viewport with two concurrent downloads, abort obsolete work, and distinguish loading from unavailable artwork. Verified JPEG/PNG/WebP responses use temporary object URLs revoked on replacement or unmount; no persistent image cache is added. HTML CSP permits `blob:` only for images. Existing request quotas, authorization, no-store behavior and mutation handling remain unchanged. Recovery controls wrap with a 1rem gap between rows and buttons.
+
 #### Catalog search and optimistic update
 
 **Code example.** Parameterized query patterns for public title/credit visibility and version-checked person writes. Bind placeholders through the owner DAO; inspect affected rows and commit audit/outcome atomically.
@@ -7900,14 +7902,14 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 
 | Source | SHA-256 |
 |---|---|
-| [docs/02-PRD.md](02-PRD.md) | `55eb812ec2e51f09b88d1eacde1763b65833f55d6a9124feab906a03ed86be39` |
+| [docs/02-PRD.md](02-PRD.md) | `745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77` |
 | [docs/01-brainstorming-result.md](01-brainstorming-result.md) | `13b5808bbc52bfb590bba17f72f5ecb5c4bad40703b4dadd1583721960769c17` |
 | [docs/design-system/brand-history.md](design-system/brand-history.md) | `dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba` |
-| [docs/design-system/components.md](design-system/components.md) | `7b205b5bca64c20b210d345701161c2aae1e1ec1f6cbee65dd56853624b3992c` |
+| [docs/design-system/components.md](design-system/components.md) | `863b897dd73de598a09fd22563551aa68ab2139cfe46b25aeae81c99337d1ba1` |
 | [docs/design-system/contrast.json](design-system/contrast.json) | `906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f` |
-| [docs/design-system/coverage.json](design-system/coverage.json) | `43d9552c37495adc2535bb30f62c157155c4a3390a13af7239fe01ca6a6cd4f9` |
-| [docs/design-system/coverage.md](design-system/coverage.md) | `73c6f72fa4f46510ce7de376843cb406e3264a27123953d280d53d7b5e983310` |
-| [docs/03-design-system.md](03-design-system.md) | `9283730f2632a20b4080aa28553c978fb22d4fcecf3ef46e5a111526973766b2` |
+| [docs/design-system/coverage.json](design-system/coverage.json) | `0f153639a1fa6fd175d251ce97d7b33b2875ed1230745425d94ef12a4c9e898a` |
+| [docs/design-system/coverage.md](design-system/coverage.md) | `964c891dbdb394ed658273d8a07b4d9a39447a75ac4c963190979f76da423158` |
+| [docs/03-design-system.md](03-design-system.md) | `9bc0a72380c765cfe6e9f23089640fc98c2effd4206acf379468018ba51344ec` |
 | [docs/design-system/index.md](design-system/index.md) | `448725ac9bcc8d83b6792202bf44270a89ed925a71ac01c15cd18129ab3ba05a` |
 | [docs/design-system/mockup/account.html](design-system/mockup/account.html) | `ece3fe085ffc951a9dfb02b761f964e11118d229f6637bccfae6263015bf400a` |
 | [docs/design-system/mockup/ai.html](design-system/mockup/ai.html) | `b2c78e2099f8330cf8c5e5e2803dc3773e5b2ae85911700d6ae58d8543077156` |
@@ -7926,7 +7928,7 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/mockup/components.js](design-system/mockup/components.js) | `a125092e99e82fb9eadac41b77b76958e217df944109c8eda651748c607d661f` |
 | [docs/design-system/mockup/credits.html](design-system/mockup/credits.html) | `10e90349a8b7a98cbf20cf41d3c6186c6bbe689e42baa2a4386534edb80863ac` |
 | [docs/design-system/mockup/details.html](design-system/mockup/details.html) | `22eee407ac91c4a39e6108dbcd68f7c059ecaeca9a7ac0e10425a39c915feccb` |
-| [docs/design-system/mockup/discovery.html](design-system/mockup/discovery.html) | `26b6d773cdc88cda1f351b625b816b77e81ad0f3779bc7dd3bee95a317390263` |
+| [docs/design-system/mockup/discovery.html](design-system/mockup/discovery.html) | `e511ace7699cf709d57c4b023a42242777d05ef80b35c0e9578db904f883ffdc` |
 | [docs/design-system/mockup/docs.css](design-system/mockup/docs.css) | `0b1beb805445306f76810ac05a1fa846b281ca00141e04af421683c5f952e698` |
 | [docs/design-system/mockup/index.html](design-system/mockup/index.html) | `82f513b5982cc8141e1c058f22415d7de632ccb1e83ca0e7f00c9f089da2afbf` |
 | [docs/design-system/mockup/management.html](design-system/mockup/management.html) | `a3d247de6c6073d581bf0d88fa8f87f0727ef3c0d843bd23d74420ade1066059` |
@@ -7937,9 +7939,9 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/mockup/theme.js](design-system/mockup/theme.js) | `1d6ae3fe7138b56c4169ac988045d0bb9ae21cc86fc849f5b6c35d10f68c5138` |
 | [docs/design-system/mockup/tokens.css](design-system/mockup/tokens.css) | `9d79a52abd67e466935e3749505dd4b8348a98ab873e898e9479903c10ddd0aa` |
 | [docs/design-system/tokens.json](design-system/tokens.json) | `459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029` |
-| [docs/design-system/verification.md](design-system/verification.md) | `5dbc7980ed2c307ba60ebaee9b3adc7f50301ef3c401daa7051adcb0ba6586d2` |
+| [docs/design-system/verification.md](design-system/verification.md) | `72fee51be36200ca4eb557d32eda45273940f97b2c3d0e414e44db55635b2f76` |
 
-Design subtree composite SHA-256: `742b941a56a0083765cf3e2a206c2606f742f5b8ca47bc762e04b81f32dc90d7` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
+Design subtree composite SHA-256: `b9669dab5cfe2ad56f4d5c037f5ba61f8622d8d19069d300f3649868573da539` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
 
 ### Appendix C.2 Primary technical references
 

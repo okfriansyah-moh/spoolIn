@@ -14,7 +14,7 @@ The design-system handoff is complete for technical-document creation. Authentic
 
 ## Authority, scope, and targets
 
-Product authority: [PRD v2.4, Ready for technical design](02-PRD.md), SHA-256 `55eb812ec2e51f09b88d1eacde1763b65833f55d6a9124feab906a03ed86be39`. Product behavior outranks examples and design recommendations. [Coverage JSON](design-system/coverage.json) records all 17 FRs, 16 NFRs, and 159 ACs, including specific technical dispositions. A visual mapping is not a passing production test.
+Product authority: [PRD v2.4, Ready for technical design](02-PRD.md), SHA-256 `745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77`. Product behavior outranks examples and design recommendations. [Coverage JSON](design-system/coverage.json) records all 17 FRs, 16 NFRs, and 159 ACs, including specific technical dispositions. A visual mapping is not a passing production test.
 
 | Decision | Selected target / evidence |
 |---|---|
@@ -142,6 +142,8 @@ Open `design-system/mockup/index.html` directly or serve `docs/design-system/` w
 
 
 ## Public catalog sorting and navigation refinement
+
+Poster placeholders distinguish loading from unavailable artwork. Temporary request limits explain automatic waiting. Navigation and recovery actions wrap independently with at least 1rem between rows and buttons, including on mobile.
 
 Extend the existing catalog controls with a labeled Sort by select using the current field, typography, color and focus tokens. Options are Release date: newest first / oldest first, Title: A–Z / Z–A, and Added: newest first / oldest first. Keep release newest as the default. Place the select below the current filter row with a maximum width of 22rem, constrained to the viewport. Do not redesign the cards or existing filters.
 

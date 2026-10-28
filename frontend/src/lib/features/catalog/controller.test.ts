@@ -422,3 +422,24 @@ it('restores a later page and retains its Previous cursor after retry', async ()
   ctrl.dispose();
   vi.useRealTimers();
 });
+
+it('coalesces rapid sort changes and only requests the final order', async () => {
+  vi.useFakeTimers();
+  const request = vi.fn().mockResolvedValue(titlesResponse(oneTitle()));
+  const controller = new CatalogController(request);
+  const criteria = { text: '', kind: '', genres: [], year: '', month: '' };
+  controller.load(criteria);
+  await vi.runAllTimersAsync();
+  controller.setCriteria({ ...criteria, sort: 'TITLE_ASC' });
+  await vi.advanceTimersByTimeAsync(50);
+  controller.setCriteria({ ...criteria, sort: 'ADDED_DESC' });
+  await vi.advanceTimersByTimeAsync(50);
+  controller.setCriteria({ ...criteria, sort: 'RELEASE_ASC' });
+  await vi.advanceTimersByTimeAsync(150);
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(request.mock.calls[1]?.[1]).toMatchObject({
+    filter: { sort: 'RELEASE_ASC' },
+  });
+  controller.dispose();
+  vi.useRealTimers();
+});
