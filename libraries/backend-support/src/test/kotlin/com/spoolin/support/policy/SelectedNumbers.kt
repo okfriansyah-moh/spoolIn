@@ -52,7 +52,7 @@ internal object SelectedNumbers {
             SelectedNumber("RATE_LIMIT_REGISTER_WINDOW_SECONDS", 3600, 1, 86400, "operational"),
             SelectedNumber("RATE_LIMIT_MUTATION_MAX_REQUESTS", 60, 1, 2147483647, "operational"),
             SelectedNumber("RATE_LIMIT_MUTATION_WINDOW_SECONDS", 60, 1, 86400, "operational"),
-            SelectedNumber("RATE_LIMIT_READ_MAX_REQUESTS", 120, 1, 2147483647, "operational"),
+            SelectedNumber("RATE_LIMIT_READ_MAX_REQUESTS", 2400, 1, 2147483647, "operational"),
             SelectedNumber("RATE_LIMIT_READ_WINDOW_SECONDS", 60, 1, 86400, "operational"),
             SelectedNumber("SMTP_PORT", 587, 1, 65535, "smtp"),
             SelectedNumber("ARTWORK_MAX_INPUT_BYTES", 5242880, 1, 5242880, "artwork"),

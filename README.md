@@ -865,6 +865,8 @@ Use Sort by to choose release date (newest or oldest), title (A–Z or Z–A), o
 
 Previous titles page and Next titles page replace the current grid and retain your search, filters and sorting. The page indicator shows your current page. Changing a filter or sort starts again at page one. Browser Back/Forward, reload and Return to catalog from a title retain your place in the same tab. A copied URL keeps criteria and sorting but begins on page one. If a page fails, retry that direction or restart from page one without clearing criteria.
 
+The default read budget is 2,400 requests per 60 seconds because poster requests also consume read admission. `RATE_LIMIT_READ_MAX_REQUESTS` and `RATE_LIMIT_READ_WINDOW_SECONDS` retain operator overrides; refresh the protected rate-policy agreement with the existing provisioning tool and restart Core replicas and MCP together after changing them. Sign-in, registration and write limits are unchanged. Title-detail reads also retry temporary limits automatically.
+
 Catalog poster reads start near the viewport, with at most two downloads at once. Rapid sort changes are combined. Temporary request limits show a waiting message and retry automatically; a persistent failure retains the current page and offers retry. Navigation and recovery controls have separate, wrapping rows with spacing.
 
 See the [technical rules](docs/04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation) and [acceptance scenarios](docs/05-atdd.md#case-atdd-008-navigation-and-order). Verification status is tracked with the catalog follow-up in the development plan; documentation is not runtime proof.

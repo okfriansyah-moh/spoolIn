@@ -110,10 +110,11 @@ export async function fetchTitle(
   signal?: AbortSignal,
 ): Promise<CatalogTitleDetail | null> {
   const data = record(
-    await request(
+    await readCatalog(
+      request,
       TITLE_QUERY,
       variables as Record<string, unknown>,
-      withSignal(signal),
+      signal,
     ),
   );
   return (data as { title: CatalogTitleDetail | null }).title;

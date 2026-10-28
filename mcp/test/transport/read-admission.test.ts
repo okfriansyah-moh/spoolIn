@@ -197,3 +197,9 @@ it('retains reconnect quota, returns protocol resource errors and leaves tools t
     else process.env.MCP_PORT = previousPort;
   }
 });
+
+it('allows the configured default browsing budget and still refuses its next read', () => {
+  const admission = new ReadAdmission({}, () => 12000);
+  for (let count = 0; count < 2400; count++) admission.admit(digest);
+  expect(() => admission.admit(digest)).toThrow(ReadLimited);
+});

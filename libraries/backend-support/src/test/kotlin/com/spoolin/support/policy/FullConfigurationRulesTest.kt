@@ -863,13 +863,13 @@ class ConfigurationInputRulesTest : FullConfigurationFixture() {
             },
             dynamicTest("F-CONFIG row113 READ quota") {
                 assertEquals(
-                    120,
-                    ConfigurationSources().integer("RATE_LIMIT_READ_MAX_REQUESTS", 120, 1, 2147483647).value,
+                    2400,
+                    ConfigurationSources().integer("RATE_LIMIT_READ_MAX_REQUESTS", 2400, 1, 2147483647).value,
                 )
                 assertThrows(ConfigurationViolation::class.java) {
                     ConfigurationSources(
                         mapOf("RATE_LIMIT_READ_MAX_REQUESTS" to "NaN"),
-                    ).integer("RATE_LIMIT_READ_MAX_REQUESTS", 120, 1, 2147483647)
+                    ).integer("RATE_LIMIT_READ_MAX_REQUESTS", 2400, 1, 2147483647)
                 }
             },
             dynamicTest("F-CONFIG row114 READ duration") {

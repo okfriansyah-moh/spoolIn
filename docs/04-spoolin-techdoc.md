@@ -5223,7 +5223,9 @@ Signed title cursors bind the selected sort as well as existing criteria, page s
 
 Live edits retain keyset browsing rather than a snapshot: unchanged data traverses without duplicates or omissions; additions or ordering edits can change the visible sequence. No stronger cross-request snapshot guarantee is introduced.
 
-Public catalog reads share a cancelable cooldown honoring server retry delays. Each read has at most two attempts; only rate limits and unavailable reads qualify. Sort changes coalesce for 150 ms. Poster reads start near the viewport with two concurrent downloads, abort obsolete work, and distinguish loading from unavailable artwork. Verified JPEG/PNG/WebP responses use temporary object URLs revoked on replacement or unmount; no persistent image cache is added. HTML CSP permits `blob:` only for images. Existing request quotas, authorization, no-store behavior and mutation handling remain unchanged. Recovery controls wrap with a 1rem gap between rows and buttons.
+Public catalog reads share a cancelable cooldown honoring server retry delays. Each read has at most two attempts; only rate limits and unavailable reads qualify. Sort changes coalesce for 150 ms. Poster reads start near the viewport with two concurrent downloads, abort obsolete work, and distinguish loading from unavailable artwork. Verified JPEG/PNG/WebP responses use temporary object URLs revoked on replacement or unmount; no persistent image cache is added. HTML CSP permits `blob:` only for images. Authorization, no-store behavior and mutation handling remain unchanged. The later read-budget refinement below raises the READ default; other profile limits retain their values. Recovery controls wrap with a 1rem gap between rows and buttons.
+
+Read-budget refinement, 28 October 2026: READ defaults to 2,400 requests per 60 seconds across Core, MCP and Compose. Each poster consumes a read, so the former 120-read budget allowed fewer than five full 24-poster page loads per minute. The new finite default supports browsing bursts while preserving atomic counters, identity scope, positive override validation, failure handling and all non-read profiles. An explicit operator override still takes precedence. Refresh the protected rate-policy agreement through existing provisioning, retaining the rate key, then restart Core replicas and MCP with matching effective profiles; persistent same-duration counters retain their existing usage. Title-detail reads now use the same bounded, cancelable recovery as catalog pages.
 
 #### Catalog search and optimistic update
 
@@ -5495,7 +5497,7 @@ Registration trims ordinary name/email surrounding whitespace, validates syntax,
 
 A Password Hashing Competition (**PHC**) encoded string records a password hash together with its algorithm, parameters and salt so it can be verified later. Hash exact UTF-8 password bytes with Argon2id PHC encoded string; initial parameters memory 64 MiB, iterations 3, parallelism 1, random 16-byte salt,32-byte output, version 19. This exceeds the [OWASP baseline](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html); benchmark at target resources (target 150–500 ms, assumption) before final lock. Bound hashing executor to 2 concurrent requests. New passwords15..128 code points and max 512 UTF-8bytes under supported Unicode; no truncation, composition rules or forced periodic reset. Login accepts the exact stored credential even after policy tightens; verify PHC parameters under a safe maximum and opportunistically rehash after success. Password hash length512 is a physical algorithm-envelope capacity, not a password cap. Passwords/hashes never in audit, drafts, metrics, logs, notifications or proposal content.
 
-Rate admission uses the configurable profiles, identity dimensions and atomic counters in [§8.4](#84-configurable-rate-admission). Defaults retain sign-in 10/account and 60/source per 15 minutes, registration 5/source per hour, mutations 60/credential per minute and reads 120 per minute. These are admission controls, not account lockout. A limiter failure rejects new application admission safely; it does not imply that an earlier timed-out operation did not commit.
+Rate admission uses the configurable profiles, identity dimensions and atomic counters in [§8.4](#84-configurable-rate-admission). Defaults retain sign-in 10/account and 60/source per 15 minutes, registration 5/source per hour, mutations 60/credential per minute and reads 2400 per minute. These are admission controls, not account lockout. A limiter failure rejects new application admission safely; it does not imply that an earlier timed-out operation did not commit.
 
 ### 8.1 Authenticated encryption and key lifecycle
 
@@ -5585,7 +5587,7 @@ The keys below are nonsecret settings. Core/MCP private readiness diagnostics ex
 | Sign-in/source | `RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS` / 60 | `RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS` / 900 | HMAC of trusted connection source; Core before Argon2id, alongside account profile |
 | Registration | `RATE_LIMIT_REGISTER_MAX_REQUESTS` / 5 | `RATE_LIMIT_REGISTER_WINDOW_SECONDS` / 3600 | HMAC of trusted connection source; Core before hashing/encryption/account insertion |
 | Mutation | `RATE_LIMIT_MUTATION_MAX_REQUESTS` / 60 | `RATE_LIMIT_MUTATION_WINDOW_SECONDS` / 60 | HMAC of verified credential identity; all other browser mutations, including draft save/discard, plus MCP propose/approve/reject at Core |
-| Read | `RATE_LIMIT_READ_MAX_REQUESTS` / 120 | `RATE_LIMIT_READ_WINDOW_SECONDS` / 60 | Trusted source for anonymous/public browser reads and public artwork; verified credential for protected reads/private artwork and all read gateway methods; adapter-local requests use verified connector binding |
+| Read | `RATE_LIMIT_READ_MAX_REQUESTS` / 2400 | `RATE_LIMIT_READ_WINDOW_SECONDS` / 60 | Trusted source for anonymous/public browser reads and public artwork; verified credential for protected reads/private artwork and all read gateway methods; adapter-local requests use verified connector binding |
 
 Core's existing protected rate HMAC key is provisioned through required `RATE_LIMIT_KEY_FILE` (32 bytes, owner-only mounted file, no default), separate from lookup/encryption/signing secrets. It is not distributed to the MCP adapter. Adapter-local counters use ephemeral process-keyed digests of verified connector bindings; they do not persist or expose raw credentials. Rate settings never appear in model-provided tool parameters and cannot be overridden by headers or request bodies. Operator configuration is the only source.
 
@@ -7939,9 +7941,9 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/mockup/theme.js](design-system/mockup/theme.js) | `1d6ae3fe7138b56c4169ac988045d0bb9ae21cc86fc849f5b6c35d10f68c5138` |
 | [docs/design-system/mockup/tokens.css](design-system/mockup/tokens.css) | `9d79a52abd67e466935e3749505dd4b8348a98ab873e898e9479903c10ddd0aa` |
 | [docs/design-system/tokens.json](design-system/tokens.json) | `459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029` |
-| [docs/design-system/verification.md](design-system/verification.md) | `72fee51be36200ca4eb557d32eda45273940f97b2c3d0e414e44db55635b2f76` |
+| [docs/design-system/verification.md](design-system/verification.md) | `e25314300c966f21dae4466d7311543f251ec10ca737d789dd7e68aa49aebf33` |
 
-Design subtree composite SHA-256: `b9669dab5cfe2ad56f4d5c037f5ba61f8622d8d19069d300f3649868573da539` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
+Design subtree composite SHA-256: `5ba2f830334d50b7d2d622bbbf574941a8338d5f596f934da3392bee915242ba` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
 
 ### Appendix C.2 Primary technical references
 

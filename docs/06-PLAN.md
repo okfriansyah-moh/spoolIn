@@ -14,10 +14,10 @@ sources:
   sha256: 745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: c63104c466cc49e6243fe6e56befb834693f75e4342a50e11575ee5e55b85239
+  sha256: bb08a944d4b044ce557680469677b7ea199675d95a085e7c09e5cc7dac1cc8b8
 - id: ATDD
   path: 05-atdd.md
-  sha256: 1f04f489661200c8c98aa4d22043d4cbfd575afb5b52aa9f4f773cf3d6513377
+  sha256: cfbf3ff169c3f7f78eada57dafd44411e724dba675cc56d35cb3a08dfc4fb7ba
 - id: S-DESIGN-SYSTEM-03-DESIGN-SYSTEM-MD
   path: 03-design-system.md
   sha256: 9bc0a72380c765cfe6e9f23089640fc98c2effd4206acf379468018ba51344ec
@@ -125,7 +125,7 @@ sources:
   sha256: 459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029
 - id: S-DESIGN-SYSTEM-VERIFICATION-MD
   path: design-system/verification.md
-  sha256: 72fee51be36200ca4eb557d32eda45273940f97b2c3d0e414e44db55635b2f76
+  sha256: e25314300c966f21dae4466d7311543f251ec10ca737d789dd7e68aa49aebf33
 - id: S-PROMPTS-ATDD-CREATION-MD
   path: prompts/atdd-creation.md
   sha256: da2f345dd2967cb2e89d1cb13b1ab8cbd5d9f22c69233a0073f00378978060d2
@@ -2942,3 +2942,8 @@ Local manual-test preparation completed: all five application/database images re
 ### Catalog read recovery · 28 October 2026
 
 Manual testing exposed shared public-read quota exhaustion from repeated poster loads. The scoped correction adds visible-only bounded poster downloads, cancelable server-delay recovery, rapid-sort coalescing and spaced recovery controls. Preserve existing limits and access rules. Focused checks and independent review are recorded in selection-ae07274cb6d84d3e; extended acceptance remains pending.
+
+
+### Read budget refinement · 28 October 2026
+
+The owner requested a higher rate limit after manual browsing still exhausted the shared read quota. Raise only the READ default from 120 to 2400 per 60 seconds across backend settings, MCP and Compose; retain explicit overrides, validation, counter persistence and all other profile values. Apply existing public-read recovery to title details. Focused checks, independent review and local restart are tracked in selection-4e29d3f4f3c34875; extended acceptance remains pending.

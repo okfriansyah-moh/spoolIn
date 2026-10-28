@@ -38,7 +38,7 @@ export class ReadAdmission {
   ) {
     this.maximum = integer(
       environment.RATE_LIMIT_READ_MAX_REQUESTS,
-      120,
+      2400,
       2147483647,
     );
     this.windowMs =

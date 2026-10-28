@@ -23,7 +23,7 @@ private const val REGISTER_REQUESTS = 5
 private const val REGISTER_SECONDS = 3600
 private const val MUTATION_REQUESTS = 60
 private const val MUTATION_SECONDS = 60
-private const val READ_REQUESTS = 120
+private const val READ_REQUESTS = 2400
 private const val READ_SECONDS = 60
 private const val MAXIMUM_RATE_WINDOW_SECONDS = 86400
 
