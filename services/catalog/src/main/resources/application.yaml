@@ -85,5 +85,5 @@ management:
           include: readinessState,schema
 spoolin:
   schema:
-    minimum: '26'
-    maximum: '26'
+    minimum: '27'
+    maximum: '27'

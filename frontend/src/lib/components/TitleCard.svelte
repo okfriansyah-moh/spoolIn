@@ -40,9 +40,8 @@
   </div>
   <h3>
     {#if isRecordId(id)}
-      <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- T013 owns the title route; preserve its contract and base until it is generated. -->
       <a
-        href={`${resolve('/')}titles/${encodeURIComponent(id)}`}
+        href={resolve('/titles/[id]', { id })}
         onclick={(event) => onopen?.(event, id)}>{title}</a
       >
     {:else}{title}{/if}

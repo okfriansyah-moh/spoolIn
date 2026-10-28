@@ -5211,7 +5211,7 @@ Partial date tuple rules: all NULL means unknown; year alone, year+month or vali
 
 The public catalog offers `RELEASE_DESC` (Release date: newest first, default), `RELEASE_ASC` (oldest first), `TITLE_ASC` (Title: A–Z), `TITLE_DESC` (Z–A), `ADDED_DESC` (Added: newest first), and `ADDED_ASC` (oldest first). `SearchInput.sort: TitleSort` is optional; omitted/null uses `RELEASE_DESC`. GraphQL rejects unknown enum values. gRPC `Search.sort` is optional string field 8; Catalog validates its six supported names. Other search/list surfaces retain their existing behavior.
 
-Release sorting compares year, month, day in the selected direction, each `NULLS LAST`. Unknown parts remain unknown; no date is invented. Title sorting compares `casefold(display_title COLLATE pg_unicode_fast)` and retains articles, punctuation and accents. Added sorting compares immutable `title.created_at`, not release/update time; edits, archive and restore do not reset it. Existing seed timestamps are used without inventing import history. Every mode uses UUID ASC for ties. V027 adds active-title indexes for descending release, both folded-title directions and both creation-time directions; V002 already supplies ascending release.
+Release sorting compares year, month, day in the selected direction, each `NULLS LAST`. Unknown parts remain unknown; no date is invented. Title sorting compares `casefold(display_title COLLATE pg_unicode_fast)` and retains articles, punctuation and accents. Added sorting compares immutable `title.created_at`, not release/update time; edits, archive and restore do not reset it. Existing seed timestamps are used without inventing import history. Every mode uses UUID ASC for ties. V027 adds active-title indexes for descending release, both folded-title directions and both creation-time directions; V002 already supplies ascending release. Catalog runtime declares schema minimum/maximum 27 for this revision; apply V027 before starting the updated Catalog.
 
 Catalog alone adds `sort` to URL criteria. Omitted/default sort is omitted when serializing; unknown URL sort falls back to release newest. Other URL validation remains unchanged. Sort does not count as an active narrowing filter for empty/no-match classification. A sort/filter change cancels obsolete requests, resets page one and clears cursor history. Preserve existing text debounce and year/month/genre semantics.
 
@@ -7937,9 +7937,9 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/mockup/theme.js](design-system/mockup/theme.js) | `1d6ae3fe7138b56c4169ac988045d0bb9ae21cc86fc849f5b6c35d10f68c5138` |
 | [docs/design-system/mockup/tokens.css](design-system/mockup/tokens.css) | `9d79a52abd67e466935e3749505dd4b8348a98ab873e898e9479903c10ddd0aa` |
 | [docs/design-system/tokens.json](design-system/tokens.json) | `459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029` |
-| [docs/design-system/verification.md](design-system/verification.md) | `fdb766d93861741115e04cb074bf2fffd4543c598975328dc3d0d57f2f9d5f45` |
+| [docs/design-system/verification.md](design-system/verification.md) | `5dbc7980ed2c307ba60ebaee9b3adc7f50301ef3c401daa7051adcb0ba6586d2` |
 
-Design subtree composite SHA-256: `cbe8fe55ac72bf7ca30f8b76df44eeea072ec3e3aee2c8fac44037ffa26a2181` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
+Design subtree composite SHA-256: `742b941a56a0083765cf3e2a206c2606f742f5b8ca47bc762e04b81f32dc90d7` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
 
 ### Appendix C.2 Primary technical references
 

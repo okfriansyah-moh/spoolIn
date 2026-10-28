@@ -65,7 +65,7 @@
   // Non-reactive: guard to prevent URL sync loop.
   let applyingUrlCriteria = false;
   let lastPageCursor: string | null = null;
-  let resultsHeading: HTMLHeadingElement | undefined;
+  let resultsHeading = $state<HTMLElement>();
 
   const filterTextErrorId = 'catalog-text-error';
 
@@ -212,6 +212,10 @@
         catalogPages: state.pageStarts ?? [null],
       },
     });
+    await focusResults();
+  }
+
+  async function focusResults() {
     await tick();
     resultsHeading?.focus({ preventScroll: true });
     resultsHeading?.scrollIntoView?.({ block: 'start', behavior: 'instant' });

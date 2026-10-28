@@ -14,7 +14,7 @@ sources:
   sha256: 55eb812ec2e51f09b88d1eacde1763b65833f55d6a9124feab906a03ed86be39
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: 715b68459848d8ef498cf5414a1056aec64d9809949b82e69a9f3a0c6fa44ac3
+  sha256: b858e4221945cb6c0e87e06012cf765a4da9dade6e54a528d9e748febee3acee
 - id: ATDD
   path: 05-atdd.md
   sha256: 610cfe0a7c62f3e3bb6f7789100dcd90d623be2b74cc306b8cce195f8712a05d
@@ -125,7 +125,7 @@ sources:
   sha256: 459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029
 - id: S-DESIGN-SYSTEM-VERIFICATION-MD
   path: design-system/verification.md
-  sha256: fdb766d93861741115e04cb074bf2fffd4543c598975328dc3d0d57f2f9d5f45
+  sha256: 5dbc7980ed2c307ba60ebaee9b3adc7f50301ef3c401daa7051adcb0ba6586d2
 - id: S-PROMPTS-ATDD-CREATION-MD
   path: prompts/atdd-creation.md
   sha256: da2f345dd2967cb2e89d1cb13b1ab8cbd5d9f22c69233a0073f00378978060d2
@@ -2927,3 +2927,13 @@ Concurrent ATDD layout impact: revision1.7 SHA-256 `3bb4f10614f83bad18009e9d0387
 Approved 28 October 2026: implement six public title orders and Previous/Next replacement pages, preserving existing discovery behavior. This follow-up extends T012/T013 without rewriting their historical implementation status or renumbering IDs. Acceptance is pending current checks and one independent combined review.
 
 Backend work extends optional GraphQL/gRPC sorting, sort-bound signed cursors, fixed SQL ordering/keysets and additive indexes. Frontend work extends URL criteria, page-start history, directional recovery, focus and detail return. Synchronize active product/design/technical/acceptance documents and the discovery mockup. Verify ATDD-008 plus existing discovery regressions against the [specified behavior](04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation); apply the repository’s affected delivery gates and permanent quality contract.
+
+
+### Bounded verification follow-up · 28 October 2026
+
+The owner requested bounded checks and a local Docker rebuild/restart for manual testing instead of extended verification. Explicit elevated-memory approval applies to this run; sequential build/check containers retain a 1 GB memory ceiling and one CPU. Contract generation, production frontend/Core/Catalog/Media/MCP builds, changed frontend lint and type checking passed after fixing optional page-state types, readonly URL typing, focus reactivity and complexity findings. The type checker reports one unrelated existing RoleCreator warning. All 76 selected frontend regressions and 10 selected Catalog unit cases passed. Independent source correction review accepted the final helpers and retained navigation validation.
+
+Local image rebuild, migration, service readiness and the live read smoke check are recorded in the active selection ledger. Manual browser acceptance and the extended permanent delivery gates remain pending; these focused results do not claim release acceptance or exhaustive regression coverage.
+
+
+Local manual-test preparation completed: all five application/database images rebuilt, V027 applied, Core/Catalog/Media/MCP restarted, and readiness passed after aligning Catalog’s supported schema to 27. A read-only live smoke check passed all six sort modes over two pages, default 24-title size/order, year/type filters and cross-sort cursor rejection. Existing data was retained without reset or reseeding. The application is available at `https://localhost:8443`; manual browser acceptance remains with the owner.

@@ -1,3 +1,5 @@
+import { readPageStarts } from './page-history';
+
 export type CatalogReturn = {
   url: string;
   catalogCursor: string | null;
@@ -6,34 +8,33 @@ export type CatalogReturn = {
 
 export function readCatalogReturn(
   state: unknown,
-  current: URL,
+  current: Pick<URL, 'origin'>,
   root: string,
 ): CatalogReturn | null {
-  if (!state || typeof state !== 'object') return null;
-  const value = Object.fromEntries(Object.entries(state)).catalogReturn;
-  if (!value || typeof value !== 'object') return null;
-  const entry = Object.fromEntries(Object.entries(value));
+  const entry = returnEntry(state);
+  if (!entry) return null;
   try {
     const url = new URL(String(entry.url));
     if (url.origin !== current.origin || url.pathname !== root) return null;
     if (entry.catalogCursor !== null && typeof entry.catalogCursor !== 'string')
       return null;
-    if (
-      !Array.isArray(entry.catalogPages) ||
-      entry.catalogPages[0] !== null ||
-      !entry.catalogPages
-        .slice(1)
-        .every((cursor) => typeof cursor === 'string' && cursor.length > 0)
-    )
-      return null;
+    const catalogPages = readPageStarts(entry.catalogPages);
+    if (!catalogPages) return null;
     return {
       url: url.href,
       catalogCursor: entry.catalogCursor,
-      catalogPages: entry.catalogPages,
+      catalogPages,
     };
   } catch {
     return null;
   }
+}
+
+function returnEntry(state: unknown): Record<string, unknown> | null {
+  if (!state || typeof state !== 'object') return null;
+  const value = Object.fromEntries(Object.entries(state)).catalogReturn;
+  if (!value || typeof value !== 'object') return null;
+  return Object.fromEntries(Object.entries(value));
 }
 
 export function plainNavigation(event: MouseEvent): boolean {

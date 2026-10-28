@@ -42,6 +42,7 @@
   function returnToCatalog(event: MouseEvent) {
     if (!catalogReturn || !plainNavigation(event)) return;
     event.preventDefault();
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- readCatalogReturn validates this same-origin catalog URL including retained criteria
     void goto(catalogReturn.url, {
       state: {
         catalogCursor: catalogReturn.catalogCursor,

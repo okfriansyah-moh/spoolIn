@@ -147,10 +147,7 @@ export class CatalogController {
 
   private async changePage(direction: 'next' | 'previous'): Promise<boolean> {
     const current = this.current;
-    const starts = current.pageStarts ?? [null];
-    const index = (current.pageNumber ?? 1) - 1;
-    const after =
-      direction === 'next' ? current.pageInfo?.endCursor : starts[index - 1];
+    const after = this.pageCursor(current, direction);
     if (after === undefined) return false;
     const generation = this.generation;
     const filter = buildSearchInput(current.criteria);
@@ -175,6 +172,15 @@ export class CatalogController {
         this.failPage(current, direction, error);
       return false;
     }
+  }
+
+  private pageCursor(
+    current: CatalogState,
+    direction: 'next' | 'previous',
+  ): string | null | undefined {
+    if (direction === 'next') return current.pageInfo?.endCursor;
+    const starts = current.pageStarts ?? [null];
+    return starts[(current.pageNumber ?? 1) - 2];
   }
 
   private acceptPage(
@@ -244,15 +250,7 @@ export class CatalogController {
     const signal = this.active?.signal;
     if (!signal) return;
 
-    this.publish({
-      kind: 'loading',
-      criteria,
-      titles: [],
-      pageInfo: null,
-      invalidField: null,
-      pageStarts: this.current.pageStarts ?? [null],
-      pageNumber: this.current.pageNumber ?? 1,
-    });
+    this.publishLoading(criteria);
 
     try {
       const result = await fetchTitles(
@@ -273,6 +271,18 @@ export class CatalogController {
     }
   }
 
+  private publishLoading(criteria: Criteria): void {
+    this.publish({
+      kind: 'loading',
+      criteria,
+      titles: [],
+      pageInfo: null,
+      invalidField: null,
+      pageStarts: this.current.pageStarts ?? [null],
+      pageNumber: this.current.pageNumber ?? 1,
+    });
+  }
+
   private publishSearchResult(
     criteria: Criteria,
     result: Awaited<ReturnType<typeof fetchTitles>>,
@@ -281,8 +291,8 @@ export class CatalogController {
     const titles = mapTitleNodes(result.nodes);
     this.publish({
       kind: after ? 'catalog' : catalogResultKind(criteria, titles),
-      pageStarts: this.current.pageStarts,
-      pageNumber: this.current.pageNumber,
+      pageStarts: this.current.pageStarts ?? [null],
+      pageNumber: this.current.pageNumber ?? 1,
       criteria,
       titles,
       pageInfo: readPageInfo(result.pageInfo, after),
@@ -294,8 +304,8 @@ export class CatalogController {
     this.publish({
       kind: 'failure',
       cursorInvalid: after !== null,
-      pageStarts: this.current.pageStarts,
-      pageNumber: this.current.pageNumber,
+      pageStarts: this.current.pageStarts ?? [null],
+      pageNumber: this.current.pageNumber ?? 1,
       criteria,
       titles: [],
       pageInfo: null,
