@@ -64,3 +64,8 @@ Complete earlier stages first. Explicit task dependencies retain their original 
 Exact case/row owners are in member Traceability/Tests and the root register. At integration, follow the complete journey across actual participating owners and reconcile the corresponding current case/row evidence; an isolated mock or source link does not establish that journey. Include declared denied/invalid/stale/failed/uncertain/recovered variants and absence of prohibited effects. Retain matched expected/actual state captures with separate interaction/accessibility findings at the task-declared themes/viewports/hosts. For non-UI paths observe exact response, persisted state, file bytes, diagnostic/operational outcomes and restart behavior as relevant. If a required runtime/host/provider is unavailable, keep feature completion open with its concrete prerequisite.
 
 Cross-feature release acceptance belongs to T042–T046; their later evidence does not prevent completed local contributors from being marked Done. A full release still requires every included obligation, both host proofs and G-01–G-06.
+
+
+## Approved catalog follow-up · 28 October 2026
+
+The public catalog now requires six sort choices and Previous/Next replacement-page navigation. Follow the [technical specification](../../04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation) and expanded ATDD-008; preserve existing IDs, historical receipts, people/credit pagination and other discovery behavior. Current sorting/navigation acceptance remains pending fresh affected checks and independent combined review.

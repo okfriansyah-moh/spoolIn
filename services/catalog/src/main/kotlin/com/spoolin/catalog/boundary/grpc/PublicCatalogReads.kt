@@ -3,6 +3,7 @@ package com.spoolin.catalog.boundary.grpc
 import com.spoolin.catalog.features.person.read.PersonSearch
 import com.spoolin.catalog.features.provenance.ProvenanceReads
 import com.spoolin.catalog.features.search.PeopleCursor
+import com.spoolin.catalog.features.search.TitleOrdering
 import com.spoolin.catalog.features.search.TitleSearchSql
 import com.spoolin.catalog.features.taxonomy.read.TaxonomyReads
 import com.spoolin.support.policy.ReadPolicy
@@ -62,6 +63,7 @@ internal class PublicCatalogReads(
         val year = if (request.hasYear()) request.year else null
         val month = if (request.hasMonth()) request.month else null
         val first = context.pageSize(request.first)
+        val sort = TitleOrdering.parse(request.sort.takeIf { request.hasSort() })
         val scopeHash =
             ReadPolicy(context.policy()).cursorScope(
                 "public-titles",
@@ -72,10 +74,10 @@ internal class PublicCatalogReads(
                     "genres" to request.genreIdsList.distinct().sorted(),
                     "year" to year,
                     "month" to month,
-                ),
+                ) + if (sort == TitleOrdering.RELEASE_DESC) emptyMap() else mapOf("sort" to sort.name),
             )
         val afterCursor = context.titleAfter(request.after, scopeHash)
-        val page = titleSearch.search(text, kind, genreIds, year, month, first, afterCursor)
+        val page = titleSearch.search(text, kind, genreIds, year, month, first, afterCursor, sort)
         return page to scopeHash
     }
 

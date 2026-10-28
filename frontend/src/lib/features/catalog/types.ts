@@ -1,9 +1,23 @@
+export const TITLE_SORTS = [
+  ['RELEASE_DESC', 'Release date: newest first'],
+  ['RELEASE_ASC', 'Release date: oldest first'],
+  ['TITLE_ASC', 'Title: A–Z'],
+  ['TITLE_DESC', 'Title: Z–A'],
+  ['ADDED_DESC', 'Added: newest first'],
+  ['ADDED_ASC', 'Added: oldest first'],
+] as const;
+export type CatalogSort = (typeof TITLE_SORTS)[number][0];
+export function catalogSort(value: unknown): CatalogSort {
+  return TITLE_SORTS.find(([sort]) => sort === value)?.[0] ?? 'RELEASE_DESC';
+}
+
 /**
  * T013 – Catalog discovery state types.
- * Criteria maps to URL params: q, kind, genre (repeated), year, month.
+ * Criteria maps to URL params: q, kind, genre (repeated), year, month, sort.
  * Generation tracks each request so stale replies are suppressed.
  */
 export type Criteria = Readonly<{
+  sort?: CatalogSort;
   text: string;
   kind: string;
   genres: readonly string[];
@@ -12,6 +26,7 @@ export type Criteria = Readonly<{
 }>;
 
 export const EMPTY_CRITERIA: Criteria = Object.freeze({
+  sort: 'RELEASE_DESC',
   text: '',
   kind: '',
   genres: Object.freeze([]) as readonly string[],
@@ -61,6 +76,10 @@ export type CatalogState = Readonly<{
   invalidField: 'text' | 'month' | null;
   loadingMore?: boolean;
   pageError?: string | null;
+  pageStarts?: readonly (string | null)[];
+  pageNumber?: number;
+  pageDirection?: 'next' | 'previous';
+  cursorInvalid?: boolean;
 }>;
 
 export const MAX_SEARCH_CODE_POINTS = 200;

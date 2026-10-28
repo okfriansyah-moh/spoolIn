@@ -392,3 +392,28 @@ describe('formatReleaseDate', () => {
     expect(label).toContain('9');
   });
 });
+
+it.each([
+  'RELEASE_ASC',
+  'TITLE_ASC',
+  'TITLE_DESC',
+  'ADDED_ASC',
+  'ADDED_DESC',
+] as const)(
+  'round trips %s without treating sorting as a narrowing filter',
+  (sort) => {
+    const criteria = parseCriteria(new URLSearchParams({ sort }));
+    expect(criteriaToParams(criteria).get('sort')).toBe(sort);
+    expect(buildSearchInput(criteria)?.sort).toBe(sort);
+    expect(hasActiveFilters(criteria)).toBe(false);
+  },
+);
+it.each(['', 'RELEASE_DESC', 'invalid'])(
+  'keeps the existing default for URL sort %s',
+  (sort) => {
+    const criteria = parseCriteria(new URLSearchParams({ sort }));
+    expect(criteria.sort).toBe('RELEASE_DESC');
+    expect(criteriaToParams(criteria).has('sort')).toBe(false);
+    expect(buildSearchInput(criteria)).toEqual({});
+  },
+);

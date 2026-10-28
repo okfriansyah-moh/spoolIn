@@ -260,7 +260,17 @@ input PartialDateInput {
   day: Int
 }
 
+enum TitleSort {
+  RELEASE_DESC
+  RELEASE_ASC
+  TITLE_ASC
+  TITLE_DESC
+  ADDED_DESC
+  ADDED_ASC
+}
+
 input SearchInput {
+  sort: TitleSort
   text: String
   kind: TitleKind
   genreIds: [UUID!]

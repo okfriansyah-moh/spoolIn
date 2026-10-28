@@ -106,6 +106,7 @@ message Search {
   optional int32 month = 5;
   int32 first = 6;
   optional string after = 7;
+  optional string sort = 8;
 }
 
 message Title {

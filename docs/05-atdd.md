@@ -9,6 +9,8 @@
 | Phase | PRD + brainstorming + design system + techdoc → this ATDD → separately requested dependency-ordered tickets → implementation in chunks |
 | Sole deliverable | `docs/05-atdd.md`; governing sources are preserved |
 
+**Catalog follow-up, 28 October 2026:** ATDD-008 and F-ORDER include six sort directions, Previous/Next, retained history and recovery. Fresh acceptance is Not Run.
+
 [Approach and fixtures](#approach-and-fixtures) · [UI reference index](#ui-reference-index) · [Case index](#case-index) · [Gaps and prerequisites](#gaps-and-prerequisites) · [Source register](#source-register) · [Bidirectional coverage](#bidirectional-coverage) · [Evidence and maintenance](#evidence-and-maintenance)
 
 **Seed revision, 18 October 2026:** The current request supersedes the earlier open-license-only sourcing criterion. Seed cases use the frozen public-page package with 100 movies, 100 TV series and 200 matched posters, attributed source links and supplied rights information; no provider API/account or startup network fetch is required. Focused verification consists of one package validation, a small invalid-input/retry/preservation/recovery regression set, one fresh installation and one upgrade smoke, a batch poster response check, and one movie/TV detail inspection. Existing broader release cases remain unexecuted unless separately evidenced; this change does not claim a full acceptance sweep.
@@ -96,7 +98,7 @@ Use a fixed test namespace UUID `c1bb0e81-232b-5f83-9d73-a5273dcac001`; derive f
 | P-A / P-B / P-C | Shared people Alex / Alex / V; P-A ACTIVE, P-B ARCHIVED, P-C ACTIVE; names do not merge IDs |
 | Credits | P-A Actor and Director on M-A, Writer on M-B and Actor onTV-C; P-B retained Actor onM-A; each row establishes/removes its own relationships |
 | Starter roles | CAST Actor allows characters; CREATOR Director/Writer/Producer; custom roles default characters=false |
-| F-ORDER additions | Same-year full date/month-only/year-only, older year, unknown date and equal-date UUID ties; exact sort year/month/day DESC NULLS LAST, UUID ASC |
+| F-ORDER additions | Same-year full date/month-only/year-only, older year, unknown date and equal-date UUID ties; mixed-case/Unicode and duplicate display titles; creation instants independent of release dates with microsecond and UUID ties. Exercise all six orders; default year/month/day DESC NULLS LAST, UUID ASC. |
 
 F-FILTER is the M-A/M-B/TV-C/U-D subset of F-CATALOG. Hand-check filter oracles: with M-A/M-B/TV-C/U-D baseline, year 2024 returns M-A, M-B, TV-C; October2024 returns M-A, TV-C; MOVIE+Drama+October2024 returns M-A. Genre selections use OR and separate categories use AND. Same-name records remain independent. Public P-B credits never appear; F-LIFECYCLE uses the lifecycle truth table: both ACTIVE→visible, any archived endpoint→private. Unknown optional context never becomes zero, fabricated January1 or guessed artwork.
 
@@ -1043,7 +1045,7 @@ Then Show no matches first; clearing removes only the text restriction and prese
 
 **Preconditions:** Create a new isolated F-STACK installation with the named fixtures and boundary enabled.
 
-**Test data:** F-ORDER: year 2024 fulldateOct09, monthOct, year-only, year 2023, all-unknown; tie UUIDs ascending. Fetch first=2 to last page and repeat unchanged.
+**Test data:** F-ORDER: year 2024 fulldateOct09, monthOct, year-only, year 2023, all-unknown; tie UUIDs ascending. Fetch first=2 to last page and repeat unchanged. Test all six TitleSort values, omitted/default values and invalid input, duplicate/mixed-case/Unicode titles (including quotes, backslashes and 255-code-point supplementary names), and equal/microsecond-separated creation timestamps. Added order must differ from release/update order.
 
 **Expected UI:** `/`; [catalog](design-system/mockup/discovery.html#catalog), [catalog-invalid](design-system/mockup/discovery.html#catalog-invalid). Stable cards and page controls reflect actual date precision; invalid navigation input receives correction with criteria retained.
 
@@ -1052,10 +1054,15 @@ Then Show no matches first; clearing removes only the text restriction and prese
 ```gherkin
 Given Results include ties, partial dates, and unknown dates
 When The reader browses results repeatedly
-Then Titles default to newest release context first, unknown dates last; equal input/data have consistent ordering without navigation duplication. Show correction for input outside supported limits. Search length follows section 5.5; navigation and other query limits are techdoc work.
+Then Titles default to newest release context first, unknown date components last in both date directions
+And Each of the six sorting modes traverses unchanged data without duplicates or omissions and breaks ties by UUID ascending
+And Previous and Next replace the grid, show the current page, retain criteria and focus the results heading
+And Changing sort or filters resets page one, while Back, Forward, reload and detail return restore the page and criteria
+And Failed moves retain the successful page with directional retry; expired cursors offer restart with criteria retained
+And An empty later page keeps Previous and restart; sorting alone does not turn an empty catalog into a no-match result
 ```
 
-**Verification:** Record full sort tuples and UUIDs across first=2 pages and unchanged repeat; focus/back navigation and next-page state follow the real pageInfo. Execute every Test data row independently at this case’s stated real boundary and retain its sanitized response/state evidence; controlled faults do not substitute for real owner enforcement.
+**Verification:** Exercise first/middle/last boundaries, Next/Previous round trips, unavailable buttons, concurrent clicks, criteria edits during reads, stale responses, cross-sort cursor rejection, old valid default cursors, empty later pages, retained failures/retry, copied URLs, and narrow-screen/keyboard behavior. Confirm existing search/genre/year/month/access rules and other list pagination are unchanged. New sorting/navigation acceptance remains Not Run until observed at its required boundaries. Record full sort tuples and UUIDs across first=2 pages and unchanged repeat; focus/back navigation and next-page state follow the real pageInfo. Execute every Test data row independently at this case’s stated real boundary and retain its sanitized response/state evidence; controlled faults do not substitute for real owner enforcement.
 
 **Cleanup:** Apply [C-RESET](#c-reset-shared-cleanup) to this independently isolated fixture after recording its sanitized evidence; no runtime reset for document-only review.
 

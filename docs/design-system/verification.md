@@ -33,3 +33,8 @@ Theme switching, People navigation, wordmark navigation back to the catalog, and
 This pass verifies the branding and inspected static prototype layouts. It does not rerun the earlier 582 state/theme/width combinations, measure new contrast ratios, or establish production behavior. No application, API, database, authentication, or integration changes were made.
 
 [Design specification](../03-design-system.md) · [Portable index](index.md) · [UI gallery](mockup/index.html)
+
+
+## Catalog follow-up · 28 October 2026
+
+The six-sort select and Previous/Next demonstration supersede the earlier discovery mockup behavior. Prior browser/visual results above describe the earlier branding revision and do not verify this follow-up. Current production generation, tests, browser and visual acceptance are pending: the shared resource runner blocked launch because memory pressure was elevated. Current source fingerprints are refreshed in the technical document; those fingerprints establish document identity, not passing software.

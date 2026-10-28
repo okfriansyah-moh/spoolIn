@@ -857,3 +857,12 @@ Use `movie_review_queue` with optional `proposalIds` and `limit` (maximum 20) to
 `propose_movie` accepts optional `credits` (up to 100): each credit supplies either an existing `personId` or a `personName`, a `roleId` from `movie_context`, optional `characterNames` when the role allows them, and optional nonnegative `billingOrder`. Record evidence in `sources` with `field: "credits"`. Credits participate in the immutable revision digest and are shown before approval. New people and credits are saved in the movie publication transaction only after approval. Exact active names are reused; ambiguous names require a person ID. Existing proposals with no credits preserve their earlier digest. Previously published movies are not backfilled automatically.
 
 After approval, `movie_operation` remains pending until the poster is attached. Poll the original proposal operation ID to read its persisted outcome. Retry uncertain requests using their original operation IDs. No movie is approved by preparing a poster or creating a proposal.
+
+
+### Sort and browse the public catalog
+
+Use Sort by to choose release date (newest or oldest), title (A–Z or Z–A), or when titles were added (newest or oldest). The default remains newest release first; unknown release-date parts appear last. Added means the title’s original catalog creation time, so editing or restoring it does not move it to the newest-added position.
+
+Previous titles page and Next titles page replace the current grid and retain your search, filters and sorting. The page indicator shows your current page. Changing a filter or sort starts again at page one. Browser Back/Forward, reload and Return to catalog from a title retain your place in the same tab. A copied URL keeps criteria and sorting but begins on page one. If a page fails, retry that direction or restart from page one without clearing criteria.
+
+See the [technical rules](docs/04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation) and [acceptance scenarios](docs/05-atdd.md#case-atdd-008-navigation-and-order). Verification status is tracked with the catalog follow-up in the development plan; documentation is not runtime proof.

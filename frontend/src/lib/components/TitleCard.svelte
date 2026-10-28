@@ -9,6 +9,7 @@
     date,
     artwork,
     genres = [],
+    onopen,
   }: {
     id: string;
     title: string;
@@ -16,6 +17,7 @@
     date?: string | null;
     artwork?: string | null;
     genres?: readonly string[];
+    onopen?: (event: MouseEvent, id: string) => void;
   } = $props();
 </script>
 
@@ -26,6 +28,7 @@
         class="poster-link"
         href={resolve('/titles/[id]', { id })}
         aria-label={title}
+        onclick={(event) => onopen?.(event, id)}
       >
         <ArtworkSlot src={artwork ?? null} />
         <span class="title-kind-badge">{kind}</span>
@@ -38,7 +41,10 @@
   <h3>
     {#if isRecordId(id)}
       <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- T013 owns the title route; preserve its contract and base until it is generated. -->
-      <a href={`${resolve('/')}titles/${encodeURIComponent(id)}`}>{title}</a>
+      <a
+        href={`${resolve('/')}titles/${encodeURIComponent(id)}`}
+        onclick={(event) => onopen?.(event, id)}>{title}</a
+      >
     {:else}{title}{/if}
   </h3>
   <p>{date ?? 'Release date unknown'}</p>

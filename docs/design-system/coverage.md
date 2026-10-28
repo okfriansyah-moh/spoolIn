@@ -1,6 +1,6 @@
 # PRD coverage reconciliation
 
-PRD v2.4 · SHA-256 `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895`. 17 FRs, 16 NFRs and 159 ACs are accounted for. Visual mapping describes an inspectable contract, not passing production acceptance.
+PRD v2.4 · SHA-256 `55eb812ec2e51f09b88d1eacde1763b65833f55d6a9124feab906a03ed86be39`. 17 FRs, 16 NFRs and 159 ACs are accounted for. Visual mapping describes an inspectable contract, not passing production acceptance.
 
 ## Functional requirements
 
@@ -208,3 +208,6 @@ PRD v2.4 · SHA-256 `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b767
 | AC-157 | visual | [artwork-policy](mockup/artwork.html#artwork-policy) · [policy-changed](mockup/policies.html#policy-changed) |
 | AC-158 | technical | Seed/snapshot verification and preservation after reruns need real data and persistence; no seed-management UI is requested. Verify exact initial 100/100 counts without truncation or resurrecting records. |
 | AC-159 | visual | [catalog](mockup/discovery.html#catalog) · [catalog-invalid](mockup/discovery.html#catalog-invalid) |
+
+
+Catalog AC-008 now includes six sort directions, Previous/Next replacement pages, retained criteria/history and directional recovery. Its existing discovery mapping remains; new runtime and visual acceptance are pending under ATDD-008.

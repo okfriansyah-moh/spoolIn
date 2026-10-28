@@ -5,13 +5,16 @@
    * T013 – Discovery page (root route).
    *
    * States: catalog, loading, empty, no-match, failure, outdated, invalid
-   * URL state: q, kind, genre (repeated), year, month
+   * URL state: q, kind, genre (repeated), year, month, sort
    * Debounce: 250ms on text changes; non-text filter changes are immediate.
    * Generation-bound: stale replies are suppressed in the controller.
    *
    * SSR note: hero/head always rendered; interactive sections are client-side only.
    */
-  import { onMount, untrack } from 'svelte';
+  import { onMount, untrack, tick } from 'svelte';
+  import { plainNavigation } from '../lib/features/catalog/return-context';
+  import { catalogPageStarts } from '../lib/features/catalog/page-history';
+  import { catalogSort } from '../lib/features/catalog/types';
   import { historyCursor } from '../lib/state/pagination';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
@@ -62,6 +65,7 @@
   // Non-reactive: guard to prevent URL sync loop.
   let applyingUrlCriteria = false;
   let lastPageCursor: string | null = null;
+  let resultsHeading: HTMLHeadingElement | undefined;
 
   const filterTextErrorId = 'catalog-text-error';
 
@@ -77,7 +81,11 @@
     criteria = { ...initial };
     lastDispatched = initial;
     lastPageCursor = historyCursor(page.state, 'catalogCursor');
-    controller.load(initial, lastPageCursor);
+    controller.load(
+      initial,
+      lastPageCursor,
+      catalogPageStarts(page.state, lastPageCursor),
+    );
 
     return () => {
       genreAbort?.abort();
@@ -121,7 +129,7 @@
     void goto(qs ? `${root}?${qs}` : root, {
       shallow: true,
       replace: true,
-      state: { ...page.state, catalogCursor: null },
+      state: { ...page.state, catalogCursor: null, catalogPages: [null] },
     });
   }
 
@@ -169,37 +177,66 @@
       criteria = { ...fromUrl };
       lastDispatched = fromUrl;
       lastPageCursor = cursor;
-      controller.load(fromUrl, cursor);
+      controller.load(fromUrl, cursor, catalogPageStarts(page.state, cursor));
       applyingUrlCriteria = false;
     }
   });
 
   function sameCriteria(a: Criteria, b: Criteria): boolean {
     return (
+      catalogSort(a.sort) === catalogSort(b.sort) &&
       a.text === b.text &&
       a.kind === b.kind &&
       a.year === b.year &&
       a.month === b.month &&
-      [...a.genres].sort(compareUtf16).join(',') === [...b.genres].sort(compareUtf16).join(',')
+      [...a.genres].sort(compareUtf16).join(',') ===
+        [...b.genres].sort(compareUtf16).join(',')
     );
   }
 
-  async function nextTitlesPage() {
-    const cursor = catalogState.pageInfo?.endCursor;
-    if (!cursor || !controller) return;
-    const criteriaKey = JSON.stringify(controller.snapshot.criteria);
-    await controller.loadMore();
-    if (
-      controller.snapshot.pageError ||
-      JSON.stringify(controller.snapshot.criteria) !== criteriaKey
-    )
-      return;
-    lastPageCursor = cursor;
+  async function changeTitlesPage(direction: 'next' | 'previous') {
+    if (!controller) return;
+    const success =
+      direction === 'next'
+        ? await controller.loadMore()
+        : await controller.previousPage();
+    if (!success) return;
+    const state = controller.snapshot;
+    lastPageCursor = state.pageStarts?.[(state.pageNumber ?? 1) - 1] ?? null;
     // eslint-disable-next-line svelte/no-navigation-without-resolve -- retain the current catalog criteria
     await goto((page.shallow?.url ?? page.url).href, {
       shallow: true,
-      state: { ...page.state, catalogCursor: cursor },
+      state: {
+        ...page.state,
+        catalogCursor: lastPageCursor,
+        catalogPages: state.pageStarts ?? [null],
+      },
     });
+    await tick();
+    resultsHeading?.focus({ preventScroll: true });
+    resultsHeading?.scrollIntoView?.({ block: 'start', behavior: 'instant' });
+  }
+
+  function openTitle(event: MouseEvent, id: string) {
+    if (!plainNavigation(event)) return;
+    event.preventDefault();
+    const state = controller?.snapshot;
+    void goto(resolve('/titles/[id]', { id }), {
+      state: {
+        catalogReturn: {
+          url: (page.shallow?.url ?? page.url).href,
+          catalogCursor: lastPageCursor,
+          catalogPages: state?.pageStarts ?? [null],
+        },
+      },
+    });
+  }
+
+  function restartTitles() {
+    if (!controller) return;
+    lastPageCursor = null;
+    pushUrl(criteria);
+    controller.load(criteria);
   }
 
   const textInvalid = $derived(
@@ -268,6 +305,9 @@
         <div role="alert" class="catalog-status catalog-failure">
           <p>The catalog could not load.</p>
           <button onclick={() => controller?.retry()}>Try again</button>
+          {#if catalogState.cursorInvalid}<button onclick={restartTitles}
+              >Restart from page one</button
+            >{/if}
         </div>
       {:else if catalogState.kind === 'empty'}
         <div class="catalog-status catalog-empty">
@@ -288,7 +328,9 @@
       {:else if catalogState.kind === 'catalog'}
         <section aria-label="Title results">
           <div class="catalog-heading">
-            <h2>Explore the catalog</h2>
+            <h2 bind:this={resultsHeading} tabindex="-1">
+              Explore the catalog
+            </h2>
             <p class="result-count">
               {catalogState.titles.length} title{catalogState.titles.length ===
               1
@@ -296,10 +338,14 @@
                 : 's'} found
             </p>
           </div>
+          {#if catalogState.titles.length === 0}<p>
+              No titles remain on this page. Go back or restart from page one.
+            </p>{/if}
           <ul class="title-grid" aria-label="Titles">
             {#each catalogState.titles as t (t.id)}
               <li>
                 <TitleCard
+                  onopen={openTitle}
                   id={t.id}
                   title={t.title}
                   kind={t.kind === 'TV' ? 'TV' : 'Movie'}
@@ -313,18 +359,48 @@
           {#if catalogState.pageError}<p role="alert">
               {catalogState.pageError}
             </p>{/if}
-          {#if catalogState.pageInfo?.hasNextPage}<button
+          {#if catalogState.loadingMore}<p role="status" aria-live="polite">
+              Loading {catalogState.pageDirection ?? 'next'} titles…
+            </p>{/if}
+          <nav class="catalog-pagination" aria-label="Title pages">
+            <button
+              type="button"
+              disabled={(catalogState.pageNumber ?? 1) <= 1 ||
+                catalogState.loadingMore}
+              aria-busy={catalogState.loadingMore &&
+                catalogState.pageDirection === 'previous'}
+              onclick={() => void changeTitlesPage('previous')}
+              >Previous titles page</button
+            >
+            <span role="status" aria-live="polite"
+              >Page {catalogState.pageNumber ?? 1}</span
+            >
+            <button
+              type="button"
+              disabled={!catalogState.pageInfo?.hasNextPage ||
+                catalogState.loadingMore}
+              aria-busy={catalogState.loadingMore &&
+                catalogState.pageDirection === 'next'}
+              onclick={() => void changeTitlesPage('next')}
+              >Next titles page</button
+            >
+          </nav>
+          {#if catalogState.pageError}
+            <button
               type="button"
               disabled={catalogState.loadingMore}
-              aria-busy={catalogState.loadingMore}
-              onclick={() => void nextTitlesPage()}
+              onclick={() =>
+                void changeTitlesPage(catalogState.pageDirection ?? 'next')}
+              >Retry {catalogState.pageDirection ?? 'next'} titles page</button
             >
-              {catalogState.pageError
-                ? 'Retry next titles page'
-                : catalogState.loadingMore
-                  ? 'Loading more titles…'
-                  : 'Next titles page'}
-            </button>{/if}
+          {/if}
+          {#if catalogState.pageError || catalogState.titles.length === 0}
+            <button
+              type="button"
+              disabled={catalogState.loadingMore}
+              onclick={restartTitles}>Restart from page one</button
+            >
+          {/if}
         </section>
       {/if}
     </div>
@@ -337,6 +413,16 @@
 </div>
 
 <style>
+  .catalog-pagination {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .catalog-pagination span {
+    color: var(--muted);
+  }
   .catalog-results {
     min-height: 100vh;
   }

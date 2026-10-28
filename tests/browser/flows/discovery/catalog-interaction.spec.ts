@@ -33,7 +33,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('.title-grid > li')).toHaveCount(24);
 });
 
-test('catalog review: next titles page keeps the reader down at the results', async ({
+test('catalog review: pages focus the results and Previous restores the first page', async ({
   page,
 }) => {
   const next = page.getByRole('button', {
@@ -41,8 +41,7 @@ test('catalog review: next titles page keeps the reader down at the results', as
     exact: true,
   });
   await next.scrollIntoViewIfNeeded();
-  const scrollBefore = await page.evaluate(() => window.scrollY);
-  expect(scrollBefore).toBeGreaterThan(500);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
   const historyBefore = await page.evaluate(() => history.length);
   await next.click();
   await expect(page.locator('.title-grid')).toContainText(
@@ -51,9 +50,20 @@ test('catalog review: next titles page keeps the reader down at the results', as
   await expect
     .poll(() => page.evaluate(() => history.length))
     .toBe(historyBefore + 1);
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBeGreaterThanOrEqual(scrollBefore - 10);
+  await expect(
+    page.getByRole('heading', { name: 'Explore the catalog' }),
+  ).toBeFocused();
+  await expect(page.getByText('Page 2', { exact: true })).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Previous titles page', exact: true })
+    .click();
+  await expect(page.locator('.title-grid')).toContainText(
+    'First page title 24',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Previous titles page', exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByText('Page 1', { exact: true })).toBeVisible();
 });
 
 test('catalog review: search keeps keyboard focus across words and Enter searches the full title', async ({
@@ -78,4 +88,54 @@ test('catalog review: search keeps keyboard focus across words and Enter searche
   await request;
   await expect(search).toBeFocused();
   await expect(page).toHaveURL(/q=Breaking\+Bad/);
+});
+
+test('sorting updates URL, resets pagination, and survives reload', async ({
+  page,
+}) => {
+  await page
+    .getByRole('button', { name: 'Next titles page', exact: true })
+    .click();
+  await expect(page.getByText('Page 2', { exact: true })).toBeVisible();
+  await page.getByLabel('Sort by', { exact: true }).selectOption('TITLE_ASC');
+  await expect(page).toHaveURL(/sort=TITLE_ASC/);
+  await expect(page.getByText('Page 1', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Previous titles page', exact: true }),
+  ).toBeDisabled();
+  await page.reload();
+  await expect(page.getByLabel('Sort by', { exact: true })).toHaveValue(
+    'TITLE_ASC',
+  );
+});
+
+test('history and title return preserve page starts, filters and sort', async ({
+  page,
+}) => {
+  await page.getByLabel('Sort by', { exact: true }).selectOption('ADDED_ASC');
+  await page
+    .getByRole('button', { name: 'Next titles page', exact: true })
+    .click();
+  await expect(page.getByText('Page 2', { exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByText('Page 1', { exact: true })).toBeVisible();
+  await page.goForward();
+  await expect(page.getByText('Page 2', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Page 2', { exact: true })).toBeVisible();
+  await page
+    .getByRole('link', { name: 'Second page title 1', exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole('link', { name: 'Return to catalog', exact: true })
+    .click();
+  await expect(page.getByText('Page 2', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Sort by', { exact: true })).toHaveValue(
+    'ADDED_ASC',
+  );
+  await page
+    .getByRole('button', { name: 'Previous titles page', exact: true })
+    .click();
+  await expect(page.getByText('Page 1', { exact: true })).toBeVisible();
 });

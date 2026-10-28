@@ -9,6 +9,7 @@
  *   - Retry uses the current criteria and generation.
  *   - Criteria are preserved across all states so they stay editable.
  */
+import { TransportFailure } from '../../transport/graphql';
 import { readPageInfo } from '../../state/pagination';
 import type { GraphqlRequest } from '../../transport/graphql';
 import type { Criteria, CatalogState, TitleSummary } from './types';
@@ -81,7 +82,12 @@ export class CatalogController {
     const safe: Criteria = next.year ? next : { ...next, month: '' };
 
     const textChanged = safe.text !== this.current.criteria.text;
-    this.current = { ...this.current, criteria: safe };
+    this.current = {
+      ...this.current,
+      criteria: safe,
+      pageStarts: [null],
+      pageNumber: 1,
+    };
 
     globalThis.clearTimeout(this.debounceTimer);
     this.begin();
@@ -103,9 +109,20 @@ export class CatalogController {
   }
 
   /** Trigger initial load with the given criteria (no debounce). */
-  load(criteria: Criteria, after: string | null = null): void {
+  load(
+    criteria: Criteria,
+    after: string | null = null,
+    starts: readonly (string | null)[] = [null],
+  ): void {
     globalThis.clearTimeout(this.debounceTimer);
-    this.current = { ...this.current, criteria };
+    const pageStarts =
+      after && !starts.includes(after) ? [null, after] : starts;
+    this.current = {
+      ...this.current,
+      criteria,
+      pageStarts,
+      pageNumber: after ? pageStarts.indexOf(after) + 1 : 1,
+    };
     void this.search(criteria, after);
   }
 
@@ -117,41 +134,89 @@ export class CatalogController {
     );
   }
 
-  async loadMore(): Promise<void> {
+  async loadMore(): Promise<boolean> {
+    if (!this.pageAvailable(this.current)) return false;
+    return this.changePage('next');
+  }
+
+  async previousPage(): Promise<boolean> {
+    if ((this.current.pageNumber ?? 1) <= 1 || this.current.loadingMore)
+      return false;
+    return this.changePage('previous');
+  }
+
+  private async changePage(direction: 'next' | 'previous'): Promise<boolean> {
     const current = this.current;
-    if (!this.pageAvailable(current)) return;
-    const after = current.pageInfo?.endCursor;
-    if (!after) return;
+    const starts = current.pageStarts ?? [null];
+    const index = (current.pageNumber ?? 1) - 1;
+    const after =
+      direction === 'next' ? current.pageInfo?.endCursor : starts[index - 1];
+    if (after === undefined) return false;
     const generation = this.generation;
     const filter = buildSearchInput(current.criteria);
-    if (!filter) return;
-    this.publish({ ...current, loadingMore: true, pageError: null });
+    if (!filter) return false;
+    this.publish({
+      ...current,
+      loadingMore: true,
+      pageDirection: direction,
+      pageError: null,
+    });
     try {
       const result = await fetchTitles(
         this.request,
-        {
-          filter: filter as Parameters<typeof fetchTitles>[1]['filter'],
-          after,
-        },
+        { filter, after },
         this.active?.signal,
       );
-      if (generation !== this.generation) return;
-      this.currentAfter = after;
-      this.publish({
-        ...current,
-        titles: mapTitleNodes(result.nodes),
-        pageInfo: readPageInfo(result.pageInfo, after),
-        loadingMore: false,
-        pageError: null,
-      });
-    } catch {
+      if (generation !== this.generation) return false;
+      this.acceptPage(current, result, after, direction);
+      return true;
+    } catch (error) {
       if (generation === this.generation)
-        this.publish({
-          ...current,
-          loadingMore: false,
-          pageError: 'More titles could not be loaded. Retry this page.',
-        });
+        this.failPage(current, direction, error);
+      return false;
     }
+  }
+
+  private acceptPage(
+    current: CatalogState,
+    result: Awaited<ReturnType<typeof fetchTitles>>,
+    after: string | null,
+    direction: 'next' | 'previous',
+  ): void {
+    const starts = current.pageStarts ?? [null];
+    const index = (current.pageNumber ?? 1) - 1;
+    const pageInfo = readPageInfo(result.pageInfo, after);
+    const titles = mapTitleNodes(result.nodes);
+    const nextIndex = direction === 'next' ? index + 1 : index - 1;
+    this.currentAfter = after;
+    this.publish({
+      ...current,
+      kind: 'catalog',
+      titles,
+      pageInfo,
+      loadingMore: false,
+      pageError: null,
+      cursorInvalid: false,
+      pageDirection: direction,
+      pageNumber: nextIndex + 1,
+      pageStarts:
+        direction === 'next' ? [...starts.slice(0, index + 1), after] : starts,
+    });
+  }
+
+  private failPage(
+    current: CatalogState,
+    direction: 'next' | 'previous',
+    error: unknown,
+  ): void {
+    this.publish({
+      ...current,
+      loadingMore: false,
+      pageDirection: direction,
+      cursorInvalid:
+        error instanceof TransportFailure && error.code === 'FIELD_INVALID',
+      pageError: `${direction === 'next' ? 'Next' : 'Previous'} titles could not be loaded. Retry this page or restart from page one.`,
+    });
   }
 
   dispose(): void {
@@ -185,13 +250,15 @@ export class CatalogController {
       titles: [],
       pageInfo: null,
       invalidField: null,
+      pageStarts: this.current.pageStarts ?? [null],
+      pageNumber: this.current.pageNumber ?? 1,
     });
 
     try {
       const result = await fetchTitles(
         this.request,
         {
-          filter: input as Parameters<typeof fetchTitles>[1]['filter'],
+          filter: input,
           ...(after ? { after } : {}),
         },
         signal,
@@ -199,25 +266,41 @@ export class CatalogController {
 
       if (generation !== this.generation) return; // stale
 
-      const titles = mapTitleNodes(result.nodes);
-
-      this.publish({
-        kind: catalogResultKind(criteria, titles),
-        criteria,
-        titles,
-        pageInfo: readPageInfo(result.pageInfo, after),
-        invalidField: null,
-      });
+      this.publishSearchResult(criteria, result, after);
     } catch (err) {
       if (this.obsoleteSearch(generation, err)) return;
-      this.publish({
-        kind: 'failure',
-        criteria,
-        titles: [],
-        pageInfo: null,
-        invalidField: null,
-      });
+      this.publishSearchFailure(criteria, after);
     }
+  }
+
+  private publishSearchResult(
+    criteria: Criteria,
+    result: Awaited<ReturnType<typeof fetchTitles>>,
+    after: string | null,
+  ): void {
+    const titles = mapTitleNodes(result.nodes);
+    this.publish({
+      kind: after ? 'catalog' : catalogResultKind(criteria, titles),
+      pageStarts: this.current.pageStarts,
+      pageNumber: this.current.pageNumber,
+      criteria,
+      titles,
+      pageInfo: readPageInfo(result.pageInfo, after),
+      invalidField: null,
+    });
+  }
+
+  private publishSearchFailure(criteria: Criteria, after: string | null): void {
+    this.publish({
+      kind: 'failure',
+      cursorInvalid: after !== null,
+      pageStarts: this.current.pageStarts,
+      pageNumber: this.current.pageNumber,
+      criteria,
+      titles: [],
+      pageInfo: null,
+      invalidField: null,
+    });
   }
 
   private obsoleteSearch(generation: number, error: unknown): boolean {

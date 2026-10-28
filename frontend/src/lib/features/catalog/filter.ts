@@ -1,8 +1,9 @@
+import type { TitleSort, TitleKind } from '../../generated/graphql';
 import { compareUtf16 } from '../../state/ordering';
 /**
  * T013 – Catalog filter URL serialisation and validation.
  *
- * URL params:  q, kind, genre (repeatable), year, month
+ * URL params:  q, kind, genre (repeatable), year, month, sort
  * Rules:
  *   - Clearing year also clears month (no hidden month restriction).
  *   - Month without year is invalid (correction shown, not applied).
@@ -11,7 +12,7 @@ import { compareUtf16 } from '../../state/ordering';
  */
 
 import type { Criteria, TextValidity } from './types';
-import { MAX_SEARCH_CODE_POINTS } from './types';
+import { MAX_SEARCH_CODE_POINTS, catalogSort } from './types';
 
 type QueryParams = Pick<URLSearchParams, 'get' | 'getAll'>;
 
@@ -22,8 +23,11 @@ export function parseCriteria(params: QueryParams): Criteria {
   const year = params.get('year') ?? '';
   // Clearing year must also clear month – enforce on read so Back restores correctly.
   const month = year ? (params.get('month') ?? '') : '';
-  const deduped = [...new Set(params.getAll('genre').map(String))].sort(compareUtf16);
+  const deduped = [...new Set(params.getAll('genre').map(String))].sort(
+    compareUtf16,
+  );
   return Object.freeze({
+    sort: catalogSort(params.get('sort')),
     text,
     kind,
     genres: Object.freeze(deduped),
@@ -35,6 +39,8 @@ export function parseCriteria(params: QueryParams): Criteria {
 /** Serialise Criteria to URLSearchParams (stable, sorted). */
 export function criteriaToParams(criteria: Criteria): URLSearchParams {
   const params = new URLSearchParams();
+  const sort = catalogSort(criteria.sort);
+  if (sort !== 'RELEASE_DESC') params.set('sort', sort);
   if (criteria.text) params.set('q', criteria.text);
   if (criteria.kind) params.set('kind', criteria.kind);
   const deduped = [...new Set(criteria.genres)].sort(compareUtf16);
@@ -84,8 +90,9 @@ export function hasActiveFilters(criteria: Criteria): boolean {
  * Returns null when text is invalid (caller must show correction, not query).
  */
 export function buildSearchInput(criteria: Criteria): {
+  sort?: TitleSort;
   text?: string;
-  kind?: string;
+  kind?: TitleKind;
   genreIds?: string[];
   year?: number;
   month?: number;
@@ -94,13 +101,16 @@ export function buildSearchInput(criteria: Criteria): {
   if (!textCheck.valid) return null;
 
   const input: {
+    sort?: TitleSort;
     text?: string;
-    kind?: string;
+    kind?: TitleKind;
     genreIds?: string[];
     year?: number;
     month?: number;
   } = {};
 
+  if (catalogSort(criteria.sort) !== 'RELEASE_DESC')
+    input.sort = catalogSort(criteria.sort);
   if (criteria.text) input.text = criteria.text;
   if (criteria.kind === 'MOVIE' || criteria.kind === 'TV')
     input.kind = criteria.kind;

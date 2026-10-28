@@ -327,3 +327,98 @@ it('keeps a failed next page actionable and a newer filter cannot receive its ol
   controller.dispose();
   vi.useRealTimers();
 });
+
+it('round trips Previous, retries failures, and keeps navigation on empty later pages', async () => {
+  vi.useFakeTimers();
+  const first = titlesResponse(oneTitle(), true);
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(first)
+    .mockResolvedValueOnce(titlesResponse([]))
+    .mockRejectedValueOnce(new Error('lost read'))
+    .mockResolvedValue(first);
+  const ctrl = new CatalogController(request);
+  ctrl.load({
+    text: '',
+    kind: '',
+    genres: [],
+    year: '',
+    month: '',
+    sort: 'ADDED_ASC',
+  });
+  await vi.runAllTimersAsync();
+  expect(await ctrl.previousPage()).toBe(false);
+  expect(await ctrl.loadMore()).toBe(true);
+  expect(ctrl.snapshot).toMatchObject({
+    kind: 'catalog',
+    pageNumber: 2,
+    pageStarts: [null, 'next'],
+    titles: [],
+  });
+  expect(await ctrl.previousPage()).toBe(false);
+  expect(ctrl.snapshot).toMatchObject({
+    pageNumber: 2,
+    pageDirection: 'previous',
+  });
+  expect(await ctrl.previousPage()).toBe(true);
+  expect(ctrl.snapshot.pageNumber).toBe(1);
+  expect(request.mock.calls.at(-1)?.[1]).toMatchObject({
+    after: null,
+    filter: { sort: 'ADDED_ASC' },
+  });
+  ctrl.dispose();
+  vi.useRealTimers();
+});
+
+it('prevents concurrent page requests and discards page replies after a sort change', async () => {
+  vi.useFakeTimers();
+  let finish!: (value: unknown) => void;
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(titlesResponse(oneTitle(), true))
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    )
+    .mockResolvedValue(titlesResponse([]));
+  const ctrl = new CatalogController(request);
+  const criteria = { text: '', kind: '', genres: [], year: '', month: '' };
+  ctrl.load(criteria);
+  await vi.runAllTimersAsync();
+  const pending = ctrl.loadMore();
+  expect(await ctrl.loadMore()).toBe(false);
+  ctrl.setCriteria({ ...criteria, sort: 'TITLE_ASC' }, { debounce: false });
+  await vi.runAllTimersAsync();
+  finish(titlesResponse(oneTitle()));
+  expect(await pending).toBe(false);
+  expect(ctrl.snapshot).toMatchObject({
+    kind: 'empty',
+    pageNumber: 1,
+    pageStarts: [null],
+    criteria: { sort: 'TITLE_ASC' },
+  });
+  ctrl.dispose();
+  vi.useRealTimers();
+});
+
+it('restores a later page and retains its Previous cursor after retry', async () => {
+  vi.useFakeTimers();
+  const request = vi.fn().mockResolvedValue(titlesResponse(oneTitle()));
+  const ctrl = new CatalogController(request);
+  ctrl.load({ text: '', kind: '', genres: [], year: '', month: '' }, 'third', [
+    null,
+    'second',
+    'third',
+  ]);
+  await vi.runAllTimersAsync();
+  expect(ctrl.snapshot.pageNumber).toBe(3);
+  ctrl.retry();
+  await vi.runAllTimersAsync();
+  await ctrl.previousPage();
+  expect(request.mock.calls.at(-1)?.[1].after).toBe('second');
+  expect(ctrl.snapshot.pageNumber).toBe(2);
+  ctrl.dispose();
+  vi.useRealTimers();
+});

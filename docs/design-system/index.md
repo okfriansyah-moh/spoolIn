@@ -144,3 +144,6 @@ Markdown specifications, PRD coverage, contrast measurements, and `tokens.json` 
 - [Clear versus leave unchanged](mockup/policies.html#optional-clearing) — Maintainer.
 - [The input policy changed](mockup/policies.html#policy-changed) — Maintainer.
 - [Editing is temporarily unavailable](mockup/policies.html#policy-unavailable) — Maintainer.
+
+
+The [catalog follow-up](../03-design-system.md#public-catalog-sorting-and-navigation-refinement) adds six sort choices and Previous/Next pages to the existing discovery flow. Its new verification is pending; see [verification status](verification.md).
