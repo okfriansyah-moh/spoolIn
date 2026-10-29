@@ -7,7 +7,7 @@ CREATE INDEX title_active_name_asc_idx
   ON title (casefold(display_title COLLATE pg_unicode_fast) ASC, id ASC)
   WHERE status = 'ACTIVE';
 CREATE INDEX title_active_name_desc_idx
-  ON title (casefold(display_title COLLATE pg_unicode_fast) DESC, id ASC)
+  ON title (casefold(display_title COLLATE pg_unicode_fast) DESC NULLS LAST, id ASC)
   WHERE status = 'ACTIVE';
 CREATE INDEX title_active_added_asc_idx ON title (created_at ASC, id ASC) WHERE status = 'ACTIVE';
-CREATE INDEX title_active_added_desc_idx ON title (created_at DESC, id ASC) WHERE status = 'ACTIVE';
+CREATE INDEX title_active_added_desc_idx ON title (created_at DESC NULLS LAST, id ASC) WHERE status = 'ACTIVE';
