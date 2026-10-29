@@ -957,7 +957,7 @@ Use the [discovery states](design-system/mockup/discovery.html#catalog) and [fil
 
 A cursor is a server-issued page marker, not a page number or editable record ID. Debouncing waits for a short pause in typing before searching. A request generation identifies the current search so a late response from an older search cannot replace it. Cache invalidation marks previously fetched data as outdated and causes the affected views to reload after a confirmed change.
 
-Catalog URL parameters are `q`, `kind`, repeated `genre`, `year` and `month`. Absence removes a filter; reject unknown kind, malformed UUID/date, duplicate unsupported parameters and month without year with visible correction. The frontend orders genre UUIDs and removes duplicates before writing the URL. Search text clears without changing other filters; clearing year clears month. Public person listing uses `q` only. Cursor history is feature-local and resets on filter changes; browser history stores the complete filter identity and page cursor for back/forward restoration. Cursors remain opaque and are revalidated by the server.
+Catalog URL parameters are `q`, `kind`, repeated `genre`, `year`, `month` and `sort` (see [public catalog sorting](#public-catalog-sorting-and-page-navigation)). Absence removes a filter; reject unknown kind, malformed UUID/date, duplicate unsupported parameters and month without year with visible correction. The frontend orders genre UUIDs and removes duplicates before writing the URL. Search text clears without changing other filters; clearing year clears month. Public person listing uses `q` only. Cursor history is feature-local and resets on filter or sort changes; browser history stores the complete filter identity and page cursor for back/forward restoration. Cursors remain opaque and are revalidated by the server.
 
 Wait 250 ms after search changes, abort the previous read, and accept only results matching the current generation and complete criteria. Old results are not labeled as the new query. Page loading preserves valid visible rows with a loading indicator; successful zero rows is distinct from failure. Network errors offer retry with the same read criteria. Bound outstanding requests and never prefetch an unbounded result set. A RATE_LIMITED reply preserves criteria and pending values, shows retry timing and pauses automatic reads/submission until the supplied delay; do not create another mutation UUID. UNAVAILABLE remains a distinct failure. After a lost mutation reply, quota rejection during receipt lookup keeps the intent uncertain until its original owner outcome can be checked.
 
@@ -1421,7 +1421,10 @@ input PartialDateInput {
   day: Int
 }
 
+enum TitleSort { RELEASE_DESC RELEASE_ASC TITLE_ASC TITLE_DESC ADDED_DESC ADDED_ASC }
+
 input SearchInput {
+  sort: TitleSort
   text: String
   kind: TitleKind
   genreIds: [UUID!]
@@ -1874,6 +1877,7 @@ message Search {
   optional int32 month = 5;
   int32 first = 6;
   optional string after = 7;
+  optional string sort = 8;
 }
 
 message Title {
@@ -5200,7 +5204,28 @@ Case-insensitive literal substring uses `casefold(value COLLATE pg_unicode_fast)
 
 Verify accented capitals, sigma and sharp-s against the pinned engine. Preserve original display spelling. Role/genre identity is PostgreSQL `normalize(casefold(:label COLLATE pg_unicode_fast), NFC)` after application trimming, stored explicitly in normalized label; titles/persons use source identity or UUID, never spelling as identity. Source namespace + external ID + kind is unique. One credit per title/person/role; exact duplicate trimmed character values are rejected, and characters are an ordered array with each name validated independently, no invented character-count cap beyond request resource bounds. Arrays express values of one credit; genres and people are normalized relational entities.
 
-Partial date tuple rules: all NULL means unknown; year alone, year+month or valid full date; no month without year, no day without month. No January 1 surrogate. Reject invalid days/leap dates and TV end earlier than known start where comparison is determinate; less precise overlapping intervals are unknown ordering, not fabricated exact dates. Manual/MCP movie creation requires year; unknown synopsis language is `und`, seed titles may carry unknown optional day/month but must meet the frozen source requirements. `valid_partial_date` protects DB validity while endpoint policy protects required year. Sort descending year, month, day NULLS LAST, then UUID ASC. Within the same year, a known month precedes unknown month. This is an explicit display ordering rather than a claim that imprecise dates have exact chronology.
+Partial date tuple rules: all NULL means unknown; year alone, year+month or valid full date; no month without year, no day without month. No January 1 surrogate. Reject invalid days/leap dates and TV end earlier than known start where comparison is determinate; less precise overlapping intervals are unknown ordering, not fabricated exact dates. Manual/MCP movie creation requires year; unknown synopsis language is `und`, seed titles may carry unknown optional day/month but must meet the frozen source requirements. `valid_partial_date` protects DB validity while endpoint policy protects required year. Default to descending year, month, day NULLS LAST, then UUID ASC; the reader may select the other orders defined below. Within the same year, a known month precedes unknown month. This is an explicit display ordering rather than a claim that imprecise dates have exact chronology.
+
+
+#### Public catalog sorting and page navigation
+
+The public catalog offers `RELEASE_DESC` (Release date: newest first, default), `RELEASE_ASC` (oldest first), `TITLE_ASC` (Title: A–Z), `TITLE_DESC` (Z–A), `ADDED_DESC` (Added: newest first), and `ADDED_ASC` (oldest first). `SearchInput.sort: TitleSort` is optional; omitted/null uses `RELEASE_DESC`. GraphQL rejects unknown enum values. gRPC `Search.sort` is optional string field 8; Catalog validates its six supported names. Other search/list surfaces retain their existing behavior.
+
+Release sorting compares year, month, day in the selected direction, each `NULLS LAST`. Unknown parts remain unknown; no date is invented. Title sorting compares `casefold(display_title COLLATE pg_unicode_fast)` and retains articles, punctuation and accents. Added sorting compares immutable `title.created_at`, not release/update time; edits, archive and restore do not reset it. Existing seed timestamps are used without inventing import history. Every mode uses UUID ASC for ties. V027 adds active-title indexes for descending release, both folded-title directions and both creation-time directions; V002 already supplies ascending release. Catalog runtime declares schema minimum/maximum 27 for this revision; apply V027 before starting the updated Catalog.
+
+Catalog alone adds `sort` to URL criteria. Omitted/default sort is omitted when serializing; unknown URL sort falls back to release newest. Other URL validation remains unchanged. Sort does not count as an active narrowing filter for empty/no-match classification. A sort/filter change cancels obsolete requests, resets page one and clears cursor history. Preserve existing text debounce and year/month/genre semantics.
+
+Use 24-title replacement pages with Previous titles page, Next titles page and a current-page indicator, without a total-count query or page jumps. Previous uses the stored forward page-start cursor stack; do not add reverse pagination to shared `PageInfo`. Disable unavailable directions and both controls during requests. Retain the grid after a failed move, offer directional retry and restart, and commit history only on success. Successful moves scroll and focus the results heading. An empty later page retains Previous and restart rather than claiming the whole catalog is empty.
+
+Store the current cursor and page-start stack in feature-local browser history state. Back/Forward and reload restore them; ordinary same-tab title links carry a same-origin catalog return context, and Return to catalog restores that state. Modified/new-tab links retain normal browser behavior. Cursors remain outside URLs; copied URLs begin on page one. Invalid/expired cursor reads offer restart with all criteria retained. Browser-state restoration is not trusted authorization; the server always validates cursors.
+
+Signed title cursors bind the selected sort as well as existing criteria, page size and policy. Default ordering retains the existing scope and date payload so valid older default cursors still work. Other modes carry the original display title or microsecond creation timestamp in addition to UUID. New payloads use fixed three-byte Unicode scalars (at most 765 bytes for the 255-code-point title limit), bounded scope and fixed date/UUID/expiry fields; verify the signature before decoding. SQL casefolds the bound original title with the same PostgreSQL collation used for ordering, so casefold expansion never inflates the cursor. For existing titles longer than 255 code points (including a raised text policy), store a signed SHA-256 title fingerprint and UUID instead of the full title. On continuation, Catalog resolves that active title and verifies the fingerprint before binding its full value; a changed, archived or deleted anchor rejects the cursor with restart available. This preserves supported title lengths and the existing cursor-size limit without persisting extra cursor state. Preserve the 1024-byte signed-cursor limit and 15-minute expiry. Generate null-aware lexicographic continuation from the same ordering definition as SQL ORDER BY; bind values and select SQL expressions only from the fixed enum. No client-supplied SQL is interpolated.
+
+Live edits retain keyset browsing rather than a snapshot: unchanged data traverses without duplicates or omissions; additions or ordering edits can change the visible sequence. No stronger cross-request snapshot guarantee is introduced.
+
+Public catalog reads share a cancelable cooldown honoring server retry delays. Each read has at most two attempts; only rate limits and unavailable reads qualify. Sort changes coalesce for 150 ms. Poster reads start near the viewport with two concurrent downloads, abort obsolete work, and distinguish loading from unavailable artwork. Verified JPEG/PNG/WebP responses use temporary object URLs revoked on replacement or unmount; no persistent image cache is added. HTML CSP permits `blob:` only for images. Authorization, no-store behavior and mutation handling remain unchanged. The later read-budget refinement below raises the READ default; other profile limits retain their values. Recovery controls wrap with a 1rem gap between rows and buttons.
+
+Read-budget refinement, 28 October 2026: READ defaults to 2,400 requests per 60 seconds across Core, MCP and Compose. Each poster consumes a read, so the former 120-read budget allowed fewer than five full 24-poster page loads per minute. The new finite default supports browsing bursts while preserving atomic counters, identity scope, positive override validation, failure handling and all non-read profiles. An explicit operator override still takes precedence. Refresh the protected rate-policy agreement through existing provisioning, retaining the rate key, then restart Core replicas and MCP with matching effective profiles; persistent same-duration counters retain their existing usage. Title-detail reads now use the same bounded, cancelable recovery as catalog pages.
 
 #### Catalog search and optimistic update
 
@@ -5210,6 +5235,7 @@ Partial date tuple rules: all NULL means unknown; year alone, year+month or vali
 <summary>Code example — Catalog search and optimistic update</summary>
 
 ```sql
+-- Default RELEASE_DESC example; other orders use the matching bound keyset predicate.
 -- Bind parameters; :pattern is escaped literal substring with surrounding %.
 SELECT t.id, t.display_title, t.release_year, t.release_month, t.release_day,
        t.kind, t.asset_id, t.version
@@ -5471,7 +5497,7 @@ Registration trims ordinary name/email surrounding whitespace, validates syntax,
 
 A Password Hashing Competition (**PHC**) encoded string records a password hash together with its algorithm, parameters and salt so it can be verified later. Hash exact UTF-8 password bytes with Argon2id PHC encoded string; initial parameters memory 64 MiB, iterations 3, parallelism 1, random 16-byte salt,32-byte output, version 19. This exceeds the [OWASP baseline](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html); benchmark at target resources (target 150–500 ms, assumption) before final lock. Bound hashing executor to 2 concurrent requests. New passwords15..128 code points and max 512 UTF-8bytes under supported Unicode; no truncation, composition rules or forced periodic reset. Login accepts the exact stored credential even after policy tightens; verify PHC parameters under a safe maximum and opportunistically rehash after success. Password hash length512 is a physical algorithm-envelope capacity, not a password cap. Passwords/hashes never in audit, drafts, metrics, logs, notifications or proposal content.
 
-Rate admission uses the configurable profiles, identity dimensions and atomic counters in [§8.4](#84-configurable-rate-admission). Defaults retain sign-in 10/account and 60/source per 15 minutes, registration 5/source per hour, mutations 60/credential per minute and reads 120 per minute. These are admission controls, not account lockout. A limiter failure rejects new application admission safely; it does not imply that an earlier timed-out operation did not commit.
+Rate admission uses the configurable profiles, identity dimensions and atomic counters in [§8.4](#84-configurable-rate-admission). Defaults retain sign-in 10/account and 60/source per 15 minutes, registration 5/source per hour, mutations 60/credential per minute and reads 2400 per minute. These are admission controls, not account lockout. A limiter failure rejects new application admission safely; it does not imply that an earlier timed-out operation did not commit.
 
 ### 8.1 Authenticated encryption and key lifecycle
 
@@ -5561,7 +5587,7 @@ The keys below are nonsecret settings. Core/MCP private readiness diagnostics ex
 | Sign-in/source | `RATE_LIMIT_SIGNIN_SOURCE_MAX_REQUESTS` / 60 | `RATE_LIMIT_SIGNIN_SOURCE_WINDOW_SECONDS` / 900 | HMAC of trusted connection source; Core before Argon2id, alongside account profile |
 | Registration | `RATE_LIMIT_REGISTER_MAX_REQUESTS` / 5 | `RATE_LIMIT_REGISTER_WINDOW_SECONDS` / 3600 | HMAC of trusted connection source; Core before hashing/encryption/account insertion |
 | Mutation | `RATE_LIMIT_MUTATION_MAX_REQUESTS` / 60 | `RATE_LIMIT_MUTATION_WINDOW_SECONDS` / 60 | HMAC of verified credential identity; all other browser mutations, including draft save/discard, plus MCP propose/approve/reject at Core |
-| Read | `RATE_LIMIT_READ_MAX_REQUESTS` / 120 | `RATE_LIMIT_READ_WINDOW_SECONDS` / 60 | Trusted source for anonymous/public browser reads and public artwork; verified credential for protected reads/private artwork and all read gateway methods; adapter-local requests use verified connector binding |
+| Read | `RATE_LIMIT_READ_MAX_REQUESTS` / 2400 | `RATE_LIMIT_READ_WINDOW_SECONDS` / 60 | Trusted source for anonymous/public browser reads and public artwork; verified credential for protected reads/private artwork and all read gateway methods; adapter-local requests use verified connector binding |
 
 Core's existing protected rate HMAC key is provisioned through required `RATE_LIMIT_KEY_FILE` (32 bytes, owner-only mounted file, no default), separate from lookup/encryption/signing secrets. It is not distributed to the MCP adapter. Adapter-local counters use ephemeral process-keyed digests of verified connector bindings; they do not persist or expose raw credentials. Rate settings never appear in model-provided tool parameters and cannot be overridden by headers or request bodies. Operator configuration is the only source.
 
@@ -7878,18 +7904,18 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 
 | Source | SHA-256 |
 |---|---|
-| [docs/02-PRD.md](02-PRD.md) | `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895` |
-| [docs/01-brainstorming-result.md](01-brainstorming-result.md) | `2450ae03d7772787ffb5271d9eab3dac6d54aff67ac8d1e6ceb68d87b491f161` |
+| [docs/02-PRD.md](02-PRD.md) | `745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77` |
+| [docs/01-brainstorming-result.md](01-brainstorming-result.md) | `13b5808bbc52bfb590bba17f72f5ecb5c4bad40703b4dadd1583721960769c17` |
 | [docs/design-system/brand-history.md](design-system/brand-history.md) | `dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba` |
-| [docs/design-system/components.md](design-system/components.md) | `380bcda52875a540c837c0a4e3dc1da768e683dad34c88ce68a7d56428763a8e` |
+| [docs/design-system/components.md](design-system/components.md) | `863b897dd73de598a09fd22563551aa68ab2139cfe46b25aeae81c99337d1ba1` |
 | [docs/design-system/contrast.json](design-system/contrast.json) | `906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f` |
-| [docs/design-system/coverage.json](design-system/coverage.json) | `7029e44e15817319e764cf26f01e9446b42d462e7779f65236ff34f4a099b52c` |
-| [docs/design-system/coverage.md](design-system/coverage.md) | `7c53617473f52c4bac3034c1d70bf6a4cd610d926beb9dc2527ad1f375564df4` |
-| [docs/03-design-system.md](03-design-system.md) | `585b222d387bc113d8ee63ddda0f08729b970037252ad02eb076b39098411113` |
-| [docs/design-system/index.md](design-system/index.md) | `02b14ff599491bfbc100fc943e7b441df12b61604f4b84b2ec91ebbc47c6a79b` |
+| [docs/design-system/coverage.json](design-system/coverage.json) | `0f153639a1fa6fd175d251ce97d7b33b2875ed1230745425d94ef12a4c9e898a` |
+| [docs/design-system/coverage.md](design-system/coverage.md) | `964c891dbdb394ed658273d8a07b4d9a39447a75ac4c963190979f76da423158` |
+| [docs/03-design-system.md](03-design-system.md) | `9bc0a72380c765cfe6e9f23089640fc98c2effd4206acf379468018ba51344ec` |
+| [docs/design-system/index.md](design-system/index.md) | `448725ac9bcc8d83b6792202bf44270a89ed925a71ac01c15cd18129ab3ba05a` |
 | [docs/design-system/mockup/account.html](design-system/mockup/account.html) | `ece3fe085ffc951a9dfb02b761f964e11118d229f6637bccfae6263015bf400a` |
 | [docs/design-system/mockup/ai.html](design-system/mockup/ai.html) | `b2c78e2099f8330cf8c5e5e2803dc3773e5b2ae85911700d6ae58d8543077156` |
-| [docs/design-system/mockup/app.js](design-system/mockup/app.js) | `927fadd73b6b698fcc357cbef0da33dbb433159c79a4c0f256903750e93a99b3` |
+| [docs/design-system/mockup/app.js](design-system/mockup/app.js) | `0ef35c4398822d0d2975e0f9d656e89d1f762b6bedc02721512835922d79e88d` |
 | [docs/design-system/mockup/archives.html](design-system/mockup/archives.html) | `e63c6a843f9d59788dd1282c728eb7192344184c27dc2c93aa574f8aa78f6bfa` |
 | [docs/design-system/mockup/artwork.html](design-system/mockup/artwork.html) | `c8e67eb13c28e2f2c4f17dcd81ffb75fdba2cc14bf30592e557de4691d75b8ef` |
 | [docs/design-system/mockup/assets/artwork-provenance.json](design-system/mockup/assets/artwork-provenance.json) | `c522be6e9d9b1e0a4385d6fe6eb89f66f778038110eb8aa5a03a16f0a4803b6b` |
@@ -7904,7 +7930,7 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/mockup/components.js](design-system/mockup/components.js) | `a125092e99e82fb9eadac41b77b76958e217df944109c8eda651748c607d661f` |
 | [docs/design-system/mockup/credits.html](design-system/mockup/credits.html) | `10e90349a8b7a98cbf20cf41d3c6186c6bbe689e42baa2a4386534edb80863ac` |
 | [docs/design-system/mockup/details.html](design-system/mockup/details.html) | `22eee407ac91c4a39e6108dbcd68f7c059ecaeca9a7ac0e10425a39c915feccb` |
-| [docs/design-system/mockup/discovery.html](design-system/mockup/discovery.html) | `8a220cbb0f0306494aa62b1440c75c6712cd1d6c420a7665d20c6b20e1899e17` |
+| [docs/design-system/mockup/discovery.html](design-system/mockup/discovery.html) | `e511ace7699cf709d57c4b023a42242777d05ef80b35c0e9578db904f883ffdc` |
 | [docs/design-system/mockup/docs.css](design-system/mockup/docs.css) | `0b1beb805445306f76810ac05a1fa846b281ca00141e04af421683c5f952e698` |
 | [docs/design-system/mockup/index.html](design-system/mockup/index.html) | `82f513b5982cc8141e1c058f22415d7de632ccb1e83ca0e7f00c9f089da2afbf` |
 | [docs/design-system/mockup/management.html](design-system/mockup/management.html) | `a3d247de6c6073d581bf0d88fa8f87f0727ef3c0d843bd23d74420ade1066059` |
@@ -7915,9 +7941,9 @@ Hashes are SHA-256 over current file bytes. The complete design subtree digest b
 | [docs/design-system/mockup/theme.js](design-system/mockup/theme.js) | `1d6ae3fe7138b56c4169ac988045d0bb9ae21cc86fc849f5b6c35d10f68c5138` |
 | [docs/design-system/mockup/tokens.css](design-system/mockup/tokens.css) | `9d79a52abd67e466935e3749505dd4b8348a98ab873e898e9479903c10ddd0aa` |
 | [docs/design-system/tokens.json](design-system/tokens.json) | `459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029` |
-| [docs/design-system/verification.md](design-system/verification.md) | `9be2958bc9d70a0ba48928f416ab14e2aa0795a988e1cdb0bc6568b6d722c645` |
+| [docs/design-system/verification.md](design-system/verification.md) | `e25314300c966f21dae4466d7311543f251ec10ca737d789dd7e68aa49aebf33` |
 
-Design subtree composite SHA-256: `c4f51429cade298f725b636ccf25ee3a3f8a8993a8cffa4372079713cf51ea0e` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
+Design subtree composite SHA-256: `5ba2f830334d50b7d2d622bbbf574941a8338d5f596f934da3392bee915242ba` (35 files; sorted design-relative path + TAB + file SHA-256 rows, each ending with LF).
 
 ### Appendix C.2 Primary technical references
 

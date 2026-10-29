@@ -24,5 +24,6 @@ internal fun buildTitleSearchRequest(
             year?.let { builder.year = it }
             month?.let { builder.month = it }
             after?.let { builder.after = it }
+            (filter["sort"] as? String)?.let { builder.sort = it }
         }.build()
 }

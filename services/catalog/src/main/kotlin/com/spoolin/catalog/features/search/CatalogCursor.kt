@@ -2,7 +2,6 @@
 
 package com.spoolin.catalog.features.search
 
-import java.nio.ByteBuffer
 import java.security.SecureRandom
 import java.time.Instant
 import java.util.Base64
@@ -21,8 +20,9 @@ private const val CURSOR_TTL_SECONDS = 900L // 15 minutes
  * Signed, query-scoped pagination cursor for public title / person searches.
  *
  * Format: Base64Url(payload_bytes || hmac_bytes)
- * payload_bytes = varint-length-prefixed UTF-8 JSON:
+ * Default release ordering retains its UTF-8 JSON payload:
  *   {"y":<year>,"m":<month>,"d":<day>,"u":"<uuid>","s":"<scopeHex>","e":<epochSeconds>}
+ * Other sort values use the bounded versioned binary payload in TitleCursorValue.
  * hmac_bytes = HMAC-SHA256(payload_bytes, key) — 32 bytes
  *
  * The key is injected; tests use a fixed key for determinism.
@@ -36,6 +36,8 @@ class CatalogCursor(
         val releaseMonth: Int?,
         val releaseDay: Int?,
         val id: UUID,
+        val sortValue: String? = null,
+        val sortHash: String? = null,
     )
 
     /**
@@ -47,7 +49,9 @@ class CatalogCursor(
         now: Instant,
     ): String {
         val expiresAt = now.plusSeconds(CURSOR_TTL_SECONDS).epochSecond
-        val payload = buildPayload(keyset, scopeHash, expiresAt)
+        val payload =
+            if (keyset.sortValue == null) buildPayload(keyset, scopeHash, expiresAt)
+            else TitleCursorValue.encode(keyset, scopeHash, expiresAt)
         val mac = mac(payload)
         val bytes = payload + mac
         require(bytes.size <= MAX_CURSOR_BYTES) { "Cursor exceeds 1024 bytes" }
@@ -74,8 +78,10 @@ class CatalogCursor(
             val expected = mac(payload)
             val actual = bytes.copyOfRange(bytes.size - HMAC_LEN, bytes.size)
             if (!constantTimeEquals(expected, actual)) return@runCatching null
-            val json = String(payload, Charsets.UTF_8)
-            val values = parseJson(json) ?: return@runCatching null
+            val values =
+                if (payload.firstOrNull() == '{'.code.toByte()) parseJson(String(payload, Charsets.UTF_8))
+                else TitleCursorValue.decode(payload)
+            if (values == null) return@runCatching null
             val expiresAt = values["e"] as? Long ?: return@runCatching null
             if (now.epochSecond >= expiresAt) return@runCatching null
             val scope = values["s"] as? String ?: return@runCatching null
@@ -88,6 +94,8 @@ class CatalogCursor(
                 releaseMonth = (values["m"] as? Long)?.toInt(),
                 releaseDay = (values["d"] as? Long)?.toInt(),
                 id = id,
+                sortValue = values["v"] as? String,
+                sortHash = values["h"] as? String,
             )
         }.getOrNull()
 
@@ -98,14 +106,15 @@ class CatalogCursor(
         scopeHash: String,
         expiresAt: Long,
     ): ByteArray {
-        val sb = StringBuilder("{")
-        keyset.releaseYear?.let { sb.append("\"y\":$it,") }
-        keyset.releaseMonth?.let { sb.append("\"m\":$it,") }
-        keyset.releaseDay?.let { sb.append("\"d\":$it,") }
-        sb.append("\"u\":\"${keyset.id}\",")
-        sb.append("\"s\":\"$scopeHash\",")
-        sb.append("\"e\":$expiresAt}")
-        return sb.toString().toByteArray(Charsets.UTF_8)
+        val values = linkedMapOf<String, Any>()
+        keyset.releaseYear?.let { values["y"] = it }
+        keyset.releaseMonth?.let { values["m"] = it }
+        keyset.releaseDay?.let { values["d"] = it }
+        keyset.sortValue?.let { values["v"] = it }
+        values["u"] = keyset.id.toString()
+        values["s"] = scopeHash
+        values["e"] = expiresAt
+        return mapper.writeValueAsBytes(values)
     }
 
     private fun mac(payload: ByteArray): ByteArray {
@@ -114,50 +123,28 @@ class CatalogCursor(
         return mac.doFinal(payload)
     }
 
-    /** Minimal JSON deserializer sufficient for cursor payloads (no external deps). */
     private fun parseJson(json: String): Map<String, Any>? =
         runCatching {
-            val cleaned = json.trim().removePrefix("{").removeSuffix("}")
-            val result = mutableMapOf<String, Any>()
-            val entries = splitEntries(cleaned)
-            for (entry in entries) {
-                val colon = entry.indexOf(':')
-                if (colon < 0) return@runCatching null
-                val rawKey = entry.substring(0, colon).trim().trim('"')
-                val rawValue = entry.substring(colon + 1).trim()
-                val value: Any =
-                    when {
-                        rawValue.startsWith("\"") -> rawValue.trim('"')
-                        rawValue.toLongOrNull() != null -> rawValue.toLong()
-                        else -> return@runCatching null
-                    }
-                result[rawKey] = value
-            }
-            result
-        }.getOrNull()
-
-    private fun splitEntries(s: String): List<String> {
-        val parts = mutableListOf<String>()
-        var depth = 0
-        var inString = false
-        var start = 0
-        for (i in s.indices) {
-            when {
-                s[i] == '"' && (i == 0 || s[i - 1] != '\\') -> inString = !inString
-                !inString && s[i] == '{' -> depth++
-                !inString && s[i] == '}' -> depth--
-                !inString && depth == 0 && s[i] == ',' -> {
-                    parts.add(s.substring(start, i))
-                    start = i + 1
+            val value = mapper.readTree(json)
+            require(value.isObject)
+            value.propertyNames().associateWith { name ->
+                val field = value[name]
+                when {
+                    field.isTextual -> field.asText()
+                    field.isIntegralNumber && field.canConvertToLong() -> field.asLong()
+                    else -> error("Invalid cursor field")
                 }
             }
-        }
-        if (start < s.length) parts.add(s.substring(start))
-        return parts
-    }
+        }.getOrNull()
 
     companion object {
         private val random = SecureRandom()
+        private val mapper =
+            tools.jackson.databind.json.JsonMapper
+                .builder()
+                .enable(tools.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+                .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .build()
 
         fun newRandomKey(): ByteArray = ByteArray(KEY_BYTES).also { random.nextBytes(it) }
 

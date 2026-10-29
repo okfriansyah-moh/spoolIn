@@ -14,7 +14,7 @@ The design-system handoff is complete for technical-document creation. Authentic
 
 ## Authority, scope, and targets
 
-Product authority: [PRD v2.4, Ready for technical design](02-PRD.md), SHA-256 `d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895`. Product behavior outranks examples and design recommendations. [Coverage JSON](design-system/coverage.json) records all 17 FRs, 16 NFRs, and 159 ACs, including specific technical dispositions. A visual mapping is not a passing production test.
+Product authority: [PRD v2.4, Ready for technical design](02-PRD.md), SHA-256 `745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77`. Product behavior outranks examples and design recommendations. [Coverage JSON](design-system/coverage.json) records all 17 FRs, 16 NFRs, and 159 ACs, including specific technical dispositions. A visual mapping is not a passing production test.
 
 | Decision | Selected target / evidence |
 |---|---|
@@ -139,3 +139,14 @@ Interaction checks covered keyboard login and generic errors, registration, exis
 Technical design must define authoritative validation, account/session security, permission and target rechecks, persistent account-isolated recovery, concurrent mutations, impact freshness, operation reconciliation, bounded artwork decoding/processing, audit atomicity, and restart persistence. Real ChatGPT/Claude integration must enforce exact-content approval; storyboards do not establish that capability. Production seed data, provider licenses, deployment settings, and a component library remain outside this design package.
 
 Open `design-system/mockup/index.html` directly or serve `docs/design-system/` with a local static server and visit `mockup/index.html`. The package has no build step or remote runtime dependency. Only theme preference is persisted by the demonstrations; protected draft examples use page memory and reset on reload.
+
+
+## Public catalog sorting and navigation refinement
+
+Poster placeholders distinguish loading from unavailable artwork. Temporary request limits explain automatic waiting. Navigation and recovery actions wrap independently with at least 1rem between rows and buttons, including on mobile.
+
+Extend the existing catalog controls with a labeled Sort by select using the current field, typography, color and focus tokens. Options are Release date: newest first / oldest first, Title: A–Z / Z–A, and Added: newest first / oldest first. Keep release newest as the default. Place the select below the current filter row with a maximum width of 22rem, constrained to the viewport. Do not redesign the cards or existing filters.
+
+Place Previous titles page, Page N and Next titles page below the grid in a wrapping row. Disable unavailable directions and both buttons while a page read is pending; expose busy state on the requested direction. Show retained-page failures with directional retry and Restart from page one. On success, focus and scroll to Explore the catalog; support reduced motion without animation. An empty later page keeps navigation and restart. Title details provide Return to catalog with the reader’s criteria and page retained for ordinary same-tab navigation. See the [technical behavior](04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation) and [ATDD-008](05-atdd.md#case-atdd-008-navigation-and-order).
+
+The discovery mockup illustrates these controls with fictional data. Its small demonstration page size and added timestamps are illustrative, not production values or acceptance evidence.

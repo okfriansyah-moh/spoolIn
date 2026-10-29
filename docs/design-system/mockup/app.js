@@ -11,8 +11,62 @@ function error(id,msg){const input=document.getElementById(id),box=document.getE
 function busy(button,label,done){if(!button)return;button.disabled=true;button.textContent=label;button.form?.setAttribute('aria-busy','true');setTimeout(()=>{button.form?.removeAttribute('aria-busy');button.disabled=false;done()},400)}
 function count(value,trim=true){return [...(trim?value.trim():value)].length}
 // Catalog filtering. Fixture records, no fetch; no previous results for an invalid query.
-function filter(){if(!$('#search'))return;const raw=$('#search').value,q=raw.trim().toLocaleLowerCase(),invalid=count(raw)>200;error('search',invalid?'Shorten the search to 200 Unicode code points or fewer. Your text and filters are retained.':'');const year=$('#year').value;$('#month').disabled=year==='All years';if($('#month').disabled)$('#month').value='All months';const month=$('#month').value,genres=$$('input[name=filter-genre]:checked').map(e=>e.value),kind=$('input[name=kind]:checked').value;let total=0;const cards=$$('.film-card');const key=c=>c.dataset.year==='unknown'?-1:Number(c.dataset.year)*12+({March:3,October:10}[c.dataset.month]||0);cards.sort((a,b)=>key(b)-key(a)).forEach(c=>$('.poster-grid').append(c));cards.forEach(c=>{const d=c.dataset;c.hidden=invalid||!d.title.toLocaleLowerCase().includes(q)||(kind!=='All'&&d.type!==kind)||(genres.length&&!genres.includes(d.genre))||(year!=='All years'&&d.year!==year)||(month!=='All months'&&d.month!==month);if(!c.hidden)total++});$('#result-count').textContent=invalid?'Correct search input':total+' illustrative '+(total===1?'title':'titles');$('#no-results').hidden=invalid||total!==0;}
-on('#search-form','submit',e=>{e.preventDefault();filter()});on('#search','input',filter);['#year','#month'].forEach(s=>on(s,'change',filter));$$('input[name=kind],input[name=filter-genre]').forEach(e=>e.addEventListener('change',filter));on('#clear-search','click',()=>{$('#search').value='';filter();$('#search').focus()});filter();
+let catalogPage = 0;
+const catalogPageSize = 2;
+function fixtureOrder(a, b) {
+  const sort = $('#catalog-sort')?.value || 'RELEASE_DESC';
+  const direction = sort.endsWith('ASC') ? 1 : -1;
+  let comparison = 0;
+  if (sort.startsWith('TITLE')) comparison = a.dataset.title.toLocaleLowerCase().localeCompare(b.dataset.title.toLocaleLowerCase());
+  else if (sort.startsWith('ADDED')) comparison = Number(a.dataset.added) - Number(b.dataset.added);
+  else {
+    const date = c => [c.dataset.year === 'unknown' ? null : Number(c.dataset.year), ({March:3,October:10}[c.dataset.month] || null)];
+    const left = date(a), right = date(b);
+    for (let i = 0; i < left.length; i++) {
+      if (left[i] === right[i]) continue;
+      if (left[i] === null) return 1;
+      if (right[i] === null) return -1;
+      comparison = left[i] - right[i];
+      break;
+    }
+  }
+  return comparison * direction || Number(a.dataset.added) - Number(b.dataset.added);
+}
+function filter(reset = true) {
+  if (!$('#search')) return;
+  if (reset) catalogPage = 0;
+  const raw = $('#search').value, q = raw.trim().toLocaleLowerCase(), invalid = count(raw) > 200;
+  error('search', invalid ? 'Shorten the search to 200 Unicode code points or fewer. Your text and filters are retained.' : '');
+  const year = $('#year').value;
+  $('#month').disabled = year === 'All years';
+  if ($('#month').disabled) $('#month').value = 'All months';
+  const month = $('#month').value, genres = $$('input[name=filter-genre]:checked').map(e => e.value), kind = $('input[name=kind]:checked').value;
+  const cards = $$('.film-card').sort(fixtureOrder), matches = [];
+  cards.forEach(c => {
+    $('.poster-grid').append(c);
+    const d = c.dataset;
+    c.hidden = true;
+    if (!invalid && d.title.toLocaleLowerCase().includes(q) && (kind === 'All' || d.type === kind) && (!genres.length || genres.includes(d.genre)) && (year === 'All years' || d.year === year) && (month === 'All months' || d.month === month)) matches.push(c);
+  });
+  catalogPage = Math.min(catalogPage, Math.max(0, Math.ceil(matches.length / catalogPageSize) - 1));
+  matches.slice(catalogPage * catalogPageSize, (catalogPage + 1) * catalogPageSize).forEach(c => c.hidden = false);
+  $('#result-count').textContent = invalid ? 'Correct search input' : matches.length + ' illustrative titles';
+  $('#no-results').hidden = invalid || matches.length !== 0;
+  if ($('#catalog-page')) {
+    $('#catalog-page').textContent = 'Page ' + (catalogPage + 1);
+    $('#catalog-previous').disabled = catalogPage === 0;
+    $('#catalog-next').disabled = (catalogPage + 1) * catalogPageSize >= matches.length;
+  }
+}
+on('#search-form', 'submit', e => { e.preventDefault(); filter(); });
+on('#search', 'input', () => filter());
+['#year', '#month', '#catalog-sort'].forEach(s => on(s, 'change', () => filter()));
+$$('input[name=kind],input[name=filter-genre]').forEach(e => e.addEventListener('change', () => filter()));
+on('#clear-search', 'click', () => { $('#search').value = ''; filter(); $('#search').focus(); });
+[['#catalog-previous', -1], ['#catalog-next', 1]].forEach(([selector, delta]) => on(selector, 'click', () => {
+  catalogPage += delta; filter(false); $('#catalog-results-heading')?.focus(); $('#catalog-results-heading')?.scrollIntoView({ block: 'start' });
+}));
+filter();
 on('#people-search','submit',e=>e.preventDefault());on('#person-query','input',()=>{const q=$('#person-query').value.trim().toLocaleLowerCase(),invalid=count(q)>200;const rows=$$('#people tbody tr');let n=0;rows.forEach(r=>{r.hidden=invalid||!r.cells[0].textContent.toLocaleLowerCase().includes(q);if(!r.hidden)n++});$('#person-query').setAttribute('aria-invalid',String(invalid));$('#people-result').textContent=invalid?'Keep the full query; shorten it to 200 code points or fewer.':n?n+' active people found.':'No matching active people. Clear or change the name.'});
 // Auth inputs are never persisted. Credentials are fixture-only.
 on('#login-form','submit',e=>{e.preventDefault();const email=$('#email'),pass=$('#password');const a=!email.value||!email.validity.valid,b=!pass.value;error('email',a?'Enter a valid email address.':'');error('password',b?'Enter your existing password.':'');if(a||b){(a?email:pass).focus();return;}const role=email.value==='maintainer@example.test'?'maintainer':email.value==='viewer@example.test'?'viewer':null;busy(e.submitter,'Signing in…',()=>{pass.value='';if(!role){$('#login-feedback').hidden=false;e.submitter.textContent='Sign in';return;}go('account',role)})});

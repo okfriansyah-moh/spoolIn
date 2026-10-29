@@ -18,6 +18,8 @@ class FrontendPolicyRulesTest {
             )
         assertTrue(policy.contains("'sha256-$expected'"))
         assertTrue(policy.contains("object-src 'none'; frame-ancestors 'none'"))
+        assertTrue(policy.contains("img-src 'self' blob:"))
+        assertFalse(policy.substringAfter("script-src").substringBefore(';').contains("blob:"))
         assertFalse(policy.contains("unsafe-inline"))
         assertFalse(policy.contains("unsafe-eval"))
         assertFalse(FrontendPolicy.forHtml("<h1>Empty</h1>".toByteArray()).contains("sha256-"))

@@ -8,37 +8,37 @@ repositories:
 sources:
 - id: BRAIN
   path: 01-brainstorming-result.md
-  sha256: 2450ae03d7772787ffb5271d9eab3dac6d54aff67ac8d1e6ceb68d87b491f161
+  sha256: 13b5808bbc52bfb590bba17f72f5ecb5c4bad40703b4dadd1583721960769c17
 - id: PRD
   path: 02-PRD.md
-  sha256: d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895
+  sha256: 745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77
 - id: TECH
   path: 04-spoolin-techdoc.md
-  sha256: 336d543aa14040ec4c0e0abf3cd2f0eb7b0f60ac2b6a1a3fb1c35f3b3b0bd4b2
+  sha256: bb08a944d4b044ce557680469677b7ea199675d95a085e7c09e5cc7dac1cc8b8
 - id: ATDD
   path: 05-atdd.md
-  sha256: 1feee26f5a5a49d6a47f0566e4cc20473299c97c82cacb2d4d2d9ae07f63804b
+  sha256: cfbf3ff169c3f7f78eada57dafd44411e724dba675cc56d35cb3a08dfc4fb7ba
 - id: S-DESIGN-SYSTEM-03-DESIGN-SYSTEM-MD
   path: 03-design-system.md
-  sha256: 585b222d387bc113d8ee63ddda0f08729b970037252ad02eb076b39098411113
+  sha256: 9bc0a72380c765cfe6e9f23089640fc98c2effd4206acf379468018ba51344ec
 - id: S-DESIGN-SYSTEM-BRAND-HISTORY-MD
   path: design-system/brand-history.md
   sha256: dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba
 - id: S-DESIGN-SYSTEM-COMPONENTS-MD
   path: design-system/components.md
-  sha256: 380bcda52875a540c837c0a4e3dc1da768e683dad34c88ce68a7d56428763a8e
+  sha256: 863b897dd73de598a09fd22563551aa68ab2139cfe46b25aeae81c99337d1ba1
 - id: S-DESIGN-SYSTEM-CONTRAST-JSON
   path: design-system/contrast.json
   sha256: 906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f
 - id: S-DESIGN-SYSTEM-COVERAGE-JSON
   path: design-system/coverage.json
-  sha256: 7029e44e15817319e764cf26f01e9446b42d462e7779f65236ff34f4a099b52c
+  sha256: 0f153639a1fa6fd175d251ce97d7b33b2875ed1230745425d94ef12a4c9e898a
 - id: S-DESIGN-SYSTEM-COVERAGE-MD
   path: design-system/coverage.md
-  sha256: 7c53617473f52c4bac3034c1d70bf6a4cd610d926beb9dc2527ad1f375564df4
+  sha256: 964c891dbdb394ed658273d8a07b4d9a39447a75ac4c963190979f76da423158
 - id: S-DESIGN-SYSTEM-INDEX-MD
   path: design-system/index.md
-  sha256: 02b14ff599491bfbc100fc943e7b441df12b61604f4b84b2ec91ebbc47c6a79b
+  sha256: 448725ac9bcc8d83b6792202bf44270a89ed925a71ac01c15cd18129ab3ba05a
 - id: S-DESIGN-SYSTEM-MOCKUP-ACCOUNT-HTML
   path: design-system/mockup/account.html
   sha256: ece3fe085ffc951a9dfb02b761f964e11118d229f6637bccfae6263015bf400a
@@ -47,7 +47,7 @@ sources:
   sha256: b2c78e2099f8330cf8c5e5e2803dc3773e5b2ae85911700d6ae58d8543077156
 - id: S-DESIGN-SYSTEM-MOCKUP-APP-JS
   path: design-system/mockup/app.js
-  sha256: 927fadd73b6b698fcc357cbef0da33dbb433159c79a4c0f256903750e93a99b3
+  sha256: 0ef35c4398822d0d2975e0f9d656e89d1f762b6bedc02721512835922d79e88d
 - id: S-DESIGN-SYSTEM-MOCKUP-ARCHIVES-HTML
   path: design-system/mockup/archives.html
   sha256: e63c6a843f9d59788dd1282c728eb7192344184c27dc2c93aa574f8aa78f6bfa
@@ -92,7 +92,7 @@ sources:
   sha256: 22eee407ac91c4a39e6108dbcd68f7c059ecaeca9a7ac0e10425a39c915feccb
 - id: S-DESIGN-SYSTEM-MOCKUP-DISCOVERY-HTML
   path: design-system/mockup/discovery.html
-  sha256: 8a220cbb0f0306494aa62b1440c75c6712cd1d6c420a7665d20c6b20e1899e17
+  sha256: e511ace7699cf709d57c4b023a42242777d05ef80b35c0e9578db904f883ffdc
 - id: S-DESIGN-SYSTEM-MOCKUP-DOCS-CSS
   path: design-system/mockup/docs.css
   sha256: 0b1beb805445306f76810ac05a1fa846b281ca00141e04af421683c5f952e698
@@ -125,16 +125,16 @@ sources:
   sha256: 459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029
 - id: S-DESIGN-SYSTEM-VERIFICATION-MD
   path: design-system/verification.md
-  sha256: 9be2958bc9d70a0ba48928f416ab14e2aa0795a988e1cdb0bc6568b6d722c645
+  sha256: e25314300c966f21dae4466d7311543f251ec10ca737d789dd7e68aa49aebf33
 - id: S-PROMPTS-ATDD-CREATION-MD
   path: prompts/atdd-creation.md
-  sha256: 6f9027d220b163585f62befa50e913ed81dc97f164b84940d7116e339f762131
+  sha256: da2f345dd2967cb2e89d1cb13b1ab8cbd5d9f22c69233a0073f00378978060d2
 - id: S-PROMPTS-DESIGN-SYSTEM-CREATION-MD
   path: prompts/design-system-creation.md
-  sha256: c13d3811c14caecc74382eaa9e54d5b75137ff7e0bb114ed0bec42392d8e403b
+  sha256: 99dafa308d345d54fbd76168b41580b23faa603ad77667ac1646fe9ac4c4a2cf
 - id: S-PROMPTS-TECHDOC-CREATION-MD
   path: prompts/techdoc-creation.md
-  sha256: fc0a58563c9b9e735903e6430ec86ad77f7dc10ecdc28d5dc7ea68fe90cdc6e7
+  sha256: e4687b76ac2824b0be2200e302d163e3ae19f8f005b0eb06eaa2af687880749e
 groups:
 - id: G01
   path: plan/01-reproducible-foundation/group.md
@@ -2920,3 +2920,30 @@ All 20 feature folders now use consecutive `01-` through `20-` prefixes. The pre
 This update changes navigation and the future authoring convention. It performs no application implementation or acceptance execution. Temporary maps, inventories and reports remain outside project deliverables.
 
 Concurrent ATDD layout impact: revision1.7 SHA-256 `3bb4f10614f83bad18009e9d0387fd30de4f0b5c581ba67e2e4aab8554224c86` → revision1.8 SHA-256 `4af828cf702d29d5cc3b924f949ac6f8a8ef6cd2f7a6986f829351acc38ce0a7`. A complete before/after comparison found only thematic breaks, the revision/date field, layout history and verified cached source fingerprints. Source cases, expectations and execution evidence are unchanged. The plan source register and ATDD line references were refreshed without editing ATDD.
+
+
+## Public catalog sorting and navigation follow-up
+
+Approved 28 October 2026: implement six public title orders and Previous/Next replacement pages, preserving existing discovery behavior. This follow-up extends T012/T013 without rewriting their historical implementation status or renumbering IDs. Acceptance is pending current checks and one independent combined review.
+
+Backend work extends optional GraphQL/gRPC sorting, sort-bound signed cursors, fixed SQL ordering/keysets and additive indexes. Frontend work extends URL criteria, page-start history, directional recovery, focus and detail return. Synchronize active product/design/technical/acceptance documents and the discovery mockup. Verify ATDD-008 plus existing discovery regressions against the [specified behavior](04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation); apply the repository’s affected delivery gates and permanent quality contract.
+
+
+### Bounded verification follow-up · 28 October 2026
+
+The owner requested bounded checks and a local Docker rebuild/restart for manual testing instead of extended verification. Explicit elevated-memory approval applies to this run; sequential build/check containers retain a 1 GB memory ceiling and one CPU. Contract generation, production frontend/Core/Catalog/Media/MCP builds, changed frontend lint and type checking passed after fixing optional page-state types, readonly URL typing, focus reactivity and complexity findings. The type checker reports one unrelated existing RoleCreator warning. All 76 selected frontend regressions and 10 selected Catalog unit cases passed. Independent source correction review accepted the final helpers and retained navigation validation.
+
+Local image rebuild, migration, service readiness and the live read smoke check are recorded in the active selection ledger. Manual browser acceptance and the extended permanent delivery gates remain pending; these focused results do not claim release acceptance or exhaustive regression coverage.
+
+
+Local manual-test preparation completed: all five application/database images rebuilt, V027 applied, Core/Catalog/Media/MCP restarted, and readiness passed after aligning Catalog’s supported schema to 27. A read-only live smoke check passed all six sort modes over two pages, default 24-title size/order, year/type filters and cross-sort cursor rejection. Existing data was retained without reset or reseeding. The application is available at `https://localhost:8443`; manual browser acceptance remains with the owner.
+
+
+### Catalog read recovery · 28 October 2026
+
+Manual testing exposed shared public-read quota exhaustion from repeated poster loads. The scoped correction adds visible-only bounded poster downloads, cancelable server-delay recovery, rapid-sort coalescing and spaced recovery controls. Preserve existing limits and access rules. Focused checks and independent review are recorded in selection-ae07274cb6d84d3e; extended acceptance remains pending.
+
+
+### Read budget refinement · 28 October 2026
+
+The owner requested a higher rate limit after manual browsing still exhausted the shared read quota. Raise only the READ default from 120 to 2400 per 60 seconds across backend settings, MCP and Compose; retain explicit overrides, validation, counter persistence and all other profile values. Apply existing public-read recovery to title details. Focused checks, independent review and local restart are tracked in selection-4e29d3f4f3c34875; extended acceptance remains pending.

@@ -45,7 +45,7 @@ class RateProfilesTest {
         assertEquals(RateRule(60, 900), defaults.rule(RateProfile.SIGNIN_SOURCE))
         assertEquals(RateRule(5, 3600), defaults.rule(RateProfile.REGISTER))
         assertEquals(RateRule(60, 60), defaults.rule(RateProfile.MUTATION))
-        assertEquals(RateRule(120, 60), defaults.rule(RateProfile.READ))
+        assertEquals(RateRule(2400, 60), defaults.rule(RateProfile.READ))
         assertEquals(defaults.revision, RateProfiles(ConfigurationSources()).revision)
         assertNotEquals(
             defaults.revision,

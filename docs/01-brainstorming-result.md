@@ -224,7 +224,7 @@ Working concepts:
 
 A person can be both cast and creator. Roles such as actor, director, writer, and producer were examples, not a finalized enum. Decide whether multiple acting characters or multiple credits of the same role are supported.
 
-Title and person name must not be assumed globally unique. Stable identifiers are the primary identity. The metadata categories in section 8.2 are established; exact field contracts, lengths, optionality, identifiers, pagination, case sensitivity, partial matching, sorting, and deletion semantics remain open.
+Title and person name must not be assumed globally unique. Stable identifiers are the primary identity. The metadata categories in section 8.2 are established; exact field contracts, lengths, optionality, identifiers, pagination, case sensitivity, partial matching, sorting, and deletion semantics were open at this brainstorming stage. Current catalog sorting and navigation decisions are specified in the [technical design](04-spoolin-techdoc.md#public-catalog-sorting-and-page-navigation).
 
 Catalog and Media own separate data boundaries. One local database instance with separate databases/schemas was discussed as an economical deployment option; the engine and isolation mechanism are not selected. Cross-service database reads and joins are outside the intended design.
 

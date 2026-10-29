@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { TITLE_SORTS } from '../features/catalog/types';
   import type { Criteria } from '../features/catalog/types';
   let {
     criteria = $bindable(),
@@ -226,9 +227,32 @@
       >
     </div>
   </div>
+  <div class="field catalog-sort">
+    <label for={`${id}-sort`}>Sort by</label>
+    <select
+      id={`${id}-sort`}
+      value={criteria.sort ?? 'RELEASE_DESC'}
+      onchange={(event) => {
+        criteria = {
+          ...criteria,
+          sort:
+            TITLE_SORTS.find(
+              ([sort]) => sort === event.currentTarget.value,
+            )?.[0] ?? 'RELEASE_DESC',
+        };
+      }}
+    >
+      {#each TITLE_SORTS as [value, label] (value)}<option {value}
+          >{label}</option
+        >{/each}
+    </select>
+  </div>
 </div>
 
 <style>
+  .catalog-sort {
+    width: min(100%, 22rem);
+  }
   .catalog-controls {
     gap: 28px;
   }

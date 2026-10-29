@@ -92,3 +92,6 @@ above and has not been applied to a production database during this work.
 
 Independent combined source and evidence review accepted measured revision `52a18565`,
 including Sonar finding closure and report observation, with no outstanding findings.
+
+
+For application revisions containing the public title ordering migration V027, the Catalog runtime requires schema 27. The identity-conversion checkpoint at Catalog 26 above remains that procedure’s target; afterward apply the normal Catalog migrations through V027 before starting the updated application. Do not lower the runtime readiness range or skip migration validation.

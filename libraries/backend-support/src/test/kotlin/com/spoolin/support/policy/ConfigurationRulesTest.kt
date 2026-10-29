@@ -23,7 +23,7 @@ class ConfigurationRulesTest {
                 "SIGNIN_SOURCE" to (60 to 900),
                 "REGISTER" to (5 to 3600),
                 "MUTATION" to (60 to 60),
-                "READ" to (120 to 60),
+                "READ" to (2400 to 60),
             ).flatMap { (profile, values) ->
                 listOf(
                     IntegerSetting("RATE_LIMIT_${profile}_MAX_REQUESTS", values.first, 1, 2147483647, "requests"),

@@ -48,6 +48,7 @@ class TitleSearchSql(
         val endDay: Int?,
         val assetId: UUID?,
         val version: Long,
+        val createdAt: java.time.Instant = java.time.Instant.EPOCH,
     )
 
     data class TitlePage(
@@ -64,6 +65,7 @@ class TitleSearchSql(
         month: Int?,
         first: Int,
         after: CatalogCursor.Keyset?,
+        sort: TitleOrdering = TitleOrdering.RELEASE_DESC,
     ): TitlePage {
         val limit = ReadPolicy(policy()).pageSize(first)
         val params = mutableListOf<Any?>()
@@ -119,10 +121,10 @@ class TitleSearchSql(
 
         // Keyset continuation
         if (after != null) {
-            where.add(keysetCondition(after, params))
+            where.add(sort.after(resolveTitleAnchor(after, sort), params))
         }
 
-        val sql = buildQuery(where, limit + 1)
+        val sql = buildQuery(where, limit + 1, sort)
         val rows =
             dataSource.connection.use { conn ->
                 conn.queryBound(sql, params) { rs -> readRow(rs) }
@@ -138,6 +140,7 @@ class TitleSearchSql(
                     releaseMonth = it.releaseMonth,
                     releaseDay = it.releaseDay,
                     id = it.id,
+                    sortValue = sort.value(it),
                 )
             }
         return TitlePage(page, keyset, hasNext)
@@ -176,81 +179,31 @@ class TitleSearchSql(
         }
     }
 
-    // ── keyset continuation ───────────────────────────────────────────────────
+    private fun resolveTitleAnchor(
+        key: CatalogCursor.Keyset,
+        sort: TitleOrdering,
+    ): CatalogCursor.Keyset {
+        if (key.sortHash == null) return key
+        require(sort == TitleOrdering.TITLE_ASC || sort == TitleOrdering.TITLE_DESC) { "INVALID_CURSOR" }
+        val title = findById(key.id)?.displayTitle
+        require(title != null && TitleCursorValue.hash(title) == key.sortHash) { "INVALID_CURSOR" }
+        return key.copy(sortValue = title, sortHash = null)
+    }
 
-    /**
-     * Keyset predicate for DESC NULLS LAST date ordering, ASC UUID tie-break.
-     *
-     * Ordering: (year DESC NULLS LAST, month DESC NULLS LAST, day DESC NULLS LAST, id ASC)
-     * NULL in any date field means "unknown" and sorts LAST in each DESC column.
-     *
-     * After cursor at (y0, m0, d0, id0), a row (y, m, d, id) is on a later page when:
-     *   - y < y0 (strictly earlier year → comes after y0 in DESC)
-     *   - y IS NULL (null year always comes last)
-     *   - y = y0 AND (m < m0 OR m IS NULL or [further keyset for same month])
-     *
-     * Key invariant: if a field is NULL in the cursor, all rows with that field NOT NULL
-     * within the same parent context have already appeared (they sort before NULL).
-     */
     internal fun keysetCondition(
         after: CatalogCursor.Keyset,
         params: MutableList<Any?>,
-    ): String {
-        val y = after.releaseYear
-        val m = after.releaseMonth
-        val d = after.releaseDay
-        val id = after.id
-
-        return when {
-            y != null && m != null && d != null -> {
-                // Full-date cursor: (y0, m0, d0, id0)
-                params.addAll(listOf(y, y, m, y, y, m, d, y, m, y, m, d, id))
-                """(t.release_year < ?
-                   OR t.release_year IS NULL
-                   OR (t.release_year = ? AND t.release_month < ?)
-                   OR (t.release_year = ? AND t.release_month IS NULL)
-                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day < ?)
-                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day IS NULL)
-                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day = ? AND t.id > ?))"""
-            }
-            y != null && m != null -> {
-                // Year+month cursor, unknown day: (y0, m0, null, id0)
-                // Rows with day IS NOT NULL at (y0, m0) came before this cursor; exclude them.
-                params.addAll(listOf(y, y, m, y, y, m, id))
-                """(t.release_year < ?
-                   OR t.release_year IS NULL
-                   OR (t.release_year = ? AND t.release_month < ?)
-                   OR (t.release_year = ? AND t.release_month IS NULL)
-                   OR (t.release_year = ? AND t.release_month = ? AND t.release_day IS NULL AND t.id > ?))"""
-            }
-            y != null -> {
-                // Year-only cursor, unknown month: (y0, null, null, id0)
-                // Rows with month IS NOT NULL at y0 came before this cursor; exclude them.
-                params.addAll(listOf(y, y, id))
-                """(t.release_year < ?
-                   OR t.release_year IS NULL
-                   OR (t.release_year = ? AND t.release_month IS NULL AND t.id > ?))"""
-            }
-            else -> {
-                // Unknown-year cursor: (null, null, null, id0)
-                // All rows with a known year came before; only null-year rows after UUID.
-                params.add(id)
-                "(t.release_year IS NULL AND t.id > ?)"
-            }
-        }
-    }
+    ): String = TitleOrdering.RELEASE_DESC.after(after, params)
 
     private fun buildQuery(
         where: List<String>,
         limit: Int,
+        sort: TitleOrdering,
     ): String =
         """SELECT $TITLE_COLUMNS
            FROM title t
            WHERE ${where.joinToString(" AND ")}
-           ORDER BY t.release_year DESC NULLS LAST,
-                    t.release_month DESC NULLS LAST,
-                    t.release_day DESC NULLS LAST,
-                    t.id ASC
+           ORDER BY ${sort.orderBy()}
            LIMIT $limit"""
 
     companion object {
@@ -277,6 +230,7 @@ class TitleSearchSql(
                 endDay = rs.getObject("end_day") as? Int,
                 assetId = rs.getObject("asset_id")?.let { UUID.fromString(it.toString()) },
                 version = content.version,
+                createdAt = rs.getTimestamp("created_at")?.toInstant() ?: java.time.Instant.EPOCH,
             )
         }
 
@@ -284,6 +238,6 @@ class TitleSearchSql(
             "t.id, t.kind, t.status, t.display_title, t.original_title, t.synopsis, " +
                 "t.synopsis_language, t.original_language, t.countries, t.release_year, " +
                 "t.release_month, t.release_day, t.release_context, t.runtime_minutes, " +
-                "t.tv_status, t.end_year, t.end_month, t.end_day, t.asset_id, t.version"
+                "t.tv_status, t.end_year, t.end_month, t.end_day, t.asset_id, t.version, t.created_at"
     }
 }

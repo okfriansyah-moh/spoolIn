@@ -11,6 +11,11 @@
    * - Missing artwork falls back to ArtworkSlot placeholder.
    */
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import {
+    readCatalogReturn,
+    plainNavigation,
+  } from '../../../lib/features/catalog/return-context';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   import { createTransport } from '../../../lib/transport/graphql';
@@ -30,6 +35,21 @@
     | { kind: 'unavailable'; id: string }
     | { kind: 'failure' }
     | { kind: 'movie' | 'tv'; title: CatalogTitleDetail };
+
+  const catalogReturn = $derived(
+    readCatalogReturn(page.state, page.url, resolve('/')),
+  );
+  function returnToCatalog(event: MouseEvent) {
+    if (!catalogReturn || !plainNavigation(event)) return;
+    event.preventDefault();
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- readCatalogReturn validates this same-origin catalog URL including retained criteria
+    void goto(catalogReturn.url, {
+      state: {
+        catalogCursor: catalogReturn.catalogCursor,
+        catalogPages: catalogReturn.catalogPages,
+      },
+    });
+  }
 
   let titleState = $state<State>({ kind: 'loading' });
 
@@ -144,10 +164,12 @@
 <svelte:head>
   <title>{documentTitle}</title>
 </svelte:head>
-
 <div class="title-page">
   <nav class="detail-breadcrumb" aria-label="Breadcrumb">
-    <a href={resolve('/')}>← Catalog</a>
+    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- validated same-origin catalog return context -->
+    <a href={catalogReturn?.url ?? resolve('/')} onclick={returnToCatalog}
+      >Return to catalog</a
+    >
   </nav>
 
   {#if titleState.kind === 'loading'}
@@ -158,7 +180,6 @@
     <div class="unavailable">
       <h1 tabindex="-1">This title is unavailable</h1>
       <p>The title you requested is no longer available.</p>
-      <a href={resolve('/')}>Return to catalog</a>
     </div>
   {:else if titleState.kind === 'failure'}
     <div role="alert" class="failure">
@@ -167,7 +188,6 @@
       <button type="button" onclick={() => loadTitle(page.params.id)}
         >Retry title</button
       >
-      <a href={resolve('/')}>Return to catalog</a>
     </div>
   {:else if titleState.kind === 'movie'}
     <article

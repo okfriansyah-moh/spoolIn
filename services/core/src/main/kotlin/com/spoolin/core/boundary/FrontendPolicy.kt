@@ -15,6 +15,6 @@ object FrontendPolicy {
                     "'sha256-${Base64.getEncoder().encodeToString(hash)}'"
                 }.distinct()
                 .joinToString(" ")
-        return "default-src 'self'; script-src 'self' $hashes; object-src 'none'; frame-ancestors 'none'"
+        return "default-src 'self'; img-src 'self' blob:; script-src 'self' $hashes; object-src 'none'; frame-ancestors 'none'"
     }
 }

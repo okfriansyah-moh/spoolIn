@@ -9,6 +9,8 @@
 | Phase | PRD + brainstorming + design system + techdoc → this ATDD → separately requested dependency-ordered tickets → implementation in chunks |
 | Sole deliverable | `docs/05-atdd.md`; governing sources are preserved |
 
+**Catalog follow-up, 28 October 2026:** ATDD-008 and F-ORDER include six sort directions, Previous/Next, retained history and recovery. Fresh acceptance is Not Run.
+
 [Approach and fixtures](#approach-and-fixtures) · [UI reference index](#ui-reference-index) · [Case index](#case-index) · [Gaps and prerequisites](#gaps-and-prerequisites) · [Source register](#source-register) · [Bidirectional coverage](#bidirectional-coverage) · [Evidence and maintenance](#evidence-and-maintenance)
 
 **Seed revision, 18 October 2026:** The current request supersedes the earlier open-license-only sourcing criterion. Seed cases use the frozen public-page package with 100 movies, 100 TV series and 200 matched posters, attributed source links and supplied rights information; no provider API/account or startup network fetch is required. Focused verification consists of one package validation, a small invalid-input/retry/preservation/recovery regression set, one fresh installation and one upgrade smoke, a batch poster response check, and one movie/TV detail inspection. Existing broader release cases remain unexecuted unless separately evidenced; this change does not claim a full acceptance sweep.
@@ -96,7 +98,7 @@ Use a fixed test namespace UUID `c1bb0e81-232b-5f83-9d73-a5273dcac001`; derive f
 | P-A / P-B / P-C | Shared people Alex / Alex / V; P-A ACTIVE, P-B ARCHIVED, P-C ACTIVE; names do not merge IDs |
 | Credits | P-A Actor and Director on M-A, Writer on M-B and Actor onTV-C; P-B retained Actor onM-A; each row establishes/removes its own relationships |
 | Starter roles | CAST Actor allows characters; CREATOR Director/Writer/Producer; custom roles default characters=false |
-| F-ORDER additions | Same-year full date/month-only/year-only, older year, unknown date and equal-date UUID ties; exact sort year/month/day DESC NULLS LAST, UUID ASC |
+| F-ORDER additions | Same-year full date/month-only/year-only, older year, unknown date and equal-date UUID ties; mixed-case/Unicode and duplicate display titles; creation instants independent of release dates with microsecond and UUID ties. Exercise all six orders; default year/month/day DESC NULLS LAST, UUID ASC. |
 
 F-FILTER is the M-A/M-B/TV-C/U-D subset of F-CATALOG. Hand-check filter oracles: with M-A/M-B/TV-C/U-D baseline, year 2024 returns M-A, M-B, TV-C; October2024 returns M-A, TV-C; MOVIE+Drama+October2024 returns M-A. Genre selections use OR and separate categories use AND. Same-name records remain independent. Public P-B credits never appear; F-LIFECYCLE uses the lifecycle truth table: both ACTIVE→visible, any archived endpoint→private. Unknown optional context never becomes zero, fabricated January1 or guessed artwork.
 
@@ -245,7 +247,7 @@ Use independently reset literal payloads in every reachable schema-valid text fi
 
 ### F-RATE: configurable shared admission
 
-The five profiles are SIGNIN_ACCOUNT10/900s, SIGNIN_SOURCE60/900s, REGISTER5/3600s, MUTATION60/60s and READ120/60s. Each has `RATE_LIMIT_<PROFILE>_MAX_REQUESTS` and `RATE_LIMIT_<PROFILE>_WINDOW_SECONDS`. MAX_REQUESTS is1..2147483647 and WINDOW_SECONDS1..86400; both are positive bounded integers. RATE_LIMIT_KEY_FILE is a protected32-byte Core secret. MCP_RATE_LIMIT_MAX_BINDINGS defaults1024 with range1..100000, no live eviction; capture actual resolved values and policy before execution. Test each selected lower/upper bound−1/bound/bound+1 and precedence by presence;0, negative, fraction, overflow, whitespace and malformed values are invalid. Two Core replicas share actual PostgreSQL atomic counters with keyed trusted dimensions and persisted windows. Prepare one remaining slot and synchronized contenders; examine admitted responses and no business effect/receipt for refusal. Public catalog/session/policy/public-artwork reads use trusted source scope even when signed in; protected reads/private artwork and all MCP gateway reads use verified credential scope, while browser/gateway writes use MUTATION credential scope. Sign-in checks both independently keyed account and source profiles in one sorted short transaction; if one denies, available companion attempt capacity is conservatively consumed without hashing or a business receipt; registration uses trusted source. Mixed GraphQL queries satisfy every distinct(profile, trusted scope/key) once and repeated aliases cannot bypass cost/depth/field limits; no caller can choose the profile or internal exemption. RATE_LIMIT_KEY_FILE is stable across ordinary restart and never shared with MCP; private profile revision and nonlogged HMAC-canary agreement prevent independent replica quotas. MAX changes apply to existing same-duration buckets; WINDOW changes start explicitly aligned new-duration buckets with no cross-revision cumulative promise. Fixed-window boundaries may admit on both sides and are not rolling windows. Adapter-local request/concurrency/message budgets complement Core quotas: keep counters across session deletion/reconnect, expire entries only after twice their applicable windows and never evict live bindings at capacity. Process restart may reset only local counters, not the authoritative Core quotas. Verified workers/probes use separate identity/concurrency/deadline controls. Limiter outage is UNAVAILABLE/HTTP503, never unlimited or a successful empty response. Quota gRPC feedback includes spoolin-error-code=RATE_LIMITED and spoolin-retry-after-ms1..86400000 mapped to existing Problem; HTTP429 includes Retry-After, resource JSON-RPC-32000 includes safe data Problem where the selected resource contract applies.
+The five profiles are SIGNIN_ACCOUNT10/900s, SIGNIN_SOURCE60/900s, REGISTER5/3600s, MUTATION60/60s and READ2400/60s. Each has `RATE_LIMIT_<PROFILE>_MAX_REQUESTS` and `RATE_LIMIT_<PROFILE>_WINDOW_SECONDS`. MAX_REQUESTS is1..2147483647 and WINDOW_SECONDS1..86400; both are positive bounded integers. RATE_LIMIT_KEY_FILE is a protected32-byte Core secret. MCP_RATE_LIMIT_MAX_BINDINGS defaults1024 with range1..100000, no live eviction; capture actual resolved values and policy before execution. Test each selected lower/upper bound−1/bound/bound+1 and precedence by presence;0, negative, fraction, overflow, whitespace and malformed values are invalid. Two Core replicas share actual PostgreSQL atomic counters with keyed trusted dimensions and persisted windows. Prepare one remaining slot and synchronized contenders; examine admitted responses and no business effect/receipt for refusal. Public catalog/session/policy/public-artwork reads use trusted source scope even when signed in; protected reads/private artwork and all MCP gateway reads use verified credential scope, while browser/gateway writes use MUTATION credential scope. Sign-in checks both independently keyed account and source profiles in one sorted short transaction; if one denies, available companion attempt capacity is conservatively consumed without hashing or a business receipt; registration uses trusted source. Mixed GraphQL queries satisfy every distinct(profile, trusted scope/key) once and repeated aliases cannot bypass cost/depth/field limits; no caller can choose the profile or internal exemption. RATE_LIMIT_KEY_FILE is stable across ordinary restart and never shared with MCP; private profile revision and nonlogged HMAC-canary agreement prevent independent replica quotas. MAX changes apply to existing same-duration buckets; WINDOW changes start explicitly aligned new-duration buckets with no cross-revision cumulative promise. Fixed-window boundaries may admit on both sides and are not rolling windows. Adapter-local request/concurrency/message budgets complement Core quotas: keep counters across session deletion/reconnect, expire entries only after twice their applicable windows and never evict live bindings at capacity. Process restart may reset only local counters, not the authoritative Core quotas. Verified workers/probes use separate identity/concurrency/deadline controls. Limiter outage is UNAVAILABLE/HTTP503, never unlimited or a successful empty response. Quota gRPC feedback includes spoolin-error-code=RATE_LIMITED and spoolin-retry-after-ms1..86400000 mapped to existing Problem; HTTP429 includes Retry-After, resource JSON-RPC-32000 includes safe data Problem where the selected resource contract applies.
 
 The accepted benchmark keeps its warmup/duration/read/write recipe, but an isolated measurement profile must have explicitly recorded higher valid positive quotas so baseline requests measure the selected operations rather than mostly throttles. Do not disable admission, hide429/errors or change production defaults. Report throttles and invalidate an admission-dominated budget run; abuse-control cases use separate quota fixtures.
 
@@ -1043,7 +1045,7 @@ Then Show no matches first; clearing removes only the text restriction and prese
 
 **Preconditions:** Create a new isolated F-STACK installation with the named fixtures and boundary enabled.
 
-**Test data:** F-ORDER: year 2024 fulldateOct09, monthOct, year-only, year 2023, all-unknown; tie UUIDs ascending. Fetch first=2 to last page and repeat unchanged.
+**Test data:** F-ORDER: year 2024 fulldateOct09, monthOct, year-only, year 2023, all-unknown; tie UUIDs ascending. Fetch first=2 to last page and repeat unchanged. Test all six TitleSort values, omitted/default values and invalid input, duplicate/mixed-case/Unicode titles (including quotes, backslashes and 255-code-point supplementary names), and equal/microsecond-separated creation timestamps. Added order must differ from release/update order.
 
 **Expected UI:** `/`; [catalog](design-system/mockup/discovery.html#catalog), [catalog-invalid](design-system/mockup/discovery.html#catalog-invalid). Stable cards and page controls reflect actual date precision; invalid navigation input receives correction with criteria retained.
 
@@ -1052,10 +1054,15 @@ Then Show no matches first; clearing removes only the text restriction and prese
 ```gherkin
 Given Results include ties, partial dates, and unknown dates
 When The reader browses results repeatedly
-Then Titles default to newest release context first, unknown dates last; equal input/data have consistent ordering without navigation duplication. Show correction for input outside supported limits. Search length follows section 5.5; navigation and other query limits are techdoc work.
+Then Titles default to newest release context first, unknown date components last in both date directions
+And Each of the six sorting modes traverses unchanged data without duplicates or omissions and breaks ties by UUID ascending
+And Previous and Next replace the grid, show the current page, retain criteria and focus the results heading
+And Changing sort or filters resets page one, while Back, Forward, reload and detail return restore the page and criteria
+And Failed moves retain the successful page with directional retry; expired cursors offer restart with criteria retained
+And An empty later page keeps Previous and restart; sorting alone does not turn an empty catalog into a no-match result
 ```
 
-**Verification:** Record full sort tuples and UUIDs across first=2 pages and unchanged repeat; focus/back navigation and next-page state follow the real pageInfo. Execute every Test data row independently at this case’s stated real boundary and retain its sanitized response/state evidence; controlled faults do not substitute for real owner enforcement.
+**Verification:** Exercise first/middle/last boundaries, Next/Previous round trips, unavailable buttons, concurrent clicks, criteria edits during reads, stale responses, cross-sort cursor rejection, old valid default cursors, empty later pages, retained failures/retry, copied URLs, and narrow-screen/keyboard behavior. Confirm existing search/genre/year/month/access rules and other list pagination are unchanged. New sorting/navigation acceptance remains Not Run until observed at its required boundaries. Record full sort tuples and UUIDs across first=2 pages and unchanged repeat; focus/back navigation and next-page state follow the real pageInfo. Execute every Test data row independently at this case’s stated real boundary and retain its sanitized response/state evidence; controlled faults do not substitute for real owner enforcement.
 
 **Cleanup:** Apply [C-RESET](#c-reset-shared-cleanup) to this independently isolated fixture after recording its sanitized evidence; no runtime reset for document-only review.
 
@@ -14225,21 +14232,21 @@ Exact current source fingerprints, including final coordinated techdoc 1.11. Sou
 
 | Source | Location | SHA-256 |
 | --- | --- | --- |
-| SRC-PRD | [02-PRD.md](02-PRD.md) | d31018db43b0b2bc4ead0b7bbd3fd6a32d2e2c232fbe5720a6205d2b7676e895 |
-| SRC-BRAIN | [01-brainstorming-result.md](01-brainstorming-result.md) | 2450ae03d7772787ffb5271d9eab3dac6d54aff67ac8d1e6ceb68d87b491f161 |
-| SRC-TECH | [04-spoolin-techdoc.md](04-spoolin-techdoc.md) | 336d543aa14040ec4c0e0abf3cd2f0eb7b0f60ac2b6a1a3fb1c35f3b3b0bd4b2 |
-| SRC-TECH-PROMPT | [prompts/techdoc-creation.md](prompts/techdoc-creation.md) | fc0a58563c9b9e735903e6430ec86ad77f7dc10ecdc28d5dc7ea68fe90cdc6e7 |
-| SRC-ATDD-PROMPT | [prompts/atdd-creation.md](prompts/atdd-creation.md) | 6f9027d220b163585f62befa50e913ed81dc97f164b84940d7116e339f762131 |
+| SRC-PRD | [02-PRD.md](02-PRD.md) | 745664ced1899c3d409fc0ab321d05d132e4897bd2dc8d4ea4c238491f668d77 |
+| SRC-BRAIN | [01-brainstorming-result.md](01-brainstorming-result.md) | 13b5808bbc52bfb590bba17f72f5ecb5c4bad40703b4dadd1583721960769c17 |
+| SRC-TECH | [04-spoolin-techdoc.md](04-spoolin-techdoc.md) | bb08a944d4b044ce557680469677b7ea199675d95a085e7c09e5cc7dac1cc8b8 |
+| SRC-TECH-PROMPT | [prompts/techdoc-creation.md](prompts/techdoc-creation.md) | e4687b76ac2824b0be2200e302d163e3ae19f8f005b0eb06eaa2af687880749e |
+| SRC-ATDD-PROMPT | [prompts/atdd-creation.md](prompts/atdd-creation.md) | da2f345dd2967cb2e89d1cb13b1ab8cbd5d9f22c69233a0073f00378978060d2 |
 | SRC-DS-01 | [design-system/brand-history.md](design-system/brand-history.md) | dfaee90462fc4d8858484c2d9348391536389e70ce624315aa71202855d00eba |
-| SRC-DS-02 | [design-system/components.md](design-system/components.md) | 380bcda52875a540c837c0a4e3dc1da768e683dad34c88ce68a7d56428763a8e |
+| SRC-DS-02 | [design-system/components.md](design-system/components.md) | 863b897dd73de598a09fd22563551aa68ab2139cfe46b25aeae81c99337d1ba1 |
 | SRC-DS-03 | [design-system/contrast.json](design-system/contrast.json) | 906aac8dfc144b9a7c25ecad33345ca9d2841c29f1619749d37969ec1121a87f |
-| SRC-DS-04 | [design-system/coverage.json](design-system/coverage.json) | 7029e44e15817319e764cf26f01e9446b42d462e7779f65236ff34f4a099b52c |
-| SRC-DS-05 | [design-system/coverage.md](design-system/coverage.md) | 7c53617473f52c4bac3034c1d70bf6a4cd610d926beb9dc2527ad1f375564df4 |
-| SRC-DS-06 | [03-design-system.md](03-design-system.md) | 585b222d387bc113d8ee63ddda0f08729b970037252ad02eb076b39098411113 |
-| SRC-DS-07 | [design-system/index.md](design-system/index.md) | 02b14ff599491bfbc100fc943e7b441df12b61604f4b84b2ec91ebbc47c6a79b |
+| SRC-DS-04 | [design-system/coverage.json](design-system/coverage.json) | 0f153639a1fa6fd175d251ce97d7b33b2875ed1230745425d94ef12a4c9e898a |
+| SRC-DS-05 | [design-system/coverage.md](design-system/coverage.md) | 964c891dbdb394ed658273d8a07b4d9a39447a75ac4c963190979f76da423158 |
+| SRC-DS-06 | [03-design-system.md](03-design-system.md) | 9bc0a72380c765cfe6e9f23089640fc98c2effd4206acf379468018ba51344ec |
+| SRC-DS-07 | [design-system/index.md](design-system/index.md) | 448725ac9bcc8d83b6792202bf44270a89ed925a71ac01c15cd18129ab3ba05a |
 | SRC-DS-08 | [design-system/mockup/account.html](design-system/mockup/account.html) | ece3fe085ffc951a9dfb02b761f964e11118d229f6637bccfae6263015bf400a |
 | SRC-DS-09 | [design-system/mockup/ai.html](design-system/mockup/ai.html) | b2c78e2099f8330cf8c5e5e2803dc3773e5b2ae85911700d6ae58d8543077156 |
-| SRC-DS-10 | [design-system/mockup/app.js](design-system/mockup/app.js) | 927fadd73b6b698fcc357cbef0da33dbb433159c79a4c0f256903750e93a99b3 |
+| SRC-DS-10 | [design-system/mockup/app.js](design-system/mockup/app.js) | 0ef35c4398822d0d2975e0f9d656e89d1f762b6bedc02721512835922d79e88d |
 | SRC-DS-11 | [design-system/mockup/archives.html](design-system/mockup/archives.html) | e63c6a843f9d59788dd1282c728eb7192344184c27dc2c93aa574f8aa78f6bfa |
 | SRC-DS-12 | [design-system/mockup/artwork.html](design-system/mockup/artwork.html) | c8e67eb13c28e2f2c4f17dcd81ffb75fdba2cc14bf30592e557de4691d75b8ef |
 | SRC-DS-13 | [design-system/mockup/assets/artwork-provenance.json](design-system/mockup/assets/artwork-provenance.json) | c522be6e9d9b1e0a4385d6fe6eb89f66f778038110eb8aa5a03a16f0a4803b6b |
@@ -14254,7 +14261,7 @@ Exact current source fingerprints, including final coordinated techdoc 1.11. Sou
 | SRC-DS-22 | [design-system/mockup/components.js](design-system/mockup/components.js) | a125092e99e82fb9eadac41b77b76958e217df944109c8eda651748c607d661f |
 | SRC-DS-23 | [design-system/mockup/credits.html](design-system/mockup/credits.html) | 10e90349a8b7a98cbf20cf41d3c6186c6bbe689e42baa2a4386534edb80863ac |
 | SRC-DS-24 | [design-system/mockup/details.html](design-system/mockup/details.html) | 22eee407ac91c4a39e6108dbcd68f7c059ecaeca9a7ac0e10425a39c915feccb |
-| SRC-DS-25 | [design-system/mockup/discovery.html](design-system/mockup/discovery.html) | 8a220cbb0f0306494aa62b1440c75c6712cd1d6c420a7665d20c6b20e1899e17 |
+| SRC-DS-25 | [design-system/mockup/discovery.html](design-system/mockup/discovery.html) | e511ace7699cf709d57c4b023a42242777d05ef80b35c0e9578db904f883ffdc |
 | SRC-DS-26 | [design-system/mockup/docs.css](design-system/mockup/docs.css) | 0b1beb805445306f76810ac05a1fa846b281ca00141e04af421683c5f952e698 |
 | SRC-DS-27 | [design-system/mockup/index.html](design-system/mockup/index.html) | 82f513b5982cc8141e1c058f22415d7de632ccb1e83ca0e7f00c9f089da2afbf |
 | SRC-DS-28 | [design-system/mockup/management.html](design-system/mockup/management.html) | a3d247de6c6073d581bf0d88fa8f87f0727ef3c0d843bd23d74420ade1066059 |
@@ -14265,7 +14272,7 @@ Exact current source fingerprints, including final coordinated techdoc 1.11. Sou
 | SRC-DS-33 | [design-system/mockup/theme.js](design-system/mockup/theme.js) | 1d6ae3fe7138b56c4169ac988045d0bb9ae21cc86fc849f5b6c35d10f68c5138 |
 | SRC-DS-34 | [design-system/mockup/tokens.css](design-system/mockup/tokens.css) | 9d79a52abd67e466935e3749505dd4b8348a98ab873e898e9479903c10ddd0aa |
 | SRC-DS-35 | [design-system/tokens.json](design-system/tokens.json) | 459d60d53f830bf72b8bec0b269b090271f715816c3b21a897b4cf6183757029 |
-| SRC-DS-36 | [design-system/verification.md](design-system/verification.md) | 9be2958bc9d70a0ba48928f416ab14e2aa0795a988e1cdb0bc6568b6d722c645 |
+| SRC-DS-36 | [design-system/verification.md](design-system/verification.md) | e25314300c966f21dae4466d7311543f251ec10ca737d789dd7e68aa49aebf33 |
 | SRC-ASVS5-COOKIE | [https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x12-V3-Web-Frontend-Security.md](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x12-V3-Web-Frontend-Security.md) | ebf817627a4bd1013325cb65c0314116aed6bacd10daab7752b654c2d656e0f1 |
 | SRC-ASVS5-DATA | [https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x23-V14-Data-Protection.md](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x23-V14-Data-Protection.md) | fa2146524d58b94e16506701cd469dcc5452ad919cade22240141cefee76fb50 |
 | SRC-ASVS5-SESSION | [https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md) | 7e2142956622c56c3c5ea204a19aa3e40abed7eb9f1617fc223104d491cce930 |
@@ -15958,3 +15965,13 @@ Revision 1.6 preserves all 338 existing case IDs/Gherkin outcomes,140 Expected U
 Revision 1.7 corrects ATDD-278 under the approved documentation update to match PRD optional clearing (line196) and techdoc §5.1.6 (line1676): omission preserves optional text, while explicit null or trimmed blank clears it. Empty-string and whitespace-only fixtures make both blank forms explicit. Required-genre rejection and ordered character replacements are unchanged. All 342 case IDs and Not Run statuses are retained, with no retirements or application execution; no previous passing evidence exists to reclassify. Plan GAP-01 is resolved by this source correction.
 
 Revision 1.8 adds thematic breaks between complete cases and major sections for reading. All 342 case IDs, scenarios, source mappings, UI expectations and Not Run statuses remain unchanged; this is a layout update. Cached source fingerprints are refreshed after reviewing the prior wording and documentation-path changes.
+
+
+### ATDD-008 recovery regression follow-up
+
+New browser acceptance remains pending: traverse to page four and return through Previous under a temporary 429; retain rows during the server delay, then recover the requested page. Change sorts rapidly and assert only current results and visible artwork survive. Verify two-download concurrency, cancellation, temporary retry versus terminal missing artwork, and at least 1rem spacing between wrapped navigation/recovery controls at desktop and mobile widths. Preserve existing search, filters, title links and history.
+
+
+### Read budget regression follow-up
+
+New acceptance remains pending: verify effective READ2400/60s in Core and MCP, allow a default human browsing burst beyond the former 120-read boundary, and reject the request after the configured limit. Confirm custom limits still take precedence and write/auth profiles retain their existing values. A temporary title-detail 429 must wait and retry, honor cancellation, and retain the two-attempt cap.
